@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+
+    "name": "Entropia Flow",
+    "description": "This extension tracks your Entropia Universe activity",
+    "version": "0.0.1",
+    "icons": {
+        "128": "img/flow128.png"
+    },
+
+    "content_scripts": [{
+        "js": [
+            "content.js"
+        ],
+        "matches": [
+            "https://account.entropiauniverse.com/account/my-account/*"
+        ]
+    }],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {},
+    "permissions": [
+        "alarms",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://apps5.genexus.com/EntropiaFlow/*"
+    ]
+}

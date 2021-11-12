@@ -1,0 +1,316 @@
+$primary-color: darkblue;
+// Chrome applies an 8px margin by default (gross).
+body {
+    margin: 0px;
+}
+
+// Navigation
+nav {
+    height: 40px;
+    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+}
+
+nav div {
+    margin: 2px;
+    padding: 13px;
+    display: inline;
+}
+
+nav div img {
+    height: 20px;
+}
+
+nav div strong {
+    vertical-align: middle;
+    margin-left: 5px;
+    font-size: larger;
+}
+
+nav button {
+    margin-left: 15px;
+    padding: 12px;
+    color: black;
+    border-radius: 0px;
+    background-color: white;
+    border: none;
+}
+
+.selected-menu {
+    border-top: 3px black solid;
+    padding-top: 10px;
+    border-top-left-radius: 1px;
+    border-top-right-radius: 1px;
+    background-color: whitesmoke;
+}
+
+// General
+section {
+    background: ghostwhite;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 15px;
+    display: inline-block
+}
+
+.inline {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.block {
+    display: block;
+}
+
+table tr td img {
+    height: 12px;
+    margin: 5px;
+}
+
+img {
+    vertical-align: middle;
+}
+
+// Auction
+form {
+    display: grid;
+    grid-template-columns: 85px 50px 30px;
+    grid-gap: 10px;
+}
+
+.grid-output {
+    display: grid;
+    grid-template-columns: 150px 45px;
+    grid-gap: 15px;
+    margin-top: 15px;
+}
+
+.calc-output {
+    display: grid;
+    grid-template-columns: 85px 65px;
+    grid-gap: 5px;
+}
+
+.main-output {
+    font-size: larger;
+}
+
+form label {
+    text-align: end;
+}
+
+.img-loading {
+    height: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.actives tr td {
+    text-align: center;
+}
+
+// Inventory
+.info {
+    color: grey;
+}
+
+.error {
+    color: red;
+}
+
+.date {
+    color: black;
+    font-size: 14px;
+}
+
+.requested {
+    font-style: italic;
+}
+
+.last {
+    font-weight: bold;
+}
+
+.table-diff {
+    background-color: ghostwhite;
+    border-radius: 4px;
+    margin-left: 40px;
+    margin-top: -5px;
+}
+
+.table-diff tr td {
+    padding-left: 7px;
+    padding-right: 7px;
+    cursor: default;
+}
+
+.table-diff tr td img {
+    display: none;
+}
+
+.table-diff tr td:hover img,
+.table-diff tr td img[data-show] {
+    display: inline;
+}
+
+.table-diff tr td input {
+    width: 50px;
+}
+
+.table-diff tr td:nth-child(2),
+.table-diff tr td:nth-child(3) {
+    text-align: right;
+}
+
+p .img-up {
+    display: none;
+}
+
+p:hover .img-up {
+    display: inline;
+}
+
+p .img-info {
+    display: none;
+}
+
+p:hover .img-info {
+    display: inline;
+}
+
+.difference {
+    background-color: black;
+    color: white;
+    border-radius: 8px;
+    padding: 8px;
+    margin-left: 20px;
+    font-size: 14px;
+}
+
+.positive {
+    background-color: green;
+}
+
+.negative {
+    background-color: red;
+}
+
+.img-refresh {
+    height: 20px;
+    margin-right: 10px;
+}
+
+.img-delta-zero {
+    height: 15px;
+    margin-left: 10px;
+}
+
+.img-warning {
+    height: 25px;
+    margin-left: 10px;
+}
+
+.img-about {
+    height: 50px;
+    margin-right: 10px;
+}
+
+.img-up {
+    margin-left: 8px;
+    font-weight: normal;
+    font-style: normal;
+    cursor: default;
+}
+
+.img-up img {
+    height: 10px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
+
+.img-info {
+    height: 15px;
+    margin-left: 5px;
+    font-weight: normal;
+    font-style: italic;
+    border-radius: 15px;
+    border-width: 1px;
+    border-style: solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    cursor: default;
+}
+
+.label-up {
+    background-color: black;
+    color: white;
+    margin-left: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-weight: normal;
+    font-style: normal;
+    border-radius: 8px;
+}
+
+h1 img {
+    height: 10px;
+    margin-left: 5px;
+}
+
+h1 .hide {
+    display: none;
+}
+
+h1:hover .hide {
+    display: inline;
+}
+
+// buttons
+button {
+    border: none;
+    background-color: green;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+button:active {
+    background-color: grey;
+}
+
+.button-timer {
+    margin: 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.button-diff {
+    background-color: lightsteelblue;
+    border-style: none;
+    border-radius: 10px;
+    margin-right: 5px;
+    padding: 0px;
+    width: 22px;
+}
+
+.button-with-actions {
+    background-color: green;
+    color: white;
+}
+
+.button-with-warning {
+    background-color: yellow;
+    color: black;
+}
+
+.start {
+    background-color: green;
+}
+
+.stop {
+    background-color: red;
+}

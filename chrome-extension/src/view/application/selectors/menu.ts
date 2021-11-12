@@ -1,0 +1,1 @@
+export const getSelectedMenu = state => state.menu
