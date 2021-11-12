@@ -1,8 +1,12 @@
 // Mind Essence Log Detector
 
+import { SHOW_AUCTION_PAGE } from "../../../config";
 import { LME_SOLD, ME_SOLD, ViewItemData } from "../state/history";
 
 function addMindEssenceLogAction(diff: Array<ViewItemData>) {
+    if (!SHOW_AUCTION_PAGE)
+        return
+
     for (let inv of diff) {
         let q = Number(inv.q)
         if (inv.n === 'Mind Essence'
