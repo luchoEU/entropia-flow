@@ -2,8 +2,8 @@
     "manifest_version": 3,
 
     "name": "Entropia Flow",
-    "description": "This extension tracks your Entropia Universe activity",
-    "version": "0.0.2",
+    "description": "This extension help you see your returns in Entropia Universe",
+    "version": "0.0.3",
     "icons": {
         "128": "img/flow128.png"
     },

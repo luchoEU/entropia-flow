@@ -67,10 +67,16 @@ async function wiring(
     // links
     contentTabManager.onMessage = (c, m) => viewStateManager.setStatus(c, m)
     contentPortManager.onConnect = async (port) => {
-        await alarms.start()
         await contentTabManager.onConnect(port)
         const on = await alarmSettings.isAutoRequestOn()
         await contentTabManager.setStatus(on)
+        if (on) {
+            // if monitoring is on do the request inmediatly
+            await contentTabManager.requestItems()
+        } else {
+            // if monitoring is off wait the minutes
+            await alarms.start()
+        }
     }
     contentPortManager.onDisconnect = async (port) => {
         await alarms.end()

@@ -151,6 +151,20 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN)
         })
+
+        test('when content connect and monitor is on, request item', async () => {
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
+
+            await contentPortManager.onConnect(contentPort)
+
+            expect(contentPort.sendMock.mock.calls.length).toBe(2)
+            expect(contentPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(contentPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_CONTENT)
+            expect(contentPort.sendMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
+            expect(contentPort.sendMock.mock.calls[1].length).toBe(2)
+            expect(contentPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_ITEMS)
+            expect(contentPort.sendMock.mock.calls[1][1]).toEqual({})
+        })
     })
 
     describe('alarm', () => {
@@ -160,8 +174,11 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
         })
 
-        test('when content connect, start it', async () => {
-            contentPortManager.onConnect(contentPort)
+        test('when content connect and monitor is off, start it', async () => {
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+
+            await contentPortManager.onConnect(contentPort)
+
             expect(alarms.startMock.mock.calls.length).toBe(1)
         })
     })
