@@ -14,7 +14,7 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
         dispatch(setInventoryList(m.list, m.last))
         if (m.last)
             dispatch(onLast(m.list, m.last))
-        else if (m.list.length > 0)
+        else if (m.list.length > 0 && m.list[0].log === undefined)
             dispatch(setLast)
     }
     if (m.status)
