@@ -7,7 +7,7 @@ import {
     Inventory,
     Status,
     STATUS_TYPE_TIME,
-    STATUS_TYPE_AUTO_REQUEST_OFF,
+    STATUS_TYPE_MONITORING_OFF,
     STATUS_TYPE_LOG,
     ViewState
 } from '../../common/state'
@@ -47,11 +47,11 @@ class ViewStateManager {
         if (this.onChange) {
             let status: Status
             if (message !== undefined) {
-                const isAutoRequestOn = await this.alarmSettings.isAutoRequestOn()
-                if (isAutoRequestOn)
+                const isMonitoringOn = await this.alarmSettings.isMonitoringOn()
+                if (isMonitoringOn)
                     status = { type: STATUS_TYPE_LOG, log: { class: _class, message } }
                 else
-                    status = { type: STATUS_TYPE_AUTO_REQUEST_OFF }
+                    status = { type: STATUS_TYPE_MONITORING_OFF }
             }
             else
                 status = await this._getAlarmStatus()
@@ -68,9 +68,9 @@ class ViewStateManager {
     }
 
     private async _getAlarmStatus(): Promise<Status> {
-        const isAutoRequestOn = await this.alarmSettings.isAutoRequestOn()
-        if (!isAutoRequestOn) {
-            return { type: STATUS_TYPE_AUTO_REQUEST_OFF }
+        const isMonitoringOn = await this.alarmSettings.isMonitoringOn()
+        if (!isMonitoringOn) {
+            return { type: STATUS_TYPE_MONITORING_OFF }
         }
         const time = await this.alarm.getTimeLeft()
         if (time !== undefined) {

@@ -32,7 +32,7 @@ interface TimeLeft {
     seconds: number
 }
 
-const STATUS_TYPE_AUTO_REQUEST_OFF = "auto off"
+const STATUS_TYPE_MONITORING_OFF = "monitoring off"
 const STATUS_TYPE_LOG = "log"
 const STATUS_TYPE_TIME = "time"
 
@@ -100,7 +100,7 @@ export {
     TimeLeft,
     Status,
     ViewState,
-    STATUS_TYPE_AUTO_REQUEST_OFF,
+    STATUS_TYPE_MONITORING_OFF,
     STATUS_TYPE_LOG,
     STATUS_TYPE_TIME,
     setMockDate,

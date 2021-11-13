@@ -3,34 +3,34 @@ import { STORAGE_ALARM } from "../../common/const";
 
 class AlarmSettings {
     private storage: IStorageArea
-    private autoRequest: boolean
+    private isMonitoring: boolean
 
     constructor(storage: IStorageArea) {
         this.storage = storage
     }
 
-    public async turnAutoRequest(on: boolean) {
-        this.autoRequest = on
+    public async turnMonitoringOn(on: boolean) {
+        this.isMonitoring = on
         await this._save()
     }
 
-    public async isAutoRequestOn() {
-        if (this.autoRequest === undefined)
+    public async isMonitoringOn() {
+        if (this.isMonitoring === undefined)
             await this._load()
-        return this.autoRequest
+        return this.isMonitoring
     }
 
     private async _load() {
         const value = await this.storage.get(STORAGE_ALARM)
         if (value !== undefined) {
-            this.autoRequest = value.autoRequest
+            this.isMonitoring = value.isMonitoring
         } else {
-            this.autoRequest = true
+            this.isMonitoring = true
         }
     }
 
     private async _save() {
-        await this.storage.set(STORAGE_ALARM, { autoRequest: this.autoRequest })
+        await this.storage.set(STORAGE_ALARM, { isMonitoring: this.isMonitoring })
     }
 }
 

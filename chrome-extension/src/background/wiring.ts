@@ -68,7 +68,7 @@ async function wiring(
     contentTabManager.onMessage = (c, m) => viewStateManager.setStatus(c, m)
     contentPortManager.onConnect = async (port) => {
         await contentTabManager.onConnect(port)
-        const on = await alarmSettings.isAutoRequestOn()
+        const on = await alarmSettings.isMonitoringOn()
         await contentTabManager.setStatus(on)
         if (on) {
             // if monitoring is on do the request inmediatly
@@ -97,11 +97,11 @@ async function wiring(
 
     // monitoring on/off
     async function setTimerOn() {
-        const on = await alarmSettings.isAutoRequestOn()
+        const on = await alarmSettings.isMonitoringOn()
         if (on) {
             await viewStateManager.setStatus()
         } else {
-            await alarmSettings.turnAutoRequest(true)
+            await alarmSettings.turnMonitoringOn(true)
             if (await alarms.getStatus() === STRING_ALARM_OFF) {
                 await contentTabManager.requestItems()
             } else {
@@ -112,9 +112,9 @@ async function wiring(
     }
 
     async function setTimerOff() {
-        const on = await alarmSettings.isAutoRequestOn()
+        const on = await alarmSettings.isMonitoringOn()
         if (on) {
-            await alarmSettings.turnAutoRequest(false)
+            await alarmSettings.turnMonitoringOn(false)
         }
         await contentTabManager.setStatus(false)
         await viewStateManager.setStatus()
@@ -161,7 +161,7 @@ async function wiring(
     // prepare alarm
     alarms.listen(async () => {
         await alarms.end()
-        if (await alarmSettings.isAutoRequestOn())
+        if (await alarmSettings.isMonitoringOn())
             await contentTabManager.requestItems()
     })
     trace(`alarm status ${await alarms.getStatus()}`)

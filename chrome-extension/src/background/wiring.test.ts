@@ -26,10 +26,10 @@ import AlarmSettings from "./settings/alarmSettings"
 import {
     DATE_CONST,
     STATE_1_MIN,
-    STATE_AUTO_REQUEST_OFF,
+    STATE_MONITORING_OFF,
     STATE_LOADING,
     STATE_NO_DATA_1_MIN,
-    STATE_NO_DATA_AUTO_REQUEST_OFF,
+    STATE_NO_DATA_MONITORING_OFF,
     STATE_NO_DATA_PLEASE_LOG_IN,
     STATE_PLEASE_LOG_IN,
     TIME_1_MIN
@@ -102,7 +102,7 @@ describe('full', () => {
 
     describe("when view started", () => {
         test('without monitoring expect monitor off message', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             setMockDate(DATE_CONST)
 
             await viewPortManager.onConnect(viewPort)
@@ -110,12 +110,12 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_AUTO_REQUEST_OFF)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_MONITORING_OFF)
         })
 
         test('with monitoring and same time expect please log in', async () => {
             settingsStorage.getMock.mockReturnValueOnce({ lastRefresh: 1 })
-            settingsStorage.getMock.mockReturnValueOnce({ autoRequest: true })
+            settingsStorage.getMock.mockReturnValueOnce({ isMonitoring: true })
             alarms.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
             setMockDate(DATE_CONST)
 
@@ -128,7 +128,7 @@ describe('full', () => {
         })
 
         test('with monitoring no time expect please log in', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: true })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
             setMockDate(DATE_CONST)
 
             await viewPortManager.onConnect(viewPort)
@@ -183,9 +183,9 @@ describe('full', () => {
         })
     })
 
-    describe('auto request', () => {
+    describe('montoring', () => {
         test("when turned off, don't stop alarm", async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: true })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
 
@@ -193,29 +193,29 @@ describe('full', () => {
         })
 
         test("when turned off, change view state", async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: true })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_AUTO_REQUEST_OFF)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_MONITORING_OFF)
         })
 
         test('when turned off, change alarm state', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: true })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
 
             expect(settingsStorage.setMock.mock.calls.length).toBe(1)
             expect(settingsStorage.setMock.mock.calls[0].length).toBe(2)
             expect(settingsStorage.setMock.mock.calls[0][0]).toBe(STORAGE_ALARM)
-            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ autoRequest: false })
+            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ isMonitoring: false })
         })
 
         test('when turned on and still time, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             alarms.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
@@ -227,7 +227,7 @@ describe('full', () => {
         })
 
         test('when turned on, alarm is off and content is up, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             alarms.getStatusMock.mockReturnValue(STRING_ALARM_OFF)
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
@@ -239,7 +239,7 @@ describe('full', () => {
         })
 
         test('when turned on, alarm is off and content is down, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
 
@@ -250,18 +250,18 @@ describe('full', () => {
         })
 
         test('when turned on, change alarm state', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
 
             expect(settingsStorage.setMock.mock.calls.length).toBe(1)
             expect(settingsStorage.setMock.mock.calls[0].length).toBe(2)
             expect(settingsStorage.setMock.mock.calls[0][0]).toBe(STORAGE_ALARM)
-            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ autoRequest: true })
+            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
         })
 
         test('when is off on alarm tick, dont send request for items', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
 
             const alarmTick: () => Promise<void> = alarms.listenMock.mock.calls[0][0]
             await alarmTick()
@@ -270,7 +270,7 @@ describe('full', () => {
         })
 
         test('when turned on and still time, dont request items', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             alarms.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
@@ -282,7 +282,7 @@ describe('full', () => {
         })
 
         test('when turned on and alarm is off, send request item', async () => {
-            settingsStorage.getMock.mockReturnValue({ autoRequest: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             alarms.getStatusMock.mockReturnValue(STRING_ALARM_OFF)
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)

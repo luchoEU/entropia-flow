@@ -1,4 +1,4 @@
-import { STATUS_TYPE_AUTO_REQUEST_OFF, STATUS_TYPE_LOG, STATUS_TYPE_TIME } from "../../../common/state"
+import { STATUS_TYPE_MONITORING_OFF, STATUS_TYPE_LOG, STATUS_TYPE_TIME } from "../../../common/state"
 import { STATUS_STATE } from "../state/status"
 
 const initialState: STATUS_STATE = {
@@ -24,7 +24,7 @@ function tickStatus(state: STATUS_STATE): STATUS_STATE {
 
 function setStatus(state: STATUS_STATE, status: any): STATUS_STATE {
     switch (status.type) {
-        case STATUS_TYPE_AUTO_REQUEST_OFF:
+        case STATUS_TYPE_MONITORING_OFF:
             return { ...state, isMonitoring: false, time: [0, 0] }
         case STATUS_TYPE_LOG:
             return {
