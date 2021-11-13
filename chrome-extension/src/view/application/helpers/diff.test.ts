@@ -23,7 +23,7 @@ describe('difference', () => {
                 { id: '3', n: 'Daily Token', q: '92', v: '0.92', c: 'STORAGE (Monria)' },
             ], meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Daily Token', q: '10', v: '0.10', c: 'CARRIED ⭢ STORAGE (Calypso)' }
+            { key: 0, n: 'Daily Token', q: '10', v: '(0.10)', c: 'CARRIED ⭢ STORAGE (Calypso)' }
         ])
     })
 
@@ -41,7 +41,7 @@ describe('difference', () => {
                 { id: '3', n: 'Daily Token', q: '92', v: '0.92', c: 'STORAGE (Monria)' },
             ], meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Daily Token', q: '10', v: '0.10', c: 'CARRIED ⭢ STORAGE (Monria)' }
+            { key: 0, n: 'Daily Token', q: '10', v: '(0.10)', c: 'CARRIED ⭢ STORAGE (Monria)' }
         ])
     })
 
@@ -59,7 +59,7 @@ describe('difference', () => {
                 { id: '2', n: 'Daily Token', q: '92', v: '0.92', c: 'STORAGE (Monria)' },
             ], meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Daily Token', q: '10', v: '0.10', c: 'STORAGE (Calypso) ⭢ CARRIED' }
+            { key: 0, n: 'Daily Token', q: '10', v: '(0.10)', c: 'STORAGE (Calypso) ⭢ CARRIED' }
         ])
     })
 
@@ -77,7 +77,7 @@ describe('difference', () => {
                 { id: '2', n: 'Daily Token', q: '102', v: '1.02', c: 'STORAGE (Monria)' },
             ], meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Daily Token', q: '10', v: '0.10', c: 'STORAGE (Monria) ⭢ CARRIED' }
+            { key: 0, n: 'Daily Token', q: '10', v: '(0.10)', c: 'STORAGE (Monria) ⭢ CARRIED' }
         ])
     })
 
@@ -93,7 +93,7 @@ describe('difference', () => {
             ],
             meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Daily Token', q: '10', v: '0.10', c: 'STORAGE (Calypso) ⭢ CARRIED' }
+            { key: 0, n: 'Daily Token', q: '10', v: '(0.10)', c: 'STORAGE (Calypso) ⭢ CARRIED' }
         ])
     })
 
@@ -129,7 +129,7 @@ describe('difference', () => {
             ],
             meta: { date: 2 }
         })).toEqual([
-            { key: 0, n: 'Diluted Sweat', q: '1310', v: '13.10', c: 'AUCTION ⭢ CARRIED' }
+            { key: 0, n: 'Diluted Sweat', q: '1310', v: '(13.10)', c: 'AUCTION ⭢ CARRIED' }
         ])
     })
 
