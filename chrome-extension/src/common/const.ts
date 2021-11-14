@@ -64,7 +64,6 @@ const ERROR_429 = 'Too many request'
 
 // Url
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
-const URL_ADD_INVENTORY = 'https://apps5.genexus.com/EntropiaFlow/rest/AddInventory'
 
 export {
     INVENTORY_LIMIT,
@@ -111,6 +110,5 @@ export {
     STORAGE_VIEW_HISTORY_EXPANDED,
     HTML_VIEW,
     ERROR_429,
-    URL_MY_ITEMS,
-    URL_ADD_INVENTORY
+    URL_MY_ITEMS
 }

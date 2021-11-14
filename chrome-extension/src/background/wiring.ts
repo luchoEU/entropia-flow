@@ -26,7 +26,6 @@ import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
 import InventoryStorage from './inventory/inventoryStorage'
 import ListStorage from './listStorage'
-import IBackendServerManager from './server/backendInterface'
 import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
@@ -37,7 +36,6 @@ async function wiring(
     alarms: IAlarmManager,
     tabs: ITabManager,
     actions: IActionManager,
-    server: IBackendServerManager,
     portManagerFactory: PortManagerFactory,
     inventoryStorageArea: IStorageArea,
     listStorageArea: IStorageArea,
@@ -53,7 +51,7 @@ async function wiring(
     const viewSettings = new ViewSettings(settingsStorageArea)
 
     // state
-    const inventoryManager = new InventoryManager(inventoryStorage, server)
+    const inventoryManager = new InventoryManager(inventoryStorage)
     const viewStateManager = new ViewStateManager(alarms, alarmSettings, viewSettings, inventoryManager)
 
     // port manager

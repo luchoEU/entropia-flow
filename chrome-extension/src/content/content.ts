@@ -12,7 +12,6 @@ import { traceId } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/messagesChrome'
 import { EntropiaServerManager } from './entropiaServer'
 import ContentUi from './contentUi'
-import IMessagesHub from '../chrome/messagesInterface'
 
 
 //// INITIALIZATION ////

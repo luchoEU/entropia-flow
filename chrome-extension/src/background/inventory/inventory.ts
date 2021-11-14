@@ -1,18 +1,15 @@
 import { CLASS_INFO, STRING_NO_DATA } from '../../common/const'
 import { Inventory, makeLogInventory } from '../../common/state'
 import InventoryStorage from './inventoryStorage'
-import IBackendServerManager from '../server/backendInterface'
 
 //// INVENTORY ////
 
 class InventoryManager {
     private storage: InventoryStorage
-    private server: IBackendServerManager
     public onChanged: (list: Array<Inventory>) => Promise<void>
 
-    constructor(storage: InventoryStorage, server: IBackendServerManager) {
+    constructor(storage: InventoryStorage) {
         this.storage = storage
-        this.server = server
     }
 
     public async getList(): Promise<Array<Inventory>> {
@@ -25,10 +22,8 @@ class InventoryManager {
     }
 
     public async onNew(inventory: Inventory, keepDate: number): Promise<Array<Inventory>> {
-        if (!inventory.log) {
+        if (inventory.log === undefined)
             this._adjust(inventory)
-            this.server.send(inventory.itemlist);
-        }
         return await this.storage.add(inventory, keepDate)
     }
 

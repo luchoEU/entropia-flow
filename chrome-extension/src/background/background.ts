@@ -9,7 +9,6 @@ import ITabManager from "../chrome/tabsInterface"
 import { ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
 import ListStorage from "./listStorage"
-import BackendServerManager from "./server/backendServer"
 import wiring from "./wiring"
 
 class BackgroundInitializer {
@@ -22,15 +21,12 @@ class BackgroundInitializer {
         const tabs = new ChromeTabManager()
         const actions = new ChromeActionManager()
 
-        // server
-        const server = new BackendServerManager()
-
         // ports
         const portManagerFactory = (storage: ListStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) =>
             new ChromePortManager(storage, messages, tabs, portName)
 
         // wiring
-        await wiring(messages, alarms, tabs, actions, server,
+        await wiring(messages, alarms, tabs, actions,
             portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
 
         async function test() {

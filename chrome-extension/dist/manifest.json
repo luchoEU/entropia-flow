@@ -23,8 +23,5 @@
     "permissions": [
         "alarms",
         "storage"
-    ],
-    "host_permissions": [
-        "https://apps5.genexus.com/EntropiaFlow/*"
     ]
 }

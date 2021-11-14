@@ -21,7 +21,6 @@ import {
 import { setMockDate } from "../common/state"
 import { traceOff } from "../common/trace"
 import ContentTabManager from "./content/contentTab"
-import MockBackendServerManager from "./server/backendMock"
 import AlarmSettings from "./settings/alarmSettings"
 import {
     DATE_CONST,
@@ -44,7 +43,6 @@ describe('full', () => {
     let alarms: MockAlarmManager
     let tabs: MockTabManager
     let actions: MockActionManager
-    let server: MockBackendServerManager
     let portManagerFactory: jest.Mock<any, any>
     let contentPortManager: MockPortManager
     let viewPortManager: MockPortManager
@@ -59,7 +57,6 @@ describe('full', () => {
         alarms = new MockAlarmManager()
         tabs = new MockTabManager()
         actions = new MockActionManager()
-        server = new MockBackendServerManager()
         contentPortManager = new MockPortManager()
         viewPortManager = new MockPortManager()
         portManagerFactory = jest.fn()
@@ -79,7 +76,7 @@ describe('full', () => {
         inventoryStorage = new MockStorageArea()
         listStorage = new MockStorageArea()
         settingsStorage = new MockStorageArea()
-        await wiring(messages, alarms, tabs, actions, server, portManagerFactory, inventoryStorage, listStorage, settingsStorage)
+        await wiring(messages, alarms, tabs, actions, portManagerFactory, inventoryStorage, listStorage, settingsStorage)
     })
 
     test('init', () => {

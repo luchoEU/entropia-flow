@@ -1,4 +1,3 @@
-import IAlarmManager from '../../chrome/alarmInterface'
 import IPortManager, { IPort } from '../../chrome/portInterface'
 import {
     CLASS_INFO,
@@ -14,7 +13,6 @@ import { trace, traceData } from '../../common/trace'
 
 class ContentTabManager {
     private portManager: IPortManager
-    private alarm: IAlarmManager
     public onMessage: (_class: string, message: string) => Promise<void>
 
     constructor(portManager: IPortManager) {
