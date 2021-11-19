@@ -60,7 +60,7 @@ const STORAGE_VIEW_HISTORY_EXPANDED = 'history-expanded'
 const HTML_VIEW = 'view.html'
 
 // Http errors
-const ERROR_429 = 'Too many request'
+const ERROR_429 = 'Too many requests'
 
 // Url
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
