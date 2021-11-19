@@ -1,7 +1,6 @@
 /// <reference types="chrome"/>
 import { STRING_ALARM_OFF } from '../common/const'
 import { TimeLeft } from '../common/state'
-import { trace } from '../common/trace'
 import IAlarmManager from './alarmInterface'
 
 class ChromeAlarmManager implements IAlarmManager {
@@ -19,8 +18,8 @@ class ChromeAlarmManager implements IAlarmManager {
         })
     }
 
-    public async start(): Promise<void> {
-        chrome.alarms.create(this.name, { periodInMinutes: 3 });
+    public async start(periodInMinutes: number): Promise<void> {
+        chrome.alarms.create(this.name, { periodInMinutes });
         if (this.onStarted)
             await this.onStarted()
     }

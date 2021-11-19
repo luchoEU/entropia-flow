@@ -9,13 +9,12 @@ class EntropiaServerManager {
         if (res.ok) {
             return await res.json()
         } else {
-            const text = res.status === 429 ? ERROR_429 : res.statusText
-            const message = `${res.status} - ${text}`
+            const message = res.status === 429 ? ERROR_429 : `${res.status} - ${res.statusText}`
             return makeLogInventory(CLASS_ERROR, message)
         }
     }
 
-    async requestItems(tag: any) {
+    async requestItems(tag: any, shortWait?: boolean) {
         let json: Inventory
         try {
             const res = await fetch(URL_MY_ITEMS)
@@ -26,6 +25,7 @@ class EntropiaServerManager {
             json = makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
         json.tag = tag;
+        json.shortWait = shortWait
         return json
     }
 }

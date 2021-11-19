@@ -65,6 +65,10 @@ const ERROR_429 = 'Too many request'
 // Url
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
 
+// Waits
+const NORMAL_WAIT_MINUTES = 3
+const LONG_WAIT_MINUTES = 6 // wait longer if the last request didn't do the normal wait period
+
 export {
     INVENTORY_LIMIT,
     PORT_NAME_BACK_CONTENT,
@@ -110,5 +114,7 @@ export {
     STORAGE_VIEW_HISTORY_EXPANDED,
     HTML_VIEW,
     ERROR_429,
-    URL_MY_ITEMS
+    URL_MY_ITEMS,
+    NORMAL_WAIT_MINUTES,
+    LONG_WAIT_MINUTES
 }

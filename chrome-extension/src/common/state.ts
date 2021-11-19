@@ -25,6 +25,7 @@ interface Inventory {
     itemlist?: Array<ItemData>
     meta: Meta
     tag?: any
+    shortWait?: boolean
 }
 
 interface TimeLeft {

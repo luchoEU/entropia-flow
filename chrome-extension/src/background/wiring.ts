@@ -6,6 +6,7 @@ import IStorageArea from '../chrome/storageAreaInterface'
 import ITabManager from '../chrome/tabsInterface'
 import {
     CLASS_ERROR,
+    LONG_WAIT_MINUTES,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_REGISTER_CONTENT,
@@ -14,6 +15,7 @@ import {
     MSG_NAME_REQUEST_SET_LAST,
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
+    NORMAL_WAIT_MINUTES,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_LIST_CONTENTS,
@@ -70,10 +72,10 @@ async function wiring(
         await contentTabManager.setStatus(on)
         if (on) {
             // if monitoring is on do the request inmediatly
-            await contentTabManager.requestItems()
+            await contentTabManager.requestItems(undefined, true)
         } else {
             // if monitoring is off wait the minutes
-            await alarms.start()
+            await alarms.start(NORMAL_WAIT_MINUTES)
         }
     }
     contentPortManager.onDisconnect = async (port) => {
@@ -126,7 +128,7 @@ async function wiring(
                     && m.inventory.log.message === STRING_PLEASE_LOG_IN) {
                     await viewStateManager.setStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
                 } else {
-                    alarms.start()
+                    await alarms.start(m.inventory.shortWait ? LONG_WAIT_MINUTES : NORMAL_WAIT_MINUTES)
                     const keepDate = await viewSettings.getLast()
                     const list = await inventoryManager.onNew(m.inventory, keepDate)
                     await viewStateManager.setList(list)
@@ -144,9 +146,9 @@ async function wiring(
     viewPortManager.handlers = {
         [MSG_NAME_REQUEST_NEW]: async (m: { tag: any }) => {
             await alarms.end()
-            await contentTabManager.requestItems(m.tag)
+            await contentTabManager.requestItems(m.tag, true)
         },
-        [MSG_NAME_REQUEST_SET_LAST]: async (m: { tag: any, last }) => {
+        [MSG_NAME_REQUEST_SET_LAST]: async (m: { tag: any, last: number }) => {
             await viewSettings.setLast(m.last)
             if (m.tag)
                 await inventoryStorage.tag(m.last, m.tag)
