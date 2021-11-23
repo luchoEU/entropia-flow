@@ -8,7 +8,7 @@ import {
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON
 } from '../common/const'
-import { traceId } from '../common/trace'
+import { traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/messagesChrome'
 import { EntropiaServerManager } from './entropiaServer'
 import ContentUi from './contentUi'
@@ -38,9 +38,9 @@ class ContentInitializer {
             MSG_NAME_REGISTER_CONTENT,
             PORT_NAME_BACK_CONTENT, {
             [MSG_NAME_REFRESH_ITEMS]: async (m) => {
-                console.log('Refresh item received')
+                traceStart('Refresh item received')
                 const inventory = await serverManager.requestItems(m.tag, m.shortWait)
-                console.log('Refresh item completed')
+                traceEnd('Refresh item completed')
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {

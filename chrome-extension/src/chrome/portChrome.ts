@@ -46,16 +46,17 @@ class ChromePortManager implements IPortManager {
     }
 
     public async handle(tabId: number): Promise<void> {
-        await this._connect(tabId)
+        await this._connect(tabId, false)
     }
 
-    private async _connect(tabId: number): Promise<IPort> {
+    private async _connect(tabId: number, isReconnect: boolean): Promise<IPort> {
         const tab = await this.tabs.get(tabId)
         if (tab) {
             const port = this.messages.connect(tabId, this.portName, this.handlers)
             this.ports[tabId] = port
             await this.storage.add(tabId)
-            await this.onConnect(port)
+            if (!isReconnect)
+                await this.onConnect(port) // don't call on reconnect to avoid a duplicate requestItems
             port.onDisconnect(async () => {
                 this.ports[tabId] = null
                 await this.storage.remove(tabId)
@@ -73,7 +74,7 @@ class ChromePortManager implements IPortManager {
         const portList: Array<IPort> = await Promise.all(tabList.map(async (tabId) => {
             let port = this.ports[tabId]
             if (!port)
-                port = await this._connect(tabId) // reconnect needed because service worker goes inactive and loses the connections
+                port = await this._connect(tabId, true) // reconnect needed because service worker goes inactive and loses the connections
             return port
         }))
 
