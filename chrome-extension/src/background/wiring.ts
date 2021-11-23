@@ -131,6 +131,7 @@ async function wiring(
                     await alarms.start(m.inventory.shortWait ? LONG_WAIT_MINUTES : NORMAL_WAIT_MINUTES)
                     const keepDate = await viewSettings.getLast()
                     const list = await inventoryManager.onNew(m.inventory, keepDate)
+                    await viewSettings.setLastIfEqual(list)
                     await viewStateManager.setList(list)
                 }
             } catch (e) {
