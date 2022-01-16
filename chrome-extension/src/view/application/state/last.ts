@@ -10,6 +10,7 @@ interface LastRequiredState {
     text?: string,
     delta?: string,
     deltaClass?: string,
+    deltaWord?: string,
     expanded?: boolean,
     date: number,
     diff: Array<ViewItemData>,

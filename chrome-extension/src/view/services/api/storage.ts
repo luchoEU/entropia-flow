@@ -9,6 +9,7 @@ import {
     STORAGE_VIEW_PEDS,
     STORAGE_VIEW_REFINE,
     STORAGE_VIEW_STACKABLE,
+    STORAGE_VIEW_STREAM,
     STORAGE_VIEW_SWEAT
 } from "../../../common/const";
 import { ACTIVES_ITEM } from "../../application/state/actives";
@@ -17,6 +18,7 @@ import { ViewPedData } from "../../application/state/last";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
 import { StackableStateIn } from "../../application/state/stackable";
+import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
 
 async function saveMenu(menu: number) {
@@ -99,6 +101,14 @@ async function loadHistoryExpanded(): Promise<boolean> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_HISTORY_EXPANDED)
 }
 
+async function saveStream(state: StreamState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_STREAM, state)
+}
+
+async function loadStream(): Promise<StreamState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_STREAM)
+}
+
 export default {
     saveMenu,
     loadMenu,
@@ -119,5 +129,7 @@ export default {
     saveBlacklist,
     loadBlacklist,
     saveHistoryExpanded,
-    loadHistoryExpanded
+    loadHistoryExpanded,
+    saveStream,
+    loadStream
 }

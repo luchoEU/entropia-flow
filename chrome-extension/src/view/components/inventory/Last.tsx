@@ -45,7 +45,7 @@ const Last = () => {
                         {diff === null ? '' : (expanded ? '-' : '+')}
                     </button>
                     {text}
-                    <span className={'difference ' + deltaClass}>{delta}</span>
+                    <span className={`difference ${deltaClass}`}>{delta}</span>
                     {hasWarning ?
                         <img src='img/warning.png'
                             className='img-warning'

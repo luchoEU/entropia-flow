@@ -55,6 +55,7 @@ const STORAGE_VIEW_REFINE = 'refine'
 const STORAGE_VIEW_PEDS = 'peds'
 const STORAGE_VIEW_BLACKLIST = 'blacklist'
 const STORAGE_VIEW_HISTORY_EXPANDED = 'history-expanded'
+const STORAGE_VIEW_STREAM = 'stream'
 
 // Html
 const HTML_VIEW = 'view.html'
@@ -112,6 +113,7 @@ export {
     STORAGE_VIEW_PEDS,
     STORAGE_VIEW_BLACKLIST,
     STORAGE_VIEW_HISTORY_EXPANDED,
+    STORAGE_VIEW_STREAM,
     HTML_VIEW,
     ERROR_429,
     URL_MY_ITEMS,

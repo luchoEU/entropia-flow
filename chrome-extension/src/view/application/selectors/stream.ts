@@ -1,0 +1,1 @@
+export const getStream = state => state.stream

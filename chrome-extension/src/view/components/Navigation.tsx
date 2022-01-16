@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SHOW_AUCTION_PAGE } from '../../config';
-import { ABOUT_PAGE, AUCTION_PAGE, INVENTORY_PAGE, selectMenu } from '../application/actions/menu';
+import { ABOUT_PAGE, AUCTION_PAGE, INVENTORY_PAGE, STREAM_PAGE, selectMenu } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
 const Navigation = () => {
@@ -18,6 +18,11 @@ const Navigation = () => {
                 className={menu === INVENTORY_PAGE ? 'selected-menu' : ''}
                 onClick={() => dispatch(selectMenu(INVENTORY_PAGE))}>
                 Inventory
+            </button>
+            <button
+                className={menu === STREAM_PAGE ? 'selected-menu' : ''}
+                onClick={() => dispatch(selectMenu(STREAM_PAGE))}>
+                Stream
             </button>
             {SHOW_AUCTION_PAGE ?
                 <button

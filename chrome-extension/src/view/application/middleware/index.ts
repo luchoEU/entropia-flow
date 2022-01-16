@@ -10,6 +10,7 @@ import ui from './ui'
 import stackable from './stackable'
 import refine from './refine'
 import history from './history'
+import stream from './stream'
 
 export default [
     ...messages,
@@ -23,5 +24,6 @@ export default [
     ...stackable,
     ...refine,
     ...last,
-    ...history
+    ...history,
+    ...stream
 ]

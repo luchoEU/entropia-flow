@@ -9,7 +9,8 @@ import order from './order'
 import sweat from './sweat'
 import stackable from './stackable'
 import refine from './refine'
+import stream from './stream'
 
 export default combineReducers({
-    menu, status, history, last, calculator, actives, order, sweat, stackable, refine
+    menu, status, history, last, calculator, actives, order, sweat, stackable, refine, stream
 })

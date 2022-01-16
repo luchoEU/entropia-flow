@@ -61,15 +61,21 @@ function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
 
 function getDeltaAndClass(delta: number) {
     let deltaClass: string
-    if (delta > 0)
+    let deltaWord: string
+    if (delta > 0) {
         deltaClass = "positive"
-    else if (delta < 0)
+        deltaWord = "Profit"
+    } else if (delta < 0) {
         deltaClass = "negative"
-    else
+        deltaWord = "Loss"
+    } else {
         deltaClass = ""
+        deltaWord = ""
+    }
     return {
         delta: delta.toFixed(2),
-        deltaClass
+        deltaClass,
+        deltaWord
     }
 }
 

@@ -10,9 +10,7 @@ import { HistoryState } from '../../application/state/history';
 const Status = ({ minutes = 0, seconds = 0 }) => {
     const dispatch = useDispatch()
     const history: HistoryState = useSelector(getHistory)
-    const { className, message, showTimer, showLoading, time, isMonitoring } = useSelector(getStatus);
-    const [m, s] = time
-    const pad = (n: number) => n.toString().padStart(2, '0')
+    const { className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
 
     if (isMonitoring) {
         return (
@@ -35,9 +33,7 @@ const Status = ({ minutes = 0, seconds = 0 }) => {
                         title={history.hiddenError} />
                     : ''
                 }
-                <span className={className}>
-                    {message}{showTimer ? `${pad(m)}:${pad(s)}` : ''}
-                </span>
+                <span className={className}>{message}</span>
                 <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
                     Stop Monitoring
                 </button>
