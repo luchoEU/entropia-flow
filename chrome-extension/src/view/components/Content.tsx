@@ -1,9 +1,10 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, AUCTION_PAGE, MONITOR_PAGE, STREAM_PAGE } from '../application/actions/menu'
+import { ABOUT_PAGE, AUCTION_PAGE, INVENTORY_PAGE, MONITOR_PAGE, STREAM_PAGE } from '../application/actions/menu'
 import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import AuctionPage from './auction/AuctionPage'
+import InventoryPage from './inventory/InventoryPage'
 import MonitorPage from './monitor/MonitorPage'
 import StreamPage from './stream/StreamPage'
 
@@ -12,6 +13,8 @@ function Content() {
     switch (menu) {
         case MONITOR_PAGE:
             return (<MonitorPage />)
+        case INVENTORY_PAGE:
+            return (<InventoryPage />)
         case STREAM_PAGE:
             return (<StreamPage />)
         case AUCTION_PAGE:
