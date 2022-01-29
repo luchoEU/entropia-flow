@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Status } from '../../../common/state'
-import { setListExpanded } from '../../application/actions/history';
+import { setHistoryExpanded } from '../../application/actions/history';
 import { refresh, timerOff, timerOn } from '../../application/actions/messages';
 import { getHistory } from '../../application/selectors/history';
 import { getStatus } from '../../application/selectors/status';
@@ -29,7 +29,7 @@ const Status = ({ minutes = 0, seconds = 0 }) => {
                 {history.hiddenError ?
                     <img src='img/error.png'
                         className='img-refresh'
-                        onClick={() => dispatch(setListExpanded(true))}
+                        onClick={() => dispatch(setHistoryExpanded(true))}
                         title={history.hiddenError} />
                     : ''
                 }

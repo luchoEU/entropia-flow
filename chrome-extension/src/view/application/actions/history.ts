@@ -1,20 +1,20 @@
 import { Inventory } from "../../../common/state"
 
-const SET_INVENTORY_LIST = "[hist] set inventory list"
-const SET_LIST_EXPANDED = "[hist] set list expanded"
+const SET_HISTORY_LIST = "[hist] set inventory list"
+const SET_HISTORY_EXPANDED = "[hist] set list expanded"
 const SET_ITEM_EXPANDED = "[hist] set item expanded"
 const SORT_BY = "[hist] sort by"
 
-const setInventoryList = (list: Array<Inventory>, last: number) => ({
-    type: SET_INVENTORY_LIST,
+const setHistoryList = (list: Array<Inventory>, last: number) => ({
+    type: SET_HISTORY_LIST,
     payload: {
         list,
         last
     }
 })
 
-const setListExpanded = (expanded: boolean) => ({
-    type: SET_LIST_EXPANDED,
+const setHistoryExpanded = (expanded: boolean) => ({
+    type: SET_HISTORY_EXPANDED,
     payload: {
         expanded
     }
@@ -37,12 +37,12 @@ const sortBy = (key: number, part: number) => ({
 })
 
 export {
-    SET_INVENTORY_LIST,
-    SET_LIST_EXPANDED,
+    SET_HISTORY_LIST,
+    SET_HISTORY_EXPANDED,
     SET_ITEM_EXPANDED,
     SORT_BY,
-    setInventoryList,
-    setListExpanded,
+    setHistoryList,
+    setHistoryExpanded,
     setItemExpanded,
     sortBy
 }

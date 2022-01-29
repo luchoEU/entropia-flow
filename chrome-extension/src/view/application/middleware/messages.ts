@@ -1,17 +1,17 @@
 import { ViewState } from '../../../common/state'
-import { setInventoryList } from '../actions/history'
+import { setHistoryList } from '../actions/history'
 import { onLast } from '../actions/last'
 import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON } from '../actions/messages'
 import { setStatus } from '../actions/status'
 import { PAGE_LOADED } from '../actions/ui'
 import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
-import { HistoryState, ViewInventory } from '../state/history'
+import { HistoryState } from '../state/history'
 
 const refreshViewHandler = dispatch => async (m: ViewState) => {
     if (m.list) {
         m.list.reverse() // newer first
-        dispatch(setInventoryList(m.list, m.last))
+        dispatch(setHistoryList(m.list, m.last))
         if (m.last)
             dispatch(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)

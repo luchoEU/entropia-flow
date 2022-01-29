@@ -101,7 +101,7 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
     }
 }
 
-function processList(state: HistoryState, list: Array<Inventory>, last: number): HistoryState {
+function setHistoryList(state: HistoryState, list: Array<Inventory>, last: number): HistoryState {
     const viewList: Array<ViewInventory> = []
     for (let n = 0; n < list.length; n++) {
         const inv = list[n]
@@ -138,7 +138,7 @@ function getHiddenError(expanded: boolean, list: Array<ViewInventory>): string {
         return undefined
 }
 
-function setListExpanded(state: HistoryState, expanded: boolean): HistoryState {
+function setHistoryExpanded(state: HistoryState, expanded: boolean): HistoryState {
     return {
         ...state,
         expanded,
@@ -168,8 +168,8 @@ export {
     getText,
     getLatestFromInventoryList,
     getLatestFromHistory,
-    processList,
-    setListExpanded,
+    setHistoryList,
+    setHistoryExpanded,
     setItemExpanded,
     sortBy
 }
