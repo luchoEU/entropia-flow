@@ -4,6 +4,7 @@ import {
     STORAGE_VIEW_BLACKLIST,
     STORAGE_VIEW_CALCULATOR,
     STORAGE_VIEW_HISTORY_EXPANDED,
+    STORAGE_VIEW_INVENTORY,
     STORAGE_VIEW_MENU,
     STORAGE_VIEW_ORDER,
     STORAGE_VIEW_PEDS,
@@ -14,6 +15,7 @@ import {
 } from "../../../common/const";
 import { ACTIVES_ITEM } from "../../application/state/actives";
 import { CalculatorStateIn } from "../../application/state/calculator";
+import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
@@ -109,6 +111,14 @@ async function loadStream(): Promise<StreamState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_STREAM)
 }
 
+async function saveInventoryState(state: InventoryState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_INVENTORY, state)
+}
+
+async function loadInventoryState(): Promise<InventoryState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_INVENTORY)
+}
+
 export default {
     saveMenu,
     loadMenu,
@@ -131,5 +141,7 @@ export default {
     saveHistoryExpanded,
     loadHistoryExpanded,
     saveStream,
-    loadStream
+    loadStream,
+    saveInventoryState,
+    loadInventoryState
 }

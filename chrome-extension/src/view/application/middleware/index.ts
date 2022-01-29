@@ -11,6 +11,7 @@ import stackable from './stackable'
 import refine from './refine'
 import history from './history'
 import stream from './stream'
+import inventory from './inventory'
 
 export default [
     ...messages,
@@ -25,5 +26,6 @@ export default [
     ...refine,
     ...last,
     ...history,
-    ...stream
+    ...stream,
+    ...inventory
 ]

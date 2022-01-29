@@ -1,5 +1,3 @@
-import { ViewItemData } from "../state/history"
-
 const NAME = 0
 const QUANTITY = 1
 const VALUE = 2
@@ -28,30 +26,37 @@ const contrarySort = [
     SORT_CONTAINER_DESCENDING
 ]
 
+interface SortItemData {
+    n: string // name, string
+    q: string // quantity, number
+    v: string // value, number (2 decimals)
+    c: string // container, string
+}
+
 const comparer = [
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_NAME_ASCENDING
         return a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_NAME_DESCENDING
         return -a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_QUANTITY_ASCENDING
         const c = Math.abs(Number(a.q)) - Math.abs(Number(b.q))
         if (c != 0)
             return c
         return a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_QUANTITY_DESCENDING
         const c = - Math.abs(Number(a.q)) + Math.abs(Number(b.q))
         if (c != 0)
             return c
         return -a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_VALUE_ASCENDING
         if (a.v.startsWith('(')) {
             if (!b.v.startsWith('('))
@@ -69,7 +74,7 @@ const comparer = [
             return c
         return a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_VALUE_DESCENDING
         if (a.v.startsWith('(')) {
             if (!b.v.startsWith('('))
@@ -85,14 +90,14 @@ const comparer = [
             return c
         return -a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_CONTAINER_ASCENDING
         const c = a.c.localeCompare(b.c)
         if (c != 0)
             return c
         return a.n.localeCompare(b.n)
     },
-    (a: ViewItemData, b: ViewItemData) => {
+    (a: SortItemData, b: SortItemData) => {
         // SORT_CONTAINER_DESCENDING
         const c = -a.c.localeCompare(b.c)
         if (c != 0)
@@ -101,28 +106,18 @@ const comparer = [
     }
 ]
 
-interface SortData {
-    diff: Array<ViewItemData>,
-    sortType: number
+const nextSortType = (part: number, currentSortType: number): number =>
+    (currentSortType === defaultSort[part]) ? contrarySort[part] : defaultSort[part]
+
+// warning: it mutates the list
+function sortList<I extends SortItemData>(list: Array<I>, sortType: number) {
+    list.sort(comparer[sortType])
 }
 
-function sortBy<T extends SortData>(s: T, part: number): T {
-    let sortType: number
-    if (s.sortType === defaultSort[part])
-        sortType = contrarySort[part]
-    else
-        sortType = defaultSort[part]
-    const diff = [...s.diff]
-    diff.sort(comparer[sortType])
-    return {
-        ...s,
-        diff,
-        sortType
-    }
-}
-
-function sort(diff: Array<ViewItemData>, sortType: number) {
-    diff.sort(comparer[sortType])
+function cloneSortList<I extends SortItemData>(list: Array<I>, sortType: number): Array<I> {
+    const newList = [...list]
+    newList.sort(comparer[sortType])
+    return newList
 }
 
 export {
@@ -132,6 +127,7 @@ export {
     CONTAINER,
     SORT_NAME_ASCENDING,
     SORT_VALUE_DESCENDING,
-    sortBy,
-    sort
+    nextSortType,
+    sortList,
+    cloneSortList
 }

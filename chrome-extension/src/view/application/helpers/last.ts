@@ -1,6 +1,6 @@
 import { Inventory } from "../../../common/state"
 import { getDifference, getValue, hasValue } from "./diff"
-import { sort, SORT_VALUE_DESCENDING } from "./sort"
+import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./sort"
 import { getLatestFromInventoryList, getText } from "./history"
 import { ViewItemData } from "../state/history"
 import { matchDate } from "../../../common/date"
@@ -169,7 +169,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
             if (diff !== null) {
                 d = applyExcludes(d, diff, state.diff)
                 applyWarning(diff, state.blacklist)
-                sort(diff, state.sortType)
+                sortList(diff, state.sortType)
             }
             state.peds.forEach(p => d += Number(p.value))
             return {
@@ -209,6 +209,15 @@ const removePeds = (state: LastRequiredState, key: number) => {
     }
 }
 
+function sortByPart(state: LastRequiredState, part: number) {
+    const sortType = nextSortType(part, state.sortType)
+    return {
+        ...state,
+        sortType,
+        diff: cloneSortList(state.diff, sortType)
+    }
+}
+
 export {
     LastRequiredState,
     initialState,
@@ -220,5 +229,6 @@ export {
     excludeWarnings,
     setPeds,
     addPeds,
-    removePeds
+    removePeds,
+    sortByPart
 }

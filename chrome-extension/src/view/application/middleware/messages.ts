@@ -1,5 +1,6 @@
 import { ViewState } from '../../../common/state'
 import { setHistoryList } from '../actions/history'
+import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
 import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON } from '../actions/messages'
 import { setStatus } from '../actions/status'
@@ -16,6 +17,9 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
             dispatch(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)
             dispatch(setLast)
+        const newest = m.list.find(e => e.log === undefined)
+        if (newest !== undefined)
+            dispatch(setCurrentInventory(newest))
     }
     if (m.status)
         dispatch(setStatus(m.status))

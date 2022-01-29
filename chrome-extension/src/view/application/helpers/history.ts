@@ -3,10 +3,9 @@ import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
 import { addMindEssenceLogAction } from "./meLog";
 import * as Sort from "./sort"
-import { sort } from "./sort"
 import { HistoryState, ViewInventory } from "../state/history";
 
-const initialState = {
+const initialState: HistoryState = {
     expanded: false,
     hiddenError: undefined,
     list: []
@@ -85,7 +84,7 @@ function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
 function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean): ViewInventory {
     const diff = getDifference(inventory, previous)
     if (diff !== null) {
-        sort(diff, sortType)
+        Sort.sortList(diff, sortType)
         addMindEssenceLogAction(diff)
     }
     return {
@@ -156,10 +155,19 @@ function setItemExpanded(state: HistoryState, key: number, expanded: boolean): H
     }
 }
 
+function sortByPart(state: ViewInventory, part: number) {
+    const sortType = Sort.nextSortType(part, state.sortType)
+    return {
+        ...state,
+        sortType,
+        diff: Sort.cloneSortList(state.diff, sortType)
+    }
+}
+
 function sortBy(state: HistoryState, key: number, part: number): HistoryState {
     return {
         ...state,
-        list: state.list.map(inv => inv.key === key ? Sort.sortBy(inv, part) : inv)
+        list: state.list.map(inv => inv.key === key ? sortByPart(inv, part) : inv)
     }
 }
 
