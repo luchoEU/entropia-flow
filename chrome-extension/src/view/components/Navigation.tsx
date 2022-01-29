@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SHOW_AUCTION_PAGE } from '../../config';
-import { ABOUT_PAGE, AUCTION_PAGE, INVENTORY_PAGE, STREAM_PAGE, selectMenu } from '../application/actions/menu';
+import { ABOUT_PAGE, AUCTION_PAGE, MONITOR_PAGE, STREAM_PAGE, selectMenu } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
 const Navigation = () => {
@@ -15,9 +15,9 @@ const Navigation = () => {
                 <strong>Entropia Flow</strong>
             </div>
             <button
-                className={menu === INVENTORY_PAGE ? 'selected-menu' : ''}
-                onClick={() => dispatch(selectMenu(INVENTORY_PAGE))}>
-                Inventory
+                className={menu === MONITOR_PAGE ? 'selected-menu' : ''}
+                onClick={() => dispatch(selectMenu(MONITOR_PAGE))}>
+                Monitor
             </button>
             <button
                 className={menu === STREAM_PAGE ? 'selected-menu' : ''}

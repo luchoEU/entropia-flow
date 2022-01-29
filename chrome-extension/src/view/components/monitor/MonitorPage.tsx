@@ -1,12 +1,12 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { getStream } from '../../application/selectors/stream'
-import InventoryList from './InventoryList'
+import History from './History'
 import Last from './Last'
 import Status from './Status'
 import StreamView from './StreamView'
 
-function InventoryPage() {
+function MonitorPage() {
     const { enabled } = useSelector(getStream);
 
     return (
@@ -23,10 +23,10 @@ function InventoryPage() {
                 <Status />
             </div>
             <div>
-                <InventoryList />
+                <History />
             </div>
         </>
     )
 }
 
-export default InventoryPage
+export default MonitorPage
