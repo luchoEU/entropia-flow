@@ -5,7 +5,7 @@ import { getHistory } from '../../application/selectors/history'
 import { HistoryState, ViewInventory } from '../../application/state/history'
 import InventoryItem from './InventoryItem'
 
-const InventoryList = () => {
+const History = () => {
     const history: HistoryState = useSelector(getHistory)
     const dispatch = useDispatch()
 
@@ -30,4 +30,4 @@ const InventoryList = () => {
     }
 }
 
-export default InventoryList
+export default History
