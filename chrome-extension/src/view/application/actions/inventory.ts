@@ -7,8 +7,12 @@ const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
-const MOVE_TO_HIDDEN = "[inv] move to hidden"
-const MOVE_TO_VISIBLE = "[inv] move to visible"
+const HIDE_BY_NAME = "[inv] hide by name"
+const SHOW_BY_NAME = "[inv] show by name"
+const HIDE_BY_CONTAINER = "[inv] hide by container"
+const SHOW_BY_CONTAINER = "[inv] show by container"
+const HIDE_BY_VALUE = "[inv] hide by value"
+const SHOW_BY_VALUE = "[inv] show by value"
 
 const loadInventoryState = (state: InventoryState) => ({
     type: LOAD_INVENTORY_STATE,
@@ -52,17 +56,45 @@ const sortHiddenBy = (part: number) => ({
     }
 })
 
-const moveToHidden = (name: string) => ({
-    type: MOVE_TO_HIDDEN,
+const hideByName = (name: string) => ({
+    type: HIDE_BY_NAME,
     payload: {
         name
     }
 })
 
-const moveToVisible = (name: string) => ({
-    type: MOVE_TO_VISIBLE,
+const showByName = (name: string) => ({
+    type: SHOW_BY_NAME,
     payload: {
         name
+    }
+})
+
+const hideByContainer = (container: string) => ({
+    type: HIDE_BY_CONTAINER,
+    payload: {
+        container
+    }
+})
+
+const showByContainer = (container: string) => ({
+    type: SHOW_BY_CONTAINER,
+    payload: {
+        container
+    }
+})
+
+const hideByValue = (value: string) => ({
+    type: HIDE_BY_VALUE,
+    payload: {
+        value
+    }
+})
+
+const showByValue = (value: string) => ({
+    type: SHOW_BY_VALUE,
+    payload: {
+        value
     }
 })
 
@@ -73,14 +105,22 @@ export {
     SET_HIDDEN_EXPANDED,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
-    MOVE_TO_HIDDEN,
-    MOVE_TO_VISIBLE,
+    HIDE_BY_NAME,
+    SHOW_BY_NAME,
+    HIDE_BY_CONTAINER,
+    SHOW_BY_CONTAINER,
+    HIDE_BY_VALUE,
+    SHOW_BY_VALUE,
     loadInventoryState,
     setCurrentInventory,
     setVisibleInventoryExpanded,
     setHiddenInventoryExpanded,
     sortVisibleBy,
     sortHiddenBy,
-    moveToHidden,
-    moveToVisible
+    hideByName,
+    showByName,
+    hideByContainer,
+    showByContainer,
+    hideByValue,
+    showByValue,
 }

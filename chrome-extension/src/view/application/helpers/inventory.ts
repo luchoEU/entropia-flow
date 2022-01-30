@@ -1,42 +1,80 @@
-import { STATE_1_MIN } from "../../../background/stateConst";
-import { URL_MY_ITEMS } from "../../../common/const";
 import { Inventory, ItemData } from "../../../common/state";
-import { InventoryState, InventoryList } from "../state/inventory";
-import { cloneSortList, nextSortType, sortList, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./sort";
+import { InventoryState, InventoryList, HideCriteria, ItemHidden } from "../state/inventory";
+import { cloneSortListSelect, nextSortType, sortList, sortListSelect, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./sort";
 
 const initialState: InventoryState = {
     visible: {
         expanded: true,
         sortType: SORT_VALUE_DESCENDING,
-        items: []
+        items: [],
+        stats: {
+            count: 0,
+            ped: "0.00"
+        }
     },
     hidden: {
         expanded: false,
         sortType: SORT_NAME_ASCENDING,
-        items: []
+        items: [],
+        stats: {
+            count: 0,
+            ped: "0.00"
+        }
     },
-    hiddenNames: []
+    criteria: {
+        name: [],
+        container: [],
+        value: -0.01
+    }
 }
 
-function sort(list: InventoryList): InventoryList {
-    sortList(list.items, list.sortType)
+function sortAndStats<D>(select: (d: D) => ItemData, list: InventoryList<D>): InventoryList<D> {
+    sortListSelect(list.items, list.sortType, select)
+    const sum = list.items.reduce((partialSum, d) => partialSum + Number(select(d).v), 0);
+    list.stats = {
+        count: list.items.length,
+        ped: sum.toFixed(2)
+    }
     return list
 }
 
+const isHiddenByName = (c: HideCriteria, d: ItemData): boolean => c.name.includes(d.n)
+const isHiddenByContainer = (c: HideCriteria, d: ItemData): boolean => c.container.includes(d.c)
+const isHiddenByValue = (c: HideCriteria, d: ItemData): boolean => Number(d.v) <= c.value
+const isHidden = (c: HideCriteria) => (d: ItemData): boolean =>
+    isHiddenByName(c, d) || isHiddenByContainer(c, d) || isHiddenByValue(c, d)
+
+const addCriteria = (c: HideCriteria) => (d: ItemData): ItemHidden => ({
+    data: d,
+    criteria: {
+        name: isHiddenByName(c, d),
+        container: isHiddenByContainer(c, d),
+        value: isHiddenByValue(c, d),
+    }
+})
+
+const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => list.filter(d => !isHidden(c)(d))
+
+const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
+    list.filter(isHidden(c)).map(addCriteria(c))
+
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
-    visible: sort({
+    visible: sortAndStats(x => x, {
         ...state.visible,
-        items: list.filter(x => !state.hiddenNames.includes(x.n))
+        items: getVisible(list, state.criteria)
     }),
-    hidden: sort({
+    hidden: sortAndStats(x => x.data, {
         ...state.hidden,
-        items: list.filter(x => state.hiddenNames.includes(x.n))
+        items: getHidden(list, state.criteria)
     })
 })
 
+const joinList = (state: InventoryState): Array<ItemData> =>
+    [...state.visible.items, ...state.hidden.items.map(x => x.data)]
+
 const loadInventoryState = (oldState: InventoryState, state: InventoryState): InventoryState =>
-    loadInventory(state, [...oldState.visible.items, ...oldState.hidden.items])
+    loadInventory(state, joinList(oldState))
 
 const setCurrentInventory = (state: InventoryState, inventory: Inventory): InventoryState =>
     loadInventory(state, inventory.itemlist)
@@ -57,49 +95,59 @@ const setHiddenExpanded = (state: InventoryState, expanded: boolean): InventoryS
     }
 })
 
-function sortByPart(list: InventoryList, part: number) {
+function sortByPart<D>(list: InventoryList<D>, part: number, select: (d: D) => ItemData) {
     const sortType = nextSortType(part, list.sortType)
     return {
         ...list,
         sortType,
-        items: cloneSortList(list.items, sortType)
+        items: cloneSortListSelect(list.items, sortType, select)
     }
 }
 
 const sortVisibleBy = (state: InventoryState, part: number): InventoryState => ({
     ...state,
-    visible: sortByPart(state.visible, part)
+    visible: sortByPart(state.visible, part, x => x)
 })
 
 const sortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
     ...state,
-    hidden: sortByPart(state.hidden, part)
+    hidden: sortByPart(state.hidden, part, x => x.data)
 })
 
-const moveToHidden = (state: InventoryState, name: string): InventoryState => ({
+const changeCriteria = (state: InventoryState, newCriteria: any) =>
+    loadInventory({ ...state, criteria: { ...state.criteria, ...newCriteria } }, joinList(state))
+
+const hideByName = (state: InventoryState, name: string): InventoryState =>
+    changeCriteria(state, { name: [...state.criteria.name, name] })
+
+const showByName = (state: InventoryState, name: string): InventoryState =>
+    changeCriteria(state, { name: state.criteria.name.filter(x => x !== name) })
+
+const hideByContainer = (state: InventoryState, container: string): InventoryState =>
+    changeCriteria(state, { container: [...state.criteria.container, container] })
+
+const showByContainer = (state: InventoryState, container: string): InventoryState =>
+    changeCriteria(state, { container: state.criteria.container.filter(x => x !== container) })
+
+const hideByValue = (state: InventoryState, value: string): InventoryState =>
+    changeCriteria(state, { value: Number(value) })
+
+const showByValue = (state: InventoryState, value: string): InventoryState =>
+    changeCriteria(state, { value: Number(value) - 0.01 })
+
+// items and stats can be reconstructed
+const cleanForSave = (state: InventoryState): InventoryState => ({
     ...state,
     visible: {
         ...state.visible,
-        items: state.visible.items.filter(x => x.n !== name)
+        items: undefined, 
+        stats: undefined
     },
-    hidden: sort({
-        ...state.hidden,
-        items: [...state.hidden.items, ...state.visible.items.filter(x => x.n === name)]
-    }),
-    hiddenNames: [...state.hiddenNames, name]
-})
-
-const moveToVisible = (state: InventoryState, name: string): InventoryState => ({
-    ...state,
-    visible: sort({
-        ...state.visible,
-        items: [...state.visible.items, ...state.hidden.items.filter(x => x.n === name)]
-    }),
     hidden: {
         ...state.hidden,
-        items: state.hidden.items.filter(x => x.n !== name)
-    },
-    hiddenNames: state.hiddenNames.filter(x => x !== name)
+        items: undefined,
+        stats: undefined        
+    }
 })
 
 export {
@@ -110,6 +158,11 @@ export {
     setHiddenExpanded,
     sortVisibleBy,
     sortHiddenBy,
-    moveToHidden,
-    moveToVisible
+    hideByName,
+    hideByContainer,
+    hideByValue,
+    showByName,
+    showByContainer,
+    showByValue,
+    cleanForSave
 }

@@ -19,6 +19,13 @@ const Navigation = () => {
                 onClick={() => dispatch(selectMenu(MONITOR_PAGE))}>
                 Monitor
             </button>
+            {SHOW_AUCTION_PAGE ?
+                <button
+                    className={menu === AUCTION_PAGE ? 'selected-menu' : ''}
+                    onClick={() => dispatch(selectMenu(AUCTION_PAGE))}>
+                    Auction
+                </button> : ''
+            }
             <button
                 className={menu === INVENTORY_PAGE ? 'selected-menu' : ''}
                 onClick={() => dispatch(selectMenu(INVENTORY_PAGE))}>
@@ -29,13 +36,6 @@ const Navigation = () => {
                 onClick={() => dispatch(selectMenu(STREAM_PAGE))}>
                 Stream
             </button>
-            {SHOW_AUCTION_PAGE ?
-                <button
-                    className={menu === AUCTION_PAGE ? 'selected-menu' : ''}
-                    onClick={() => dispatch(selectMenu(AUCTION_PAGE))}>
-                    Auction
-                </button> : ''
-            }
             <button
                 className={menu === ABOUT_PAGE ? 'selected-menu' : ''}
                 onClick={() => dispatch(selectMenu(ABOUT_PAGE))}>

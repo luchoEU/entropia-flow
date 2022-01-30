@@ -15,7 +15,7 @@ function AboutPage() {
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
                     <p>A tool to help you see your returns in Entropia Universe.</p>
-                    <p>Version: 0.0.5</p>
+                    <p>Version: 0.0.6</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
             </section>

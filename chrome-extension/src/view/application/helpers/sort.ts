@@ -114,9 +114,20 @@ function sortList<I extends SortItemData>(list: Array<I>, sortType: number) {
     list.sort(comparer[sortType])
 }
 
+// warning: it mutates the list
+function sortListSelect<I extends SortItemData, D>(list: Array<D>, sortType: number, select: (d: D) => I) {
+    list.sort((a: D, b: D) => comparer[sortType](select(a), select(b)))
+}
+
 function cloneSortList<I extends SortItemData>(list: Array<I>, sortType: number): Array<I> {
     const newList = [...list]
-    newList.sort(comparer[sortType])
+    sortList(newList, sortType)
+    return newList
+}
+
+function cloneSortListSelect<I extends SortItemData, D>(list: Array<D>, sortType: number, select: (d: D) => I): Array<D> {
+    const newList = [...list]
+    sortListSelect(newList, sortType, select)
     return newList
 }
 
@@ -129,5 +140,7 @@ export {
     SORT_VALUE_DESCENDING,
     nextSortType,
     sortList,
-    cloneSortList
+    sortListSelect,
+    cloneSortList,
+    cloneSortListSelect,
 }

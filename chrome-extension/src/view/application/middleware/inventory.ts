@@ -1,5 +1,6 @@
-import { MOVE_TO_HIDDEN, MOVE_TO_VISIBLE, loadInventoryState, SET_HIDDEN_EXPANDED, SET_VISIBLE_EXPANDED, SORT_HIDDEN_BY, SORT_VISIBLE_BY } from "../actions/inventory"
+import { HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, loadInventoryState, SET_HIDDEN_EXPANDED, SET_VISIBLE_EXPANDED, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SORT_HIDDEN_BY, SORT_VISIBLE_BY } from "../actions/inventory"
 import { PAGE_LOADED } from "../actions/ui"
+import { cleanForSave } from "../helpers/inventory"
 import { getInventory } from "../selectors/inventory"
 import { InventoryState } from "../state/inventory"
 
@@ -16,21 +17,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_HIDDEN_EXPANDED:
         case SORT_VISIBLE_BY:
         case SORT_HIDDEN_BY:
-        case MOVE_TO_HIDDEN:
-        case MOVE_TO_VISIBLE: {
+        case HIDE_BY_NAME:
+        case SHOW_BY_NAME:
+        case HIDE_BY_CONTAINER:
+        case SHOW_BY_CONTAINER:
+        case HIDE_BY_VALUE:
+        case SHOW_BY_VALUE: {
             const state: InventoryState = getInventory(getState())
-            const stateNoItems: InventoryState = { // items can be reconstructed
-                ...state,
-                visible: {
-                    ...state.visible,
-                    items: []
-                },
-                hidden: {
-                    ...state.hidden,
-                    items: []
-                }
-            }
-            await api.storage.saveInventoryState(stateNoItems)
+            await api.storage.saveInventoryState(cleanForSave(state))
             break
         }
     }
