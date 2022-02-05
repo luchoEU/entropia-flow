@@ -2,10 +2,10 @@ import React, { useState } from 'react'
 import ExpandableSection from '../common/ExpandableSection'
 
 function AboutPage() {
-    const [feedbackExpanded, setFeedbackExpanded] = useState(false)
-    const [donationsExpanded, setDonationsExpanded] = useState(false)
-    const [youtubeExpanded, setYoutubeExpanded] = useState(false)
-    const [githubExpanded, setGithubExpanded] = useState(false)
+    const [feedbackExpanded, setFeedbackExpanded] = useState(true)
+    const [donationsExpanded, setDonationsExpanded] = useState(true)
+    const [youtubeExpanded, setYoutubeExpanded] = useState(true)
+    const [githubExpanded, setGithubExpanded] = useState(true)
 
     return (
         <>
@@ -15,7 +15,7 @@ function AboutPage() {
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
                     <p>A tool to help you see your returns in Entropia Universe.</p>
-                    <p>Version: 0.0.6</p>
+                    <p>Version: 0.1.0</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
             </section>
@@ -30,7 +30,7 @@ function AboutPage() {
                 </ExpandableSection>
 
                 <ExpandableSection title='Tutorial' expanded={youtubeExpanded} setExpanded={setYoutubeExpanded} block={true}>
-                    <p>Video (work in progress)</p>
+                    <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
                 </ExpandableSection>
 
                 <ExpandableSection title='Source Code' expanded={githubExpanded} setExpanded={setGithubExpanded} block={true}>
