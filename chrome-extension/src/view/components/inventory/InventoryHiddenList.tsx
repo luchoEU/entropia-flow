@@ -1,7 +1,6 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import ListStorage from '../../../background/listStorage'
-import { setHiddenInventoryExpanded, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
+import { setHiddenInventoryExpanded, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/sort'
 import { InventoryList, ItemHidden } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
@@ -51,10 +50,20 @@ const InventoryHiddenList = (p: {
     list: InventoryList<ItemHidden>
 }) => {
     const { list } = p
+    const dispatch = useDispatch()
     return (
         <>
             <ExpandableSection title='Hidden' expanded={list.expanded} setExpanded={setHiddenInventoryExpanded}>
-                <p>Total value {list.stats.ped} PED for {list.stats.count} item{list.stats.count == 1 ? '' : 's'}</p>
+                <p>
+                    Total value {list.stats.ped} PED for {list.stats.count} item{list.stats.count == 1 ? '' : 's'}
+                    <span className='show-all' onClick={(e) => {
+                            e.stopPropagation()
+                            dispatch(showAll())                            
+                        }}>
+                        <img src='img/tick.png' />
+                        Show All
+                    </span>
+                </p>
                 <table className='table-diff table-diff-row'>
                     <tbody>
                         {

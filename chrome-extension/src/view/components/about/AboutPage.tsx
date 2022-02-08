@@ -15,13 +15,13 @@ function AboutPage() {
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
                     <p>A tool to help you see your returns in Entropia Universe.</p>
-                    <p>Version: 0.1.0</p>
+                    <p>Version: 0.1.1</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
             </section>
             <div className='inline'>
                 <ExpandableSection title='Feedback' expanded={feedbackExpanded} setExpanded={setFeedbackExpanded} block={true}>
-                    <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at Planet Calyso Forum or contact me ingame.</p>
+                    <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
                 </ExpandableSection>
 
                 <ExpandableSection title='Donations' expanded={donationsExpanded} setExpanded={setDonationsExpanded} block={true}>

@@ -2,6 +2,12 @@ import { Inventory, ItemData } from "../../../common/state";
 import { InventoryState, InventoryList, HideCriteria, ItemHidden } from "../state/inventory";
 import { cloneSortListSelect, nextSortType, sortList, sortListSelect, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./sort";
 
+const emptyCriteria: HideCriteria = {
+    name: [],
+    container: [],
+    value: -0.01
+}
+
 const initialState: InventoryState = {
     visible: {
         expanded: true,
@@ -21,11 +27,7 @@ const initialState: InventoryState = {
             ped: "0.00"
         }
     },
-    criteria: {
-        name: [],
-        container: [],
-        value: -0.01
-    }
+    criteria: emptyCriteria
 }
 
 function sortAndStats<D>(select: (d: D) => ItemData, list: InventoryList<D>): InventoryList<D> {
@@ -135,6 +137,9 @@ const hideByValue = (state: InventoryState, value: string): InventoryState =>
 const showByValue = (state: InventoryState, value: string): InventoryState =>
     changeCriteria(state, { value: Number(value) - 0.01 })
 
+const showAll = (state: InventoryState): InventoryState =>
+    changeCriteria(state, emptyCriteria)
+
 // items and stats can be reconstructed
 const cleanForSave = (state: InventoryState): InventoryState => ({
     ...state,
@@ -164,5 +169,6 @@ export {
     showByName,
     showByContainer,
     showByValue,
-    cleanForSave
+    showAll,
+    cleanForSave,
 }

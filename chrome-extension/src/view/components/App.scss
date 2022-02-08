@@ -269,6 +269,28 @@ h1:hover .hide {
     display: inline;
 }
 
+.show-all {
+    display: none;
+    margin-left: 10px;
+    background-color: black;
+    color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-radius: 8px;
+    cursor: default;
+}
+
+.show-all img {
+    height: 10px;
+    margin-right: 5px;
+}
+
+p:hover .show-all {
+    display: inline;
+}
+
 // buttons
 button {
     border: none;

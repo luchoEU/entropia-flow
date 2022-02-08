@@ -13,6 +13,7 @@ const HIDE_BY_CONTAINER = "[inv] hide by container"
 const SHOW_BY_CONTAINER = "[inv] show by container"
 const HIDE_BY_VALUE = "[inv] hide by value"
 const SHOW_BY_VALUE = "[inv] show by value"
+const SHOW_ALL = "[inv] show all"
 
 const loadInventoryState = (state: InventoryState) => ({
     type: LOAD_INVENTORY_STATE,
@@ -98,6 +99,10 @@ const showByValue = (value: string) => ({
     }
 })
 
+const showAll = () => ({
+    type: SHOW_ALL
+})
+
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
@@ -111,6 +116,7 @@ export {
     SHOW_BY_CONTAINER,
     HIDE_BY_VALUE,
     SHOW_BY_VALUE,
+    SHOW_ALL,
     loadInventoryState,
     setCurrentInventory,
     setVisibleInventoryExpanded,
@@ -123,4 +129,5 @@ export {
     showByContainer,
     hideByValue,
     showByValue,
+    showAll,
 }
