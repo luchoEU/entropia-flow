@@ -269,6 +269,19 @@ h1:hover .hide {
     display: inline;
 }
 
+h3 img {
+    height: 10px;
+    margin-left: 5px;
+}
+
+h3 .hide {
+    display: none;
+}
+
+h3:hover .hide {
+    display: inline;
+}
+
 .show-all {
     display: none;
     margin-left: 10px;

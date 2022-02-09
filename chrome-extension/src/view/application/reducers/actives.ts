@@ -1,5 +1,5 @@
 import { ADD_SALE, END_LOADING, ERROR_LOADING, REMOVE_ACTIVE, SET_ACTIVES, SET_LOADING_STAGE, START_LOADING } from "../actions/actives"
-import { addOrderToList, ADD_ORDER_TO_LIST } from "../actions/order"
+import { ADD_ORDER_TO_LIST } from "../actions/order"
 import { addActive, endLoading, initialState, removeActive, setActives, setLoadingError, setLoadingStage, startLoading } from "../helpers/actives"
 import { OPERATION_NONE } from "../state/actives"
 

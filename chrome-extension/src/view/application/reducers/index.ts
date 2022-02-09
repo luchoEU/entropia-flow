@@ -11,7 +11,8 @@ import stackable from './stackable'
 import refine from './refine'
 import stream from './stream'
 import inventory from './inventory'
+import about from './about'
 
 export default combineReducers({
-    menu, status, history, last, calculator, actives, order, sweat, stackable, refine, stream, inventory
+    menu, status, history, last, calculator, actives, order, sweat, stackable, refine, stream, inventory, about
 })

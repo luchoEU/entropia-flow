@@ -1,4 +1,4 @@
-import { ACTIVES_ITEM, ACTIVES_LOADING_STATE } from "../state/actives"
+import { ACTIVES_ITEM } from "../state/actives"
 
 const START_LOADING = '[act] start loading'
 const SET_LOADING_STAGE = '[act] set loading stage'

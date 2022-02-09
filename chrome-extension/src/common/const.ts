@@ -57,6 +57,7 @@ const STORAGE_VIEW_BLACKLIST = 'blacklist'
 const STORAGE_VIEW_HISTORY_EXPANDED = 'history-expanded'
 const STORAGE_VIEW_STREAM = 'stream'
 const STORAGE_VIEW_INVENTORY = 'inventoryView'
+const STORAGE_VIEW_ABOUT = 'about'
 
 // Html
 const HTML_VIEW = 'view.html'
@@ -116,6 +117,7 @@ export {
     STORAGE_VIEW_HISTORY_EXPANDED,
     STORAGE_VIEW_STREAM,
     STORAGE_VIEW_INVENTORY,
+    STORAGE_VIEW_ABOUT,
     HTML_VIEW,
     ERROR_429,
     URL_MY_ITEMS,

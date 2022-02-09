@@ -1,5 +1,6 @@
 import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/storageAreaChrome";
 import {
+    STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
     STORAGE_VIEW_BLACKLIST,
     STORAGE_VIEW_CALCULATOR,
@@ -13,6 +14,7 @@ import {
     STORAGE_VIEW_STREAM,
     STORAGE_VIEW_SWEAT
 } from "../../../common/const";
+import { AboutState } from "../../application/state/about";
 import { ACTIVES_ITEM } from "../../application/state/actives";
 import { CalculatorStateIn } from "../../application/state/calculator";
 import { InventoryState } from "../../application/state/inventory";
@@ -119,6 +121,14 @@ async function loadInventoryState(): Promise<InventoryState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_INVENTORY)
 }
 
+async function saveAbout(state: AboutState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_ABOUT, state)
+}
+
+async function loadAbout(): Promise<InventoryState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_ABOUT)
+}
+
 export default {
     saveMenu,
     loadMenu,
@@ -143,5 +153,7 @@ export default {
     saveStream,
     loadStream,
     saveInventoryState,
-    loadInventoryState
+    loadInventoryState,
+    saveAbout,
+    loadAbout,
 }

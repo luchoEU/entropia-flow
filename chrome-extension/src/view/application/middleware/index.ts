@@ -12,6 +12,7 @@ import refine from './refine'
 import history from './history'
 import stream from './stream'
 import inventory from './inventory'
+import about from './about'
 
 export default [
     ...messages,
@@ -27,5 +28,6 @@ export default [
     ...last,
     ...history,
     ...stream,
-    ...inventory
+    ...inventory,
+    ...about,
 ]
