@@ -20,7 +20,7 @@ const ExpandableQuestion = (p: { q: Question }) => {
             {  
                 expanded ? <>
                 
-                    { p.q.response.map((str: string) => <p>{str}</p>) }
+                    { p.q.response.map((str: string) => <p key={str}>{str}</p>) }
                     <p><a href={p.q.link}></a></p>
                 </> : ''
             }
@@ -99,7 +99,7 @@ function AboutPage() {
                 </ExpandableSection>
 
                 <ExpandableSection title='FAQ' expanded={isFaqExpanded} setExpanded={setExpanded(FAQ)} block={true}>
-                    { faq.map((q: Question) => <ExpandableQuestion q={q} />) }
+                    { faq.map((q: Question) => <ExpandableQuestion q={q} key={q.id}/>) }
                 </ExpandableSection>
             </div>
         </>
