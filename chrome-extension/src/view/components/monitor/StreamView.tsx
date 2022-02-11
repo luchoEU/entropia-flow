@@ -1,15 +1,18 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status';
-import useScript from '../hooks/useScript';
 import CSS from 'csstype';
+import load from '../stream/effects/ashfall/main'
 
 function StreamView() {
     const { delta, deltaClass, deltaWord } = useSelector(getLast)
     const { message } = useSelector(getStatus);    
-    useScript('effect/ashfall/main.js')
-
+    useEffect(() => {
+        load(document.getElementById('stream'))    
+        return () => { }
+      }, []);
+    
     const streamStyles: CSS.Properties = {
         color: 'white',
     }
