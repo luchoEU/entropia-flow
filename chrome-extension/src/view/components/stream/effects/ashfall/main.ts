@@ -11,13 +11,13 @@ import vertexShader from './vertexShader'
 import fragmentShader from './fragmentShader'
 
 class AshfallBackground {
-  private container: any
+  private container: HTMLElement
   private camera: any
   private scene: any
   private renderer: any
   private uniforms: any
   
-  constructor(container: any) {
+  constructor(container: HTMLElement) {
     this.container = container
     const loader = new window.THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
@@ -91,8 +91,9 @@ function animate(delta: number) {
   instance.render( delta );
 }
 
-function load(container: any) {
+function load(container: HTMLElement) {
   instance = new AshfallBackground(container)
+  container.style['color'] = 'white'
 }
 
 export default load

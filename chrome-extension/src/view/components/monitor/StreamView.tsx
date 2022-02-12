@@ -1,27 +1,23 @@
 import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
+import { backgroundList, getIcon } from '../../application/helpers/stream';
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status';
-import CSS from 'csstype';
-import load from '../stream/effects/ashfall/main'
+import { getStream } from '../../application/selectors/stream';
+import { BackgroundType, StreamState } from '../../application/state/stream';
+import useBackground from '../hooks/UseBackground';
 
 function StreamView() {
     const { delta, deltaClass, deltaWord } = useSelector(getLast)
-    const { message } = useSelector(getStatus);    
-    useEffect(() => {
-        load(document.getElementById('stream'))    
-        return () => { }
-      }, []);
-    
-    const streamStyles: CSS.Properties = {
-        color: 'white',
-    }
+    const { message } = useSelector(getStatus);
+    const { background }: StreamState = useSelector(getStream);
+    useBackground(background.selected, 'stream')
 
     return (
         <section>
-            <div id="stream" className='stream-view' style={streamStyles}>
+            <div id="stream" className='stream-view'>
                 <div className='stream-frame'>
-                    <img className='stream-logo' src='img/flow128w.png'></img>
+                    <img className='stream-logo' src={getIcon(background.selected)}></img>
                     <div className='stream-title'>Entropia Flow</div>
                     <div className='stream-subtitle'>Chrome Extension</div>
                     <div className={`stream-difference difference ${deltaClass}`}>{delta} PED {deltaWord}</div>

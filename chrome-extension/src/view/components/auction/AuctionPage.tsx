@@ -13,14 +13,6 @@ function AuctionPage() {
         <>
             <div className='inline'>
                 <AuctionCalculator />
-                <div>
-                    <div className='inline'>
-                        <AuctionRefine material={STACKABLE_ME} />
-                    </div>
-                    <div className='inline'>
-                        <AuctionRefine material={STACKABLE_LME} />
-                    </div>
-                </div>
             </div>
             <div className='inline'>
                 <div>
@@ -48,6 +40,14 @@ function AuctionPage() {
                     </div>
                     <div className='inline'>
                         <AuctionStackable material={STACKABLE_LME} />
+                    </div>
+                </div>
+                <div>
+                    <div className='inline'>
+                        <AuctionRefine material={STACKABLE_ME} />
+                    </div>
+                    <div className='inline'>
+                        <AuctionRefine material={STACKABLE_LME} />
                     </div>
                 </div>
             </div>
