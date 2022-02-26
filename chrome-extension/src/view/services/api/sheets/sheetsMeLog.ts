@@ -131,7 +131,7 @@ async function refine(doc: any, amount: string, title: string, meColumn: number,
     const sheet = await getSheet(doc, SHEET_NAME, setStage)
     const row = getLastRow(sheet) + 1
     const row1 = row + 1
-    sheet.getCell(row, meColumn).value = `=${letter}${row1}*${multi.toLocaleString('es-UY')}`
+    sheet.getCell(row, meColumn).value = `=-${letter}${row1}*${multi.toLocaleString('es-UY')}`
     sheet.getCell(row, FN_COLUMN).value = `=${letter}${row1}`
     sheet.getCell(row, swColumn).value = -Number(amount)
     fillRow(sheet, row, title, `=${letter}${row1}/1000*0,15`)
