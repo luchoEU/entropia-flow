@@ -75,7 +75,7 @@ function AboutPage() {
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
                     <p>A tool to help you see your returns in Entropia Universe.</p>
-                    <p>Version: 0.1.2</p>
+                    <p>Version: 0.1.3</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
             </section>
@@ -85,8 +85,7 @@ function AboutPage() {
                 </ExpandableSection>
 
                 <ExpandableSection title='Donations' expanded={isDonationsExpanded} setExpanded={setExpanded(DONATIONS)} block={true}>
-                    <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, look in Calypso Auction for Mind Essence at 129.99%, check the seller name.
-                    <br/>If you want another quantity or donate in another way contact me ingame.</p>
+                    <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame.</p>
                 </ExpandableSection>
 
                 <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)} block={true}>

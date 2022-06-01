@@ -25,8 +25,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const m = action.payload.material
                 const s: RefineOneState = getOneRefine(m)(getState())
                 dispatch(startLoading(refineOperation[m]))
-                const row = await api.sheets[refineSheetsMethod[m]](s.amount,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets[refineSheetsMethod[m]](sheet, s.amount)
+                await api.sheet.save(sheet, setStage)
                 dispatch(endLoading)
                 break
             } catch (e) {

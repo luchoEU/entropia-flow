@@ -26,15 +26,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             if (item !== undefined) {
                 try {
                     dispatch(startLoading(item.operation))
+                    const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                    const sheet = await api.sheets.load(setStage)
                     const soldFunc = () => {
                         switch (item.operation) {
                             case OPERATION_ME_SOLD: return api.sheets.meSold
                             case OPERATION_LME_SOLD: return api.sheets.lmeSold
                         }
                     }
-                    await soldFunc()(item.row, item.quantity, item.buyoutFee, item.buyout,
-                        (stage: number) => dispatch(setLoadingStage(stage)))
-
+                    await soldFunc()(sheet, item.row, item.quantity, item.buyoutFee, item.buyout)
+                    await api.sheet.save(sheet, setStage)
                     dispatch(removeActive(item.date))
                     dispatch(endLoading)
                     break

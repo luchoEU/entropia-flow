@@ -32,7 +32,7 @@ function AuctionStackable({ material }) {
                     <div>Value</div>
                     <div>{sout.value}</div>
                 </div>
-                <AuctionButton title='Buy' action={addStackableToSheet(material, sin.ttValue, sin.markup)} />
+                <AuctionButton title='Buy' pending={sin.pending} action={addStackableToSheet(material, sin.ttValue, sin.markup)} />
             </div>
         </section>
     )

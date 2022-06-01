@@ -20,6 +20,7 @@ function AuctionCalculator() {
                 markupAction={meMarkupChanged}
                 valueValue={c.in.meValue}
                 valueAction={meValueChanged}
+                pending={c.in.mePending}
                 sellAction={meSell}
                 out={c.out.me}
             />
@@ -29,6 +30,7 @@ function AuctionCalculator() {
                 markupAction={lmeMarkupChanged}
                 valueValue={c.in.lmeValue}
                 valueAction={lmeValueChanged}
+                pending={c.in.lmePending}
                 sellAction={lmeSell}
                 out={c.out.lme}
             />

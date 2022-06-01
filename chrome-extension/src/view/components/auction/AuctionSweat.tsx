@@ -30,7 +30,7 @@ function AuctionSweat() {
                     <div>Value</div>
                     <div>{s.out.value}</div>
                 </div>
-                <AuctionButton title='Buy' action={addSweatToSheet(s.in.price, s.in.amount)} />
+                <AuctionButton title='Buy' pending={s.in.pending} action={addSweatToSheet(s.in.price, s.in.amount)} />
             </div>
         </section>
     )

@@ -18,10 +18,12 @@ const refineSheetsMethod = {
 
 const initialState = {
     me: {
-        amount: '1000'
+        amount: '1000',
+        pending: false,
     },
     lme: {
-        amount: '1000'
+        amount: '1000',
+        pending: false,
     }
 }
 

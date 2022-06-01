@@ -22,7 +22,7 @@ function AuctionActiveItem(p: { item: ACTIVES_ITEM }) {
             <td>{item.buyout}</td>
             <td>{
                 item.operation === OPERATION_NONE ? '' :
-                    <AuctionButton title='Sell' action={soldActive(item.date)} />
+                    <AuctionButton title='Sell' pending={item.pending} action={soldActive(item.date)} />
             }</td>
             <td>{
                 loading === undefined ?

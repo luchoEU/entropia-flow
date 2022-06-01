@@ -6,8 +6,10 @@ const initialStateIn: CalculatorStateIn = {
     diluted: '101',
     meMarkup: '120',
     meValue: '99',
+    mePending: false,
     lmeMarkup: '110',
     lmeValue: '39',
+    lmePending: false,
 }
 
 const initialState: CalculatorState = {

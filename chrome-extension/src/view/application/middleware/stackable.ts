@@ -26,8 +26,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const m = action.payload.material
                 const s: StackableOneStateIn = getOneStackableIn(m)(getState())
                 dispatch(startLoading(stackableOperation[m]))
-                const row = await api.sheets[stackableSheetsMethod[m]](s.ttValue, s.markup,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets[stackableSheetsMethod[m]](sheet, s.ttValue, s.markup)
+                await api.sheet.save(sheet, setStage)
                 dispatch(endLoading)
                 break
             } catch (e) {

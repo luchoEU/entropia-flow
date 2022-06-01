@@ -20,7 +20,7 @@ function AuctionRefine({ material }) {
                     unit=''
                     getChangeAction={refineAmountChanged(material)} />
             </form>
-            <AuctionButton title='Refine' action={addRefineToSheet(material, s.amount)} />
+            <AuctionButton title='Refine' pending={s.pending} action={addRefineToSheet(material, s.amount)} />
         </section>
     )
 }

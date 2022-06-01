@@ -3,6 +3,7 @@ import { OrderState } from "../state/order";
 const initialState: OrderState = {
     markup: '102',
     value: '2000',
+    pending: false,
 }
 
 const setState = (state: OrderState, newState: OrderState): OrderState => newState

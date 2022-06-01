@@ -1,66 +1,63 @@
 import { SetStage } from '../../../application/state/actives'
 import { newDayInventory } from './sheetsInventory'
-import { diluted, lme, LME_COLUMN, me, ME_COLUMN, nexus, order, sell, sold, sweat, _refineLME, _refineME } from './sheetsMeLog'
-import { getSpreadsheet } from './sheetsUtils'
+import { diluted, lme, LME_COLUMN, me, ME_COLUMN, nexus, order, sell, sold, sweat, _refineLME, _refineME, ME_LOG_SHEET_NAME } from './sheetsMeLog'
+import { getSpreadsheet, getSheet, saveUpdatedCells } from './sheetsUtils'
 
-async function sellME(amount: string, fee: string, value: string, setStage: SetStage): Promise<number> {
+async function load(setStage: SetStage): Promise<any> {
     const doc = await getSpreadsheet(setStage)
-    return sell(doc, amount, fee, value, ME_COLUMN, 'Auction', setStage)
+    return await getSheet(doc, ME_LOG_SHEET_NAME, setStage)
 }
 
-async function sellLME(amount: string, fee: string, value: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return sell(doc, amount, fee, value, LME_COLUMN, 'AuctionL', setStage)
+async function save(sheet: any, setStage: SetStage): Promise<void> {
+    await saveUpdatedCells(sheet, setStage)
 }
 
-async function meSold(row: number, amount: string, fee: string, value: string, setStage: SetStage) {
-    const doc = await getSpreadsheet(setStage)
-    return sold(doc, amount, fee, value, row, ME_COLUMN, setStage)
+async function sellME(sheet: any, amount: string, fee: string, value: string): Promise<number> {
+    return sell(sheet, amount, fee, value, ME_COLUMN, 'Auction')
 }
 
-async function lmeSold(row: number, amount: string, fee: string, value: string, setStage: SetStage) {
-    const doc = await getSpreadsheet(setStage)
-    return sold(doc, amount, fee, value, row, LME_COLUMN, setStage)
+async function sellLME(sheet: any, amount: string, fee: string, value: string): Promise<number> {
+    return sell(sheet, amount, fee, value, LME_COLUMN, 'AuctionL')
 }
 
-async function orderNexus(markup: string, value: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return order(doc, markup, value, setStage)
+async function meSold(sheet: any, row: number, amount: string, fee: string, value: string) {
+    return sold(sheet, amount, fee, value, row, ME_COLUMN)
 }
 
-async function buySweat(price: string, amount: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return sweat(doc, price, amount, setStage)
+async function lmeSold(sheet: any, row: number, amount: string, fee: string, value: string) {
+    return sold(sheet, amount, fee, value, row, LME_COLUMN)
 }
 
-async function buyNexus(ttValue: string, markup: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return nexus(doc, ttValue, markup, setStage)
+async function orderNexus(sheet: any, markup: string, value: string): Promise<number> {
+    return order(sheet, markup, value)
 }
 
-async function buyME(ttValue: string, markup: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return me(doc, ttValue, markup, setStage)
+async function buySweat(sheet: any, price: string, amount: string): Promise<number> {
+    return sweat(sheet, price, amount)
 }
 
-async function buyLME(ttValue: string, markup: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return lme(doc, ttValue, markup, setStage)
+async function buyNexus(sheet: any, ttValue: string, markup: string): Promise<number> {
+    return nexus(sheet, ttValue, markup)
 }
 
-async function buyDiluted(ttValue: string, markup: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return diluted(doc, ttValue, markup, setStage)
+async function buyME(sheet: any, ttValue: string, markup: string): Promise<number> {
+    return me(sheet, ttValue, markup)
 }
 
-async function refineME(amount: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return _refineME(doc, amount, setStage)
+async function buyLME(sheet: any, ttValue: string, markup: string): Promise<number> {
+    return lme(sheet, ttValue, markup)
 }
 
-async function refineLME(amount: string, setStage: SetStage): Promise<number> {
-    const doc = await getSpreadsheet(setStage)
-    return _refineLME(doc, amount, setStage)
+async function buyDiluted(sheet: any, ttValue: string, markup: string): Promise<number> {
+    return diluted(sheet, ttValue, markup)
+}
+
+async function refineME(sheet: any, amount: string): Promise<number> {
+    return _refineME(sheet, amount)
+}
+
+async function refineLME(sheet: any, amount: string): Promise<number> {
+    return _refineLME(sheet, amount)
 }
 
 async function newDay(setStage: SetStage) {
@@ -69,6 +66,8 @@ async function newDay(setStage: SetStage) {
 }
 
 export default {
+    load,
+    save,
     sellME,
     sellLME,
     meSold,

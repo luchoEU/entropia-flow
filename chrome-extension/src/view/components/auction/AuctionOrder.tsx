@@ -25,7 +25,7 @@ function AuctionOrder() {
                     unit='PED'
                     getChangeAction={valueChanged} />
             </form>
-            <AuctionButton title='Order' action={addOrderToSheet(s.markup, s.value)} />
+            <AuctionButton title='Order' pending={s.pending} action={addOrderToSheet(s.markup, s.value)} />
         </section>
     )
 }

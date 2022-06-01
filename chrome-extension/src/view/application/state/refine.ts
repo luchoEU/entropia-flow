@@ -1,5 +1,6 @@
 interface RefineOneState {
-    amount: string
+    amount: string,
+    pending: boolean
 }
 
 interface RefineState {

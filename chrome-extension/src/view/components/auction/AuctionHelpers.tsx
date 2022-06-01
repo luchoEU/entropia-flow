@@ -6,7 +6,7 @@ function AuctionHelpers() {
     return (
         <section>
             <h1>Helpers</h1>
-            <AuctionButton title='New Day' action={newDay} />
+            <AuctionButton title='New Day' pending={false} action={newDay} />
         </section>
     )
 }

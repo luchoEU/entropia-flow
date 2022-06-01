@@ -2,7 +2,7 @@ import React from 'react'
 import AuctionInput from './AuctionInput'
 import AuctionOutput from './AuctionOutput'
 
-function AuctionCalcOne({ title, markupValue, markupAction, valueValue, valueAction, sellAction, out }) {
+function AuctionCalcOne({ title, markupValue, markupAction, valueValue, valueAction, pending, sellAction, out }) {
     return (
         <section>
             <h1>{title}</h1>
@@ -21,6 +21,7 @@ function AuctionCalcOne({ title, markupValue, markupAction, valueValue, valueAct
             </form>
             <AuctionOutput
                 out={out}
+                pending={pending}
                 sellAction={sellAction} />
         </section>
     )

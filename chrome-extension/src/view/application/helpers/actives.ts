@@ -45,7 +45,8 @@ const addActive = (state: ACTIVES_STATE, row: number, operation: number, type: s
             quantity,
             opening,
             buyout,
-            buyoutFee
+            buyoutFee,
+            pending: false
         }
     ]
 })

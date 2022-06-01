@@ -30,8 +30,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const s: CalculatorStateOut1 = getCalculatorOutME(getState())
                 dispatch(startLoading(OPERATION_ME_SELL))
-                const row = await api.sheets.sellME(s.amount, s.openingFee, s.openingValue,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets.sellME(sheet, s.amount, s.openingFee, s.openingValue)
+                await api.sheet.save(sheet, setStage)
                 dispatch(addSale(row, OPERATION_ME_SOLD, 'Auction ME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee))
                 dispatch(endLoading)
                 break
@@ -45,8 +47,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const s: CalculatorStateOut1 = getCalculatorOutLME(getState())
                 dispatch(startLoading(OPERATION_LME_SELL))
-                const row = await api.sheets.sellLME(s.amount, s.openingFee, s.openingValue,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets.sellLME(sheet, s.amount, s.openingFee, s.openingValue)
+                await api.sheet.save(sheet, setStage)
                 dispatch(addSale(row, OPERATION_LME_SOLD, 'Auction LME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee))
                 dispatch(endLoading)
             } catch (e) {

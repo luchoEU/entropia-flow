@@ -1,12 +1,10 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getLoading } from '../../application/selectors/actives'
-import { ACTIVES_LOADING_STATE } from '../../application/state/actives'
 import { CalculatorStateOut1 } from '../../application/state/calculator'
 import AuctionButton from './AuctionButton'
 
 function AuctionOutput(c: {
     out: CalculatorStateOut1,
+    pending: boolean,
     sellAction: { type: string }
 }) {
     return (
@@ -22,7 +20,7 @@ function AuctionOutput(c: {
                 <div>{c.out.buyoutValue}</div>
             </div>
 
-            <AuctionButton title='Sell' action={c.sellAction} />
+            <AuctionButton title='Sell' pending={c.pending} action={c.sellAction} />
 
             <div className='calc-output'>
                 <div>Auction Fee</div>

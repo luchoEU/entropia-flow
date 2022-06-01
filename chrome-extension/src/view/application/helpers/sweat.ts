@@ -7,6 +7,7 @@ const calc = (s: SweatStateIn): SweatStateOut => ({
 const initialStateIn: SweatStateIn = {
     price: '1.45',
     amount: '1000',
+    pending: false,
 }
 
 const initialState: SweatState = {

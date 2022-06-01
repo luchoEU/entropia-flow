@@ -40,19 +40,23 @@ const calc = (s: StackableStateIn): any => {
 const initialStateIn: StackableStateIn = {
     nexus: {
         ttValue: '100',
-        markup: '102'
+        markup: '102',
+        pending: false,
     },
     me: {
         ttValue: '100',
-        markup: '115'
+        markup: '115',
+        pending: false,
     },
     lme: {
         ttValue: '100',
         markup: '103',
+        pending: false,
     },
     diluted: {
         ttValue: '100',
-        markup: '103'
+        markup: '103',
+        pending: false,
     }
 }
 

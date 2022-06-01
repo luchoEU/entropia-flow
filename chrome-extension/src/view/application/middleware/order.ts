@@ -25,8 +25,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const s: OrderState = getOrder(getState())
                 dispatch(startLoading(OPERATION_ADD_ORDER))
-                const row = await api.sheets.orderNexus(s.markup, s.value,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets.orderNexus(sheet, s.markup, s.value)
+                await api.sheet.save(sheet, setStage)
                 dispatch(addOrderToList(row, s.markup, s.value))
                 dispatch(endLoading)
                 break

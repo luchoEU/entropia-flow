@@ -1,6 +1,7 @@
 interface SweatStateIn {
     price: string,
     amount: string,
+    pending: boolean
 }
 
 interface SweatStateOut {

@@ -13,6 +13,7 @@ interface ACTIVES_ITEM {
     opening: string,
     buyout: string,
     buyoutFee: string,
+    pending: boolean,
 }
 
 interface ACTIVES_STATE {

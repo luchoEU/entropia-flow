@@ -25,8 +25,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const s: SweatStateIn = getSweatIn(getState())
                 dispatch(startLoading(OPERATION_ADD_SWEAT))
-                const row = await api.sheets.buySweat(s.price, s.amount,
-                    (stage: number) => dispatch(setLoadingStage(stage)))
+                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
+                const sheet = await api.sheets.load(setStage)
+                const row = await api.sheets.buySweat(sheet, s.price, s.amount)
+                await api.sheet.save(sheet, setStage)
                 dispatch(endLoading)
                 break
             } catch (e) {

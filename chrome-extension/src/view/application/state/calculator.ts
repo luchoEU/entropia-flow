@@ -4,8 +4,10 @@ interface CalculatorStateIn {
     diluted: string,
     meMarkup: string,
     meValue: string,
+    mePending: boolean,
     lmeMarkup: string,
     lmeValue: string,
+    lmePending: boolean,
 }
 
 interface CalculatorStateOut1 {

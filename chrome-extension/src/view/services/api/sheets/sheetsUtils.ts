@@ -15,14 +15,14 @@ async function getSpreadsheet(setStage: SetStage) {
     return doc
 }
 
-async function getSheet(doc: any, title: string, setStage: SetStage) {
+async function getSheet(doc: any, title: string, setStage: SetStage): Promise<any> {
     setStage(STAGE_LOADING_ME_LOG_SHEET)
     let sheet = doc.sheetsByTitle[title]
     await sheet.loadCells()
     return sheet
 }
 
-async function saveUpdatedCells(sheet: any, setStage: SetStage) {
+async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
     setStage(STAGE_SAVING)
     await sheet.saveUpdatedCells()
 }
