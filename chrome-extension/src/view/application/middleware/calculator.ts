@@ -33,15 +33,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
                 const sheet = await api.sheets.load(setStage)
                 const row = await api.sheets.sellME(sheet, s.amount, s.openingFee, s.openingValue)
-                await api.sheet.save(sheet, setStage)
+                await api.sheets.save(sheet, setStage)
                 dispatch(addSale(row, OPERATION_ME_SOLD, 'Auction ME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee))
                 dispatch(endLoading)
-                break
             } catch (e) {
                 dispatch(setLoadingError(e.message))
                 trace('exception calculator ME:')
                 traceData(e)
             }
+            break
         }
         case LME_SELL: {
             try {
@@ -50,7 +50,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
                 const sheet = await api.sheets.load(setStage)
                 const row = await api.sheets.sellLME(sheet, s.amount, s.openingFee, s.openingValue)
-                await api.sheet.save(sheet, setStage)
+                await api.sheets.save(sheet, setStage)
                 dispatch(addSale(row, OPERATION_LME_SOLD, 'Auction LME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee))
                 dispatch(endLoading)
             } catch (e) {

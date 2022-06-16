@@ -28,15 +28,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
                 const sheet = await api.sheets.load(setStage)
                 const row = await api.sheets.orderNexus(sheet, s.markup, s.value)
-                await api.sheet.save(sheet, setStage)
+                await api.sheets.save(sheet, setStage)
                 dispatch(addOrderToList(row, s.markup, s.value))
                 dispatch(endLoading)
-                break
             } catch (e) {
                 dispatch(setLoadingError(e.message))
                 trace('exception order:')
                 traceData(e)
             }
+            break
         }
     }
 }

@@ -35,15 +35,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         }
                     }
                     await soldFunc()(sheet, item.row, item.quantity, item.buyoutFee, item.buyout)
-                    await api.sheet.save(sheet, setStage)
+                    await api.sheets.save(sheet, setStage)
                     dispatch(removeActive(item.date))
                     dispatch(endLoading)
-                    break
                 } catch (e) {
                     dispatch(setLoadingError(e.message))
                     trace('exception calculator ME:')
                     traceData(e)
                 }
+                break
             }
         }
     }

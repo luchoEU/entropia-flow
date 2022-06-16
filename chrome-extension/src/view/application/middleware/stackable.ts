@@ -29,14 +29,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
                 const sheet = await api.sheets.load(setStage)
                 const row = await api.sheets[stackableSheetsMethod[m]](sheet, s.ttValue, s.markup)
-                await api.sheet.save(sheet, setStage)
+                await api.sheets.save(sheet, setStage)
                 dispatch(endLoading)
-                break
             } catch (e) {
                 dispatch(setLoadingError(e.message))
                 trace('exception order:')
                 traceData(e)
             }
+            break
         }
     }
 }
