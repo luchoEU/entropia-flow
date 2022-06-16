@@ -1,0 +1,7 @@
+interface SheetsState {
+
+}
+
+export {
+    SheetsState
+}

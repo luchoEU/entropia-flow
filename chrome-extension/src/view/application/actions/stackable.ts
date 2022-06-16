@@ -4,6 +4,7 @@ const SET_STACKABLE_STATE = "[stackable] set state"
 const STACKABLE_TT_VALUE_CHANGED = "[stackable] tt value changed"
 const STACKABLE_MARKUP_CHANGED = "[stackable] markup changed"
 const ADD_STACKABLE_TO_SHEET = "[stackable] add sheet"
+const ADD_STACKABLE_TO_SHEET_DONE = "[stackable] add sheet done"
 
 const setStackableState = (state: StackableStateIn) => ({
     type: SET_STACKABLE_STATE,
@@ -37,13 +38,22 @@ const addStackableToSheet = (material: string, ttValue: string, markup: string) 
     }
 })
 
+const addStackableToSheetDone = (material: string) => ({
+    type: ADD_STACKABLE_TO_SHEET_DONE,
+    payload: {
+        material
+    }
+})
+
 export {
     SET_STACKABLE_STATE,
     STACKABLE_TT_VALUE_CHANGED,
     STACKABLE_MARKUP_CHANGED,
     ADD_STACKABLE_TO_SHEET,
+    ADD_STACKABLE_TO_SHEET_DONE,
     setStackableState,
     stackableTTValueChanged,
     stackableMarkupChanged,
-    addStackableToSheet
+    addStackableToSheet,
+    addStackableToSheetDone
 }

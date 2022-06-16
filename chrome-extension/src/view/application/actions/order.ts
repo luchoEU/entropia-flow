@@ -4,6 +4,7 @@ const SET_ORDER_STATE = "[order] set state"
 const ORDER_MARKUP_CHANGED = "[order] markup changed"
 const ORDER_VALUE_CHANGED = "[order] value changed"
 const ADD_ORDER_TO_SHEET = "[order] add sheet"
+const ADD_ORDER_TO_SHEET_DONE = "[order] add sheet done"
 const ADD_ORDER_TO_LIST = "[order] add list"
 
 const setOrderState = (state: OrderState) => ({
@@ -35,6 +36,10 @@ const addOrderToSheet = (markup: string, value: string) => ({
     }
 })
 
+const addOrderToSheetDone = {
+    type: ADD_ORDER_TO_SHEET_DONE
+}
+
 const addOrderToList = (row: number, markup: string, value: string) => ({
     type: ADD_ORDER_TO_LIST,
     payload: {
@@ -49,10 +54,12 @@ export {
     ORDER_MARKUP_CHANGED,
     ORDER_VALUE_CHANGED,
     ADD_ORDER_TO_SHEET,
+    ADD_ORDER_TO_SHEET_DONE,
     ADD_ORDER_TO_LIST,
     setOrderState,
     markupChanged,
     valueChanged,
     addOrderToSheet,
+    addOrderToSheetDone,
     addOrderToList,
 }

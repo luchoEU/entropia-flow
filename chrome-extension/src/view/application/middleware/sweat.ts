@@ -1,6 +1,5 @@
-import { trace, traceData } from "../../../common/trace"
-import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
-import { ADD_SWEAT_TO_SHEET, setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
+import { addPendingChange } from "../actions/sheets"
+import { addSweatToSheet, addSweatToSheetDone, ADD_SWEAT_TO_SHEET, setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
 import { PAGE_LOADED } from "../actions/ui"
 import { getSweatIn } from "../selectors/sweat"
 import { OPERATION_ADD_SWEAT } from "../state/actives"
@@ -22,19 +21,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case ADD_SWEAT_TO_SHEET: {
-            try {
-                const s: SweatStateIn = getSweatIn(getState())
-                dispatch(startLoading(OPERATION_ADD_SWEAT))
-                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
-                const sheet = await api.sheets.load(setStage)
-                const row = await api.sheets.buySweat(sheet, s.price, s.amount)
-                await api.sheets.save(sheet, setStage)
-                dispatch(endLoading)
-            } catch (e) {
-                dispatch(setLoadingError(e.message))
-                trace('exception order:')
-                traceData(e)
-            }
+            const s: SweatStateIn = getSweatIn(getState())
+            dispatch(addPendingChange(
+                OPERATION_ADD_SWEAT,
+                sheet => api.sheets.buySweat(sheet, s.price, s.amount),
+                row => [ addSweatToSheetDone ]
+            ))
             break
         }
     }

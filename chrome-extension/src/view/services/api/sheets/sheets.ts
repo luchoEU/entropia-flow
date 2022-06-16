@@ -20,11 +20,11 @@ async function sellLME(sheet: any, amount: string, fee: string, value: string): 
     return sell(sheet, amount, fee, value, LME_COLUMN, 'AuctionL')
 }
 
-async function meSold(sheet: any, row: number, amount: string, fee: string, value: string) {
+async function meSold(sheet: any, row: number, amount: string, fee: string, value: string): Promise<number> {
     return sold(sheet, amount, fee, value, row, ME_COLUMN)
 }
 
-async function lmeSold(sheet: any, row: number, amount: string, fee: string, value: string) {
+async function lmeSold(sheet: any, row: number, amount: string, fee: string, value: string): Promise<number> {
     return sold(sheet, amount, fee, value, row, LME_COLUMN)
 }
 

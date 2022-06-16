@@ -42,9 +42,21 @@ const sweatAmountChanged = (state: SweatState, amount: string): SweatState => {
     }
 }
 
+const addSweatChanged = (state: SweatState, pending: boolean): SweatState => {
+    const inState = {
+        ...state.in,
+        pending
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
 export {
     initialState,
     setState,
     sweatPriceChanged,
     sweatAmountChanged,
+    addSweatChanged,
 }

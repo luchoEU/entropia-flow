@@ -1,6 +1,5 @@
-import { trace, traceData } from "../../../common/trace"
-import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
-import { ADD_STACKABLE_TO_SHEET, setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
+import { addPendingChange } from "../actions/sheets"
+import { addStackableToSheet, addStackableToSheetDone, ADD_STACKABLE_TO_SHEET, setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
 import { PAGE_LOADED } from "../actions/ui"
 import { stackableOperation, stackableSheetsMethod } from "../helpers/stackable"
 import { getOneStackableIn, getStackableIn } from "../selectors/stackable"
@@ -22,20 +21,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case ADD_STACKABLE_TO_SHEET: {
-            try {
-                const m = action.payload.material
-                const s: StackableOneStateIn = getOneStackableIn(m)(getState())
-                dispatch(startLoading(stackableOperation[m]))
-                const setStage = (stage: number) => dispatch(setLoadingStage(stage))
-                const sheet = await api.sheets.load(setStage)
-                const row = await api.sheets[stackableSheetsMethod[m]](sheet, s.ttValue, s.markup)
-                await api.sheets.save(sheet, setStage)
-                dispatch(endLoading)
-            } catch (e) {
-                dispatch(setLoadingError(e.message))
-                trace('exception order:')
-                traceData(e)
-            }
+            const m = action.payload.material
+            const s: StackableOneStateIn = getOneStackableIn(m)(getState())
+            dispatch(addPendingChange(
+                stackableOperation[m],
+                sheet => api.sheets[stackableSheetsMethod[m]](sheet, s.ttValue, s.markup),
+                row => [ addStackableToSheetDone(m) ]
+            ))
             break
         }
     }

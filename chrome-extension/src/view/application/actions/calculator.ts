@@ -10,6 +10,8 @@ const LME_MARKUP_CHANGED = "[calc] LME markup changed"
 const LME_VALUE_CHANGED = "[calc] LME value changed"
 const ME_SELL = "[calc] Sell ME"
 const LME_SELL = "[calc] Sell LME"
+const ME_SELL_DONE = "[calc] Sell ME done"
+const LME_SELL_DONE = "[calc] Sell LME done"
 
 const setCalculatorState = (state: CalculatorStateIn) => ({
     type: SET_CALCULATOR_STATE,
@@ -75,6 +77,14 @@ const lmeSell = {
     type: LME_SELL,
 }
 
+const meSellDone = {
+    type: ME_SELL_DONE,
+}
+
+const lmeSellDone = {
+    type: LME_SELL_DONE,
+}
+
 export {
     SET_CALCULATOR_STATE,
     SWEAT_CHANGED,
@@ -86,6 +96,8 @@ export {
     LME_VALUE_CHANGED,
     ME_SELL,
     LME_SELL,
+    ME_SELL_DONE,
+    LME_SELL_DONE,
     setCalculatorState,
     sweatChanged,
     nexusChanged,
@@ -95,5 +107,7 @@ export {
     lmeMarkupChanged,
     lmeValueChanged,
     meSell,
-    lmeSell
+    lmeSell,
+    meSellDone,
+    lmeSellDone
 }

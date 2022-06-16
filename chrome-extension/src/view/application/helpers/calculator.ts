@@ -148,6 +148,28 @@ function lmeValueChanged(state: CalculatorState, lmeValue: string): CalculatorSt
     }
 }
 
+function meSellChange(state: CalculatorState, mePending: boolean): CalculatorState {
+    const inState = {
+        ...state.in,
+        mePending
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function lmeSellChange(state: CalculatorState, lmePending: boolean): CalculatorState {
+    const inState = {
+        ...state.in,
+        lmePending
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
 export {
     initialState,
     setState,
@@ -158,4 +180,6 @@ export {
     meValueChanged,
     lmeMarkupChanged,
     lmeValueChanged,
+    meSellChange,
+    lmeSellChange
 }

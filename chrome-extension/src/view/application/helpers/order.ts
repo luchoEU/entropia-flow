@@ -18,9 +18,15 @@ const valueChanged = (state: OrderState, value: string): OrderState => ({
     value
 })
 
+const addOrderChanged = (state: OrderState, pending: boolean): OrderState => ({
+    ...state,
+    pending
+})
+
 export {
     initialState,
     setState,
     markupChanged,
     valueChanged,
+    addOrderChanged
 }

@@ -37,11 +37,20 @@ const refineAmountChanged = (state: RefineState, material: string, amount: strin
     return inState
 }
 
+const addRefineChanged = (state: RefineState, material: string, pending: boolean): RefineState => {
+    const inState = { ...state }
+    inState[material] = {
+        pending
+    }
+    return inState
+}
+
 export {
     refineTitle,
     refineOperation,
     refineSheetsMethod,
     initialState,
     setState,
-    refineAmountChanged
+    refineAmountChanged,
+    addRefineChanged
 }

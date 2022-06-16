@@ -94,6 +94,18 @@ const stackableMarkupChanged = (state: StackableState, material: string, markup:
     }
 }
 
+const addStackableChanged = (state: StackableState, material: string, pending: boolean): StackableState => {
+    const inState = { ...state.in }
+    inState[material] = {
+        ...inState[material],
+        pending
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
 export {
     STACKABLE_NEXUS,
     STACKABLE_ME,
@@ -105,5 +117,6 @@ export {
     initialState,
     setState,
     stackableTTValueChanged,
-    stackableMarkupChanged
+    stackableMarkupChanged,
+    addStackableChanged
 }

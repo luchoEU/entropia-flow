@@ -61,6 +61,11 @@ const removeActive = (state: ACTIVES_STATE, date: number) => ({
     list: state.list.filter(a => a.date !== date)
 })
 
+const soldActive = (state: ACTIVES_STATE, date: number) => ({
+    ...state,
+    list: state.list.map(a => a.date === date ? { ...a, pending: true } : a)
+})
+
 export {
     initialState,
     startLoading,
@@ -69,5 +74,6 @@ export {
     setLoadingError,
     addActive,
     setActives,
-    removeActive
+    removeActive,
+    soldActive
 }

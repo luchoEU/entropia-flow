@@ -13,6 +13,7 @@ import history from './history'
 import stream from './stream'
 import inventory from './inventory'
 import about from './about'
+import sheets from './sheets'
 
 export default [
     ...messages,
@@ -30,4 +31,5 @@ export default [
     ...stream,
     ...inventory,
     ...about,
+    ...sheets
 ]
