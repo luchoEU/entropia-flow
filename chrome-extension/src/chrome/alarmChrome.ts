@@ -13,9 +13,10 @@ class ChromeAlarmManager implements IAlarmManager {
     }
 
     public listen(callback: () => Promise<void>) {
-        chrome.alarms.onAlarm.addListener(async (alarm) => {
-            await callback()
-        })
+        chrome.alarms.onAlarm.addListener(async function(alarm) {
+            if (alarm.name == this.name)
+                await callback()
+        }.bind(this))
     }
 
     public async start(periodInMinutes: number): Promise<void> {
