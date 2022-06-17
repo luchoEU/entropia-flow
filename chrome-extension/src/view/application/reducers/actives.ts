@@ -5,7 +5,7 @@ import { OPERATION_NONE } from "../state/actives"
 
 export default (state = initialState, action) => {
     switch (action.type) {
-        case START_LOADING: return startLoading(state, action.payload.operation)
+        case START_LOADING: return startLoading(state, action.payload.loadingText)
         case SET_LOADING_STAGE: return setLoadingStage(state, action.payload.stage)
         case END_LOADING: return endLoading(state)
         case ERROR_LOADING: return setLoadingError(state, action.payload.text)

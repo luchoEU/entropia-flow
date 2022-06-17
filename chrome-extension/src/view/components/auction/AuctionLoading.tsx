@@ -13,7 +13,7 @@ function AuctionLoading() {
             return (
                 <div>
                     <p className='error'>
-                        {OperationText[loading.operation]}:
+                        {loading.loadingText}:
                         <img
                             className='img-loading'
                             src='img/cross.png'
@@ -27,7 +27,7 @@ function AuctionLoading() {
             return (
                 <div>
                     <p>
-                        {OperationText[loading.operation]}:
+                        {loading.loadingText}:
                         <img className='img-loading' src='img/loading.gif'></img>
                         {StageText[loading.stage]}...
                     </p>

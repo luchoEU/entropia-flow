@@ -4,10 +4,10 @@ const initialState: ACTIVES_STATE = {
     list: []
 }
 
-const startLoading = (state: ACTIVES_STATE, operation: number): ACTIVES_STATE => ({
+const startLoading = (state: ACTIVES_STATE, loadingText: string): ACTIVES_STATE => ({
     ...state,
     loading: {
-        operation,
+        loadingText,
         stage: STAGE_INITIALIZING
     }
 })

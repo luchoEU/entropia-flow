@@ -1,5 +1,5 @@
 interface ACTIVES_LOADING_STATE {
-    operation: number,
+    loadingText: string,
     stage: number,
     errorText?: string
 }
@@ -21,7 +21,7 @@ interface ACTIVES_STATE {
     loading?: ACTIVES_LOADING_STATE,
 }
 
-const OPERATION_NONE = 0
+const OPERATION_NONE = 0 // needed for orders in active list to hide the sell button
 const OPERATION_ME_SELL = 1
 const OPERATION_LME_SELL = 2
 const OPERATION_NEW_DAY = 3

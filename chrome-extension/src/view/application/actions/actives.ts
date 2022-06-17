@@ -9,10 +9,10 @@ const SET_ACTIVES = '[act] set actives'
 const SOLD_ACTIVE = '[act] sold active'
 const REMOVE_ACTIVE = '[act] remove active'
 
-const startLoading = (operation: number) => ({
+const startLoading = (loadingText: string) => ({
     type: START_LOADING,
     payload: {
-        operation,
+        loadingText
     }
 })
 
