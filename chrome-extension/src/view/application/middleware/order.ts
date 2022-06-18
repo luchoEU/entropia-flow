@@ -24,7 +24,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: OrderState = getOrder(getState())
             dispatch(addPendingChange(
                 OPERATION_ADD_ORDER,
-                sheet => api.sheets.orderNexus(sheet, s.markup, s.value),
+                sheet => sheet.orderNexus(s.markup, s.value),
                 row => [
                     addOrderToList(row, s.markup, s.value),
                     addOrderToSheetDone

@@ -5,7 +5,7 @@ const initialState: SHEETS_STATE = {
     timeoutId: undefined
 }
 
-const addPendingChange = (state: SHEETS_STATE, operation: number, changeFunc: (sheet: any) => Promise<number>, doneFunc: (row: number) => Array<any>): SHEETS_STATE => ({
+const addPendingChange = (state: SHEETS_STATE, operation: number, changeFunc: (sheet: any) => number, doneFunc: (row: number) => Array<any>): SHEETS_STATE => ({
     ...state,
     pending: [
         ...state.pending,

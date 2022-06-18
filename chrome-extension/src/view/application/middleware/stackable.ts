@@ -25,7 +25,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: StackableOneStateIn = getOneStackableIn(m)(getState())
             dispatch(addPendingChange(
                 stackableOperation[m],
-                sheet => api.sheets[stackableSheetsMethod[m]](sheet, s.ttValue, s.markup),
+                sheet => sheet[stackableSheetsMethod[m]](s.ttValue, s.markup),
                 row => [ addStackableToSheetDone(m) ]
             ))
             break

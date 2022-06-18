@@ -11,18 +11,15 @@ function AuctionButton(p: {
     const dispatch = useDispatch()
     const loading: ACTIVES_LOADING_STATE = useSelector(getLoading)
 
-    if (loading === undefined) {
-        if (p.pending) {
-            return (
-                <div>
-                    <button
-                        className='button-sell-pending'
-                        onClick={() => dispatch(p.action)}>
-                        {p.title}...
-                    </button>
-                </div>
-            )
-        } else {
+    if (p.pending) {
+        return (
+            <div>
+                <img className='img-loading' src='img/loading.gif' />
+                {p.title}...
+            </div>
+        )
+    } else {
+        if (loading === undefined) {
             return (
                 <div>
                     <button
@@ -30,15 +27,6 @@ function AuctionButton(p: {
                         onClick={() => dispatch(p.action)}>
                         {p.title}
                     </button>
-                </div>
-            )
-        }
-    } else {
-        if (p.pending) {
-            return (
-                <div>
-                    <img className='img-loading' src='img/loading.gif' />
-                    {p.title}...
                 </div>
             )
         } else {

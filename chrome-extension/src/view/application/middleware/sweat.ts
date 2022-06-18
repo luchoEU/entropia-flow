@@ -24,7 +24,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: SweatStateIn = getSweatIn(getState())
             dispatch(addPendingChange(
                 OPERATION_ADD_SWEAT,
-                sheet => api.sheets.buySweat(sheet, s.price, s.amount),
+                sheet => sheet.buySweat(s.price, s.amount),
                 row => [ addSweatToSheetDone ]
             ))
             break

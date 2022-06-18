@@ -24,17 +24,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const date = action.payload.date
             const item: ACTIVES_ITEM = list.find((a: ACTIVES_ITEM) => a.date == date)
             if (item !== undefined) {
-                const soldFunc = () => {
-                    switch (item.operation) {
-                        case OPERATION_ME_SOLD: return api.sheets.meSold
-                        case OPERATION_LME_SOLD: return api.sheets.lmeSold
-                    }
-                }
                 dispatch(addPendingChange(
                     item.operation,
-                    sheet => soldFunc()(sheet, item.row, item.quantity, item.buyoutFee, item.buyout),
+                    sheet => {
+                        switch (item.operation) {
+                            case OPERATION_ME_SOLD: return sheet.meSold(item.row, item.quantity, item.buyoutFee, item.buyout)
+                            case OPERATION_LME_SOLD: return sheet.lmeSold(item.row, item.quantity, item.buyoutFee, item.buyout)
+                        }
+                    },
                     row => [ removeActive(item.date) ]
-                ))                
+                ))
                 break
             }
         }

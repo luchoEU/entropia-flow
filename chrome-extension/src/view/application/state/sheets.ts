@@ -5,7 +5,7 @@ interface SHEETS_STATE {
 
 interface SHEETS_PENDING {
     operation: number,
-    changeFunc: (sheet: any) => Promise<number>,
+    changeFunc: (sheet: any) => number,
     doneFunc: (row: number) => Array<any>
 }
 

@@ -30,7 +30,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: CalculatorStateOut1 = getCalculatorOutME(getState())
             dispatch(addPendingChange(
                 OPERATION_ME_SELL,
-                sheet => api.sheets.sellME(sheet, s.amount, s.openingFee, s.openingValue),
+                sheet => sheet.sellME(s.amount, s.openingFee, s.openingValue),
                 row => [
                     addSale(row, OPERATION_ME_SOLD, 'Auction ME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee),
                     meSellDone
@@ -42,7 +42,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: CalculatorStateOut1 = getCalculatorOutLME(getState())
             dispatch(addPendingChange(
                 OPERATION_LME_SELL,
-                sheet => api.sheets.sellLME(sheet, s.amount, s.openingFee, s.openingValue),
+                sheet => sheet.sellLME(s.amount, s.openingFee, s.openingValue),
                 row => [
                     addSale(row, OPERATION_LME_SOLD, 'Auction LME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee),
                     lmeSellDone

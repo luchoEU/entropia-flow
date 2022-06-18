@@ -24,7 +24,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const s: RefineOneState = getOneRefine(m)(getState())
             dispatch(addPendingChange(
                 refineOperation[m],
-                sheet => api.sheets[refineSheetsMethod[m]](sheet, s.amount),
+                sheet => sheet[refineSheetsMethod[m]](s.amount),
                 row => [ addRefineToSheetDone(m) ]
             ))
             break
