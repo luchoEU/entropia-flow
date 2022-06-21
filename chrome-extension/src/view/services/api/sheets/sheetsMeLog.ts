@@ -74,7 +74,7 @@ class MELogSheet {
         this.sheet.getCell(this.row - 2, EXTRA_COLUMN).value = null
         
         const row = this.row
-        this.row = row + 1
+        this.row = row1
         this.daysSinceLastEntry = 0
         return row
     }
@@ -93,19 +93,19 @@ class MELogSheet {
         return this._sell(LME_COLUMN, amount, fee, value, 'AuctionL')
     }
     
-    private _sold(column: number, amount: string, fee: string, value: string): number {
-        this.sheet.getCell(this.row, column).value = -Number(amount)
+    private _sold(row: number, column: number, amount: string, fee: string, value: string): number {
+        this.sheet.getCell(row, column).value = -Number(amount)
         const feeS = fee.replace('.', ',')
-        this.sheet.getCell(this.row, PED_COLUMN).formula = `=-${feeS}+${value}`
-        return this.row
+        this.sheet.getCell(row, PED_COLUMN).formula = `=-${feeS}+${value}`
+        return row
     }
     
-    public meSold(sheet: any, row: number, amount: string, fee: string, value: string): number {
-        return this._sold(ME_COLUMN, amount, fee, value)
+    public meSold(row: number, amount: string, fee: string, value: string): number {
+        return this._sold(row, ME_COLUMN, amount, fee, value)
     }
     
-    public lmeSold(sheet: any, row: number, amount: string, fee: string, value: string): number {
-        return this._sold(LME_COLUMN, amount, fee, value)
+    public lmeSold(row: number, amount: string, fee: string, value: string): number {
+        return this._sold(row, LME_COLUMN, amount, fee, value)
     }
     
     public orderNexus(markup: string, value: string): number {

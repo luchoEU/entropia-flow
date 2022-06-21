@@ -13,7 +13,7 @@ export default (state = initialState, action) => {
         case ADD_ORDER_TO_LIST: return addActive(state, action.payload.row, OPERATION_NONE, 'Order', action.payload.markup + '%', '', action.payload.value, '')
         case SET_ACTIVES: return setActives(state, action.payload.list)
         case REMOVE_ACTIVE: return removeActive(state, action.payload.date)
-        case SOLD_ACTIVE: return soldActive(state, action.playload.date)
+        case SOLD_ACTIVE: return soldActive(state, action.payload.date)
         default: return state
     }
 }
