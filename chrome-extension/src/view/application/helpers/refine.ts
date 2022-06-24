@@ -32,6 +32,7 @@ const setState = (state: RefineState, inState: RefineState): RefineState => inSt
 const refineAmountChanged = (state: RefineState, material: string, amount: string): RefineState => {
     const inState = { ...state }
     inState[material] = {
+        ...inState[material],
         amount
     }
     return inState
@@ -40,6 +41,7 @@ const refineAmountChanged = (state: RefineState, material: string, amount: strin
 const addRefineChanged = (state: RefineState, material: string, pending: boolean): RefineState => {
     const inState = { ...state }
     inState[material] = {
+        ...inState[material],
         pending
     }
     return inState
