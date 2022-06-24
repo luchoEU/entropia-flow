@@ -127,15 +127,15 @@ class MELogSheet {
     }
     
     public buyNexus(ttValue: string, markup: string): number {
-        return this._stackable(ttValue, markup, 'Buy ME', ME_COLUMN, 'C', 10000)
+        return this._stackable(ttValue, markup, 'Buy FN', FN_COLUMN, 'E', 100)
     }
     
     public buyME(ttValue: string, markup: string): number {
-        return this._stackable(ttValue, markup, 'Buy LME', LME_COLUMN, 'D', 10000)
+        return this._stackable(ttValue, markup, 'Buy ME', ME_COLUMN, 'C', 10000)
     }
     
     public buyLME(ttValue: string, markup: string): number {
-        return this._stackable(ttValue, markup, 'Buy FN', FN_COLUMN, 'E', 100)
+        return this._stackable(ttValue, markup, 'Buy LME', LME_COLUMN, 'D', 10000)
     }
     
     public buyDiluted(ttValue: string, markup: string): number {
