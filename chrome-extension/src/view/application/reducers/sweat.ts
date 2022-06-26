@@ -7,7 +7,7 @@ export default (state = initialState, action) => {
         case SWEAT_PRICE_CHANGED: return sweatPriceChanged(state, action.payload.price)
         case SWEAT_AMOUNT_CHANGED: return sweatAmountChanged(state, action.payload.amount)
         case ADD_SWEAT_TO_SHEET: return addSweatChanged(state, true)
-        case ADD_SWEAT_TO_SHEET_DONE: return addSweatChanged(state, true)
+        case ADD_SWEAT_TO_SHEET_DONE: return addSweatChanged(state, false)
         default: return state
     }
 }
