@@ -8,7 +8,8 @@ import { HistoryState, ViewInventory } from "../state/history";
 const initialState: HistoryState = {
     expanded: false,
     hiddenError: undefined,
-    list: []
+    list: [],
+    intervalId: undefined
 }
 
 function getText(inventory: Inventory, onlyLastDate?: boolean) {
@@ -124,6 +125,7 @@ function setHistoryList(state: HistoryState, list: Array<Inventory>, last: numbe
         viewList.push(getViewInventory(inv, prev, expanded, sortType, last === inv.meta.date))
     }
     return {
+        ...state,
         expanded: state.expanded,
         hiddenError: getHiddenError(state.expanded, viewList),
         list: viewList
@@ -155,6 +157,13 @@ function setItemExpanded(state: HistoryState, key: number, expanded: boolean): H
     }
 }
 
+function setHistoryIntervalId(state: HistoryState, intervalId: NodeJS.Timer): HistoryState {
+    return {
+        ...state,
+        intervalId
+    }
+}
+
 function sortByPart(state: ViewInventory, part: number) {
     const sortType = Sort.nextSortType(part, state.sortType)
     return {
@@ -179,5 +188,6 @@ export {
     setHistoryList,
     setHistoryExpanded,
     setItemExpanded,
+    setHistoryIntervalId,
     sortBy
 }

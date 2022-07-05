@@ -38,7 +38,8 @@ interface ViewInventory {
 interface HistoryState {
     expanded: boolean,
     hiddenError: string,
-    list: Array<ViewInventory>
+    list: Array<ViewInventory>,
+    intervalId: NodeJS.Timer
 }
 
 export {

@@ -1,7 +1,9 @@
-import { setHistoryExpanded, SET_HISTORY_EXPANDED, SET_HISTORY_LIST } from "../actions/history"
+import { setHistoryExpanded, setHistoryIntervalId, SET_HISTORY_EXPANDED, SET_HISTORY_LIST } from "../actions/history"
 import { PAGE_LOADED } from "../actions/ui"
 import { getHistory } from "../selectors/history"
 import { HistoryState, MindEssenceLogText, ViewItemData } from "../state/history"
+
+const INTERVAL_MILLISECONDS = 10 * 60 * 1000  // 10 minutes
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -24,6 +26,21 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     )
                 }
             }
+
+            if (state.intervalId !== undefined)
+                clearInterval(state.intervalId)
+
+            const intervalId = setInterval(
+                () => {
+                    chrome.notifications.create(
+                        undefined,
+                        { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: "Disconnected" }
+                    )
+                },
+                INTERVAL_MILLISECONDS
+            )
+            dispatch(setHistoryIntervalId(intervalId))
+
             break
         }
         case SET_HISTORY_EXPANDED: {
