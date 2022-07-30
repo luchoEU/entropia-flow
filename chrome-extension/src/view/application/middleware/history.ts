@@ -16,7 +16,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_HISTORY_LIST: {
             const state: HistoryState = getHistory(getState())
-            if (state.list[0].diff) {
+            if (state.list[0].diff && !state.list[0].isLast) {
                 var reduced = state.list[0].diff.flatMap((i: ViewItemData) =>
                     i.a !== undefined ? [ MindEssenceLogText[i.a.type] ] : []);
                 if (reduced.length > 0) {
