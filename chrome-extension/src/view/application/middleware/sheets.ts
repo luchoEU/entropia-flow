@@ -35,6 +35,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
                 await sheet.save()
                 for (const r of rows) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
                     for (const a of r.fn(r.row))
                         dispatch(a)
                 }
