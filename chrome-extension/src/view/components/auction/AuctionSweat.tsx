@@ -11,7 +11,7 @@ function AuctionSweat() {
 
     return (
         <section>
-            <h1>Sweat</h1>
+            <h1>Buy Sweat</h1>
             <form>
                 <AuctionInput
                     label='Price'

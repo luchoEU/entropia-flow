@@ -17,6 +17,11 @@ const addPendingChange = (state: SHEETS_STATE, operation: number, changeFunc: (s
     ]
 })
 
+const clearPendingChanges = (state: SHEETS_STATE): SHEETS_STATE => ({
+    ...state,
+    pending: []
+})
+
 const setTimeoutId = (state: SHEETS_STATE, timeoutId: number) => ({
     ...state,
     timeoutId
@@ -28,5 +33,6 @@ export {
     initialState,
     addPendingChange,
     setTimeoutId,
+    clearPendingChanges,
     clearPendingChangeAndTimeoutId,
 }

@@ -1,5 +1,5 @@
 import { addPendingChange } from "../actions/sheets"
-import { addSweatToSheet, addSweatToSheetDone, ADD_SWEAT_TO_SHEET, setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
+import { addSweatToSheetDone, ADD_SWEAT_TO_SHEET, setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
 import { PAGE_LOADED } from "../actions/ui"
 import { getSweatIn } from "../selectors/sweat"
 import { OPERATION_ADD_SWEAT } from "../state/actives"

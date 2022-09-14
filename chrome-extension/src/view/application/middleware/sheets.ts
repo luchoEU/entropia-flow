@@ -1,6 +1,12 @@
 import { trace, traceData } from "../../../common/trace"
 import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
-import { ADD_PENDING_CHANGE, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
+import { lmeSellDone, meSellDone } from "../actions/calculator"
+import { addOrderToSheetDone } from "../actions/order"
+import { addRefineToSheetDone } from "../actions/refine"
+import { ADD_PENDING_CHANGE, CLEAR_PENDING_CHANGES, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
+import { addStackableToSheetDone } from "../actions/stackable"
+import { addSweatToSheetDone } from "../actions/sweat"
+import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NEXUS } from "../helpers/stackable"
 import { getSheets } from "../selectors/sheets"
 import { OperationText } from "../state/actives"
 import { SHEETS_STATE } from "../state/sheets"
@@ -19,6 +25,19 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 TIMEOUT_MILLISECONDS
             )
             dispatch(setTimeoutId(timeoutId))
+            break
+        }
+        case CLEAR_PENDING_CHANGES: {
+            dispatch(meSellDone)
+            dispatch(lmeSellDone)
+            dispatch(addOrderToSheetDone)
+            dispatch(addSweatToSheetDone)
+            dispatch(addStackableToSheetDone(STACKABLE_NEXUS))
+            dispatch(addStackableToSheetDone(STACKABLE_ME))
+            dispatch(addStackableToSheetDone(STACKABLE_LME))
+            dispatch(addStackableToSheetDone(STACKABLE_DILUTED))
+            dispatch(addRefineToSheetDone(STACKABLE_ME))
+            dispatch(addRefineToSheetDone(STACKABLE_LME))
             break
         }
         case PERFORM_CHANGE: {

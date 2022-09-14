@@ -11,7 +11,7 @@ function AuctionOrder() {
 
     return (
         <section>
-            <h1>Order</h1>
+            <h1>Order Nexus</h1>
             <form>
                 <AuctionInput
                     label='Markup'

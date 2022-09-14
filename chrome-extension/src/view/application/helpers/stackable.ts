@@ -7,10 +7,10 @@ const STACKABLE_LME = 'lme'
 const STACKABLE_DILUTED = 'diluted'
 
 const stackableTitle = {
-    nexus: 'Nexus',
+    nexus: 'Buy Nexus',
     me: 'Buy ME',
     lme: 'Buy LME',
-    diluted: 'Diluted Sweat',
+    diluted: 'Buy Diluted Sweat',
 }
 
 const stackableOperation = {

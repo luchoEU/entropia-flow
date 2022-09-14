@@ -1,8 +1,9 @@
 import React from 'react'
+import { clearPendingChanges } from '../../application/actions/sheets'
 import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NEXUS } from '../../application/helpers/stackable'
 import AuctionActive from './AuctionActive'
+import AuctionButton from './AuctionButton'
 import AuctionCalculator from './AuctionCalculator'
-import AuctionHelpers from './AuctionHelpers'
 import AuctionOrder from './AuctionOrder'
 import AuctionRefine from './AuctionRefine'
 import AuctionStackable from './AuctionStackable'
@@ -50,6 +51,9 @@ function AuctionPage() {
                         <AuctionRefine material={STACKABLE_LME} />
                     </div>
                 </div>
+            </div>
+            <div>
+                <AuctionButton title='Clear pending' pending={false} action={clearPendingChanges} />
             </div>
         </>
     )
