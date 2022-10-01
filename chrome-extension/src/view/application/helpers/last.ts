@@ -56,11 +56,17 @@ function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewIte
     return d
 }
 
-function applyPermanentExclude(diff: Array<ViewItemData>, permanentBlacklist: Array<string>) {
+function applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBlacklist: Array<string>): number {
     diff.forEach(item => {
-        item.x = hasValue(item) && permanentBlacklist.includes(item.n)
-        item.e = item.x
+        if (hasValue(item) && permanentBlacklist.includes(item.n)) {
+            item.x = true
+            if (!item.e) {
+                item.e = true
+                d -= getValue(item)
+            }
+        }
     })
+    return d
 }
 
 function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
@@ -70,10 +76,10 @@ function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
 function getDeltaAndClass(delta: number) {
     let deltaClass: string
     let deltaWord: string
-    if (delta > 0) {
+    if (delta >= 0.01) {
         deltaClass = "positive"
         deltaWord = "Profit"
-    } else if (delta < 0) {
+    } else if (delta <= -0.01) {
         deltaClass = "negative"
         deltaWord = "Loss"
     } else {
@@ -199,7 +205,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
             const diff = getDifference(lastInv, inv)
             if (diff !== null) {
                 d = applyExcludes(d, diff, state.diff)
-                applyPermanentExclude(diff, state.permanentBlacklist)
+                d = applyPermanentExclude(d, diff, state.permanentBlacklist)
                 applyWarning(diff, state.blacklist)
                 sortList(diff, state.sortType)
             }
