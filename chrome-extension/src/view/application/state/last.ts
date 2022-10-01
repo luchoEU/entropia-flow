@@ -17,6 +17,7 @@ interface LastRequiredState {
     peds: Array<ViewPedData>,
     sortType: number,
     blacklist: Array<string>,
+    permanentBlacklist: Array<string>,
 }
 
 export {

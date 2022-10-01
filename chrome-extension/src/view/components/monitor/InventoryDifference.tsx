@@ -12,7 +12,9 @@ interface Config {
     allowExclude: boolean
     include?: (key: number) => void
     exclude?: (key: number) => void
-    showPeds: boolean,
+    permanentExcludeOn?: (key: number) => void
+    permanentExcludeOff?: (key: number) => void
+    showPeds: boolean
     movedTitle: string
 }
 
@@ -32,10 +34,22 @@ const ItemRow = (p: {
                 {
                     c.allowExclude && hasValue(item) ?
                         (item.e ?
-                            <img src='img/cross.png' data-show onClick={(e) => {
-                                e.stopPropagation()
-                                c.include(item.key)
-                            }}></img> :
+                            (item.x ?
+                                <img src='img/forbidden.png' data-show onClick={(e) => {
+                                    e.stopPropagation()
+                                    c.permanentExcludeOff(item.key)
+                                }}></img> :
+                                <>
+                                    <img src='img/cross.png' data-show onClick={(e) => {
+                                        e.stopPropagation()
+                                        c.include(item.key)
+                                    }}></img>
+                                    <img src='img/forbidden.png' onClick={(e) => {
+                                        e.stopPropagation()
+                                        c.permanentExcludeOn(item.key)
+                                    }}></img>
+                                </>
+                             ) :
                             <img src='img/tick.png' onClick={(e) => {
                                 e.stopPropagation()
                                 c.exclude(item.key)

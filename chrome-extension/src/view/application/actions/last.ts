@@ -2,18 +2,27 @@ import { Inventory } from "../../../common/state"
 import { ViewPedData } from "../state/last"
 
 const SET_BLACKLIST = "[last] set blacklist"
+const SET_PERMANENT_BLACKLIST = "[last] set permanent blacklist"
 const SET_PEDS = "[last] set peds"
 const ON_LAST = "[last] on last"
 const SET_EXPANDED = "[last] set expanded"
 const INCLUDE = "[last] include"
 const EXCLUDE = "[last] exclude"
 const EXCLUDE_WARNINGS = "[last] exclude warnings"
+const PERMANENT_EXCLUDE = "[last] permanent exclude"
 const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
 
 const setBlacklist = (list: Array<string>) => ({
     type: SET_BLACKLIST,
+    payload: {
+        list
+    }
+})
+
+const setPermanentBlacklist = (list: Array<string>) => ({
+    type: SET_PERMANENT_BLACKLIST,
     payload: {
         list
     }
@@ -55,6 +64,22 @@ const exclude = (key: number) => ({
     }
 })
 
+const permanentExcludeOn = (key: number) => ({
+    type: PERMANENT_EXCLUDE,
+    payload: {
+        key,
+        value: true
+    }
+})
+
+const permanentExcludeOff = (key: number) => ({
+    type: PERMANENT_EXCLUDE,
+    payload: {
+        key,
+        value: false
+    }
+})
+
 const excludeWarnings = {
     type: EXCLUDE_WARNINGS
 }
@@ -82,16 +107,19 @@ const removePeds = (key: number) => ({
 
 export {
     SET_BLACKLIST,
+    SET_PERMANENT_BLACKLIST,
     SET_PEDS,
     ON_LAST,
     SET_EXPANDED,
     INCLUDE,
     EXCLUDE,
     EXCLUDE_WARNINGS,
+    PERMANENT_EXCLUDE,
     SORT_BY,
     ADD_PEDS,
     REMOVE_PEDS,
     setBlacklist,
+    setPermanentBlacklist,
     setPeds,
     onLast,
     setExpanded,
@@ -100,5 +128,7 @@ export {
     excludeWarnings,
     sortBy,
     addPeds,
-    removePeds
+    removePeds,
+    permanentExcludeOn,
+    permanentExcludeOff,
 }

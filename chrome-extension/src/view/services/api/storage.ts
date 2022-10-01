@@ -3,6 +3,7 @@ import {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
     STORAGE_VIEW_BLACKLIST,
+    STORAGE_VIEW_PERMANENT_BLACKLIST,
     STORAGE_VIEW_CALCULATOR,
     STORAGE_VIEW_HISTORY_EXPANDED,
     STORAGE_VIEW_INVENTORY,
@@ -97,6 +98,14 @@ async function loadBlacklist(): Promise<Array<string>> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_BLACKLIST)
 }
 
+async function savePermanentBlacklist(list: Array<string>) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_PERMANENT_BLACKLIST, list)
+}
+
+async function loadPermanentBlacklist(): Promise<Array<string>> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_PERMANENT_BLACKLIST)
+}
+
 async function saveHistoryExpanded(expanded: boolean) {
     await SYNC_STORAGE.set(STORAGE_VIEW_HISTORY_EXPANDED, expanded)
 }
@@ -148,6 +157,8 @@ export default {
     loadPeds,
     saveBlacklist,
     loadBlacklist,
+    savePermanentBlacklist,
+    loadPermanentBlacklist,
     saveHistoryExpanded,
     loadHistoryExpanded,
     saveStream,

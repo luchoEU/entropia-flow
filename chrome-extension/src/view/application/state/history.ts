@@ -5,6 +5,7 @@ interface ViewItemData {
     v: string // value, number (2 decimals)
     c: string // container, string
     e?: boolean // excluded from difference
+    x?: boolean // permanent exclude from difference
     w?: boolean // show warning
     a?: MindEssenceLogAction // action available
 }

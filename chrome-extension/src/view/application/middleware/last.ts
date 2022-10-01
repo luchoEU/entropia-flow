@@ -1,6 +1,6 @@
-import { ADD_PEDS, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setBlacklist, setPeds } from "../actions/last"
+import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds } from "../actions/last"
 import { PAGE_LOADED } from "../actions/ui"
-import { getBlacklist, getPeds } from "../selectors/last"
+import { getPermanentBlacklist, getBlacklist, getPeds } from "../selectors/last"
 import { ViewPedData } from "../state/last"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -10,6 +10,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             let list = await api.storage.loadBlacklist()
             if (list)
                 dispatch(setBlacklist(list))
+            let aList = await api.storage.loadPermanentBlacklist()
+            if (aList)
+                dispatch(setPermanentBlacklist(aList))
             let peds = await api.storage.loadPeds()
             if (peds)
                 dispatch(setPeds(peds))
@@ -18,6 +21,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case EXCLUDE: {
             const state: Array<string> = getBlacklist(getState())
             await api.storage.saveBlacklist(state)
+            break
+        }
+        case PERMANENT_EXCLUDE: {
+            const state: Array<string> = getPermanentBlacklist(getState())
+            await api.storage.savePermanentBlacklist(state)
             break
         }
         case ADD_PEDS:

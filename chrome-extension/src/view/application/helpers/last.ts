@@ -13,7 +13,8 @@ const initialState: LastRequiredState = {
     diff: null,
     peds: [],
     sortType: SORT_VALUE_DESCENDING,
-    blacklist: []
+    blacklist: [],
+    permanentBlacklist: []
 }
 
 function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewItemData>): number {
@@ -53,6 +54,13 @@ function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewIte
         }
     }
     return d
+}
+
+function applyPermanentExclude(diff: Array<ViewItemData>, permanentBlacklist: Array<string>) {
+    diff.forEach(item => {
+        item.x = hasValue(item) && permanentBlacklist.includes(item.n)
+        item.e = item.x
+    })
 }
 
 function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
@@ -125,6 +133,26 @@ function excludeWarnings(state: LastRequiredState): LastRequiredState {
     }
 }
 
+function permanentExclude(state: LastRequiredState, key: number, value: boolean): LastRequiredState {
+    const item = state.diff.find(i => i.key === key)
+    const diff = state.diff.map(
+        i => i.key === key ? { ...i, x: value } : i)
+    let permanentBlacklist = state.permanentBlacklist
+    if (!permanentBlacklist)
+    permanentBlacklist = []
+    if (value) {
+        if (!permanentBlacklist.includes(item.n))
+        permanentBlacklist = [...permanentBlacklist, item.n]
+    } else {
+        permanentBlacklist = permanentBlacklist.filter(s => s !== item.n)
+    }
+    return {
+        ...state,
+        diff,
+        permanentBlacklist
+    }
+}
+
 function findInventory(list: Array<Inventory>, lastRefresh: number) {
     if (lastRefresh === undefined)
         return null
@@ -136,12 +164,15 @@ function findInventory(list: Array<Inventory>, lastRefresh: number) {
     return null
 }
 
-function setBlacklist(state: LastRequiredState, list: Array<string>): LastRequiredState {
-    return {
-        ...state,
-        blacklist: list
-    }
-}
+const setBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
+    ...state,
+    blacklist: list
+})
+
+const setPermanentBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
+    ...state,
+    permanentBlacklist: list
+})
 
 function onLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
     const inv = findInventory(list, last)
@@ -168,6 +199,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
             const diff = getDifference(lastInv, inv)
             if (diff !== null) {
                 d = applyExcludes(d, diff, state.diff)
+                applyPermanentExclude(diff, state.permanentBlacklist)
                 applyWarning(diff, state.blacklist)
                 sortList(diff, state.sortType)
             }
@@ -222,11 +254,13 @@ export {
     LastRequiredState,
     initialState,
     setBlacklist,
+    setPermanentBlacklist,
     onLast,
     setExpanded,
     include,
     exclude,
     excludeWarnings,
+    permanentExclude,
     setPeds,
     addPeds,
     removePeds,

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
+import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
 import { setLast } from '../../application/actions/messages'
 import { LastRequiredState } from '../../application/helpers/last'
 import { getLast } from '../../application/selectors/last'
@@ -24,6 +24,8 @@ const Last = () => {
         allowExclude: true,
         include: (key: number) => dispatch(include(key)),
         exclude: (key: number) => dispatch(exclude(key)),
+        permanentExcludeOn: (key: number) => dispatch(permanentExcludeOn(key)),
+        permanentExcludeOff: (key: number) => dispatch(permanentExcludeOff(key)),
         showPeds: true,
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"
     }
