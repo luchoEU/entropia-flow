@@ -12,11 +12,13 @@ interface ViewItemData {
 
 const ME_SOLD = 1
 const LME_SOLD = 2
+const NB_SOLD = 3
 
 const MindEssenceLogText = [
     'Unknown',
     'ME sold in Auction', // ME_SOLD
     'LME sold in Auction', // LME_SOLD
+    'NB sold in Auction' // NB_SOLD
 ]
 
 interface MindEssenceLogAction {
@@ -46,6 +48,7 @@ interface HistoryState {
 export {
     ME_SOLD,
     LME_SOLD,
+    NB_SOLD,
     MindEssenceLogText,
     ViewItemData,
     MindEssenceLogAction,
