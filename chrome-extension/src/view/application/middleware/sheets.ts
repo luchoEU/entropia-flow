@@ -6,7 +6,7 @@ import { addRefineToSheetDone } from "../actions/refine"
 import { ADD_PENDING_CHANGE, CLEAR_PENDING_CHANGES, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
 import { addStackableToSheetDone } from "../actions/stackable"
 import { addSweatToSheetDone } from "../actions/sweat"
-import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NEXUS } from "../helpers/stackable"
+import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NB, STACKABLE_NEXUS } from "../helpers/stackable"
 import { getSheets } from "../selectors/sheets"
 import { OperationText } from "../state/actives"
 import { SHEETS_STATE } from "../state/sheets"
@@ -35,9 +35,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             dispatch(addStackableToSheetDone(STACKABLE_NEXUS))
             dispatch(addStackableToSheetDone(STACKABLE_ME))
             dispatch(addStackableToSheetDone(STACKABLE_LME))
+            dispatch(addStackableToSheetDone(STACKABLE_NB))
             dispatch(addStackableToSheetDone(STACKABLE_DILUTED))
             dispatch(addRefineToSheetDone(STACKABLE_ME))
             dispatch(addRefineToSheetDone(STACKABLE_LME))
+            dispatch(addRefineToSheetDone(STACKABLE_NB))
             break
         }
         case PERFORM_CHANGE: {

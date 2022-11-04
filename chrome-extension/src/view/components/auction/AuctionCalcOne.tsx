@@ -2,26 +2,26 @@ import React from 'react'
 import AuctionInput from './AuctionInput'
 import AuctionOutput from './AuctionOutput'
 
-function AuctionCalcOne({ title, markupValue, markupAction, valueValue, valueAction, pending, sellAction, out }) {
+function AuctionCalcOne({ title, markupAction, valueAction, sellAction, inn, out }) {
     return (
         <section>
             <h1>{title}</h1>
             <form>
                 <AuctionInput
                     label='Markup'
-                    value={markupValue}
+                    value={inn.markup}
                     unit='%'
                     getChangeAction={markupAction} />
 
                 <AuctionInput
                     label='Value'
-                    value={valueValue}
+                    value={inn.value}
                     unit='PED'
                     getChangeAction={valueAction} />
             </form>
             <AuctionOutput
                 out={out}
-                pending={pending}
+                pending={inn.pending}
                 sellAction={sellAction} />
         </section>
     )

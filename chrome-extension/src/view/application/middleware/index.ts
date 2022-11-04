@@ -14,6 +14,8 @@ import stream from './stream'
 import inventory from './inventory'
 import about from './about'
 import sheets from './sheets'
+import fruit from './fruit'
+import use from './use'
 
 export default [
     ...messages,
@@ -31,5 +33,7 @@ export default [
     ...stream,
     ...inventory,
     ...about,
-    ...sheets
+    ...sheets,
+    ...fruit,
+    ...use,
 ]

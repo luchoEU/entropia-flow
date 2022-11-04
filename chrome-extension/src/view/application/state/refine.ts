@@ -6,6 +6,7 @@ interface RefineOneState {
 interface RefineState {
     me: RefineOneState,
     lme: RefineOneState,
+    nb: RefineOneState,
 }
 
 export {

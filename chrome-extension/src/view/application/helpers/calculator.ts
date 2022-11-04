@@ -4,12 +4,23 @@ const initialStateIn: CalculatorStateIn = {
     sweat: '1',
     nexus: '102',
     diluted: '101',
-    meMarkup: '120',
-    meValue: '99',
-    mePending: false,
-    lmeMarkup: '110',
-    lmeValue: '39',
-    lmePending: false,
+    sweetstuff: '110',
+    fruit: '3',
+    me: {
+        markup: '120',
+        value: '99',
+        pending: false,    
+    },
+    lme: {
+        markup: '110',
+        value: '39',
+        pending: false,    
+    },
+    nb: {
+        markup: '145',
+        value: '49',
+        pending: false,
+    }
 }
 
 const initialState: CalculatorState = {
@@ -21,18 +32,17 @@ function auctionFee(difference: number): number {
     return Math.round(50 + difference * 4.9) / 100
 }
 
-function calc1(buyoutValue: number, markup: number, nexus: number, kOther: number, kRefined: number): CalculatorStateOut1 {
+function calc1(buyoutValue: number, markup: number, nexus: number, kOther: number, kRefined: number, pedMaterial: number): CalculatorStateOut1 {
     const refiner = 0.15
-    const pMaterial = 10000 // 1 ped nexus
 
-    const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pMaterial)
-    const buyoutFee = auctionFee(buyoutValue - amount / pMaterial)
-    const cost = (refiner + kOther + nexus / 10) * pMaterial / kRefined
-    const auctionCost = amount * cost / pMaterial + buyoutFee
+    const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial)
+    const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial)
+    const cost = (refiner + kOther + nexus / 10) * pedMaterial / kRefined
+    const auctionCost = amount * cost / pedMaterial + buyoutFee
     const profitSale = buyoutValue - auctionCost
     const profitK = profitSale / (amount / kRefined)
     const openingValue = Math.ceil(buyoutValue - profitSale)
-    const openingFee = auctionFee(openingValue - amount / pMaterial)
+    const openingFee = auctionFee(openingValue - amount / pedMaterial)
 
     return {
         amount: amount.toString(),
@@ -50,17 +60,23 @@ function calc(state: CalculatorStateIn): CalculatorStateOut {
     const sweat = Number(state.sweat)
     const nexus = Number(state.nexus)
     const diluted = Number(state.diluted)
-    const meMarkup = Number(state.meMarkup)
-    const meValue = Number(state.meValue)
-    const lmeMarkup = Number(state.lmeMarkup)
-    const lmeValue = Number(state.lmeValue)
+    const sweetstuff = Number(state.sweetstuff)
+    const fruit = Number(state.fruit)
+    const meMarkup = Number(state.me.markup)
+    const meValue = Number(state.me.value)
+    const lmeMarkup = Number(state.lme.markup)
+    const lmeValue = Number(state.lme.value)
+    const nbMarkup = Number(state.nb.markup)
+    const nbValue = Number(state.nb.value)
 
     const kMeRefined = 100100 // 10 ped nexus + 1k sweat = 0.01 ped
     const kLmeRefined = 200000 // 10 ped nexus + 1k diluted = 10 ped
+    const kNbRefined = 1001 // 10 ped sweetstuff + 1k fruit = 0.01 ped
 
     return {
-        me: calc1(meValue, meMarkup, nexus, sweat, kMeRefined),
-        lme: calc1(lmeValue, lmeMarkup, nexus, diluted / 10, kLmeRefined)
+        me: calc1(meValue, meMarkup, nexus, sweat, kMeRefined, 10000),
+        lme: calc1(lmeValue, lmeMarkup, nexus, diluted / 10, kLmeRefined, 10000),
+        nb: calc1(nbValue, nbMarkup, sweetstuff, fruit, kNbRefined, 100),
     }
 }
 
@@ -75,6 +91,17 @@ function sweatChanged(state: CalculatorState, price: string): CalculatorState {
     const inState = {
         ...state.in,
         sweat: price
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function fruitChanged(state: CalculatorState, price: string): CalculatorState {
+    const inState = {
+        ...state.in,
+        fruit: price
     }
     return {
         in: inState,
@@ -104,10 +131,10 @@ function dilutedChanged(state: CalculatorState, price: string): CalculatorState 
     }
 }
 
-function meMarkupChanged(state: CalculatorState, meMarkup: string): CalculatorState {
+function sweetstuffChanged(state: CalculatorState, price: string): CalculatorState {
     const inState = {
         ...state.in,
-        meMarkup
+        sweetstuff: price
     }
     return {
         in: inState,
@@ -115,10 +142,13 @@ function meMarkupChanged(state: CalculatorState, meMarkup: string): CalculatorSt
     }
 }
 
-function meValueChanged(state: CalculatorState, meValue: string): CalculatorState {
+function meMarkupChanged(state: CalculatorState, markup: string): CalculatorState {
     const inState = {
         ...state.in,
-        meValue
+        me: {
+            ...state.in.me,
+            markup
+        }
     }
     return {
         in: inState,
@@ -126,10 +156,13 @@ function meValueChanged(state: CalculatorState, meValue: string): CalculatorStat
     }
 }
 
-function lmeMarkupChanged(state: CalculatorState, lmeMarkup: string): CalculatorState {
+function meValueChanged(state: CalculatorState, value: string): CalculatorState {
     const inState = {
         ...state.in,
-        lmeMarkup
+        me: {
+            ...state.in.me,
+            value
+        }
     }
     return {
         in: inState,
@@ -137,10 +170,13 @@ function lmeMarkupChanged(state: CalculatorState, lmeMarkup: string): Calculator
     }
 }
 
-function lmeValueChanged(state: CalculatorState, lmeValue: string): CalculatorState {
+function lmeMarkupChanged(state: CalculatorState, markup: string): CalculatorState {
     const inState = {
         ...state.in,
-        lmeValue
+        lme: {
+            ...state.in.lme,
+            markup
+        }
     }
     return {
         in: inState,
@@ -148,10 +184,13 @@ function lmeValueChanged(state: CalculatorState, lmeValue: string): CalculatorSt
     }
 }
 
-function meSellChange(state: CalculatorState, mePending: boolean): CalculatorState {
+function lmeValueChanged(state: CalculatorState, value: string): CalculatorState {
     const inState = {
         ...state.in,
-        mePending
+        lme: {
+            ...state.in.lme,
+            value
+        }
     }
     return {
         in: inState,
@@ -159,10 +198,69 @@ function meSellChange(state: CalculatorState, mePending: boolean): CalculatorSta
     }
 }
 
-function lmeSellChange(state: CalculatorState, lmePending: boolean): CalculatorState {
+function nbMarkupChanged(state: CalculatorState, markup: string): CalculatorState {
     const inState = {
         ...state.in,
-        lmePending
+        nb: {
+            ...state.in.nb,
+            markup
+        }
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function nbValueChanged(state: CalculatorState, value: string): CalculatorState {
+    const inState = {
+        ...state.in,
+        nb: {
+            ...state.in.nb,
+            value
+        }
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function meSellChange(state: CalculatorState, pending: boolean): CalculatorState {
+    const inState = {
+        ...state.in,
+        me: {
+            ...state.in.me,
+            pending
+        }
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function lmeSellChange(state: CalculatorState, pending: boolean): CalculatorState {
+    const inState = {
+        ...state.in,
+        lme: {
+            ...state.in.lme,
+            pending
+        }
+    }
+    return {
+        in: inState,
+        out: calc(inState)
+    }
+}
+
+function nbSellChange(state: CalculatorState, pending: boolean): CalculatorState {
+    const inState = {
+        ...state.in,
+        nb: {
+            ...state.in.nb,
+            pending
+        }
     }
     return {
         in: inState,
@@ -174,12 +272,17 @@ export {
     initialState,
     setState,
     sweatChanged,
+    fruitChanged,
     nexusChanged,
     dilutedChanged,
+    sweetstuffChanged,
     meMarkupChanged,
     meValueChanged,
     lmeMarkupChanged,
     lmeValueChanged,
+    nbMarkupChanged,
+    nbValueChanged,
     meSellChange,
-    lmeSellChange
+    lmeSellChange,
+    nbSellChange,
 }

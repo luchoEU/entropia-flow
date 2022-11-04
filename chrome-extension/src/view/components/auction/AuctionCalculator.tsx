@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { lmeMarkupChanged, lmeSell, lmeValueChanged, meMarkupChanged, meSell, meValueChanged } from '../../application/actions/calculator'
+import { lmeMarkupChanged, lmeSell, lmeValueChanged, meMarkupChanged, meSell, meValueChanged, nbMarkupChanged, nbSell, nbValueChanged } from '../../application/actions/calculator'
 import { getCalculator } from '../../application/selectors/calculator'
 import { CalculatorState } from '../../application/state/calculator'
 import AuctionCalcOne from './AuctionCalcOne'
@@ -16,23 +16,27 @@ function AuctionCalculator() {
             </div>
             <AuctionCalcOne
                 title='Mind Essence'
-                markupValue={c.in.meMarkup}
                 markupAction={meMarkupChanged}
-                valueValue={c.in.meValue}
                 valueAction={meValueChanged}
-                pending={c.in.mePending}
                 sellAction={meSell}
+                inn={c.in.me}
                 out={c.out.me}
             />
             <AuctionCalcOne
                 title='Light Mind Essence'
-                markupValue={c.in.lmeMarkup}
                 markupAction={lmeMarkupChanged}
-                valueValue={c.in.lmeValue}
                 valueAction={lmeValueChanged}
-                pending={c.in.lmePending}
                 sellAction={lmeSell}
+                inn={c.in.lme}
                 out={c.out.lme}
+            />
+            <AuctionCalcOne
+                title='Nutrio Bar'
+                markupAction={nbMarkupChanged}
+                valueAction={nbValueChanged}
+                sellAction={nbSell}
+                inn={c.in.nb}
+                out={c.out.nb}
             />
         </>
     )

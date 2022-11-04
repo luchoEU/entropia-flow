@@ -13,11 +13,14 @@ import {
     STORAGE_VIEW_REFINE,
     STORAGE_VIEW_STACKABLE,
     STORAGE_VIEW_STREAM,
-    STORAGE_VIEW_SWEAT
+    STORAGE_VIEW_SWEAT,
+    STORAGE_VIEW_USE,
+    STORAGE_VIEW_FRUIT
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ACTIVES_ITEM } from "../../application/state/actives";
 import { CalculatorStateIn } from "../../application/state/calculator";
+import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
 import { OrderState } from "../../application/state/order";
@@ -25,6 +28,7 @@ import { RefineState } from "../../application/state/refine";
 import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
+import { UseState } from "../../application/state/use";
 
 async function saveMenu(menu: number) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_MENU, menu)
@@ -66,6 +70,14 @@ async function loadSweat(): Promise<SweatStateIn> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_SWEAT)
 }
 
+async function saveFruit(state: FruitStateIn) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_FRUIT, state)
+}
+
+async function loadFruit(): Promise<FruitStateIn> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_FRUIT)
+}
+
 async function saveStackable(state: StackableStateIn) {
     await SYNC_STORAGE.set(STORAGE_VIEW_STACKABLE, state)
 }
@@ -80,6 +92,14 @@ async function saveRefine(state: RefineState) {
 
 async function loadRefine(): Promise<RefineState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_REFINE)
+}
+
+async function saveUse(state: UseState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_USE, state)
+}
+
+async function loadUse(): Promise<UseState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_USE)
 }
 
 async function savePeds(state: Array<ViewPedData>) {
@@ -149,10 +169,14 @@ export default {
     loadOrder,
     saveSweat,
     loadSweat,
+    saveFruit,
+    loadFruit,
     saveStackable,
     loadStackable,
     saveRefine,
     loadRefine,
+    saveUse,
+    loadUse,
     savePeds,
     loadPeds,
     saveBlacklist,

@@ -1,30 +1,38 @@
-import { OPERATION_ADD_DILUTED, OPERATION_ADD_LME, OPERATION_ADD_ME, OPERATION_ADD_NEXUS } from "../state/actives"
+import { OPERATION_ADD_DILUTED, OPERATION_ADD_LME, OPERATION_ADD_ME, OPERATION_ADD_NB, OPERATION_ADD_NEXUS, OPERATION_ADD_SWEETSTUFF } from "../state/actives"
 import { StackableOneStateIn, StackableOneStateOut, StackableState, StackableStateIn } from "../state/stackable"
 
 const STACKABLE_NEXUS = 'nexus'
 const STACKABLE_ME = 'me'
 const STACKABLE_LME = 'lme'
+const STACKABLE_NB = 'nb'
 const STACKABLE_DILUTED = 'diluted'
+const STACKABLE_SWEETSTUFF = 'sweetstuff'
 
 const stackableTitle = {
     nexus: 'Buy Nexus',
     me: 'Buy ME',
     lme: 'Buy LME',
+    nb: 'Buy NB',
     diluted: 'Buy Diluted Sweat',
+    sweetstuff: 'Buy Sweetstuff',
 }
 
 const stackableOperation = {
     nexus: OPERATION_ADD_NEXUS,
     me: OPERATION_ADD_ME,
     lme: OPERATION_ADD_LME,
+    nb: OPERATION_ADD_NB,
     diluted: OPERATION_ADD_DILUTED,
+    sweetstuff: OPERATION_ADD_SWEETSTUFF,
 }
 
 const stackableSheetsMethod = {
     nexus: 'buyNexus',
     me: 'buyME',
     lme: 'buyLME',
+    nb: 'buyNB',
     diluted: 'buyDiluted',
+    sweetstuff: 'buySweetstuff',
 }
 
 const calcOne = (s: StackableOneStateIn): StackableOneStateOut => ({
@@ -53,9 +61,19 @@ const initialStateIn: StackableStateIn = {
         markup: '103',
         pending: false,
     },
+    nb: {
+        ttValue: '100',
+        markup: '145',
+        pending: false,
+    },
     diluted: {
         ttValue: '100',
         markup: '103',
+        pending: false,
+    },
+    sweetstuff: {
+        ttValue: '100',
+        markup: '110',
         pending: false,
     }
 }
@@ -110,7 +128,9 @@ export {
     STACKABLE_NEXUS,
     STACKABLE_ME,
     STACKABLE_LME,
+    STACKABLE_NB,
     STACKABLE_DILUTED,
+    STACKABLE_SWEETSTUFF,
     stackableTitle,
     stackableOperation,
     stackableSheetsMethod,

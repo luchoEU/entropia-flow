@@ -12,14 +12,18 @@ interface StackableStateIn {
     nexus: StackableOneStateIn,
     me: StackableOneStateIn,
     lme: StackableOneStateIn,
+    nb: StackableOneStateIn,
     diluted: StackableOneStateIn,
+    sweetstuff: StackableOneStateIn,
 }
 
 interface StackableStateOut {
     nexus: StackableOneStateOut,
     me: StackableOneStateOut,
     lme: StackableOneStateOut,
+    nb: StackableOneStateOut,
     diluted: StackableOneStateOut,
+    sweetstuff: StackableOneStateOut,
 }
 
 interface StackableState {

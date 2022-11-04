@@ -1,13 +1,18 @@
+interface CalculatorStateIn1 {
+    markup: string,
+    value: string,
+    pending: boolean,
+}
+
 interface CalculatorStateIn {
     sweat: string,
     nexus: string,
     diluted: string,
-    meMarkup: string,
-    meValue: string,
-    mePending: boolean,
-    lmeMarkup: string,
-    lmeValue: string,
-    lmePending: boolean,
+    sweetstuff: string,
+    fruit: string,
+    me: CalculatorStateIn1,
+    lme: CalculatorStateIn1,
+    nb: CalculatorStateIn1,
 }
 
 interface CalculatorStateOut1 {
@@ -23,7 +28,8 @@ interface CalculatorStateOut1 {
 
 interface CalculatorStateOut {
     me: CalculatorStateOut1,
-    lme: CalculatorStateOut1
+    lme: CalculatorStateOut1,
+    nb: CalculatorStateOut1,
 }
 
 interface CalculatorState {
@@ -33,6 +39,7 @@ interface CalculatorState {
 
 export {
     CalculatorStateIn,
+    CalculatorStateIn1,
     CalculatorStateOut,
     CalculatorStateOut1,
     CalculatorState,
