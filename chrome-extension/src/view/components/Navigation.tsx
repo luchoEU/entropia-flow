@@ -36,6 +36,7 @@ const Navigation = () => {
                 <Tab id={AUCTION_PAGE} title="Auction" /> : ''
             }
             <Tab id={INVENTORY_PAGE} title='Inventory' />
+            <Tab id={CRAFT_PAGE} title='Crafting' />
             <Tab id={STREAM_PAGE} title='Stream' />
             <Tab id={ABOUT_PAGE} title='About' />
         </nav>

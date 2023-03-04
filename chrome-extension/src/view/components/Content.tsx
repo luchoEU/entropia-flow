@@ -23,6 +23,8 @@ function Content() {
             return (<AuctionPage />)
         case ABOUT_PAGE:
             return (<AboutPage />)
+        case CRAFT_PAGE:
+            return (<CraftPage />)
         case TRADE_PAGE:
             return (<TradePage />)
         default:
