@@ -1,8 +1,24 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SHOW_AUCTION_PAGE } from '../../config';
-import { ABOUT_PAGE, AUCTION_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, selectMenu } from '../application/actions/menu';
+import { ABOUT_PAGE, AUCTION_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
+
+const Tab = (p: {
+    id: number,
+    title: string
+}) => {
+    const dispatch = useDispatch()
+    const menu = useSelector(getSelectedMenu)
+
+    return (
+        <button
+            className={menu === p.id ? 'selected-menu' : ''}
+            onClick={() => dispatch(selectMenu(p.id))}>
+            {p.title}
+        </button>
+    )
+}
 
 const Navigation = () => {
     const dispatch = useDispatch()
@@ -14,33 +30,14 @@ const Navigation = () => {
                 <img src='img/flow128.png'></img>
                 <strong>Entropia Flow</strong>
             </div>
-            <button
-                className={menu === MONITOR_PAGE ? 'selected-menu' : ''}
-                onClick={() => dispatch(selectMenu(MONITOR_PAGE))}>
-                Monitor
-            </button>
+            <Tab id={MONITOR_PAGE} title="Monitor" />
+            <Tab id={TRADE_PAGE} title="Trades" />
             {SHOW_AUCTION_PAGE ?
-                <button
-                    className={menu === AUCTION_PAGE ? 'selected-menu' : ''}
-                    onClick={() => dispatch(selectMenu(AUCTION_PAGE))}>
-                    Auction
-                </button> : ''
+                <Tab id={AUCTION_PAGE} title="Auction" /> : ''
             }
-            <button
-                className={menu === INVENTORY_PAGE ? 'selected-menu' : ''}
-                onClick={() => dispatch(selectMenu(INVENTORY_PAGE))}>
-                Inventory
-            </button>
-            <button
-                className={menu === STREAM_PAGE ? 'selected-menu' : ''}
-                onClick={() => dispatch(selectMenu(STREAM_PAGE))}>
-                Stream
-            </button>
-            <button
-                className={menu === ABOUT_PAGE ? 'selected-menu' : ''}
-                onClick={() => dispatch(selectMenu(ABOUT_PAGE))}>
-                About
-            </button>
+            <Tab id={INVENTORY_PAGE} title='Inventory' />
+            <Tab id={STREAM_PAGE} title='Stream' />
+            <Tab id={ABOUT_PAGE} title='About' />
         </nav>
     )
 }

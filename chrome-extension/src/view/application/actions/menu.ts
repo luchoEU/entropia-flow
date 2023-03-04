@@ -4,6 +4,7 @@ const INVENTORY_PAGE = 1
 const STREAM_PAGE = 2
 const AUCTION_PAGE = 3
 const ABOUT_PAGE = 4
+const TRADE_PAGE = 5
 
 const selectMenu = (menu: number) => ({
     type: SELECT_MENU,
@@ -19,5 +20,6 @@ export {
     STREAM_PAGE,
     AUCTION_PAGE,
     ABOUT_PAGE,
+    TRADE_PAGE,
     selectMenu
 }

@@ -3,8 +3,10 @@ import { InventoryState } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
+const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
 const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
+const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const HIDE_BY_NAME = "[inv] hide by name"
@@ -29,6 +31,13 @@ const setCurrentInventory = (inventory: Inventory) => ({
     }
 })
 
+const setAuctionInventoryExpanded = (expanded: boolean) => ({
+    type: SET_AUCTION_EXPANDED,
+    payload: {
+        expanded
+    }
+})
+
 const setVisibleInventoryExpanded = (expanded: boolean) => ({
     type: SET_VISIBLE_EXPANDED,
     payload: {
@@ -40,6 +49,13 @@ const setHiddenInventoryExpanded = (expanded: boolean) => ({
     type: SET_HIDDEN_EXPANDED,
     payload: {
         expanded
+    }
+})
+
+const sortAuctionBy = (part: number) => ({
+    type: SORT_AUCTION_BY,
+    payload: {
+        part
     }
 })
 
@@ -106,8 +122,10 @@ const showAll = () => ({
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
+    SET_AUCTION_EXPANDED,
     SET_VISIBLE_EXPANDED,
     SET_HIDDEN_EXPANDED,
+    SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
     HIDE_BY_NAME,
@@ -119,8 +137,10 @@ export {
     SHOW_ALL,
     loadInventoryState,
     setCurrentInventory,
+    setAuctionInventoryExpanded,
     setVisibleInventoryExpanded,
     setHiddenInventoryExpanded,
+    sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
     hideByName,

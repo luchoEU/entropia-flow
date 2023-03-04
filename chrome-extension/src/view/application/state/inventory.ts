@@ -26,6 +26,7 @@ interface ItemHidden {
 }
 
 interface InventoryState {
+    auction: InventoryList<ItemData>,
     visible: InventoryList<ItemData>,
     hidden: InventoryList<ItemHidden>,
     criteria: HideCriteria

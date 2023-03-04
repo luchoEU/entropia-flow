@@ -9,6 +9,15 @@ const emptyCriteria: HideCriteria = {
 }
 
 const initialState: InventoryState = {
+    auction: {
+        expanded: true,
+        sortType: SORT_NAME_ASCENDING,
+        items: [],
+        stats: {
+            count: 0,
+            ped: "0.00"
+        }
+    },
     visible: {
         expanded: true,
         sortType: SORT_VALUE_DESCENDING,
@@ -55,6 +64,8 @@ const addCriteria = (c: HideCriteria) => (d: ItemData): ItemHidden => ({
     }
 })
 
+const getAuction = (list: Array<ItemData>): Array<ItemData> => list.filter(d => d.c === 'AUCTION')
+
 const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => list.filter(d => !isHidden(c)(d))
 
 const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
@@ -62,6 +73,10 @@ const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
 
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
+    auction: sortAndStats(x => x, {
+        ...state.auction,
+        items: getAuction(list)
+    }),
     visible: sortAndStats(x => x, {
         ...state.visible,
         items: getVisible(list, state.criteria)
@@ -81,6 +96,14 @@ const loadInventoryState = (oldState: InventoryState, state: InventoryState): In
 const setCurrentInventory = (state: InventoryState, inventory: Inventory): InventoryState =>
     loadInventory(state, inventory.itemlist)
 
+const setAuctionExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
+    ...state,
+    auction: {
+        ...state.visible,
+        expanded
+    }
+})
+    
 const setVisibleExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
     ...state,
     visible: {
@@ -105,6 +128,11 @@ function sortByPart<D>(list: InventoryList<D>, part: number, select: (d: D) => I
         items: cloneSortListSelect(list.items, sortType, select)
     }
 }
+
+const sortAuctionBy = (state: InventoryState, part: number): InventoryState => ({
+    ...state,
+    auction: sortByPart(state.auction, part, x => x)
+})
 
 const sortVisibleBy = (state: InventoryState, part: number): InventoryState => ({
     ...state,
@@ -159,8 +187,10 @@ export {
     initialState,
     loadInventoryState,
     setCurrentInventory,
+    setAuctionExpanded,
     setVisibleExpanded,
     setHiddenExpanded,
+    sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
     hideByName,
