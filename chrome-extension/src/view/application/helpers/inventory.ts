@@ -9,6 +9,7 @@ const emptyCriteria: HideCriteria = {
 }
 
 const initialState: InventoryState = {
+    blueprints: [],
     auction: {
         expanded: true,
         sortType: SORT_NAME_ASCENDING,
@@ -64,6 +65,8 @@ const addCriteria = (c: HideCriteria) => (d: ItemData): ItemHidden => ({
     }
 })
 
+const getBlueprints = (list: Array<ItemData>): Array<ItemData> => list.filter(d => d.n.includes('Blueprint'))
+
 const getAuction = (list: Array<ItemData>): Array<ItemData> => list.filter(d => d.c === 'AUCTION')
 
 const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => list.filter(d => !isHidden(c)(d))
@@ -73,6 +76,7 @@ const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
 
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
+    blueprints: getBlueprints(list),
     auction: sortAndStats(x => x, {
         ...state.auction,
         items: getAuction(list)
