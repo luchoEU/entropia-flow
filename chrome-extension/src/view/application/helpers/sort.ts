@@ -116,7 +116,8 @@ function sortList<I extends SortItemData>(list: Array<I>, sortType: number) {
 
 // warning: it mutates the list
 function sortListSelect<I extends SortItemData, D>(list: Array<D>, sortType: number, select: (d: D) => I) {
-    list.sort((a: D, b: D) => comparer[sortType](select(a), select(b)))
+    if (sortType !== undefined)
+        list.sort((a: D, b: D) => comparer[sortType](select(a), select(b)))
 }
 
 function cloneSortList<I extends SortItemData>(list: Array<I>, sortType: number): Array<I> {

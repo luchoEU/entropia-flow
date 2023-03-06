@@ -1,47 +1,20 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { ItemData } from '../../../common/state'
-import { setAuctionInventoryExpanded, sortAuctionBy } from '../../application/actions/inventory'
-import { NAME, QUANTITY, VALUE } from '../../application/helpers/sort'
+import { useSelector } from 'react-redux'
+import { addAvailable, removeAvailable, setAuctionInventoryExpanded, setAvailableInventoryExpanded, sortAuctionBy, sortAvailableBy } from '../../application/actions/inventory'
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
-import ExpandableSection from '../common/ExpandableSection'
-
-const ItemRow = (p: {
-    item: ItemData
-}) => {
-    const { item } = p
-    const dispatch = useDispatch()
-    const sortBy = (part: number) => () => dispatch(sortAuctionBy(part))
-
-    return (
-        <tr>
-            <td onClick={sortBy(NAME)}>{item.n}</td>
-            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
-            <td onClick={sortBy(VALUE)}>{item.v + ' PED'}</td>
-        </tr>
-    )
-}
+import TradeList from './TradeList'
 
 function TradePage() {
-    const s: InventoryState = useSelector(getInventory)
+    const s: InventoryState = useSelector(getInventory)    
     return (
         <>
-            <ExpandableSection title='Auction' expanded={s.auction.expanded} setExpanded={setAuctionInventoryExpanded}>
-            <p>Total value {s.auction.stats.ped} PED for {s.auction.stats.count} items</p>
-
-                <table className='table-diff'>
-                    <tbody>
-                        {
-                            s.auction.items.map((item: ItemData) =>
-                                <ItemRow
-                                    key={item.id}
-                                    item={item} />
-                            )
-                        }
-                    </tbody>
-                </table>
-            </ExpandableSection>
+            <TradeList title='Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
+                image='img/tick.png' sort={sortAuctionBy} action={addAvailable}
+                showAction={(n) => !s.availableCriteria.name.includes(n)} />
+            <TradeList title='Available' list={s.available} setExpanded={setAvailableInventoryExpanded}
+                image='img/cross.png' sort={sortAvailableBy} action={removeAvailable}
+                showAction={() => true} />
         </>
     )
 }

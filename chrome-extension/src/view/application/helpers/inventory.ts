@@ -1,5 +1,5 @@
 import { Inventory, ItemData } from "../../../common/state";
-import { InventoryState, InventoryList, HideCriteria, ItemHidden } from "../state/inventory";
+import { InventoryState, InventoryList, HideCriteria, ItemHidden, AvailableCriteria } from "../state/inventory";
 import { cloneSortListSelect, nextSortType, sortList, sortListSelect, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./sort";
 
 const emptyCriteria: HideCriteria = {
@@ -37,7 +37,19 @@ const initialState: InventoryState = {
             ped: "0.00"
         }
     },
-    criteria: emptyCriteria
+    hiddenCriteria: emptyCriteria,
+    available: {
+        expanded: true,
+        sortType: SORT_NAME_ASCENDING,
+        items: [],
+        stats: {
+            count: 0,
+            ped: "0.00"
+        }
+    },
+    availableCriteria: {
+        name: []
+    }
 }
 
 function sortAndStats<D>(select: (d: D) => ItemData, list: InventoryList<D>): InventoryList<D> {
@@ -74,6 +86,26 @@ const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => 
 const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
     list.filter(isHidden(c)).map(addCriteria(c))
 
+const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemData> => {
+    var result = {}
+    list.forEach(d => {
+        if (c.name.includes(d.n)) {
+            if (!result[d.n]) {
+                result[d.n] = {
+                    id: d.id,
+                    n: d.n,
+                    q: '0',
+                    v: '0.00'
+                }
+            }
+            let x : ItemData = result[d.n]
+            x.q = (Number(x.q) + Number(d.q)).toString()
+            x.v = (Number(x.v) + Number(d.v)).toFixed(2).toString()
+        }
+    })
+    return Object.values(result)
+}
+
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
     blueprints: getBlueprints(list),
@@ -83,11 +115,15 @@ const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryS
     }),
     visible: sortAndStats(x => x, {
         ...state.visible,
-        items: getVisible(list, state.criteria)
+        items: getVisible(list, state.hiddenCriteria)
     }),
     hidden: sortAndStats(x => x.data, {
         ...state.hidden,
-        items: getHidden(list, state.criteria)
+        items: getHidden(list, state.hiddenCriteria)
+    }),
+    available: sortAndStats(x => x, {
+        ...state.available,
+        items: getAvailable(list, state.availableCriteria)
     })
 })
 
@@ -103,7 +139,15 @@ const setCurrentInventory = (state: InventoryState, inventory: Inventory): Inven
 const setAuctionExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
     ...state,
     auction: {
-        ...state.visible,
+        ...state.auction,
+        expanded
+    }
+})
+
+const setAvailableExpanded = (state: InventoryState, expanded: boolean) => ({
+    ...state,
+    available: {
+        ...state.available,
         expanded
     }
 })
@@ -148,33 +192,50 @@ const sortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
     hidden: sortByPart(state.hidden, part, x => x.data)
 })
 
-const changeCriteria = (state: InventoryState, newCriteria: any) =>
-    loadInventory({ ...state, criteria: { ...state.criteria, ...newCriteria } }, joinList(state))
+const sortAvailableBy = (state: InventoryState, part: number): InventoryState => ({
+    ...state,
+    available: sortByPart(state.available, part, x => x)
+})
+
+const changeHiddenCriteria = (state: InventoryState, newCriteria: any) =>
+    loadInventory({ ...state, hiddenCriteria: { ...state.hiddenCriteria, ...newCriteria } }, joinList(state))
 
 const hideByName = (state: InventoryState, name: string): InventoryState =>
-    changeCriteria(state, { name: [...state.criteria.name, name] })
+    changeHiddenCriteria(state, { name: [...state.hiddenCriteria.name, name] })
 
 const showByName = (state: InventoryState, name: string): InventoryState =>
-    changeCriteria(state, { name: state.criteria.name.filter(x => x !== name) })
+    changeHiddenCriteria(state, { name: state.hiddenCriteria.name.filter(x => x !== name) })
 
 const hideByContainer = (state: InventoryState, container: string): InventoryState =>
-    changeCriteria(state, { container: [...state.criteria.container, container] })
+    changeHiddenCriteria(state, { container: [...state.hiddenCriteria.container, container] })
 
 const showByContainer = (state: InventoryState, container: string): InventoryState =>
-    changeCriteria(state, { container: state.criteria.container.filter(x => x !== container) })
+    changeHiddenCriteria(state, { container: state.hiddenCriteria.container.filter(x => x !== container) })
 
 const hideByValue = (state: InventoryState, value: string): InventoryState =>
-    changeCriteria(state, { value: Number(value) })
+    changeHiddenCriteria(state, { value: Number(value) })
 
 const showByValue = (state: InventoryState, value: string): InventoryState =>
-    changeCriteria(state, { value: Number(value) - 0.01 })
+    changeHiddenCriteria(state, { value: Number(value) - 0.01 })
 
 const showAll = (state: InventoryState): InventoryState =>
-    changeCriteria(state, emptyCriteria)
+    changeHiddenCriteria(state, emptyCriteria)
+
+const addAvailable = (state: InventoryState, name: string): InventoryState =>
+    loadInventory({ ...state, availableCriteria: { name: [ ...state.availableCriteria.name, name ] } }, joinList(state))
+
+const removeAvailable = (state: InventoryState, name: string): InventoryState =>
+    loadInventory({ ...state, availableCriteria: { name: state.availableCriteria.name.filter(n => n !== name) } }, joinList(state))
 
 // items and stats can be reconstructed
 const cleanForSave = (state: InventoryState): InventoryState => ({
     ...state,
+    blueprints: undefined,
+    auction: {
+        ...state.auction,
+        items: undefined,
+        stats: undefined
+    },
     visible: {
         ...state.visible,
         items: undefined, 
@@ -183,7 +244,12 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
     hidden: {
         ...state.hidden,
         items: undefined,
-        stats: undefined        
+        stats: undefined     
+    },
+    available: {
+        ...state.available,
+        items: undefined,
+        stats: undefined
     }
 })
 
@@ -192,11 +258,13 @@ export {
     loadInventoryState,
     setCurrentInventory,
     setAuctionExpanded,
+    setAvailableExpanded,
     setVisibleExpanded,
     setHiddenExpanded,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
+    sortAvailableBy,
     hideByName,
     hideByContainer,
     hideByValue,
@@ -204,5 +272,7 @@ export {
     showByContainer,
     showByValue,
     showAll,
+    addAvailable,
+    removeAvailable,
     cleanForSave,
 }

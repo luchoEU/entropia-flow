@@ -16,6 +16,10 @@ interface HideCriteria {
     value: number
 }
 
+interface AvailableCriteria {
+    name: Array<string>
+}
+
 interface ItemHidden {
     data: ItemData,
     criteria: {
@@ -30,11 +34,14 @@ interface InventoryState {
     auction: InventoryList<ItemData>,
     visible: InventoryList<ItemData>,
     hidden: InventoryList<ItemHidden>,
-    criteria: HideCriteria
+    hiddenCriteria: HideCriteria,
+    available: InventoryList<ItemData>,
+    availableCriteria: AvailableCriteria
 }
 
 export {
     HideCriteria,
+    AvailableCriteria,
     ItemHidden,
     InventoryList,
     InventoryState

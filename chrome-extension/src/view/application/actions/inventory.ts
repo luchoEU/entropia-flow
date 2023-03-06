@@ -4,11 +4,13 @@ import { InventoryState } from "../state/inventory"
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
 const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
+const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
 const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
+const SORT_AVAILABLE_BY = "[inv] sort available by"
 const HIDE_BY_NAME = "[inv] hide by name"
 const SHOW_BY_NAME = "[inv] show by name"
 const HIDE_BY_CONTAINER = "[inv] hide by container"
@@ -16,6 +18,8 @@ const SHOW_BY_CONTAINER = "[inv] show by container"
 const HIDE_BY_VALUE = "[inv] hide by value"
 const SHOW_BY_VALUE = "[inv] show by value"
 const SHOW_ALL = "[inv] show all"
+const ADD_AVAILABLE = "[inv] add available"
+const REMOVE_AVAILABLE = "[inv] remove available"
 
 const loadInventoryState = (state: InventoryState) => ({
     type: LOAD_INVENTORY_STATE,
@@ -33,6 +37,13 @@ const setCurrentInventory = (inventory: Inventory) => ({
 
 const setAuctionInventoryExpanded = (expanded: boolean) => ({
     type: SET_AUCTION_EXPANDED,
+    payload: {
+        expanded
+    }
+})
+
+const setAvailableInventoryExpanded = (expanded: boolean) => ({
+    type: SET_AVAILABLE_EXPANDED,
     payload: {
         expanded
     }
@@ -68,6 +79,13 @@ const sortVisibleBy = (part: number) => ({
 
 const sortHiddenBy = (part: number) => ({
     type: SORT_HIDDEN_BY,
+    payload: {
+        part
+    }
+})
+
+const sortAvailableBy = (part: number) => ({
+    type: SORT_AVAILABLE_BY,
     payload: {
         part
     }
@@ -115,6 +133,20 @@ const showByValue = (value: string) => ({
     }
 })
 
+const addAvailable = (name: string) => ({
+    type: ADD_AVAILABLE,
+    payload: {
+        name
+    }
+})
+
+const removeAvailable = (name: string) => ({
+    type: REMOVE_AVAILABLE,
+    payload: {
+        name
+    }
+})
+
 const showAll = () => ({
     type: SHOW_ALL
 })
@@ -123,11 +155,13 @@ export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
     SET_AUCTION_EXPANDED,
+    SET_AVAILABLE_EXPANDED,
     SET_VISIBLE_EXPANDED,
     SET_HIDDEN_EXPANDED,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
+    SORT_AVAILABLE_BY,
     HIDE_BY_NAME,
     SHOW_BY_NAME,
     HIDE_BY_CONTAINER,
@@ -135,14 +169,18 @@ export {
     HIDE_BY_VALUE,
     SHOW_BY_VALUE,
     SHOW_ALL,
+    ADD_AVAILABLE,
+    REMOVE_AVAILABLE,
     loadInventoryState,
     setCurrentInventory,
     setAuctionInventoryExpanded,
+    setAvailableInventoryExpanded,
     setVisibleInventoryExpanded,
     setHiddenInventoryExpanded,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
+    sortAvailableBy,
     hideByName,
     showByName,
     hideByContainer,
@@ -150,4 +188,6 @@ export {
     hideByValue,
     showByValue,
     showAll,
+    addAvailable,
+    removeAvailable,
 }
