@@ -4,7 +4,10 @@ interface CraftState {
 
 interface BlueprintData {
     name: string
+    loading: boolean
+    url: string
     materials: BlueprintMaterial[]
+    error: string
 }
 
 interface BlueprintMaterial {
@@ -14,6 +17,8 @@ interface BlueprintMaterial {
 
 interface BluprintWebData {
     Name: string
+    StatusCode: number,
+    Url: string,
     Material: BlueprintWebMaterial[]
 }
 

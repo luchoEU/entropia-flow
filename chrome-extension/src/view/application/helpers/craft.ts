@@ -9,7 +9,10 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
         ...state.blueprints,
         {
             name,
-            materials: []
+            loading: true,
+            url: "",
+            materials: [],
+            error: ""
         }
     ]
 })
@@ -17,12 +20,22 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
 const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => ({
     blueprints: state.blueprints.map(bp => {
         if (bp.name === data.Name) {
-            return {
-                name: bp.name,
-                materials: data.Material.map(m => ({
-                    name: m.Name,
-                    quantity: m.Quantity
-                }))
+            if (data.StatusCode === 0) {
+               return {
+                    ...bp,
+                    loading: false,
+                    url: data.Url,
+                    materials: data.Material.map(m => ({
+                        name: m.Name,
+                        quantity: m.Quantity
+                    }))
+                }
+            } else {
+                return {
+                    ...bp,
+                    loading: false,
+                    error: `Loading Error, Code ${data.StatusCode}`
+                }
             }
         } else {
             return bp

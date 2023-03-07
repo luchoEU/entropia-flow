@@ -86,25 +86,26 @@ const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => 
 const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
     list.filter(isHidden(c)).map(addCriteria(c))
 
-const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemData> => {
+const joinDuplicates = (list: Array<ItemData): Array<ItemData> => {
     var result = {}
     list.forEach(d => {
-        if (c.name.includes(d.n)) {
-            if (!result[d.n]) {
-                result[d.n] = {
-                    id: d.id,
-                    n: d.n,
-                    q: '0',
-                    v: '0.00'
-                }
+        if (!result[d.n]) {
+            result[d.n] = {
+                id: d.id,
+                n: d.n,
+                q: '0',
+                v: '0.00'
             }
-            let x : ItemData = result[d.n]
-            x.q = (Number(x.q) + Number(d.q)).toString()
-            x.v = (Number(x.v) + Number(d.v)).toFixed(2).toString()
         }
+        let x : ItemData = result[d.n]
+        x.q = (Number(x.q) + Number(d.q)).toString()
+        x.v = (Number(x.v) + Number(d.v)).toFixed(2).toString()
     })
     return Object.values(result)
 }
+
+const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemData> =>
+    joinDuplicates(list.filter(d => c.name.includes(d.n)))
 
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
@@ -273,6 +274,8 @@ export {
     showByValue,
     showAll,
     addAvailable,
+    joinList,
+    joinDuplicates,
     removeAvailable,
     cleanForSave,
 }

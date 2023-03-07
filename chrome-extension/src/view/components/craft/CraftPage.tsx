@@ -44,10 +44,24 @@ function CraftPage() {
                     <section key={d.name}>
                         <h1>{d.name}</h1>
                         {
+                            d.loading ?
+                                <img className='img-loading' src='img/loading.gif' /> :
                             d.materials.length === 0 ?
-                                <img className='img-loading' src='img/loading.gif' /> :                        
-                                d.materials.map((m: BlueprintMaterial) =>
-                                    <p key={m.name}>{m.quantity} {m.name}</p>)
+                                <p>{d.error}</p> :
+                                <div>
+                                    <a href={d.url} target="_blank">entropiawiki</a>
+                                    <table>
+                                        <tbody>
+                                            {
+                                                d.materials.map((m: BlueprintMaterial) =>                                
+                                                    <tr key={m.name}>
+                                                        <td>{m.quantity}</td>
+                                                        <td>{m.name}</td>
+                                                    </tr>)
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                         }
                     </section>
                 )
