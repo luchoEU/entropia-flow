@@ -1,9 +1,10 @@
-import { ItemData } from "../../../common/state";
 import { BluprintWebData, CraftState } from "../state/craft";
 
 const initialState: CraftState = {
     blueprints: []
 }
+
+const setState = (state: CraftState, inState: CraftState) => inState
 
 const addBlueprint = (state: CraftState, name: string): CraftState => ({
     blueprints: [
@@ -11,11 +12,16 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
         {
             name,
             loading: true,
-            url: "",
+            url: undefined,
+            itemValue: undefined,
             materials: [],
-            error: ""
+            error: undefined
         }
     ]
+})
+
+const removeBlueprint = (state: CraftState, name: string): CraftState => ({
+    blueprints: state.blueprints.filter(bp => bp.name !== name)
 })
 
 const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => ({
@@ -26,10 +32,14 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                     ...bp,
                     loading: false,
                     url: data.Url,
+                    itemValue: data.ItemValue,
                     materials: data.Material.map(m => ({
                         name: m.Name,
                         quantity: m.Quantity,
-                        available: undefined
+                        type: m.Type,
+                        value: m.Value,
+                        available: undefined,
+                        clicks: undefined
                     }))
                 }
             } else {
@@ -50,14 +60,17 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
         ...bp,
         materials: bp.materials.map(m => ({
             ...m,
-            available: dictionary[m.name] ?? 0
+            available: dictionary[m.name] ?? 0,
+            clicks: Math.floor((dictionary[m.name] ?? 0) / m.quantity)
         }))
     }))
 })
 
 export {
     initialState,
+    setState,
     addBlueprint,
+    removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
 }

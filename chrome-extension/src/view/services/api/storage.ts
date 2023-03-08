@@ -15,11 +15,13 @@ import {
     STORAGE_VIEW_STREAM,
     STORAGE_VIEW_SWEAT,
     STORAGE_VIEW_USE,
-    STORAGE_VIEW_FRUIT
+    STORAGE_VIEW_FRUIT,
+    STORAGE_VIEW_CRAFT
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ACTIVES_ITEM } from "../../application/state/actives";
 import { CalculatorStateIn } from "../../application/state/calculator";
+import { CraftState } from "../../application/state/craft";
 import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
@@ -150,6 +152,14 @@ async function loadInventoryState(): Promise<InventoryState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_INVENTORY)
 }
 
+async function saveCraft(state: CraftState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_CRAFT, state)
+}
+
+async function loadCraft(): Promise<CraftState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_CRAFT)
+}
+
 async function saveAbout(state: AboutState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_ABOUT, state)
 }
@@ -189,6 +199,8 @@ export default {
     loadStream,
     saveInventoryState,
     loadInventoryState,
+    saveCraft,
+    loadCraft,
     saveAbout,
     loadAbout,
 }
