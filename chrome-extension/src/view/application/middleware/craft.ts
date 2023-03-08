@@ -1,4 +1,7 @@
-import { addBlueprintData, ADD_BLUEPRINT } from "../actions/craft"
+import { ItemData } from "../../../common/state"
+import { addBlueprintData, ADD_BLUEPRINT, setBlueprintQuantity } from "../actions/craft"
+import { joinDuplicates, joinList } from "../helpers/inventory"
+import { getInventory } from "../selectors/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -9,6 +12,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             let response = await fetch(url)
             let data = await response.json()
             dispatch(addBlueprintData(data))
+
+            let s = getInventory(getState())
+            let items = joinDuplicates(joinList(s))
+            let dictionary: { [k: string]: number } = Object.fromEntries(items.map((x: ItemData) => [x.n, Number(x.q)]));
+            dispatch(setBlueprintQuantity(dictionary))
             break
         }
     }

@@ -13,6 +13,7 @@ interface BlueprintData {
 interface BlueprintMaterial {
     name: string
     quantity: number
+    available: number
 }
 
 interface BluprintWebData {

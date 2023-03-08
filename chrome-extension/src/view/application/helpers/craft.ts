@@ -1,3 +1,4 @@
+import { ItemData } from "../../../common/state";
 import { BluprintWebData, CraftState } from "../state/craft";
 
 const initialState: CraftState = {
@@ -27,7 +28,8 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                     url: data.Url,
                     materials: data.Material.map(m => ({
                         name: m.Name,
-                        quantity: m.Quantity
+                        quantity: m.Quantity,
+                        available: undefined
                     }))
                 }
             } else {
@@ -43,8 +45,19 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
     })
 })
 
+const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => ({
+    blueprints: state.blueprints.map(bp => ({
+        ...bp,
+        materials: bp.materials.map(m => ({
+            ...m,
+            available: dictionary[m.name] ?? 0
+        }))
+    }))
+})
+
 export {
     initialState,
     addBlueprint,
     addBlueprintData,
+    setBlueprintQuantity,
 }

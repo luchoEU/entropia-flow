@@ -57,6 +57,7 @@ function CraftPage() {
                                                     <tr key={m.name}>
                                                         <td>{m.quantity}</td>
                                                         <td>{m.name}</td>
+                                                        <td>{m.available}</td>
                                                     </tr>)
                                             }
                                         </tbody>

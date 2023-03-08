@@ -86,7 +86,7 @@ const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => 
 const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
     list.filter(isHidden(c)).map(addCriteria(c))
 
-const joinDuplicates = (list: Array<ItemData): Array<ItemData> => {
+const joinDuplicates = (list: Array<ItemData>): Array<ItemData> => {
     var result = {}
     list.forEach(d => {
         if (!result[d.n]) {
