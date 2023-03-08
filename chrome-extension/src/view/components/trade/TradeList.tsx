@@ -9,19 +9,20 @@ const ItemRow = (p: {
     item: ItemData,
     param: {
         image: string,
+        classMap: { [k: string]: string },
         showAction: (name: string) => boolean,
         sort: (part: number) => any,
         action: (name: string) => any
     }
 }) => {
     const { item, param } = p
-    const { image, showAction, sort, action } = param
+    const { image, classMap, showAction, sort, action } = param
     const dispatch = useDispatch()
     const sortBy = (part: number) => () => dispatch(sort(part))
 
     return (
         <tr>
-            <td onClick={sortBy(NAME)}>{item.n}
+            <td className={classMap[item.n]} onClick={sortBy(NAME)}>{item.n}
                 {showAction(item.n) ?
                     <img src={image} onClick={(e) => {
                         e.stopPropagation()
@@ -39,6 +40,7 @@ const TradeList = (p: {
     list: InventoryList<ItemData>,
     setExpanded: (expanded: boolean) => any,
     image: string,
+    classMap: { [k: string]: string },
     showAction: (name: string) => boolean,
     sort: (part: number) => any,
     action: (name: string) => any
