@@ -20,7 +20,9 @@ function CraftSingle(p: {
                         <p>{d.error}</p> :
                         <div>                                
                             <a href={d.url} target="_blank">entropiawiki</a>
+                            <p>Item: {d.itemName}</p>
                             <p>Item Value: {d.itemValue} PED</p>
+                            <p>Available: {d.itemAvailable}</p>
                             <table>
                                 <thead>
                                     <tr>
@@ -46,6 +48,7 @@ function CraftSingle(p: {
                                     }
                                 </tbody>
                             </table>
+                            <p>Click TT Cost: {d.clickCost} PED</p>
                         </div>
                 }
             </section>

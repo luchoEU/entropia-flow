@@ -6,9 +6,12 @@ interface BlueprintData {
     name: string
     loading: boolean
     url: string
+    itemName: string
     itemValue: string
+    itemAvailable: number
     materials: BlueprintMaterial[]
     error: string
+    clickCost: string
 }
 
 interface BlueprintMaterial {

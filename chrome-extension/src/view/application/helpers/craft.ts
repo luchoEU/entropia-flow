@@ -13,9 +13,12 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
             name,
             loading: true,
             url: undefined,
+            itemName: name.split("Blueprint")[0].trim(),
             itemValue: undefined,
+            itemAvailable: undefined,
             materials: [],
-            error: undefined
+            error: undefined,
+            clickCost: undefined
         }
     ]
 })
@@ -55,16 +58,32 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
     })
 })
 
-const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => ({
-    blueprints: state.blueprints.map(bp => ({
-        ...bp,
-        materials: bp.materials.map(m => ({
-            ...m,
-            available: dictionary[m.name] ?? 0,
-            clicks: Math.floor((dictionary[m.name] ?? 0) / m.quantity)
-        }))
-    }))
-})
+const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
+    let blueprints = []    
+    for (let bp of state.blueprints) {
+
+        let clickCost = 0
+        let materials = []
+        for (let m of bp.materials) {
+            let available = dictionary[m.name] ?? 0
+            materials.push({
+                ...m,
+                available,
+                clicks: Math.floor(available / m.quantity)
+            })
+            clickCost += m.quantity * Number(m.value)
+        }
+
+        blueprints.push({
+            ...bp,
+            itemAvailable: dictionary[bp.itemName] ?? 0,
+            materials,
+            clickCost: clickCost.toFixed(2)
+        })
+    }
+
+    return { blueprints }
+}
 
 export {
     initialState,
