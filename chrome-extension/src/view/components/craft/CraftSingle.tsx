@@ -26,7 +26,7 @@ function CraftSingle(p: {
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Quantity</th>
+                                        <th>Needed</th>
                                         <th>Unit Value</th>
                                         <th>Name</th>
                                         <th>Type</th>
