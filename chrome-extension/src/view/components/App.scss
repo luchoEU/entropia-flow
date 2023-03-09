@@ -110,6 +110,32 @@ form label {
     text-align: center;
 }
 
+// Settings
+.form-settings {
+    display: table;
+}
+
+.form-settings p {
+    display: table-row;
+}
+
+.form-settings p label {
+    display: table-cell;
+    padding: 5px;
+    vertical-align: middle;
+}
+
+.form-settings p input {
+    display: table-cell;
+    width: 400px;
+}
+
+.form-settings p textarea {
+    display: table-cell;
+    width: 530px;
+    height: 200px;
+}
+
 // Inventory
 .info {
     color: grey;

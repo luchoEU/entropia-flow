@@ -17,6 +17,7 @@ import sheets from './sheets'
 import fruit from './fruit'
 import use from './use'
 import craft from './craft'
+import settings from './settings'
 
 export default [
     ...messages,
@@ -38,4 +39,5 @@ export default [
     ...fruit,
     ...use,
     ...craft,
+    ...settings
 ]

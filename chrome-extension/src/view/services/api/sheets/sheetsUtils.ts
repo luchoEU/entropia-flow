@@ -1,14 +1,14 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { SetStage, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING } from '../../../application/state/actives'
-import { DOC_ID, GOOGLE_PRIVATE_KEY, GOOGLE_SERVICE_ACCOUNT_EMAIL } from './sheetsConst'
+import { SheetAccessInfo } from '../../../application/state/settings';
 
-async function getSpreadsheet(setStage: SetStage) {
+async function getSpreadsheet(accessInfo: SheetAccessInfo, setStage: SetStage) {
     setStage(STAGE_LOADING_SPREADSHEET)
-    const doc = new GoogleSpreadsheet(DOC_ID)
+    const doc = new GoogleSpreadsheet(accessInfo.documentId)
 
     await doc.useServiceAccountAuth({
-        client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: GOOGLE_PRIVATE_KEY,
+        client_email: accessInfo.googleServiceAccountEmail,
+        private_key: accessInfo.googlePrivateKey,
     })
 
     await doc.loadInfo()

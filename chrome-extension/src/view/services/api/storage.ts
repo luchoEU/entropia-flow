@@ -16,7 +16,8 @@ import {
     STORAGE_VIEW_SWEAT,
     STORAGE_VIEW_USE,
     STORAGE_VIEW_FRUIT,
-    STORAGE_VIEW_CRAFT
+    STORAGE_VIEW_CRAFT,
+    STORAGE_VIEW_SETTINGS
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ACTIVES_ITEM } from "../../application/state/actives";
@@ -27,6 +28,7 @@ import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
+import { SettingsState } from "../../application/state/settings";
 import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
@@ -160,6 +162,14 @@ async function loadCraft(): Promise<CraftState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_CRAFT)
 }
 
+async function saveSettings(state: SettingsState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_SETTINGS, state)
+}
+
+async function loadSettings(): Promise<SettingsState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_SETTINGS)
+}
+
 async function saveAbout(state: AboutState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_ABOUT, state)
 }
@@ -201,6 +211,8 @@ export default {
     loadInventoryState,
     saveCraft,
     loadCraft,
+    saveSettings,
+    loadSettings,
     saveAbout,
     loadAbout,
 }

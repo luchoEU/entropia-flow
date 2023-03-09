@@ -61,6 +61,7 @@ const STORAGE_VIEW_HISTORY_EXPANDED = 'history-expanded'
 const STORAGE_VIEW_STREAM = 'stream'
 const STORAGE_VIEW_INVENTORY = 'inventoryView'
 const STORAGE_VIEW_CRAFT = 'about'
+const STORAGE_VIEW_SETTINGS = 'settings'
 const STORAGE_VIEW_ABOUT = 'about'
 
 // Html
@@ -125,6 +126,7 @@ export {
     STORAGE_VIEW_STREAM,
     STORAGE_VIEW_INVENTORY,
     STORAGE_VIEW_CRAFT,
+    STORAGE_VIEW_SETTINGS,
     STORAGE_VIEW_ABOUT,
     HTML_VIEW,
     ERROR_429,

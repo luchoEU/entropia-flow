@@ -7,8 +7,10 @@ import { ADD_PENDING_CHANGE, CLEAR_PENDING_CHANGES, donePendingChanges, performC
 import { addStackableToSheetDone } from "../actions/stackable"
 import { addSweatToSheetDone } from "../actions/sweat"
 import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NB, STACKABLE_NEXUS } from "../helpers/stackable"
+import { getSettings } from "../selectors/settings"
 import { getSheets } from "../selectors/sheets"
 import { OperationText } from "../state/actives"
+import { SettingsState } from "../state/settings"
 import { SHEETS_STATE } from "../state/sheets"
 
 const TIMEOUT_MILLISECONDS = 3000
@@ -45,10 +47,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PERFORM_CHANGE: {
             try {
                 const state: SHEETS_STATE = getSheets(getState())
+                const settings: SettingsState = getSettings(getState())
                 const loadingMessage = state.pending.length === 1 ? OperationText[state.pending[0].operation] : `${state.pending.length} changes`
                 dispatch(startLoading(loadingMessage))
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
-                const sheet = await api.sheets.loadMELogSheet(setStage)
+                const sheet = await api.sheets.loadMELogSheet(settings.sheet, setStage)
                 const rows = []
                 for (const c of state.pending) {
                     const row = c.changeFunc(sheet)
