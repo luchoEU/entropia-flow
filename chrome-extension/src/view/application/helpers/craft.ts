@@ -11,7 +11,8 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
         ...state.blueprints,
         {
             name,
-            loading: true,
+            loadingInfo: true,
+            loadingPage: false,
             url: undefined,
             itemName: name.split("Blueprint")[0].trim(),
             itemValue: undefined,
@@ -85,6 +86,10 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
     return { blueprints }
 }
 
+const setBudgetPageLoading = (state: CraftState, name: string, loadingPage: boolean): CraftState => ({
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, loadingPage } : bp)
+})
+
 export {
     initialState,
     setState,
@@ -92,4 +97,5 @@ export {
     removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
+    setBudgetPageLoading,
 }

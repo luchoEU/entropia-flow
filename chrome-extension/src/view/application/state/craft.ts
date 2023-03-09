@@ -4,7 +4,8 @@ interface CraftState {
 
 interface BlueprintData {
     name: string
-    loading: boolean
+    loadingInfo: boolean
+    loadingPage: boolean
     url: string
     itemName: string
     itemValue: string

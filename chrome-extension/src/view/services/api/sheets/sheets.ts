@@ -1,10 +1,10 @@
 import { SetStage } from '../../../application/state/actives'
+import { BlueprintData } from '../../../application/state/craft'
 import { SheetAccessInfo } from '../../../application/state/settings'
+import { BudgetSheet } from './sheetsBudget'
 import { newDayInventory } from './sheetsInventory'
 import { MELogSheet } from './sheetsMeLog'
 import { getSpreadsheet } from './sheetsUtils'
-
-/* region ME Log Sheet */
 
 async function loadMELogSheet(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<MELogSheet> {
     const doc = await getSpreadsheet(accessInfo, setStage)
@@ -13,18 +13,20 @@ async function loadMELogSheet(accessInfo: SheetAccessInfo, setStage: SetStage): 
     return sheet
 }
 
-/* endregion ME Log Sheet */
-
-/* region Inventory Sheet */
+async function createBudgetSheet(accessInfo: SheetAccessInfo, data: BlueprintData, setStage: SetStage): Promise<BudgetSheet> {
+    const doc = await getSpreadsheet(accessInfo, setStage)
+    const sheet = new BudgetSheet(data, setStage)
+    await sheet.create(doc)
+    return sheet
+}
 
 async function newDay(accessInfo: SheetAccessInfo, setStage: SetStage) {
     const doc = await getSpreadsheet(accessInfo, setStage)
     newDayInventory(doc, setStage)
 }
 
-/* endregion Inventory Sheet */
-
 export default {
     loadMELogSheet,
+    createBudgetSheet,
     newDay,
 }

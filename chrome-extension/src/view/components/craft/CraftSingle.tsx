@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { removeBlueprint } from '../../application/actions/craft'
+import { createBudgetPage, removeBlueprint } from '../../application/actions/craft'
 import { BlueprintData, BlueprintMaterial } from '../../application/state/craft'
 
 function CraftSingle(p: {
@@ -14,12 +14,16 @@ function CraftSingle(p: {
             <section>
                 <h1>{d.name} <img src='img/cross.png' onClick={() => dispatch(removeBlueprint(d.name))} /></h1>
                 {
-                    d.loading ?
+                    d.loadingInfo ?
                         <img className='img-loading' src='img/loading.gif' /> :
                     d.materials.length === 0 ?
                         <p>{d.error}</p> :
                         <div>                                
                             <a href={d.url} target="_blank">entropiawiki</a>
+                            <p>{d.loadingPage ?
+                                <>Creating Budget Page... <img className='img-loading' src='img/loading.gif' /></> :
+                                <button onClick={() => dispatch(createBudgetPage(d.name))}>Create Budget Page</button>
+                            }</p>
                             <p>Item: {d.itemName}</p>
                             <p>Item Value: {d.itemValue} PED</p>
                             <p>Available: {d.itemAvailable}</p>

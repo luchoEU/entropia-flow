@@ -5,6 +5,8 @@ const ADD_BLUEPRINT = "[craft] add blueprint"
 const REMOVE_BLUEPRINT = "[craft] remove blueprint"
 const ADD_BLUEPRINT_DATA = "[craft] add blueprint data"
 const SET_BLUEPRINT_QUANTITY = "[craft] set blueprint quantity"
+const CREATE_BUDGET_PAGE = "[craft] create budget page"
+const CREATE_BUDGET_PAGE_DONE = "[craft] create budget page done"
 
 const setCraftState = (state: CraftState) => ({
     type: SET_CRAFT_STATE,
@@ -41,15 +43,33 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     }
 })
 
+const createBudgetPage = (name: string) => ({
+    type: CREATE_BUDGET_PAGE,
+    payload: {
+        name
+    }
+})
+
+const createBudgetPageDone = (name: string) => ({
+    type: CREATE_BUDGET_PAGE_DONE,
+    payload: {
+        name
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
     REMOVE_BLUEPRINT,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
+    CREATE_BUDGET_PAGE,
+    CREATE_BUDGET_PAGE_DONE,
     setCraftState,
     addBlueprint,
     removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
+    createBudgetPage,
+    createBudgetPageDone,
 }
