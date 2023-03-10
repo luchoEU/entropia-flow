@@ -5,8 +5,10 @@ const ADD_BLUEPRINT = "[craft] add blueprint"
 const REMOVE_BLUEPRINT = "[craft] remove blueprint"
 const ADD_BLUEPRINT_DATA = "[craft] add blueprint data"
 const SET_BLUEPRINT_QUANTITY = "[craft] set blueprint quantity"
-const CREATE_BUDGET_PAGE = "[craft] create budget page"
-const CREATE_BUDGET_PAGE_DONE = "[craft] create budget page done"
+const START_BUDGET_PAGE_LOADING = "[craft] start budget page loading"
+const SET_BUDGET_PAGE_LOADING_STAGE = "[craft] set budget page stage"
+const END_BUDGET_PAGE_LOADING = "[craft] end budget page loading"
+const ERROR_BUDGET_PAGE_LOADING = "[craft] error budget page loading"
 
 const setCraftState = (state: CraftState) => ({
     type: SET_CRAFT_STATE,
@@ -43,17 +45,33 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     }
 })
 
-const createBudgetPage = (name: string) => ({
-    type: CREATE_BUDGET_PAGE,
+const startBudgetPageLoading = (name: string) => ({
+    type: START_BUDGET_PAGE_LOADING,
     payload: {
         name
     }
 })
 
-const createBudgetPageDone = (name: string) => ({
-    type: CREATE_BUDGET_PAGE_DONE,
+const setBudgetPageStage = (name: string, stage: number) => ({
+    type: SET_BUDGET_PAGE_LOADING_STAGE,
+    payload: {
+        name,
+        stage
+    }
+})
+
+const endBudgetPageLoading = (name: string) => ({
+    type: END_BUDGET_PAGE_LOADING,
     payload: {
         name
+    }
+})
+
+const setBudgetPageLoadingError = (name: string, text: string) => ({
+    type: ERROR_BUDGET_PAGE_LOADING,
+    payload: {
+        name,
+        text
     }
 })
 
@@ -63,13 +81,17 @@ export {
     REMOVE_BLUEPRINT,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
-    CREATE_BUDGET_PAGE,
-    CREATE_BUDGET_PAGE_DONE,
+    START_BUDGET_PAGE_LOADING,
+    SET_BUDGET_PAGE_LOADING_STAGE,
+    END_BUDGET_PAGE_LOADING,
+    ERROR_BUDGET_PAGE_LOADING,
     setCraftState,
     addBlueprint,
     removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
-    createBudgetPage,
-    createBudgetPageDone,
+    startBudgetPageLoading,
+    setBudgetPageStage,
+    endBudgetPageLoading,
+    setBudgetPageLoadingError,
 }

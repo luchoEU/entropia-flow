@@ -1,4 +1,5 @@
-import { ACTIVES_ITEM, ACTIVES_STATE, STAGE_INITIALIZING } from "../state/actives"
+import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
+import { ACTIVES_ITEM, ACTIVES_STATE } from "../state/actives"
 
 const initialState: ACTIVES_STATE = {
     list: []

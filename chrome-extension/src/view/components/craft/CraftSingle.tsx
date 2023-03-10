@@ -1,7 +1,8 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { createBudgetPage, removeBlueprint } from '../../application/actions/craft'
+import { removeBlueprint, startBudgetPageLoading } from '../../application/actions/craft'
 import { BlueprintData, BlueprintMaterial } from '../../application/state/craft'
+import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function CraftSingle(p: {
     d: BlueprintData
@@ -14,19 +15,19 @@ function CraftSingle(p: {
             <section>
                 <h1>{d.name} <img src='img/cross.png' onClick={() => dispatch(removeBlueprint(d.name))} /></h1>
                 {
-                    d.loadingInfo ?
+                    d.info.loading ?
                         <img className='img-loading' src='img/loading.gif' /> :
-                    d.materials.length === 0 ?
-                        <p>{d.error}</p> :
+                    d.info.materials.length === 0 ?
+                        <p>{d.info.errorText}</p> :
                         <div>                                
-                            <a href={d.url} target="_blank">entropiawiki</a>
-                            <p>{d.loadingPage ?
-                                <>Creating Budget Page... <img className='img-loading' src='img/loading.gif' /></> :
-                                <button onClick={() => dispatch(createBudgetPage(d.name))}>Create Budget Page</button>
+                            <a href={d.info.url} target="_blank">entropiawiki</a>
+                            <p>{d.budget.loading ?
+                                <>Loading Budget Page: <img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
+                                <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>Load Budget Page</button>
                             }</p>
                             <p>Item: {d.itemName}</p>
-                            <p>Item Value: {d.itemValue} PED</p>
-                            <p>Available: {d.itemAvailable}</p>
+                            <p>Item Value: {d.info.itemValue} PED</p>
+                            <p>Available: {d.inventory.itemAvailable}</p>
                             <table>
                                 <thead>
                                     <tr>
@@ -40,19 +41,20 @@ function CraftSingle(p: {
                                 </thead>
                                 <tbody>
                                     {
-                                        d.materials.map((m: BlueprintMaterial) =>                                
+                                        d.info.materials.map((m: BlueprintMaterial) =>                                
                                             <tr key={m.name}>
                                                 <td align="right">{m.quantity}</td>
                                                 <td align="right">{m.value}</td>
                                                 <td>{m.name}</td>
                                                 <td>{m.type}</td>
                                                 <td align="right">{m.available}</td>
-                                                <td align="right">{m.clicks}</td>
+                                                <td align="right">{m.clicks}</td>                                                
                                             </tr>)
                                     }
                                 </tbody>
                             </table>
-                            <p>Click TT Cost: {d.clickCost} PED</p>
+                            <p>Click TT Cost: {d.inventory.clickCost} PED</p>
+                            <p>Residue Needed: {d.inventory.residueNeeded} PED</p>
                         </div>
                 }
             </section>

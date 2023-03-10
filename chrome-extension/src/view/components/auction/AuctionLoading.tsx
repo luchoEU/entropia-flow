@@ -2,7 +2,8 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { endLoading } from '../../application/actions/actives'
 import { getLoading } from '../../application/selectors/actives'
-import { ACTIVES_LOADING_STATE, OperationText, StageText, STAGE_ERROR } from '../../application/state/actives'
+import { ACTIVES_LOADING_STATE } from '../../application/state/actives'
+import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function AuctionLoading() {
     const dispatch = useDispatch()

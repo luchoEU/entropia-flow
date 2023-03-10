@@ -71,22 +71,6 @@ const OperationText = [
     'Use Nutrio Bar',            // OPERATION_USE_NB
 ]
 
-const STAGE_INITIALIZING = 1
-const STAGE_LOADING_SPREADSHEET = 2
-const STAGE_LOADING_ME_LOG_SHEET = 3
-const STAGE_SAVING = 4
-const STAGE_ERROR = 5
-
-const StageText = [
-    'Unknown',
-    'Initializing', // STAGE_INITIALIZING
-    'Loading spreadsheet', // STAGE_LOADING_SPREADSHEET
-    'Loading ME Log sheet', // STAGE_LOADING_ME_LOG_SHEET
-    'Saving', // STAGE_SAVING
-]
-
-type SetStage = (stage: number) => void
-
 export {
     ACTIVES_LOADING_STATE,
     ACTIVES_ITEM,
@@ -114,12 +98,5 @@ export {
     OPERATION_USE_ME,
     OPERATION_USE_LME,
     OPERATION_USE_NB,
-    STAGE_INITIALIZING,
-    STAGE_LOADING_SPREADSHEET,
-    STAGE_LOADING_ME_LOG_SHEET,
-    STAGE_SAVING,
-    STAGE_ERROR,
     OperationText,
-    StageText,
-    SetStage,
 }

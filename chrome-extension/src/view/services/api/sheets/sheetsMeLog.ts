@@ -1,5 +1,5 @@
-import { SetStage } from "../../../application/state/actives"
-import { getLastRow, getSheet, saveUpdatedCells } from "./sheetsUtils"
+import { SetStage } from "./sheetsStages"
+import { getLastRow, getMeLogSheet, saveUpdatedCells } from "./sheetsUtils"
 
 const DATE_COLUMN = 0
 const TYPE_COLUMN = 1
@@ -26,8 +26,6 @@ const A_PED_COLUMN = 21
 const PROFIT_COLUMN = 22
 const EXTRA_COLUMN = 23
 
-const ME_LOG_SHEET_NAME = 'ME Log'
-
 class MELogSheet {
     private setStage: SetStage
     private sheet: any
@@ -39,7 +37,7 @@ class MELogSheet {
     }
     
     public async load(doc: any) {
-        this.sheet = await getSheet(doc, ME_LOG_SHEET_NAME, this.setStage)
+        this.sheet = await getMeLogSheet(doc, this.setStage)
         this.row = getLastRow(this.sheet) + 1
         this.daysSinceLastEntry = this._getDaysSinceLastEntry()
     }

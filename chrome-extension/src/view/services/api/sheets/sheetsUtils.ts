@@ -1,6 +1,9 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet'
-import { SetStage, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING } from '../../../application/state/actives'
 import { SheetAccessInfo } from '../../../application/state/settings';
+import { SetStage, STAGE_LOADING_INVENTORY_SHEET, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING, STATE_LOADING_BUDGET_SHEET } from './sheetsStages';
+
+const ME_LOG_SHEET_NAME = 'ME Log'
+const INVENTORY_SHEET_NAME = 'Inventory'
 
 async function getSpreadsheet(accessInfo: SheetAccessInfo, setStage: SetStage) {
     setStage(STAGE_LOADING_SPREADSHEET)
@@ -15,9 +18,38 @@ async function getSpreadsheet(accessInfo: SheetAccessInfo, setStage: SetStage) {
     return doc
 }
 
-async function getSheet(doc: any, title: string, setStage: SetStage): Promise<any> {
-    setStage(STAGE_LOADING_ME_LOG_SHEET)
-    let sheet = doc.sheetsByTitle[title]
+async function getSheet(doc: any, title: string, setStage: SetStage, stage: number): Promise<any> {
+    setStage(stage)
+    const sheet = doc.sheetsByTitle[title]
+    if (sheet !== undefined)
+        await sheet.loadCells()
+    return sheet
+}
+
+async function getMeLogSheet(doc: any, setStage: SetStage): Promise<any> {
+    return await getSheet(doc, ME_LOG_SHEET_NAME, setStage, STAGE_LOADING_ME_LOG_SHEET)
+}
+
+async function getInventorySheet(doc: any, setStage: SetStage): Promise<any> {
+    return await getSheet(doc, INVENTORY_SHEET_NAME, setStage, STAGE_LOADING_INVENTORY_SHEET)
+}
+
+const budgetTitle = (itemName: string): string => itemName + " - Entropia Flow"
+
+async function getBudgetSheet(doc: any, setStage: SetStage, itemName: string): Promise<any> {
+    return await getSheet(doc, budgetTitle(itemName), setStage, STATE_LOADING_BUDGET_SHEET)
+}
+
+async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string, columnCount: number): Promise<any> {
+    const sheet = await doc.addSheet()
+    await sheet.updateProperties({
+        title: budgetTitle(itemName),
+        gridProperties: {
+            rowCount: 1000,
+            columnCount,
+            frozenRowCount: 5
+        }
+    })
     await sheet.loadCells()
     return sheet
 }
@@ -37,7 +69,10 @@ function getLastRow(sheet: any): number {
 
 export {
     getSpreadsheet,
-    getSheet,
+    getMeLogSheet,
+    getInventorySheet,
+    getBudgetSheet,
+    createBudgetSheet,
     saveUpdatedCells,
     getLastRow,
 }

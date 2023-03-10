@@ -1,5 +1,5 @@
-import { SetStage } from "../../../application/state/actives";
-import { getLastRow, getSheet, saveUpdatedCells } from "./sheetsUtils";
+import { SetStage } from "./sheetsStages";
+import { getInventorySheet, getLastRow, saveUpdatedCells } from "./sheetsUtils";
 
 const DATE_COLUMN = 0
 const PEDS_COLUMN = 1
@@ -7,7 +7,7 @@ const PROFIT_DAY_COLUMN = 2
 const PROFIT_MONTH_COLUMN = 3
 
 async function newDayInventory(doc: any, setStage: SetStage) {
-    const sheet = await getSheet(doc, 'Inventory', setStage)
+    const sheet = await getInventorySheet(doc, setStage)
     const row = getLastRow(sheet) + 1
     const row1 = row + 1
 

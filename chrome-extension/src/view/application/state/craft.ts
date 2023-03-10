@@ -4,15 +4,30 @@ interface CraftState {
 
 interface BlueprintData {
     name: string
-    loadingInfo: boolean
-    loadingPage: boolean
-    url: string
     itemName: string
+    info: BlueprintInfo
+    budget: BlueprintBudget
+    inventory?: BlueprintInventory
+}
+
+interface BlueprintInfo {
+    loading: boolean
+    url: string
     itemValue: string
-    itemAvailable: number
     materials: BlueprintMaterial[]
-    error: string
+    errorText?: string
+}
+
+interface BlueprintBudget {
+    loading: boolean
+    stage: number
+    errorText?: string
+}
+
+interface BlueprintInventory {
+    itemAvailable: number
     clickCost: string
+    residueNeeded: string
 }
 
 interface BlueprintMaterial {
@@ -20,8 +35,8 @@ interface BlueprintMaterial {
     quantity: number
     type: string,
     value: string,
-    available: number
-    clicks: number
+    available?: number // inventory
+    clicks?: number // inventory
 }
 
 interface BluprintWebData {

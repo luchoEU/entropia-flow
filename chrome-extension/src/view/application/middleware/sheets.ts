@@ -63,13 +63,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     for (const a of r.fn(r.row))
                         dispatch(a)
                 }
-                dispatch(endLoading)
             } catch (e) {
                 dispatch(setLoadingError(e.message))
                 trace('exception changing sheet:')
                 traceData(e)
+            } finally {
+                dispatch(endLoading)
+                dispatch(donePendingChanges)
             }
-            dispatch(donePendingChanges)
             break
         }
     }
