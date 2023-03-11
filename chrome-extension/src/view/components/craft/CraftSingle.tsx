@@ -37,6 +37,11 @@ function CraftSingle(p: {
                                         <th>Type</th>
                                         <th>Available</th>
                                         <th>Clicks</th>
+                                        { d.budget.clickMUCost === undefined ? <></> :
+                                        <>
+                                            <th>Markup</th>
+                                            <th>Budget</th>
+                                        </>}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -48,12 +53,21 @@ function CraftSingle(p: {
                                                 <td>{m.name}</td>
                                                 <td>{m.type}</td>
                                                 <td align="right">{m.available}</td>
-                                                <td align="right">{m.clicks}</td>                                                
+                                                <td align="right">{m.clicks}</td>
+                                                { d.budget.clickMUCost === undefined ? <></> :
+                                                <>
+                                                    <td align="right">{(m.markup * 100).toFixed(2)}%</td>
+                                                    <td align="right">{m.budgetCount}</td>
+                                                </>}
                                             </tr>)
                                     }
                                 </tbody>
                             </table>
-                            <p>Click TT Cost: {d.inventory.clickCost} PED</p>
+                            <p>Clicks available: {d.inventory.clicksAvailable}</p>
+                            <p>Click TT Cost: {d.inventory.clickTTCost.toFixed(2)} PED</p>
+                            { d.budget.clickMUCost === undefined ? <></> :
+                            <p>Click MU Cost: {d.budget.clickMUCost.toFixed(2)} PED</p> }
+                            
                             <p>Residue Needed: {d.inventory.residueNeeded} PED</p>
                         </div>
                 }

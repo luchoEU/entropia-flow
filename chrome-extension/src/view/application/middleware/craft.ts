@@ -1,6 +1,7 @@
 import { ItemData } from "../../../common/state"
 import { trace, traceData } from "../../../common/trace"
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, endBudgetPageLoading, REMOVE_BLUEPRINT, setBlueprintQuantity, setBudgetPageLoadingError, setBudgetPageStage, setCraftState, SET_BLUEPRINT_QUANTITY, START_BUDGET_PAGE_LOADING } from "../actions/craft"
+import { BudgetSheet, BudgetSheetInfo } from "../../services/api/sheets/sheetsBudget"
+import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, endBudgetPageLoading, REMOVE_BLUEPRINT, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftState, SET_BLUEPRINT_QUANTITY, START_BUDGET_PAGE_LOADING } from "../actions/craft"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { PAGE_LOADED } from "../actions/ui"
 import { joinDuplicates, joinList } from "../helpers/inventory"
@@ -40,6 +41,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     Value: "0.01"
                 })
             }
+            if (data.Name.endsWith("(L)")) {
+                data.Material.push({
+                    Name: "Blueprint",
+                    Quantity: 1,
+                    Type: "Blueprint",
+                    Value: "0.01"
+                })
+            }
             dispatch(addBlueprintData(data))
     }
     switch (action.type) {
@@ -56,9 +65,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
                 const bpInfo = state.blueprints.find(bp => bp.name == action.payload.name)
+
                 const setStage = (stage: number) => dispatch(setBudgetPageStage(action.payload.name, stage))
-                const sheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage)
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage)
                 await sheet.save()
+
+                const info: BudgetSheetInfo = await sheet.getInfo()
+                dispatch(setBudgetPageInfo(action.payload.name, info))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
                 trace('exception creating budget sheet:')

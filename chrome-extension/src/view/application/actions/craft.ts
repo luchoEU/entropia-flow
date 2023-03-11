@@ -1,3 +1,4 @@
+import { BudgetSheetInfo } from "../../services/api/sheets/sheetsBudget"
 import { BluprintWebData, CraftState } from "../state/craft"
 
 const SET_CRAFT_STATE = "[craft] set state"
@@ -7,6 +8,7 @@ const ADD_BLUEPRINT_DATA = "[craft] add blueprint data"
 const SET_BLUEPRINT_QUANTITY = "[craft] set blueprint quantity"
 const START_BUDGET_PAGE_LOADING = "[craft] start budget page loading"
 const SET_BUDGET_PAGE_LOADING_STAGE = "[craft] set budget page stage"
+const SET_BUDGET_PAGE_INFO = "[craft] set budget page info"
 const END_BUDGET_PAGE_LOADING = "[craft] end budget page loading"
 const ERROR_BUDGET_PAGE_LOADING = "[craft] error budget page loading"
 
@@ -60,6 +62,14 @@ const setBudgetPageStage = (name: string, stage: number) => ({
     }
 })
 
+const setBudgetPageInfo = (name: string, info: BudgetSheetInfo) => ({
+    type: SET_BUDGET_PAGE_INFO,
+    payload: {
+        name,
+        info
+    }
+})
+
 const endBudgetPageLoading = (name: string) => ({
     type: END_BUDGET_PAGE_LOADING,
     payload: {
@@ -83,6 +93,7 @@ export {
     SET_BLUEPRINT_QUANTITY,
     START_BUDGET_PAGE_LOADING,
     SET_BUDGET_PAGE_LOADING_STAGE,
+    SET_BUDGET_PAGE_INFO,
     END_BUDGET_PAGE_LOADING,
     ERROR_BUDGET_PAGE_LOADING,
     setCraftState,
@@ -92,6 +103,7 @@ export {
     setBlueprintQuantity,
     startBudgetPageLoading,
     setBudgetPageStage,
+    setBudgetPageInfo,
     endBudgetPageLoading,
     setBudgetPageLoadingError,
 }

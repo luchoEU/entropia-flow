@@ -13,7 +13,7 @@ interface BlueprintData {
 interface BlueprintInfo {
     loading: boolean
     url: string
-    itemValue: string
+    itemValue: number
     materials: BlueprintMaterial[]
     errorText?: string
 }
@@ -21,22 +21,26 @@ interface BlueprintInfo {
 interface BlueprintBudget {
     loading: boolean
     stage: number
+    clickMUCost?: number
     errorText?: string
 }
 
 interface BlueprintInventory {
     itemAvailable: number
-    clickCost: string
-    residueNeeded: string
+    clicksAvailable: number
+    clickTTCost: number
+    residueNeeded: number
 }
 
 interface BlueprintMaterial {
     name: string
     quantity: number
     type: string,
-    value: string,
+    value: number,
     available?: number // inventory
     clicks?: number // inventory
+    markup?: number // budget
+    budgetCount?: number // budget
 }
 
 interface BluprintWebData {
