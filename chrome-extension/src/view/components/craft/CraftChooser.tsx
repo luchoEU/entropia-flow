@@ -20,7 +20,7 @@ function CraftChooser() {
     return (
         <>
             <section>
-                <h1>Blueprint</h1>
+                <h1>Owned Blueprints</h1>
                 <select id="blueprintList">
                     {
                         unique.map((n: string) =>

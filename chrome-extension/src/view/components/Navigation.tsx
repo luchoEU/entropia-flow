@@ -31,7 +31,7 @@ const Navigation = () => {
                 <strong>Entropia Flow</strong>
             </div>
             <Tab id={MONITOR_PAGE} title="Monitor" />
-            <Tab id={TRADE_PAGE} title="Trades" />
+            <Tab id={TRADE_PAGE} title="Trading" />
             {SHOW_AUCTION_PAGE ?
                 <Tab id={AUCTION_PAGE} title="Auction" /> : ''
             }
