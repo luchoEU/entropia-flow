@@ -67,6 +67,20 @@ function getLastRow(sheet: any): number {
     return row
 }
 
+function getDaysSinceLastEntry(sheet: any, row: number, column: number): number {
+    let n = 0
+    const d = new Date()
+    const p = sheet.getCell(row, column).formattedValue
+    while (n < 1000) {
+        const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
+        if (p === s)
+            break
+        n = n + 1
+        d.setDate(d.getDate() - 1)
+    }
+    return n
+}
+
 export {
     getSpreadsheet,
     getMeLogSheet,
@@ -75,4 +89,5 @@ export {
     createBudgetSheet,
     saveUpdatedCells,
     getLastRow,
+    getDaysSinceLastEntry,
 }

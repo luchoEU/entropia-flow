@@ -1,14 +1,12 @@
 import { BlueprintData } from "../../../application/state/craft"
 import { SetStage } from "./sheetsStages"
-import { createBudgetSheet, getBudgetSheet, getInventorySheet, saveUpdatedCells } from "./sheetsUtils"
+import { createBudgetSheet, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, saveUpdatedCells } from "./sheetsUtils"
 
 const DATE_COLUMN = 0
 const BUDGET_COLUMN = 1
 const REASON_COLUMN = 2
-const BLUEPRINT_COLUMN = 3
-const ITEM_COLUMN = 4
-const PED_COLUMN = 5
-const MATERIAL_COLUMN = 6
+const PED_COLUMN = 3
+const MATERIAL_COLUMN = 4
 
 const TITLE_ROW = 0
 const UNIT_VALUE_ROW = 1
@@ -17,6 +15,8 @@ const CURRENT_ROW = 3
 const TOTAL_ROW = 4
 
 interface BudgetSheetInfo {
+    total: number
+    peds: number
     materials: { [name: string] : {
         unitValue: number
         markup: number
@@ -65,8 +65,6 @@ class BudgetSheet {
         this.sheet.getCell(MARKUP_ROW, REASON_COLUMN).value = "Markup"
         this.sheet.getCell(CURRENT_ROW, REASON_COLUMN).value = "Current"
         this.sheet.getCell(TOTAL_ROW, REASON_COLUMN).value = "Total"
-        this.addTitle(BLUEPRINT_COLUMN, "Blueprint", 0.01)
-        this.addTitle(ITEM_COLUMN, "Item", Number(this.data.info.itemValue))
         this.addTitle(PED_COLUMN, "PED", 1)
 
         let column = MATERIAL_COLUMN
@@ -82,9 +80,13 @@ class BudgetSheet {
     }
 
     public async getInfo(): Promise<BudgetSheetInfo> {
-        const info: BudgetSheetInfo = { materials: {} }
         const sheet = this.sheet
-        for (let column = BLUEPRINT_COLUMN; column < sheet.columnCount; column++) {
+        const info: BudgetSheetInfo = {
+            total: Number(sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value),
+            peds: Number(sheet.getCell(TOTAL_ROW, PED_COLUMN).value),
+            materials: {}
+        }
+        for (let column = MATERIAL_COLUMN; column < sheet.columnCount; column++) {
             const get = (row: number) => sheet.getCell(row, column).value
             info.materials[get(TITLE_ROW)] = {
                 unitValue: Number(get(UNIT_VALUE_ROW)),
@@ -94,6 +96,27 @@ class BudgetSheet {
             }
         }
         return info
+    }
+
+    public async addCraftSession(): Promise<void> {
+        const row = Math.max(5, getLastRow(this.sheet) + 1)
+        if (row > 5) {
+            const daysSinceLastEntry = getDaysSinceLastEntry(this.sheet, row - 1, DATE_COLUMN)
+            this.sheet.getCell(row, DATE_COLUMN).formula = `=A${row}+${daysSinceLastEntry}`
+            this.sheet.getCell(row - 1, BUDGET_COLUMN).value = this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value
+        } else {
+            const d = new Date()
+            const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
+            this.sheet.getCell(row, DATE_COLUMN).value = s
+        }
+
+        this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
+        for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
+            const name = this.sheet.getCell(TITLE_ROW, column).value
+            const materialAfter = this.data.info.materials.find(m => m.name === name)
+            const materialBefore = this.data.session.startMaterials.find(m => m.n === name)
+            this.sheet.getCell(row, column).value = materialAfter.quantity - materialBefore.q
+        }
     }
 }
 

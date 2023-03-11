@@ -2,10 +2,11 @@ import React from 'react'
 import { useDispatch } from 'react-redux'
 import { sortBy, setItemExpanded } from '../../application/actions/history'
 import { setAsLast } from '../../application/actions/messages'
-import { ViewItemData } from '../../application/state/history'
+import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 
-const InventoryItem = ({ item }) => {
+const InventoryItem = (p: { item: ViewInventory }) => {
+    const { item } = p
     const dispatch = useDispatch()
 
     const config = {

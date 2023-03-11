@@ -1,6 +1,6 @@
-import { BudgetSheetInfo } from "../../services/api/sheets/sheetsBudget";
-import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages";
-import { BlueprintData, BlueprintMaterial, BluprintWebData, CraftState } from "../state/craft";
+import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget';
+import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
+import { BlueprintData, BlueprintMaterial, BlueprintSession, BluprintWebData, CraftState, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 
 const initialState: CraftState = {
     blueprints: []
@@ -13,16 +13,18 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
         ...state.blueprints,
         {
             name,
-            itemName: name.split("Blueprint")[0].trim(),
+            itemName: name.split('Blueprint')[0].trim(),
             info: {
                 loading: true,
                 url: undefined,
-                itemValue: undefined,
                 materials: [],
             },
             budget: {
                 loading: false,
                 stage: STAGE_INITIALIZING
+            },
+            session: {
+                step: STEP_INACTIVE
             }
         }
     ]
@@ -41,7 +43,6 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                     info: {
                         loading: false,
                         url: data.Url,
-                        itemValue: Number(data.ItemValue),
                         materials: data.Material.map(m => ({
                             name: m.Name,
                             quantity: m.Quantity,
@@ -75,21 +76,22 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
             let clickTTCost = 0
             const materials: BlueprintMaterial[] = []
             for (const m of bp.info.materials) {
-                const name = m.name === "Blueprint" ? bp.name : m.name
+                const name = m.name === 'Blueprint' ? bp.name : m.name === 'Item' ? bp.itemName : m.name
                 const available = dictionary[name] ?? 0
                 materials.push({
                     ...m,
                     available,
-                    clicks: Math.floor(available / m.quantity)
+                    clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
                 })
                 clickTTCost += m.quantity * m.value
             }
 
-            const residueNeeded = bp.info.itemValue - clickTTCost
-            const residueMaterial = materials.find(m => m.type === "Residue")
+            const item = materials.find(m => m.name === 'Item')
+            const residueNeeded = item.value - clickTTCost
+            const residueMaterial = materials.find(m => m.type === 'Residue')
             residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
 
-            const clicksAvailable = Math.min(...materials.map(m => m.clicks))
+            const clicksAvailable = Math.min(...materials.map(m => m.clicks ?? Infinity))
 
             blueprints.push({
                 ...bp,
@@ -98,7 +100,6 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
                     materials,
                 },
                 inventory: {
-                    itemAvailable: dictionary[bp.itemName] ?? 0,
                     clicksAvailable,
                     clickTTCost,
                     residueNeeded,
@@ -110,7 +111,7 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
     return { blueprints }
 }
 
-const changeBudget = (state: CraftState, name: string, data: object) => ({
+const changeBudget = (state: CraftState, name: string, data: object): CraftState => ({
     blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp)
 })
 
@@ -148,6 +149,8 @@ const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetInfo): 
             budget: {
                 ...bp.budget,
                 clickMUCost,
+                total: info.total,
+                peds: info.peds
             }
         })
     }
@@ -161,6 +164,37 @@ const endBudgetLoading = (state: CraftState, name: string): CraftState =>
 const errorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
     changeBudget(state, name, { error: text } )
 
+const changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => ({
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp)
+})
+
+const startCraftSession = (state: CraftState, name: string): CraftState => ({
+    ...changeSession(state, name, () => ({ step: STEP_REFRESH_TO_START })),
+    activeSession: state.blueprints.find(bp => bp.name === name)
+})
+
+const errorCraftSession = (state: CraftState, name: string, errorText: string): CraftState => ({
+    ...changeSession(state, name, () => ({ step: STEP_ERROR, errorText })),
+    activeSession: undefined
+})
+
+const readyCraftSession = (state: CraftState, name: string): CraftState =>
+    changeSession(state, name, (bp) => ({ step: STEP_READY, startMaterials: bp.info.materials.map(m => ({ n: m.name, q: m.quantity })) }))
+
+const endCraftSession = (state: CraftState, name: string): CraftState =>
+    changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_REFRESH_TO_END }))
+
+const saveCraftSession = (state: CraftState, name: string): CraftState =>
+    changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_SAVING, stage: STAGE_INITIALIZING }))
+
+const setCraftSaveStage = (state: CraftState, name: string, stage: number): CraftState =>
+    changeSession(state, name, (bp) => ({ ...bp.session, stage }))
+
+const doneCraftSession = (state: CraftState, name: string): CraftState => ({
+    ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
+    activeSession: undefined
+})
+
 export {
     initialState,
     setState,
@@ -173,4 +207,11 @@ export {
     setBudgetInfo,
     endBudgetLoading,
     errorBudgetLoading,
+    startCraftSession,
+    endCraftSession,
+    errorCraftSession,
+    readyCraftSession,
+    saveCraftSession,
+    setCraftSaveStage,
+    doneCraftSession,
 }

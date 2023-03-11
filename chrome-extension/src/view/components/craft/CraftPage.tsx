@@ -12,7 +12,7 @@ function CraftPage() {
         <>
             <CraftChooser />
             {
-                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} />)
+                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession?.name} />)
             }
         </>
     )

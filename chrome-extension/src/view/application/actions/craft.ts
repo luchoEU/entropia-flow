@@ -11,6 +11,13 @@ const SET_BUDGET_PAGE_LOADING_STAGE = "[craft] set budget page stage"
 const SET_BUDGET_PAGE_INFO = "[craft] set budget page info"
 const END_BUDGET_PAGE_LOADING = "[craft] end budget page loading"
 const ERROR_BUDGET_PAGE_LOADING = "[craft] error budget page loading"
+const START_CRAFT_SESSION = "[craft] start session"
+const END_CRAFT_SESSION = "[craft] end session"
+const ERROR_CRAFT_SESSION = "[craft] error session"
+const READY_CRAFT_SESSION = "[craft] ready session"
+const SAVE_CRAFT_SESSION = "[craft] save session"
+const SET_CRAFT_SAVE_STAGE = "[craft] set save stage"
+const DONE_CRAFT_SESSION = "[craft] done session"
 
 const setCraftState = (state: CraftState) => ({
     type: SET_CRAFT_STATE,
@@ -85,6 +92,57 @@ const setBudgetPageLoadingError = (name: string, text: string) => ({
     }
 })
 
+const startCraftingSession = (name: string) => ({
+    type: START_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
+const endCraftingSession = (name: string) => ({
+    type: END_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
+const errorCraftingSession = (name: string, errorText: string) => ({
+    type: ERROR_CRAFT_SESSION,
+    payload: {
+        name,
+        errorText
+    }
+})
+
+const readyCraftingSession = (name: string) => ({
+    type: READY_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
+const saveCraftingSession = (name: string) => ({
+    type: SAVE_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
+const setCraftingSessionStage = (name: string, stage: number) => ({
+    type: SET_CRAFT_SAVE_STAGE,
+    payload: {
+        name,
+        stage
+    }
+})
+
+const doneCraftingSession = (name: string) => ({
+    type: DONE_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
@@ -96,6 +154,13 @@ export {
     SET_BUDGET_PAGE_INFO,
     END_BUDGET_PAGE_LOADING,
     ERROR_BUDGET_PAGE_LOADING,
+    START_CRAFT_SESSION,
+    END_CRAFT_SESSION,
+    ERROR_CRAFT_SESSION,
+    READY_CRAFT_SESSION,
+    SAVE_CRAFT_SESSION,
+    SET_CRAFT_SAVE_STAGE,
+    DONE_CRAFT_SESSION,
     setCraftState,
     addBlueprint,
     removeBlueprint,
@@ -106,4 +171,11 @@ export {
     setBudgetPageInfo,
     endBudgetPageLoading,
     setBudgetPageLoadingError,
+    startCraftingSession,
+    endCraftingSession,
+    errorCraftingSession,
+    readyCraftingSession,
+    saveCraftingSession,
+    setCraftingSessionStage,
+    doneCraftingSession,
 }

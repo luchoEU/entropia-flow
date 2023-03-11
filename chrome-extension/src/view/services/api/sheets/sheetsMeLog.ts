@@ -1,5 +1,5 @@
 import { SetStage } from "./sheetsStages"
-import { getLastRow, getMeLogSheet, saveUpdatedCells } from "./sheetsUtils"
+import { getDaysSinceLastEntry, getLastRow, getMeLogSheet, saveUpdatedCells } from "./sheetsUtils"
 
 const DATE_COLUMN = 0
 const TYPE_COLUMN = 1
@@ -39,25 +39,11 @@ class MELogSheet {
     public async load(doc: any) {
         this.sheet = await getMeLogSheet(doc, this.setStage)
         this.row = getLastRow(this.sheet) + 1
-        this.daysSinceLastEntry = this._getDaysSinceLastEntry()
+        this.daysSinceLastEntry = getDaysSinceLastEntry(this.sheet, this.row - 1, DATE_COLUMN)
     }
 
     public async save(): Promise<void> {
         await saveUpdatedCells(this.sheet, this.setStage)
-    }
-
-    private _getDaysSinceLastEntry(): number {
-        let n = 0
-        const d = new Date()
-        const p = this.sheet.getCell(this.row - 1, DATE_COLUMN).formattedValue
-        while (n < 1000) {
-            const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
-            if (p === s)
-                break
-            n = n + 1
-            d.setDate(d.getDate() - 1)
-        }
-        return n
     }
 
     private _fillRow(type: string, pedFormula: string): number {
