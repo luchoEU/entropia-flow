@@ -7,6 +7,7 @@ const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
 const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
 const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
+const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
@@ -58,6 +59,13 @@ const setVisibleInventoryExpanded = (expanded: boolean) => ({
 
 const setHiddenInventoryExpanded = (expanded: boolean) => ({
     type: SET_HIDDEN_EXPANDED,
+    payload: {
+        expanded
+    }
+})
+
+const setOwnedBlueprintsExpanded = (expanded: boolean) => ({
+    type: SET_BLUEPRINTS_EXPANDED,
     payload: {
         expanded
     }
@@ -158,6 +166,7 @@ export {
     SET_AVAILABLE_EXPANDED,
     SET_VISIBLE_EXPANDED,
     SET_HIDDEN_EXPANDED,
+    SET_BLUEPRINTS_EXPANDED,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
@@ -177,6 +186,7 @@ export {
     setAvailableInventoryExpanded,
     setVisibleInventoryExpanded,
     setHiddenInventoryExpanded,
+    setOwnedBlueprintsExpanded,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,

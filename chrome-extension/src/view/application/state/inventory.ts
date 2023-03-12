@@ -30,7 +30,7 @@ interface ItemHidden {
 }
 
 interface InventoryState {
-    blueprints: Array<ItemData>,
+    blueprints: InventoryList<ItemData>,
     auction: InventoryList<ItemData>,
     visible: InventoryList<ItemData>,
     hidden: InventoryList<ItemHidden>,

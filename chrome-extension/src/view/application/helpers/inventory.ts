@@ -8,48 +8,24 @@ const emptyCriteria: HideCriteria = {
     value: -0.01
 }
 
-const initialState: InventoryState = {
-    blueprints: [],
-    auction: {
-        expanded: true,
-        sortType: SORT_NAME_ASCENDING,
-        items: [],
-        stats: {
-            count: 0,
-            ped: "0.00"
-        }
-    },
-    visible: {
-        expanded: true,
-        sortType: SORT_VALUE_DESCENDING,
-        items: [],
-        stats: {
-            count: 0,
-            ped: "0.00"
-        }
-    },
-    hidden: {
-        expanded: false,
-        sortType: SORT_NAME_ASCENDING,
-        items: [],
-        stats: {
-            count: 0,
-            ped: "0.00"
-        }
-    },
-    hiddenCriteria: emptyCriteria,
-    available: {
-        expanded: true,
-        sortType: SORT_NAME_ASCENDING,
-        items: [],
-        stats: {
-            count: 0,
-            ped: "0.00"
-        }
-    },
-    availableCriteria: {
-        name: []
+const initialList = (expanded: boolean, sortType: number) => ({
+    expanded,
+    sortType,
+    items: [],
+    stats: {
+        count: 0,
+        ped: "0.00"
     }
+})
+
+const initialState: InventoryState = {
+    blueprints: initialList(true, SORT_NAME_ASCENDING),
+    auction: initialList(true, SORT_NAME_ASCENDING),
+    visible: initialList(true, SORT_VALUE_DESCENDING),
+    hidden: initialList(false, SORT_NAME_ASCENDING),
+    hiddenCriteria: emptyCriteria,
+    available: initialList(true, SORT_NAME_ASCENDING),
+    availableCriteria: { name: [] }
 }
 
 function sortAndStats<D>(select: (d: D) => ItemData, list: InventoryList<D>): InventoryList<D> {
@@ -109,7 +85,10 @@ const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemDa
 
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,
-    blueprints: getBlueprints(list),
+    blueprints: sortAndStats(x => x, {
+        ...state.blueprints,
+        items: getBlueprints(list)
+    }),
     auction: sortAndStats(x => x, {
         ...state.auction,
         items: getAuction(list)
@@ -165,6 +144,14 @@ const setHiddenExpanded = (state: InventoryState, expanded: boolean): InventoryS
     ...state,
     hidden: {
         ...state.hidden,
+        expanded
+    }
+})
+
+const setBlueprintsExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
+    ...state,
+    blueprints: {
+        ...state.blueprints,
         expanded
     }
 })
@@ -262,6 +249,7 @@ export {
     setAvailableExpanded,
     setVisibleExpanded,
     setHiddenExpanded,
+    setBlueprintsExpanded,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
