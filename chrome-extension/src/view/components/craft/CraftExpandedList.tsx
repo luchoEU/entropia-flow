@@ -60,9 +60,9 @@ function CraftSingle(p: {
                             <p>{d.info.errorText}</p> :
                             <div>                                
                                 <a href={d.info.url} target='_blank'>entropiawiki</a>
-                                <p>{d.budget.loading ?
-                                    <>Loading Budget Page: <img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
-                                    <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>Load Budget Page</button>
+                                <p>Budget Page: {d.budget.loading ?
+                                    <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
+                                    <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
                                 }</p>
                                 <p>Crafting Session: {
                                     p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
@@ -95,7 +95,7 @@ function CraftSingle(p: {
                                         {
                                             d.info.materials.map((m: BlueprintMaterial) =>                                
                                                 <tr key={m.name}>
-                                                    <td align='right'>{m.quantity}</td>
+                                                    <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
                                                     <td align='right'>{addZeroes(m.value)}</td>
                                                     <td>{m.name}</td>
                                                     <td>{m.type}</td>

@@ -6,6 +6,7 @@ const STAGE_LOADING_ME_LOG_SHEET = 5
 const STAGE_LOADING_INVENTORY_SHEET = 6
 const STAGE_SAVING = 7
 const STAGE_ERROR = 8
+const STAGE_BUDGET_HAS_SHEET = 9
 
 const StageText = [
     'Unknown',
@@ -16,6 +17,8 @@ const StageText = [
     'Loading ME Log sheet', // STAGE_LOADING_ME_LOG_SHEET
     'Loading Inventory sheet', // STAGE_LOADING_INVENTORY_SHEET
     'Saving', // STAGE_SAVING
+    'Error', // STAGE_ERROR
+    'Checking if Budget exists', // STATE_BUDGET_HAS_SHEET
 ]
 
 type SetStage = (stage: number) => void
@@ -29,6 +32,7 @@ export {
     STAGE_LOADING_INVENTORY_SHEET,
     STAGE_SAVING,
     STAGE_ERROR,
+    STAGE_BUDGET_HAS_SHEET,
     StageText,
     SetStage,
 }

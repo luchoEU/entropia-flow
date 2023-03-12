@@ -48,49 +48,49 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
     }
     if (action.type === ADD_BLUEPRINT) {
-            let name = action.payload.name.replaceAll(' ','%20')
-            let url = `https://apps5.genexus.com/entropia-flow-helper/rest/BlueprintInfo?name=${name}`
-            let response = await fetch(url)
-            let data: BluprintWebData = await response.json()
-            if (data.StatusCode === 0) {
-                if (data.Name.endsWith('(L)')) {
-                    data.Material.unshift({
-                        Name: 'Blueprint',
-                        Quantity: 1,
-                        Type: 'Blueprint',
-                        Value: '0.01'
-                    })
-                }
+        let name = action.payload.name.replaceAll(' ','%20')
+        let url = `https://apps5.genexus.com/entropia-flow-helper/rest/BlueprintInfo?name=${name}`
+        let response = await fetch(url)
+        let data: BluprintWebData = await response.json()
+        if (data.StatusCode === 0) {
+            if (data.Name.endsWith('(L)')) {
                 data.Material.unshift({
-                    Name: 'Item',
-                    Quantity: 0,
-                    Type: 'Crafted item',
-                    Value: data.ItemValue
-                })
-                if (data.Material.some(m => m.Type === 'Refined Ore')) {
-                    data.Material.push({
-                        Name: 'Metal Residue',
-                        Quantity: 0,
-                        Type: 'Residue',
-                        Value: '0.01'
-                    })
-                }
-                if (data.Material.some(m => m.Type === 'Refined Enmatter')) {
-                    data.Material.push({
-                        Name: 'Energy Matter Residue',
-                        Quantity: 0,
-                        Type: 'Residue',
-                        Value: '0.01'
-                    })
-                }
-                data.Material.push({
-                    Name: 'Shrapnel',
-                    Quantity: 0,
-                    Type: 'Fragment',
-                    Value: '0.0001'
+                    Name: 'Blueprint',
+                    Quantity: 1,
+                    Type: 'Blueprint',
+                    Value: '0.01'
                 })
             }
-            dispatch(addBlueprintData(data))            
+            data.Material.unshift({
+                Name: 'Item',
+                Quantity: 0,
+                Type: 'Crafted item',
+                Value: data.ItemValue
+            })
+            if (data.Material.some(m => m.Type === 'Refined Ore')) {
+                data.Material.push({
+                    Name: 'Metal Residue',
+                    Quantity: 0,
+                    Type: 'Residue',
+                    Value: '0.01'
+                })
+            }
+            if (data.Material.some(m => m.Type === 'Refined Enmatter')) {
+                data.Material.push({
+                    Name: 'Energy Matter Residue',
+                    Quantity: 0,
+                    Type: 'Residue',
+                    Value: '0.01'
+                })
+            }
+            data.Material.push({
+                Name: 'Shrapnel',
+                Quantity: 0,
+                Type: 'Fragment',
+                Value: '0.0001'
+            })
+        }
+        dispatch(addBlueprintData(data))
     }
     switch (action.type) {
         case ADD_BLUEPRINT:
@@ -101,24 +101,28 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             dispatch(setBlueprintQuantity(dictionary))
             break
         }
+        case ADD_BLUEPRINT_DATA:
         case START_BUDGET_PAGE_LOADING: {
+            const bpName: string = action.type === ADD_BLUEPRINT_DATA ? action.payload.data.Name : action.payload.name
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const bpInfo = state.blueprints.find(bp => bp.name == action.payload.name)
+                const bpInfo = state.blueprints.find(bp => bp.name == bpName)
 
                 const setStage = (stage: number) => dispatch(setBudgetPageStage(action.payload.name, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage)
-                await sheet.save()
 
-                const info: BudgetSheetInfo = await sheet.getInfo()
-                dispatch(setBudgetPageInfo(action.payload.name, info))
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage, action.type === START_BUDGET_PAGE_LOADING)
+                if (sheet !== undefined) {
+                    await sheet.save()
+                    const info: BudgetSheetInfo = await sheet.getInfo()
+                    dispatch(setBudgetPageInfo(bpName, info))
+                }
             } catch (e) {
-                dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
-                trace('exception creating budget sheet:')
+                dispatch(setBudgetPageLoadingError(bpName, e.message))
+                trace('exception loading budget sheet:')
                 traceData(e)
             } finally {
-                dispatch(endBudgetPageLoading(action.payload.name))
+                dispatch(endBudgetPageLoading(bpName))
             }
             break
         }
@@ -131,35 +135,45 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const craft: CraftState = getCraft(getState())
             const history: HistoryState = getHistory(getState())
             if (craft.activeSession !== undefined && history.list.length > 0) {
-                switch (craft.activeSession.session.step) {
-                    case STEP_REFRESH_TO_START: {
-                        if (history.list[0].class === 'error') {
-                            dispatch(errorCraftingSession(craft.activeSession.name, history.list[0].text))
-                        } else if (history.list[0].isLast) {
-                            dispatch(readyCraftingSession(craft.activeSession.name))
-                        } else {
-                            dispatch(setLast)
+                if (history.list[0].class === 'error') {
+                    dispatch(errorCraftingSession(craft.activeSession.name, history.list[0].text))
+                } else {
+                    switch (craft.activeSession.session.step) {
+                        case STEP_REFRESH_TO_START: {
+                            if (history.list[0].isLast) {
+                                dispatch(readyCraftingSession(craft.activeSession.name))
+                            } else {
+                                dispatch(setLast)
+                            }
+                            break
                         }
-                        break
-                    }
-                    case STEP_REFRESH_TO_END: {
-                        if (history.list[0].class !== 'error') {
+                        case STEP_REFRESH_TO_END: {
                             dispatch(saveCraftingSession(craft.activeSession.name))
+                            break
                         }
-                        break
                     }
                 }
             }
             break
         }
         case SAVE_CRAFT_SESSION: {
-            const state: CraftState = getCraft(getState())
-            const settings: SettingsState = getSettings(getState())
-            const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-            const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, state.activeSession, setStage)
-            await sheet.addCraftSession()
-            await sheet.save()
-            dispatch(doneCraftingSession(state.activeSession.name))
+            try {
+                const state: CraftState = getCraft(getState())
+                if (state.activeSession.budget.hasPage) {
+                    const settings: SettingsState = getSettings(getState())
+                    const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, state.activeSession, setStage)
+                    await sheet.addCraftSession()
+                    await sheet.save()
+                    dispatch(doneCraftingSession(state.activeSession.name))
+                }
+            } catch (e) {
+                dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
+                trace('exception saving craft session:')
+                traceData(e)
+            } finally {
+                dispatch(endBudgetPageLoading(action.payload.name))
+            }
             break
         }
     }

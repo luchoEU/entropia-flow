@@ -1,6 +1,6 @@
 import { BlueprintData } from "../../../application/state/craft"
 import { SetStage } from "./sheetsStages"
-import { createBudgetSheet, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, saveUpdatedCells } from "./sheetsUtils"
+import { createBudgetSheet, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, hasBudgetSheet, saveUpdatedCells } from "./sheetsUtils"
 
 const DATE_COLUMN = 0
 const BUDGET_COLUMN = 1
@@ -72,6 +72,10 @@ class BudgetSheet {
             this.addTitle(column++, m.name, Number(m.value))
 
         this.sheet.getCell(4, BUDGET_COLUMN).formula = `=SUM(D5:${this.sheet.getCell(0, column-1).a1Column}5)`
+    }
+
+    public async hasPage(doc: any): Promise<boolean> {
+        return await hasBudgetSheet(doc, this.setStage, this.data.itemName)
     }
 
     public async load(doc: any): Promise<boolean> {

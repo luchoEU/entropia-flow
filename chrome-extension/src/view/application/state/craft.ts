@@ -23,6 +23,7 @@ interface BlueprintInfo {
 interface BlueprintBudget {
     loading: boolean
     stage: number
+    hasPage: boolean
     clickMUCost?: number
     total?: number
     peds?: number

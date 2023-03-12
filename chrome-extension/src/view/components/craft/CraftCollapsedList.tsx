@@ -8,13 +8,32 @@ function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
     const dispatch = useDispatch()
 
-    function clicks(d: BlueprintData): number
-    {
-        const bp = d.info.materials.find(m => m.name === 'Blueprint')
-        return bp?.clicks ?? Infinity
-    }
-
     if (s.blueprints.length > 0) {
+        var clicksMap = undefined
+        var budgetMap = undefined
+        var cashMap = undefined
+
+        s.blueprints.forEach((d: BlueprintData) => {
+            if (d.info.materials.length > 0) {
+                if (clicksMap === undefined )
+                    clicksMap = {}
+                const bp = d.info.materials.find(m => m.name === 'Blueprint')
+                clicksMap[d.name] = bp?.clicks ?? Infinity
+            }
+
+            if (d.budget.total !== undefined) {
+                if (budgetMap === undefined)
+                    budgetMap = {}
+                budgetMap[d.name] = d.budget.total.toFixed(2) + ' PED'
+            }
+
+            if (d.budget.peds !== undefined) {
+                if (cashMap === undefined)
+                    cashMap = {}
+                cashMap[d.name] = d.budget.peds.toFixed(2) + ' PED'
+            }
+        })
+
         return (
             <section>
                 <h1>Active Blueprints</h1>
@@ -23,9 +42,9 @@ function CraftCollapsedList() {
                         <tr>
                             <th></th>
                             <th>Name</th>
-                            <th>Clicks</th>
-                            <th>Budget</th>
-                            <th>Cash</th>
+                            { clicksMap ? <th>Clicks</th> : <></> }
+                            { budgetMap ? <th>Budget</th> : <></> }
+                            { cashMap ? <th>Cash</th> : <></> }
                             <th>Remove</th>
                         </tr>
                     </thead>
@@ -39,15 +58,9 @@ function CraftCollapsedList() {
                                             <img src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, true))} />}
                                     </td>
                                     <td>{d.itemName}</td>
-                                    <td align='center'>{clicks(d)}</td>
-                                    <td align='right'>
-                                        { d.budget.total === undefined ? '' :
-                                            d.budget.total.toFixed(2) + ' PED' }
-                                    </td>
-                                    <td align='right'>
-                                        { d.budget.peds === undefined ? '' :
-                                            d.budget.peds.toFixed(2) + ' PED' }
-                                    </td>
+                                    { clicksMap ? <td align='center'>{clicksMap[d.name]}</td> : <></> }
+                                    { budgetMap ? <td align='right'>{budgetMap[d.name]}</td> : <></> }
+                                    { cashMap ? <td align='right'>{cashMap[d.name]}</td> : <></> }
                                     <td align='center'>
                                         <img src='img/cross.png' onClick={() => dispatch(removeBlueprint(d.name))} />
                                     </td>

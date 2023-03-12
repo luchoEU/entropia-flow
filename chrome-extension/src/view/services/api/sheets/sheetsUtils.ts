@@ -1,6 +1,6 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { SheetAccessInfo } from '../../../application/state/settings';
-import { SetStage, STAGE_LOADING_INVENTORY_SHEET, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING, STATE_LOADING_BUDGET_SHEET } from './sheetsStages';
+import { SetStage, STAGE_LOADING_INVENTORY_SHEET, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING, STAGE_BUDGET_HAS_SHEET, STATE_LOADING_BUDGET_SHEET, STAGE_CREATING_BUDGET_SHEET } from './sheetsStages';
 
 const ME_LOG_SHEET_NAME = 'ME Log'
 const INVENTORY_SHEET_NAME = 'Inventory'
@@ -36,11 +36,17 @@ async function getInventorySheet(doc: any, setStage: SetStage): Promise<any> {
 
 const budgetTitle = (itemName: string): string => itemName + " - Entropia Flow"
 
+async function hasBudgetSheet(doc: any, setStage: SetStage, itemName: string): Promise<any> {
+    setStage(STAGE_BUDGET_HAS_SHEET)
+    return doc.sheetsByTitle[budgetTitle(itemName)] !== undefined
+}
+
 async function getBudgetSheet(doc: any, setStage: SetStage, itemName: string): Promise<any> {
     return await getSheet(doc, budgetTitle(itemName), setStage, STATE_LOADING_BUDGET_SHEET)
 }
 
 async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string, columnCount: number): Promise<any> {
+    setStage(STAGE_CREATING_BUDGET_SHEET)
     const sheet = await doc.addSheet()
     await sheet.updateProperties({
         title: budgetTitle(itemName),
@@ -85,6 +91,7 @@ export {
     getSpreadsheet,
     getMeLogSheet,
     getInventorySheet,
+    hasBudgetSheet,
     getBudgetSheet,
     createBudgetSheet,
     saveUpdatedCells,
