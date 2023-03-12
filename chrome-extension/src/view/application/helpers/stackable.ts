@@ -135,6 +135,7 @@ export {
     stackableOperation,
     stackableSheetsMethod,
     initialState,
+    initialStateIn,
     setState,
     stackableTTValueChanged,
     stackableMarkupChanged,

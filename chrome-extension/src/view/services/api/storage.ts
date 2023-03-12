@@ -20,7 +20,7 @@ import {
     STORAGE_VIEW_SETTINGS
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
-import { ACTIVES_ITEM } from "../../application/state/actives";
+import { ActivesList } from "../../application/state/actives";
 import { CalculatorStateIn } from "../../application/state/calculator";
 import { CraftState } from "../../application/state/craft";
 import { FruitStateIn } from "../../application/state/fruit";
@@ -50,11 +50,11 @@ async function loadCalculator(): Promise<CalculatorStateIn> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_CALCULATOR)
 }
 
-async function saveActives(list: Array<ACTIVES_ITEM>) {
+async function saveActives(list: ActivesList) {
     await SYNC_STORAGE.set(STORAGE_VIEW_ACTIVES, list)
 }
 
-async function loadActives(): Promise<Array<ACTIVES_ITEM>> {
+async function loadActives(): Promise<ActivesList> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_ACTIVES)
 }
 

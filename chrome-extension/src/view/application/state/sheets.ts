@@ -1,14 +1,14 @@
-interface SHEETS_STATE {
-    pending: Array<SHEETS_PENDING>,
+interface SheetsState {
+    pending: Array<SheetsPending>,
     timeoutId: NodeJS.Timeout
 }
 
-interface SHEETS_PENDING {
+interface SheetsPending {
     operation: number,
     changeFunc: (sheet: any) => number,
     doneFunc: (row: number) => Array<any>
 }
 
 export {
-    SHEETS_STATE
+    SheetsState
 }

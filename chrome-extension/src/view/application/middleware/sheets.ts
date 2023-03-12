@@ -11,7 +11,7 @@ import { getSettings } from "../selectors/settings"
 import { getSheets } from "../selectors/sheets"
 import { OperationText } from "../state/actives"
 import { SettingsState } from "../state/settings"
-import { SHEETS_STATE } from "../state/sheets"
+import { SheetsState } from "../state/sheets"
 
 const TIMEOUT_MILLISECONDS = 3000
 
@@ -19,8 +19,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case ADD_PENDING_CHANGE: {
-            const state: SHEETS_STATE = getSheets(getState())
-            if (state.timeoutId !== undefined)
+            const state: SheetsState = getSheets(getState())
+            if (state?.timeoutId !== undefined)
                 clearTimeout(state.timeoutId)
             const timeoutId = setTimeout(
                 () => { dispatch(performChange) },
@@ -46,7 +46,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case PERFORM_CHANGE: {
             try {
-                const state: SHEETS_STATE = getSheets(getState())
+                const state: SheetsState = getSheets(getState())
                 const settings: SettingsState = getSettings(getState())
                 const loadingMessage = state.pending.length === 1 ? OperationText[state.pending[0].operation] : `${state.pending.length} changes`
                 dispatch(startLoading(loadingMessage))

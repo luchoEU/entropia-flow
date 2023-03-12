@@ -1,11 +1,11 @@
-import { SHEETS_STATE } from "../state/sheets"
+import { SheetsState } from "../state/sheets"
 
-const initialState: SHEETS_STATE = {
+const initialState: SheetsState = {
     pending: [],
     timeoutId: undefined
 }
 
-const addPendingChange = (state: SHEETS_STATE, operation: number, changeFunc: (sheet: any) => number, doneFunc: (row: number) => Array<any>): SHEETS_STATE => ({
+const addPendingChange = (state: SheetsState, operation: number, changeFunc: (sheet: any) => number, doneFunc: (row: number) => Array<any>): SheetsState => ({
     ...state,
     pending: [
         ...state.pending,
@@ -17,17 +17,17 @@ const addPendingChange = (state: SHEETS_STATE, operation: number, changeFunc: (s
     ]
 })
 
-const clearPendingChanges = (state: SHEETS_STATE): SHEETS_STATE => ({
+const clearPendingChanges = (state: SheetsState): SheetsState => ({
     ...state,
     pending: []
 })
 
-const setTimeoutId = (state: SHEETS_STATE, timeoutId: number) => ({
+const setTimeoutId = (state: SheetsState, timeoutId: number) => ({
     ...state,
     timeoutId
 })
 
-const clearPendingChangeAndTimeoutId = (state: SHEETS_STATE) => initialState
+const clearPendingChangeAndTimeoutId = (state: SheetsState) => initialState
 
 export {
     initialState,

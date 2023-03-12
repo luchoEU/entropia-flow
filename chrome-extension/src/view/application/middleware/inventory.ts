@@ -9,7 +9,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state = await api.storage.loadInventoryState()
+            const state: InventoryState = await api.storage.loadInventoryState()
             if (state)
                 dispatch(loadInventoryState({ ...initialState, ...state }))
             break

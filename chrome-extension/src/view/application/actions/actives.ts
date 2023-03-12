@@ -1,4 +1,4 @@
-import { ACTIVES_ITEM } from "../state/actives"
+import { ActivesItem } from "../state/actives"
 
 const START_LOADING = '[act] start loading'
 const SET_LOADING_STAGE = '[act] set loading stage'
@@ -47,7 +47,7 @@ const addSale = (row: number, operation: number, type: string, quantity: string,
     }
 })
 
-const setActives = (list: Array<ACTIVES_ITEM>) => ({
+const setActives = (list: Array<ActivesItem>) => ({
     type: SET_ACTIVES,
     payload: {
         list

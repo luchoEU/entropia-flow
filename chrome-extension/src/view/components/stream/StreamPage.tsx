@@ -37,13 +37,12 @@ function StreamPage() {
         <>
             <section>
                 <h1>Enable it</h1>
-                <p><strong>Term of use: </strong>if you stream it you must include the logo and the tool name.</p>
                 <label className='checkbox'>
                     <input type="checkbox"
                         defaultChecked={enabled}
                         onChange={() => dispatch(setStreamEnabled(!enabled))}
                     />
-                    Show Stream View in Inventory page
+                    Show Stream View in every page
                 </label>
             </section>
             { enabled ? 

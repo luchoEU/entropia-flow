@@ -9,9 +9,10 @@ import InventoryPage from './inventory/InventoryPage'
 import MonitorPage from './monitor/MonitorPage'
 import SettingsPage from './settings/SettingsPage'
 import StreamPage from './stream/StreamPage'
+import StreamView from './stream/StreamView'
 import TradePage from './trade/TradePage'
 
-function Content() {
+function ContentPage() {
     const menu = useSelector(getSelectedMenu)
     switch (menu) {
         case MONITOR_PAGE:
@@ -33,6 +34,15 @@ function Content() {
         default:
             return <></>
     }
+}
+
+function Content() {
+    const menu = useSelector(getSelectedMenu)
+    // hide in stream page because ashfall effect doesn't work in more than one element
+    return <>
+        {menu === STREAM_PAGE ? <></> : <StreamView />}
+        <ContentPage />
+    </>
 }
 
 export default Content

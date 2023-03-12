@@ -2,12 +2,12 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { endLoading } from '../../application/actions/actives'
 import { getLoading } from '../../application/selectors/actives'
-import { ACTIVES_LOADING_STATE } from '../../application/state/actives'
+import { ActivesLoadingState } from '../../application/state/actives'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function AuctionLoading() {
     const dispatch = useDispatch()
-    const loading: ACTIVES_LOADING_STATE = useSelector(getLoading)
+    const loading: ActivesLoadingState = useSelector(getLoading)
 
     if (loading !== undefined) {
         if (loading.errorText !== undefined) {

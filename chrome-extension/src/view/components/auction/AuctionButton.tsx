@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getLoading } from '../../application/selectors/actives'
-import { ACTIVES_LOADING_STATE } from '../../application/state/actives'
+import { ActivesLoadingState } from '../../application/state/actives'
 
 function AuctionButton(p: {
     title: string,
@@ -9,7 +9,7 @@ function AuctionButton(p: {
     action: { type: string }
 }) {
     const dispatch = useDispatch()
-    const loading: ACTIVES_LOADING_STATE = useSelector(getLoading)
+    const loading: ActivesLoadingState = useSelector(getLoading)
 
     if (p.pending) {
         return (

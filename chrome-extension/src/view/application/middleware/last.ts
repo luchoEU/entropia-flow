@@ -7,13 +7,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            let list = await api.storage.loadBlacklist()
+            let list: Array<string> = await api.storage.loadBlacklist()
             if (list)
                 dispatch(setBlacklist(list))
-            let aList = await api.storage.loadPermanentBlacklist()
+            let aList: Array<string> = await api.storage.loadPermanentBlacklist()
             if (aList)
                 dispatch(setPermanentBlacklist(aList))
-            let peds = await api.storage.loadPeds()
+            let peds: Array<ViewPedData> = await api.storage.loadPeds()
             if (peds)
                 dispatch(setPeds(peds))
         }

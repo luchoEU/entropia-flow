@@ -1,6 +1,5 @@
 import { AboutState, DONATIONS, FEEDBACK, SOURCECODE, TUTORIALS } from "../state/about"
 
-
 const initialState: AboutState = {
     expanded: [FEEDBACK, DONATIONS, TUTORIALS, SOURCECODE]
 }

@@ -1,10 +1,10 @@
-interface ACTIVES_LOADING_STATE {
+interface ActivesLoadingState {
     loadingText: string,
     stage: number,
     errorText?: string
 }
 
-interface ACTIVES_ITEM {
+interface ActivesItem {
     row: number,
     date: number,
     operation: number,
@@ -16,9 +16,11 @@ interface ACTIVES_ITEM {
     pending: boolean,
 }
 
-interface ACTIVES_STATE {
-    list?: Array<ACTIVES_ITEM>,
-    loading?: ACTIVES_LOADING_STATE,
+type ActivesList = Array<ActivesItem>
+
+interface ActivesState {
+    list?: ActivesList,
+    loading?: ActivesLoadingState,
 }
 
 const OPERATION_NONE = 0 // needed for orders in active list to hide the sell button
@@ -72,9 +74,10 @@ const OperationText = [
 ]
 
 export {
-    ACTIVES_LOADING_STATE,
-    ACTIVES_ITEM,
-    ACTIVES_STATE,
+    ActivesLoadingState,
+    ActivesItem,
+    ActivesList,
+    ActivesState,
     OPERATION_NONE,
     OPERATION_ME_SELL,
     OPERATION_LME_SELL,

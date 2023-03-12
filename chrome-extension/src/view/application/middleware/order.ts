@@ -1,6 +1,7 @@
 import { addOrderToList, addOrderToSheetDone, ADD_ORDER_TO_SHEET, ORDER_MARKUP_CHANGED, ORDER_VALUE_CHANGED, setOrderState } from "../actions/order"
 import { addPendingChange } from "../actions/sheets"
 import { PAGE_LOADED } from "../actions/ui"
+import { initialState } from "../helpers/order"
 import { getOrder } from "../selectors/order"
 import { OPERATION_ADD_ORDER } from "../state/actives"
 import { OrderState } from "../state/order"
@@ -9,14 +10,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state = await api.storage.loadOrder()
+            const state: OrderState = await api.storage.loadOrder()
             if (state)
-                dispatch(setOrderState(state))
+                dispatch(setOrderState({ ...initialState, ...state }))
             break
         }
         case ORDER_MARKUP_CHANGED:
         case ORDER_VALUE_CHANGED: {
-            const state = getOrder(getState())
+            const state: OrderState = getOrder(getState())
             await api.storage.saveOrder(state)
             break
         }

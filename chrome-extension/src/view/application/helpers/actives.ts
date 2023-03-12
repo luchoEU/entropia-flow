@@ -1,11 +1,11 @@
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { ACTIVES_ITEM, ACTIVES_STATE } from "../state/actives"
+import { ActivesItem, ActivesState } from "../state/actives"
 
-const initialState: ACTIVES_STATE = {
+const initialState: ActivesState = {
     list: []
 }
 
-const startLoading = (state: ACTIVES_STATE, loadingText: string): ACTIVES_STATE => ({
+const startLoading = (state: ActivesState, loadingText: string): ActivesState => ({
     ...state,
     loading: {
         loadingText,
@@ -13,7 +13,7 @@ const startLoading = (state: ACTIVES_STATE, loadingText: string): ACTIVES_STATE 
     }
 })
 
-const setLoadingStage = (state: ACTIVES_STATE, stage: number): ACTIVES_STATE => ({
+const setLoadingStage = (state: ActivesState, stage: number): ActivesState => ({
     ...state,
     loading: {
         ...state.loading,
@@ -21,12 +21,12 @@ const setLoadingStage = (state: ACTIVES_STATE, stage: number): ACTIVES_STATE => 
     }
 })
 
-const endLoading = (state: ACTIVES_STATE): ACTIVES_STATE => ({
+const endLoading = (state: ActivesState): ActivesState => ({
     ...state,
     loading: undefined
 })
 
-const setLoadingError = (state: ACTIVES_STATE, text: string): ACTIVES_STATE => ({
+const setLoadingError = (state: ActivesState, text: string): ActivesState => ({
     ...state,
     loading: {
         ...state.loading,
@@ -34,7 +34,7 @@ const setLoadingError = (state: ACTIVES_STATE, text: string): ACTIVES_STATE => (
     }
 })
 
-const addActive = (state: ACTIVES_STATE, row: number, operation: number, type: string, quantity: string, opening: string, buyout: string, buyoutFee: string): ACTIVES_STATE => ({
+const addActive = (state: ActivesState, row: number, operation: number, type: string, quantity: string, opening: string, buyout: string, buyoutFee: string): ActivesState => ({
     ...state,
     list: [
         ...state.list,
@@ -52,17 +52,17 @@ const addActive = (state: ACTIVES_STATE, row: number, operation: number, type: s
     ]
 })
 
-const setActives = (state: ACTIVES_STATE, list: Array<ACTIVES_ITEM>): ACTIVES_STATE => ({
+const setActives = (state: ActivesState, list: Array<ActivesItem>): ActivesState => ({
     ...state,
     list
 })
 
-const removeActive = (state: ACTIVES_STATE, date: number) => ({
+const removeActive = (state: ActivesState, date: number) => ({
     ...state,
     list: state.list.filter(a => a.date !== date)
 })
 
-const soldActive = (state: ACTIVES_STATE, date: number) => ({
+const soldActive = (state: ActivesState, date: number) => ({
     ...state,
     list: state.list.map(a => a.date === date ? { ...a, pending: true } : a)
 })

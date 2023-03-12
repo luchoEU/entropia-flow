@@ -55,6 +55,7 @@ const addSweatChanged = (state: SweatState, pending: boolean): SweatState => {
 
 export {
     initialState,
+    initialStateIn,
     setState,
     sweatPriceChanged,
     sweatAmountChanged,

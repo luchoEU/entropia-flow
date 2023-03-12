@@ -6,6 +6,7 @@ import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
+import { initialState } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -13,15 +14,16 @@ import { getInventory } from '../selectors/inventory'
 import { getSettings } from '../selectors/settings'
 import { BluprintWebData, CraftState, STEP_INACTIVE, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState } from '../state/history'
+import { InventoryState } from '../state/inventory'
 import { SettingsState } from '../state/settings'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state = await api.storage.loadCraft()
+            const state: CraftState = await api.storage.loadCraft()
             if (state)
-                dispatch(setCraftState(state))
+                dispatch(setCraftState({ ...initialState, ...state }))
             break
         }
         case ADD_BLUEPRINT:
@@ -82,7 +84,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     switch (action.type) {
         case ADD_BLUEPRINT:
         case SET_CURRENT_INVENTORY: {
-            let s = getInventory(getState())
+            let s: InventoryState = getInventory(getState())
             let items = joinDuplicates(joinList(s))
             let dictionary: { [k: string]: number } = Object.fromEntries(items.map((x: ItemData) => [x.n, Number(x.q)]));
             dispatch(setBlueprintQuantity(dictionary))

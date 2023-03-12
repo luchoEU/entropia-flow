@@ -270,6 +270,7 @@ function nbSellChange(state: CalculatorState, pending: boolean): CalculatorState
 
 export {
     initialState,
+    initialStateIn,
     setState,
     sweatChanged,
     fruitChanged,

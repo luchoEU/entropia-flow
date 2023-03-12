@@ -1,21 +1,21 @@
 import { addRefineToSheetDone, ADD_REFINE_TO_SHEET, REFINE_AMOUNT_CHANGED, setRefineState } from "../actions/refine"
 import { addPendingChange } from "../actions/sheets"
 import { PAGE_LOADED } from "../actions/ui"
-import { refineOperation, refineSheetsMethod } from "../helpers/refine"
+import { initialState, refineOperation, refineSheetsMethod } from "../helpers/refine"
 import { getOneRefine, getRefine } from "../selectors/refine"
-import { RefineOneState } from "../state/refine"
+import { RefineOneState, RefineState } from "../state/refine"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state = await api.storage.loadRefine()
+            const state: RefineState = await api.storage.loadRefine()
             if (state)
-                dispatch(setRefineState(state))
+                dispatch(setRefineState({ ...initialState, ...state }))
             break
         }
         case REFINE_AMOUNT_CHANGED: {
-            const state = getRefine(getState())
+            const state: RefineState = getRefine(getState())
             await api.storage.saveRefine(state)
             break
         }

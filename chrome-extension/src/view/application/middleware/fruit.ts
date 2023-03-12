@@ -4,19 +4,20 @@ import { PAGE_LOADED } from "../actions/ui"
 import { getFruitIn } from "../selectors/fruit"
 import { OPERATION_ADD_FRUIT } from "../state/actives"
 import { FruitStateIn } from "../state/fruit"
+import { initialState } from "../helpers/fruit"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state = await api.storage.loadFruit()
+            const state: FruitStateIn = await api.storage.loadFruit()
             if (state)
-                dispatch(setFruitState(state))
+                dispatch(setFruitState({ ...initialState, ...state }))
             break
         }
         case FRUIT_PRICE_CHANGED:
         case FRUIT_AMOUNT_CHANGED: {
-            const state = getFruitIn(getState())
+            const state: FruitStateIn = getFruitIn(getState())
             await api.storage.saveFruit(state)
             break
         }

@@ -1,5 +1,6 @@
 import { setHistoryExpanded, setHistoryIntervalId, SET_HISTORY_EXPANDED, SET_HISTORY_LIST } from "../actions/history"
 import { PAGE_LOADED } from "../actions/ui"
+import { initialState } from "../helpers/history"
 import { getHistory } from "../selectors/history"
 import { HistoryState, MindEssenceLogText, ViewItemData } from "../state/history"
 
