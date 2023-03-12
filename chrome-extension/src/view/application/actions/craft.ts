@@ -6,6 +6,7 @@ const ADD_BLUEPRINT = "[craft] add blueprint"
 const REMOVE_BLUEPRINT = "[craft] remove blueprint"
 const ADD_BLUEPRINT_DATA = "[craft] add blueprint data"
 const SET_BLUEPRINT_QUANTITY = "[craft] set blueprint quantity"
+const SET_BLUEPRINT_EXPANDED = "[craft] set blueprint expanded"
 const START_BUDGET_PAGE_LOADING = "[craft] start budget page loading"
 const SET_BUDGET_PAGE_LOADING_STAGE = "[craft] set budget page stage"
 const SET_BUDGET_PAGE_INFO = "[craft] set budget page info"
@@ -51,6 +52,14 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     type: SET_BLUEPRINT_QUANTITY,
     payload: {
         dictionary
+    }
+})
+
+const setBlueprintExpanded = (name: string, expanded: boolean) => ({
+    type: SET_BLUEPRINT_EXPANDED,
+    payload: {
+        name,
+        expanded
     }
 })
 
@@ -149,6 +158,7 @@ export {
     REMOVE_BLUEPRINT,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
+    SET_BLUEPRINT_EXPANDED,
     START_BUDGET_PAGE_LOADING,
     SET_BUDGET_PAGE_LOADING_STAGE,
     SET_BUDGET_PAGE_INFO,
@@ -166,6 +176,7 @@ export {
     removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
+    setBlueprintExpanded,
     startBudgetPageLoading,
     setBudgetPageStage,
     setBudgetPageInfo,

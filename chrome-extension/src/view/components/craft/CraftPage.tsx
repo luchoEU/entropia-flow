@@ -1,19 +1,14 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { getCraft } from '../../application/selectors/craft'
-import { BlueprintData, CraftState } from '../../application/state/craft'
 import CraftChooser from './CraftChooser'
-import CraftSingle from './CraftSingle'
+import CraftCollapsedList from './CraftCollapsedList'
+import CraftExpandedList from './CraftExpandedList'
 
 function CraftPage() {
-    const s: CraftState = useSelector(getCraft)
-
     return (
         <>
             <CraftChooser />
-            {
-                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession?.name} />)
-            }
+            <CraftCollapsedList />
+            <CraftExpandedList />
         </>
     )
 }

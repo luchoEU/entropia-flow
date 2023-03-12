@@ -6,6 +6,7 @@ interface CraftState {
 interface BlueprintData {
     name: string
     itemName: string
+    expanded: boolean
     info: BlueprintInfo
     budget: BlueprintBudget
     session: BlueprintSession

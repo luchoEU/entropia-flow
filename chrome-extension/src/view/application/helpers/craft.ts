@@ -14,6 +14,7 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
         {
             name,
             itemName: name.split('Blueprint')[0].trim(),
+            expanded: true,
             info: {
                 loading: true,
                 url: undefined,
@@ -86,10 +87,13 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
                 clickTTCost += m.quantity * m.value
             }
 
-            const item = materials.find(m => m.name === 'Item')
-            const residueNeeded = item.value - clickTTCost
-            const residueMaterial = materials.find(m => m.type === 'Residue')
-            residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
+            const itemMaterial = materials.find(m => m.name === 'Item')
+            const isLimited = materials.find(m => m.name === 'Blueprint')
+            const residueNeeded = itemMaterial.value - clickTTCost
+            if (isLimited) {
+                const residueMaterial = materials.find(m => m.type === 'Residue')
+                residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
+            }
 
             const clicksAvailable = Math.min(...materials.map(m => m.clicks ?? Infinity))
 
@@ -102,7 +106,7 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
                 inventory: {
                     clicksAvailable,
                     clickTTCost,
-                    residueNeeded,
+                    residueNeeded: isLimited ? residueNeeded : undefined
                 }
             })
         }
@@ -110,6 +114,10 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
 
     return { blueprints }
 }
+
+const setBlueprintExpanded = (state: CraftState, name: string, expanded: boolean): CraftState => ({
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, expanded } : bp)
+})
 
 const changeBudget = (state: CraftState, name: string, data: object): CraftState => ({
     blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp)
@@ -202,6 +210,7 @@ export {
     removeBlueprint,
     addBlueprintData,
     setBlueprintQuantity,
+    setBlueprintExpanded,
     startBudgetLoading,
     setBudgetState,
     setBudgetInfo,

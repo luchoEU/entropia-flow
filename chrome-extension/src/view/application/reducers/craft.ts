@@ -1,5 +1,5 @@
-import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
-import { addBlueprint, addBlueprintData, doneCraftSession, endBudgetLoading, endCraftSession, errorBudgetLoading, errorCraftSession, initialState, readyCraftSession, removeBlueprint, saveCraftSession, setBlueprintQuantity, setBudgetInfo, setBudgetState, setCraftSaveStage, setState, startBudgetLoading, startCraftSession } from "../helpers/craft"
+import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
+import { addBlueprint, addBlueprintData, doneCraftSession, endBudgetLoading, endCraftSession, errorBudgetLoading, errorCraftSession, initialState, readyCraftSession, removeBlueprint, saveCraftSession, setBlueprintExpanded, setBlueprintQuantity, setBudgetInfo, setBudgetState, setCraftSaveStage, setState, startBudgetLoading, startCraftSession } from "../helpers/craft"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -8,6 +8,7 @@ export default (state = initialState, action) => {
         case REMOVE_BLUEPRINT: return removeBlueprint(state, action.payload.name)
         case ADD_BLUEPRINT_DATA: return addBlueprintData(state, action.payload.data)
         case SET_BLUEPRINT_QUANTITY: return setBlueprintQuantity(state, action.payload.dictionary)
+        case SET_BLUEPRINT_EXPANDED: return setBlueprintExpanded(state, action.payload.name, action.payload.expanded)
         case START_BUDGET_PAGE_LOADING: return startBudgetLoading(state, action.payload.name)
         case SET_BUDGET_PAGE_LOADING_STAGE: return setBudgetState(state, action.payload.name, action.payload.stage)
         case SET_BUDGET_PAGE_INFO: return setBudgetInfo(state, action.payload.name, action.payload.info)
