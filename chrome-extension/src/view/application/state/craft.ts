@@ -1,5 +1,7 @@
 interface CraftState {
-    activeSession?: BlueprintData
+    activeSession?: string
+    sortType: number,
+    activeBlueprintsExpanded: boolean
     blueprints: BlueprintData[]
 }
 
@@ -16,6 +18,7 @@ interface BlueprintData {
 interface BlueprintInfo {
     loading: boolean
     url: string
+    bpClicks: number
     materials: BlueprintMaterial[]
     errorText?: string
 }
@@ -36,6 +39,7 @@ const STEP_ERROR = 2
 const STEP_READY = 3
 const STEP_REFRESH_TO_END = 4
 const STEP_SAVING = 5
+const STEP_DONE = 6
 
 interface BlueprintSession {
     step: number
@@ -92,4 +96,5 @@ export {
     STEP_READY,
     STEP_REFRESH_TO_END,
     STEP_SAVING,
+    STEP_DONE,
 }

@@ -6,9 +6,9 @@ import CraftExpandedList from './CraftExpandedList'
 function CraftPage() {
     return (
         <>
-            <CraftChooser />
-            <CraftCollapsedList />
             <CraftExpandedList />
+            <CraftCollapsedList />
+            <CraftChooser />
         </>
     )
 }

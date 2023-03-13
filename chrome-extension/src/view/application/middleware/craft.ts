@@ -1,12 +1,12 @@
 import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { BudgetSheet, BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, CLEAR_CRAFT_SESSION, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { initialState } from '../helpers/craft'
+import { cleanForSave, initialState } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -28,6 +28,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case ADD_BLUEPRINT:
         case REMOVE_BLUEPRINT:
+        case SORT_BLUEPRINTS_BY:
+        case SET_ACTIVE_BLUEPRINTS_EXPANDED:
         case ADD_BLUEPRINT_DATA:
         case SET_BLUEPRINT_QUANTITY:
         case SET_BLUEPRINT_EXPANDED:
@@ -41,9 +43,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ERROR_CRAFT_SESSION:
         case READY_CRAFT_SESSION:
         case SET_CRAFT_SAVE_STAGE:
-        case DONE_CRAFT_SESSION: {
+        case DONE_CRAFT_SESSION:
+        case CLEAR_CRAFT_SESSION: {
             const state = getCraft(getState())
-            await api.storage.saveCraft(state)
+            await api.storage.saveCraft(cleanForSave(state))
             break
         }
     }
@@ -132,23 +135,27 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_HISTORY_LIST: {
-            const craft: CraftState = getCraft(getState())
+            const state: CraftState = getCraft(getState())
             const history: HistoryState = getHistory(getState())
-            if (craft.activeSession !== undefined && history.list.length > 0) {
+            if (state.activeSession !== undefined && history.list.length > 0) {
                 if (history.list[0].class === 'error') {
-                    dispatch(errorCraftingSession(craft.activeSession.name, history.list[0].text))
+                    dispatch(errorCraftingSession(state.activeSession, history.list[0].text))
                 } else {
-                    switch (craft.activeSession.session.step) {
+                    const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                    switch (activeSessionBp.session.step) {
                         case STEP_REFRESH_TO_START: {
                             if (history.list[0].isLast) {
-                                dispatch(readyCraftingSession(craft.activeSession.name))
+                                dispatch(readyCraftingSession(state.activeSession))
                             } else {
                                 dispatch(setLast)
                             }
                             break
                         }
                         case STEP_REFRESH_TO_END: {
-                            dispatch(saveCraftingSession(craft.activeSession.name))
+                            if (activeSessionBp.budget.hasPage)
+                                dispatch(saveCraftingSession(state.activeSession))
+                            else
+                                dispatch(doneCraftingSession(state.activeSession))
                             break
                         }
                     }
@@ -159,14 +166,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SAVE_CRAFT_SESSION: {
             try {
                 const state: CraftState = getCraft(getState())
-                if (state.activeSession.budget.hasPage) {
-                    const settings: SettingsState = getSettings(getState())
-                    const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, state.activeSession, setStage)
-                    await sheet.addCraftSession()
-                    await sheet.save()
-                    dispatch(doneCraftingSession(state.activeSession.name))
-                }
+                const settings: SettingsState = getSettings(getState())
+                const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, state.activeSession, setStage)
+                await sheet.addCraftSession()
+                await sheet.save()
+                dispatch(doneCraftingSession(state.activeSession))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
                 trace('exception saving craft session:')

@@ -1,8 +1,11 @@
 import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BlueprintData, BlueprintMaterial, BlueprintSession, BluprintWebData, CraftState, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { BlueprintData, BlueprintMaterial, BlueprintSession, BluprintWebData, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import * as Sort from "./craftSort"
 
 const initialState: CraftState = {
+    sortType: Sort.SORT_NAME_ASCENDING,
+    activeBlueprintsExpanded: true,
     blueprints: []
 }
 
@@ -10,7 +13,7 @@ const setState = (state: CraftState, inState: CraftState) => inState
 
 const addBlueprint = (state: CraftState, name: string): CraftState => ({
     ...state,
-    blueprints: [
+    blueprints: Sort.sortList(state.sortType, [
         ...state.blueprints,
         {
             name,
@@ -19,6 +22,7 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
             info: {
                 loading: true,
                 url: undefined,
+                bpClicks: undefined,
                 materials: [],
             },
             budget: {
@@ -30,7 +34,7 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
                 step: STEP_INACTIVE
             }
         }
-    ]
+    ])
 })
 
 const removeBlueprint = (state: CraftState, name: string): CraftState => ({
@@ -38,19 +42,34 @@ const removeBlueprint = (state: CraftState, name: string): CraftState => ({
     blueprints: state.blueprints.filter(bp => bp.name !== name)
 })
 
+const sortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
+    const sortType = Sort.nextSortType(part, state.sortType)
+    return {
+        ...state,
+        sortType,
+        blueprints: Sort.cloneSortList(sortType, state.blueprints)
+    }
+}
+
+const setActiveBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
+    ...state,
+    activeBlueprintsExpanded: expanded
+})
+
 const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => ({
     ...state,
-    blueprints: state.blueprints.map(bp => {
+    blueprints: Sort.sortList(state.sortType, state.blueprints.map(bp => {
         if (bp.name === data.Name) {
             if (data.StatusCode === 0) {
                return {
                     ...bp,
                     info: {
+                        ...bp.info,
                         loading: false,
-                        url: data.Url,
+                        url: data.Url,                        
                         materials: data.Material.map(m => ({
                             name: m.Name,
-                            quantity: m.Quantity,
+                            quantity: Number(m.Quantity),
                             type: m.Type,
                             value: Number(m.Value),
                         }))
@@ -69,7 +88,7 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
         } else {
             return bp
         }
-    })
+    }))
 })
 
 const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
@@ -105,6 +124,7 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
                 ...bp,
                 info: {
                     ...bp.info,
+                    bpClicks: isLimited ? (isLimited.clicks == 0 ? undefined : isLimited.clicks) : Infinity,
                     materials,
                 },
                 inventory: {
@@ -116,6 +136,7 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
         }
     }
 
+    Sort.sortList(state.sortType, blueprints)
     return {
         ...state,
         blueprints
@@ -129,7 +150,8 @@ const setBlueprintExpanded = (state: CraftState, name: string, expanded: boolean
 
 const changeBudget = (state: CraftState, name: string, data: object): CraftState => ({
     ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp)
+    blueprints: Sort.sortList(state.sortType,
+        state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp))
 })
 
 const startBudgetLoading = (state: CraftState, name: string): CraftState => 
@@ -173,6 +195,7 @@ const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetInfo): 
         })
     }
 
+    Sort.sortList(state.sortType, blueprints)
     return {
         ...state,
         blueprints
@@ -187,13 +210,14 @@ const errorBudgetLoading = (state: CraftState, name: string, text: string): Craf
 
 const changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => ({
     ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp)
+    blueprints: Sort.sortList(state.sortType,
+        state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp))
 })
 
 const startCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
     ...changeSession(state, name, () => ({ step: STEP_REFRESH_TO_START })),
-    activeSession: state.blueprints.find(bp => bp.name === name)
+    activeSession: name
 })
 
 const errorCraftSession = (state: CraftState, name: string, errorText: string): CraftState => ({
@@ -203,7 +227,7 @@ const errorCraftSession = (state: CraftState, name: string, errorText: string): 
 })
 
 const readyCraftSession = (state: CraftState, name: string): CraftState =>
-    changeSession(state, name, (bp) => ({ step: STEP_READY, startMaterials: bp.info.materials.map(m => ({ n: m.name, q: m.quantity })) }))
+    changeSession(state, name, (bp) => ({ step: STEP_READY, startMaterials: bp.info.materials.map(m => ({ n: m.name, q: m.available })) }))
 
 const endCraftSession = (state: CraftState, name: string): CraftState =>
     changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_REFRESH_TO_END }))
@@ -216,8 +240,29 @@ const setCraftSaveStage = (state: CraftState, name: string, stage: number): Craf
 
 const doneCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
+    ...changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_DONE })),
     activeSession: undefined
+})
+
+const clearCraftSession = (state: CraftState, name: string): CraftState => ({
+    ...state,
+    ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
+})
+
+const cleanForSave = (state: CraftState): CraftState => ({
+    ...state,
+    activeSession: undefined,
+    blueprints: state.blueprints.map(bp => ({
+        ...bp,
+        budget: {
+            ...bp.budget,
+            hasPage: false
+        },
+        session: bp.session.step === STEP_INACTIVE ? bp.session : {
+            ...bp.session,
+            step: STEP_DONE
+        }
+    }))
 })
 
 export {
@@ -225,6 +270,8 @@ export {
     setState,
     addBlueprint,
     removeBlueprint,
+    sortBlueprintsByPart,
+    setActiveBlueprintsExpanded,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
@@ -240,4 +287,6 @@ export {
     saveCraftSession,
     setCraftSaveStage,
     doneCraftSession,
+    clearCraftSession,
+    cleanForSave,
 }

@@ -1,8 +1,8 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { getCraft } from '../../application/selectors/craft'
-import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
+import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function SessionInfo(p: {
@@ -20,13 +20,15 @@ function SessionInfo(p: {
             return <><img className='img-loading' src='img/loading.gif' /> Refreshing items list to end...</>
         case STEP_ERROR:
             return <>
-                <span className='error'>p.session.errorText</span>
+                <span className='error'>{p.session.errorText}</span>
                 <button onClick={() => dispatch(startCraftingSession(p.name))}>Retry</button>
             </>
         case STEP_READY:
             return <>Ready <button onClick={() => dispatch(endCraftingSession(p.name))}>End</button></>
         case STEP_SAVING:
             return <>Saving <img className='img-loading' src='img/loading.gif' /> {StageText[p.session.stage]}...</>
+        case STEP_DONE:
+            return <button onClick={() => dispatch(clearCraftingSession(p.name))}>Clear</button>
         default:
             return <></>  
     }
@@ -45,13 +47,25 @@ function CraftSingle(p: {
         return Number(n).toFixed(len)
     }
 
+    let session = undefined
+    let sessionProfit = undefined
+    if (d.session.step >= STEP_READY) {
+        session = {}
+        sessionProfit = 0
+        d.info.materials.forEach((m: BlueprintMaterial) => {
+            const diff = m.available - d.session.startMaterials.find(x => x.n == m.name).q
+            session[m.name] = diff
+            sessionProfit += diff * m.value
+        })
+    }
+
     if (d.expanded) {
         return (
             <>
                 <section>
                     <h1>
                         {d.name}
-                        <img className='hide' src='img/up.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} />
+                        <img className='hide' src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} />
                     </h1>
                     {
                         d.info.loading ?
@@ -86,14 +100,13 @@ function CraftSingle(p: {
                                                 </>
                                             }
                                             {
-                                                d.name !== p.activeSession || d.session.step !== STEP_READY ? <></> :
-                                                <th>Difference</th>
+                                                session === undefined ? <></> : <th>Difference</th>
                                             }
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {
-                                            d.info.materials.map((m: BlueprintMaterial) =>                                
+                                            d.info.materials.map((m: BlueprintMaterial) =>                             
                                                 <tr key={m.name}>
                                                     <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
                                                     <td align='right'>{addZeroes(m.value)}</td>
@@ -109,8 +122,7 @@ function CraftSingle(p: {
                                                         </>
                                                     }
                                                     {
-                                                        d.name !== p.activeSession || d.session.step !== STEP_READY ? <></> :
-                                                        <td align='right'>{m.quantity - d.session.startMaterials.find(x => x.n == m.name).q}</td>
+                                                        session === undefined ? <></> : <td align="right">{session[m.name]}</td>
                                                     }
                                                 </tr>)
                                         }
@@ -124,6 +136,8 @@ function CraftSingle(p: {
                                             <p>Click MU cost: {d.budget.clickMUCost.toFixed(2)} PED</p> }
                                         { d.inventory.residueNeeded === undefined ? <></> :
                                             <p>Residue needed per click: {d.inventory.residueNeeded.toFixed(2)} PED</p> }
+                                        { sessionProfit === undefined ? <></> :
+                                            <p>Session profit: {sessionProfit.toFixed(2)} PED</p>}
                                     </>
                                 }
                             </div>
@@ -142,7 +156,7 @@ function CraftExpandedList() {
     return (
         <>
             {
-                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession?.name} />)
+                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession} />)
             }
         </>
     )

@@ -2,7 +2,7 @@ import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, sortVisibleBy } from '../../application/actions/inventory'
-import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/sort'
+import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
 import { InventoryList } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 

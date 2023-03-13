@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { setHiddenInventoryExpanded, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
-import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/sort'
+import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
 import { InventoryList, ItemHidden } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 

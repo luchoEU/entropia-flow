@@ -1,6 +1,6 @@
 import { Inventory, ItemData } from "../../../common/state";
 import { InventoryState, InventoryList, HideCriteria, ItemHidden, AvailableCriteria } from "../state/inventory";
-import { cloneSortListSelect, nextSortType, sortList, sortListSelect, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./sort";
+import { cloneSortListSelect, nextSortType, sortList, sortListSelect, SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from "./inventorySort";
 
 const emptyCriteria: HideCriteria = {
     name: [],
@@ -218,7 +218,11 @@ const removeAvailable = (state: InventoryState, name: string): InventoryState =>
 // items and stats can be reconstructed
 const cleanForSave = (state: InventoryState): InventoryState => ({
     ...state,
-    blueprints: undefined,
+    blueprints: {
+        ...state.blueprints,
+        items: undefined,
+        stats: undefined
+    },
     auction: {
         ...state.auction,
         items: undefined,

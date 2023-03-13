@@ -1,24 +1,27 @@
-import { BudgetSheetInfo } from "../../services/api/sheets/sheetsBudget"
-import { BluprintWebData, CraftState } from "../state/craft"
+import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
+import { BluprintWebData, CraftState } from '../state/craft'
 
-const SET_CRAFT_STATE = "[craft] set state"
-const ADD_BLUEPRINT = "[craft] add blueprint"
-const REMOVE_BLUEPRINT = "[craft] remove blueprint"
-const ADD_BLUEPRINT_DATA = "[craft] add blueprint data"
-const SET_BLUEPRINT_QUANTITY = "[craft] set blueprint quantity"
-const SET_BLUEPRINT_EXPANDED = "[craft] set blueprint expanded"
-const START_BUDGET_PAGE_LOADING = "[craft] start budget page loading"
-const SET_BUDGET_PAGE_LOADING_STAGE = "[craft] set budget page stage"
-const SET_BUDGET_PAGE_INFO = "[craft] set budget page info"
-const END_BUDGET_PAGE_LOADING = "[craft] end budget page loading"
-const ERROR_BUDGET_PAGE_LOADING = "[craft] error budget page loading"
-const START_CRAFT_SESSION = "[craft] start session"
-const END_CRAFT_SESSION = "[craft] end session"
-const ERROR_CRAFT_SESSION = "[craft] error session"
-const READY_CRAFT_SESSION = "[craft] ready session"
-const SAVE_CRAFT_SESSION = "[craft] save session"
-const SET_CRAFT_SAVE_STAGE = "[craft] set save stage"
-const DONE_CRAFT_SESSION = "[craft] done session"
+const SET_CRAFT_STATE = '[craft] set state'
+const ADD_BLUEPRINT = '[craft] add blueprint'
+const REMOVE_BLUEPRINT = '[craft] remove blueprint'
+const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
+const SET_ACTIVE_BLUEPRINTS_EXPANDED = '[craft] set active blueprints expanded'
+const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
+const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
+const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
+const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
+const SET_BUDGET_PAGE_LOADING_STAGE = '[craft] set budget page stage'
+const SET_BUDGET_PAGE_INFO = '[craft] set budget page info'
+const END_BUDGET_PAGE_LOADING = '[craft] end budget page loading'
+const ERROR_BUDGET_PAGE_LOADING = '[craft] error budget page loading'
+const START_CRAFT_SESSION = '[craft] start session'
+const END_CRAFT_SESSION = '[craft] end session'
+const ERROR_CRAFT_SESSION = '[craft] error session'
+const READY_CRAFT_SESSION = '[craft] ready session'
+const SAVE_CRAFT_SESSION = '[craft] save session'
+const SET_CRAFT_SAVE_STAGE = '[craft] set save stage'
+const DONE_CRAFT_SESSION = '[craft] done session'
+const CLEAR_CRAFT_SESSION = '[craft] clear session'
 
 const setCraftState = (state: CraftState) => ({
     type: SET_CRAFT_STATE,
@@ -38,6 +41,20 @@ const removeBlueprint = (name: string) => ({
     type: REMOVE_BLUEPRINT,
     payload: {
         name
+    }
+})
+
+const sortBlueprintsBy = (part: number) => ({
+    type: SORT_BLUEPRINTS_BY,
+    payload: {
+        part
+    }
+})
+
+const setActiveBlueprintsExpanded = (expanded: boolean) => ({
+    type: SET_ACTIVE_BLUEPRINTS_EXPANDED,
+    payload: {
+        expanded
     }
 })
 
@@ -152,10 +169,19 @@ const doneCraftingSession = (name: string) => ({
     }
 })
 
+const clearCraftingSession = (name: string) => ({
+    type: CLEAR_CRAFT_SESSION,
+    payload: {
+        name
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
     REMOVE_BLUEPRINT,
+    SORT_BLUEPRINTS_BY,
+    SET_ACTIVE_BLUEPRINTS_EXPANDED,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_EXPANDED,
@@ -171,9 +197,12 @@ export {
     SAVE_CRAFT_SESSION,
     SET_CRAFT_SAVE_STAGE,
     DONE_CRAFT_SESSION,
+    CLEAR_CRAFT_SESSION,
     setCraftState,
     addBlueprint,
     removeBlueprint,
+    sortBlueprintsBy,
+    setActiveBlueprintsExpanded,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
@@ -189,4 +218,5 @@ export {
     saveCraftingSession,
     setCraftingSessionStage,
     doneCraftingSession,
+    clearCraftingSession,
 }

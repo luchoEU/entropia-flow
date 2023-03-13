@@ -1,8 +1,10 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { removeBlueprint, setBlueprintExpanded } from '../../application/actions/craft'
+import { removeBlueprint, setActiveBlueprintsExpanded, setBlueprintExpanded, sortBlueprintsBy } from '../../application/actions/craft'
+import { BUDGET, CASH, CLICKS, NAME } from '../../application/helpers/craftSort'
 import { getCraft } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
+import ExpandableSection from '../common/ExpandableSection'
 
 function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
@@ -14,11 +16,10 @@ function CraftCollapsedList() {
         var cashMap = undefined
 
         s.blueprints.forEach((d: BlueprintData) => {
-            if (d.info.materials.length > 0) {
+            if (d.info.bpClicks > 0) {
                 if (clicksMap === undefined )
                     clicksMap = {}
-                const bp = d.info.materials.find(m => m.name === 'Blueprint')
-                clicksMap[d.name] = bp?.clicks ?? Infinity
+                clicksMap[d.name] = d.info.bpClicks
             }
 
             if (d.budget.total !== undefined) {
@@ -34,9 +35,10 @@ function CraftCollapsedList() {
             }
         })
 
+        const sortBy = (part: number) => () => dispatch(sortBlueprintsBy(part))
+
         return (
-            <section>
-                <h1>Active Blueprints</h1>
+            <ExpandableSection title='Active Blueprints' expanded={s.activeBlueprintsExpanded} setExpanded={setActiveBlueprintsExpanded}>
                 <table>
                     <thead>
                         <tr>
@@ -54,13 +56,13 @@ function CraftCollapsedList() {
                                 <tr key={d.name}>
                                     <td>
                                         {d.expanded ?
-                                            <img src='img/up.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} /> :
-                                            <img src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, true))} />}
+                                            <img src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} /> :
+                                            <img src='img/up.png' onClick={() => dispatch(setBlueprintExpanded(d.name, true))} />}
                                     </td>
-                                    <td>{d.itemName}</td>
-                                    { clicksMap ? <td align='center'>{clicksMap[d.name]}</td> : <></> }
-                                    { budgetMap ? <td align='right'>{budgetMap[d.name]}</td> : <></> }
-                                    { cashMap ? <td align='right'>{cashMap[d.name]}</td> : <></> }
+                                    <td onClick={sortBy(NAME)}>{d.itemName}</td>
+                                    { clicksMap ? <td align='center' onClick={sortBy(CLICKS)}>{clicksMap[d.name]}</td> : <></> }
+                                    { budgetMap ? <td align='right' onClick={sortBy(BUDGET)}>{budgetMap[d.name]}</td> : <></> }
+                                    { cashMap ? <td align='right' onClick={sortBy(CASH)}>{cashMap[d.name]}</td> : <></> }
                                     <td align='center'>
                                         <img src='img/cross.png' onClick={() => dispatch(removeBlueprint(d.name))} />
                                     </td>
@@ -68,7 +70,7 @@ function CraftCollapsedList() {
                         }
                     </tbody>
                 </table>
-            </section>
+            </ExpandableSection>
         )
     } else {
         return <></>

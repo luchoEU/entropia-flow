@@ -1,6 +1,6 @@
 import { Inventory } from "../../../common/state"
 import { getDifference, getValue, hasValue } from "./diff"
-import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./sort"
+import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./inventorySort"
 import { getLatestFromInventoryList, getText } from "./history"
 import { ViewItemData } from "../state/history"
 import { matchDate } from "../../../common/date"

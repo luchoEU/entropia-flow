@@ -2,7 +2,7 @@ import { CLASS_LAST, CLASS_NEW_DATE, CLASS_REQUESTED } from "../../../common/con
 import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
 import { addMindEssenceLogAction } from "./meLog";
-import * as Sort from "./sort"
+import * as Sort from "./inventorySort"
 import { HistoryState, ViewInventory } from "../state/history";
 
 const initialState: HistoryState = {

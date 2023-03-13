@@ -1,11 +1,13 @@
-import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
-import { addBlueprint, addBlueprintData, doneCraftSession, endBudgetLoading, endCraftSession, errorBudgetLoading, errorCraftSession, initialState, readyCraftSession, removeBlueprint, saveCraftSession, setBlueprintExpanded, setBlueprintQuantity, setBudgetInfo, setBudgetState, setCraftSaveStage, setState, startBudgetLoading, startCraftSession } from "../helpers/craft"
+import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, CLEAR_CRAFT_SESSION, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
+import { addBlueprint, addBlueprintData, clearCraftSession, doneCraftSession, endBudgetLoading, endCraftSession, errorBudgetLoading, errorCraftSession, initialState, readyCraftSession, removeBlueprint, saveCraftSession, setActiveBlueprintsExpanded, setBlueprintExpanded, setBlueprintQuantity, setBudgetInfo, setBudgetState, setCraftSaveStage, setState, sortBlueprintsByPart, startBudgetLoading, startCraftSession } from "../helpers/craft"
 
 export default (state = initialState, action) => {
     switch (action.type) {
         case SET_CRAFT_STATE: return setState(state, action.payload.state)
         case ADD_BLUEPRINT: return addBlueprint(state, action.payload.name)
         case REMOVE_BLUEPRINT: return removeBlueprint(state, action.payload.name)
+        case SORT_BLUEPRINTS_BY: return sortBlueprintsByPart(state, action.payload.part)
+        case SET_ACTIVE_BLUEPRINTS_EXPANDED: return setActiveBlueprintsExpanded(state, action.payload.expanded)
         case ADD_BLUEPRINT_DATA: return addBlueprintData(state, action.payload.data)
         case SET_BLUEPRINT_QUANTITY: return setBlueprintQuantity(state, action.payload.dictionary)
         case SET_BLUEPRINT_EXPANDED: return setBlueprintExpanded(state, action.payload.name, action.payload.expanded)
@@ -21,6 +23,7 @@ export default (state = initialState, action) => {
         case SAVE_CRAFT_SESSION: return saveCraftSession(state, action.payload.name)
         case SET_CRAFT_SAVE_STAGE: return setCraftSaveStage(state, action.payload.name, action.payload.stage)
         case DONE_CRAFT_SESSION: return doneCraftSession(state, action.payload.name)
+        case CLEAR_CRAFT_SESSION: return clearCraftSession(state, action.payload.name)
         default: return state
     }
 }

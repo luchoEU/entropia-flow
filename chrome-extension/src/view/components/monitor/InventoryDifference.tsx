@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/sort'
+import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
 import { MindEssenceLogText, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useDispatch } from 'react-redux'
