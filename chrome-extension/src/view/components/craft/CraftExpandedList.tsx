@@ -47,15 +47,22 @@ function CraftSingle(p: {
         return Number(n).toFixed(len)
     }
 
+    let markupLoaded = d.budget.clickMUCost !== undefined
+
     let session = undefined
-    let sessionProfit = undefined
-    if (d.session.step >= STEP_READY) {
+    let sessionTTprofit = undefined
+    let sessionMUprofit = undefined
+    if (d.session.startMaterials !== undefined) {
         session = {}
-        sessionProfit = 0
+        sessionTTprofit = 0
+        if (markupLoaded)
+            sessionMUprofit = 0
         d.info.materials.forEach((m: BlueprintMaterial) => {
             const diff = m.available - d.session.startMaterials.find(x => x.n == m.name).q
             session[m.name] = diff
-            sessionProfit += diff * m.value
+            sessionTTprofit += diff * m.value
+            if (markupLoaded)
+                sessionMUprofit += diff * m.value * m.markup
         })
     }
 
@@ -93,11 +100,11 @@ function CraftSingle(p: {
                                             <th>Available</th>
                                             <th>Clicks</th>
                                             {
-                                                d.budget.clickMUCost === undefined ? <></> :
+                                                markupLoaded ?
                                                 <>
                                                     <th>Markup</th>
                                                     <th>Budget</th>
-                                                </>
+                                                </> : <></>
                                             }
                                             {
                                                 session === undefined ? <></> : <th>Difference</th>
@@ -115,11 +122,11 @@ function CraftSingle(p: {
                                                     <td align='right'>{m.available}</td>
                                                     <td align='right'>{m.clicks}</td>
                                                     {
-                                                        d.budget.clickMUCost === undefined ? <></> :
+                                                        markupLoaded ?
                                                         <>
                                                             <td align='right'>{(m.markup * 100).toFixed(2)}%</td>
                                                             <td align='right'>{m.budgetCount}</td>
-                                                        </>
+                                                        </> : <></>
                                                     }
                                                     {
                                                         session === undefined ? <></> : <td align="right">{session[m.name]}</td>
@@ -128,7 +135,8 @@ function CraftSingle(p: {
                                         }
                                     </tbody>
                                 </table>
-                                {d.inventory === undefined ? <></> :
+                                {
+                                    d.inventory === undefined ? <></> :
                                     <>
                                         <p>Clicks available: {d.inventory.clicksAvailable}</p>
                                         <p>Click TT cost: {d.inventory.clickTTCost.toFixed(2)} PED</p>
@@ -136,8 +144,10 @@ function CraftSingle(p: {
                                             <p>Click MU cost: {d.budget.clickMUCost.toFixed(2)} PED</p> }
                                         { d.inventory.residueNeeded === undefined ? <></> :
                                             <p>Residue needed per click: {d.inventory.residueNeeded.toFixed(2)} PED</p> }
-                                        { sessionProfit === undefined ? <></> :
-                                            <p>Session profit: {sessionProfit.toFixed(2)} PED</p>}
+                                        { sessionTTprofit === undefined ? <></> :
+                                            <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
+                                        { sessionMUprofit === undefined ? <></> :
+                                            <p>Session MU profit: {sessionMUprofit.toFixed(2)} PED</p>}
                                     </>
                                 }
                             </div>

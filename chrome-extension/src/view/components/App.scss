@@ -145,6 +145,10 @@ form label {
     color: red;
 }
 
+.error ~ button {
+    margin-right: 5px;
+}
+
 .date {
     color: black;
     font-size: 14px;

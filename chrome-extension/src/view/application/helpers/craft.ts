@@ -163,6 +163,11 @@ const setBudgetState = (state: CraftState, name: string, stage: number): CraftSt
 const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetInfo): CraftState => {
     let blueprints: BlueprintData[] = []    
     for (let bp of state.blueprints) {
+        if (bp.name !== name) {
+            blueprints.push(bp)
+            continue
+        }
+
         let clickMUCost = 0
         const materials: BlueprintMaterial[] = []
         for (const m of bp.info.materials) {
@@ -254,10 +259,6 @@ const cleanForSave = (state: CraftState): CraftState => ({
     activeSession: undefined,
     blueprints: state.blueprints.map(bp => ({
         ...bp,
-        budget: {
-            ...bp.budget,
-            hasPage: false
-        },
         session: bp.session.step === STEP_INACTIVE ? bp.session : {
             ...bp.session,
             step: STEP_DONE
