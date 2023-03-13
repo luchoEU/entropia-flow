@@ -12,7 +12,7 @@ import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getSettings } from '../selectors/settings'
-import { BluprintWebData, CraftState, STEP_INACTIVE, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintWebMaterial, BluprintWebData, CraftState, STEP_INACTIVE, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { SettingsState } from '../state/settings'
@@ -70,22 +70,19 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 Type: 'Crafted item',
                 Value: data.ItemValue
             })
-            if (data.Material.some(m => m.Type === 'Refined Ore')) {
-                data.Material.push({
-                    Name: 'Metal Residue',
-                    Quantity: 0,
-                    Type: 'Residue',
-                    Value: '0.01'
-                })
+            const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
+                if (data.Material.some(condition)) {
+                    data.Material.push({
+                        Name: name,
+                        Quantity: 0,
+                        Type: 'Residue',
+                        Value: '0.01'
+                    })
+                }
             }
-            if (data.Material.some(m => m.Type === 'Refined Enmatter')) {
-                data.Material.push({
-                    Name: 'Energy Matter Residue',
-                    Quantity: 0,
-                    Type: 'Residue',
-                    Value: '0.01'
-                })
-            }
+            addResidue('Metal Residue', m => m.Type === 'Refined Ore' || m.Type == 'Texture Extractor')
+            addResidue('Energy Matter', m => m.Type === 'Refined Enmatter')
+            addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
             data.Material.push({
                 Name: 'Shrapnel',
                 Quantity: 0,
