@@ -1,5 +1,5 @@
 import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BluprintWebData, CraftState } from '../state/craft'
+import { BlueprintSessionDiff, BluprintWebData, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
 const ADD_BLUEPRINT = '[craft] add blueprint'
@@ -22,6 +22,7 @@ const START_CRAFT_SESSION = '[craft] start session'
 const END_CRAFT_SESSION = '[craft] end session'
 const ERROR_CRAFT_SESSION = '[craft] error session'
 const READY_CRAFT_SESSION = '[craft] ready session'
+const SET_NEW_CRAFT_SESSION_DIFF = '[craft] set new craft session diff'
 const SAVE_CRAFT_SESSION = '[craft] save session'
 const SET_CRAFT_SAVE_STAGE = '[craft] set save stage'
 const DONE_CRAFT_SESSION = '[craft] done session'
@@ -180,6 +181,14 @@ const readyCraftingSession = (name: string) => ({
     }
 })
 
+const setNewCraftingSessionDiff = (name: string, diff: BlueprintSessionDiff[]) => ({
+    type: SET_NEW_CRAFT_SESSION_DIFF,
+    payload: {
+        name,
+        diff
+    }
+})
+
 const saveCraftingSession = (name: string) => ({
     type: SAVE_CRAFT_SESSION,
     payload: {
@@ -209,8 +218,6 @@ const clearCraftingSession = (name: string) => ({
     }
 })
 
-
-
 export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
@@ -233,6 +240,7 @@ export {
     END_CRAFT_SESSION,
     ERROR_CRAFT_SESSION,
     READY_CRAFT_SESSION,
+    SET_NEW_CRAFT_SESSION_DIFF,
     SAVE_CRAFT_SESSION,
     SET_CRAFT_SAVE_STAGE,
     DONE_CRAFT_SESSION,
@@ -258,6 +266,7 @@ export {
     endCraftingSession,
     errorCraftingSession,
     readyCraftingSession,
+    setNewCraftingSessionDiff,
     saveCraftingSession,
     setCraftingSessionStage,
     doneCraftingSession,

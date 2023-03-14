@@ -1,9 +1,10 @@
 import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { BudgetSheet, BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_DONE, CHNAGE_BUDGET_PAGE_BUY_COST, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_DONE, CHNAGE_BUDGET_PAGE_BUY_COST, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
+import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
 import { cleanForSave, initialState } from '../helpers/craft'
@@ -13,8 +14,8 @@ import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
-import { HistoryState } from '../state/history'
+import { BlueprintMaterial, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
@@ -47,6 +48,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case END_CRAFT_SESSION:
         case ERROR_CRAFT_SESSION:
         case READY_CRAFT_SESSION:
+        case SET_NEW_CRAFT_SESSION_DIFF:
         case SET_CRAFT_SAVE_STAGE:
         case DONE_CRAFT_SESSION:
         case CLEAR_CRAFT_SESSION: {
@@ -165,6 +167,23 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         }
                     }
                 }
+            }
+            break
+        }
+        case ON_LAST:
+        case EXCLUDE:
+        case EXCLUDE_WARNINGS: {
+            const state: CraftState = getCraft(getState())            
+            const { diff }: LastRequiredState  = getLast(getState())
+            if (diff && state.activeSession) {
+                const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                const map = {}
+                diff.forEach((v: ViewItemData) => {
+                    if (!v.e) // not excluded
+                        map[v.n] += v.q
+                })
+                const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => ({ n: m.name, q: map[m.name] ?? 0 }))
+                dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
             }
             break
         }

@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
 import { setLast } from '../../application/actions/messages'
 import { LastRequiredState } from '../../application/helpers/last'
+import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
+import { CraftState } from '../../application/state/craft'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 
@@ -30,6 +32,8 @@ const Last = () => {
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"
     }
 
+    const craft: CraftState = useSelector(getCraft)
+
     let expandedClass = 'button-diff'
     const hasWarning = diff && diff.some((i: ViewItemData) => i.w === true)
     if (hasWarning)
@@ -54,7 +58,7 @@ const Last = () => {
                             onClick={() => dispatch(expanded ? excludeWarnings : setExpanded(true))} />
                         : ''
                     }
-                    {diff !== null ?
+                    {diff !== null && craft.activeSession === undefined ?
                         <img src='img/tick.png'
                             className='img-delta-zero'
                             onClick={() => dispatch(setLast)} />

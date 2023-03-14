@@ -45,10 +45,12 @@ interface BlueprintSession {
     step: number
     stage?: number // STEP_SAVING
     errorText?: string
-    startMaterials?: {
-        n: string,
-        q: number
-    }[]
+    diffMaterials?: BlueprintSessionDiff[]
+}
+
+interface BlueprintSessionDiff {
+    n: string,
+    q: number
 }
 
 interface BlueprintInventory {
@@ -90,6 +92,7 @@ export {
     BlueprintData,
     BlueprintMaterial,
     BlueprintSession,
+    BlueprintSessionDiff,
     BluprintWebData,
     BlueprintWebMaterial,
     STEP_SESSION_INACTIVE as STEP_INACTIVE,

@@ -1,7 +1,9 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { sortBy, setItemExpanded } from '../../application/actions/history'
 import { setAsLast } from '../../application/actions/messages'
+import { getCraft } from '../../application/selectors/craft'
+import { CraftState } from '../../application/state/craft'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 
@@ -16,6 +18,8 @@ const InventoryItem = (p: { item: ViewInventory }) => {
         movedTitle: 'this item was moved by this amount (parenthesis)'
     }
 
+    const craft: CraftState = useSelector(getCraft)
+    
     const _toggleExpanded = () => dispatch(setItemExpanded(item.key, !item.expanded))
     let expandedClass = 'button-diff'
     if (item.diff && item.diff.some((i: ViewItemData) => i.a !== undefined))
@@ -36,7 +40,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                 }
                 {item.isLast ?
                     <span className='label-up'>Last</span> :
-                    item.canBeLast ?
+                    item.canBeLast && craft.activeSession === undefined ?
                         <span className='img-up'
                             onClick={() => dispatch(setAsLast(item.key))}>
                             <img src='img/up.png' />Last</span>

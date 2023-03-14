@@ -55,13 +55,13 @@ function CraftSingle(p: {
     let sessionMUprofit = undefined
     let bought: {[name: string]: number} = undefined
 
-    if (d.session.startMaterials !== undefined) {
+    if (d.session.diffMaterials !== undefined) {
         session = {}
         sessionTTprofit = 0
         if (markupLoaded)
             sessionMUprofit = 0
         d.info.materials.forEach((m: BlueprintMaterial) => {
-            const diff = m.available - d.session.startMaterials.find(x => x.n == m.name).q
+            const diff = d.session.diffMaterials.find(x => x.n == m.name).q
             session[m.name] = diff
             sessionTTprofit += diff * m.value
             if (markupLoaded)

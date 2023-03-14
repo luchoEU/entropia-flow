@@ -121,9 +121,8 @@ class BudgetSheet {
         this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
         for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
-            const materialAfter = this.data.info.materials.find(m => m.name === name)
-            const materialBefore = this.data.session.startMaterials.find(m => m.n === name)
-            this.sheet.getCell(row, column).value = materialAfter.quantity - materialBefore.q
+            const material = this.data.session.diffMaterials.find(m => m.n === name)
+            this.sheet.getCell(row, column).value = material.q
         }
     }
 

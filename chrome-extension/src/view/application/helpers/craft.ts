@@ -1,6 +1,6 @@
 import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BlueprintData, BlueprintMaterial, BlueprintSession, BluprintWebData, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 import * as Sort from "./craftSort"
 
 const initialState: CraftState = {
@@ -289,7 +289,10 @@ const errorCraftSession = (state: CraftState, name: string, errorText: string): 
 })
 
 const readyCraftSession = (state: CraftState, name: string): CraftState =>
-    changeSession(state, name, (bp) => ({ step: STEP_READY, startMaterials: bp.info.materials.map(m => ({ n: m.name, q: m.available })) }))
+    changeSession(state, name, () => ({ step: STEP_READY }))
+
+const setCraftSessionDiff = (state: CraftState, name: string, diffMaterials: BlueprintSessionDiff[]): CraftState =>
+    changeSession(state, name, (bp) => ({ ...bp.session, diffMaterials }))
 
 const endCraftSession = (state: CraftState, name: string): CraftState =>
     changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_REFRESH_TO_END }))
@@ -346,6 +349,7 @@ export {
     endCraftSession,
     errorCraftSession,
     readyCraftSession,
+    setCraftSessionDiff,
     saveCraftSession,
     setCraftSaveStage,
     doneCraftSession,
