@@ -14,6 +14,10 @@ const SET_BUDGET_PAGE_LOADING_STAGE = '[craft] set budget page stage'
 const SET_BUDGET_PAGE_INFO = '[craft] set budget page info'
 const END_BUDGET_PAGE_LOADING = '[craft] end budget page loading'
 const ERROR_BUDGET_PAGE_LOADING = '[craft] error budget page loading'
+const BUY_BUDGET_PAGE_MATERIAL = '[craft] buy budget page material'
+const BUY_BUDGET_PAGE_MATERIAL_DONE = '[craft] buy budget page material done'
+const BUY_BUDGET_PAGE_MATERIAL_CLEAR = '[craft] buy budget page material clear'
+const CHNAGE_BUDGET_PAGE_BUY_COST = '[craft] change budget page buy cost'
 const START_CRAFT_SESSION = '[craft] start session'
 const END_CRAFT_SESSION = '[craft] end session'
 const ERROR_CRAFT_SESSION = '[craft] error session'
@@ -118,6 +122,35 @@ const setBudgetPageLoadingError = (name: string, text: string) => ({
     }
 })
 
+const buyBudgetPageMaterial = (name: string, materialName: string) => ({
+    type: BUY_BUDGET_PAGE_MATERIAL,
+    payload: {
+        name,
+        materialName
+    }
+})
+
+const doneBuyBadget = (name: string, materialName: string) => ({
+    type: BUY_BUDGET_PAGE_MATERIAL_DONE,
+    payload: {
+        name,
+        materialName
+    }
+})
+
+const clearBuyBudget = {
+    type: BUY_BUDGET_PAGE_MATERIAL_CLEAR
+}
+
+const changeBudgetPageBuyCost = (name: string, materialName: string, cost: string) => ({
+    type: CHNAGE_BUDGET_PAGE_BUY_COST,
+    payload: {
+        name,
+        materialName,
+        cost
+    }
+})
+
 const startCraftingSession = (name: string) => ({
     type: START_CRAFT_SESSION,
     payload: {
@@ -176,6 +209,8 @@ const clearCraftingSession = (name: string) => ({
     }
 })
 
+
+
 export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
@@ -190,6 +225,10 @@ export {
     SET_BUDGET_PAGE_INFO,
     END_BUDGET_PAGE_LOADING,
     ERROR_BUDGET_PAGE_LOADING,
+    BUY_BUDGET_PAGE_MATERIAL,
+    BUY_BUDGET_PAGE_MATERIAL_DONE,
+    BUY_BUDGET_PAGE_MATERIAL_CLEAR,
+    CHNAGE_BUDGET_PAGE_BUY_COST,
     START_CRAFT_SESSION,
     END_CRAFT_SESSION,
     ERROR_CRAFT_SESSION,
@@ -211,6 +250,10 @@ export {
     setBudgetPageInfo,
     endBudgetPageLoading,
     setBudgetPageLoadingError,
+    buyBudgetPageMaterial,
+    doneBuyBadget,
+    clearBuyBudget,
+    changeBudgetPageBuyCost,
     startCraftingSession,
     endCraftingSession,
     errorCraftingSession,

@@ -1,8 +1,10 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { getCraft } from '../../application/selectors/craft'
+import { getLast } from '../../application/selectors/last'
 import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
+import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function SessionInfo(p: {
@@ -48,10 +50,11 @@ function CraftSingle(p: {
     }
 
     let markupLoaded = d.budget.clickMUCost !== undefined
-
     let session = undefined
     let sessionTTprofit = undefined
     let sessionMUprofit = undefined
+    let bought: {[name: string]: number} = undefined
+
     if (d.session.startMaterials !== undefined) {
         session = {}
         sessionTTprofit = 0
@@ -64,6 +67,19 @@ function CraftSingle(p: {
             if (markupLoaded)
                 sessionMUprofit += diff * m.value * m.markup
         })
+    } else if (d.budget.hasPage) {
+        const { diff }: LastRequiredState = useSelector(getLast)
+        if (diff) {
+            d.info.materials.forEach((m: BlueprintMaterial) => {
+                var item = diff.find(x => x.n == m.name && Number(x.q) > 0)
+                if (item !== undefined && !m.buyDone) {
+                    if (bought === undefined) {
+                        bought = {}
+                    }
+                    bought[m.name] = Number(item.q)
+                }
+            })
+        }
     }
 
     if (d.expanded) {
@@ -109,6 +125,9 @@ function CraftSingle(p: {
                                             {
                                                 session === undefined ? <></> : <th>Difference</th>
                                             }
+                                            {
+                                                bought === undefined ? <></> : <th>Bought</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -130,6 +149,18 @@ function CraftSingle(p: {
                                                     }
                                                     {
                                                         session === undefined ? <></> : <td align="right">{session[m.name]}</td>
+                                                    }
+                                                    {
+                                                        bought !== undefined && bought[m.name] ?
+                                                            <td>
+                                                                <input
+                                                                    type='text'
+                                                                    value={m.buyCost}
+                                                                    className='input-budget-buy'
+                                                                    onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
+                                                                PEDs <button disabled={m.buyCost === undefined} onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name))}>
+                                                                    +{bought[m.name]}</button>
+                                                            </td> : <></>
                                                     }
                                                 </tr>)
                                         }

@@ -1,7 +1,7 @@
 import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { BudgetSheet, BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, CLEAR_CRAFT_SESSION, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_DONE, CHNAGE_BUDGET_PAGE_BUY_COST, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { refresh, setLast } from '../actions/messages'
@@ -11,10 +11,12 @@ import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
+import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintWebMaterial, BluprintWebData, CraftState, STEP_INACTIVE, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState } from '../state/history'
 import { InventoryState } from '../state/inventory'
+import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -38,6 +40,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_BUDGET_PAGE_INFO:
         case END_BUDGET_PAGE_LOADING:
         case ERROR_BUDGET_PAGE_LOADING:
+        case BUY_BUDGET_PAGE_MATERIAL:
+        case BUY_BUDGET_PAGE_MATERIAL_DONE:
+        case CHNAGE_BUDGET_PAGE_BUY_COST:
         case START_CRAFT_SESSION:
         case END_CRAFT_SESSION:
         case ERROR_CRAFT_SESSION:
@@ -139,6 +144,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     dispatch(errorCraftingSession(state.activeSession, history.list[0].text))
                 } else {
                     const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                    if (history.list[0].isLast)
+                        dispatch(clearBuyBudget)
+                    
                     switch (activeSessionBp.session.step) {
                         case STEP_REFRESH_TO_START: {
                             if (history.list[0].isLast) {
@@ -164,11 +172,36 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
+                const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, state.activeSession, setStage)
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
                 await sheet.addCraftSession()
                 await sheet.save()
                 dispatch(doneCraftingSession(state.activeSession))
+            } catch (e) {
+                dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
+                trace('exception saving craft session:')
+                traceData(e)
+            } finally {
+                dispatch(endBudgetPageLoading(action.payload.name))
+            }
+            break
+        }
+        case BUY_BUDGET_PAGE_MATERIAL: {
+            try {
+                const state: CraftState = getCraft(getState())
+                const settings: SettingsState = getSettings(getState())
+                const { diff }: LastRequiredState = getLast(getState())
+                if (diff) {
+                    var item = diff.find(x => x.n == action.payload.materialName)
+                    const activeSessionBp = state.blueprints.find(bp => bp.name === action.payload.name)
+                    const material = activeSessionBp.info.materials.find(m => m.name === action.payload.materialName)
+                    const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
+                    await sheet.addBuyMaterial(action.payload.materialName, Number(item.q), Number(material.buyCost))
+                    await sheet.save()
+                }
+                dispatch(doneBuyBadget(action.payload.name, action.payload.materialName))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
                 trace('exception saving craft session:')

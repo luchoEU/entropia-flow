@@ -347,6 +347,10 @@ button {
     border-radius: 15px;
 }
 
+button:disabled {
+    background-color: lightgrey;
+}
+
 button:active {
     background-color: grey;
 }
@@ -461,4 +465,11 @@ button:active {
 .stream-selected {
     border: black solid 2px;
     border-radius: 3px;
+}
+
+// Craft
+
+.input-budget-buy {
+    margin: 0px 5px;
+    width: 30px;
 }

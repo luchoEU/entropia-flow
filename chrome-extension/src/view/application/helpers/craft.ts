@@ -213,6 +213,63 @@ const endBudgetLoading = (state: CraftState, name: string): CraftState =>
 const errorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
     changeBudget(state, name, { error: text } )
 
+const buyBudgetMaterial = (state: CraftState, name: string, materialName: string): CraftState => ({ 
+    ...state,
+    blueprints: state.blueprints.map(bp => bp.name === name ? {
+        ...bp,
+        budget: {
+            ...bp.budget,
+            loading: true,
+            stage: STAGE_INITIALIZING
+        }}
+        : bp)
+})
+
+const buyBudgetMaterialDone = (state: CraftState, name: string, materialName: string): CraftState => ({
+    ...state,
+    blueprints: state.blueprints.map(bp => bp.name === name ? {
+        ...bp,
+        info: {
+            ...bp.info,
+            materials: bp.info.materials.map(m => m.name === materialName ? {
+                ...m, buyDone: true
+            } : m)
+        },
+        budget: {
+            ...bp.budget,
+            loading: false
+        }}
+        : bp)
+})
+
+const buyBudgetMaterialClear = (state: CraftState): CraftState => ({
+    ...state,
+    blueprints: state.blueprints.map(bp => ({
+        ...bp,
+        info: {
+            ...bp.info,
+            materials: bp.info.materials.map(m => ({
+                ...m,
+                buyCost: undefined,
+                buyDone: undefined
+            }))
+        }
+    }))
+})
+
+const changeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState => ({
+    ...state,
+    blueprints: state.blueprints.map(bp => bp.name === name ? {
+        ...bp,
+        info: {
+            ...bp.info,
+            materials: bp.info.materials.map(m => m.name === materialName ? {
+                ...m, buyCost: cost
+            } : m)
+        }}
+        : bp)
+})
+
 const changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => ({
     ...state,
     blueprints: Sort.sortList(state.sortType,
@@ -280,6 +337,10 @@ export {
     setBudgetState,
     setBudgetInfo,
     endBudgetLoading,
+    buyBudgetMaterial,
+    buyBudgetMaterialDone,
+    buyBudgetMaterialClear,
+    changeBudgetBuyCost,
     errorBudgetLoading,
     startCraftSession,
     endCraftSession,

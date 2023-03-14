@@ -33,7 +33,7 @@ interface BlueprintBudget {
     errorText?: string
 }
 
-const STEP_INACTIVE = 0
+const STEP_SESSION_INACTIVE = 0
 const STEP_REFRESH_TO_START = 1
 const STEP_ERROR = 2
 const STEP_READY = 3
@@ -66,6 +66,8 @@ interface BlueprintMaterial {
     clicks?: number // inventory
     markup?: number // budget
     budgetCount?: number // budget
+    buyCost?: string // budget
+    buyDone?: boolean // budget
 }
 
 interface BluprintWebData {
@@ -90,7 +92,7 @@ export {
     BlueprintSession,
     BluprintWebData,
     BlueprintWebMaterial,
-    STEP_INACTIVE,
+    STEP_SESSION_INACTIVE as STEP_INACTIVE,
     STEP_REFRESH_TO_START,
     STEP_ERROR,
     STEP_READY,

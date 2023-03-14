@@ -102,7 +102,7 @@ class BudgetSheet {
         return info
     }
 
-    public async addCraftSession(): Promise<void> {
+    private async addNextDate(): Promise<number> {
         const row = Math.max(5, getLastRow(this.sheet) + 1)
         if (row > 5) {
             const daysSinceLastEntry = getDaysSinceLastEntry(this.sheet, row - 1, DATE_COLUMN)
@@ -113,13 +113,29 @@ class BudgetSheet {
             const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
             this.sheet.getCell(row, DATE_COLUMN).value = s
         }
+        return row
+    }
 
+    public async addCraftSession(): Promise<void> {
+        var row = await this.addNextDate()
         this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
         for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
             const materialAfter = this.data.info.materials.find(m => m.name === name)
             const materialBefore = this.data.session.startMaterials.find(m => m.n === name)
             this.sheet.getCell(row, column).value = materialAfter.quantity - materialBefore.q
+        }
+    }
+
+    public async addBuyMaterial(materialName: string, materialQuantity: number, pedCost: number): Promise<void> {
+        var row = await this.addNextDate()
+        this.sheet.getCell(row, REASON_COLUMN).value = 'Buy'
+        this.sheet.getCell(row, PED_COLUMN).value = -pedCost
+        for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
+            const name = this.sheet.getCell(TITLE_ROW, column).value
+            if (name == materialName) {
+                this.sheet.getCell(row, column).value = materialQuantity
+            }
         }
     }
 }
