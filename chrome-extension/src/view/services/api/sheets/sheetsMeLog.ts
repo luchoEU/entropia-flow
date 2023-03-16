@@ -38,7 +38,7 @@ class MELogSheet {
     
     public async load(doc: any) {
         this.sheet = await getMeLogSheet(doc, this.setStage)
-        this.row = getLastRow(this.sheet) + 1
+        this.row = getLastRow(this.sheet, DATE_COLUMN) + 1
         this.daysSinceLastEntry = getDaysSinceLastEntry(this.sheet, this.row - 1, DATE_COLUMN)
     }
 

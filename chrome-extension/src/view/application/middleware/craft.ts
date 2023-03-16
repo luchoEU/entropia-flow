@@ -14,7 +14,7 @@ import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintMaterial, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintMaterial, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
@@ -109,7 +109,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case ADD_BLUEPRINT_DATA:
+        case SET_BLUEPRINT_EXPANDED:
         case START_BUDGET_PAGE_LOADING: {
+            if (action.type == SET_BLUEPRINT_EXPANDED && !action.payload.expanded)
+                break // only load when expanding
+
             const bpName: string = action.type === ADD_BLUEPRINT_DATA ? action.payload.data.Name : action.payload.name
             try {
                 const state: CraftState = getCraft(getState())
@@ -150,20 +154,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         dispatch(clearBuyBudget)
                     
                     switch (activeSessionBp.session.step) {
-                        case STEP_REFRESH_TO_START: {
+                        case STEP_REFRESH_TO_START:
+                        case STEP_REFRESH_ERROR: {
                             if (history.list[0].isLast) {
                                 dispatch(readyCraftingSession(state.activeSession))
                             } else {
                                 dispatch(setLast)
                             }
-                            break
-                        }
-                        case STEP_REFRESH_TO_END: {
-                            if (activeSessionBp.budget.hasPage)
-                                dispatch(saveCraftingSession(state.activeSession))
-                            else
-                                dispatch(doneCraftingSession(state.activeSession))
-                            break
                         }
                     }
                 }
@@ -179,11 +176,21 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 const map = {}
                 diff.forEach((v: ViewItemData) => {
-                    if (!v.e) // not excluded
-                        map[v.n] += v.q
+                    if (!v.e) {// not excluded
+                        if (map[v.n] === undefined)
+                            map[v.n] = 0
+                        map[v.n] += Number(v.q)
+                    }
                 })
                 const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => ({ n: m.name, q: map[m.name] ?? 0 }))
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
+
+                if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
+                    if (activeSessionBp.budget.hasPage)
+                        dispatch(saveCraftingSession(state.activeSession))
+                    else
+                        dispatch(doneCraftingSession(state.activeSession))
+                }
             }
             break
         }
@@ -192,10 +199,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
-                const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
-                await sheet.addCraftSession()
-                await sheet.save()
+                if (activeSessionBp.session.diffMaterials !== undefined) {
+                    const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
+                    await sheet.addCraftSession()
+                    await sheet.save()
+                }
                 dispatch(doneCraftingSession(state.activeSession))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))

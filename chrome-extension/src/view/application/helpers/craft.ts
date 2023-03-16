@@ -1,6 +1,6 @@
 import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 import * as Sort from "./craftSort"
 
 const initialState: CraftState = {
@@ -145,7 +145,21 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
 
 const setBlueprintExpanded = (state: CraftState, name: string, expanded: boolean): CraftState => ({
     ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, expanded } : bp)
+    blueprints: state.blueprints.map(
+        bp => bp.name === name ?        
+        {
+            ...bp,
+            budget: {
+                ...bp.budget,
+                ...(expanded ? { // reload budget
+                    loading: true,
+                    stage: STAGE_INITIALIZING,
+                    hasPage: false,
+                } : {})    
+            },
+            expanded
+        }
+        : bp)
 })
 
 const changeBudget = (state: CraftState, name: string, data: object): CraftState => ({
@@ -284,8 +298,7 @@ const startCraftSession = (state: CraftState, name: string): CraftState => ({
 
 const errorCraftSession = (state: CraftState, name: string, errorText: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, () => ({ step: STEP_ERROR, errorText })),
-    activeSession: undefined
+    ...changeSession(state, name, () => ({ step: STEP_REFRESH_ERROR, errorText }))
 })
 
 const readyCraftSession = (state: CraftState, name: string): CraftState =>

@@ -8,7 +8,7 @@ const PROFIT_MONTH_COLUMN = 3
 
 async function newDayInventory(doc: any, setStage: SetStage) {
     const sheet = await getInventorySheet(doc, setStage)
-    const row = getLastRow(sheet) + 1
+    const row = getLastRow(sheet, DATE_COLUMN) + 1
     const row1 = row + 1
 
     // add row in the left table

@@ -33,9 +33,9 @@ interface BlueprintBudget {
     errorText?: string
 }
 
-const STEP_SESSION_INACTIVE = 0
+const STEP_INACTIVE = 0
 const STEP_REFRESH_TO_START = 1
-const STEP_ERROR = 2
+const STEP_REFRESH_ERROR = 2
 const STEP_READY = 3
 const STEP_REFRESH_TO_END = 4
 const STEP_SAVING = 5
@@ -95,9 +95,9 @@ export {
     BlueprintSessionDiff,
     BluprintWebData,
     BlueprintWebMaterial,
-    STEP_SESSION_INACTIVE as STEP_INACTIVE,
+    STEP_INACTIVE,
     STEP_REFRESH_TO_START,
-    STEP_ERROR,
+    STEP_REFRESH_ERROR,
     STEP_READY,
     STEP_REFRESH_TO_END,
     STEP_SAVING,

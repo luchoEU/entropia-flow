@@ -4,6 +4,7 @@ import { SetStage, STAGE_LOADING_INVENTORY_SHEET, STAGE_LOADING_ME_LOG_SHEET, ST
 
 const ME_LOG_SHEET_NAME = 'ME Log'
 const INVENTORY_SHEET_NAME = 'Inventory'
+const DATE_FORMAT = { type: 'DATE', pattern: 'd/m/yy' }
 
 async function getSpreadsheet(accessInfo: SheetAccessInfo, setStage: SetStage) {
     setStage(STAGE_LOADING_SPREADSHEET)
@@ -65,10 +66,10 @@ async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
     await sheet.saveUpdatedCells()
 }
 
-function getLastRow(sheet: any): number {
+function getLastRow(sheet: any, column: number): number {
     // last non empty cell of the first column
     let row = sheet.rowCount - 1
-    while (row > 0 && sheet.getCell(row, 0).value === null)
+    while (row > 0 && sheet.getCell(row, column).value === null)
         row--
     return row
 }
@@ -78,7 +79,7 @@ function getDaysSinceLastEntry(sheet: any, row: number, column: number): number 
     const d = new Date()
     const p = sheet.getCell(row, column).formattedValue
     while (n < 1000) {
-        const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
+        const s = `${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear() % 100}`
         if (p === s)
             break
         n = n + 1
@@ -88,6 +89,7 @@ function getDaysSinceLastEntry(sheet: any, row: number, column: number): number 
 }
 
 export {
+    DATE_FORMAT,
     getSpreadsheet,
     getMeLogSheet,
     getInventorySheet,

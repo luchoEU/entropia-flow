@@ -1,18 +1,20 @@
-import { BlueprintData } from "../../../application/state/craft"
-import { SetStage } from "./sheetsStages"
-import { createBudgetSheet, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, hasBudgetSheet, saveUpdatedCells } from "./sheetsUtils"
+import { BlueprintData } from '../../../application/state/craft'
+import { SetStage } from './sheetsStages'
+import { createBudgetSheet, DATE_FORMAT, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, hasBudgetSheet, saveUpdatedCells } from './sheetsUtils'
 
 const DATE_COLUMN = 0
 const BUDGET_COLUMN = 1
-const REASON_COLUMN = 2
-const PED_COLUMN = 3
-const MATERIAL_COLUMN = 4
+const CHANGE_COLUMN = 2
+const REASON_COLUMN = 3
+const PED_COLUMN = 4
+const MATERIAL_COLUMN = 5
 
 const TITLE_ROW = 0
 const UNIT_VALUE_ROW = 1
 const MARKUP_ROW = 2
 const CURRENT_ROW = 3
 const TOTAL_ROW = 4
+const START_ROW = 5
 
 interface BudgetSheetInfo {
     total: number
@@ -58,20 +60,25 @@ class BudgetSheet {
     public async create(doc: any) {
         this.sheet = await createBudgetSheet(doc, this.setStage, this.data.itemName, MATERIAL_COLUMN + this.data.info.materials.length)
 
-        this.addTitle(DATE_COLUMN, "Date", undefined)
-        this.addTitle(BUDGET_COLUMN, "Budget", undefined)
-        this.addTitle(REASON_COLUMN, "Reason", undefined)
-        this.sheet.getCell(UNIT_VALUE_ROW, REASON_COLUMN).value = "Unit Value"
-        this.sheet.getCell(MARKUP_ROW, REASON_COLUMN).value = "Markup"
-        this.sheet.getCell(CURRENT_ROW, REASON_COLUMN).value = "Current"
-        this.sheet.getCell(TOTAL_ROW, REASON_COLUMN).value = "Total"
-        this.addTitle(PED_COLUMN, "PED", 1)
+        this.addTitle(DATE_COLUMN, 'Date', undefined)
+        this.addTitle(BUDGET_COLUMN, 'Budget', undefined)
+        this.addTitle(CHANGE_COLUMN, 'Change', undefined)
+        this.addTitle(REASON_COLUMN, 'Reason', undefined)
+        this.sheet.getCell(UNIT_VALUE_ROW, REASON_COLUMN).value = 'Unit Value'
+        this.sheet.getCell(MARKUP_ROW, REASON_COLUMN).value = 'Markup'
+        this.sheet.getCell(CURRENT_ROW, REASON_COLUMN).value = 'Current'
+        this.sheet.getCell(TOTAL_ROW, REASON_COLUMN).value = 'Total'
+        this.addTitle(PED_COLUMN, 'PED', 1)
 
         let column = MATERIAL_COLUMN
         for (const m of this.data.info.materials)
             this.addTitle(column++, m.name, Number(m.value))
 
-        this.sheet.getCell(4, BUDGET_COLUMN).formula = `=SUM(D5:${this.sheet.getCell(0, column-1).a1Column}5)`
+        this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(E5:${this.sheet.getCell(0, column-1).a1Column}5)`
+
+        this.sheet.getCell(START_ROW, REASON_COLUMN).value = 'Start'
+        await this.addDate(START_ROW)
+        await this.addBudget(START_ROW)
     }
 
     public async hasPage(doc: any): Promise<boolean> {
@@ -102,32 +109,45 @@ class BudgetSheet {
         return info
     }
 
-    private async addNextDate(): Promise<number> {
-        const row = Math.max(5, getLastRow(this.sheet) + 1)
-        if (row > 5) {
-            const daysSinceLastEntry = getDaysSinceLastEntry(this.sheet, row - 1, DATE_COLUMN)
-            this.sheet.getCell(row, DATE_COLUMN).formula = `=A${row}+${daysSinceLastEntry}`
-            this.sheet.getCell(row - 1, BUDGET_COLUMN).value = this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value
-        } else {
-            const d = new Date()
-            const s = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() % 100}`
-            this.sheet.getCell(row, DATE_COLUMN).value = s
+    private async getLastRow(): Promise<number> {
+        return Math.max(START_ROW, getLastRow(this.sheet, DATE_COLUMN) + 1)
+    }
+
+    private async addDate(row: number): Promise<void> {
+        const d = new Date()
+        this.sheet.getCell(row, DATE_COLUMN).formula = `=DATEVALUE("${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear()}")`
+        this.sheet.getCell(row, DATE_COLUMN).numberFormat = DATE_FORMAT
+    }
+
+    private async addBudget(row: number): Promise<void> {
+        // to use the budget sum
+        await this.sheet.saveUpdatedCells()
+        await this.sheet.loadCells({startRowIndex: TOTAL_ROW, endRowIndex: TOTAL_ROW, startColumnIndex:BUDGET_COLUMN, endColumnIndex: BUDGET_COLUMN})
+
+        this.sheet.getCell(row, BUDGET_COLUMN).value = this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value
+        this.sheet.getCell(row, BUDGET_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
+        if (row > START_ROW) {
+            this.sheet.getCell(row, CHANGE_COLUMN).formula = `=B${row+1}-B${row}`
+            this.sheet.getCell(row, CHANGE_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         }
-        return row
     }
 
     public async addCraftSession(): Promise<void> {
-        var row = await this.addNextDate()
+        const row = await this.getLastRow()
+        await this.addDate(row)
         this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
-        for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
+        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
             const material = this.data.session.diffMaterials.find(m => m.n === name)
-            this.sheet.getCell(row, column).value = material.q
+            if (material.q !== 0)
+                this.sheet.getCell(row, column).value = material.q
         }
+        await this.addBudget(row)
     }
 
     public async addBuyMaterial(materialName: string, materialQuantity: number, pedCost: number): Promise<void> {
-        var row = await this.addNextDate()
+        const row = await this.getLastRow()
+        await this.addDate(row)
         this.sheet.getCell(row, REASON_COLUMN).value = 'Buy'
         this.sheet.getCell(row, PED_COLUMN).value = -pedCost
         for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
@@ -136,6 +156,7 @@ class BudgetSheet {
                 this.sheet.getCell(row, column).value = materialQuantity
             }
         }
+        await this.addBudget(row)
     }
 }
 

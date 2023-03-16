@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
-import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
+import { getStatus } from '../../application/selectors/status'
+import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 
@@ -12,6 +13,7 @@ function SessionInfo(p: {
     session: BlueprintSession
 }) {
     const dispatch = useDispatch()
+    const { message } = useSelector(getStatus);
 
     switch (p.session.step) {
         case STEP_INACTIVE:
@@ -20,10 +22,12 @@ function SessionInfo(p: {
             return <><img className='img-loading' src='img/loading.gif' /> Refreshing items list to start...</>
         case STEP_REFRESH_TO_END:
             return <><img className='img-loading' src='img/loading.gif' /> Refreshing items list to end...</>
-        case STEP_ERROR:
+        case STEP_REFRESH_ERROR:
             return <>
                 <span className='error'>{p.session.errorText}</span>
-                <button onClick={() => dispatch(startCraftingSession(p.name))}>Retry</button>
+                <button className="wait-button" onClick={() => dispatch(clearCraftingSession(p.name))}>Clear</button>
+                <button className='wait-button' onClick={() => dispatch(startCraftingSession(p.name))}>Retry</button>
+                <span>{message}</span>
             </>
         case STEP_READY:
             return <>Ready <button onClick={() => dispatch(endCraftingSession(p.name))}>End</button></>
