@@ -91,6 +91,9 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
     }))
 })
 
+const itemName = (bp: BlueprintData, m: BlueprintMaterial): string =>
+    m.name === 'Blueprint' ? bp.name : m.name === 'Item' ? bp.itemName : m.name
+
 const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
     let blueprints: BlueprintData[] = []    
     for (let bp of state.blueprints) {
@@ -100,7 +103,7 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
             let clickTTCost = 0
             const materials: BlueprintMaterial[] = []
             for (const m of bp.info.materials) {
-                const name = m.name === 'Blueprint' ? bp.name : m.name === 'Item' ? bp.itemName : m.name
+                const name = itemName(bp, m)
                 const available = dictionary[name] ?? 0
                 materials.push({
                     ...m,
@@ -342,6 +345,7 @@ const cleanForSave = (state: CraftState): CraftState => ({
 export {
     initialState,
     setState,
+    itemName,
     addBlueprint,
     removeBlueprint,
     sortBlueprintsByPart,

@@ -122,7 +122,7 @@ class BudgetSheet {
     private async addBudget(row: number): Promise<void> {
         // to use the budget sum
         await this.sheet.saveUpdatedCells()
-        await this.sheet.loadCells({startRowIndex: TOTAL_ROW, endRowIndex: TOTAL_ROW, startColumnIndex:BUDGET_COLUMN, endColumnIndex: BUDGET_COLUMN})
+        await this.sheet.loadCells()
 
         this.sheet.getCell(row, BUDGET_COLUMN).value = this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value
         this.sheet.getCell(row, BUDGET_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }

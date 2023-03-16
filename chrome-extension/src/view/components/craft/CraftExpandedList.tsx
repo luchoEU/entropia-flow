@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status'
@@ -10,11 +11,11 @@ import { StageText } from '../../services/api/sheets/sheetsStages'
 
 function SessionInfo(p: {
     name: string,
-    session: BlueprintSession
+    session: BlueprintSession,
+    dispatch: Dispatch<any>,
+    message: string
 }) {
-    const dispatch = useDispatch()
-    const { message } = useSelector(getStatus);
-
+    const { dispatch, message } = p
     switch (p.session.step) {
         case STEP_INACTIVE:
             return <button onClick={() => dispatch(startCraftingSession(p.name))}>Start</button>
@@ -42,10 +43,11 @@ function SessionInfo(p: {
 
 function CraftSingle(p: {
     d: BlueprintData
-    activeSession?: string
+    activeSession?: string,
+    dispatch: Dispatch<any>,
+    message: string
 }) {
-    const { d } = p
-    const dispatch = useDispatch()
+    const { d, dispatch } = p
 
     function addZeroes(n: number) {
         const dec = n.toString().split('.')[1]
@@ -75,7 +77,8 @@ function CraftSingle(p: {
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
             d.info.materials.forEach((m: BlueprintMaterial) => {
-                var item = diff.find(x => x.n == m.name && Number(x.q) > 0)
+                const name = itemName(d, m)
+                const item = diff.find(x => x.n == name && Number(x.q) > 0)
                 if (item !== undefined && !m.buyDone) {
                     if (bought === undefined) {
                         bought = {}
@@ -107,7 +110,7 @@ function CraftSingle(p: {
                                 }</p>
                                 <p>Crafting Session: {
                                     p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
-                                    <SessionInfo name={d.name} session={d.session} />
+                                    <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} />
                                 }</p>
                                 <p>Item: {d.itemName}</p>
                                 <table>
@@ -197,11 +200,13 @@ function CraftSingle(p: {
 
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
+    const dispatch = useDispatch()
+    const { message } = useSelector(getStatus);
 
     return (
         <>
             {
-                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession} />)
+                s.blueprints.map((d: BlueprintData) => <CraftSingle key={d.name} d={d} activeSession={s.activeSession} dispatch={dispatch} message={message} />)
             }
         </>
     )

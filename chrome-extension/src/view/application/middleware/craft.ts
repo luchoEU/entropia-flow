@@ -7,7 +7,7 @@ import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { cleanForSave, initialState } from '../helpers/craft'
+import { cleanForSave, initialState, itemName } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -182,7 +182,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         map[v.n] += Number(v.q)
                     }
                 })
-                const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => ({ n: m.name, q: map[m.name] ?? 0 }))
+                const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => {
+                    const name = itemName(activeSessionBp, m)
+                    return { n: name, q: map[name] ?? 0 }
+                })
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
                 if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
