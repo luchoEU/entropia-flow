@@ -88,7 +88,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
             }
             addResidue('Metal Residue', m => m.Type === 'Refined Ore' || m.Type == 'Texture Extractor')
-            addResidue('Energy Matter', m => m.Type === 'Refined Enmatter')
+            addResidue('Energy Matter Residue', m => m.Type === 'Refined Enmatter')
             addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
             data.Material.push({
                 Name: 'Shrapnel',

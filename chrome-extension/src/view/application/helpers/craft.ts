@@ -91,8 +91,11 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
     }))
 })
 
+const itemNameFromString = (bp: BlueprintData, name: string): string =>
+    name === 'Blueprint' ? bp.name : name === 'Item' ? bp.itemName : name
+
 const itemName = (bp: BlueprintData, m: BlueprintMaterial): string =>
-    m.name === 'Blueprint' ? bp.name : m.name === 'Item' ? bp.itemName : m.name
+    itemNameFromString(bp, m.name)
 
 const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
     let blueprints: BlueprintData[] = []    
@@ -346,6 +349,7 @@ export {
     initialState,
     setState,
     itemName,
+    itemNameFromString,
     addBlueprint,
     removeBlueprint,
     sortBlueprintsByPart,

@@ -56,6 +56,23 @@ function CraftSingle(p: {
     }
 
     let markupLoaded = d.budget.clickMUCost !== undefined
+    let markupMap = undefined
+    let budgetMap = undefined
+    if (markupLoaded) {
+        d.info.materials.forEach((m: BlueprintMaterial) => {
+            if (m.markup !== 1) {
+                if (markupMap === undefined)
+                    markupMap = {}
+                markupMap[m.name] = `${(m.markup * 100).toFixed(2)}%`
+            }
+            if (m.budgetCount !== 0) {
+                if (budgetMap === undefined)
+                    budgetMap = {}
+                budgetMap[m.name] = m.budgetCount
+            }
+        })
+    }
+
     let session = undefined
     let sessionTTprofit = undefined
     let sessionMUprofit = undefined
@@ -67,11 +84,14 @@ function CraftSingle(p: {
         if (markupLoaded)
             sessionMUprofit = 0
         d.info.materials.forEach((m: BlueprintMaterial) => {
-            const diff = d.session.diffMaterials.find(x => x.n == m.name).q
-            session[m.name] = diff
-            sessionTTprofit += diff * m.value
-            if (markupLoaded)
-                sessionMUprofit += diff * m.value * m.markup
+            const name = itemName(d, m)
+            const diff = d.session.diffMaterials.find(x => x.n == name)?.q
+            if (diff !== undefined) {            
+                session[m.name] = diff
+                sessionTTprofit += diff * m.value
+                if (markupLoaded)
+                    sessionMUprofit += diff * m.value * m.markup
+            }
         })
     } else if (d.budget.hasPage) {
         const { diff }: LastRequiredState = useSelector(getLast)
@@ -121,20 +141,11 @@ function CraftSingle(p: {
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Available</th>
-                                            <th>Clicks</th>
-                                            {
-                                                markupLoaded ?
-                                                <>
-                                                    <th>Markup</th>
-                                                    <th>Budget</th>
-                                                </> : <></>
-                                            }
-                                            {
-                                                session === undefined ? <></> : <th>Difference</th>
-                                            }
-                                            {
-                                                bought === undefined ? <></> : <th>Bought</th>
-                                            }
+                                            <th>Clicks</th>                                    
+                                            { markupMap ? <th>Markup</th> : <></> }
+                                            { budgetMap ? <th>Budget</th> : <></> }
+                                            { session ? <th>Difference</th> : <></> }
+                                            { bought ? <th>Bought</th> : <></> }
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -147,16 +158,9 @@ function CraftSingle(p: {
                                                     <td>{m.type}</td>
                                                     <td align='right'>{m.available}</td>
                                                     <td align='right'>{m.clicks}</td>
-                                                    {
-                                                        markupLoaded ?
-                                                        <>
-                                                            <td align='right'>{(m.markup * 100).toFixed(2)}%</td>
-                                                            <td align='right'>{m.budgetCount}</td>
-                                                        </> : <></>
-                                                    }
-                                                    {
-                                                        session === undefined ? <></> : <td align="right">{session[m.name]}</td>
-                                                    }
+                                                    { markupMap ? <td align='right'>{markupMap[m.name]}</td> : <></> }
+                                                    { budgetMap ? <td align='right'>{budgetMap[m.name]}</td> : <></> }
+                                                    { session ? <td align="right">{session[m.name]}</td> : <></> }
                                                     {
                                                         bought !== undefined && bought[m.name] ?
                                                             <td>

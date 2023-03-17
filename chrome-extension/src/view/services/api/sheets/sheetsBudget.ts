@@ -1,6 +1,7 @@
+import { itemNameFromString } from '../../../application/helpers/craft'
 import { BlueprintData } from '../../../application/state/craft'
 import { SetStage } from './sheetsStages'
-import { createBudgetSheet, DATE_FORMAT, getBudgetSheet, getDaysSinceLastEntry, getInventorySheet, getLastRow, hasBudgetSheet, saveUpdatedCells } from './sheetsUtils'
+import { createBudgetSheet, DATE_FORMAT, getBudgetSheet, getLastRow, hasBudgetSheet, saveUpdatedCells } from './sheetsUtils'
 
 const DATE_COLUMN = 0
 const BUDGET_COLUMN = 1
@@ -137,9 +138,10 @@ class BudgetSheet {
         await this.addDate(row)
         this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
         for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
-            const name = this.sheet.getCell(TITLE_ROW, column).value
+            const titleName = this.sheet.getCell(TITLE_ROW, column).value
+            const name = itemNameFromString(this.data, titleName)
             const material = this.data.session.diffMaterials.find(m => m.n === name)
-            if (material.q !== 0)
+            if (material !== undefined && material.q !== 0)
                 this.sheet.getCell(row, column).value = material.q
         }
         await this.addBudget(row)
