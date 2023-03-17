@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeBlueprint, setActiveBlueprintsExpanded, setBlueprintExpanded, sortBlueprintsBy } from '../../application/actions/craft'
-import { BUDGET, CASH, CLICKS, NAME } from '../../application/helpers/craftSort'
+import { BUDGET, CASH, CLICKS, ITEMS, NAME } from '../../application/helpers/craftSort'
 import { getCraft } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
 import ExpandableSection from '../common/ExpandableSection'
@@ -12,14 +12,22 @@ function CraftCollapsedList() {
 
     if (s.blueprints.length > 0) {
         var clicksMap = undefined
+        var itemsMap = undefined
         var budgetMap = undefined
         var cashMap = undefined
 
         s.blueprints.forEach((d: BlueprintData) => {
             if (d.info.bpClicks > 0) {
-                if (clicksMap === undefined )
+                if (clicksMap === undefined)
                     clicksMap = {}
                 clicksMap[d.name] = d.info.bpClicks
+            }
+
+            var itemAvailable = d.info.materials.find(m => m.name === "Item")?.available ?? 0
+            if (itemAvailable > 0) {
+                if (itemsMap === undefined)
+                    itemsMap = {}
+                itemsMap[d.name] = itemAvailable
             }
 
             if (d.budget.total !== undefined) {
@@ -45,6 +53,7 @@ function CraftCollapsedList() {
                             <th></th>
                             <th>Name</th>
                             { clicksMap ? <th>Clicks</th> : <></> }
+                            { itemsMap ? <th>Items</th> : <></> }
                             { budgetMap ? <th>Budget</th> : <></> }
                             { cashMap ? <th>Cash</th> : <></> }
                             <th>Remove</th>
@@ -61,6 +70,7 @@ function CraftCollapsedList() {
                                     </td>
                                     <td onClick={sortBy(NAME)}>{d.itemName}</td>
                                     { clicksMap ? <td align='center' onClick={sortBy(CLICKS)}>{clicksMap[d.name]}</td> : <></> }
+                                    { itemsMap ? <td align='center' onClick={sortBy(ITEMS)}>{itemsMap[d.name]}</td> : <></> }
                                     { budgetMap ? <td align='right' onClick={sortBy(BUDGET)}>{budgetMap[d.name]}</td> : <></> }
                                     { cashMap ? <td align='right' onClick={sortBy(CASH)}>{cashMap[d.name]}</td> : <></> }
                                     <td align='center'>
