@@ -200,7 +200,7 @@ const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetInfo): 
                     markup: materialInfo.markup,
                     budgetCount: materialInfo.current
                 })
-                clickMUCost += m.quantity * m.value * m.markup
+                clickMUCost += m.quantity * m.value * materialInfo.markup
             }
         }
 
