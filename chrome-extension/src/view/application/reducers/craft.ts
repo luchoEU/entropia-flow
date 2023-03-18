@@ -1,4 +1,4 @@
-import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHNAGE_BUDGET_PAGE_BUY_COST, CLEAR_CRAFT_SESSION, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
+import { ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CLEAR_CRAFT_SESSION, DONE_CRAFT_SESSION, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_CRAFT_STATE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from "../actions/craft"
 import { addBlueprint, addBlueprintData, buyBudgetMaterial, buyBudgetMaterialClear, buyBudgetMaterialDone, changeBudgetBuyCost, clearCraftSession, doneCraftSession, endBudgetLoading, endCraftSession, errorBudgetLoading, errorCraftSession, initialState, readyCraftSession, removeBlueprint, saveCraftSession, setActiveBlueprintsExpanded, setBlueprintExpanded, setBlueprintQuantity, setBudgetInfo, setBudgetState, setCraftSaveStage, setCraftSessionDiff, setState, sortBlueprintsByPart, startBudgetLoading, startCraftSession } from "../helpers/craft"
 
 export default (state = initialState, action) => {
@@ -16,10 +16,10 @@ export default (state = initialState, action) => {
         case SET_BUDGET_PAGE_INFO: return setBudgetInfo(state, action.payload.name, action.payload.info)
         case END_BUDGET_PAGE_LOADING: return endBudgetLoading(state, action.payload.name)
         case ERROR_BUDGET_PAGE_LOADING: return errorBudgetLoading(state, action.payload.name, action.payload.text)
-        case BUY_BUDGET_PAGE_MATERIAL: return buyBudgetMaterial(state, action.payload.name, action.payload.materialName)
+        case BUY_BUDGET_PAGE_MATERIAL: return buyBudgetMaterial(state, action.payload.name, action.payload.materialName, action.payload.text)
         case BUY_BUDGET_PAGE_MATERIAL_DONE: return buyBudgetMaterialDone(state, action.payload.name, action.payload.materialName)
         case BUY_BUDGET_PAGE_MATERIAL_CLEAR: return buyBudgetMaterialClear(state)
-        case CHNAGE_BUDGET_PAGE_BUY_COST: return changeBudgetBuyCost(state, action.payload.name, action.payload.materialName, action.payload.cost)
+        case CHANGE_BUDGET_PAGE_BUY_COST: return changeBudgetBuyCost(state, action.payload.name, action.payload.materialName, action.payload.cost)
         case START_CRAFT_SESSION: return startCraftSession(state, action.payload.name)
         case END_CRAFT_SESSION: return endCraftSession(state, action.payload.name)
         case ERROR_CRAFT_SESSION: return errorCraftSession(state, action.payload.name, action.payload.errorText)

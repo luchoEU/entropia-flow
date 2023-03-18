@@ -147,11 +147,11 @@ class BudgetSheet {
         await this.addBudget(row)
     }
 
-    public async addBuyMaterial(materialName: string, materialQuantity: number, pedCost: number): Promise<void> {
+    public async addBuyMaterial(materialName: string, materialQuantity: number, pedCost: number, text: string): Promise<void> {
         const row = await this.getLastRow()
         await this.addDate(row)
 
-        this.sheet.getCell(row, REASON_COLUMN).value = materialQuantity > 0 ? 'Buy' : 'Sell'        
+        this.sheet.getCell(row, REASON_COLUMN).value = text
         this.sheet.getCell(row, PED_COLUMN).value = -pedCost
         for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value

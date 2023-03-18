@@ -77,7 +77,7 @@ function CraftSingle(p: {
     let session = undefined
     let sessionTTprofit = undefined
     let sessionMUprofit = undefined
-    let bought: {[name: string]: number} = undefined
+    let bought: {[name: string]: { quantity: number, value: string, text: string }} = undefined
 
     if (d.session.diffMaterials !== undefined) {
         session = {}
@@ -95,6 +95,20 @@ function CraftSingle(p: {
             }
         })
     } else if (d.budget.hasPage) {
+        d.info.materials.forEach((m: BlueprintMaterial) => {
+            if (budgetMap && budgetMap[m.name] < 0) {
+                if (bought === undefined) {
+                    bought = {}
+                }
+                const q = -budgetMap[m.name]
+                bought[m.name] = {
+                    quantity: q,
+                    value: (q * m.value * (m.markup ?? 1)).toFixed(2),
+                    text: 'Move'
+                }
+            }
+        })
+
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
             d.info.materials.forEach((m: BlueprintMaterial) => {
@@ -104,7 +118,12 @@ function CraftSingle(p: {
                     if (bought === undefined) {
                         bought = {}
                     }
-                    bought[m.name] = Number(item.q)
+                    const q = Number(item.q)
+                    bought[m.name] = {
+                        quantity: q,
+                        value: m.buyCost ?? (q * m.value * (m.markup ?? 1)).toFixed(2),
+                        text: q > 0 ? 'Buy' : 'Sell'
+                    }
                 }
             })
         }
@@ -160,18 +179,18 @@ function CraftSingle(p: {
                                                 <td align='right'>{m.clicks}</td>
                                                 { markupMap ? <td align='right'>{markupMap[m.name]}</td> : <></> }
                                                 { budgetMap ? <td align='right'>{budgetMap[m.name]}</td> : <></> }
-                                                { session ? <td align="right">{session[m.name]}</td> : <></> }
+                                                { session ? <td align="right">{session[m.name]}</td> : <></> }                                                
                                                 {
                                                     bought !== undefined && bought[m.name] ?
                                                         d.budget.loading ? <img className='img-loading' src='img/loading.gif' /> :
                                                         <td>
                                                             <input
                                                                 type='text'
-                                                                value={m.buyCost ?? Math.abs(bought[m.name] * m.value * (markupMap?.get(m.name) ?? 1))}
+                                                                value={bought[m.name].value}
                                                                 className='input-budget-buy'
                                                                 onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
-                                                            PED <button onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name))}>
-                                                                {(bought[m.name] > 0 ? 'Buy ' : 'Sell ') + Math.abs(bought[m.name])}</button>
+                                                            PED <button onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text))}>
+                                                                {`${bought[m.name].text} ${Math.abs(bought[m.name].quantity)}`}</button>
                                                         </td> : <></>
                                                 }
                                             </tr>)

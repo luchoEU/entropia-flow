@@ -233,7 +233,7 @@ const endBudgetLoading = (state: CraftState, name: string): CraftState =>
 const errorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
     changeBudget(state, name, { error: text } )
 
-const buyBudgetMaterial = (state: CraftState, name: string, materialName: string): CraftState => ({ 
+const buyBudgetMaterial = (state: CraftState, name: string, materialName: string, text: string): CraftState => ({ 
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
