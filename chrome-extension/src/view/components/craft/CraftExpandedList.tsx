@@ -48,6 +48,7 @@ function CraftSingle(p: {
     message: string
 }) {
     const { d, dispatch } = p
+    if (!d.expanded) return <></>
 
     function addZeroes(n: number) {
         const dec = n.toString().split('.')[1]
@@ -98,7 +99,7 @@ function CraftSingle(p: {
         if (diff) {
             d.info.materials.forEach((m: BlueprintMaterial) => {
                 const name = itemName(d, m)
-                const item = diff.find(x => x.n == name && Number(x.q) > 0)
+                const item = diff.find(x => x.n == name && Number(x.q) !== 0)
                 if (item !== undefined && !m.buyDone) {
                     if (bought === undefined) {
                         bought = {}
@@ -109,97 +110,94 @@ function CraftSingle(p: {
         }
     }
 
-    if (d.expanded) {
-        return (
-            <>
-                <section>
-                    <h1>
-                        {d.name}
-                        <img className='hide' src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} />
-                    </h1>
-                    {
-                        d.info.loading ?
-                            <img className='img-loading' src='img/loading.gif' /> :
-                        d.info.materials.length === 0 ?
-                            <p>{d.info.errorText}</p> :
-                            <div>                                
-                                <a href={d.info.url} target='_blank'>entropiawiki</a>
-                                <p>Budget Page: {d.budget.loading ?
-                                    <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
-                                    <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
-                                }</p>
-                                <p>Crafting Session: {
-                                    p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
-                                    <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} />
-                                }</p>
-                                <p>Item: {d.itemName}</p>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Needed</th>
-                                            <th>Unit Value</th>
-                                            <th>Name</th>
-                                            <th>Type</th>
-                                            <th>Available</th>
-                                            <th>Clicks</th>                                    
-                                            { markupMap ? <th>Markup</th> : <></> }
-                                            { budgetMap ? <th>Budget</th> : <></> }
-                                            { session ? <th>Difference</th> : <></> }
-                                            { bought ? <th>Bought</th> : <></> }
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            d.info.materials.map((m: BlueprintMaterial) =>                             
-                                                <tr key={m.name}>
-                                                    <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
-                                                    <td align='right'>{addZeroes(m.value)}</td>
-                                                    <td>{m.name}</td>
-                                                    <td>{m.type}</td>
-                                                    <td align='right'>{m.available}</td>
-                                                    <td align='right'>{m.clicks}</td>
-                                                    { markupMap ? <td align='right'>{markupMap[m.name]}</td> : <></> }
-                                                    { budgetMap ? <td align='right'>{budgetMap[m.name]}</td> : <></> }
-                                                    { session ? <td align="right">{session[m.name]}</td> : <></> }
-                                                    {
-                                                        bought !== undefined && bought[m.name] ?
-                                                            <td>
-                                                                <input
-                                                                    type='text'
-                                                                    value={m.buyCost}
-                                                                    className='input-budget-buy'
-                                                                    onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
-                                                                PEDs <button disabled={m.buyCost === undefined} onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name))}>
-                                                                    +{bought[m.name]}</button>
-                                                            </td> : <></>
-                                                    }
-                                                </tr>)
-                                        }
-                                    </tbody>
-                                </table>
-                                {
-                                    d.inventory === undefined ? <></> :
-                                    <>
-                                        <p>Clicks available: {d.inventory.clicksAvailable}</p>
-                                        <p>Click TT cost: {d.inventory.clickTTCost.toFixed(2)} PED</p>
-                                        { d.budget.clickMUCost === undefined ? <></> :
-                                            <p>Click MU cost: {d.budget.clickMUCost.toFixed(2)} PED</p> }
-                                        { d.inventory.residueNeeded === undefined ? <></> :
-                                            <p>Residue needed per click: {d.inventory.residueNeeded.toFixed(2)} PED</p> }
-                                        { sessionTTprofit === undefined ? <></> :
-                                            <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
-                                        { sessionMUprofit === undefined ? <></> :
-                                            <p>Session MU profit: {sessionMUprofit.toFixed(2)} PED</p>}
-                                    </>
-                                }
-                            </div>
-                    }
-                </section>
-            </>
-        )
-    } else {
-        return <></>
-    }
+    return (
+        <>
+            <section>
+                <h1>
+                    {d.name}
+                    <img className='hide' src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} />
+                </h1>
+                {
+                    d.info.loading ?
+                        <img className='img-loading' src='img/loading.gif' /> :
+                    d.info.materials.length === 0 ?
+                        <p>{d.info.errorText}</p> :
+                        <div>                                
+                            <a href={d.info.url} target='_blank'>entropiawiki</a>
+                            <p>Budget Page: {d.budget.loading ?
+                                <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
+                                <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
+                            }</p>
+                            <p>Crafting Session: {
+                                p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
+                                <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} />
+                            }</p>
+                            <p>Item: {d.itemName}</p>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Needed</th>
+                                        <th>Unit Value</th>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Available</th>
+                                        <th>Clicks</th>                                    
+                                        { markupMap ? <th>Markup</th> : <></> }
+                                        { budgetMap ? <th>Budget</th> : <></> }
+                                        { session ? <th>Difference</th> : <></> }
+                                        { bought ? <th>Bought</th> : <></> }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        d.info.materials.map((m: BlueprintMaterial) =>                             
+                                            <tr key={m.name}>
+                                                <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
+                                                <td align='right'>{addZeroes(m.value)}</td>
+                                                <td>{m.name}</td>
+                                                <td>{m.type}</td>
+                                                <td align='right'>{m.available}</td>
+                                                <td align='right'>{m.clicks}</td>
+                                                { markupMap ? <td align='right'>{markupMap[m.name]}</td> : <></> }
+                                                { budgetMap ? <td align='right'>{budgetMap[m.name]}</td> : <></> }
+                                                { session ? <td align="right">{session[m.name]}</td> : <></> }
+                                                {
+                                                    bought !== undefined && bought[m.name] ?
+                                                        d.budget.loading ? <img className='img-loading' src='img/loading.gif' /> :
+                                                        <td>
+                                                            <input
+                                                                type='text'
+                                                                value={m.buyCost ?? Math.abs(bought[m.name] * m.value * (markupMap?.get(m.name) ?? 1))}
+                                                                className='input-budget-buy'
+                                                                onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
+                                                            PED <button onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name))}>
+                                                                {(bought[m.name] > 0 ? 'Buy ' : 'Sell ') + Math.abs(bought[m.name])}</button>
+                                                        </td> : <></>
+                                                }
+                                            </tr>)
+                                    }
+                                </tbody>
+                            </table>
+                            {
+                                d.inventory === undefined ? <></> :
+                                <>
+                                    <p>Clicks available: {d.inventory.clicksAvailable}</p>
+                                    <p>Click TT cost: {d.inventory.clickTTCost.toFixed(2)} PED</p>
+                                    { d.budget.clickMUCost === undefined ? <></> :
+                                        <p>Click MU cost: {d.budget.clickMUCost.toFixed(2)} PED</p> }
+                                    { d.inventory.residueNeeded === undefined ? <></> :
+                                        <p>Residue needed per click: {d.inventory.residueNeeded.toFixed(2)} PED</p> }
+                                    { sessionTTprofit === undefined ? <></> :
+                                        <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
+                                    { sessionMUprofit === undefined ? <></> :
+                                        <p>Session MU profit: {sessionMUprofit.toFixed(2)} PED</p>}
+                                </>
+                            }
+                        </div>
+                }
+            </section>
+        </>
+    )
 }
 
 function CraftExpandedList() {

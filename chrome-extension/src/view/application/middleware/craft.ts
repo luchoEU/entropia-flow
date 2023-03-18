@@ -7,7 +7,7 @@ import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { cleanForSave, initialState, itemName } from '../helpers/craft'
+import { cleanForSave, initialState, itemName, itemNameFromString } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -224,12 +224,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const settings: SettingsState = getSettings(getState())
                 const { diff }: LastRequiredState = getLast(getState())
                 if (diff) {
-                    var item = diff.find(x => x.n == action.payload.materialName)
                     const activeSessionBp = state.blueprints.find(bp => bp.name === action.payload.name)
+                    const name = itemNameFromString(activeSessionBp, action.payload.materialName)
+                    const item = diff.find(x => x.n == name)
                     const material = activeSessionBp.info.materials.find(m => m.name === action.payload.materialName)
+                    const cost = material.buyCost !== undefined ? Number(material.buyCost) :
+                        Number(item.q) * material.value * (material.markup ?? 1)
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
-                    await sheet.addBuyMaterial(action.payload.materialName, Number(item.q), Number(material.buyCost))
+                    await sheet.addBuyMaterial(action.payload.materialName, Number(item.q), cost)
                     await sheet.save()
                 }
                 dispatch(doneBuyBadget(action.payload.name, action.payload.materialName))
