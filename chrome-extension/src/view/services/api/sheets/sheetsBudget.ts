@@ -153,7 +153,7 @@ class BudgetSheet {
 
         this.sheet.getCell(row, REASON_COLUMN).value = text
         this.sheet.getCell(row, PED_COLUMN).value = -pedCost
-        for (let column = MATERIAL_COLUMN; column < this.sheet.ColumnCount; column++) {
+        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
             if (name == materialName) {
                 this.sheet.getCell(row, column).value = materialQuantity
