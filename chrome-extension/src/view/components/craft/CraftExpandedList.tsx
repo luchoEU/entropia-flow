@@ -1,6 +1,6 @@
 import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
@@ -104,7 +104,7 @@ function CraftSingle(p: {
                 bought[m.name] = {
                     quantity: q,
                     value: (q * m.value * (m.markup ?? 1)).toFixed(2),
-                    text: 'Move'
+                    text: BUDGET_MOVE
                 }
             }
         })
@@ -122,7 +122,7 @@ function CraftSingle(p: {
                     bought[m.name] = {
                         quantity: q,
                         value: m.buyCost ?? (q * m.value * (m.markup ?? 1)).toFixed(2),
-                        text: q > 0 ? 'Buy' : 'Sell'
+                        text: q > 0 ? BUDGET_BUY : BUDGET_SELL
                     }
                 }
             })
@@ -182,14 +182,15 @@ function CraftSingle(p: {
                                                 { session ? <td align="right">{session[m.name]}</td> : <></> }                                                
                                                 {
                                                     bought !== undefined && bought[m.name] ?
-                                                        d.budget.loading ? <img className='img-loading' src='img/loading.gif' /> :
+                                                        d.budget.loading ? <td><img className='img-loading' src='img/loading.gif' /></td> :
                                                         <td>
                                                             <input
                                                                 type='text'
                                                                 value={bought[m.name].value}
                                                                 className='input-budget-buy'
                                                                 onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
-                                                            PED <button onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text))}>
+                                                            PED <button
+                                                                onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text, Number(bought[m.name].value), bought[m.name].quantity))}>
                                                                 {`${bought[m.name].text} ${Math.abs(bought[m.name].quantity)}`}</button>
                                                         </td> : <></>
                                                 }

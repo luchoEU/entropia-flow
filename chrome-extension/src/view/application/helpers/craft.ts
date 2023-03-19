@@ -233,7 +233,7 @@ const endBudgetLoading = (state: CraftState, name: string): CraftState =>
 const errorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
     changeBudget(state, name, { error: text } )
 
-const buyBudgetMaterial = (state: CraftState, name: string, materialName: string, text: string): CraftState => ({ 
+const buyBudgetMaterial = (state: CraftState, name: string): CraftState => ({ 
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
@@ -338,6 +338,11 @@ const cleanForSave = (state: CraftState): CraftState => ({
     activeSession: undefined,
     blueprints: state.blueprints.map(bp => ({
         ...bp,
+        budget: {
+            ...bp.budget,
+            loading: true,
+            stage: STAGE_INITIALIZING
+        },
         session: bp.session.step === STEP_INACTIVE ? bp.session : {
             ...bp.session,
             step: STEP_DONE

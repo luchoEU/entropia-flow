@@ -155,11 +155,11 @@ async function loadInventoryState(): Promise<InventoryState> {
 }
 
 async function saveCraft(state: CraftState) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_CRAFT, state)
+    await LOCAL_STORAGE.set(STORAGE_VIEW_CRAFT, state)
 }
 
 async function loadCraft(): Promise<CraftState> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_CRAFT)
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_CRAFT)
 }
 
 async function saveSettings(state: SettingsState) {

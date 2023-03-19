@@ -16,7 +16,7 @@ export default (state = initialState, action) => {
         case SET_BUDGET_PAGE_INFO: return setBudgetInfo(state, action.payload.name, action.payload.info)
         case END_BUDGET_PAGE_LOADING: return endBudgetLoading(state, action.payload.name)
         case ERROR_BUDGET_PAGE_LOADING: return errorBudgetLoading(state, action.payload.name, action.payload.text)
-        case BUY_BUDGET_PAGE_MATERIAL: return buyBudgetMaterial(state, action.payload.name, action.payload.materialName, action.payload.text)
+        case BUY_BUDGET_PAGE_MATERIAL: return buyBudgetMaterial(state, action.payload.name)
         case BUY_BUDGET_PAGE_MATERIAL_DONE: return buyBudgetMaterialDone(state, action.payload.name, action.payload.materialName)
         case BUY_BUDGET_PAGE_MATERIAL_CLEAR: return buyBudgetMaterialClear(state)
         case CHANGE_BUDGET_PAGE_BUY_COST: return changeBudgetBuyCost(state, action.payload.name, action.payload.materialName, action.payload.cost)

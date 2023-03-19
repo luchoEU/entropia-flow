@@ -17,8 +17,6 @@ const InventoryItem = (p: { item: ViewInventory }) => {
         showPeds: false,
         movedTitle: 'this item was moved by this amount (parenthesis)'
     }
-
-    const craft: CraftState = useSelector(getCraft)
     
     const _toggleExpanded = () => dispatch(setItemExpanded(item.key, !item.expanded))
     let expandedClass = 'button-diff'
@@ -40,7 +38,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                 }
                 {item.isLast ?
                     <span className='label-up'>Last</span> :
-                    item.canBeLast && craft.activeSession === undefined ?
+                    item.canBeLast ?
                         <span className='img-up'
                             onClick={() => dispatch(setAsLast(item.key))}>
                             <img src='img/up.png' />Last</span>

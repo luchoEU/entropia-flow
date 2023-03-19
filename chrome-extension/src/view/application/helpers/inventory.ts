@@ -62,20 +62,22 @@ const getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemData> => 
 const getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
     list.filter(isHidden(c)).map(addCriteria(c))
 
-const joinDuplicates = (list: Array<ItemData>): Array<ItemData> => {
+const joinDuplicates = (list: Array<ItemData>, excludeContainers: string[] = []): Array<ItemData> => {
     var result = {}
     list.forEach(d => {
-        if (!result[d.n]) {
-            result[d.n] = {
-                id: d.id,
-                n: d.n,
-                q: '0',
-                v: '0.00'
+        if (!excludeContainers.includes(d.c)) {
+            if (!result[d.n]) {
+                result[d.n] = {
+                    id: d.id,
+                    n: d.n,
+                    q: '0',
+                    v: '0.00'
+                }
             }
+            let x : ItemData = result[d.n]
+            x.q = (Number(x.q) + Number(d.q)).toString()
+            x.v = (Number(x.v) + Number(d.v)).toFixed(2).toString()
         }
-        let x : ItemData = result[d.n]
-        x.q = (Number(x.q) + Number(d.q)).toString()
-        x.v = (Number(x.v) + Number(d.v)).toFixed(2).toString()
     })
     return Object.values(result)
 }

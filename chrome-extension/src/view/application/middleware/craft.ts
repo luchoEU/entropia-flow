@@ -104,37 +104,52 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ADD_BLUEPRINT:
         case SET_CURRENT_INVENTORY: {
             let s: InventoryState = getInventory(getState())
-            let items = joinDuplicates(joinList(s))
+            let items = joinDuplicates(joinList(s), [ "AUCTION" ])
             let dictionary: { [k: string]: number } = Object.fromEntries(items.map((x: ItemData) => [x.n, Number(x.q)]));
             dispatch(setBlueprintQuantity(dictionary))
             break
         }
         case ADD_BLUEPRINT_DATA:
         case SET_BLUEPRINT_EXPANDED:
-        case START_BUDGET_PAGE_LOADING: {
+        case START_BUDGET_PAGE_LOADING:
+        case PAGE_LOADED: {
             if (action.type == SET_BLUEPRINT_EXPANDED && !action.payload.expanded)
                 break // only load when expanding
 
-            const bpName: string = action.type === ADD_BLUEPRINT_DATA ? action.payload.data.Name : action.payload.name
-            try {
-                const state: CraftState = getCraft(getState())
-                const settings: SettingsState = getSettings(getState())
-                const bpInfo = state.blueprints.find(bp => bp.name == bpName)
+            const state: CraftState = getCraft(getState())
+            const settings: SettingsState = getSettings(getState())
 
-                const setStage = (stage: number) => dispatch(setBudgetPageStage(action.payload.name, stage))
+            const load = async (bpName: string): Promise<void> => {
+                try {
+                    const bpInfo = state.blueprints.find(bp => bp.name == bpName)    
+                    const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
+    
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage, action.type === START_BUDGET_PAGE_LOADING)
+                    if (sheet !== undefined) {
+                        await sheet.save()
+                        const info: BudgetSheetInfo = await sheet.getInfo()
+                        dispatch(setBudgetPageInfo(bpName, info))
+                    }
+                } catch (e) {
+                    dispatch(setBudgetPageLoadingError(bpName, e.message))
+                    trace('exception loading budget sheet:')
+                    traceData(e)
+                } finally {
+                    dispatch(endBudgetPageLoading(bpName))
+                }    
+            }
 
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage, action.type === START_BUDGET_PAGE_LOADING)
-                if (sheet !== undefined) {
-                    await sheet.save()
-                    const info: BudgetSheetInfo = await sheet.getInfo()
-                    dispatch(setBudgetPageInfo(bpName, info))
+            switch (action.type) {
+                case PAGE_LOADED: {
+                    state.blueprints.filter(bp => bp.expanded).forEach(bp => load(bp.name))
+                    break
                 }
-            } catch (e) {
-                dispatch(setBudgetPageLoadingError(bpName, e.message))
-                trace('exception loading budget sheet:')
-                traceData(e)
-            } finally {
-                dispatch(endBudgetPageLoading(bpName))
+                case ADD_BLUEPRINT_DATA:
+                    load(action.payload.data.Name)
+                    break
+                default:
+                    load(action.payload.name)
+                    break
             }
             break
         }
@@ -223,19 +238,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const { diff }: LastRequiredState = getLast(getState())
-                if (diff) {
-                    const activeSessionBp = state.blueprints.find(bp => bp.name === action.payload.name)
-                    const name = itemNameFromString(activeSessionBp, action.payload.materialName)
-                    const item = diff.find(x => x.n == name)
-                    const material = activeSessionBp.info.materials.find(m => m.name === action.payload.materialName)
-                    const cost = material.buyCost !== undefined ? Number(material.buyCost) :
-                        Number(item.q) * material.value * (material.markup ?? 1)
-                    const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
-                    await sheet.addBuyMaterial(action.payload.materialName, Number(item.q), cost, action.payload.text)
-                    await sheet.save()
-                }
+                const activeSessionBp = state.blueprints.find(bp => bp.name === action.payload.name)
+                const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
+                await sheet.addBuyMaterial(action.payload.materialName, action.payload.quantity, action.payload.value, action.payload.text)
+                await sheet.save()
                 dispatch(doneBuyBadget(action.payload.name, action.payload.materialName))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))

@@ -28,6 +28,10 @@ const SET_CRAFT_SAVE_STAGE = '[craft] set save stage'
 const DONE_CRAFT_SESSION = '[craft] done session'
 const CLEAR_CRAFT_SESSION = '[craft] clear session'
 
+const BUDGET_BUY = 'Buy'
+const BUDGET_SELL = 'Sell'
+const BUDGET_MOVE = 'Move'
+
 const setCraftState = (state: CraftState) => ({
     type: SET_CRAFT_STATE,
     payload: {
@@ -123,12 +127,14 @@ const setBudgetPageLoadingError = (name: string, text: string) => ({
     }
 })
 
-const buyBudgetPageMaterial = (name: string, materialName: string, text: string) => ({
+const buyBudgetPageMaterial = (name: string, materialName: string, text: string, value: number, quantity: number) => ({
     type: BUY_BUDGET_PAGE_MATERIAL,
     payload: {
         name,
         materialName,
-        text
+        text,
+        value,
+        quantity
     }
 })
 
@@ -246,6 +252,9 @@ export {
     SET_CRAFT_SAVE_STAGE,
     DONE_CRAFT_SESSION,
     CLEAR_CRAFT_SESSION,
+    BUDGET_BUY,
+    BUDGET_SELL,
+    BUDGET_MOVE,
     setCraftState,
     addBlueprint,
     removeBlueprint,
