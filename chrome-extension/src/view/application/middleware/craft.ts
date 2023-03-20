@@ -239,21 +239,24 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case BUY_BUDGET_PAGE_MATERIAL: {
+            const bpName = action.payload.name
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const activeSessionBp = state.blueprints.find(bp => bp.name === action.payload.name)
-                const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
+                const activeSessionBp = state.blueprints.find(bp => bp.name === bpName)
+                const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
                 const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
                 await sheet.addBuyMaterial(action.payload.materialName, action.payload.quantity, action.payload.value, action.payload.text)
                 await sheet.save()
-                dispatch(doneBuyBadget(action.payload.name, action.payload.materialName))
+                const info: BudgetSheetInfo = await sheet.getInfo()
+                dispatch(setBudgetPageInfo(bpName, info))
+                dispatch(doneBuyBadget(bpName, action.payload.materialName))
             } catch (e) {
-                dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
+                dispatch(setBudgetPageLoadingError(bpName, e.message))
                 trace('exception saving craft session:')
                 traceData(e)
             } finally {
-                dispatch(endBudgetPageLoading(action.payload.name))
+                dispatch(endBudgetPageLoading(bpName))
             }
             break
         }
