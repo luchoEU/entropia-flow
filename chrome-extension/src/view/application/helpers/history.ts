@@ -1,7 +1,7 @@
 import { CLASS_LAST, CLASS_NEW_DATE, CLASS_REQUESTED } from "../../../common/const";
 import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
-import { addMindEssenceLogAction } from "./meLog";
+import { addItemAction } from "./soldDetector";
 import * as Sort from "./inventorySort"
 import { HistoryState, ViewInventory } from "../state/history";
 
@@ -86,7 +86,7 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
     const diff = getDifference(inventory, previous)
     if (diff !== null) {
         Sort.sortList(diff, sortType)
-        addMindEssenceLogAction(diff)
+        addItemAction(diff)
     }
     return {
         key: inventory.meta.date,

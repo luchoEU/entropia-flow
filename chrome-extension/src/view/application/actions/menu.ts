@@ -1,4 +1,6 @@
 const SELECT_MENU = "[menu] select"
+const SELECT_FOR_ACTION = "[menu] select for action"
+
 const MONITOR_PAGE = 0
 const INVENTORY_PAGE = 1
 const STREAM_PAGE = 2
@@ -15,8 +17,17 @@ const selectMenu = (menu: number) => ({
     }
 })
 
+const selectForAction = (action: number, name: string) => ({
+    type: SELECT_FOR_ACTION,
+    payload: {
+        action,
+        name
+    }
+})
+
 export {
     SELECT_MENU,
+    SELECT_FOR_ACTION,
     MONITOR_PAGE,
     INVENTORY_PAGE,
     STREAM_PAGE,
@@ -25,5 +36,6 @@ export {
     CRAFT_PAGE,
     TRADE_PAGE,
     SETTING_PAGE,
-    selectMenu
+    selectMenu,
+    selectForAction,
 }

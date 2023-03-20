@@ -5,6 +5,7 @@ import { getLatestFromInventoryList, getText } from "./history"
 import { ViewItemData } from "../state/history"
 import { matchDate } from "../../../common/date"
 import { LastRequiredState, ViewPedData } from "../state/last"
+import { addItemAction } from "./soldDetector"
 
 const initialState: LastRequiredState = {
     show: false,
@@ -210,6 +211,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
                 d = applyPermanentExclude(d, diff, state.permanentBlacklist)
                 applyWarning(diff, state.blacklist)
                 sortList(diff, state.sortType)
+                addItemAction(diff)
             }
             state.peds.forEach(p => d += Number(p.value))
             return {

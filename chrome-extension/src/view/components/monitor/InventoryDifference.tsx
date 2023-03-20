@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
-import { MindEssenceLogText, ViewItemData } from '../../application/state/history'
+import { MindEssenceLogAction, MindEssenceLogText, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useDispatch } from 'react-redux'
-import { AUCTION_PAGE, selectMenu } from '../../application/actions/menu'
+import { AUCTION_PAGE, selectForAction, selectMenu } from '../../application/actions/menu'
 import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
 
@@ -24,6 +24,7 @@ const ItemRow = (p: {
 }) => {
     const { item, c } = p
     const dispatch = useDispatch()
+
     return (
         <tr>
             <td onClick={c.sortBy(NAME)}>{item.n}
@@ -67,8 +68,8 @@ const ItemRow = (p: {
                 {item.a ?
                     <button
                         className='button-me-log'
-                        onClick={() => dispatch(selectMenu(AUCTION_PAGE))}>
-                        {MindEssenceLogText[item.a.type]}
+                        onClick={() => dispatch(selectForAction(item.a.type, item.n))}>
+                        {'>'}
                     </button>
                     : ''}
             </td>

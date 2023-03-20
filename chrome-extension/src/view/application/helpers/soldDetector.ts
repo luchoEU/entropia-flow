@@ -1,9 +1,9 @@
-// Mind Essence Log Detector
+// Auction Sold Detector
 
 import { SHOW_AUCTION_PAGE } from "../../../config";
 import { KIN_AMP_SOLD, LME_SOLD, ME_SOLD, NB_SOLD, ViewItemData } from "../state/history";
 
-function addMindEssenceLogAction(diff: Array<ViewItemData>) {
+function addItemAction(diff: Array<ViewItemData>) {
     if (!SHOW_AUCTION_PAGE)
         return
 
@@ -24,5 +24,5 @@ function addMindEssenceLogAction(diff: Array<ViewItemData>) {
 }
 
 export {
-    addMindEssenceLogAction
+    addItemAction
 }
