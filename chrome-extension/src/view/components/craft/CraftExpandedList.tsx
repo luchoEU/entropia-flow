@@ -96,7 +96,7 @@ function CraftSingle(p: {
         })
     } else if (d.budget.hasPage) {
         d.info.materials.forEach((m: BlueprintMaterial) => {
-            if (budgetMap && budgetMap[m.name] < 0) {
+            if (budgetMap && budgetMap[m.name] < 0 && !m.buyDone) {
                 if (bought === undefined) {
                     bought = {}
                 }

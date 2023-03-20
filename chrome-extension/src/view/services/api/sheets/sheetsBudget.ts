@@ -1,3 +1,4 @@
+import { BUDGET_SELL } from '../../../application/actions/craft'
 import { itemNameFromString } from '../../../application/helpers/craft'
 import { BlueprintData } from '../../../application/state/craft'
 import { SetStage } from './sheetsStages'
@@ -152,7 +153,7 @@ class BudgetSheet {
         await this.addDate(row)
 
         this.sheet.getCell(row, REASON_COLUMN).value = text
-        this.sheet.getCell(row, PED_COLUMN).value = -pedCost
+        this.sheet.getCell(row, PED_COLUMN).value = text === BUDGET_SELL ? pedCost : -pedCost
         for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
             if (name == materialName) {

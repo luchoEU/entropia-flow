@@ -234,6 +234,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             break
         }
+        case CLEAR_CRAFT_SESSION: {
+            dispatch(setLast)
+            break
+        }
         case BUY_BUDGET_PAGE_MATERIAL: {
             try {
                 const state: CraftState = getCraft(getState())
