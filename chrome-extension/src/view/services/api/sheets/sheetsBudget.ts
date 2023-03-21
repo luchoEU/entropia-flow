@@ -33,6 +33,7 @@ class BudgetSheet {
     private data: BlueprintData
     private setStage: SetStage
     private sheet: any
+    private row: number
 
     constructor(data: BlueprintData, setStage: SetStage) {
         this.data = data
@@ -41,6 +42,7 @@ class BudgetSheet {
 
     public async save(): Promise<void> {
         await saveUpdatedCells(this.sheet, this.setStage)
+        this.row = await this.getLastRow()
     }
 
     private addTitle(column: number, title: string, unitValue: number) {
@@ -89,6 +91,9 @@ class BudgetSheet {
 
     public async load(doc: any): Promise<boolean> {
         this.sheet = await getBudgetSheet(doc, this.setStage, this.data.itemName)
+        if (this.sheet !== undefined) {
+            this.row = await this.getLastRow()
+        }
         return this.sheet !== undefined
     }
 
@@ -135,33 +140,34 @@ class BudgetSheet {
     }
 
     public async addCraftSession(): Promise<void> {
-        const row = await this.getLastRow()
-        await this.addDate(row)
-        this.sheet.getCell(row, REASON_COLUMN).value = 'Craft'
+        await this.addDate(this.row)
+        this.sheet.getCell(this.row, REASON_COLUMN).value = 'Craft'
         for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
             const titleName = this.sheet.getCell(TITLE_ROW, column).value
             const name = itemNameFromString(this.data, titleName)
             const material = this.data.session.diffMaterials.find(m => m.n === name)
             if (material !== undefined && material.q !== 0)
-                this.sheet.getCell(row, column).value = material.q
+                this.sheet.getCell(this.row, column).value = material.q
         }
-        await this.addBudget(row)
+        await this.addBudget(this.row)
+        this.row++
     }
 
     public async addBuyMaterial(materialName: string, materialQuantity: number, pedCost: number, text: string): Promise<void> {
-        const row = await this.getLastRow()
-        await this.addDate(row)
+        await this.addDate(this.row)
 
-        this.sheet.getCell(row, REASON_COLUMN).value = text
-        this.sheet.getCell(row, PED_COLUMN).value = text === BUDGET_SELL ? pedCost : -pedCost
+        this.sheet.getCell(this.row, REASON_COLUMN).value = text
+        this.sheet.getCell(this.row, PED_COLUMN).value = pedCost
+        this.sheet.getCell(this.row, PED_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
             const name = this.sheet.getCell(TITLE_ROW, column).value
             if (name == materialName) {
-                this.sheet.getCell(row, column).value = materialQuantity
+                this.sheet.getCell(this.row, column).value = materialQuantity
                 break
             }
         }
-        await this.addBudget(row)
+        await this.addBudget(this.row)
+        this.row++
     }
 }
 

@@ -338,6 +338,13 @@ const cleanForSave = (state: CraftState): CraftState => ({
     activeSession: undefined,
     blueprints: state.blueprints.map(bp => ({
         ...bp,
+        info: {
+            ...bp.info,
+            materials: bp.info.materials.map(m => ({
+                ...m,
+                buyDone: undefined,
+            }))
+        },
         budget: {
             ...bp.budget,
             loading: true,
