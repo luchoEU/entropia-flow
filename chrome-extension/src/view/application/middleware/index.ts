@@ -19,6 +19,7 @@ import use from './use'
 import craft from './craft'
 import settings from './settings'
 import menu from './menu'
+import refined from './refined'
 
 export default [
     ...messages,
@@ -42,4 +43,5 @@ export default [
     ...craft,
     ...settings,
     ...menu,
+    ...refined
 ]

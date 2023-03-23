@@ -17,7 +17,8 @@ import {
     STORAGE_VIEW_USE,
     STORAGE_VIEW_FRUIT,
     STORAGE_VIEW_CRAFT,
-    STORAGE_VIEW_SETTINGS
+    STORAGE_VIEW_SETTINGS,
+    STORAGE_VIEW_REFINED
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -28,6 +29,7 @@ import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
+import { RefinedState } from "../../application/state/refined";
 import { SettingsState } from "../../application/state/settings";
 import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
@@ -96,6 +98,14 @@ async function saveRefine(state: RefineState) {
 
 async function loadRefine(): Promise<RefineState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_REFINE)
+}
+
+async function saveRefined(state: RefinedState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_REFINED, state)
+}
+
+async function loadRefined(): Promise<RefinedState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_REFINED)
 }
 
 async function saveUse(state: UseState) {
@@ -195,6 +205,8 @@ export default {
     loadStackable,
     saveRefine,
     loadRefine,
+    saveRefined,
+    loadRefined,
     saveUse,
     loadUse,
     savePeds,
