@@ -17,6 +17,7 @@ const ERROR_BUDGET_PAGE_LOADING = '[craft] error budget page loading'
 const BUY_BUDGET_PAGE_MATERIAL = '[craft] buy budget page material'
 const BUY_BUDGET_PAGE_MATERIAL_DONE = '[craft] buy budget page material done'
 const BUY_BUDGET_PAGE_MATERIAL_CLEAR = '[craft] buy budget page material clear'
+const MOVE_ALL_BUDGET_PAGE_MATERIAL = '[craft] move all budget page material'
 const CHANGE_BUDGET_PAGE_BUY_COST = '[craft] change budget page buy cost'
 const START_CRAFT_SESSION = '[craft] start session'
 const END_CRAFT_SESSION = '[craft] end session'
@@ -138,6 +139,13 @@ const buyBudgetPageMaterial = (name: string, materialName: string, text: string,
     }
 })
 
+const moveAllBudgetPageMaterial = (name: string) => ({
+    type: MOVE_ALL_BUDGET_PAGE_MATERIAL,
+    payload: {
+        name
+    }
+})
+
 const doneBuyBadget = (name: string, materialName: string) => ({
     type: BUY_BUDGET_PAGE_MATERIAL_DONE,
     payload: {
@@ -242,6 +250,7 @@ export {
     BUY_BUDGET_PAGE_MATERIAL,
     BUY_BUDGET_PAGE_MATERIAL_DONE,
     BUY_BUDGET_PAGE_MATERIAL_CLEAR,
+    MOVE_ALL_BUDGET_PAGE_MATERIAL,
     CHANGE_BUDGET_PAGE_BUY_COST,
     START_CRAFT_SESSION,
     END_CRAFT_SESSION,
@@ -269,6 +278,7 @@ export {
     endBudgetPageLoading,
     setBudgetPageLoadingError,
     buyBudgetPageMaterial,
+    moveAllBudgetPageMaterial,
     doneBuyBadget,
     clearBuyBudget,
     changeBudgetPageBuyCost,

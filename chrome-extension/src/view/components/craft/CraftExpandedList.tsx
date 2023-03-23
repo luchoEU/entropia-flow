@@ -1,6 +1,6 @@
 import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
@@ -13,12 +13,16 @@ function SessionInfo(p: {
     name: string,
     session: BlueprintSession,
     dispatch: Dispatch<any>,
-    message: string
+    message: string,
+    showMoveAll: boolean
 }) {
-    const { dispatch, message } = p
+    const { dispatch, message, showMoveAll } = p
     switch (p.session.step) {
         case STEP_INACTIVE:
-            return <button onClick={() => dispatch(startCraftingSession(p.name))}>Start</button>
+            return <>
+                <button onClick={() => dispatch(startCraftingSession(p.name))}>Start</button>
+                { showMoveAll && false ? <button onClick={() => dispatch(moveAllBudgetPageMaterial(p.name))}>Move All</button> : <></> }
+            </>
         case STEP_REFRESH_TO_START:
             return <><img className='img-loading' src='img/loading.gif' /> Refreshing items list to start...</>
         case STEP_REFRESH_TO_END:
@@ -78,6 +82,7 @@ function CraftSingle(p: {
     let sessionTTprofit = undefined
     let sessionMUprofit = undefined
     let bought: {[name: string]: { quantity: number, value: string, text: string }} = undefined
+    let showMoveAll = false
 
     if (d.session.diffMaterials !== undefined) {
         session = {}
@@ -106,6 +111,7 @@ function CraftSingle(p: {
                     value: (q * m.value * (m.markup ?? 1)).toFixed(2),
                     text: BUDGET_MOVE
                 }
+                showMoveAll = true
             }
         })
 
@@ -149,7 +155,7 @@ function CraftSingle(p: {
                             }</p>
                             <p>Crafting Session: {
                                 p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
-                                <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} />
+                                <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} showMoveAll={showMoveAll} />
                             }</p>
                             <p>Item: {d.itemName}</p>
                             <table>

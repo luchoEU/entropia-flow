@@ -1,7 +1,7 @@
 import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { BudgetSheet, BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUDGET_BUY, BUDGET_MOVE, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
@@ -44,6 +44,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case BUY_BUDGET_PAGE_MATERIAL:
         case BUY_BUDGET_PAGE_MATERIAL_DONE:
         case BUY_BUDGET_PAGE_MATERIAL_CLEAR:
+        case MOVE_ALL_BUDGET_PAGE_MATERIAL:
         case CHANGE_BUDGET_PAGE_BUY_COST:
         case START_CRAFT_SESSION:
         case END_CRAFT_SESSION:
@@ -275,7 +276,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
 
                 if (quantity > 0) {
-                    if (action.payload.text !== BUDGET_BUY)
+                    if (action.payload.text !== BUDGET_SELL)
                         value = -value
                     await sheet.addBuyMaterial(materialName, quantity, value, action.payload.text)
                 }
