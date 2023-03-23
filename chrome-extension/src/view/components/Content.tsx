@@ -1,12 +1,13 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, AUCTION_PAGE, CRAFT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
+import { ABOUT_PAGE, AUCTION_PAGE, CRAFT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
 import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import AuctionPage from './auction/AuctionPage'
 import CraftPage from './craft/CraftPage'
 import InventoryPage from './inventory/InventoryPage'
 import MonitorPage from './monitor/MonitorPage'
+import RefinedPage from './refined/RefinedPage'
 import SettingsPage from './settings/SettingsPage'
 import StreamPage from './stream/StreamPage'
 import StreamView from './stream/StreamView'
@@ -23,6 +24,8 @@ function ContentPage() {
             return (<StreamPage />)
         case AUCTION_PAGE:
             return (<AuctionPage />)
+        case REFINED_PAGE:
+            return (<RefinedPage />)
         case ABOUT_PAGE:
             return (<AboutPage />)
         case CRAFT_PAGE:

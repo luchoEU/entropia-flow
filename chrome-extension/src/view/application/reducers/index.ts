@@ -17,8 +17,9 @@ import fruit from './fruit'
 import use from './use'
 import craft from './craft'
 import settings from './settings'
+import refined from './refined'
 
 export default combineReducers({
     menu, status, history, last, calculator, actives, order, sweat, stackable,
-    refine, stream, inventory, about, sheets, fruit, use, craft, settings
+    refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined
 })

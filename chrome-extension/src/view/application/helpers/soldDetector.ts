@@ -1,12 +1,8 @@
 // Auction Sold Detector
 
-import { SHOW_AUCTION_PAGE } from "../../../config";
 import { KIN_AMP_SOLD, LME_SOLD, ME_SOLD, NB_SOLD, ViewItemData } from "../state/history";
 
 function addItemAction(diff: Array<ViewItemData>) {
-    if (!SHOW_AUCTION_PAGE)
-        return
-
     for (let inv of diff) {
         let q = Number(inv.q)
         if (inv.c === 'AUCTION' && inv.q[0] === '-') {
