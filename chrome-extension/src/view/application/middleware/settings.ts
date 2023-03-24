@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { DOCUMENT_ID_CHANGED, GOOGLE_PRIVATE_KEY_CHANGED, GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED, setSettingsState, SET_SHEET_EXPANDED } from "../actions/settings"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/settings"
@@ -10,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: SettingsState = await api.storage.loadSettings()
             if (state)
-                dispatch(setSettingsState({ ...initialState, ...state }))
+                dispatch(setSettingsState(mergeDeep(state, initialState)))
             break
         }
         case SET_SHEET_EXPANDED:

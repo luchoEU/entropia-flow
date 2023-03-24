@@ -1,4 +1,7 @@
-import { RefinedCalculatorState, RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedState } from "../state/refined"
+import { objectMap } from "../../../common/utils"
+import { MaterialsState } from "../state/materials"
+import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedState } from "../state/refined"
+import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap } from "./materials"
 
 const refinedTitle = {
     me: 'Mind Essence',
@@ -6,40 +9,30 @@ const refinedTitle = {
     nb: 'Nutrio Bar',
 }
 
-const initialStateIn: { [v: string]: RefinedCalculatorStateIn } = {
-    me: {
-        markup: '120',
+const initialStateIn: RefinedCalculatorStateIn[] = [
+    {
         value: '120',
-        markupMaterial1: '101', // nexus
-        markupMaterial2: '135000' // sweat
+        refinedMaterial: MATERIAL_ME,
+        sourceMaterials: [ MATERIAL_NX, MATERIAL_SW ]
     },
-    lme: {
-        markup: '110',
+    {
         value: '49',
-        markupMaterial1: '101', // nexus
-        markupMaterial2: '102', // diluted
+        refinedMaterial: MATERIAL_LME,
+        sourceMaterials: [ MATERIAL_NX, MATERIAL_DW ]
     },
-    nb: {
-        markup: '150',
+    {
         value: '49',
-        markupMaterial1: '110', // sweetstuff
-        markupMaterial2: '280000', // fruit
-    } 
-}
+        refinedMaterial: MATERIAL_NB,
+        sourceMaterials: [ MATERIAL_ST, MATERIAL_FT ]
+    }, 
+]
 
-const initialState: RefinedState = {
-    me: {
-        expanded: true,
-        calculator: initialCalc('me')
-    },
-    lme: {
-        expanded: true,
-        calculator: initialCalc('lme')
-    },
-    nb: {
-        expanded: true,
-        calculator: initialCalc('nb')
-    }
+/*
+interface RefinedCalculatorConst {
+    kValueMaterial1: number // value in PED of 1k
+    kValueMaterial2: number // value in PED of 1k
+    kValueRefined: number // value in PED of 1k
+    kRefined: number // ammout received for 1k+1k of input materials
 }
 
 const calcConst: { [v: string]: RefinedCalculatorConst } = {
@@ -62,41 +55,38 @@ const calcConst: { [v: string]: RefinedCalculatorConst } = {
         kRefined: 1001
     }
 }
+*/
 
-function initialCalc(material: string): RefinedCalculatorState {
-    return {
-       in: initialStateIn[material],
-        out: calc(initialStateIn[material], calcConst[material])
-    }
-}
-
-interface RefinedCalculatorConst {
-    kValueMaterial1: number // value in PED of 1k
-    kValueMaterial2: number // value in PED of 1k
-    kValueRefined: number // value in PED of 1k
-    kRefined: number // ammout received for 1k+1k of input materials
-}
+const initialState: RefinedState = ({
+    map: objectMap(refinedInitialMap, st => ({
+        name: st.refinedMaterial,
+        expanded: true,
+        calculator: {
+            in: st,
+            out: calc(st, { map: refinedInitialMap })
+        }
+    }))
+})
 
 function auctionFee(difference: number): number {
     return Math.round(50 + difference * 4.9) / 100
 }
 
-function calc(state: RefinedCalculatorStateIn, c: RefinedCalculatorConst): RefinedCalculatorStateOut {
+function calc(state: RefinedCalculatorStateIn, m: MaterialsState): RefinedCalculatorStateOut {
     const refiner = 0.15 // PED for 1k refined
 
     const buyoutValue = Number(state.value)
-    const markup = Number(state.markup)
-    const markupMaterial1 = Number(state.markupMaterial1)
-    const markupMaterial2 = Number(state.markupMaterial2)
-    const pedMaterial = 1000 / c.kValueRefined
+    const markup = Number(m[state.refinedMaterial].markup)
+    const pedMaterial = 1000 / m[state.refinedMaterial].kValue
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].kValue, 0)
+    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].kValue, 0) / m[state.refinedMaterial].kValue
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial)
     const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial)
-    const costMaterials = markupMaterial1 * c.kValueMaterial1 + markupMaterial2 * c.kValueMaterial2 * c.kValueMaterial2
-    const cost = (refiner + costMaterials) * pedMaterial / c.kRefined
+    const cost = (refiner + costMaterials) * pedMaterial / kRefined
     const auctionCost = amount * cost / pedMaterial + buyoutFee
     const profitSale = buyoutValue - auctionCost
-    const profitK = profitSale / (amount / c.kRefined)
+    const profitK = profitSale / (amount / kRefined)
     const openingValue = Math.ceil(buyoutValue - profitSale)
     const openingFee = auctionFee(openingValue - amount / pedMaterial)
 
@@ -151,9 +141,7 @@ const refinedSell = (state: RefinedState, material: string): RefinedState => {
 
 const cleanForSave = (state: RefinedState): RefinedState => {
     const inState = { ...state }
-    inState.me.calculator.out = undefined
-    inState.lme.calculator.out = undefined
-    inState.nb.calculator.out = undefined
+    Object.keys(inState.map).forEach(k => inState.map[k].calculator.out = undefined)
     return inState
 }
 

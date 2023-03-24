@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { addRefineToSheetDone, ADD_REFINE_TO_SHEET, REFINE_AMOUNT_CHANGED, setRefineState } from "../actions/refine"
 import { addPendingChange } from "../actions/sheets"
 import { PAGE_LOADED } from "../actions/ui"
@@ -11,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: RefineState = await api.storage.loadRefine()
             if (state)
-                dispatch(setRefineState({ ...initialState, ...state }))
+                dispatch(setRefineState(mergeDeep(state, initialState)))
             break
         }
         case REFINE_AMOUNT_CHANGED: {

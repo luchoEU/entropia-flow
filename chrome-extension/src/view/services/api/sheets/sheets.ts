@@ -16,9 +16,12 @@ async function loadMELogSheet(accessInfo: SheetAccessInfo, setStage: SetStage): 
 async function loadBudgetSheet(accessInfo: SheetAccessInfo, data: BlueprintData, setStage: SetStage, create: boolean): Promise<BudgetSheet> {
     const doc = await getSpreadsheet(accessInfo, setStage)
     const sheet = new BudgetSheet(data, setStage)
-    if (!await sheet.load(doc) && create)
+    if (!await sheet.load(doc) && create) {
         await sheet.create(doc)
-    return sheet
+        return sheet
+    } else {
+        return undefined
+    }
 }
 
 async function newDay(accessInfo: SheetAccessInfo, setStage: SetStage) {

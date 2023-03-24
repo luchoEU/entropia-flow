@@ -20,10 +20,12 @@ import craft from './craft'
 import settings from './settings'
 import menu from './menu'
 import refined from './refined'
+import materials from './materials'
 
 export default [
     ...messages,
     ...status,
+    ...materials,
     ...ui,
     ...calculator,
     ...actives,
