@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { setState, SET_EXPANDED } from "../actions/about"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/about"
@@ -10,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: AboutState = await api.storage.loadAbout()
             if (state)
-                dispatch(setState({ ...initialState, ...state }))
+                dispatch(setState(mergeDeep(state, initialState)))
             break
         }
         case SET_EXPANDED: {

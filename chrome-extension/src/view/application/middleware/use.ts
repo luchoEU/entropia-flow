@@ -6,6 +6,7 @@ import { getOneUse, getUse } from "../selectors/use"
 import { UseOneState, UseState } from "../state/use"
 import { CalculatorStateOut1 } from "../state/calculator"
 import { getCalculatorOut, getCalculatorOutNB } from "../selectors/calculator"
+import { mergeDeep } from "../../../common/utils"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -13,7 +14,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: UseState = await api.storage.loadUse()
             if (state)
-                dispatch(setUseState({ ...initialState, ...state }))
+                dispatch(setUseState(mergeDeep(state, initialState)))
             break
         }
         case USE_AMOUNT_CHANGED: {

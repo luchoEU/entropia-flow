@@ -5,6 +5,7 @@ import { getFruitIn } from "../selectors/fruit"
 import { OPERATION_ADD_FRUIT } from "../state/actives"
 import { FruitStateIn } from "../state/fruit"
 import { initialState } from "../helpers/fruit"
+import { mergeDeep } from "../../../common/utils"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -12,7 +13,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: FruitStateIn = await api.storage.loadFruit()
             if (state)
-                dispatch(setFruitState({ ...initialState, ...state }))
+                dispatch(setFruitState(mergeDeep(state, initialState)))
             break
         }
         case FRUIT_PRICE_CHANGED:

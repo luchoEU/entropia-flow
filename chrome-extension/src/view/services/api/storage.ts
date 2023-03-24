@@ -18,7 +18,8 @@ import {
     STORAGE_VIEW_FRUIT,
     STORAGE_VIEW_CRAFT,
     STORAGE_VIEW_SETTINGS,
-    STORAGE_VIEW_REFINED
+    STORAGE_VIEW_REFINED,
+    STORAGE_VIEW_MATERIALS
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -27,6 +28,7 @@ import { CraftState } from "../../application/state/craft";
 import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
+import { MaterialsState } from "../../application/state/materials";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
 import { RefinedState } from "../../application/state/refined";
@@ -170,6 +172,14 @@ async function saveCraft(state: CraftState) {
 
 async function loadCraft(): Promise<CraftState> {
     return await LOCAL_STORAGE.get(STORAGE_VIEW_CRAFT)
+}
+
+async function saveMaterials(state: MaterialsState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_MATERIALS, state)
+}
+
+async function loadMaterials(): Promise<MaterialsState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
 }
 
 async function saveSettings(state: SettingsState) {

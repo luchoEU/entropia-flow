@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { REMOVE_ACTIVE } from "../actions/actives"
 import { ADD_AVAILABLE, HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, loadInventoryState, SET_AUCTION_EXPANDED, SET_AVAILABLE_EXPANDED, SET_BLUEPRINTS_EXPANDED, SET_HIDDEN_EXPANDED, SET_VISIBLE_EXPANDED, SHOW_ALL, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SORT_AUCTION_BY, SORT_AVAILABLE_BY, SORT_HIDDEN_BY, SORT_VISIBLE_BY } from "../actions/inventory"
 import { PAGE_LOADED } from "../actions/ui"
@@ -11,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: InventoryState = await api.storage.loadInventoryState()
             if (state)
-                dispatch(loadInventoryState({ ...initialState, ...state }))
+                dispatch(loadInventoryState(mergeDeep(state, initialState)))
             break
         }
         case SET_AUCTION_EXPANDED:

@@ -1,12 +1,11 @@
-interface RefinedOneState {
-    expanded: boolean,
-    calculator: RefinedCalculatorState
+interface RefinedState {
+    map: { [name: string] : RefinedOneState }
 }
 
-interface RefinedState {
-    me: RefinedOneState,
-    lme: RefinedOneState,
-    nb: RefinedOneState,
+interface RefinedOneState {
+    name: string,
+    expanded: boolean,
+    calculator: RefinedCalculatorState
 }
 
 interface RefinedCalculatorState {
@@ -15,10 +14,9 @@ interface RefinedCalculatorState {
 }
 
 interface RefinedCalculatorStateIn {
-    markup: string,
     value: string,
-    markupMaterial1: string, // markup of nexus or sweetstuff
-    markupMaterial2: string, // markup of sweat, diluted, fruit
+    refinedMaterial: string,
+    sourceMaterials: string[]
 }
 
 interface RefinedCalculatorStateOut {

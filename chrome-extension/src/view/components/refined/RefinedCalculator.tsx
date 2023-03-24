@@ -1,9 +1,12 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { refinedMarkupChanged, refinedSell, refinedValueChanged } from '../../application/actions/refined'
-import { getCalculatorRefined, getOneRefined } from '../../application/selectors/refined'
-import { RefinedCalculatorState, RefinedOneState } from '../../application/state/refined'
+import { getMaterials } from '../../application/selectors/materials'
+import { getCalculatorRefined, getRefined } from '../../application/selectors/refined'
+import { MaterialsState } from '../../application/state/materials'
+import { RefinedCalculatorState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
+import RefinedMaterialInput from './RefinedMaterialInput'
 import RefinedOutput from './RefinedOutput'
 
 const RefinedMaterial = (p: {
@@ -16,11 +19,11 @@ const RefinedMaterial = (p: {
         <section>
             <h2>Calculator</h2>
             <form>
-                <RefinedInput
-                    label='Markup'
-                    value={state.in.markup}
-                    unit='%'
-                    getChangeAction={refinedMarkupChanged(material)} />
+                { state.in.sourceMaterials.map(source =>
+                    <RefinedMaterialInput name={source} />
+                )}
+
+                <RefinedMaterialInput name={state.in.refinedMaterial} />
 
                 <RefinedInput
                     label='Value'
@@ -36,3 +39,7 @@ const RefinedMaterial = (p: {
 }
 
 export default RefinedMaterial
+
+function getRefinedState(): (state: import("react-redux").DefaultRootState) => unknown {
+    throw new Error('Function not implemented.')
+}

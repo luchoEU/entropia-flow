@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { addOrderToList, addOrderToSheetDone, ADD_ORDER_TO_SHEET, ORDER_MARKUP_CHANGED, ORDER_VALUE_CHANGED, setOrderState } from "../actions/order"
 import { addPendingChange } from "../actions/sheets"
 import { PAGE_LOADED } from "../actions/ui"
@@ -12,7 +13,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: OrderState = await api.storage.loadOrder()
             if (state)
-                dispatch(setOrderState({ ...initialState, ...state }))
+                dispatch(setOrderState(mergeDeep(state, initialState)))
             break
         }
         case ORDER_MARKUP_CHANGED:

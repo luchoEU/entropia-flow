@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { setStreamState, SET_STREAM_BACKGROUND_EXPANDED, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED } from "../actions/stream"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/stream"
@@ -10,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: StreamState = await api.storage.loadStream()
             if (state)
-                dispatch(setStreamState({ ...initialState, ...state }))
+                dispatch(setStreamState(mergeDeep(state, initialState)))
             break
         }
         case SET_STREAM_ENABLED:
