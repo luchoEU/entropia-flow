@@ -13,7 +13,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: OrderState = await api.storage.loadOrder()
             if (state)
-                dispatch(setOrderState(mergeDeep(state, initialState)))
+                dispatch(setOrderState(mergeDeep(initialState, state)))
             break
         }
         case ORDER_MARKUP_CHANGED:

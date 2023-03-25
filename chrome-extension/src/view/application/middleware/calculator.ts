@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { addSale } from "../actions/actives"
 import { DILUTED_CHANGED, FRUIT_CHANGED, lmeSellDone, LME_MARKUP_CHANGED, LME_SELL, LME_VALUE_CHANGED, meSellDone, ME_MARKUP_CHANGED, ME_SELL, ME_VALUE_CHANGED, nbSellDone, NB_MARKUP_CHANGED, NB_SELL, NB_VALUE_CHANGED, NEXUS_CHANGED, setCalculatorState, SWEAT_CHANGED, SWEETSTUFF_CHANGED } from "../actions/calculator"
 import { addPendingChange } from "../actions/sheets"
@@ -13,7 +14,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: CalculatorStateIn = await api.storage.loadCalculator()
             if (state)
-                dispatch(setCalculatorState({ ...initialStateIn, ...state }))
+                dispatch(setCalculatorState(mergeDeep(initialStateIn, state)))
             break
         }
         case SWEAT_CHANGED:

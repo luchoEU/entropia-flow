@@ -13,7 +13,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: FruitStateIn = await api.storage.loadFruit()
             if (state)
-                dispatch(setFruitState(mergeDeep(state, initialState)))
+                dispatch(setFruitState(mergeDeep(initialState, state)))
             break
         }
         case FRUIT_PRICE_CHANGED:

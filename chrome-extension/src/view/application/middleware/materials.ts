@@ -10,7 +10,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: MaterialsState = await api.storage.loadMaterials()
             if (state)
-                dispatch(setMaterialsState(mergeDeep(state, initialState)))
+                dispatch(setMaterialsState(mergeDeep(initialState, state)))
             break
         }
     }

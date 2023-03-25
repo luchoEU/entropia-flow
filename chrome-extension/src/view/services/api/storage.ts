@@ -233,6 +233,8 @@ export default {
     loadInventoryState,
     saveCraft,
     loadCraft,
+    saveMaterials,
+    loadMaterials,
     saveSettings,
     loadSettings,
     saveAbout,

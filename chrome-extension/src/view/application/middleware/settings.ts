@@ -11,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: SettingsState = await api.storage.loadSettings()
             if (state)
-                dispatch(setSettingsState(mergeDeep(state, initialState)))
+                dispatch(setSettingsState(mergeDeep(initialState, state)))
             break
         }
         case SET_SHEET_EXPANDED:

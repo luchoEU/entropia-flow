@@ -1,31 +1,25 @@
 import { objectMap } from "../../../common/utils"
-import { MaterialsState } from "../state/materials"
+import { MaterialsMap } from "../state/materials"
 import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedState } from "../state/refined"
 import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap } from "./materials"
 
-const refinedTitle = {
-    me: 'Mind Essence',
-    lme: 'Light Mind Essence',
-    nb: 'Nutrio Bar',
-}
-
-const initialStateIn: RefinedCalculatorStateIn[] = [
-    {
+const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
+    [MATERIAL_ME]: {
         value: '120',
         refinedMaterial: MATERIAL_ME,
         sourceMaterials: [ MATERIAL_NX, MATERIAL_SW ]
     },
-    {
+    [MATERIAL_LME]: {
         value: '49',
         refinedMaterial: MATERIAL_LME,
         sourceMaterials: [ MATERIAL_NX, MATERIAL_DW ]
     },
-    {
+    [MATERIAL_NB]: {
         value: '49',
         refinedMaterial: MATERIAL_NB,
         sourceMaterials: [ MATERIAL_ST, MATERIAL_FT ]
     }, 
-]
+}
 
 /*
 interface RefinedCalculatorConst {
@@ -58,12 +52,12 @@ const calcConst: { [v: string]: RefinedCalculatorConst } = {
 */
 
 const initialState: RefinedState = ({
-    map: objectMap(refinedInitialMap, st => ({
+    map: objectMap(initialStateIn, st => ({
         name: st.refinedMaterial,
         expanded: true,
         calculator: {
             in: st,
-            out: calc(st, { map: refinedInitialMap })
+            out: calc(st, refinedInitialMap)
         }
     }))
 })
@@ -72,7 +66,7 @@ function auctionFee(difference: number): number {
     return Math.round(50 + difference * 4.9) / 100
 }
 
-function calc(state: RefinedCalculatorStateIn, m: MaterialsState): RefinedCalculatorStateOut {
+function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculatorStateOut {
     const refiner = 0.15 // PED for 1k refined
 
     const buyoutValue = Number(state.value)
@@ -104,40 +98,36 @@ function calc(state: RefinedCalculatorStateIn, m: MaterialsState): RefinedCalcul
 
 const setState = (state: RefinedState, inState: RefinedState): RefinedState => inState
 
-const setRefinedExpanded = (state: RefinedState, material: string, expanded: boolean): RefinedState => {
+const changeMaterial = (state: RefinedState, material: string, change: any): RefinedState => {
     const inState = { ...state }
-    inState[material] = {
-        ...inState[material],
-        expanded
+    inState.map[material] = {
+        ...inState.map[material],
+        ...change
     }
     return inState
 }
 
-const refinedValueChanged = (state: RefinedState, material: string, value: string): RefinedState => {
+const changeCalculator = (state: RefinedState, material: string, change: any): RefinedState => {
     const inState = { ...state }
-    inState[material].calculator.in = {
-        ...inState[material].calculator.in,
-        value
+    inState.map[material].calculator.in = {
+        ...inState.map[material].calculator.in,
+        ...change
     }
     return inState
+
 }
 
-const refinedMarkupChanged = (state: RefinedState, material: string, markup: string): RefinedState => {
-    const inState = { ...state }
-    inState[material].calculator.in = {
-        ...inState[material].calculator.in,
-        markup
-    }
-    return inState
-}
+const setRefinedExpanded = (state: RefinedState, material: string, expanded: boolean): RefinedState =>
+    changeMaterial(state, material, { expanded })
 
-const refinedSell = (state: RefinedState, material: string): RefinedState => {
-    const inState = { ...state }
-    inState[material] = {
-        ...inState[material]
-    }
-    return inState
-}
+const refinedValueChanged = (state: RefinedState, material: string, value: string): RefinedState =>
+    changeCalculator(state, material, { value })
+
+const refinedMarkupChanged = (state: RefinedState, material: string, markup: string): RefinedState =>
+    changeCalculator(state, material, { markup })
+
+const refinedSell = (state: RefinedState, material: string): RefinedState =>
+    changeMaterial(state, material, {})
 
 const cleanForSave = (state: RefinedState): RefinedState => {
     const inState = { ...state }
@@ -146,7 +136,6 @@ const cleanForSave = (state: RefinedState): RefinedState => {
 }
 
 export {
-    refinedTitle,
     initialState,
     setState,
     setRefinedExpanded,

@@ -1,14 +1,14 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { materialMarkupChanged } from '../../application/actions/materials'
-import { getMaterials } from '../../application/selectors/materials'
-import { MaterialsState } from '../../application/state/materials'
+import { getMaterialsMap } from '../../application/selectors/materials'
+import { MaterialsMap } from '../../application/state/materials'
 import RefinedInput from './RefinedInput'
 
 function RefinedMaterialInput(p: {
     name: string,
 }) {
-    const materials: MaterialsState = useSelector(getMaterials)
+    const materials: MaterialsMap = useSelector(getMaterialsMap)
     const material = materials[p.name]
 
     return (
