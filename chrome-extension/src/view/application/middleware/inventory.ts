@@ -12,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: InventoryState = await api.storage.loadInventoryState()
             if (state)
-                dispatch(loadInventoryState(mergeDeep(state, initialState)))
+                dispatch(loadInventoryState(mergeDeep(initialState, state)))
             break
         }
         case SET_AUCTION_EXPANDED:

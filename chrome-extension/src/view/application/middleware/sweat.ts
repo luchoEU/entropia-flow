@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { addPendingChange } from "../actions/sheets"
 import { addSweatToSheetDone, ADD_SWEAT_TO_SHEET, setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
 import { PAGE_LOADED } from "../actions/ui"
@@ -12,7 +13,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: SweatStateIn = await api.storage.loadSweat()
             if (state)
-                dispatch(setSweatState({ ...initialStateIn, ...state }))
+                dispatch(setSweatState(mergeDeep(initialStateIn, state)))
             break
         }
         case SWEAT_PRICE_CHANGED:

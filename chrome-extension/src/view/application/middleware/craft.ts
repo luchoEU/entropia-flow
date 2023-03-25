@@ -27,7 +27,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: CraftState = await api.storage.loadCraft()
             if (state)
-                dispatch(setCraftState(mergeDeep(state, initialState)))
+                dispatch(setCraftState(mergeDeep(initialState, state)))
             break
         }
         case ADD_BLUEPRINT:

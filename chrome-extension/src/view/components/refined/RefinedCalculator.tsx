@@ -1,39 +1,35 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { refinedMarkupChanged, refinedSell, refinedValueChanged } from '../../application/actions/refined'
-import { getMaterials } from '../../application/selectors/materials'
-import { getCalculatorRefined, getRefined } from '../../application/selectors/refined'
-import { MaterialsState } from '../../application/state/materials'
-import { RefinedCalculatorState } from '../../application/state/refined'
+import { refinedSell, refinedValueChanged } from '../../application/actions/refined'
+import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedMaterialInput'
 import RefinedOutput from './RefinedOutput'
 
 const RefinedMaterial = (p: {
-    material: string
+    material: RefinedOneState
 }) => {
     const { material } = p
-    const state: RefinedCalculatorState = useSelector(getCalculatorRefined(material))
+    const c = material.calculator
 
     return (
         <section>
             <h2>Calculator</h2>
             <form>
-                { state.in.sourceMaterials.map(source =>
-                    <RefinedMaterialInput name={source} />
+                { c.in.sourceMaterials.map(source =>
+                    <RefinedMaterialInput key={source} name={source} />
                 )}
 
-                <RefinedMaterialInput name={state.in.refinedMaterial} />
+                <RefinedMaterialInput name={c.in.refinedMaterial} />
 
                 <RefinedInput
                     label='Value'
-                    value={state.in.value}
+                    value={c.in.value}
                     unit='PED'
-                    getChangeAction={refinedValueChanged(material)} />
+                    getChangeAction={refinedValueChanged(material.name)} />
             </form>
             <RefinedOutput
-                out={state.out}
-                sellAction={refinedSell(material)} />
+                out={c.out}
+                sellAction={refinedSell(material.name)} />
         </section>
     )
 }

@@ -11,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: StreamState = await api.storage.loadStream()
             if (state)
-                dispatch(setStreamState(mergeDeep(state, initialState)))
+                dispatch(setStreamState(mergeDeep(initialState, state)))
             break
         }
         case SET_STREAM_ENABLED:

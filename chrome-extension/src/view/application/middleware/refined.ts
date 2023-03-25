@@ -11,7 +11,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: RefinedState = await api.storage.loadRefine()
             if (state)
-                dispatch(setRefinedState(mergeDeep(state, initialState)))
+                dispatch(setRefinedState(mergeDeep(initialState, state)))
             break
         }
         case SET_REFINED_EXPANDED:

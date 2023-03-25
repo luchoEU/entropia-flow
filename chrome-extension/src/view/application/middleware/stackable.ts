@@ -1,3 +1,4 @@
+import { mergeDeep } from "../../../common/utils"
 import { addPendingChange } from "../actions/sheets"
 import { addStackableToSheetDone, ADD_STACKABLE_TO_SHEET, setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
 import { PAGE_LOADED } from "../actions/ui"
@@ -11,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED: {
             const state: StackableStateIn = await api.storage.loadStackable()
             if (state)
-                dispatch(setStackableState({ ...initialStateIn, ...state }))
+                dispatch(setStackableState(mergeDeep(initialStateIn, state)))
             break
         }
         case STACKABLE_TT_VALUE_CHANGED:
