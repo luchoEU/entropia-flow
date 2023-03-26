@@ -74,18 +74,22 @@ function getLastRow(sheet: any, column: number): number {
     return row
 }
 
+const MAX_DAYS = 1000
 function getDaysSinceLastEntry(sheet: any, row: number, column: number): number {
     let n = 0
     const d = new Date()
     const p = sheet.getCell(row, column).formattedValue
-    while (n < 1000) {
+    while (n < MAX_DAYS) {
         const s = `${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear() % 100}`
         if (p === s)
             break
         n = n + 1
         d.setDate(d.getDate() - 1)
     }
-    return n
+    if (n === MAX_DAYS)
+        return 0
+    else
+        return n
 }
 
 export {
