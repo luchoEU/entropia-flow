@@ -71,9 +71,12 @@ const setState = (state: MaterialsState, inState: MaterialsState): MaterialsStat
 
 const materialMarkupChanged = (state: MaterialsState, material: string, markup: string): MaterialsState => ({
     ...state,
-    [material]: {
-        ...state[material],
-        markup
+    map: {
+        ...state.map,
+        [material]: {
+            ...state.map[material],
+            markup
+        }
     }
 })
 

@@ -1,7 +1,7 @@
 import { objectMap } from "../../../common/utils"
 import { MaterialsMap } from "../state/materials"
 import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedState } from "../state/refined"
-import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap } from "./materials"
+import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
     [MATERIAL_ME]: {
@@ -62,27 +62,33 @@ const initialState: RefinedState = ({
     }))
 })
 
-function auctionFee(difference: number): number {
-    return Math.round(50 + difference * 4.9) / 100
-}
-
 function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculatorStateOut {
+    const auctionFee = (difference: number): number => Math.round(50 + difference * 4.9) / 100
+    const unitMult = (unit: string): number => {
+        switch (unit) {
+            case UNIT_PED_K:
+                return 100
+            case UNIT_PERCENTAGE:
+                return 0.01
+        }
+    }
+
     const refiner = 0.15 // PED for 1k refined
 
-    const buyoutValue = Number(state.value)
-    const markup = Number(m[state.refinedMaterial].markup)
-    const pedMaterial = 1000 / m[state.refinedMaterial].kValue
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].kValue, 0)
-    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].kValue, 0) / m[state.refinedMaterial].kValue
+    const buyoutValue = Number(state.value) //120
+    const markup = Number(m[state.refinedMaterial].markup) //119.99
+    const pedMaterial = 1000 / m[state.refinedMaterial].kValue // 10000
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].kValue * unitMult(m[name].unit), 0) // 11.493
+    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].kValue, 0) / m[state.refinedMaterial].kValue * 1000 // 100100
 
-    const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial)
-    const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial)
-    const cost = (refiner + costMaterials) * pedMaterial / kRefined
-    const auctionCost = amount * cost / pedMaterial + buyoutFee
-    const profitSale = buyoutValue - auctionCost
-    const profitK = profitSale / (amount / kRefined)
-    const openingValue = Math.ceil(buyoutValue - profitSale)
-    const openingFee = auctionFee(openingValue - amount / pedMaterial)
+    const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042
+    const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial) // 1.48
+    const cost = (refiner + costMaterials) * pedMaterial / kRefined // 1.6331..
+    const auctionCost = amount * cost / pedMaterial + buyoutFee // 117.7985..
+    const profitSale = buyoutValue - auctionCost // 2.2014
+    const profitK = profitSale / (amount / kRefined) // 0.2203
+    const openingValue = Math.ceil(buyoutValue - profitSale) // 118
+    const openingFee = auctionFee(openingValue - amount / pedMaterial) // 1.38
 
     return {
         amount: amount.toString(),
@@ -99,7 +105,7 @@ function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculat
 const setState = (state: RefinedState, inState: RefinedState): RefinedState => inState
 
 const changeMaterial = (state: RefinedState, material: string, change: any): RefinedState => {
-    const inState = { ...state }
+    const inState = JSON.parse(JSON.stringify(state))
     inState.map[material] = {
         ...inState.map[material],
         ...change
@@ -107,30 +113,39 @@ const changeMaterial = (state: RefinedState, material: string, change: any): Ref
     return inState
 }
 
-const changeCalculator = (state: RefinedState, material: string, change: any): RefinedState => {
-    const inState = { ...state }
-    inState.map[material].calculator.in = {
+const changeCalculator = (state: RefinedState, material: string, change: any, m: MaterialsMap): RefinedState => {
+    const inState = JSON.parse(JSON.stringify(state))
+    const inCalcState = {
         ...inState.map[material].calculator.in,
         ...change
     }
+    inState.map[material].calculator = {
+        in: inCalcState,
+        out: calc(inCalcState, m)
+    }
     return inState
-
 }
 
 const setRefinedExpanded = (state: RefinedState, material: string, expanded: boolean): RefinedState =>
     changeMaterial(state, material, { expanded })
 
-const refinedValueChanged = (state: RefinedState, material: string, value: string): RefinedState =>
-    changeCalculator(state, material, { value })
+const refinedValueChanged = (state: RefinedState, material: string, value: string, m: MaterialsMap): RefinedState =>
+    changeCalculator(state, material, { value }, m)
 
-const refinedMarkupChanged = (state: RefinedState, material: string, markup: string): RefinedState =>
-    changeCalculator(state, material, { markup })
+const refinedMarkupChanged = (state: RefinedState, material: string, markup: string, m: MaterialsMap): RefinedState =>
+    changeCalculator(state, material, { markup }, m)
+
+const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedState => {
+    const inState = JSON.parse(JSON.stringify(state))
+    Object.keys(inState.map).forEach(k => inState.map[k].calculator.out = calc(inState.map[k].calculator.in, m))
+    return inState
+}
 
 const refinedSell = (state: RefinedState, material: string): RefinedState =>
     changeMaterial(state, material, {})
 
 const cleanForSave = (state: RefinedState): RefinedState => {
-    const inState = { ...state }
+    const inState = JSON.parse(JSON.stringify(state))
     Object.keys(inState.map).forEach(k => inState.map[k].calculator.out = undefined)
     return inState
 }
@@ -141,6 +156,7 @@ export {
     setRefinedExpanded,
     refinedValueChanged,
     refinedMarkupChanged,
+    refinedMaterialChanged,
     refinedSell,
     cleanForSave,
 }
