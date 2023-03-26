@@ -9,6 +9,7 @@ function RefinedInput(p: {
 }) {
     const dispatch = useDispatch()
 
+    const x = p.getChangeAction('101.')
     return (
         <>
             <label>{p.label}</label>

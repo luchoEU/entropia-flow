@@ -1,9 +1,11 @@
+import { MaterialsMap } from '../state/materials'
 import { RefinedState } from '../state/refined'
 
 const SET_REFINED_STATE = '[refined] set state'
 const SET_REFINED_EXPANDED = '[refined] set expanded'
 const REFINED_VALUE_CHANGED = '[refined] value changed'
 const REFINED_MARKUP_CHANGED = '[refined] markup changed'
+const REFINED_MATERIAL_CHANGED = '[refined] material changed'
 const REFINED_SELL = '[refined] sell'
 
 const setRefinedState = (state: RefinedState) => ({
@@ -21,19 +23,28 @@ const setRefinedExpanded = (material: string) => (expanded: boolean) => ({
     }
 })
 
-const refinedValueChanged = (material: string) => (value: string) => ({
+const refinedValueChanged = (material: string, m: MaterialsMap) => (value: string) => ({
     type: REFINED_VALUE_CHANGED,
     payload: {
         material,
-        value
+        value,
+        m
     }
 })
 
-const refinedMarkupChanged = (material: string) => (value: string) => ({
+const refinedMarkupChanged = (material: string, m: MaterialsMap) => (value: string) => ({
     type: REFINED_MARKUP_CHANGED,
     payload: {
         material,
-        value
+        value,
+        m
+    }
+})
+
+const refinedMaterialChanged = (m: MaterialsMap) => ({
+    type: REFINED_MATERIAL_CHANGED,
+    payload: {
+        m
     }
 })
 
@@ -49,10 +60,12 @@ export {
     SET_REFINED_EXPANDED,
     REFINED_VALUE_CHANGED,
     REFINED_MARKUP_CHANGED,
+    REFINED_MATERIAL_CHANGED,
     REFINED_SELL,
     setRefinedState,
     setRefinedExpanded,
     refinedValueChanged,
     refinedMarkupChanged,
+    refinedMaterialChanged,
     refinedSell,
 }
