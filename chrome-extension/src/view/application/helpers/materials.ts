@@ -10,56 +10,80 @@ const MATERIAL_ST = 'Sweetstuff'
 const MATERIAL_FT = 'Fruit'
 
 const UNIT_PERCENTAGE = '%'
-const UNIT_PED_K = 'ped/k'
+const UNIT_PED_K = 'PED/k'
 
 const refinedInitialMap: MaterialsMap = {
     [MATERIAL_ME]: {
-        name: MATERIAL_ME,        
         markup: '120',
-        unit: UNIT_PERCENTAGE,
-        kValue: 0.1,
+        buyAmount: '100000',
+        c: {
+            name: MATERIAL_ME,        
+            unit: UNIT_PERCENTAGE,
+            kValue: 0.1,
+        }
     },
     [MATERIAL_LME]: {
-        name: MATERIAL_LME,
         markup: '110',
-        unit: UNIT_PERCENTAGE,
-        kValue: 0.1,
+        buyAmount: '100000',
+        c: {
+            name: MATERIAL_LME,
+            unit: UNIT_PERCENTAGE,
+            kValue: 0.1,
+        }
     },
     [MATERIAL_NB]: {
-        name: MATERIAL_NB,
         markup: '150',
-        unit: UNIT_PERCENTAGE,
-        kValue: 10,
+        buyAmount: '1000',
+        c: {
+            name: MATERIAL_NB,
+            unit: UNIT_PERCENTAGE,
+            kValue: 10,
+        }
     },
     [MATERIAL_NX]: {
-        name: MATERIAL_NX,
         markup: '101',
-        unit: UNIT_PERCENTAGE,
-        kValue: 10,
+        buyAmount: '10000',
+        c: {
+            name: MATERIAL_NX,
+            unit: UNIT_PERCENTAGE,
+            kValue: 10,
+        }
     },
     [MATERIAL_SW]: {
-        name: MATERIAL_SW,
         markup: '1.35',
-        unit: UNIT_PED_K,
-        kValue: 0.01,
+        buyAmount: '1000',
+        c: {
+            name: MATERIAL_SW,
+            unit: UNIT_PED_K,
+            kValue: 0.01,
+        }
     },
     [MATERIAL_DW]: {
-        name: MATERIAL_DW,
-        markup: '102',
-        unit: UNIT_PERCENTAGE,
-        kValue: 10,
+        markup: '101',
+        buyAmount: '10000',
+        c: {
+            name: MATERIAL_DW,
+            unit: UNIT_PERCENTAGE,
+            kValue: 10,
+        }
     },
     [MATERIAL_ST]: {
-        name: MATERIAL_ST,
         markup: '110',
-        unit: UNIT_PERCENTAGE,
-        kValue: 10,
+        buyAmount: '10000',
+        c: {
+            name: MATERIAL_ST,
+            unit: UNIT_PERCENTAGE,
+            kValue: 10,
+        }
     },
     [MATERIAL_FT]: {
-        name: MATERIAL_FT,
         markup: '2.8',
-        unit: UNIT_PED_K,
-        kValue: 0.01,
+        buyAmount: '1000',
+        c: {
+            name: MATERIAL_FT,
+            unit: UNIT_PED_K,
+            kValue: 0.01,
+        }
     },
 }
 
@@ -69,22 +93,38 @@ const initialState: MaterialsState = {
 
 const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
 
-const materialMarkupChanged = (state: MaterialsState, material: string, markup: string): MaterialsState => ({
+const materialChanged = (state: MaterialsState, material: string, change: any): MaterialsState => ({
     ...state,
     map: {
         ...state.map,
         [material]: {
             ...state.map[material],
-            markup
+            ...change
         }
     }
 })
+
+const materialMarkupChanged = (state: MaterialsState, material: string, markup: string): MaterialsState =>
+    materialChanged(state, material, { markup })
+
+const materialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
+    materialChanged(state, material, { buyAmount })
+
+const cleanForSave = (state: MaterialsState): MaterialsState => {
+    const cState = JSON.parse(JSON.stringify(state))
+    Object.keys(cState).forEach(k => {
+        delete cState[k].c
+    })
+    return cState
+}
 
 export {
     initialState,
     refinedInitialMap,
     setState,
     materialMarkupChanged,
+    materialBuyAmountChanged,
+    cleanForSave,
     MATERIAL_ME,
     MATERIAL_LME,
     MATERIAL_NB,

@@ -333,29 +333,24 @@ const clearCraftSession = (state: CraftState, name: string): CraftState => ({
     ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
 })
 
-const cleanForSave = (state: CraftState): CraftState => ({
-    ...state,
-    activeSession: undefined,
-    blueprints: state.blueprints.map(bp => ({
-        ...bp,
-        info: {
-            ...bp.info,
-            materials: bp.info.materials.map(m => ({
-                ...m,
-                buyDone: undefined,
-            }))
-        },
-        budget: {
+const cleanForSave = (state: CraftState): CraftState => {
+    const cState = JSON.parse(JSON.stringify(state));
+    delete cState.activeSession;
+    cState.blueprints.forEach(bp => {
+        bp.info.materials.forEach(m => {
+            delete m.buyDone
+        })
+        bp.budget = {
             ...bp.budget,
             loading: true,
             stage: STAGE_INITIALIZING
-        },
-        session: bp.session.step === STEP_INACTIVE ? bp.session : {
-            ...bp.session,
-            step: STEP_DONE
         }
-    }))
-})
+        if (bp.session.step !== STEP_INACTIVE) {
+            bp.session.step = STEP_DONE
+        }
+    })
+    return cState;
+}
 
 export {
     initialState,

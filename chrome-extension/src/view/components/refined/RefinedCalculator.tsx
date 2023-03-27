@@ -17,7 +17,7 @@ const RefinedMaterial = (p: {
     return (
         <section>
             <h2>Calculator</h2>
-            <form>
+            <form className='calc-refined'>
                 { c.in.sourceMaterials.map(source =>
                     <RefinedMaterialInput key={source} name={source} />
                 )}

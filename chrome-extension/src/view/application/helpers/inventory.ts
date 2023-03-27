@@ -218,34 +218,14 @@ const removeAvailable = (state: InventoryState, name: string): InventoryState =>
     loadInventory({ ...state, availableCriteria: { name: state.availableCriteria.name.filter(n => n !== name) } }, joinList(state))
 
 // items and stats can be reconstructed
-const cleanForSave = (state: InventoryState): InventoryState => ({
-    ...state,
-    blueprints: {
-        ...state.blueprints,
-        items: undefined,
-        stats: undefined
-    },
-    auction: {
-        ...state.auction,
-        items: undefined,
-        stats: undefined
-    },
-    visible: {
-        ...state.visible,
-        items: undefined, 
-        stats: undefined
-    },
-    hidden: {
-        ...state.hidden,
-        items: undefined,
-        stats: undefined     
-    },
-    available: {
-        ...state.available,
-        items: undefined,
-        stats: undefined
-    }
-})
+const cleanForSave = (state: InventoryState): InventoryState => {
+    const cState = JSON.parse(JSON.stringify(state));
+    Object.keys(cState).forEach(k => {
+        delete cState[k].items;
+        delete cState[k].stats;
+    })
+    return cState
+}
 
 export {
     initialState,
