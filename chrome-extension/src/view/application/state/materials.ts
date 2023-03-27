@@ -5,12 +5,15 @@ interface MaterialsState {
 type MaterialsMap = { [name: string] : MaterialState }
 
 interface MaterialState {    
-    name: string,
     markup: string,
+    buyAmount: string,
 
     // constants
-    unit: string, // of markup
-    kValue: number // TT value in PED of 1k
+    c: {
+        name: string,
+        unit: string, // of markup
+        kValue: number // TT value in PED of 1k
+    }
 }
 
 export {

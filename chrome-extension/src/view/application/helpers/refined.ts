@@ -77,9 +77,9 @@ function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculat
 
     const buyoutValue = Number(state.value) //120
     const markup = Number(m[state.refinedMaterial].markup) //119.99
-    const pedMaterial = 1000 / m[state.refinedMaterial].kValue // 10000
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].kValue * unitMult(m[name].unit), 0) // 11.493
-    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].kValue, 0) / m[state.refinedMaterial].kValue * 1000 // 100100
+    const pedMaterial = 1000 / m[state.refinedMaterial].c.kValue // 10000
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].c.kValue * unitMult(m[name].c.unit), 0) // 11.493
+    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue, 0) / m[state.refinedMaterial].c.kValue * 1000 // 100100
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042
     const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial) // 1.48
@@ -145,9 +145,9 @@ const refinedSell = (state: RefinedState, material: string): RefinedState =>
     changeMaterial(state, material, {})
 
 const cleanForSave = (state: RefinedState): RefinedState => {
-    const inState = JSON.parse(JSON.stringify(state))
-    Object.keys(inState.map).forEach(k => inState.map[k].calculator.out = undefined)
-    return inState
+    const cState = JSON.parse(JSON.stringify(state))
+    Object.keys(cState.map).forEach(k => cState.map[k].calculator.out = undefined)
+    return cState
 }
 
 export {

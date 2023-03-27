@@ -10,7 +10,9 @@ function RefinedPage() {
     return (
         <>
             { Object.keys(state.map).map(name =>
-                <RefinedMaterial key={name} material={state.map[name]} />
+                <div className='inline'>
+                    <RefinedMaterial key={name} material={state.map[name]} />
+                </div>
             )}
         </>
     )
