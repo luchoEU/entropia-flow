@@ -144,6 +144,9 @@ const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedSt
 const refinedSell = (state: RefinedState, material: string): RefinedState =>
     changeMaterial(state, material, {})
 
+const refinedBuyMaterial = (state: RefinedState, material: string, ttValue: string, markup: string): RefinedState =>
+    state
+
 const cleanForSave = (state: RefinedState): RefinedState => {
     const cState = JSON.parse(JSON.stringify(state))
     Object.keys(cState.map).forEach(k => cState.map[k].calculator.out = undefined)
@@ -159,4 +162,5 @@ export {
     refinedMaterialChanged,
     refinedSell,
     cleanForSave,
+    refinedBuyMaterial,
 }
