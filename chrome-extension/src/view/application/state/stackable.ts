@@ -1,7 +1,6 @@
 interface StackableOneStateIn {
     ttValue: string,
     markup: string,
-    pending: boolean
 }
 
 interface StackableOneStateOut {

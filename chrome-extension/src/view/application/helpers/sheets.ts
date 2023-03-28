@@ -1,4 +1,5 @@
 import { SheetsState } from "../state/sheets"
+import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB } from "./materials"
 
 const initialState: SheetsState = {
     pending: [],
@@ -29,10 +30,24 @@ const setTimeoutId = (state: SheetsState, timeoutId: number) => ({
 
 const clearPendingChangeAndTimeoutId = (state: SheetsState) => initialState
 
+const operationChangeFunc = [
+    { // OPERATION_TYPE_USE
+        [MATERIAL_ME]: 'useME',
+        [MATERIAL_LME]: 'useLME',
+        [MATERIAL_NB]: 'useNB',
+    },
+]
+
+const operationDoneFunc = [
+    undefined, // OPERATION_TYPE_USE
+]
+
 export {
     initialState,
     addPendingChange,
     setTimeoutId,
     clearPendingChanges,
     clearPendingChangeAndTimeoutId,
+    operationChangeFunc,
+    operationDoneFunc,
 }

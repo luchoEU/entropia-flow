@@ -1,7 +1,6 @@
 interface CalculatorStateIn1 {
     markup: string,
     value: string,
-    pending: boolean,
 }
 
 interface CalculatorStateIn {

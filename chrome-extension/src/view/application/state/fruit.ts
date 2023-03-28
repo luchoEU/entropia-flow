@@ -1,7 +1,6 @@
 interface FruitStateIn {
     price: string,
     amount: string,
-    pending: boolean
 }
 
 interface FruitStateOut {

@@ -1,6 +1,5 @@
 interface UseOneState {
     amount: string,
-    pending: boolean
 }
 
 interface UseState {

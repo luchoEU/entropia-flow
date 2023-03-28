@@ -1,13 +1,16 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { removeActive, soldActive } from '../../application/actions/actives'
+import { removeActive } from '../../application/actions/actives'
 import { getActiveList, getLoading } from '../../application/selectors/actives'
+import { getSheets } from '../../application/selectors/sheets'
 import { ActivesItem, ActivesLoadingState, OPERATION_NONE } from '../../application/state/actives'
+import { SheetsState } from '../../application/state/sheets'
 import AuctionButton from './AuctionButton'
 
 function AuctionActiveItem(p: { item: ActivesItem }) {
     const dispatch = useDispatch()
     const loading: ActivesLoadingState = useSelector(getLoading)
+    const t: SheetsState = useSelector(getSheets)
 
     const item = p.item
     const date = new Date()

@@ -75,7 +75,6 @@ export {
     ERROR_LOADING,
     ADD_SALE,
     SET_ACTIVES,
-    SOLD_ACTIVE,
     REMOVE_ACTIVE,
     startLoading,
     setLoadingStage,
