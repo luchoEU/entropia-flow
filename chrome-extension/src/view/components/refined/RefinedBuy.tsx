@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux'
 import { getMaterialsMap } from '../../application/selectors/materials'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedBuyMaterial from './RefinedBuyMaterial'
-import RefinedMaterialInput from './RefinedMaterialInput'
 
 const RefinedBuy = (p: {
     material: RefinedOneState
@@ -16,12 +15,12 @@ const RefinedBuy = (p: {
         <section>
             <h2>Buy Material</h2>
             <form className='buy-refined'>
-                <div /><div /><div /><div>Amount</div>
+                <div /><div /><div /><div>Amount</div><div />
                 { c.in.sourceMaterials.map(source =>
                     <RefinedBuyMaterial key={source} name={source} />
                 )}
 
-                <RefinedMaterialInput name={c.in.refinedMaterial} /><div />
+                <RefinedBuyMaterial name={c.in.refinedMaterial} /><div />
             </form>
         </section>
     )
