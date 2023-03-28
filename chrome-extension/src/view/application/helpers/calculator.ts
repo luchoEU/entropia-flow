@@ -9,17 +9,14 @@ const initialStateIn: CalculatorStateIn = {
     me: {
         markup: '120',
         value: '99',
-        pending: false,    
     },
     lme: {
         markup: '110',
         value: '39',
-        pending: false,    
     },
     nb: {
         markup: '145',
         value: '49',
-        pending: false,
     }
 }
 
@@ -226,48 +223,6 @@ function nbValueChanged(state: CalculatorState, value: string): CalculatorState 
     }
 }
 
-function meSellChange(state: CalculatorState, pending: boolean): CalculatorState {
-    const inState = {
-        ...state.in,
-        me: {
-            ...state.in.me,
-            pending
-        }
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
-function lmeSellChange(state: CalculatorState, pending: boolean): CalculatorState {
-    const inState = {
-        ...state.in,
-        lme: {
-            ...state.in.lme,
-            pending
-        }
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
-function nbSellChange(state: CalculatorState, pending: boolean): CalculatorState {
-    const inState = {
-        ...state.in,
-        nb: {
-            ...state.in.nb,
-            pending
-        }
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
 export {
     initialState,
     initialStateIn,
@@ -283,7 +238,4 @@ export {
     lmeValueChanged,
     nbMarkupChanged,
     nbValueChanged,
-    meSellChange,
-    lmeSellChange,
-    nbSellChange,
 }

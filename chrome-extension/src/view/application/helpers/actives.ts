@@ -34,20 +34,18 @@ const setLoadingError = (state: ActivesState, text: string): ActivesState => ({
     }
 })
 
-const addActive = (state: ActivesState, row: number, operation: number, type: string, quantity: string, opening: string, buyout: string, buyoutFee: string): ActivesState => ({
+const addActive = (state: ActivesState, row: number, type: string, quantity: string, opening: string, buyout: string, buyoutFee: string): ActivesState => ({
     ...state,
     list: [
         ...state.list,
         {
             row,
             date: (new Date()).getTime(),
-            operation,
             type,
             quantity,
             opening,
             buyout,
             buyoutFee,
-            pending: false
         }
     ]
 })
@@ -62,11 +60,6 @@ const removeActive = (state: ActivesState, date: number) => ({
     list: state.list.filter(a => a.date !== date)
 })
 
-const soldActive = (state: ActivesState, date: number) => ({
-    ...state,
-    list: state.list.map(a => a.date === date ? { ...a, pending: true } : a)
-})
-
 export {
     initialState,
     startLoading,
@@ -76,5 +69,4 @@ export {
     addActive,
     setActives,
     removeActive,
-    soldActive
 }

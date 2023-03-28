@@ -24,7 +24,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const date = action.payload.date
             const item: ActivesItem = list.find((a: ActivesItem) => a.date == date)
             if (item !== undefined) {
-                dispatch(addPendingChange(
+                dispatch(addPendingChange(OPERATION_TYPE_ACTIVE, 
                     item.operation,
                     sheet => {
                         switch (item.operation) {

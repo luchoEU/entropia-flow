@@ -7,7 +7,6 @@ const calc = (s: SweatStateIn): SweatStateOut => ({
 const initialStateIn: SweatStateIn = {
     price: '1.4',
     amount: '1000',
-    pending: false,
 }
 
 const initialState: SweatState = {
@@ -42,22 +41,10 @@ const sweatAmountChanged = (state: SweatState, amount: string): SweatState => {
     }
 }
 
-const addSweatChanged = (state: SweatState, pending: boolean): SweatState => {
-    const inState = {
-        ...state.in,
-        pending
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
 export {
     initialState,
     initialStateIn,
     setState,
     sweatPriceChanged,
     sweatAmountChanged,
-    addSweatChanged,
 }

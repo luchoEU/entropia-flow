@@ -49,32 +49,26 @@ const initialStateIn: StackableStateIn = {
     nexus: {
         ttValue: '100',
         markup: '102',
-        pending: false,
     },
     me: {
         ttValue: '100',
         markup: '115',
-        pending: false,
     },
     lme: {
         ttValue: '100',
         markup: '103',
-        pending: false,
     },
     nb: {
         ttValue: '100',
         markup: '145',
-        pending: false,
     },
     diluted: {
         ttValue: '100',
         markup: '103',
-        pending: false,
     },
     sweetstuff: {
         ttValue: '100',
         markup: '110',
-        pending: false,
     }
 }
 
@@ -112,18 +106,6 @@ const stackableMarkupChanged = (state: StackableState, material: string, markup:
     }
 }
 
-const addStackableChanged = (state: StackableState, material: string, pending: boolean): StackableState => {
-    const inState = { ...state.in }
-    inState[material] = {
-        ...inState[material],
-        pending
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
 export {
     STACKABLE_NEXUS,
     STACKABLE_ME,
@@ -139,5 +121,4 @@ export {
     setState,
     stackableTTValueChanged,
     stackableMarkupChanged,
-    addStackableChanged
 }

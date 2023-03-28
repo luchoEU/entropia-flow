@@ -7,7 +7,6 @@ const calc = (s: FruitStateIn): FruitStateOut => ({
 const initialStateIn: FruitStateIn = {
     price: '3',
     amount: '1000',
-    pending: false,
 }
 
 const initialState: FruitState = {
@@ -42,21 +41,9 @@ const fruitAmountChanged = (state: FruitState, amount: string): FruitState => {
     }
 }
 
-const addFruitChanged = (state: FruitState, pending: boolean): FruitState => {
-    const inState = {
-        ...state.in,
-        pending
-    }
-    return {
-        in: inState,
-        out: calc(inState)
-    }
-}
-
 export {
     initialState,
     setState,
     fruitPriceChanged,
     fruitAmountChanged,
-    addFruitChanged,
 }

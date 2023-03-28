@@ -22,15 +22,12 @@ const refineSheetsMethod = {
 const initialState: RefineState = {
     me: {
         amount: '1000',
-        pending: false,
     },
     lme: {
         amount: '1000',
-        pending: false,
     },
     nb: {
         amount: '1000',
-        pending: false,
     }
 }
 
@@ -45,15 +42,6 @@ const refineAmountChanged = (state: RefineState, material: string, amount: strin
     return inState
 }
 
-const addRefineChanged = (state: RefineState, material: string, pending: boolean): RefineState => {
-    const inState = { ...state }
-    inState[material] = {
-        ...inState[material],
-        pending
-    }
-    return inState
-}
-
 export {
     refineTitle,
     refineOperation,
@@ -61,5 +49,4 @@ export {
     initialState,
     setState,
     refineAmountChanged,
-    addRefineChanged
 }
