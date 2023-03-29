@@ -1,5 +1,5 @@
 import { SheetsState } from "../state/sheets"
-import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB } from "./materials"
+import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_SW } from "./materials"
 
 const initialState: SheetsState = {
     pending: [],
@@ -36,10 +36,14 @@ const operationChangeFunc = [
         [MATERIAL_LME]: 'useLME',
         [MATERIAL_NB]: 'useNB',
     },
+    { // OPERATION_TYPE_BUY
+        [MATERIAL_SW]: 'buySweat'
+    }
 ]
 
 const operationDoneFunc = [
     undefined, // OPERATION_TYPE_USE
+    undefined, // OPERATION_TYPE_BUY
 ]
 
 export {
