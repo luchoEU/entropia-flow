@@ -1,5 +1,5 @@
 import { SheetsState } from "../state/sheets"
-import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_SW } from "./materials"
+import { MATERIAL_DW, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW } from "./materials"
 
 const initialState: SheetsState = {
     pending: [],
@@ -36,14 +36,23 @@ const operationChangeFunc = [
         [MATERIAL_LME]: 'useLME',
         [MATERIAL_NB]: 'useNB',
     },
-    { // OPERATION_TYPE_BUY
+    { // OPERATION_TYPE_BUY_PER_K
         [MATERIAL_SW]: 'buySweat'
-    }
+    },
+    { // OPERATION_TYPE_BUY_STACKABLE
+        [MATERIAL_NX]: 'buyNexus',
+        [MATERIAL_ME]: 'buyME',
+        [MATERIAL_LME]: 'buyLME',
+        [MATERIAL_NB]: 'buyNB',
+        [MATERIAL_DW]: 'buyDiluted',
+        [MATERIAL_ST]: 'buySweetstuff',
+    },
 ]
 
 const operationDoneFunc = [
     undefined, // OPERATION_TYPE_USE
-    undefined, // OPERATION_TYPE_BUY
+    undefined, // OPERATION_TYPE_BUY_PER_K
+    undefined, // OPERATION_TYPE_BUY_STACKABLE
 ]
 
 export {

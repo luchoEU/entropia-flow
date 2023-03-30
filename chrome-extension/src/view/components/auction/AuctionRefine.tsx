@@ -1,14 +1,17 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { addRefineToSheet, refineAmountChanged } from '../../application/actions/refine'
+import { refineAmountChanged } from '../../application/actions/refine'
+import { addRefineToSheet } from '../../application/actions/sheets'
 import { refineTitle } from '../../application/helpers/refine'
 import { getOneRefine } from '../../application/selectors/refine'
+import { sheetPendingRefine } from '../../application/selectors/sheets'
 import { RefineOneState } from '../../application/state/refine'
 import AuctionButton from './AuctionButton'
 import AuctionInput from './AuctionInput'
 
 function AuctionRefine({ material }) {
     const s: RefineOneState = useSelector(getOneRefine(material))
+    const pending: boolean = useSelector(sheetPendingRefine(material))
 
     return (
         <section>
@@ -20,7 +23,7 @@ function AuctionRefine({ material }) {
                     unit=''
                     getChangeAction={refineAmountChanged(material)} />
             </form>
-            <AuctionButton title='Refine' pending={s.pending} action={addRefineToSheet(material, s.amount)} />
+            <AuctionButton title='Refine' pending={pending} action={addRefineToSheet(material, s.amount)} />
         </section>
     )
 }

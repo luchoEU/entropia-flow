@@ -1,13 +1,17 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { addFruitToSheet, fruitAmountChanged, fruitPriceChanged } from '../../application/actions/fruit'
+import { fruitAmountChanged, fruitPriceChanged } from '../../application/actions/fruit'
+import { addBuyPerKToSheet } from '../../application/actions/sheets'
+import { MATERIAL_FT } from '../../application/helpers/materials'
 import { getFruit } from '../../application/selectors/fruit'
+import { sheetPendingBuyPerK } from '../../application/selectors/sheets'
 import { FruitState } from '../../application/state/fruit'
 import AuctionButton from './AuctionButton'
 import AuctionInput from './AuctionInput'
 
 function AuctionFruit() {
     const s: FruitState = useSelector(getFruit)
+    const pending: boolean = useSelector(sheetPendingBuyPerK(MATERIAL_FT))
 
     return (
         <section>
@@ -30,7 +34,7 @@ function AuctionFruit() {
                     <div>Value</div>
                     <div>{s.out.value}</div>
                 </div>
-                <AuctionButton title='Buy' pending={s.in.pending} action={addFruitToSheet(s.in.price, s.in.amount)} />
+                <AuctionButton title='Buy' pending={pending} action={addBuyPerKToSheet(MATERIAL_FT, s.in.price, s.in.amount)} />
             </div>
         </section>
     )

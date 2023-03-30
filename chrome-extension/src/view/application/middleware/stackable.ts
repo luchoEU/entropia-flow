@@ -1,10 +1,9 @@
 import { mergeDeep } from "../../../common/utils"
-import { addPendingChange } from "../actions/sheets"
-import { addStackableToSheetDone, ADD_STACKABLE_TO_SHEET, setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
+import { setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
 import { PAGE_LOADED } from "../actions/ui"
-import { initialStateIn, stackableOperation, stackableSheetsMethod } from "../helpers/stackable"
-import { getOneStackableIn, getStackableIn } from "../selectors/stackable"
-import { StackableOneStateIn, StackableStateIn } from "../state/stackable"
+import { initialStateIn, } from "../helpers/stackable"
+import { getStackableIn } from "../selectors/stackable"
+import { StackableStateIn } from "../state/stackable"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -19,16 +18,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case STACKABLE_MARKUP_CHANGED: {
             const state: StackableStateIn = getStackableIn(getState())
             await api.storage.saveStackable(state)
-            break
-        }
-        case ADD_STACKABLE_TO_SHEET: {
-            const m = action.payload.material
-            const s: StackableOneStateIn = getOneStackableIn(m)(getState())
-            dispatch(addPendingChange(
-                stackableOperation[m],
-                sheet => sheet[stackableSheetsMethod[m]](s.ttValue, s.markup),
-                row => [ addStackableToSheetDone(m) ]
-            ))
             break
         }
     }
