@@ -1,21 +1,12 @@
 import { MATERIAL_SW } from "../helpers/materials"
+import { CalculatorStateOut1 } from "../state/calculator"
+import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE } from "../state/sheets"
 
 const ADD_PENDING_CHANGE = "[sheets] add pending change"
 const CLEAR_PENDING_CHANGES = "[sheets] clear pending changes"
 const SET_TIMEOUT_ID = "[sheets] set timeout id"
 const PERFORM_CHANGE = "[sheets] perform change"
 const DONE_PENDING_CHANGES = "[sheets] done pending changes"
-const ADD_USE_TO_SHEET = "[sheet] add use sheet"
-const ADD_BUY_TO_SHEET = "[sheet] add buy sheet"
-
-const addPendingChange = (operationType: number, material: string, parameters: any[]) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType,
-        material,
-        parameters
-    }
-})
 
 const setTimeoutId = (timeoutId: NodeJS.Timeout) => ({
     type: SET_TIMEOUT_ID,
@@ -36,20 +27,66 @@ const donePendingChanges = {
     type: DONE_PENDING_CHANGES
 }
 
-const addUseToSheet = (material: string, amount: string) => ({
-    type: ADD_USE_TO_SHEET,
+const addUseToSheet = (material: string, amount: string, cost: string) => ({
+    type: ADD_PENDING_CHANGE,
     payload: {
+        operationType: OPERATION_TYPE_USE,
         material,
-        amount
+        parameters: [ amount, cost ]
     }
 })
 
-const addSweatToSheet = (price: string, amount: string) => ({
-    type: ADD_BUY_TO_SHEET,
+const addBuyPerKToSheet = (material: string, price: string, amount: string) => ({
+    type: ADD_PENDING_CHANGE,
     payload: {
+        operationType: OPERATION_TYPE_BUY_PER_K,
         material: MATERIAL_SW,
-        price,
-        amount,
+        parameters: [ price, amount ]
+    }
+})
+
+const addStackableToSheet = (material: string, ttValue: string, markup: string) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_BUY_STACKABLE,
+        material,
+        parameters: [ ttValue, markup ]
+    }
+})
+
+const addRefineToSheet = (material: string, amount: string) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_REFINE,
+        material,
+        parameters: [ amount ]
+    }
+})
+
+const addOrderToSheet = (material: string, markup: string, value: string) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_ORDER,
+        material,
+        parameters: [ markup, value ]
+    }
+})
+
+const soldActiveToSheet = (date: number) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_SOLD_ACTIVE,
+        material: undefined,
+        parameters: [ date ]
+    }
+})
+
+const addAuctionToSheet = (material: string, s: CalculatorStateOut1) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_AUCTION,
+        material,
+        parameters: [ ]
     }
 })
 
@@ -59,13 +96,15 @@ export {
     SET_TIMEOUT_ID,
     PERFORM_CHANGE,
     DONE_PENDING_CHANGES,
-    ADD_USE_TO_SHEET,
-    ADD_BUY_TO_SHEET,
-    addPendingChange,
     setTimeoutId,
     performChange,
     clearPendingChanges,
     donePendingChanges,
     addUseToSheet,
-    addSweatToSheet,
+    addBuyPerKToSheet,
+    addStackableToSheet,
+    addRefineToSheet,
+    addOrderToSheet,
+    soldActiveToSheet,
+    addAuctionToSheet,
 }

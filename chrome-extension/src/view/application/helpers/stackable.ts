@@ -1,5 +1,5 @@
-import { OPERATION_ADD_DILUTED, OPERATION_ADD_LME, OPERATION_ADD_ME, OPERATION_ADD_NB, OPERATION_ADD_NEXUS, OPERATION_ADD_SWEETSTUFF } from "../state/actives"
 import { StackableOneStateIn, StackableOneStateOut, StackableState, StackableStateIn } from "../state/stackable"
+import { MATERIAL_DW, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST } from "./materials"
 
 const STACKABLE_NEXUS = 'nexus'
 const STACKABLE_ME = 'me'
@@ -9,14 +9,14 @@ const STACKABLE_DILUTED = 'diluted'
 const STACKABLE_SWEETSTUFF = 'sweetstuff'
 
 const stackableTitle = {
-    nexus: 'Buy Nexus',
-    me: 'Buy ME',
-    lme: 'Buy LME',
-    nb: 'Buy NB',
-    diluted: 'Buy Diluted Sweat',
-    sweetstuff: 'Buy Sweetstuff',
+    [MATERIAL_NX]: 'Buy Nexus',
+    [MATERIAL_ME]: 'Buy ME',
+    [MATERIAL_LME]: 'Buy LME',
+    [MATERIAL_NB]: 'Buy NB',
+    [MATERIAL_DW]: 'Buy Diluted Sweat',
+    [MATERIAL_ST]: 'Buy Sweetstuff',
 }
-
+/*
 const stackableOperation = {
     nexus: OPERATION_ADD_NEXUS,
     me: OPERATION_ADD_ME,
@@ -25,15 +25,7 @@ const stackableOperation = {
     diluted: OPERATION_ADD_DILUTED,
     sweetstuff: OPERATION_ADD_SWEETSTUFF,
 }
-
-const stackableSheetsMethod = {
-    nexus: 'buyNexus',
-    me: 'buyME',
-    lme: 'buyLME',
-    nb: 'buyNB',
-    diluted: 'buyDiluted',
-    sweetstuff: 'buySweetstuff',
-}
+*/
 
 const calcOne = (s: StackableOneStateIn): StackableOneStateOut => ({
     value: (Number(s.ttValue) * Number(s.markup) / 100).toFixed(2)
@@ -113,11 +105,9 @@ export {
     STACKABLE_NB,
     STACKABLE_DILUTED,
     STACKABLE_SWEETSTUFF,
-    stackableTitle,
-    stackableOperation,
-    stackableSheetsMethod,
     initialState,
     initialStateIn,
+    stackableTitle,
     setState,
     stackableTTValueChanged,
     stackableMarkupChanged,

@@ -3,7 +3,7 @@ import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../a
 import { lmeSellDone, meSellDone } from "../actions/calculator"
 import { addOrderToSheetDone } from "../actions/order"
 import { addRefineToSheetDone } from "../actions/refine"
-import { addPendingChange, ADD_BUY_TO_SHEET, ADD_PENDING_CHANGE, ADD_USE_TO_SHEET, CLEAR_PENDING_CHANGES, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
+import { addPendingChange, ADD_BUY_TO_SHEET, ADD_PENDING_CHANGE, ADD_REFINE_TO_SHEET, ADD_STACKABLE_TO_SHEET, ADD_USE_TO_SHEET, CLEAR_PENDING_CHANGES, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
 import { addStackableToSheetDone } from "../actions/stackable"
 import { addSweatToSheetDone } from "../actions/sweat"
 import { operationChangeFunc, operationDoneFunc } from "../helpers/sheets"
@@ -14,7 +14,7 @@ import { getSheets } from "../selectors/sheets"
 import { OperationText } from "../state/actives"
 import { CalculatorStateOut1 } from "../state/calculator"
 import { SettingsState } from "../state/settings"
-import { OPERATION_TYPE_USE, SheetsState } from "../state/sheets"
+import { OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_USE, SheetsState } from "../state/sheets"
 
 const TIMEOUT_MILLISECONDS = 3000
 
@@ -76,20 +76,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(endLoading)
                 dispatch(donePendingChanges)
             }
-            break
-        }
-        case ADD_USE_TO_SHEET: {
-            const material = action.payload.material
-            const amount = action.payload.amount
-            const c: CalculatorStateOut1 = getCalculatorOut(material, getState())
-            dispatch(addPendingChange(OPERATION_TYPE_USE, material, [ amount, c.cost ]))
-            break
-        }
-        case ADD_BUY_TO_SHEET: {
-            const material = action.payload.material
-            const price = action.payload.price
-            const amount = action.payload.amount
-            dispatch(addPendingChange(OPERATION_TYPE_USE, material, [ price, amount ]))
             break
         }
     }

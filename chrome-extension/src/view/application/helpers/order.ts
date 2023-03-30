@@ -21,6 +21,5 @@ export {
     initialState,
     setState,
     markupChanged,
-    valueChanged,
-    addOrderChanged
+    valueChanged
 }

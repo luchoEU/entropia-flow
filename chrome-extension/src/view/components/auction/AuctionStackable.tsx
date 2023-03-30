@@ -1,7 +1,9 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { addStackableToSheet, stackableMarkupChanged, stackableTTValueChanged } from '../../application/actions/stackable'
+import { addStackableToSheet } from '../../application/actions/sheets'
+import { stackableMarkupChanged, stackableTTValueChanged } from '../../application/actions/stackable'
 import { stackableTitle } from '../../application/helpers/stackable'
+import { sheetPendingBuyStackable } from '../../application/selectors/sheets'
 import { getOneStackableIn, getOneStackableOut } from '../../application/selectors/stackable'
 import { StackableOneStateIn, StackableOneStateOut } from '../../application/state/stackable'
 import AuctionButton from './AuctionButton'
@@ -10,6 +12,7 @@ import AuctionInput from './AuctionInput'
 function AuctionStackable({ material }) {
     const sin: StackableOneStateIn = useSelector(getOneStackableIn(material))
     const sout: StackableOneStateOut = useSelector(getOneStackableOut(material))
+    const pending: boolean = useSelector(sheetPendingBuyStackable(material))
 
     return (
         <section>
@@ -32,7 +35,7 @@ function AuctionStackable({ material }) {
                     <div>Value</div>
                     <div>{sout.value}</div>
                 </div>
-                <AuctionButton title='Buy' pending={sin.pending} action={addStackableToSheet(material, sin.ttValue, sin.markup)} />
+                <AuctionButton title='Buy' pending={pending} action={addStackableToSheet(material, sin.ttValue, sin.markup)} />
             </div>
         </section>
     )

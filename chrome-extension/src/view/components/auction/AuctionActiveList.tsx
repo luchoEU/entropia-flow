@@ -1,9 +1,10 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeActive } from '../../application/actions/actives'
+import { soldActiveToSheet } from '../../application/actions/sheets'
 import { getActiveList, getLoading } from '../../application/selectors/actives'
-import { getSheets } from '../../application/selectors/sheets'
-import { ActivesItem, ActivesLoadingState, OPERATION_NONE } from '../../application/state/actives'
+import { getSheets, sheetPendingOrder, sheetPendingSoldActive } from '../../application/selectors/sheets'
+import { ActivesItem, ActivesLoadingState } from '../../application/state/actives'
 import { SheetsState } from '../../application/state/sheets'
 import AuctionButton from './AuctionButton'
 
@@ -11,6 +12,7 @@ function AuctionActiveItem(p: { item: ActivesItem }) {
     const dispatch = useDispatch()
     const loading: ActivesLoadingState = useSelector(getLoading)
     const t: SheetsState = useSelector(getSheets)
+    const pending: boolean = useSelector(sheetPendingSoldActive(p.item.date))
 
     const item = p.item
     const date = new Date()
@@ -23,10 +25,7 @@ function AuctionActiveItem(p: { item: ActivesItem }) {
             <td>{item.quantity}</td>
             <td>{item.opening}</td>
             <td>{item.buyout}</td>
-            <td>{
-                item.operation === OPERATION_NONE ? '' :
-                    <AuctionButton title='Sell' pending={item.pending} action={soldActive(item.date)} />
-            }</td>
+            <td><AuctionButton title='Sell' pending={pending} action={soldActiveToSheet(item.date)} /></td>
             <td>{
                 loading === undefined ?
                     <img src='img/cross.png' onClick={() => dispatch(removeActive(item.date))}></img>

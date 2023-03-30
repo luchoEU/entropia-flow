@@ -6,7 +6,6 @@ const END_LOADING = '[act] end loading'
 const ERROR_LOADING = '[act] error loading'
 const ADD_SALE = '[act] add sale'
 const SET_ACTIVES = '[act] set actives'
-const SOLD_ACTIVE = '[act] sold active'
 const REMOVE_ACTIVE = '[act] remove active'
 
 const startLoading = (loadingText: string) => ({
@@ -54,13 +53,6 @@ const setActives = (list: Array<ActivesItem>) => ({
     }
 })
 
-const soldActive = (date: number) => ({
-    type: SOLD_ACTIVE,
-    payload: {
-        date
-    }
-})
-
 const removeActive = (date: number) => ({
     type: REMOVE_ACTIVE,
     payload: {
@@ -82,6 +74,5 @@ export {
     setLoadingError,
     addSale,
     setActives,
-    soldActive,
     removeActive
 }
