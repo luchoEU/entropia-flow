@@ -270,25 +270,30 @@ const buyBudgetMaterialClear = (state: CraftState): CraftState => ({
             ...bp.info,
             materials: bp.info.materials.map(m => ({
                 ...m,
-                buyCost: undefined,
                 buyDone: undefined
             }))
         }
     }))
 })
 
-const changeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState => ({
+const changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: any): CraftState => ({
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
         info: {
             ...bp.info,
             materials: bp.info.materials.map(m => m.name === materialName ? {
-                ...m, buyCost: cost
+                ...m, ...change
             } : m)
         }}
         : bp)
 })
+
+const changeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState =>
+    changeBudgetMaterial(state, name, materialName, { buyCost: cost })
+
+const changeBudgetBuyFee = (state: CraftState, name: string, materialName: string, withFee: boolean): CraftState =>
+    changeBudgetMaterial(state, name, materialName, { withFee })
 
 const changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => ({
     ...state,
@@ -372,6 +377,7 @@ export {
     buyBudgetMaterialDone,
     buyBudgetMaterialClear,
     changeBudgetBuyCost,
+    changeBudgetBuyFee,
     errorBudgetLoading,
     startCraftSession,
     endCraftSession,

@@ -12,6 +12,15 @@ const MATERIAL_FT = 'Fruit'
 const UNIT_PERCENTAGE = '%'
 const UNIT_PED_K = 'PED/k'
 
+const materialMap = {
+    [MATERIAL_NX]: 'nexus',
+    [MATERIAL_ME]: 'me',
+    [MATERIAL_LME]: 'lme',
+    [MATERIAL_NB]: 'nb',
+    [MATERIAL_DW]: 'diluted',
+    [MATERIAL_ST]: 'sweetstuff',
+}
+
 const refinedInitialMap: MaterialsMap = {
     [MATERIAL_ME]: {
         markup: '120',
@@ -120,6 +129,7 @@ const cleanForSave = (state: MaterialsState): MaterialsState => {
 
 export {
     initialState,
+    materialMap,
     refinedInitialMap,
     setState,
     materialMarkupChanged,
