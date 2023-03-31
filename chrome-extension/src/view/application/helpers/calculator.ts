@@ -238,4 +238,5 @@ export {
     lmeValueChanged,
     nbMarkupChanged,
     nbValueChanged,
+    auctionFee,
 }

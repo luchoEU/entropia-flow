@@ -70,6 +70,7 @@ interface BlueprintMaterial {
     budgetCount?: number // budget
     buyCost?: string // budget
     buyDone?: boolean // budget
+    withFee?: boolean // budget
 }
 
 interface BluprintWebData {

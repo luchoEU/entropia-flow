@@ -83,7 +83,16 @@ const joinDuplicates = (list: Array<ItemData>, excludeContainers: string[] = [])
 }
 
 const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemData> =>
-    joinDuplicates(list.filter(d => c.name.includes(d.n)))
+    joinDuplicates(list
+        .filter(d => c.name.includes(d.n))
+        .concat(c.name.map(n => ({
+            id: undefined,
+            n,
+            q: '0',
+            v: '0.00',
+            c: undefined,
+        })))
+    )
 
 const loadInventory = (state: InventoryState, list: Array<ItemData>): InventoryState => ({
     ...state,

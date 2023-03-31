@@ -1,6 +1,7 @@
 import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, setBlueprintExpanded, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { auctionFee } from '../../application/helpers/calculator'
 import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
@@ -81,7 +82,15 @@ function CraftSingle(p: {
     let session = undefined
     let sessionTTprofit = undefined
     let sessionMUprofit = undefined
-    let bought: {[name: string]: { quantity: number, value: string, text: string }} = undefined
+    let bought: {[name: string]: {
+        quantity: number,
+        value: string,
+        finalValue: number,
+        text: string,
+        showFee: boolean,
+        withFee?: boolean,
+        fee?: string
+    }} = undefined
     let showMoveAll = false
 
     if (d.session.diffMaterials !== undefined) {
@@ -105,11 +114,14 @@ function CraftSingle(p: {
                 if (bought === undefined) {
                     bought = {}
                 }
-                const q = -budgetMap[m.name]
+                const quantity = -budgetMap[m.name]
+                const finalValue = quantity * m.value * (m.markup ?? 1)
                 bought[m.name] = {
-                    quantity: q,
-                    value: (q * m.value * (m.markup ?? 1)).toFixed(2),
-                    text: BUDGET_MOVE
+                    quantity,
+                    value: finalValue.toFixed(2),
+                    finalValue, 
+                    text: BUDGET_MOVE,
+                    showFee: false,
                 }
                 showMoveAll = true
             }
@@ -124,11 +136,19 @@ function CraftSingle(p: {
                     if (bought === undefined) {
                         bought = {}
                     }
-                    const q = Number(item.q)
+                    const quantity = Number(item.q)
+                    const value = m.buyCost ?? Math.abs(quantity * m.value * (m.markup ?? 1)).toFixed(2)
+                    const withFee = quantity < 0 && m.withFee
+                    const fee = withFee ? auctionFee(Number(value) + quantity * m.value).toFixed(2) : undefined // + quantity becuase is < 0
+                    const finalValue = withFee ? Number(value) - Number(fee) : Number(value)
                     bought[m.name] = {
-                        quantity: q,
-                        value: m.buyCost ?? (q * m.value * (m.markup ?? 1)).toFixed(2),
-                        text: q > 0 ? BUDGET_BUY : BUDGET_SELL
+                        quantity,
+                        value,
+                        finalValue,
+                        text: quantity > 0 ? BUDGET_BUY : BUDGET_SELL,
+                        showFee: quantity < 0,
+                        withFee,
+                        fee
                     }
                 }
             })
@@ -196,8 +216,20 @@ function CraftSingle(p: {
                                                                 className='input-budget-buy'
                                                                 onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
                                                             PED <button
-                                                                onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text, Number(bought[m.name].value), bought[m.name].quantity))}>
+                                                                onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text, bought[m.name].finalValue, bought[m.name].quantity))}>
                                                                 {`${bought[m.name].text} ${Math.abs(bought[m.name].quantity)}`}</button>
+                                                            {
+                                                                bought[m.name].showFee ?
+                                                                <>
+                                                                    <input
+                                                                        id='withFeeCheck'
+                                                                        type='checkbox'
+                                                                        checked={bought[m.name].withFee}
+                                                                        onChange={(e) => dispatch(changeBudgetPageBuyFee(d.name, m.name, e.target.checked))} />
+                                                                    <label htmlFor="withFeeCheck">Fee</label>
+                                                                        &nbsp;{bought[m.name].fee}
+                                                               </> : <></>
+                                                            }
                                                         </td> : <></>
                                                 }
                                             </tr>)
