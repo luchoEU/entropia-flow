@@ -1,6 +1,6 @@
 import React from 'react'
 import { clearPendingChanges } from '../../application/actions/sheets'
-import { STACKABLE_DILUTED, STACKABLE_LME, STACKABLE_ME, STACKABLE_NB, STACKABLE_NEXUS, STACKABLE_SWEETSTUFF } from '../../application/helpers/stackable'
+import { MATERIAL_DW, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST } from '../../application/helpers/materials'
 import AuctionActive from './AuctionActive'
 import AuctionButton from './AuctionButton'
 import AuctionCalculator from './AuctionCalculator'
@@ -34,46 +34,46 @@ function AuctionPage() {
                 </div>
                 <div>
                     <div className='inline'>
-                        <AuctionStackable material={STACKABLE_NEXUS} />
+                        <AuctionStackable material={MATERIAL_NX} />
                     </div>
                     <div className='inline'>
-                        <AuctionStackable material={STACKABLE_ME} />
+                        <AuctionStackable material={MATERIAL_ME} />
                     </div>
                     <div className='inline'>
-                        <AuctionStackable material={STACKABLE_SWEETSTUFF} />
-                    </div>
-                </div>
-                <div>
-                    <div className='inline'>
-                        <AuctionStackable material={STACKABLE_DILUTED} />
-                    </div>
-                    <div className='inline'>
-                        <AuctionStackable material={STACKABLE_LME} />
-                    </div>
-                    <div className='inline'>
-                        <AuctionStackable material={STACKABLE_NB} />
+                        <AuctionStackable material={MATERIAL_ST} />
                     </div>
                 </div>
                 <div>
                     <div className='inline'>
-                        <AuctionRefine material={STACKABLE_ME} />
+                        <AuctionStackable material={MATERIAL_DW} />
                     </div>
                     <div className='inline'>
-                        <AuctionRefine material={STACKABLE_LME} />
+                        <AuctionStackable material={MATERIAL_LME} />
                     </div>
                     <div className='inline'>
-                        <AuctionRefine material={STACKABLE_NB} />
+                        <AuctionStackable material={MATERIAL_NB} />
                     </div>
                 </div>
                 <div>
                     <div className='inline'>
-                        <AuctionUse material={STACKABLE_ME} />
+                        <AuctionRefine material={MATERIAL_ME} />
                     </div>
                     <div className='inline'>
-                        <AuctionUse material={STACKABLE_LME} />
+                        <AuctionRefine material={MATERIAL_LME} />
                     </div>
                     <div className='inline'>
-                        <AuctionUse material={STACKABLE_NB} />
+                        <AuctionRefine material={MATERIAL_NB} />
+                    </div>
+                </div>
+                <div>
+                    <div className='inline'>
+                        <AuctionUse material={MATERIAL_ME} />
+                    </div>
+                    <div className='inline'>
+                        <AuctionUse material={MATERIAL_LME} />
+                    </div>
+                    <div className='inline'>
+                        <AuctionUse material={MATERIAL_NB} />
                     </div>
                 </div>
             </div>

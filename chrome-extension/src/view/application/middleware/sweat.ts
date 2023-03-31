@@ -1,5 +1,4 @@
 import { mergeDeep } from "../../../common/utils"
-import { addPendingChange } from "../actions/sheets"
 import { setSweatState, SWEAT_AMOUNT_CHANGED, SWEAT_PRICE_CHANGED } from "../actions/sweat"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/sweat"

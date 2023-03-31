@@ -1,11 +1,4 @@
-import { OPERATION_USE_LME, OPERATION_USE_ME, OPERATION_USE_NB } from "../state/actives"
 import { UseState } from "../state/use"
-
-const useTitle = {
-    me: 'Mind Essence',
-    lme: 'Light Mind Essence',
-    nb: 'Nutrio Bar',
-}
 
 const initialState: UseState = {
     me: {
@@ -31,7 +24,6 @@ const useAmountChanged = (state: UseState, material: string, amount: string): Us
 }
 
 export {
-    useTitle,
     initialState,
     setState,
     useAmountChanged,
