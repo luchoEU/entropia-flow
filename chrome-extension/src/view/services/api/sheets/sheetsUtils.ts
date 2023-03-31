@@ -87,9 +87,20 @@ function getDaysSinceLastEntry(sheet: any, row: number, column: number): number 
         d.setDate(d.getDate() - 1)
     }
     if (n === MAX_DAYS)
-        return 0
+        return undefined
     else
         return n
+}
+
+function setDayDate(sheet: any, row: number, column: number, letter: string) {
+    const daysSinceLastEntry = getDaysSinceLastEntry(sheet, row - 1, column)
+    if (daysSinceLastEntry === undefined) {
+        const d = new Date()
+        sheet.getCell(row, column).formula = `=DATEVALUE("${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear()}")`
+    } else {
+        sheet.getCell(row, column).formula = `=${letter}${row}+${daysSinceLastEntry}`
+    }
+    sheet.getCell(row, column).numberFormat = DATE_FORMAT
 }
 
 export {
@@ -102,5 +113,5 @@ export {
     createBudgetSheet,
     saveUpdatedCells,
     getLastRow,
-    getDaysSinceLastEntry,
+    setDayDate,
 }

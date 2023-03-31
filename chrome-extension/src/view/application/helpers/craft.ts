@@ -11,13 +11,15 @@ const initialState: CraftState = {
 
 const setState = (state: CraftState, inState: CraftState) => inState
 
+const itemNameFromBpName = (bpName: string) => bpName.split('Blueprint')[0].trim()
+
 const addBlueprint = (state: CraftState, name: string): CraftState => ({
     ...state,
     blueprints: Sort.sortList(state.sortType, [
         ...state.blueprints,
         {
             name,
-            itemName: name.split('Blueprint')[0].trim(),
+            itemName: itemNameFromBpName(name),
             expanded: true,
             info: {
                 loading: true,
@@ -389,4 +391,5 @@ export {
     doneCraftSession,
     clearCraftSession,
     cleanForSave,
+    itemNameFromBpName,
 }

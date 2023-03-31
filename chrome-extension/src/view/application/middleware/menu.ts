@@ -2,9 +2,12 @@ import { FruitStateIn } from "../state/fruit"
 import { initialState } from "../helpers/fruit"
 import { AUCTION_PAGE, CRAFT_PAGE, selectMenu, SELECT_FOR_ACTION } from "../actions/menu"
 import { KIN_AMP_SOLD, LME_SOLD, ME_SOLD, NB_SOLD } from "../state/history"
-import { setBlueprintExpanded } from "../actions/craft"
+import { addBlueprint, setBlueprintExpanded } from "../actions/craft"
 import { CraftState } from "../state/craft"
 import { getCraft } from "../selectors/craft"
+import { InventoryState } from "../state/inventory"
+import { getInventory } from "../selectors/inventory"
+import { itemNameFromBpName } from "../helpers/craft"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -21,9 +24,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     dispatch(selectMenu(CRAFT_PAGE))
 
                     const state: CraftState = getCraft(getState())
-                    const bpName = state.blueprints.find(bp => bp.itemName === action.payload.name)?.name
-                    if (bpName !== undefined) {
-                        dispatch(setBlueprintExpanded(bpName, true))
+                    const expBpName = state.blueprints.find(bp => bp.itemName === action.payload.name)?.name
+                    if (expBpName !== undefined) {
+                        dispatch(setBlueprintExpanded(expBpName, true))
+                    } else {
+                        const inv: InventoryState = getInventory(getState())
+                        const addBpName = inv.blueprints.items.find(bp => itemNameFromBpName(bp.n) == action.payload.name)?.n
+                        if (addBpName !== undefined)
+                            dispatch(addBlueprint(addBpName))
                     }
                     
                     break
