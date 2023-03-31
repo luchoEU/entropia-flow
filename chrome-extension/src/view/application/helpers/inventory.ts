@@ -86,7 +86,7 @@ const getAvailable = (list: Array<ItemData>, c: AvailableCriteria): Array<ItemDa
     joinDuplicates(list
         .filter(d => c.name.includes(d.n))
         .concat(c.name.map(n => ({
-            id: undefined,
+            id: n,
             n,
             q: '0',
             v: '0.00',

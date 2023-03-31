@@ -41,7 +41,7 @@ const addBuyPerKToSheet = (material: string, price: string, amount: string) => (
     type: ADD_PENDING_CHANGE,
     payload: {
         operationType: OPERATION_TYPE_BUY_PER_K,
-        material: MATERIAL_SW,
+        material,
         parameters: [ price, amount ]
     }
 })

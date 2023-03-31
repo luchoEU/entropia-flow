@@ -36,7 +36,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     row: number,
                 }[] = []
                 for (const c of state.pending) {
-                    const row = sheet[operationChangeFunc[c.operationType][c.material]].apply(c.parameters)
+                    const row = sheet[operationChangeFunc[c.operationType][c.material]].call(sheet, ...c.parameters)
                     const doneFn = operationDoneFunc[c.operationType]
                     if (doneFn)
                         doneList.push({ fn: doneFn, row })
