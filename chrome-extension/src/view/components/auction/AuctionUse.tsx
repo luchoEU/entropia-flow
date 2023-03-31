@@ -2,7 +2,6 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { addUseToSheet } from '../../application/actions/sheets'
 import { useAmountChanged } from '../../application/actions/use'
-import { useTitle } from '../../application/helpers/use'
 import { getCalculatorOut } from '../../application/selectors/calculator'
 import { sheetPendingUse } from '../../application/selectors/sheets'
 import { getOneUse } from '../../application/selectors/use'
@@ -11,14 +10,15 @@ import { UseOneState } from '../../application/state/use'
 import AuctionButton from './AuctionButton'
 import AuctionInput from './AuctionInput'
 
-function AuctionUse({ material }) {
+function AuctionUse(p: { material: string }) {
+    const { material } = p
     const s: UseOneState = useSelector(getOneUse(material))
     const pending: boolean = useSelector(sheetPendingUse(material))
     const c: CalculatorStateOut1 = useSelector(getCalculatorOut(material))
 
     return (
         <section>
-            <h1>Use {useTitle[material]}</h1>
+            <h1>Use {material}</h1>
             <form>
                 <AuctionInput
                     label='Nexus Amount'

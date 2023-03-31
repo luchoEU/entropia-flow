@@ -1,4 +1,5 @@
 import { MATERIAL_SW } from "../helpers/materials"
+import { ActivesItem } from "../state/actives"
 import { CalculatorStateOut1 } from "../state/calculator"
 import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE } from "../state/sheets"
 
@@ -72,21 +73,21 @@ const addOrderToSheet = (material: string, markup: string, value: string) => ({
     }
 })
 
-const soldActiveToSheet = (date: number) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType: OPERATION_TYPE_SOLD_ACTIVE,
-        material: undefined,
-        parameters: [ date ]
-    }
-})
-
 const addAuctionToSheet = (material: string, s: CalculatorStateOut1) => ({
     type: ADD_PENDING_CHANGE,
     payload: {
         operationType: OPERATION_TYPE_AUCTION,
         material,
-        parameters: [ ]
+        parameters: [ s.amount, s.openingFee, s.openingValue ]
+    }
+})
+
+const soldActiveToSheet = (item: ActivesItem) => ({
+    type: ADD_PENDING_CHANGE,
+    payload: {
+        operationType: OPERATION_TYPE_SOLD_ACTIVE,
+        date: item.date,
+        parameters: [ item.row, item.quantity, item.buyoutFee, item.buyout ]
     }
 })
 
@@ -105,6 +106,6 @@ export {
     addStackableToSheet,
     addRefineToSheet,
     addOrderToSheet,
-    soldActiveToSheet,
     addAuctionToSheet,
+    soldActiveToSheet,
 }

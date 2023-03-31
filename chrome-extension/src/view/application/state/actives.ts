@@ -50,7 +50,7 @@ const OperationText = [
     'Sell Mind Essence',         // OPERATION_ME_SELL
     'Sell Light Mind Essence',   // OPERATION_LME_SELL
     'Sell Nutrio Bar',           // OPERATION_NB_SELL
-    'Preparing New Day',         // OPERATION_NEW_DAY
+    '',         // OPERATION_NEW_DAY
     'Mind Essence sold',         // OPERATION_ME_SOLD
     'Light Mind Essence sold',   // OPERATION_LME_SOLD
     'Nutrio Bar sold',           // OPERATION_NB_SOLD

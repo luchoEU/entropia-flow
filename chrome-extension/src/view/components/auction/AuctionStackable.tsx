@@ -2,21 +2,21 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { addStackableToSheet } from '../../application/actions/sheets'
 import { stackableMarkupChanged, stackableTTValueChanged } from '../../application/actions/stackable'
-import { stackableTitle } from '../../application/helpers/stackable'
 import { sheetPendingBuyStackable } from '../../application/selectors/sheets'
 import { getOneStackableIn, getOneStackableOut } from '../../application/selectors/stackable'
 import { StackableOneStateIn, StackableOneStateOut } from '../../application/state/stackable'
 import AuctionButton from './AuctionButton'
 import AuctionInput from './AuctionInput'
 
-function AuctionStackable({ material }) {
+function AuctionStackable(p: { material: string }) {
+    const { material } = p
     const sin: StackableOneStateIn = useSelector(getOneStackableIn(material))
     const sout: StackableOneStateOut = useSelector(getOneStackableOut(material))
     const pending: boolean = useSelector(sheetPendingBuyStackable(material))
 
     return (
         <section>
-            <h1>{stackableTitle[material]}</h1>
+            <h1>Buy {material}</h1>
             <form>
                 <AuctionInput
                     label='TT'
