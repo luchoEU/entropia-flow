@@ -1,7 +1,6 @@
 import { CLASS_LAST, CLASS_NEW_DATE, CLASS_REQUESTED } from "../../../common/const";
 import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
-import { addItemAction } from "./soldDetector";
 import * as Sort from "./inventorySort"
 import { HistoryState, ViewInventory } from "../state/history";
 
@@ -84,10 +83,8 @@ function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
 
 function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean): ViewInventory {
     const diff = getDifference(inventory, previous)
-    if (diff !== null) {
+    if (diff !== null)
         Sort.sortList(diff, sortType)
-        addItemAction(diff)
-    }
     return {
         key: inventory.meta.date,
         text: getText(inventory),

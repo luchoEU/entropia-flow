@@ -36,7 +36,7 @@ interface InventoryState {
     hidden: InventoryList<ItemHidden>,
     hiddenCriteria: HideCriteria,
     available: InventoryList<ItemData>,
-    availableCriteria: AvailableCriteria
+    availableCriteria: AvailableCriteria,
 }
 
 export {

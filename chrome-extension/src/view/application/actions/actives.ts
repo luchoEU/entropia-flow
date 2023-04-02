@@ -4,7 +4,7 @@ const START_LOADING = '[act] start loading'
 const SET_LOADING_STAGE = '[act] set loading stage'
 const END_LOADING = '[act] end loading'
 const ERROR_LOADING = '[act] error loading'
-const ADD_SALE = '[act] add sale'
+const ADD_ACTIVE = '[act] add sale'
 const SET_ACTIVES = '[act] set actives'
 const REMOVE_ACTIVE = '[act] remove active'
 
@@ -33,12 +33,11 @@ const setLoadingError = (text: string) => ({
     }
 })
 
-const addSale = (row: number, operation: number, type: string, quantity: string, opening: string, buyout: string, buyoutFee: string) => ({
-    type: ADD_SALE,
+const addActive = (row: number, material: string, quantity: string, opening: string, buyout: string, buyoutFee: string) => ({
+    type: ADD_ACTIVE,
     payload: {
         row,
-        operation,
-        type,
+        material,
         quantity,
         opening,
         buyout,
@@ -53,7 +52,7 @@ const setActives = (list: Array<ActivesItem>) => ({
     }
 })
 
-const removeActive = (date: number) => ({
+const removeActive = (row: number, date: number) => ({
     type: REMOVE_ACTIVE,
     payload: {
         date
@@ -65,14 +64,14 @@ export {
     SET_LOADING_STAGE,
     END_LOADING,
     ERROR_LOADING,
-    ADD_SALE,
+    ADD_ACTIVE,
     SET_ACTIVES,
     REMOVE_ACTIVE,
     startLoading,
     setLoadingStage,
     endLoading,
     setLoadingError,
-    addSale,
+    addActive,
     setActives,
     removeActive
 }

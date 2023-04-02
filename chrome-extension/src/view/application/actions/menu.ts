@@ -18,10 +18,10 @@ const selectMenu = (menu: number) => ({
     }
 })
 
-const selectForAction = (action: number, name: string) => ({
+const selectForAction = (menu: number, name: string) => ({
     type: SELECT_FOR_ACTION,
     payload: {
-        action,
+        menu,
         name
     }
 })

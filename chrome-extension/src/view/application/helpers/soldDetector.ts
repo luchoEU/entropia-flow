@@ -1,24 +1,31 @@
 // Auction Sold Detector
 
-import { KIN_AMP_SOLD, LME_SOLD, ME_SOLD, NB_SOLD, ViewItemData } from "../state/history";
+import { AUCTION_PAGE, CRAFT_PAGE } from "../actions/menu";
+import { ViewItemAction, ViewItemData } from "../state/history";
+import { AvailableCriteria } from "../state/inventory";
+import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB } from "./materials";
 
-function addItemAction(diff: Array<ViewItemData>) {
-    for (let inv of diff) {
-        let q = Number(inv.q)
-        if (inv.c === 'AUCTION' && inv.q[0] === '-') {
-            if (inv.n === 'Mind Essence') {
-                inv.a = { type: ME_SOLD, q }
-            } else if (inv.n === 'Light Mind Essence') {
-                inv.a = { type: LME_SOLD, q }
-            } else if (inv.n === 'Nutrio Bar') {
-                inv.a = { type: NB_SOLD, q }
-            } else if (inv.n.startsWith('NeoPsion Kinetic Amplifier')) {
-                inv.a = { type: KIN_AMP_SOLD, q }
-            }
+function getItemAction(inv: ViewItemData, availableCriteria: AvailableCriteria): ViewItemAction {
+    let q = Number(inv.q)
+    if (inv.c === 'AUCTION' && inv.q[0] === '-' && availableCriteria.name.includes(inv.n)) {
+        let menu = undefined
+        switch (inv.n) {
+            case MATERIAL_ME:
+            case MATERIAL_LME:
+            case MATERIAL_NB:
+                menu = AUCTION_PAGE
+                break
+            default:
+                menu = CRAFT_PAGE
+                break
+        }
+        return {
+            message: `${inv.n} sold to auction`,
+            menu
         }
     }
 }
 
 export {
-    addItemAction
+    getItemAction
 }
