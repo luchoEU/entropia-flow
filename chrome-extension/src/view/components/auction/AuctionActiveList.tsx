@@ -28,7 +28,7 @@ function AuctionActiveItem(p: { item: ActivesItem }) {
             <td><AuctionButton title='Sell' pending={pending} action={soldActiveToSheet(item)} /></td>
             <td>{
                 loading === undefined ?
-                    <img src='img/cross.png' onClick={() => dispatch(removeActive(item.date))}></img>
+                    <img src='img/cross.png' onClick={() => dispatch(removeActive(0, item.date))}></img>
                     : ''
             }</td>
         </tr >

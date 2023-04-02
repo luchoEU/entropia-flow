@@ -1,7 +1,10 @@
-import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds } from "../actions/last"
+import { Inventory } from "../../../common/state"
+import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds, addActionsToLast, ADD_ACTIONS } from "../actions/last"
 import { PAGE_LOADED } from "../actions/ui"
-import { getPermanentBlacklist, getBlacklist, getPeds } from "../selectors/last"
-import { ViewPedData } from "../state/last"
+import { getInventory } from "../selectors/inventory"
+import { getPermanentBlacklist, getBlacklist, getPeds, getLast } from "../selectors/last"
+import { InventoryState } from "../state/inventory"
+import { LastRequiredState, ViewPedData } from "../state/last"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -33,7 +36,22 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ON_LAST: {
             const state: Array<ViewPedData> = getPeds(getState())
             await api.storage.savePeds(state)
+
+            if (action.type === ON_LAST) {
+                const inv: InventoryState = getInventory(getState())
+                dispatch(addActionsToLast(inv.availableCriteria))
+            }
             break
+        }
+        case ADD_ACTIONS: {
+            const state: LastRequiredState = getLast(getState())
+            var reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+            if (reduced.length > 0) {
+                chrome.notifications.create(
+                    undefined,
+                    { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: reduced.join('\n') }
+                )
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
-import { addPeds, permanentExclude, exclude, excludeWarnings, include, initialState, onLast, removePeds, setPermanentBlacklist, setBlacklist, setExpanded, setPeds, sortByPart } from "../helpers/last"
-import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, SET_BLACKLIST, EXCLUDE_WARNINGS, SET_PEDS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, SET_PERMANENT_BLACKLIST } from "../actions/last"
+import { addPeds, permanentExclude, exclude, excludeWarnings, include, initialState, onLast, removePeds, setPermanentBlacklist, setBlacklist, setExpanded, setPeds, sortByPart, addActions } from "../helpers/last"
+import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, SET_BLACKLIST, EXCLUDE_WARNINGS, SET_PEDS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, SET_PERMANENT_BLACKLIST, ADD_ACTIONS } from "../actions/last"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -15,6 +15,7 @@ export default (state = initialState, action) => {
         case SET_PEDS: return setPeds(state, action.payload.peds)
         case ADD_PEDS: return addPeds(state, action.payload.value)
         case REMOVE_PEDS: return removePeds(state, action.payload.key)
+        case ADD_ACTIONS: return addActions(state, action.payload.availableCriteria)
         default: return state
     }
 }

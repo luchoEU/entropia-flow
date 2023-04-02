@@ -34,17 +34,18 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const doneList: {
                     fn: string,
                     row: number,
+                    params: any[]
                 }[] = []
                 for (const c of state.pending) {
                     const row = sheet[operationChangeFunc[c.operationType][c.material]].call(sheet, ...c.parameters)
                     const doneFn = operationDoneFunc[c.operationType]
                     if (doneFn)
-                        doneList.push({ fn: doneFn, row })
+                        doneList.push({ fn: doneFn, row, params: c.doneParameters ?? c.parameters })
                 }
                 await sheet.save()
                 for (const aDone of doneList) {
                     await new Promise(resolve => setTimeout(resolve, 100));
-                    dispatch(window[aDone.fn](aDone.row))
+                    dispatch(window[aDone.fn](aDone.row, ...aDone.params))
                 }
             } catch (e) {
                 dispatch(setLoadingError(e.message))

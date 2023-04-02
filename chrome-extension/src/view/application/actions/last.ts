@@ -1,4 +1,5 @@
 import { Inventory } from "../../../common/state"
+import { AvailableCriteria } from "../state/inventory"
 import { ViewPedData } from "../state/last"
 
 const SET_BLACKLIST = "[last] set blacklist"
@@ -13,6 +14,7 @@ const PERMANENT_EXCLUDE = "[last] permanent exclude"
 const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
+const ADD_ACTIONS = "[last] add actions"
 
 const setBlacklist = (list: Array<string>) => ({
     type: SET_BLACKLIST,
@@ -105,6 +107,13 @@ const removePeds = (key: number) => ({
     }
 })
 
+const addActionsToLast = (availableCriteria: AvailableCriteria) => ({
+    type: ADD_ACTIONS,
+    payload: {
+        availableCriteria
+    }
+})
+
 export {
     SET_BLACKLIST,
     SET_PERMANENT_BLACKLIST,
@@ -118,6 +127,7 @@ export {
     SORT_BY,
     ADD_PEDS,
     REMOVE_PEDS,
+    ADD_ACTIONS,
     setBlacklist,
     setPermanentBlacklist,
     setPeds,
@@ -131,4 +141,5 @@ export {
     removePeds,
     permanentExcludeOn,
     permanentExcludeOff,
+    addActionsToLast,
 }

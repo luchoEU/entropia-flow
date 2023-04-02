@@ -1,4 +1,4 @@
-import { ADD_SALE, REMOVE_ACTIVE, setActives } from "../actions/actives"
+import { ADD_ACTIVE, REMOVE_ACTIVE, setActives } from "../actions/actives"
 import { PAGE_LOADED } from "../actions/ui"
 import { getActiveList } from "../selectors/actives"
 import { ActivesList } from "../state/actives"
@@ -12,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setActives(actives))
             break
         }
-        case ADD_SALE:
+        case ADD_ACTIVE:
         case REMOVE_ACTIVE: {
             const list: ActivesList = getActiveList(getState())
             await api.storage.saveActives(list)

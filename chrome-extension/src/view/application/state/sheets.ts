@@ -7,7 +7,8 @@ interface SheetsPending {
     operationType: number,
     date: number,
     material: string,
-    parameters: any[]
+    parameters: any[],
+    doneParameters?: any[],
 }
 
 const OPERATION_TYPE_USE = 0

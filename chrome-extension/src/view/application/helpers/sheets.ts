@@ -75,12 +75,9 @@ const operationDoneFunc = [
     undefined, // OPERATION_TYPE_BUY_STACKABLE
     undefined, // OPERATION_TYPE_REFINE
     'addOrderToList', // OPERATION_TYPE_ORDER
-    'addSale', // OPERATION_TYPE_AUCTION
+    'addActive', // OPERATION_TYPE_AUCTION
     'removeActive', // OPERATION_TYPE_SOLD_ACTIVE
 ]
-
-// addSale(row, OPERATION_ME_SOLD, 'Auction ME', s.amount, s.openingValue, s.buyoutValue, s.buyoutFee),
-// removeActive(item.date)
 
 export {
     initialState,

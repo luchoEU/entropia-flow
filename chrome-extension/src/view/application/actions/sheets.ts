@@ -78,7 +78,8 @@ const addAuctionToSheet = (material: string, s: CalculatorStateOut1) => ({
     payload: {
         operationType: OPERATION_TYPE_AUCTION,
         material,
-        parameters: [ s.amount, s.openingFee, s.openingValue ]
+        parameters: [ s.amount, s.openingFee, s.openingValue ],
+        doneParameters: [ material, s.amount, s.openingValue, s.buyoutValue, s.buyoutFee ]
     }
 })
 
@@ -87,7 +88,8 @@ const soldActiveToSheet = (item: ActivesItem) => ({
     payload: {
         operationType: OPERATION_TYPE_SOLD_ACTIVE,
         date: item.date,
-        parameters: [ item.row, item.quantity, item.buyoutFee, item.buyout ]
+        parameters: [ item.row, item.quantity, item.buyoutFee, item.buyout ],
+        doneParameters: [ item.date ]
     }
 })
 
