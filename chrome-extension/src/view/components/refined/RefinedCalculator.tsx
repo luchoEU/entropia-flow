@@ -4,7 +4,7 @@ import { refinedSell, refinedValueChanged } from '../../application/actions/refi
 import { getMaterialsMap } from '../../application/selectors/materials'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
-import RefinedMaterialInput from './RefinedMaterialInput'
+import RefinedMaterialInput from './RefinedBuyMaterialInput'
 import RefinedOutput from './RefinedOutput'
 
 const RefinedMaterial = (p: {
