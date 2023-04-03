@@ -76,9 +76,9 @@ function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculat
     const refiner = 0.15 // PED for 1k refined
 
     const buyoutValue = Number(state.value) //120
-    const markup = Number(m[state.refinedMaterial].markup) //119.99
+    const markup = Number(m[state.refinedMaterial].buyMarkup) //119.99
     const pedMaterial = 1000 / m[state.refinedMaterial].c.kValue // 10000
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].markup) * m[name].c.kValue * unitMult(m[name].c.unit), 0) // 11.493
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].buyMarkup) * m[name].c.kValue * unitMult(m[name].c.unit), 0) // 11.493
     const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue, 0) / m[state.refinedMaterial].c.kValue * 1000 // 100100
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042
@@ -144,7 +144,10 @@ const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedSt
 const refinedSell = (state: RefinedState, material: string): RefinedState =>
     changeMaterial(state, material, {})
 
-const refinedBuyMaterial = (state: RefinedState, material: string, ttValue: string, markup: string): RefinedState =>
+const refinedBuyMaterial = (state: RefinedState, material: string, amount: string, markup: string): RefinedState =>
+    state
+
+const refinedOrderMaterial = (state: RefinedState, material: string, ttValue: string, markup: string): RefinedState =>
     state
 
 const cleanForSave = (state: RefinedState): RefinedState => {
@@ -163,4 +166,5 @@ export {
     refinedSell,
     cleanForSave,
     refinedBuyMaterial,
+    refinedOrderMaterial,
 }

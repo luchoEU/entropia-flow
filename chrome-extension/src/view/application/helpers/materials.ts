@@ -23,8 +23,10 @@ const materialMap = {
 
 const refinedInitialMap: MaterialsMap = {
     [MATERIAL_ME]: {
-        markup: '120',
+        buyMarkup: '120',
         buyAmount: '100000',
+        orderMarkup: '101',
+        orderValue: '1000',
         c: {
             name: MATERIAL_ME,        
             unit: UNIT_PERCENTAGE,
@@ -32,7 +34,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_LME]: {
-        markup: '110',
+        buyMarkup: '110',
         buyAmount: '100000',
         c: {
             name: MATERIAL_LME,
@@ -41,7 +43,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_NB]: {
-        markup: '150',
+        buyMarkup: '150',
         buyAmount: '1000',
         c: {
             name: MATERIAL_NB,
@@ -50,7 +52,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_NX]: {
-        markup: '101',
+        buyMarkup: '101',
         buyAmount: '10000',
         c: {
             name: MATERIAL_NX,
@@ -59,7 +61,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_SW]: {
-        markup: '1.35',
+        buyMarkup: '1.35',
         buyAmount: '1000',
         c: {
             name: MATERIAL_SW,
@@ -68,7 +70,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_DW]: {
-        markup: '101',
+        buyMarkup: '101',
         buyAmount: '10000',
         c: {
             name: MATERIAL_DW,
@@ -77,7 +79,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_ST]: {
-        markup: '110',
+        buyMarkup: '110',
         buyAmount: '10000',
         c: {
             name: MATERIAL_ST,
@@ -86,7 +88,7 @@ const refinedInitialMap: MaterialsMap = {
         }
     },
     [MATERIAL_FT]: {
-        markup: '2.8',
+        buyMarkup: '2.8',
         buyAmount: '1000',
         c: {
             name: MATERIAL_FT,
@@ -113,11 +115,17 @@ const materialChanged = (state: MaterialsState, material: string, change: any): 
     }
 })
 
-const materialMarkupChanged = (state: MaterialsState, material: string, markup: string): MaterialsState =>
-    materialChanged(state, material, { markup })
+const materialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
+    materialChanged(state, material, { buyMarkup })
+
+const materialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
+    materialChanged(state, material, { orderMarkup })
 
 const materialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
     materialChanged(state, material, { buyAmount })
+
+const materialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
+    materialChanged(state, material, { orderValue })
 
 const cleanForSave = (state: MaterialsState): MaterialsState => {
     const cState = JSON.parse(JSON.stringify(state))
@@ -132,8 +140,10 @@ export {
     materialMap,
     refinedInitialMap,
     setState,
-    materialMarkupChanged,
+    materialBuyMarkupChanged,
+    materialOrderMarkupChanged,
     materialBuyAmountChanged,
+    materialOrderValueChanged,
     cleanForSave,
     MATERIAL_ME,
     MATERIAL_LME,

@@ -4,6 +4,7 @@ import { RefinedOneState } from '../../application/state/refined'
 import ExpandableSection from '../common/ExpandableSection'
 import RefinedBuy from './RefinedBuy'
 import RefinedCalculator from './RefinedCalculator'
+import RefinedOrder from './RefinedOrder'
 
 const RefinedMaterial = (p: {
     material: RefinedOneState
@@ -13,8 +14,9 @@ const RefinedMaterial = (p: {
     return (
         <>
             <ExpandableSection title={material.name} expanded={material.expanded} setExpanded={setRefinedExpanded(material.name)} >
-                <RefinedBuy material={material} />
                 <RefinedCalculator material={material} />
+                <RefinedBuy material={material} />
+                <RefinedOrder material={material} />
             </ExpandableSection>
         </>
     )

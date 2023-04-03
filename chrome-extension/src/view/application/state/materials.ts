@@ -5,8 +5,10 @@ interface MaterialsState {
 type MaterialsMap = { [name: string] : MaterialState }
 
 interface MaterialState {    
-    markup: string,
+    buyMarkup: string,
     buyAmount: string,
+    orderMarkup?: string,
+    orderValue?: string,
 
     // constants
     c: {

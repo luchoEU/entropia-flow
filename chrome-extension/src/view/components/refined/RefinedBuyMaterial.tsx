@@ -5,7 +5,7 @@ import { refinedBuyMaterial } from '../../application/actions/refined'
 import { getMaterial } from '../../application/selectors/materials'
 import { MaterialState } from '../../application/state/materials'
 import RefinedButton from './RefinedButton'
-import RefinedMaterialInput from './RefinedMaterialInput'
+import RefinedBuyMaterialInput from './RefinedBuyMaterialInput'
 
 const RefinedBuyMaterial = (p: {
     name: string
@@ -15,12 +15,12 @@ const RefinedBuyMaterial = (p: {
 
     return (
         <>
-            <RefinedMaterialInput name={p.name} />
+            <RefinedBuyMaterialInput name={p.name} />
             <input
                 type='text'
                 value={m.buyAmount}
                 onChange={(e) => dispatch(materialBuyAmountChanged(p.name, e.target.value))} />
-            <RefinedButton title='Buy' pending={false} action={refinedBuyMaterial(p.name, m.buyAmount, m.markup)} />
+            <RefinedButton title='Buy' pending={false} action={refinedBuyMaterial(p.name, m.buyAmount, m.buyMarkup)} />
         </>
     )
 }
