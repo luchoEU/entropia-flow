@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/utils"
-import { MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, setMaterialsState } from "../actions/materials"
+import { MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, MATERIAL_REFINE_AMOUNT_CHANGED, MATERIAL_USE_AMOUNT_CHANGED, setMaterialsState } from "../actions/materials"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/materials"
 import { getMaterials } from "../selectors/materials"
@@ -16,6 +16,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case MATERIAL_BUY_MARKUP_CHANGED:
         case MATERIAL_ORDER_MARKUP_CHANGED:
+        case MATERIAL_USE_AMOUNT_CHANGED:
+        case MATERIAL_REFINE_AMOUNT_CHANGED:
         case MATERIAL_BUY_AMOUNT_CHANGED:
         case MATERIAL_ORDER_VALUE_CHANGED: {
             const state: MaterialsState = getMaterials(getState())

@@ -9,6 +9,8 @@ interface MaterialState {
     buyAmount: string,
     orderMarkup?: string,
     orderValue?: string,
+    useAmount?: string,
+    refineAmount?: string,
 
     // constants
     c: {

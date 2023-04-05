@@ -121,6 +121,12 @@ const materialBuyMarkupChanged = (state: MaterialsState, material: string, buyMa
 const materialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
     materialChanged(state, material, { orderMarkup })
 
+const materialUseAmountChanged = (state: MaterialsState, material: string, useAmount: string): MaterialsState =>
+    materialChanged(state, material, { useAmount })
+
+const materialRefineAmountChanged = (state: MaterialsState, material: string, refineAmount: string): MaterialsState =>
+    materialChanged(state, material, { refineAmount })
+
 const materialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
     materialChanged(state, material, { buyAmount })
 
@@ -142,6 +148,8 @@ export {
     setState,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
+    materialUseAmountChanged,
+    materialRefineAmountChanged,
     materialBuyAmountChanged,
     materialOrderValueChanged,
     cleanForSave,
