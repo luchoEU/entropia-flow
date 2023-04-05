@@ -9,6 +9,8 @@ const REFINED_MATERIAL_CHANGED = '[refined] material changed'
 const REFINED_SELL = '[refined] sell'
 const REFINED_BUY_MATERIAL = '[refined] buy material'
 const REFINED_ORDER_MATERIAL = '[refined] order material'
+const REFINED_USE_MATERIAL = '[refined] use material'
+const REFINED_REFINE_MATERIAL = '[refined] refine material'
 
 const setRefinedState = (state: RefinedState) => ({
     type: SET_REFINED_STATE,
@@ -75,6 +77,22 @@ const refinedOrderMaterial = (material: string, ttValue: string, markup: string)
     }
 })
 
+const refinedUseMaterial = (material: string, amount: string) => ({
+    type: REFINED_USE_MATERIAL,
+    payload: {
+        material,
+        amount
+    }
+})
+
+const refinedRefineMaterial = (material: string, amount: string) => ({
+    type: REFINED_REFINE_MATERIAL,
+    payload: {
+        material,
+        amount
+    }
+})
+
 export {
     SET_REFINED_STATE,
     SET_REFINED_EXPANDED,
@@ -84,6 +102,8 @@ export {
     REFINED_SELL,
     REFINED_BUY_MATERIAL,
     REFINED_ORDER_MATERIAL,
+    REFINED_USE_MATERIAL,
+    REFINED_REFINE_MATERIAL,
     setRefinedState,
     setRefinedExpanded,
     refinedValueChanged,
@@ -92,4 +112,6 @@ export {
     refinedSell,
     refinedBuyMaterial,
     refinedOrderMaterial,
+    refinedUseMaterial,
+    refinedRefineMaterial,
 }
