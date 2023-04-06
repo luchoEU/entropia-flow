@@ -1,4 +1,4 @@
-import { MATERIAL_SW } from "../helpers/materials"
+import { MATERIAL_SW, materialMap } from "../helpers/materials"
 import { ActivesItem } from "../state/actives"
 import { CalculatorStateOut1 } from "../state/calculator"
 import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE } from "../state/sheets"
@@ -73,13 +73,15 @@ const addOrderToSheet = (material: string, markup: string, value: string) => ({
     }
 })
 
+const auctionTitle = (material: string): string => `Auction ${materialMap[material].toUpperCase()}`
+
 const addAuctionToSheet = (material: string, s: CalculatorStateOut1) => ({
     type: ADD_PENDING_CHANGE,
     payload: {
         operationType: OPERATION_TYPE_AUCTION,
         material,
         parameters: [ s.amount, s.openingFee, s.openingValue ],
-        doneParameters: [ material, s.amount, s.openingValue, s.buyoutValue, s.buyoutFee ]
+        doneParameters: [ auctionTitle(material), s.amount, s.openingValue, s.buyoutValue, s.buyoutFee ]
     }
 })
 

@@ -1,3 +1,5 @@
+import { addActive, removeActive } from "../actions/actives"
+import { addOrderToList } from "../actions/order"
 import { SheetsState } from "../state/sheets"
 import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW } from "./materials"
 
@@ -6,7 +8,7 @@ const initialState: SheetsState = {
     timeoutId: undefined
 }
 
-const addPendingChange = (state: SheetsState, operationType: number, date: number, material: string, parameters: any[]): SheetsState => ({
+const addPendingChange = (state: SheetsState, operationType: number, date: number, material: string, parameters: any[], doneParameters: any): SheetsState => ({
     ...state,
     pending: [
         ...state.pending,
@@ -15,6 +17,7 @@ const addPendingChange = (state: SheetsState, operationType: number, date: numbe
             date,
             material,
             parameters,
+            doneParameters,
         }
     ]
 })
@@ -74,9 +77,9 @@ const operationDoneFunc = [
     undefined, // OPERATION_TYPE_BUY_PER_K
     undefined, // OPERATION_TYPE_BUY_STACKABLE
     undefined, // OPERATION_TYPE_REFINE
-    'addOrderToList', // OPERATION_TYPE_ORDER
-    'addActive', // OPERATION_TYPE_AUCTION
-    'removeActive', // OPERATION_TYPE_SOLD_ACTIVE
+    addOrderToList, // OPERATION_TYPE_ORDER
+    addActive, // OPERATION_TYPE_AUCTION
+    removeActive, // OPERATION_TYPE_SOLD_ACTIVE
 ]
 
 export {

@@ -17,26 +17,23 @@ function AuctionCalculator() {
                 <AuctionMaterials />
             </div>
             <AuctionCalcOne
-                title='Mind Essence'
+                material={MATERIAL_ME}
                 markupAction={meMarkupChanged}
                 valueAction={meValueChanged}
-                sellAction={addAuctionToSheet(MATERIAL_ME, c.out.me)}
                 inn={c.in.me}
                 out={c.out.me}
             />
             <AuctionCalcOne
-                title='Light Mind Essence'
+                material={MATERIAL_LME}
                 markupAction={lmeMarkupChanged}
                 valueAction={lmeValueChanged}
-                sellAction={addAuctionToSheet(MATERIAL_LME, c.out.lme)}
                 inn={c.in.lme}
                 out={c.out.lme}
             />
             <AuctionCalcOne
-                title='Nutrio Bar'
+                material={MATERIAL_NB}
                 markupAction={nbMarkupChanged}
                 valueAction={nbValueChanged}
-                sellAction={addAuctionToSheet(MATERIAL_NB, c.out.nb)}
                 inn={c.in.nb}
                 out={c.out.nb}
             />

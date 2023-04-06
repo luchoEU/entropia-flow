@@ -32,7 +32,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
                 const sheet = await api.sheets.loadMELogSheet(settings.sheet, setStage)
                 const doneList: {
-                    fn: string,
+                    fn: any,
                     row: number,
                     params: any[]
                 }[] = []
@@ -45,7 +45,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 await sheet.save()
                 for (const aDone of doneList) {
                     await new Promise(resolve => setTimeout(resolve, 100));
-                    dispatch(window[aDone.fn](aDone.row, ...aDone.params))
+                    dispatch(aDone.fn(aDone.row, ...aDone.params))
                 }
             } catch (e) {
                 dispatch(setLoadingError(e.message))
