@@ -227,7 +227,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
 
 const addActions = (state: LastRequiredState, availableCriteria: AvailableCriteria): LastRequiredState => ({
     ...state,
-    diff: state.diff?.map(d => ({
+    diff: state.diff === null ? null : state.diff.map(d => ({
         ...d,
         a: getItemAction(d, availableCriteria)
     }))
