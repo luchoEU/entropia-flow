@@ -45,7 +45,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
-            if (state.diff) {
+            if (state.diff !== null) {
                 var reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
                 if (reduced.length > 0) {
                     chrome.notifications.create(
