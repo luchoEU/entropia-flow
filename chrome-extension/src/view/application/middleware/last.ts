@@ -45,13 +45,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
-            var reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
-            if (reduced.length > 0) {
-                chrome.notifications.create(
-                    undefined,
-                    { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: reduced.join('\n') }
-                )
+            if (state.diff) {
+                var reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+                if (reduced.length > 0) {
+                    chrome.notifications.create(
+                        undefined,
+                        { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: reduced.join('\n') }
+                    )
+                }
             }
+            break
         }
     }
 }
