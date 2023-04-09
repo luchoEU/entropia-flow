@@ -1,14 +1,14 @@
 import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/utils'
-import { BudgetSheet, BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
+import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBadget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { cleanForSave, initialState, itemName, itemNameFromString } from '../helpers/craft'
+import { budgetInfoFromBp, cleanForSave, initialState, itemName, itemNameFromString, itemStringFromName } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -127,10 +127,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     const bpInfo = state.blueprints.find(bp => bp.name == bpName)    
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
     
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bpInfo, setStage, action.type === START_BUDGET_PAGE_LOADING)
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(bpInfo), setStage, action.type === START_BUDGET_PAGE_LOADING)
                     if (sheet !== undefined) {
                         await sheet.save()
-                        const info: BudgetSheetInfo = await sheet.getInfo()
+                        const info: BudgetSheetGetInfo = await sheet.getInfo()
                         dispatch(setBudgetPageInfo(bpName, info))
                     }
                 } catch (e) {
@@ -225,8 +225,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 if (activeSessionBp.session.diffMaterials !== undefined) {
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
-                    await sheet.addCraftSession()
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(activeSessionBp), setStage)
+                    const d: BudgetLineData = {
+                        reason: 'Craft',
+                        materials: activeSessionBp.session.diffMaterials.map(m => ({
+                            name: itemStringFromName(activeSessionBp, m.n),
+                            quantity: m.q
+                        }))
+                    }
+                    await sheet.addLine(d)
                     await sheet.save()
                 }
                 dispatch(doneCraftingSession(state.activeSession))
@@ -252,7 +259,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const materialName = action.payload.materialName
 
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, activeSessionBp, setStage)
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(activeSessionBp), setStage)
 
                 const changedSheets = []
                 let quantity = action.payload.quantity
@@ -263,13 +270,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                             const m = bp.info.materials.find(m => m.name === materialName)
                             if (m?.budgetCount && m.budgetCount > m.available) {
                                 const q = Math.min(m.budgetCount - m.available, quantity)
-                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, bp, setStage)
+                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(bp), setStage)
                                 const v = q * m.value * m.markup
                                 await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.itemName}`)
                                 await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.itemName}`)
 
                                 await sheetFrom.save()
-                                const infoFrom: BudgetSheetInfo = await sheetFrom.getInfo()
+                                const infoFrom: BudgetSheetGetInfo = await sheetFrom.getInfo()
                                 dispatch(setBudgetPageInfo(bp.name, infoFrom))
             
                                 value *= quantity - q
@@ -284,7 +291,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 await sheet.addBuyMaterial(materialName, quantity, value, action.payload.text)
 
                 await sheet.save()
-                const info: BudgetSheetInfo = await sheet.getInfo()
+                const info: BudgetSheetGetInfo = await sheet.getInfo()
                 dispatch(setBudgetPageInfo(bpName, info))
                 dispatch(doneBuyBadget(bpName, action.payload.materialName))
             } catch (e) {
