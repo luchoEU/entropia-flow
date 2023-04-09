@@ -1,4 +1,4 @@
-import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget'
+import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BlueprintSessionDiff, BluprintWebData, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
@@ -106,7 +106,7 @@ const setBudgetPageStage = (name: string, stage: number) => ({
     }
 })
 
-const setBudgetPageInfo = (name: string, info: BudgetSheetInfo) => ({
+const setBudgetPageInfo = (name: string, info: BudgetSheetGetInfo) => ({
     type: SET_BUDGET_PAGE_INFO,
     payload: {
         name,

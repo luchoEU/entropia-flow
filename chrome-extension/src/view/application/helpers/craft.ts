@@ -1,4 +1,4 @@
-import { BudgetSheetInfo } from '../../services/api/sheets/sheetsBudget';
+import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 import * as Sort from "./craftSort"
@@ -96,8 +96,19 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
 const itemNameFromString = (bp: BlueprintData, name: string): string =>
     name === 'Blueprint' ? bp.name : name === 'Item' ? bp.itemName : name
 
+const itemStringFromName = (bp: BlueprintData, name: string): string =>
+    name === bp.name ? 'Blueprint' : name === bp.itemName ? 'Item' : name
+
 const itemName = (bp: BlueprintData, m: BlueprintMaterial): string =>
     itemNameFromString(bp, m.name)
+
+const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
+    itemName: bp.itemName,
+    materials: bp.info.materials.map(m => ({
+        name: m.name,
+        value: m.value
+    }))
+})
 
 const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
     let blueprints: BlueprintData[] = []    
@@ -182,7 +193,7 @@ const startBudgetLoading = (state: CraftState, name: string): CraftState =>
 const setBudgetState = (state: CraftState, name: string, stage: number): CraftState =>
     changeBudget(state, name, { stage } )
 
-const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetInfo): CraftState => {
+const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => {
     let blueprints: BlueprintData[] = []    
     for (let bp of state.blueprints) {
         if (bp.name !== name) {
@@ -364,6 +375,8 @@ export {
     setState,
     itemName,
     itemNameFromString,
+    itemStringFromName,
+    budgetInfoFromBp,
     addBlueprint,
     removeBlueprint,
     sortBlueprintsByPart,

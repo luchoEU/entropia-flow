@@ -23,5 +23,5 @@ interface MaterialState {
 export {
     MaterialsState,
     MaterialsMap,
-    MaterialState
+    MaterialState,
 }

@@ -1,6 +1,5 @@
-import { BlueprintData } from '../../../application/state/craft'
 import { SheetAccessInfo } from '../../../application/state/settings'
-import { BudgetSheet } from './sheetsBudget'
+import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
 import { newDayInventory } from './sheetsInventory'
 import { MELogSheet } from './sheetsMeLog'
 import { SetStage } from './sheetsStages'
@@ -13,13 +12,13 @@ async function loadMELogSheet(accessInfo: SheetAccessInfo, setStage: SetStage): 
     return sheet
 }
 
-async function loadBudgetSheet(accessInfo: SheetAccessInfo, data: BlueprintData, setStage: SetStage, create: boolean): Promise<BudgetSheet> {
+async function loadBudgetSheet(accessInfo: SheetAccessInfo, data: BudgetInfoData, setStage: SetStage, create: boolean): Promise<BudgetSheet> {
     const doc = await getSpreadsheet(accessInfo, setStage)
-    const sheet = new BudgetSheet(data, setStage)
-    if (await sheet.load(doc)) {
+    const sheet = new BudgetSheet(setStage)
+    if (await sheet.load(doc, data.itemName)) {
         return sheet
     } else if (create) {
-        await sheet.create(doc)
+        await sheet.create(doc, data)
         return sheet
     } else {
         return undefined
