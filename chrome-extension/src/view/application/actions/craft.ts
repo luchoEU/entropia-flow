@@ -147,7 +147,7 @@ const moveAllBudgetPageMaterial = (name: string) => ({
     }
 })
 
-const doneBuyBadget = (name: string, materialName: string) => ({
+const doneBuyBudget = (name: string, materialName: string) => ({
     type: BUY_BUDGET_PAGE_MATERIAL_DONE,
     payload: {
         name,
@@ -290,7 +290,7 @@ export {
     setBudgetPageLoadingError,
     buyBudgetPageMaterial,
     moveAllBudgetPageMaterial,
-    doneBuyBadget,
+    doneBuyBudget,
     clearBuyBudget,
     changeBudgetPageBuyCost,
     changeBudgetPageBuyFee,
