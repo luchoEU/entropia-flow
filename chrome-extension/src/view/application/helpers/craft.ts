@@ -106,7 +106,7 @@ const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     itemName: bp.itemName,
     materials: bp.info.materials.map(m => ({
         name: m.name,
-        value: m.value
+        unitValue: m.value
     }))
 })
 

@@ -59,40 +59,6 @@ const refinedSell = (material: string) => ({
     }
 })
 
-const refinedBuyMaterial = (material: string, amount: string, markup: string) => ({
-    type: REFINED_BUY_MATERIAL,
-    payload: {
-        material,
-        amount,
-        markup
-    }
-})
-
-const refinedOrderMaterial = (material: string, ttValue: string, markup: string) => ({
-    type: REFINED_ORDER_MATERIAL,
-    payload: {
-        material,
-        ttValue,
-        markup
-    }
-})
-
-const refinedUseMaterial = (material: string, amount: string) => ({
-    type: REFINED_USE_MATERIAL,
-    payload: {
-        material,
-        amount
-    }
-})
-
-const refinedRefineMaterial = (material: string, amount: string) => ({
-    type: REFINED_REFINE_MATERIAL,
-    payload: {
-        material,
-        amount
-    }
-})
-
 export {
     SET_REFINED_STATE,
     SET_REFINED_EXPANDED,
@@ -110,8 +76,4 @@ export {
     refinedMarkupChanged,
     refinedMaterialChanged,
     refinedSell,
-    refinedBuyMaterial,
-    refinedOrderMaterial,
-    refinedUseMaterial,
-    refinedRefineMaterial,
 }

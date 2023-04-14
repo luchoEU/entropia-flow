@@ -1,11 +1,11 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { materialBuyAmountChanged } from '../../application/actions/materials'
-import { refinedBuyMaterial } from '../../application/actions/refined'
 import { getMaterial } from '../../application/selectors/materials'
 import { MaterialState } from '../../application/state/materials'
 import RefinedButton from './RefinedButton'
 import RefinedBuyMaterialInput from './RefinedBuyMaterialInput'
+import { refinedBuyMaterial } from '../../application/actions/sheets'
 
 const RefinedBuyMaterial = (p: {
     name: string
