@@ -2,6 +2,7 @@ import { addActive, removeActive } from "../actions/actives"
 import { addOrderToList } from "../actions/order"
 import { SheetsState } from "../state/sheets"
 import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW } from "./materials"
+import { budgetGetCreateParams } from "./refined"
 
 const initialState: SheetsState = {
     pending: [],
@@ -34,7 +35,26 @@ const setTimeoutId = (state: SheetsState, timeoutId: number) => ({
 
 const clearPendingChangeAndTimeoutId = (state: SheetsState) => initialState
 
-const operationChangeFunc = [
+const loadSheetFunc: string[] = [
+    'loadMELogSheet', // OPERATION_TYPE_USE
+    'loadMELogSheet', // OPERATION_TYPE_BUY_PER_K
+    'loadMELogSheet', // OPERATION_TYPE_BUY_STACKABLE
+    'loadMELogSheet', // OPERATION_TYPE_REFINE
+    'loadMELogSheet', // OPERATION_TYPE_ORDER
+    'loadMELogSheet', // OPERATION_TYPE_AUCTION
+    'loadMELogSheet', // OPERATION_TYPE_SOLD_ACTIVE
+    'loadBudgetSheet', // OPERATION_TYPE_REFINED_BUY_MATERIAL
+    'loadBudgetSheet', // OPERATION_TYPE_REFINED_ORDER_MATERIAL
+    'loadBudgetSheet', // OPERATION_TYPE_REFINED_USE_MATERIAL
+    'loadBudgetSheet', // OPERATION_TYPE_REFINED_REFINE_MATERIAL
+]
+
+const loadSheetParams: { [n: string]: any } = {
+    'loadMELogSheet': undefined,
+    'loadBudgetSheet': budgetGetCreateParams,
+}
+
+const operationChangeFunc: { [n: string]: string }[] = [
     { // OPERATION_TYPE_USE
         [MATERIAL_ME]: 'useME',
         [MATERIAL_LME]: 'useLME',
@@ -69,6 +89,26 @@ const operationChangeFunc = [
         [MATERIAL_ME]: 'meSold',
         [MATERIAL_LME]: 'lmeSold',
         [MATERIAL_NB]: 'nbSold',
+    }, // OPERATION_TYPE_REFINED_BUY_MATERIAL
+    {
+        [MATERIAL_ME]: '',
+        [MATERIAL_LME]: '',
+        [MATERIAL_NB]: '',
+    }, // OPERATION_TYPE_REFINED_ORDER_MATERIAL
+    {
+        [MATERIAL_ME]: '',
+        [MATERIAL_LME]: '',
+        [MATERIAL_NB]: '',
+    }, // OPERATION_TYPE_REFINED_USE_MATERIAL
+    {
+        [MATERIAL_ME]: '',
+        [MATERIAL_LME]: '',
+        [MATERIAL_NB]: '',
+    }, // OPERATION_TYPE_REFINED_REFINE_MATERIAL
+    {
+        [MATERIAL_ME]: '',
+        [MATERIAL_LME]: '',
+        [MATERIAL_NB]: '',
     },
 ]
 
@@ -80,6 +120,10 @@ const operationDoneFunc = [
     addOrderToList, // OPERATION_TYPE_ORDER
     addActive, // OPERATION_TYPE_AUCTION
     removeActive, // OPERATION_TYPE_SOLD_ACTIVE
+    undefined, // OPERATION_TYPE_REFINED_BUY_MATERIAL
+    undefined, // OPERATION_TYPE_REFINED_ORDER_MATERIAL
+    undefined, // OPERATION_TYPE_REFINED_USE_MATERIAL
+    undefined, // OPERATION_TYPE_REFINED_REFINE_MATERIAL
 ]
 
 export {
@@ -88,6 +132,8 @@ export {
     setTimeoutId,
     clearPendingChanges,
     clearPendingChangeAndTimeoutId,
+    loadSheetFunc,
+    loadSheetParams,
     operationChangeFunc,
     operationDoneFunc,
 }

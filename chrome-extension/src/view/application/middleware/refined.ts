@@ -44,7 +44,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REFINED_SELL: {
             const settings: SettingsState = getSettings(getState())
             //const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
-            //const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(bpInfo), setStage, action.type === START_BUDGET_PAGE_LOADING)
+            //const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
             break
         }
     }

@@ -1,6 +1,9 @@
 import { objectMap } from "../../../common/utils"
-import { MaterialsMap } from "../state/materials"
-import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedState } from "../state/refined"
+import { BudgetInfoData } from "../../services/api/sheets/sheetsBudget"
+import { getMaterial } from "../selectors/materials"
+import { getOneRefined } from "../selectors/refined"
+import { MaterialsMap, MaterialState } from "../state/materials"
+import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedState } from "../state/refined"
 import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
@@ -144,22 +147,23 @@ const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedSt
 const refinedSell = (state: RefinedState, material: string): RefinedState =>
     changeMaterial(state, material, {})
 
-const refinedBuyMaterial = (state: RefinedState, material: string, amount: string, markup: string): RefinedState =>
-    state
-
-const refinedOrderMaterial = (state: RefinedState, material: string, ttValue: string, markup: string): RefinedState =>
-    state
-
-const refinedUseMaterial = (state: RefinedState, material: string, amount: string): RefinedState =>
-    state
-
-const refinedRefineMaterial = (state: RefinedState, material: string, amount: string): RefinedState =>
-    state
-
 const cleanForSave = (state: RefinedState): RefinedState => {
     const cState = JSON.parse(JSON.stringify(state))
     Object.keys(cState.map).forEach(k => cState.map[k].calculator.out = undefined)
     return cState
+}
+
+function budgetGetCreateParams(state: any, material: string): any[] {
+    const oneState: RefinedOneState = getOneRefined(material)(state)
+    const calc = oneState.calculator.in
+    const info: BudgetInfoData = {
+        itemName: material,
+        materials: [ calc.refinedMaterial, ...calc.sourceMaterials ].map(m => ({
+            name: m,
+            unitValue: getMaterial(m)(state).c.kValue / 1000
+        }))
+    }
+    return [ info, true ]
 }
 
 export {
@@ -171,8 +175,5 @@ export {
     refinedMaterialChanged,
     refinedSell,
     cleanForSave,
-    refinedBuyMaterial,
-    refinedOrderMaterial,
-    refinedUseMaterial,
-    refinedRefineMaterial,
+    budgetGetCreateParams,
 }

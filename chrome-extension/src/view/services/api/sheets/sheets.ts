@@ -12,7 +12,7 @@ async function loadMELogSheet(accessInfo: SheetAccessInfo, setStage: SetStage): 
     return sheet
 }
 
-async function loadBudgetSheet(accessInfo: SheetAccessInfo, data: BudgetInfoData, setStage: SetStage, create: boolean): Promise<BudgetSheet> {
+async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
     const doc = await getSpreadsheet(accessInfo, setStage)
     const sheet = new BudgetSheet(setStage)
     if (await sheet.load(doc, data.itemName)) {

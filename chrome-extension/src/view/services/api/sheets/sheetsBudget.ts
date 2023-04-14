@@ -32,7 +32,7 @@ interface BudgetInfoData {
     itemName: string
     materials: {
         name: string
-        value: number
+        unitValue: number
     }[]
 }
 
@@ -90,7 +90,7 @@ class BudgetSheet {
 
         let column = MATERIAL_COLUMN
         for (const m of data.materials)
-            this.addTitle(column++, m.name, Number(m.value))
+            this.addTitle(column++, m.name, m.unitValue)
 
         this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(E5:${this.sheet.getCell(0, column-1).a1Column}5)`
 

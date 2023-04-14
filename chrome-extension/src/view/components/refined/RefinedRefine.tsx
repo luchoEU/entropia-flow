@@ -5,8 +5,8 @@ import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { MaterialState } from '../../application/state/materials'
-import { refinedRefineMaterial, refinedUseMaterial } from '../../application/actions/refined'
 import { materialRefineAmountChanged } from '../../application/actions/materials'
+import { refinedUseMaterial } from '../../application/actions/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
@@ -24,7 +24,7 @@ const RefinedUse = (p: {
                     value={m.refineAmount}
                     unit=''
                     getChangeAction={materialRefineAmountChanged(m.c.name)} />
-                <RefinedButton title='Use' pending={false} action={refinedRefineMaterial(material.name, m.useAmount)} />
+                <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.useAmount)} />
             </form>
         </section>
     )

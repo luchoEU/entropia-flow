@@ -127,7 +127,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     const bpInfo = state.blueprints.find(bp => bp.name == bpName)    
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
     
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(bpInfo), setStage, action.type === START_BUDGET_PAGE_LOADING)
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
                     if (sheet !== undefined) {
                         await sheet.save()
                         const info: BudgetSheetGetInfo = await sheet.getInfo()
@@ -225,7 +225,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 if (activeSessionBp.session.diffMaterials !== undefined) {
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(activeSessionBp), setStage)
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(activeSessionBp))
                     const d: BudgetLineData = {
                         reason: 'Craft',
                         materials: activeSessionBp.session.diffMaterials.map(m => ({
@@ -259,7 +259,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const materialName = action.payload.materialName
 
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(activeSessionBp), setStage)
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(activeSessionBp))
 
                 const changedSheets = []
                 let quantity = action.payload.quantity
@@ -270,7 +270,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                             const m = bp.info.materials.find(m => m.name === materialName)
                             if (m?.budgetCount && m.budgetCount > m.available) {
                                 const q = Math.min(m.budgetCount - m.available, quantity)
-                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, budgetInfoFromBp(bp), setStage)
+                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bp))
                                 const v = q * m.value * m.markup
                                 await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.itemName}`)
                                 await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.itemName}`)

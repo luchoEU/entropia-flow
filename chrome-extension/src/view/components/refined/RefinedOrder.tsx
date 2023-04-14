@@ -6,7 +6,7 @@ import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { MaterialState } from '../../application/state/materials'
 import { materialOrderMarkupChanged, materialOrderValueChanged } from '../../application/actions/materials'
-import { refinedOrderMaterial } from '../../application/actions/refined'
+import { refinedOrderMaterial } from '../../application/actions/sheets'
 
 const RefinedOrder = (p: {
     material: RefinedOneState

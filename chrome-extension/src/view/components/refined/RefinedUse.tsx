@@ -5,8 +5,8 @@ import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { MaterialState } from '../../application/state/materials'
-import { refinedUseMaterial } from '../../application/actions/refined'
 import { materialUseAmountChanged } from '../../application/actions/materials'
+import { refinedUseMaterial } from '../../application/actions/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
