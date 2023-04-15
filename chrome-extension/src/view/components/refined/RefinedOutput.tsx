@@ -4,6 +4,7 @@ import RefinedButton from './RefinedButton'
 
 function RefinedOutput(c: {
     out: RefinedCalculatorStateOut,
+    pending: boolean,
     sellAction: { type: string }
 }) {
     return (
@@ -19,7 +20,7 @@ function RefinedOutput(c: {
                 <div>{c.out.buyoutValue}</div>
             </div>
 
-            <RefinedButton title='Sell' pending={false} action={c.sellAction} />
+            <RefinedButton title='Sell' pending={c.pending} action={c.sellAction} />
 
             <div className='calc-output'>
                 <div>Auction Fee</div>

@@ -6,6 +6,7 @@ import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedBuyMaterialInput'
 import RefinedOutput from './RefinedOutput'
+import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
 
 const RefinedMaterial = (p: {
     material: RefinedOneState
@@ -13,6 +14,7 @@ const RefinedMaterial = (p: {
     const { material } = p
     const c = material.calculator
     const m = useSelector(getMaterialsMap)
+    const pending = useSelector(sheetPendingRefinedBuy(material.name))
 
     return (
         <section>
@@ -32,6 +34,7 @@ const RefinedMaterial = (p: {
             </form>
             <RefinedOutput
                 out={c.out}
+                pending={pending}
                 sellAction={refinedSell(material.name)} />
         </section>
     )
