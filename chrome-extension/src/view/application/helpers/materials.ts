@@ -27,6 +27,8 @@ const refinedInitialMap: MaterialsMap = {
         buyAmount: '100000',
         orderMarkup: '101',
         orderValue: '1000',
+        useAmount: '10000',
+        refineAmount: '100000',
         c: {
             name: MATERIAL_ME,        
             unit: UNIT_PERCENTAGE,
@@ -36,6 +38,10 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_LME]: {
         buyMarkup: '110',
         buyAmount: '100000',
+        orderMarkup: '101',
+        orderValue: '1000',
+        useAmount: '10000',
+        refineAmount: '100000',
         c: {
             name: MATERIAL_LME,
             unit: UNIT_PERCENTAGE,
@@ -45,6 +51,10 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_NB]: {
         buyMarkup: '150',
         buyAmount: '1000',
+        orderMarkup: '101',
+        orderValue: '1000',
+        useAmount: '1000',
+        refineAmount: '1000',
         c: {
             name: MATERIAL_NB,
             unit: UNIT_PERCENTAGE,

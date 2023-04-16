@@ -144,9 +144,6 @@ const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedSt
     return inState
 }
 
-const refinedSell = (state: RefinedState, material: string): RefinedState =>
-    changeMaterial(state, material, {})
-
 const cleanForSave = (state: RefinedState): RefinedState => {
     const cState = JSON.parse(JSON.stringify(state))
     Object.keys(cState.map).forEach(k => cState.map[k].calculator.out = undefined)
@@ -173,7 +170,6 @@ export {
     refinedValueChanged,
     refinedMarkupChanged,
     refinedMaterialChanged,
-    refinedSell,
     cleanForSave,
     budgetGetCreateParams,
 }
