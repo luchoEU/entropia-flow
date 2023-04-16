@@ -12,7 +12,6 @@ const RefinedUse = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
-    const dispatch = useDispatch()
     const m: MaterialState = useSelector(getMaterial(material.name))
 
     return (

@@ -1,12 +1,13 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { refinedSell, refinedValueChanged } from '../../application/actions/refined'
+import { refinedValueChanged } from '../../application/actions/refined'
 import { getMaterialsMap } from '../../application/selectors/materials'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedBuyMaterialInput'
 import RefinedOutput from './RefinedOutput'
-import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
+import { sheetPendingRefinedBuy, sheetPendingRefinedSell } from '../../application/selectors/sheets'
+import { refinedSell } from '../../application/actions/sheets'
 
 const RefinedMaterial = (p: {
     material: RefinedOneState
@@ -14,7 +15,7 @@ const RefinedMaterial = (p: {
     const { material } = p
     const c = material.calculator
     const m = useSelector(getMaterialsMap)
-    const pending = useSelector(sheetPendingRefinedBuy(material.name))
+    const pending = useSelector(sheetPendingRefinedSell(material.name))
 
     return (
         <section>
@@ -35,7 +36,7 @@ const RefinedMaterial = (p: {
             <RefinedOutput
                 out={c.out}
                 pending={pending}
-                sellAction={refinedSell(material.name)} />
+                sellAction={refinedSell(material.name, c.in.value, m[c.in.refinedMaterial].buyMarkup)} />
         </section>
     )
 }
