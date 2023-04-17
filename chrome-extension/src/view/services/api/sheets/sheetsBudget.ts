@@ -94,9 +94,11 @@ class BudgetSheet {
 
         this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(E5:${this.sheet.getCell(0, column-1).a1Column}5)`
 
+        this.row = START_ROW
         this.sheet.getCell(START_ROW, REASON_COLUMN).value = 'Start'
-        this.addDate()
         await this.addBudget(START_ROW)
+        this.addDate() // after addBudget because it loads the empty cells
+        await this.sheet.saveUpdatedCells()
     }
 
     private addDate() {
