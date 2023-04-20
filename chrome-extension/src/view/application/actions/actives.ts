@@ -33,11 +33,11 @@ const setLoadingError = (text: string) => ({
     }
 })
 
-const addActive = (row: number, material: string, quantity: string, opening: string, buyout: string, buyoutFee: string) => ({
+const addActive = (row: number, title: string, quantity: string, opening: string, buyout: string, buyoutFee: string) => ({
     type: ADD_ACTIVE,
     payload: {
         row,
-        material,
+        title,
         quantity,
         opening,
         buyout,

@@ -1,7 +1,9 @@
+import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 import { materialMap } from "../helpers/materials"
 import { ActivesItem } from "../state/actives"
 import { CalculatorStateOut1 } from "../state/calculator"
-import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_REFINED_ORDER_MATERIAL, OPERATION_TYPE_REFINED_REFINE_MATERIAL, OPERATION_TYPE_REFINED_SELL_MATERIAL, OPERATION_TYPE_REFINED_USE_MATERIAL, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE } from "../state/sheets"
+import { RefinedCalculatorStateOut } from "../state/refined"
+import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_REFINED_AUCTION_MATERIAL, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_REFINED_ORDER_MATERIAL, OPERATION_TYPE_REFINED_REFINE_MATERIAL, OPERATION_TYPE_REFINED_USE_MATERIAL, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE } from "../state/sheets"
 
 const ADD_PENDING_CHANGE = "[sheets] add pending change"
 const CLEAR_PENDING_CHANGES = "[sheets] clear pending changes"
@@ -95,14 +97,22 @@ const soldActiveToSheet = (item: ActivesItem) => ({
     }
 })
 
-const refinedSell = (material: string, amount: string, markup: string) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType: OPERATION_TYPE_REFINED_SELL_MATERIAL,
-        material,
-        parameters: [ amount, markup ]
+const refinedSell = (material: string, s: RefinedCalculatorStateOut) => {
+    const line: BudgetLineData = {
+        reason: 'Auction',
+        ped: -Number(s.openingFee),
+        materials: []
     }
-})
+    return {
+        type: ADD_PENDING_CHANGE,
+        payload: {
+            operationType: OPERATION_TYPE_REFINED_AUCTION_MATERIAL,
+            material,
+            parameters: [ line ],
+            doneParameters: [ auctionTitle(material), s.amount, s.openingValue, s.buyoutValue, s.buyoutFee ]
+        }
+    }
+}
 
 const refinedBuyMaterial = (material: string, amount: string, markup: string) => ({
     type: ADD_PENDING_CHANGE,
