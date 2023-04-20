@@ -6,7 +6,7 @@ import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedBuyMaterialInput'
 import RefinedOutput from './RefinedOutput'
-import { sheetPendingRefinedBuy, sheetPendingRefinedSell } from '../../application/selectors/sheets'
+import { sheetPendingRefinedSell } from '../../application/selectors/sheets'
 import { refinedSell } from '../../application/actions/sheets'
 
 const RefinedMaterial = (p: {
@@ -36,7 +36,7 @@ const RefinedMaterial = (p: {
             <RefinedOutput
                 out={c.out}
                 pending={pending}
-                sellAction={refinedSell(material.name, c.in.value, m[c.in.refinedMaterial].buyMarkup)} />
+                sellAction={refinedSell(material.name, c.out)} />
         </section>
     )
 }

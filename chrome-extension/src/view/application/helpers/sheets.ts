@@ -43,7 +43,7 @@ const loadSheetFunc: string[] = [
     'loadMELogSheet', // OPERATION_TYPE_ORDER
     'loadMELogSheet', // OPERATION_TYPE_AUCTION
     'loadMELogSheet', // OPERATION_TYPE_SOLD_ACTIVE
-    'loadBudgetSheet', // OPERATION_TYPE_REFINED_SELL_MATERIAL
+    'loadBudgetSheet', // OPERATION_TYPE_REFINED_AUCTION_MATERIAL
     'loadBudgetSheet', // OPERATION_TYPE_REFINED_BUY_MATERIAL
     'loadBudgetSheet', // OPERATION_TYPE_REFINED_ORDER_MATERIAL
     'loadBudgetSheet', // OPERATION_TYPE_REFINED_USE_MATERIAL
@@ -91,10 +91,10 @@ const operationChangeFunc: { [n: string]: string }[] = [
         [MATERIAL_LME]: 'lmeSold',
         [MATERIAL_NB]: 'nbSold',
     },
-    { // OPERATION_TYPE_REFINED_SELL_MATERIAL
-        [MATERIAL_ME]: '',
-        [MATERIAL_LME]: '',
-        [MATERIAL_NB]: '',
+    { // OPERATION_TYPE_REFINED_AUCTION_MATERIAL
+        [MATERIAL_ME]: 'addLine',
+        [MATERIAL_LME]: 'addLine',
+        [MATERIAL_NB]: 'addLine',
     },
     { // OPERATION_TYPE_REFINED_BUY_MATERIAL
         [MATERIAL_ME]: '',
@@ -126,7 +126,7 @@ const operationDoneFunc = [
     addOrderToList, // OPERATION_TYPE_ORDER
     addActive, // OPERATION_TYPE_AUCTION
     removeActive, // OPERATION_TYPE_SOLD_ACTIVE
-    undefined, // OPERATION_TYPE_REFINED_SELL_MATERIAL
+    addActive, // OPERATION_TYPE_REFINED_AUCTION_MATERIAL
     undefined, // OPERATION_TYPE_REFINED_BUY_MATERIAL
     undefined, // OPERATION_TYPE_REFINED_ORDER_MATERIAL
     undefined, // OPERATION_TYPE_REFINED_USE_MATERIAL

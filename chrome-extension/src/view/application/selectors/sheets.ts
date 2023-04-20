@@ -1,4 +1,4 @@
-import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_REFINED_SELL_MATERIAL, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE, SheetsPending } from "../state/sheets"
+import { OPERATION_TYPE_AUCTION, OPERATION_TYPE_BUY_PER_K, OPERATION_TYPE_BUY_STACKABLE, OPERATION_TYPE_ORDER, OPERATION_TYPE_REFINE, OPERATION_TYPE_REFINED_AUCTION_MATERIAL, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_SOLD_ACTIVE, OPERATION_TYPE_USE, SheetsPending } from "../state/sheets"
 
 const sheetPendingMaterial = (state: any, operationType: number, material: string): boolean =>
     state.sheets.pending.find((p: SheetsPending) => p.operationType === operationType && p.material === material) !== undefined
@@ -14,5 +14,5 @@ export const sheetPendingOrder = (material: string) => (state: any) => sheetPend
 export const sheetPendingAuction = (material: string) => (state: any) => sheetPendingMaterial(state, OPERATION_TYPE_AUCTION, material)
 export const sheetPendingSoldActive = (date: number) => (state: any) => sheetPendingDate(state, OPERATION_TYPE_SOLD_ACTIVE, date)
 export const sheetPendingRefinedBuy = (material: string) => (state: any) => sheetPendingMaterial(state, OPERATION_TYPE_REFINED_BUY_MATERIAL, material)
-export const sheetPendingRefinedSell = (material: string) => (state: any) => sheetPendingMaterial(state, OPERATION_TYPE_REFINED_SELL_MATERIAL, material)
+export const sheetPendingRefinedSell = (material: string) => (state: any) => sheetPendingMaterial(state, OPERATION_TYPE_REFINED_AUCTION_MATERIAL, material)
 export const getSheets = (state: any) => state.sheets
