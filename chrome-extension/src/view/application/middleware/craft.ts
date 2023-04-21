@@ -192,17 +192,19 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case EXCLUDE:
         case EXCLUDE_WARNINGS: {
             const state: CraftState = getCraft(getState())            
-            const { diff }: LastRequiredState  = getLast(getState())
-            if (diff && state.activeSession) {
+            if (state.activeSession) {
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 const map = {}
-                diff.forEach((v: ViewItemData) => {
-                    if (!v.e) {// not excluded
-                        if (map[v.n] === undefined)
-                            map[v.n] = 0
-                        map[v.n] += Number(v.q)
-                    }
-                })
+                const { diff }: LastRequiredState  = getLast(getState())
+                if (diff) {
+                    diff.forEach((v: ViewItemData) => {
+                        if (!v.e) {// not excluded
+                            if (map[v.n] === undefined)
+                                map[v.n] = 0
+                            map[v.n] += Number(v.q)
+                        }
+                    })
+                }
                 const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => {
                     const name = itemName(activeSessionBp, m)
                     return { n: name, q: map[name] ?? 0 }
@@ -210,7 +212,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
                 if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
-                    if (activeSessionBp.budget.hasPage)
+                    if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
                         dispatch(saveCraftingSession(state.activeSession))
                     else
                         dispatch(doneCraftingSession(state.activeSession))

@@ -349,6 +349,7 @@ const doneCraftSession = (state: CraftState, name: string): CraftState => ({
 const clearCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
     ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
+    activeSession: undefined
 })
 
 const cleanForSave = (state: CraftState): CraftState => {
