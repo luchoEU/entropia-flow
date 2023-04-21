@@ -36,7 +36,7 @@ function RefinedActiveItem(p: { item: ActivesItem }) {
 }
 
 function RefinedActiveList() {
-    const list = useSelector(getActiveList)
+    const list: ActivesItem[] = useSelector(getActiveList)
 
     if (list === undefined)
         return <></>

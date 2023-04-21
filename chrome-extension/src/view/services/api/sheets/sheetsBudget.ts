@@ -1,5 +1,3 @@
-import { itemNameFromString } from '../../../application/helpers/craft'
-import { BlueprintData } from '../../../application/state/craft'
 import { SetStage } from './sheetsStages'
 import { createBudgetSheet, getBudgetSheet, getLastRow, hasBudgetSheet, saveUpdatedCells, setDayDate } from './sheetsUtils'
 
@@ -14,8 +12,9 @@ const TITLE_ROW = 0
 const UNIT_VALUE_ROW = 1
 const MARKUP_ROW = 2
 const CURRENT_ROW = 3
-const TOTAL_ROW = 4
-const START_ROW = 5
+const TOTAL_MU_ROW = 4
+const TOTAL_ROW = 5
+const START_ROW = 6
 
 interface BudgetSheetGetInfo {
     total: number
@@ -69,14 +68,16 @@ class BudgetSheet {
             this.sheet.getCell(UNIT_VALUE_ROW, column).value = unitValue
             this.sheet.getCell(MARKUP_ROW, column).value = 1
             this.sheet.getCell(MARKUP_ROW, column).numberFormat = { type: 'PERCENT', pattern: '0.00%' }
-            this.sheet.getCell(CURRENT_ROW, column).formula = `=SUM(${cell.a1Column}6:${cell.a1Column})`
-            this.sheet.getCell(TOTAL_ROW, column).formula = `=${cell.a1Column}2*${cell.a1Column}3*${cell.a1Column}4`
+            this.sheet.getCell(CURRENT_ROW, column).formula = `=SUM(${cell.a1Column}${START_ROW+1}:${cell.a1Column})`
+            this.sheet.getCell(TOTAL_MU_ROW, column).formula = `=${cell.a1Column}${UNIT_VALUE_ROW+1}*(${cell.a1Column}${MARKUP_ROW+1}-1)*${cell.a1Column}${CURRENT_ROW+1}`
+            this.sheet.getCell(TOTAL_MU_ROW, column).numberFormat = { type: 'NUMBER', pattern: '0.00' }
+            this.sheet.getCell(TOTAL_ROW, column).formula = `=${cell.a1Column}${UNIT_VALUE_ROW+1}*${cell.a1Column}${MARKUP_ROW+1}*${cell.a1Column}${CURRENT_ROW+1}`
             this.sheet.getCell(TOTAL_ROW, column).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         }
     }
 
     public async create(doc: any, data: BudgetInfoData) {
-        this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, MATERIAL_COLUMN + data.materials.length)
+        this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, TOTAL_ROW + 1, MATERIAL_COLUMN + data.materials.length)
 
         this.addTitle(DATE_COLUMN, 'Date', undefined)
         this.addTitle(BUDGET_COLUMN, 'Budget', undefined)
@@ -85,6 +86,7 @@ class BudgetSheet {
         this.sheet.getCell(UNIT_VALUE_ROW, REASON_COLUMN).value = 'Unit Value'
         this.sheet.getCell(MARKUP_ROW, REASON_COLUMN).value = 'Markup'
         this.sheet.getCell(CURRENT_ROW, REASON_COLUMN).value = 'Current'
+        this.sheet.getCell(TOTAL_MU_ROW, REASON_COLUMN).value = 'Total MU'
         this.sheet.getCell(TOTAL_ROW, REASON_COLUMN).value = 'Total'
         this.addTitle(PED_COLUMN, 'PED', 1)
 
@@ -92,7 +94,10 @@ class BudgetSheet {
         for (const m of data.materials)
             this.addTitle(column++, m.name, m.unitValue)
 
-        this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(E5:${this.sheet.getCell(0, column-1).a1Column}5)`
+        const firstLetter = this.sheet.getCell(0, PED_COLUMN).a1Column
+        const lastLetter = this.sheet.getCell(0, column-1).a1Column
+        this.sheet.getCell(TOTAL_MU_ROW, BUDGET_COLUMN).formula = `=SUM(${firstLetter}${TOTAL_MU_ROW+1}:${lastLetter}${TOTAL_MU_ROW+1})`
+        this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(${firstLetter}${TOTAL_ROW+1}:${lastLetter}${TOTAL_ROW+1})`
 
         this.row = START_ROW
         this.sheet.getCell(START_ROW, REASON_COLUMN).value = 'Start'
@@ -148,7 +153,8 @@ class BudgetSheet {
         this.sheet.getCell(row, BUDGET_COLUMN).value = this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value
         this.sheet.getCell(row, BUDGET_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         if (row > START_ROW) {
-            this.sheet.getCell(row, CHANGE_COLUMN).formula = `=B${row+1}-B${row}`
+            const column = this.sheet.getCell(0, BUDGET_COLUMN).a1Column
+            this.sheet.getCell(row, CHANGE_COLUMN).formula = `=${column}${row+1}-${column}${row}`
             this.sheet.getCell(row, CHANGE_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         }
     }

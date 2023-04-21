@@ -46,7 +46,7 @@ async function getBudgetSheet(doc: any, setStage: SetStage, itemName: string): P
     return await getSheet(doc, budgetTitle(itemName), setStage, STATE_LOADING_BUDGET_SHEET)
 }
 
-async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string, columnCount: number): Promise<any> {
+async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string, frozenRowCount: number, columnCount: number): Promise<any> {
     setStage(STAGE_CREATING_BUDGET_SHEET)
     const sheet = await doc.addSheet()
     await sheet.updateProperties({
@@ -54,7 +54,7 @@ async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string,
         gridProperties: {
             rowCount: 1000,
             columnCount,
-            frozenRowCount: 5
+            frozenRowCount
         }
     })
     await sheet.loadCells()
