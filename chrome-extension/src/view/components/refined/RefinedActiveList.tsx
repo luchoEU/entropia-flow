@@ -1,18 +1,18 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeActive } from '../../application/actions/actives'
-import { soldActiveToSheet } from '../../application/actions/sheets'
 import { getActiveList, getLoading } from '../../application/selectors/actives'
-import { getSheets, sheetPendingOrder, sheetPendingSoldActive } from '../../application/selectors/sheets'
+import { getSheets, sheetPendingRefinedSold } from '../../application/selectors/sheets'
 import { ActivesItem, ActivesLoadingState } from '../../application/state/actives'
 import { SheetsState } from '../../application/state/sheets'
-import AuctionButton from './AuctionButton'
+import RefinedButton from './RefinedButton'
+import { refinedSoldActive } from '../../application/actions/sheets'
 
-function AuctionActiveItem(p: { item: ActivesItem }) {
+function RefinedActiveItem(p: { item: ActivesItem }) {
     const dispatch = useDispatch()
     const loading: ActivesLoadingState = useSelector(getLoading)
     const t: SheetsState = useSelector(getSheets)
-    const pending: boolean = useSelector(sheetPendingSoldActive(p.item.date))
+    const pending: boolean = useSelector(sheetPendingRefinedSold(p.item.date))
 
     const item = p.item
     const date = new Date()
@@ -21,11 +21,11 @@ function AuctionActiveItem(p: { item: ActivesItem }) {
     return (
         <tr>
             <td>{dateStr}</td>
-            <td>{item.type}</td>
+            <td>{item.title}</td>
             <td>{item.quantity}</td>
             <td>{item.opening}</td>
             <td>{item.buyout}</td>
-            <td><AuctionButton title='Sell' pending={pending} action={soldActiveToSheet(item)} /></td>
+            <td><RefinedButton title='Sell' pending={pending} action={refinedSoldActive(item)} /></td>
             <td>{
                 loading === undefined ?
                     <img src='img/cross.png' onClick={() => dispatch(removeActive(0, item.date))}></img>
@@ -35,7 +35,7 @@ function AuctionActiveItem(p: { item: ActivesItem }) {
     )
 }
 
-function AuctionActiveList() {
+function RefinedActiveList() {
     const list = useSelector(getActiveList)
 
     if (list === undefined)
@@ -55,11 +55,11 @@ function AuctionActiveList() {
             <tbody>
                 {
                     list.map((item: ActivesItem) =>
-                        <AuctionActiveItem key={item.date} item={item} />)
+                        <RefinedActiveItem key={item.date} item={item} />)
                 }
             </tbody>
         </table>
     )
 }
 
-export default AuctionActiveList
+export default RefinedActiveList
