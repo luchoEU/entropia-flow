@@ -34,16 +34,18 @@ const setLoadingError = (state: ActivesState, text: string): ActivesState => ({
     }
 })
 
-const addActive = (state: ActivesState, row: number, title: string, quantity: string, opening: string, buyout: string, buyoutFee: string): ActivesState => ({
+const addActive = (state: ActivesState, row: number, title: string, material: string, quantity: string, opening: string, openingFee: string, buyout: string, buyoutFee: string): ActivesState => ({
     ...state,
     list: [
         ...state.list,
         {
             row,
             date: (new Date()).getTime(),
-            type: title,
+            title,
+            material,
             quantity,
             opening,
+            openingFee,
             buyout,
             buyoutFee,
         }

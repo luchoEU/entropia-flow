@@ -7,9 +7,11 @@ interface ActivesLoadingState {
 interface ActivesItem {
     row: number,
     date: number,
-    type: string,
+    title: string,
+    material: string,
     quantity: string,
     opening: string,
+    openingFee: string,
     buyout: string,
     buyoutFee: string,
 }

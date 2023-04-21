@@ -12,27 +12,23 @@ function RefinedStatus() {
     if (loading !== undefined) {
         if (loading.errorText !== undefined) {
             return (
-                <section>
-                    <p className='error'>
-                        {loading.loadingText}:
-                        <img
-                            className='img-loading'
-                            src='img/cross.png'
-                            onClick={() => dispatch(endLoading)}>
-                        </img>
-                        {loading.errorText}
-                    </p>
-                </section>
+                <p className='error'>
+                    {loading.loadingText}:
+                    <img
+                        className='img-loading'
+                        src='img/cross.png'
+                        onClick={() => dispatch(endLoading)}>
+                    </img>
+                    {loading.errorText}
+                </p>
             )
         } else {
             return (
-                <section>
-                    <p>
-                        {loading.loadingText}:
-                        <img className='img-loading' src='img/loading.gif'></img>
-                        {StageText[loading.stage]}...
-                    </p>
-                </section>
+                <p>
+                    {loading.loadingText}:
+                    <img className='img-loading' src='img/loading.gif'></img>
+                    {StageText[loading.stage]}...
+                </p>
             )
         }
     } else {

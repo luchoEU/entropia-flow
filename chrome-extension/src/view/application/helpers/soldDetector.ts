@@ -1,6 +1,6 @@
 // Auction Sold Detector
 
-import { AUCTION_PAGE, CRAFT_PAGE } from "../actions/menu";
+import { CRAFT_PAGE, REFINED_PAGE } from "../actions/menu";
 import { ViewItemAction, ViewItemData } from "../state/history";
 import { AvailableCriteria } from "../state/inventory";
 import { MATERIAL_LME, MATERIAL_ME, MATERIAL_NB } from "./materials";
@@ -13,7 +13,7 @@ function getItemAction(inv: ViewItemData, availableCriteria: AvailableCriteria):
             case MATERIAL_ME:
             case MATERIAL_LME:
             case MATERIAL_NB:
-                menu = AUCTION_PAGE
+                menu = REFINED_PAGE
                 break
             default:
                 menu = CRAFT_PAGE

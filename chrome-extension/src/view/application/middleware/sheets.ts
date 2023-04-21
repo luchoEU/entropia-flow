@@ -47,7 +47,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         sheet = await api.sheets[sheetFuncName].call(api.sheets, settings.sheet, setStage, ...sheetFuncGetParams(getState(), c.material))
                         sheetMap[sheetMapKey] = sheet
                     }
-                    const row = sheet[operationChangeFunc[c.operationType][c.material]].call(sheet, ...c.parameters)
+                    const row = sheet[operationChangeFunc[c.operationType]].call(sheet, ...c.parameters)
                     const doneFn = operationDoneFunc[c.operationType]
                     if (doneFn)
                         doneList.push({ fn: doneFn, row, params: c.doneParameters ?? c.parameters })
