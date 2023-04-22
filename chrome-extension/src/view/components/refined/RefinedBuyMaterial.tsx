@@ -20,7 +20,7 @@ const RefinedBuyMaterial = (p: {
                 type='text'
                 value={m.buyAmount}
                 onChange={(e) => dispatch(materialBuyAmountChanged(p.name, e.target.value))} />
-            <RefinedButton title='Buy' pending={false} action={refinedBuyMaterial(p.name, m.buyAmount, m.buyMarkup)} />
+            <RefinedButton title='Buy' pending={false} action={refinedBuyMaterial(p.name, m.buyAmount, m.buyMarkup, m.c.unit, m.c.kValue)} />
         </>
     )
 }
