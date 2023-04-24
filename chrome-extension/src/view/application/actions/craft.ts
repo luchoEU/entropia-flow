@@ -147,11 +147,12 @@ const moveAllBudgetPageMaterial = (name: string) => ({
     }
 })
 
-const doneBuyBudget = (name: string, materialName: string) => ({
+const doneBuyBudget = (name: string, materialName: string, quantity: number) => ({
     type: BUY_BUDGET_PAGE_MATERIAL_DONE,
     payload: {
         name,
-        materialName
+        materialName,
+        quantity
     }
 })
 

@@ -91,7 +91,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     })
                 }
             }
-            addResidue('Metal Residue', m => m.Type === 'Refined Ore' || m.Type == 'Texture Extractor')
+            addResidue('Metal Residue', m => true)
             addResidue('Energy Matter Residue', m => m.Type === 'Refined Enmatter')
             addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
             data.Material.push({
@@ -295,7 +295,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 await sheet.save()
                 const info: BudgetSheetGetInfo = await sheet.getInfo()
                 dispatch(setBudgetPageInfo(bpName, info))
-                dispatch(doneBuyBudget(bpName, action.payload.materialName))
+                dispatch(doneBuyBudget(bpName, action.payload.materialName, action.payload.quantity))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(bpName, e.message))
                 trace('exception saving craft session:')
