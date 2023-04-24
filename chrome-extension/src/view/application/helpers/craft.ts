@@ -258,14 +258,16 @@ const buyBudgetMaterial = (state: CraftState, name: string): CraftState => ({
         : bp)
 })
 
-const buyBudgetMaterialDone = (state: CraftState, name: string, materialName: string): CraftState => ({
+const buyBudgetMaterialDone = (state: CraftState, name: string, materialName: string, quantity: number): CraftState => ({
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
         info: {
             ...bp.info,
             materials: bp.info.materials.map(m => m.name === materialName ? {
-                ...m, buyDone: true
+                ...m,
+                budgetCount: m.budgetCount + quantity,
+                buyDone: true
             } : m)
         },
         budget: {

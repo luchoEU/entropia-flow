@@ -187,7 +187,14 @@ class BudgetSheet {
                 quantity: materialQuantity
             }]
         })
-        // TODO: modify price
+        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
+            const titleName = this.sheet.getCell(TITLE_ROW, column).value
+            if (materialName === titleName) {
+                const unitValue = this.sheet.getCell(UNIT_VALUE_ROW, column).value
+                this.sheet.getCell(MARKUP_ROW, column).value = -ped / (materialQuantity * unitValue)
+                break
+            }
+        }
     }
 }
 
