@@ -20,7 +20,7 @@ const RefinedMaterial = (p: {
     return (
         <section>
             <h2>Calculator</h2>
-            <form className='calc-refined'>
+            <div className='calc-refined'>
                 { c.in.sourceMaterials.map(source =>
                     <RefinedMaterialInput key={source} name={source} />
                 )}
@@ -32,7 +32,7 @@ const RefinedMaterial = (p: {
                     value={c.in.value}
                     unit='PED'
                     getChangeAction={refinedValueChanged(material.name, m)} />
-            </form>
+            </div>
             <RefinedOutput
                 out={c.out}
                 pending={pending}

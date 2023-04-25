@@ -46,7 +46,7 @@ function SettingsPage() {
     return (
         <>
             <ExpandableSection title="Sheet Access" expanded={s.sheet.expanded} setExpanded={setSheetSettingExpanded}>
-                <form className="form-settings">
+                <div className="form-settings">
                     <Field
                         label='Document Identifier'
                         value={s.sheet.documentId}
@@ -59,7 +59,7 @@ function SettingsPage() {
                         label='Google Private Key'
                         value={s.sheet.googlePrivateKey}
                         getChangeAction={googlePrivateKeyChanged} />
-                </form>
+                </div>
             </ExpandableSection>
         </>
     )

@@ -18,14 +18,14 @@ const RefinedUse = (p: {
     return (
         <section>
             <h2>Refine Material</h2>
-            <form className='use-refined'>
+            <div className='use-refined'>
                 <RefinedInput
                     label={m.c.name}
                     value={m.refineAmount}
                     unit=''
                     getChangeAction={materialRefineAmountChanged(m.c.name)} />
                 <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.useAmount)} />
-            </form>
+            </div>
         </section>
     )
 }

@@ -15,14 +15,14 @@ const RefinedBuy = (p: {
     return (
         <section>
             <h2>Buy Material</h2>
-            <form className='buy-refined'>
+            <div className='buy-refined'>
                 <div /><div>Markup</div><div /><div>Amount</div><div />
                 { c.in.sourceMaterials.map(source =>
                     <RefinedBuyMaterial key={source} name={source} />
                 )}
 
-                <RefinedBuyMaterial name={c.in.refinedMaterial} /><div />
-            </form>
+                <RefinedBuyMaterial name={c.in.refinedMaterial} />
+            </div>
         </section>
     )
 }
