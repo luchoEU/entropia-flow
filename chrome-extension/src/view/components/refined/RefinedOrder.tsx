@@ -18,7 +18,7 @@ const RefinedOrder = (p: {
     return (
         <section>
             <h2>Order Material</h2>
-            <form className='buy-refined'>
+            <div className='buy-refined'>
                 <div /><div>Markup</div><div /><div>PED</div><div />
                 <RefinedInput
                     label={m.c.name}
@@ -31,7 +31,7 @@ const RefinedOrder = (p: {
                     onChange={(e) => dispatch(materialOrderValueChanged(material.name, e.target.value))} />
 
                 <RefinedButton title='Order' pending={false} action={refinedOrderMaterial(material.name, m.orderValue, m.orderMarkup)} />
-            </form>
+            </div>
         </section>
     )
 }

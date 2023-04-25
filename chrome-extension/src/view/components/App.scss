@@ -111,13 +111,13 @@ form label {
 }
 
 // Refined
-form.calc-refined {
+.calc-refined {
     display: grid;
     grid-template-columns: 85px 50px 30px;
     grid-gap: 10px;
 }
 
-form.buy-refined {
+.buy-refined {
     display: grid;
     grid-template-columns: 85px 50px 30px 50px 50px;
     grid-gap: 10px;
