@@ -96,31 +96,60 @@ const refinedBuyMaterial = (material: string, amount: string, markup: string, un
     }
 }
 
-const refinedOrderMaterial = (material: string, ttValue: string, markup: string) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType: OPERATION_TYPE_REFINED_ORDER_MATERIAL,
-        material,
-        parameters: [ ttValue, markup ]
+const refinedOrderMaterial = (material: string, ttValue: string, markup: string) => {
+    const line: BudgetLineData = {
+        reason: 'Order',
+        ped: -Number(1),
+        materials: []
     }
-})
+    return {
+        type: ADD_PENDING_CHANGE,
+        payload: {
+            operationType: OPERATION_TYPE_REFINED_ORDER_MATERIAL,
+            material,
+            parameters: [ line ]
+        }
+    }
+}
 
-const refinedUseMaterial = (material: string, amount: string) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType: OPERATION_TYPE_REFINED_USE_MATERIAL,
-        material,
-        paremeters: [ amount ]
+const refinedUseMaterial = (material: string, amount: string) => {
+    const line: BudgetLineData = {
+        reason: 'Use',
+        materials: [
+            {
+                name: material,
+                quantity: -Number(amount)
+            }
+        ]
     }
-})
+    return {
+        type: ADD_PENDING_CHANGE,
+        payload: {
+            operationType: OPERATION_TYPE_REFINED_USE_MATERIAL,
+            material,
+            paremeters: [ line ]
+        }
+    }
+}
 
-const refinedRefineMaterial = (material: string, amount: string) => ({
-    type: ADD_PENDING_CHANGE,
-    payload: {
-        operationType: OPERATION_TYPE_REFINED_REFINE_MATERIAL,
-        parameters: [ material, amount ]
+const refinedRefineMaterial = (material: string, amount: string) => {
+    const line: BudgetLineData = {
+        reason: 'Use',
+        materials: [
+            {
+                name: material,
+                quantity: Number(amount)
+            }
+        ]
     }
-})
+    return {
+        type: ADD_PENDING_CHANGE,
+        payload: {
+            operationType: OPERATION_TYPE_REFINED_REFINE_MATERIAL,
+            parameters: [ line ]
+        }
+    }
+}
 
 export {
     ADD_PENDING_CHANGE,
