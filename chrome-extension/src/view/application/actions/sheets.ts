@@ -71,7 +71,7 @@ const refinedAuctionMaterial = (material: string, s: RefinedCalculatorStateOut) 
     }
 }
 
-const refinedBuyMaterial = (material: string, amount: string, markup: string, unit: string, kValue: number) => {
+const refinedBuyMaterial = (pageMaterial: string, buyMaterial: string, amount: string, markup: string, unit: string, kValue: number) => {
     const kAmount = Number(amount) / 1000
     const nMarkup = Number(markup) / (unit === UNIT_PERCENTAGE ? 100 : 0.001)
     const cost = kAmount * kValue * nMarkup
@@ -81,7 +81,7 @@ const refinedBuyMaterial = (material: string, amount: string, markup: string, un
         ped: -Number(cost),
         materials: [
             {
-                name: material,
+                name: buyMaterial,
                 quantity: Number(amount)
             }
         ]
@@ -90,7 +90,7 @@ const refinedBuyMaterial = (material: string, amount: string, markup: string, un
         type: ADD_PENDING_CHANGE,
         payload: {
             operationType: OPERATION_TYPE_REFINED_BUY_MATERIAL,
-            material,
+            material: pageMaterial,
             parameters: [ line ]
         }
     }
