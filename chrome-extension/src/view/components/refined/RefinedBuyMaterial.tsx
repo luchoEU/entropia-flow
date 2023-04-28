@@ -6,21 +6,24 @@ import { MaterialState } from '../../application/state/materials'
 import RefinedButton from './RefinedButton'
 import RefinedBuyMaterialInput from './RefinedBuyMaterialInput'
 import { refinedBuyMaterial } from '../../application/actions/sheets'
+import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
 
 const RefinedBuyMaterial = (p: {
-    name: string
+    pageMaterial: string,
+    buyMaterial: string
 }) => {
     const dispatch = useDispatch()
-    const m: MaterialState = useSelector(getMaterial(p.name))
+    const m: MaterialState = useSelector(getMaterial(p.buyMaterial))
+    const pending = useSelector(sheetPendingRefinedBuy(p.pageMaterial, p.buyMaterial))
 
     return (
         <>
-            <RefinedBuyMaterialInput name={p.name} />
+            <RefinedBuyMaterialInput name={p.buyMaterial} />
             <input
                 type='text'
                 value={m.buyAmount}
-                onChange={(e) => dispatch(materialBuyAmountChanged(p.name, e.target.value))} />
-            <RefinedButton title='Buy' pending={false} action={refinedBuyMaterial(p.name, m.buyAmount, m.buyMarkup, m.c.unit, m.c.kValue)} />
+                onChange={(e) => dispatch(materialBuyAmountChanged(p.buyMaterial, e.target.value))} />
+            <RefinedButton title='Buy' pending={pending} action={refinedBuyMaterial(p.pageMaterial, p.buyMaterial, m.buyAmount, m.buyMarkup, m.c.unit, m.c.kValue)} />
         </>
     )
 }

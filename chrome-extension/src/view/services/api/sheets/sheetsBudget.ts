@@ -179,7 +179,7 @@ class BudgetSheet {
     }
 
     public async addBuyMaterial(materialName: string, materialQuantity: number, ped: number, reason: string): Promise<void> {
-        this.addLine({
+        await this.addLine({
             reason,
             ped,
             materials: [{
