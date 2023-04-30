@@ -132,20 +132,22 @@ const refinedUseMaterial = (material: string, amount: string) => {
     }
 }
 
-const refinedRefineMaterial = (material: string, amount: string) => {
+const refinedRefineMaterial = (material: string, amount: string, sourceMaterials: { name: string, quantity: number }[]) => {
     const line: BudgetLineData = {
-        reason: 'Use',
+        reason: 'Refine',
         materials: [
             {
                 name: material,
                 quantity: Number(amount)
-            }
+            },
+            ...sourceMaterials
         ]
     }
     return {
         type: ADD_PENDING_CHANGE,
         payload: {
             operationType: OPERATION_TYPE_REFINED_REFINE_MATERIAL,
+            material,
             parameters: [ line ]
         }
     }

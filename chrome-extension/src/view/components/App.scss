@@ -123,6 +123,12 @@ form label {
     grid-gap: 10px;
 }
 
+.use-refined {
+    display: grid;
+    grid-template-columns: 85px 80px 0px 50px;
+    grid-gap: 10px;
+}
+
 // Settings
 .form-settings {
     display: table;
