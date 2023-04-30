@@ -6,14 +6,20 @@ import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { MaterialState } from '../../application/state/materials'
 import { materialRefineAmountChanged } from '../../application/actions/materials'
-import { refinedUseMaterial } from '../../application/actions/sheets'
+import { refinedRefineMaterial } from '../../application/actions/sheets'
+import { sheetPendingRefinedRefine } from '../../application/selectors/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
-    const dispatch = useDispatch()
     const m: MaterialState = useSelector(getMaterial(material.name))
+    const pending = useSelector(sheetPendingRefinedRefine(material.name))
+    const source = material.calculator.in.sourceMaterials.map(name =>
+        ({
+            name,
+            quantity: -Number(m.refineAmount) * m.c.kValue / useSelector(getMaterial(name)).c.kValue
+        }))
 
     return (
         <section>
@@ -24,7 +30,7 @@ const RefinedUse = (p: {
                     value={m.refineAmount}
                     unit=''
                     getChangeAction={materialRefineAmountChanged(m.c.name)} />
-                <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.useAmount)} />
+                <RefinedButton title='Refine' pending={pending} action={refinedRefineMaterial(material.name, m.refineAmount, source)} />
             </div>
         </section>
     )
