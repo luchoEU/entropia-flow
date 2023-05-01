@@ -12,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state: RefinedState = await api.storage.loadRefine()
+            const state: RefinedState = await api.storage.loadRefined()
             if (state)
                 dispatch(setRefinedState(mergeDeep(initialState, state)))
             break
@@ -26,7 +26,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REFINED_USE_MATERIAL:
         case REFINED_REFINE_MATERIAL: {
             const state: RefinedState = getRefined(getState())
-            await api.storage.saveRefine(cleanForSave(state))
+            await api.storage.saveRefined(cleanForSave(state))
             break
         }
         case SET_MATERIALS_STATE:

@@ -15,11 +15,11 @@ const RefinedUse = (p: {
     const { material } = p
     const m: MaterialState = useSelector(getMaterial(material.name))
     const pending = useSelector(sheetPendingRefinedRefine(material.name))
-    const source = material.calculator.in.sourceMaterials.map(name =>
+    const materials = material.refine ? material.refine.map(s =>
         ({
-            name,
-            quantity: -Number(m.refineAmount) * m.c.kValue / useSelector(getMaterial(name)).c.kValue
-        }))
+            name: s.name,
+            quantity: Number(m.refineAmount) * s.mult
+        })) : []
 
     return (
         <section>
@@ -30,7 +30,7 @@ const RefinedUse = (p: {
                     value={m.refineAmount}
                     unit=''
                     getChangeAction={materialRefineAmountChanged(m.c.name)} />
-                <RefinedButton title='Refine' pending={pending} action={refinedRefineMaterial(material.name, m.refineAmount, source)} />
+                <RefinedButton title='Refine' pending={pending} action={refinedRefineMaterial(material.name, materials)} />
             </div>
         </section>
     )
