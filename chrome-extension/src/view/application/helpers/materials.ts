@@ -1,5 +1,6 @@
 import { MaterialsMap, MaterialsState, MaterialState } from "../state/materials"
 
+const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
 const MATERIAL_LME = 'Light Mind Essence'
 const MATERIAL_NB = 'Nutrio Bar'
@@ -163,6 +164,7 @@ export {
     materialBuyAmountChanged,
     materialOrderValueChanged,
     cleanForSave,
+    MATERIAL_PED,
     MATERIAL_ME,
     MATERIAL_LME,
     MATERIAL_NB,

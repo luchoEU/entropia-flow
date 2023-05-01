@@ -191,7 +191,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ON_LAST:
         case EXCLUDE:
         case EXCLUDE_WARNINGS: {
-            const state: CraftState = getCraft(getState())            
+            const state: CraftState = getCraft(getState())
             if (state.activeSession) {
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
                 const map = {}

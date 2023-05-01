@@ -165,14 +165,18 @@ class BudgetSheet {
 
         if (d.ped !== undefined) {
             this.sheet.getCell(this.row, PED_COLUMN).value = d.ped
-            this.sheet.getCell(this.row, PED_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }    
+            this.sheet.getCell(this.row, PED_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
         }
 
-        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
+        for (let column = PED_COLUMN; column < this.sheet.columnCount; column++) {
             const titleName = this.sheet.getCell(TITLE_ROW, column).value
             const material = d.materials.find(m => m.name === titleName)
-            if (material !== undefined && material.quantity !== 0)
+            if (material !== undefined && material.quantity !== 0) {
                 this.sheet.getCell(this.row, column).value = material.quantity
+                if (column === PED_COLUMN) {
+                    this.sheet.getCell(this.row, PED_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
+                }
+            }
         }
         await this.addBudget(this.row)
         this.row++

@@ -2,57 +2,86 @@ import { objectMap } from "../../../common/utils"
 import { BudgetInfoData } from "../../services/api/sheets/sheetsBudget"
 import { getMaterial } from "../selectors/materials"
 import { getOneRefined } from "../selectors/refined"
-import { MaterialsMap, MaterialState } from "../state/materials"
-import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedState } from "../state/refined"
-import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
+import { MaterialsMap } from "../state/materials"
+import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedRefine, RefinedState } from "../state/refined"
+import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_PED, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
     [MATERIAL_ME]: {
         value: '120',
         refinedMaterial: MATERIAL_ME,
-        sourceMaterials: [ MATERIAL_NX, MATERIAL_SW ]
+        sourceMaterials: [ MATERIAL_NX, MATERIAL_SW
+        ]
     },
     [MATERIAL_LME]: {
         value: '49',
         refinedMaterial: MATERIAL_LME,
-        sourceMaterials: [ MATERIAL_NX, MATERIAL_DW ]
+        sourceMaterials: [ MATERIAL_NX, MATERIAL_DW
+        ]
     },
     [MATERIAL_NB]: {
         value: '49',
         refinedMaterial: MATERIAL_NB,
         sourceMaterials: [ MATERIAL_ST, MATERIAL_FT ]
-    }, 
+    },
 }
 
-/*
-interface RefinedCalculatorConst {
-    kValueMaterial1: number // value in PED of 1k
-    kValueMaterial2: number // value in PED of 1k
-    kValueRefined: number // value in PED of 1k
-    kRefined: number // ammout received for 1k+1k of input materials
+const initialStateRefined: { [n: string]: RefinedRefine[] } = {
+    [MATERIAL_ME]: [
+        {
+            name: MATERIAL_PED,
+            mult: -0.00015
+        },
+        {
+            name: MATERIAL_ME,
+            mult: 100.1
+        },
+        {
+            name: MATERIAL_NX,
+            mult: -1
+        },
+        {
+            name: MATERIAL_SW,
+            mult: -1
+        }
+    ],
+    [MATERIAL_LME]: [
+        {
+            name: MATERIAL_PED,
+            mult: -0.00015
+        },
+        {
+            name: MATERIAL_LME,
+            mult: 200
+        },
+        {
+            name: MATERIAL_NX,
+            mult: -1
+        },
+        {
+            name: MATERIAL_DW,
+            mult: -1
+        }
+    ],
+    [MATERIAL_NB]: [
+        {
+            name: MATERIAL_PED,
+            mult: -0.00015
+        },
+        {
+            name: MATERIAL_NB,
+            mult: 1.001
+        },
+        {
+            name: MATERIAL_ST,
+            mult: -1
+        },
+        {
+            name: MATERIAL_FT,
+            mult: -1
+        }
+    ]
 }
-
-const calcConst: { [v: string]: RefinedCalculatorConst } = {
-    me: {
-        kValueMaterial1: 10, // nexus
-        kValueMaterial2: 0.01, // sweat
-        kValueRefined: 0.1, // mind essence
-        kRefined: 100100
-    },
-    lme: {
-        kValueMaterial1: 10, // nexus
-        kValueMaterial2: 10, // diluted
-        kValueRefined: 0.1, // light mind essence
-        kRefined: 200000
-    },
-    nb: {
-        kValueMaterial1: 10, // sweetstuff
-        kValueMaterial2: 0.01, // fuit
-        kValueRefined: 10, // nutrio bar
-        kRefined: 1001
-    }
-}
-*/
 
 const initialState: RefinedState = ({
     map: objectMap(initialStateIn, st => ({
@@ -61,7 +90,8 @@ const initialState: RefinedState = ({
         calculator: {
             in: st,
             out: calc(st, refinedInitialMap)
-        }
+        },
+        refine: initialStateRefined[st.refinedMaterial]
     }))
 })
 

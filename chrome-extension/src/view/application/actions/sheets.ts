@@ -132,16 +132,10 @@ const refinedUseMaterial = (material: string, amount: string) => {
     }
 }
 
-const refinedRefineMaterial = (material: string, amount: string, sourceMaterials: { name: string, quantity: number }[]) => {
+const refinedRefineMaterial = (material: string, materials: { name: string, quantity: number }[]) => {
     const line: BudgetLineData = {
         reason: 'Refine',
-        materials: [
-            {
-                name: material,
-                quantity: Number(amount)
-            },
-            ...sourceMaterials
-        ]
+        materials
     }
     return {
         type: ADD_PENDING_CHANGE,

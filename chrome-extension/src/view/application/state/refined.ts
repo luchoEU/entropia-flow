@@ -5,7 +5,13 @@ interface RefinedState {
 interface RefinedOneState {
     name: string,
     expanded: boolean,
-    calculator: RefinedCalculatorState
+    calculator: RefinedCalculatorState,
+    refine: RefinedRefine[]
+}
+
+interface RefinedRefine {
+    name: string,
+    mult: number
 }
 
 interface RefinedCalculatorState {
@@ -16,7 +22,7 @@ interface RefinedCalculatorState {
 interface RefinedCalculatorStateIn {
     value: string,
     refinedMaterial: string,
-    sourceMaterials: string[]
+    sourceMaterials: string[],
 }
 
 interface RefinedCalculatorStateOut {
@@ -32,6 +38,7 @@ interface RefinedCalculatorStateOut {
 
 export {
     RefinedOneState,
+    RefinedRefine,
     RefinedState,
     RefinedCalculatorState,
     RefinedCalculatorStateIn,
