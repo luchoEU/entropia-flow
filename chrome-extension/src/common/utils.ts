@@ -7,15 +7,19 @@ function isArray(item: any): boolean {
 }
 
 function mergeArray(target: any[], source: any[]) {
-    for (let i=0; i<target.length && i<source.length; i++) {
-        if (isObject(source[i]) !== isObject(target[i]) || isArray(source[i]) !== isArray(target[i])) {
-            // structure type changed, don't use saved value
-        } else if (isObject(source[i])) {
-            mergeDeep(target[i], source[i])
-        } else if (isArray(source[i])) {
-            mergeArray(target[i], source[i])
+    for (let i=0; i < source.length; i++) {
+        if (i < target.length) {
+            if (isObject(source[i]) !== isObject(target[i]) || isArray(source[i]) !== isArray(target[i])) {
+                // structure type changed, don't use saved value
+            } else if (isObject(source[i])) {
+                mergeDeep(target[i], source[i])
+            } else if (isArray(source[i])) {
+                mergeArray(target[i], source[i])
+            } else {
+                target[i] = source[i]
+            }
         } else {
-            target[i] = source[i]
+            target.push(source[i])
         }
     }
 }
