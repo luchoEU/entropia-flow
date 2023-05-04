@@ -16,11 +16,15 @@ const RefinedBuy = (p: {
         <section>
             <h2>Buy Material</h2>
             <div className='buy-refined'>
-                <div /><div>Markup</div><div /><div>Amount</div><div />
+                <label>Material</label>
+                <label>Markup</label>
+                <label>Amount</label>
+                <label>Cost</label>
+                <label></label>
+
                 { c.in.sourceMaterials.map(source =>
                     <RefinedBuyMaterial key={source} pageMaterial={material.name} buyMaterial={source} />
                 )}
-
                 <RefinedBuyMaterial pageMaterial={material.name} buyMaterial={c.in.refinedMaterial} />
             </div>
         </section>

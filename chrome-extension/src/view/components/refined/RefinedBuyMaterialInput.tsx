@@ -11,11 +11,13 @@ function RefinedBuyMaterialInput(p: {
     const m: MaterialState = useSelector(getMaterial(p.name))
 
     return (
-        <RefinedInput
-            label={m.c.name}
-            value={m.buyMarkup}
-            unit={m.c.unit}
-            getChangeAction={materialBuyMarkupChanged(m.c.name)} />
+        <>
+            <RefinedInput
+                label={m.c.name}
+                value={m.buyMarkup}
+                unit={m.c.unit}
+                getChangeAction={materialBuyMarkupChanged(m.c.name)} />
+        </>
     )
 }
 
