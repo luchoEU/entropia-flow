@@ -1,5 +1,5 @@
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
-import { UNIT_PERCENTAGE, materialMap } from "../helpers/materials"
+import { materialMap } from "../helpers/materials"
 import { ActivesItem } from "../state/actives"
 import { RefinedCalculatorStateOut } from "../state/refined"
 import { OPERATION_TYPE_REFINED_AUCTION_MATERIAL, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_REFINED_ORDER_MATERIAL, OPERATION_TYPE_REFINED_REFINE_MATERIAL, OPERATION_TYPE_REFINED_USE_MATERIAL, OPERATION_TYPE_REFINED_SOLD_ACTIVE } from "../state/sheets"
@@ -71,11 +71,7 @@ const refinedAuctionMaterial = (material: string, s: RefinedCalculatorStateOut) 
     }
 }
 
-const refinedBuyMaterial = (pageMaterial: string, buyMaterial: string, amount: string, markup: string, unit: string, kValue: number) => {
-    const kAmount = Number(amount) / 1000
-    const nMarkup = Number(markup) / (unit === UNIT_PERCENTAGE ? 100 : 0.001)
-    const cost = kAmount * kValue * nMarkup
-    
+const refinedBuyMaterial = (pageMaterial: string, buyMaterial: string, amount: string, cost: number) => {    
     const line: BudgetLineData = {
         reason: 'Buy',
         ped: -Number(cost),

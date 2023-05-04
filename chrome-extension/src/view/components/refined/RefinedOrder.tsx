@@ -18,7 +18,7 @@ const RefinedOrder = (p: {
     return (
         <section>
             <h2>Order Material</h2>
-            <div className='buy-refined'>
+            <div className='order-refined'>
                 <div /><div>Markup</div><div /><div>PED</div><div />
                 <RefinedInput
                     label={m.c.name}

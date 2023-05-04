@@ -56,7 +56,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_CRAFT_SAVE_STAGE:
         case DONE_CRAFT_SESSION:
         case CLEAR_CRAFT_SESSION: {
-            const state = getCraft(getState())
+            const state: CraftState = getCraft(getState())
             await api.storage.saveCraft(cleanForSave(state))
             break
         }
