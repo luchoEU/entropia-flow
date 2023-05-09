@@ -2,6 +2,7 @@ interface CraftState {
     activeSession?: string
     sortType: number,
     activeBlueprintsExpanded: boolean
+    materialsExpanded: boolean
     blueprints: BlueprintData[]
 }
 

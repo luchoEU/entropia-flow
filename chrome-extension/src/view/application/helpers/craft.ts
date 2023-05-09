@@ -6,6 +6,7 @@ import * as Sort from "./craftSort"
 const initialState: CraftState = {
     sortType: Sort.SORT_NAME_ASCENDING,
     activeBlueprintsExpanded: true,
+    materialsExpanded: false,
     blueprints: []
 }
 
@@ -56,6 +57,11 @@ const sortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
 const setActiveBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
     ...state,
     activeBlueprintsExpanded: expanded
+})
+
+const setCraftMaterialsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
+    ...state,
+    materialsExpanded: expanded
 })
 
 const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => ({
@@ -384,6 +390,7 @@ export {
     removeBlueprint,
     sortBlueprintsByPart,
     setActiveBlueprintsExpanded,
+    setCraftMaterialsExpanded,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
