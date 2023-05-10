@@ -29,7 +29,7 @@ interface BudgetSheetGetInfo {
 
 interface BudgetInfoData {
     itemName: string
-    materials: {
+    materials?: {
         name: string
         unitValue: number
     }[]

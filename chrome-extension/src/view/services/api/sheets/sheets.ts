@@ -4,6 +4,11 @@ import { newDayInventory } from './sheetsInventory'
 import { SetStage } from './sheetsStages'
 import { getSpreadsheet } from './sheetsUtils'
 
+async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<string[]> {
+    const doc = await getSpreadsheet(accessInfo, setStage)
+    return []
+}
+
 async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
     const doc = await getSpreadsheet(accessInfo, setStage)
     const sheet = new BudgetSheet(setStage)

@@ -6,7 +6,6 @@ const ADD_BLUEPRINT = '[craft] add blueprint'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
 const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_ACTIVE_BLUEPRINTS_EXPANDED = '[craft] set active blueprints expanded'
-const SET_CRAFT_MATERIALS_EXPANDED = '[craft] set craft materials expanded'
 const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
@@ -65,13 +64,6 @@ const sortBlueprintsBy = (part: number) => ({
 
 const setActiveBlueprintsExpanded = (expanded: boolean) => ({
     type: SET_ACTIVE_BLUEPRINTS_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setCraftMaterialsExpanded = (expanded: boolean) => ({
-    type: SET_CRAFT_MATERIALS_EXPANDED,
     payload: {
         expanded
     }
@@ -258,7 +250,6 @@ export {
     REMOVE_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
     SET_ACTIVE_BLUEPRINTS_EXPANDED,
-    SET_CRAFT_MATERIALS_EXPANDED,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_EXPANDED,
@@ -290,7 +281,6 @@ export {
     removeBlueprint,
     sortBlueprintsBy,
     setActiveBlueprintsExpanded,
-    setCraftMaterialsExpanded,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
