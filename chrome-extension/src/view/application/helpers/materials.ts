@@ -1,4 +1,5 @@
-import { MaterialsMap, MaterialsState, MaterialState } from "../state/materials"
+import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
+import { MaterialsMap, MaterialsState } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -30,6 +31,9 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '10000',
         refineAmount: '100000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_ME,        
             unit: UNIT_PERCENTAGE,
@@ -43,6 +47,9 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '10000',
         refineAmount: '100000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_LME,
             unit: UNIT_PERCENTAGE,
@@ -56,6 +63,9 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '1000',
         refineAmount: '1000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_NB,
             unit: UNIT_PERCENTAGE,
@@ -65,6 +75,9 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_NX]: {
         buyMarkup: '101',
         buyAmount: '10000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_NX,
             unit: UNIT_PERCENTAGE,
@@ -74,6 +87,9 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_SW]: {
         buyMarkup: '1.35',
         buyAmount: '1000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_SW,
             unit: UNIT_PED_K,
@@ -83,6 +99,9 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_DW]: {
         buyMarkup: '101',
         buyAmount: '10000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_DW,
             unit: UNIT_PERCENTAGE,
@@ -92,6 +111,9 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_ST]: {
         buyMarkup: '110',
         buyAmount: '10000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_ST,
             unit: UNIT_PERCENTAGE,
@@ -101,6 +123,9 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_FT]: {
         buyMarkup: '2.8',
         buyAmount: '1000',
+        craftBudgetExpanded: false,
+        craftBudgetTotal: 0,
+        craftBudgetList: [],
         c: {
             name: MATERIAL_FT,
             unit: UNIT_PED_K,
@@ -110,7 +135,9 @@ const refinedInitialMap: MaterialsMap = {
 }
 
 const initialState: MaterialsState = {
-    map: refinedInitialMap
+    map: refinedInitialMap,
+    craftBudgetExpanded: false,
+    craftBudgetStage: STAGE_INITIALIZING
 }
 
 const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
@@ -152,6 +179,22 @@ const cleanForSave = (state: MaterialsState): MaterialsState => {
     return cState
 }
 
+const setMaterialCraftListExpanded = (state: MaterialsState, craftBudgetExpanded: boolean) => ({
+    ...state,
+    craftBudgetExpanded
+})
+
+const setMaterialCraftExpanded = (state: MaterialsState, material: string, expanded: boolean): MaterialsState => {
+    const s: MaterialsState = { ...state }
+    s.map[material].craftBudgetExpanded = expanded
+    return s
+}
+
+const setMaterialCraftBudgetStage = (state: MaterialsState, stage: number) => ({
+    ...state,
+    craftBudgetStage: stage
+})
+
 export {
     initialState,
     materialMap,
@@ -164,6 +207,9 @@ export {
     materialBuyAmountChanged,
     materialOrderValueChanged,
     cleanForSave,
+    setMaterialCraftListExpanded,
+    setMaterialCraftExpanded,
+    setMaterialCraftBudgetStage,
     MATERIAL_PED,
     MATERIAL_ME,
     MATERIAL_LME,

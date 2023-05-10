@@ -1,5 +1,7 @@
 interface MaterialsState {
-    map: MaterialsMap
+    map: MaterialsMap,
+    craftBudgetExpanded: boolean,
+    craftBudgetStage: number
 }
 
 type MaterialsMap = { [name: string] : MaterialState }
@@ -11,6 +13,9 @@ interface MaterialState {
     orderValue?: string,
     useAmount?: string,
     refineAmount?: string,
+    craftBudgetExpanded: boolean,
+    craftBudgetTotal: number,
+    craftBudgetList: MaterialBudget[]
 
     // constants
     c: {
@@ -18,6 +23,11 @@ interface MaterialState {
         unit: string, // of markup
         kValue: number // TT value in PED of 1k
     }
+}
+
+interface MaterialBudget {
+    name: string
+    quantity: number
 }
 
 export {
