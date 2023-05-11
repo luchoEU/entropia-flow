@@ -50,7 +50,8 @@ interface BlueprintSession {
 
 interface BlueprintSessionDiff {
     n: string,
-    q: number
+    q: number,
+    v: number
 }
 
 interface BlueprintInventory {

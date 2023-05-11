@@ -15,7 +15,7 @@ import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintMaterial, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintMaterial, BlueprintSessionDiff, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
@@ -194,26 +194,27 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const state: CraftState = getCraft(getState())
             if (state.activeSession) {
                 const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
-                const map = {}
+                const map: { [n: string]: { q: number, v: number } } = { }
                 const { diff }: LastRequiredState  = getLast(getState())
                 if (diff) {
                     diff.forEach((v: ViewItemData) => {
                         if (!v.e) {// not excluded
                             if (map[v.n] === undefined)
-                                map[v.n] = 0
-                            map[v.n] += Number(v.q)
+                                map[v.n] = { q: 0, v: 0 }
+                            map[v.n].q += Number(v.q)
+                            map[v.n].v += Number(v.v)
                         }
                     })
                 }
-                const newDiff = activeSessionBp.info.materials.map((m: BlueprintMaterial) => {
+                const newDiff: BlueprintSessionDiff[] = activeSessionBp.info.materials.map((m: BlueprintMaterial) => {
                     const name = itemName(activeSessionBp, m)
-                    return { n: name, q: map[name] ?? 0 }
+                    return { n: name, q: map[name]?.q ?? 0, v: map[name]?.v ?? 0 }
                 })
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
                 if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
-                    if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
-                        dispatch(saveCraftingSession(state.activeSession))
+                    //if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
+                    //    dispatch(saveCraftingSession(state.activeSession))
                     //else
                     //    dispatch(doneCraftingSession(state.activeSession))
                 }
