@@ -100,12 +100,12 @@ function CraftSingle(p: {
             sessionMUprofit = 0
         d.info.materials.forEach((m: BlueprintMaterial) => {
             const name = itemName(d, m)
-            const diff = d.session.diffMaterials.find(x => x.n == name)?.q
+            const diff = d.session.diffMaterials.find(x => x.n == name)
             if (diff !== undefined) {            
-                session[m.name] = diff
-                sessionTTprofit += diff * m.value
+                session[m.name] = diff.q
+                sessionTTprofit += diff.v
                 if (markupLoaded)
-                    sessionMUprofit += diff * m.value * m.markup
+                    sessionMUprofit += diff.v * m.markup
             }
         })
     } else if (d.budget.hasPage) {
