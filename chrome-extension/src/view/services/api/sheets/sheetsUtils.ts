@@ -35,7 +35,8 @@ async function getInventorySheet(doc: any, setStage: SetStage): Promise<any> {
     return await getSheet(doc, INVENTORY_SHEET_NAME, setStage, STAGE_LOADING_INVENTORY_SHEET)
 }
 
-const budgetTitle = (itemName: string): string => itemName + " - Entropia Flow"
+const TITLE_SUFFIX = ' - Entropia Flow'
+const budgetTitle = (itemName: string): string => itemName + TITLE_SUFFIX
 
 async function hasBudgetSheet(doc: any, setStage: SetStage, itemName: string): Promise<any> {
     setStage(STAGE_BUDGET_HAS_SHEET)
@@ -105,6 +106,7 @@ function setDayDate(sheet: any, row: number, column: number, letter: string) {
 
 export {
     DATE_FORMAT,
+    TITLE_SUFFIX,
     getSpreadsheet,
     getMeLogSheet,
     getInventorySheet,
