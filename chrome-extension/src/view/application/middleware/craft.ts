@@ -199,10 +199,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (diff) {
                     diff.forEach((v: ViewItemData) => {
                         if (!v.e) {// not excluded
-                            if (map[v.n] === undefined)
-                                map[v.n] = { q: 0, v: 0 }
-                            map[v.n].q += Number(v.q)
-                            map[v.n].v += Number(v.v)
+                            let name = v.n
+                            if (name.endsWith(' (M)') || name.endsWith(' (F)'))
+                                name = name.substring(0, name.length - 4)
+                            if (map[name] === undefined)
+                                map[name] = { q: 0, v: 0 }
+                            map[name].q += Number(v.q)
+                            map[name].v += Number(v.v)
                         }
                     })
                 }
@@ -213,8 +216,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
                 if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
-                    //if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
-                    //    dispatch(saveCraftingSession(state.activeSession))
+                    if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
+                        dispatch(saveCraftingSession(state.activeSession))
                     //else
                     //    dispatch(doneCraftingSession(state.activeSession))
                 }
