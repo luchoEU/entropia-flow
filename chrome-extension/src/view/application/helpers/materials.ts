@@ -31,9 +31,6 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '10000',
         refineAmount: '100000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_ME,        
             unit: UNIT_PERCENTAGE,
@@ -47,9 +44,6 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '10000',
         refineAmount: '100000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_LME,
             unit: UNIT_PERCENTAGE,
@@ -63,9 +57,6 @@ const refinedInitialMap: MaterialsMap = {
         orderValue: '1000',
         useAmount: '1000',
         refineAmount: '1000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_NB,
             unit: UNIT_PERCENTAGE,
@@ -75,9 +66,6 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_NX]: {
         buyMarkup: '101',
         buyAmount: '10000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_NX,
             unit: UNIT_PERCENTAGE,
@@ -87,9 +75,6 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_SW]: {
         buyMarkup: '1.35',
         buyAmount: '1000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_SW,
             unit: UNIT_PED_K,
@@ -99,9 +84,6 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_DW]: {
         buyMarkup: '101',
         buyAmount: '10000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_DW,
             unit: UNIT_PERCENTAGE,
@@ -111,9 +93,6 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_ST]: {
         buyMarkup: '110',
         buyAmount: '10000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_ST,
             unit: UNIT_PERCENTAGE,
@@ -123,9 +102,6 @@ const refinedInitialMap: MaterialsMap = {
     [MATERIAL_FT]: {
         buyMarkup: '2.8',
         buyAmount: '1000',
-        craftBudgetExpanded: false,
-        craftBudgetTotal: 0,
-        craftBudgetList: [],
         c: {
             name: MATERIAL_FT,
             unit: UNIT_PED_K,
@@ -136,8 +112,11 @@ const refinedInitialMap: MaterialsMap = {
 
 const initialState: MaterialsState = {
     map: refinedInitialMap,
-    craftBudgetExpanded: false,
-    craftBudgetStage: STAGE_INITIALIZING
+    craftBudget: {
+        expanded: false,
+        stage: STAGE_INITIALIZING,
+        map: { }
+    }
 }
 
 const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
@@ -172,27 +151,34 @@ const materialOrderValueChanged = (state: MaterialsState, material: string, orde
     materialChanged(state, material, { orderValue })
 
 const cleanForSave = (state: MaterialsState): MaterialsState => {
-    const cState = JSON.parse(JSON.stringify(state))
-    Object.keys(cState).forEach(k => {
-        delete cState[k].c
+    const cState: MaterialsState = JSON.parse(JSON.stringify(state))
+    Object.keys(cState.map).forEach(k => {
+        delete cState.map[k].c
     })
+    cState.craftBudget.stage = STAGE_INITIALIZING
     return cState
 }
 
-const setMaterialCraftListExpanded = (state: MaterialsState, craftBudgetExpanded: boolean) => ({
+const setMaterialCraftListExpanded = (state: MaterialsState, expanded: boolean) => ({
     ...state,
-    craftBudgetExpanded
+    craftBudget: {
+        ...state.craftBudget,
+        expanded
+    }
 })
 
 const setMaterialCraftExpanded = (state: MaterialsState, material: string, expanded: boolean): MaterialsState => {
-    const s: MaterialsState = { ...state }
-    s.map[material].craftBudgetExpanded = expanded
-    return s
+    const cState: MaterialsState = JSON.parse(JSON.stringify(state))
+    cState.craftBudget.map[material].expanded = expanded
+    return cState
 }
 
 const setMaterialCraftBudgetStage = (state: MaterialsState, stage: number) => ({
     ...state,
-    craftBudgetStage: stage
+    craftBudget: {
+        ...state.craftBudget,
+        stage
+    }
 })
 
 export {

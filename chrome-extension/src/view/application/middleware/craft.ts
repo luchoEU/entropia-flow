@@ -267,7 +267,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
                 const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(activeSessionBp))
 
-                const changedSheets = []
                 let quantity = action.payload.quantity
                 let value = action.payload.value
                 if (action.payload.text === BUDGET_MOVE) {

@@ -6,15 +6,15 @@ function isArray(item: any): boolean {
     return Array.isArray(item) && typeof item !== 'string'
 }
 
-function mergeArray(target: any[], source: any[]) {
+function _mergeArray(target: any[], source: any[]) {
     for (let i=0; i < source.length; i++) {
         if (i < target.length) {
             if (isObject(source[i]) !== isObject(target[i]) || isArray(source[i]) !== isArray(target[i])) {
                 // structure type changed, don't use saved value
             } else if (isObject(source[i])) {
-                mergeDeep(target[i], source[i])
+                _mergeOverride(target[i], source[i])
             } else if (isArray(source[i])) {
-                mergeArray(target[i], source[i])
+                _mergeArray(target[i], source[i])
             } else {
                 target[i] = source[i]
             }
@@ -24,7 +24,7 @@ function mergeArray(target: any[], source: any[]) {
     }
 }
 
-function mergeDeep(target: any, ...sources: any[]) {
+function _mergeOverride(target: any, ...sources: any[]) {
     if (!sources.length) return target;
     const source = sources.shift();
 
@@ -34,25 +34,30 @@ function mergeDeep(target: any, ...sources: any[]) {
                 // structure type changed, don't use saved value
             } else if (isObject(source[key])) {
                 if (target[key] === undefined) Object.assign(target, { [key]: {} });
-                mergeDeep(target[key], source[key]);
+                _mergeOverride(target[key], source[key]);
             } else if (isArray(source[key])) {
-                mergeArray(target[key], source[key])
+                _mergeArray(target[key], source[key])
             } else {
                 Object.assign(target, { [key]: source[key] });
             }
         }
     }
 
-    return mergeDeep(target, ...sources);
+    return _mergeOverride(target, ...sources);
 }
 
-// returns a new object with the values at each key mapped using mapFn(value)
-function objectMap(object: object, mapFn: (e: any) => any) {
-    return Object.keys(object).reduce(function(result, key) {
-      result[key] = mapFn(object[key])
-      return result
-    }, {})
+function mergeDeep(target: any, ...sources: any[]) {
+    const targetClone = JSON.parse(JSON.stringify(target))
+    return _mergeOverride(targetClone, ...sources)
 }
+
+// returns a new object with the values at each key mapped using mapFn(value, key, index)
+const objectMap = (obj: object, mapFn: (v: any, k: string, i: number) => any) =>
+    Object.fromEntries(
+        Object.entries(obj).map(
+            ([k, v], i) => [k, mapFn(v, k, i)]
+        )
+    )
 
 export {
     mergeDeep,
