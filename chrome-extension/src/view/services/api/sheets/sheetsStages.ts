@@ -11,7 +11,7 @@ const STAGE_BUDGET_HAS_SHEET = 9
 const StageText = [
     'Unknown',
     'Initializing', // STAGE_INITIALIZING
-    'Loading spreadsheet', // STAGE_LOADING_SPREADSHEET
+    'Loading Spreadsheet', // STAGE_LOADING_SPREADSHEET
     'Creating Budget sheet', // STAGE_CREATING_BUDGET_SHEET
     'Loading Budget sheet', // STATE_LOADING_BUDGET_SHEET
     'Loading ME Log sheet', // STAGE_LOADING_ME_LOG_SHEET

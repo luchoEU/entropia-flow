@@ -200,6 +200,22 @@ class BudgetSheet {
             }
         }
     }
+
+    public async getMaterials(): Promise<BudgetMaterial[]> {
+        const materials = []
+        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
+            materials.push({
+                name: this.sheet.getCell(TITLE_ROW, column).value,
+                quantity: Number(this.sheet.getCell(CURRENT_ROW, column).value)
+            })
+        }
+        return materials
+    }
+}
+
+interface BudgetMaterial {
+    name: string,
+    quantity: number
 }
 
 export {
@@ -207,4 +223,5 @@ export {
     BudgetSheetGetInfo,
     BudgetInfoData,
     BudgetLineData,
+    BudgetMaterial,
 }

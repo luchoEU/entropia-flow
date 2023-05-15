@@ -504,3 +504,18 @@ button:active {
     width: 40px;
     text-align: right;
 }
+
+.craft-material h3 div:nth-child(1) {
+    display: inline-block;
+    width: 80px;
+    text-align: end;
+}
+
+.craft-material h3 div:nth-child(2) {
+    display: inline-block;
+    margin-left:5px;
+}
+
+.craft-material table {
+    margin-left: 85px;
+}

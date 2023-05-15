@@ -1,7 +1,6 @@
 interface MaterialsState {
     map: MaterialsMap,
-    craftBudgetExpanded: boolean,
-    craftBudgetStage: number
+    craftBudget: MaterialsCraftBudget
 }
 
 type MaterialsMap = { [name: string] : MaterialState }
@@ -13,9 +12,6 @@ interface MaterialState {
     orderValue?: string,
     useAmount?: string,
     refineAmount?: string,
-    craftBudgetExpanded: boolean,
-    craftBudgetTotal: number,
-    craftBudgetList: MaterialBudget[]
 
     // constants
     c: {
@@ -25,13 +21,28 @@ interface MaterialState {
     }
 }
 
+interface MaterialsCraftBudget {
+    expanded: boolean,
+    stage: number,
+    map: MaterialsCraftMap
+}
+
+type MaterialsCraftMap = { [name: string] : MaterialCraftState }
+
+interface MaterialCraftState {
+    expanded: boolean,
+    total: number,
+    list: MaterialBudget[]
+}
+
 interface MaterialBudget {
-    name: string
+    itemName: string
     quantity: number
 }
 
 export {
     MaterialsState,
     MaterialsMap,
+    MaterialsCraftMap,
     MaterialState,
 }
