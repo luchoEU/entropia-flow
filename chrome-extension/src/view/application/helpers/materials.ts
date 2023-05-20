@@ -1,5 +1,6 @@
+import { objectMap } from "../../../common/utils"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { MaterialsMap, MaterialsState } from "../state/materials"
+import { MaterialsCraftMap, MaterialsMap, MaterialsState } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -121,6 +122,17 @@ const initialState: MaterialsState = {
 
 const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
 
+const setMaterialsCraftMap = (state: MaterialsState, map: MaterialsCraftMap): MaterialsState => ({
+    ...state,
+    craftBudget: {
+        ...state.craftBudget,
+        map: objectMap(map, (v, k) => ({
+            ...v,
+            expanded: state.craftBudget.map[k]?.expanded ?? false
+        }))
+    }
+})
+
 const materialChanged = (state: MaterialsState, material: string, change: any): MaterialsState => ({
     ...state,
     map: {
@@ -186,6 +198,7 @@ export {
     materialMap,
     refinedInitialMap,
     setState,
+    setMaterialsCraftMap,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
     materialUseAmountChanged,

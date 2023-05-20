@@ -1,6 +1,7 @@
-import { MaterialsState } from '../state/materials'
+import { MaterialsCraftMap, MaterialsState } from '../state/materials'
 
 const SET_MATERIALS_STATE = '[material] set state'
+const SET_MATERIALS_CRAFT_MAP = '[material] set craft map'
 const MATERIAL_BUY_MARKUP_CHANGED = '[material] buy markup changed'
 const MATERIAL_ORDER_MARKUP_CHANGED = '[material] order markup changed'
 const MATERIAL_USE_AMOUNT_CHANGED = '[material] use amount changed'
@@ -16,6 +17,13 @@ const setMaterialsState = (state: MaterialsState) => ({
     type: SET_MATERIALS_STATE,
     payload: {
         state
+    }
+})
+
+const setMaterialsCraftMap = (map: MaterialsCraftMap) => ({
+    type: SET_MATERIALS_CRAFT_MAP,
+    payload: {
+        map
     }
 })
 
@@ -95,6 +103,7 @@ const setMaterialCraftBudgetStage = (stage: number) => ({
 
 export {
     SET_MATERIALS_STATE,
+    SET_MATERIALS_CRAFT_MAP,
     MATERIAL_BUY_MARKUP_CHANGED,
     MATERIAL_ORDER_MARKUP_CHANGED,
     MATERIAL_USE_AMOUNT_CHANGED,
@@ -106,6 +115,7 @@ export {
     REFRESH_MATERIAL_CRAFT_BUDGET,
     SET_MATERIAL_CRAFT_BUDGET_STAGE,
     setMaterialsState,
+    setMaterialsCraftMap,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
     materialUseAmountChanged,
