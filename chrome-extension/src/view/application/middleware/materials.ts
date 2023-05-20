@@ -42,7 +42,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const materials: BudgetMaterial[] = await sheet.getMaterials()
 
                 for (const m of materials) {
-                    if (m.quantity > 0) {
+                    if (m.quantity > 0 && m.name !== 'Blueprint' && m.name !== 'Item') {
                         if (map[m.name] === undefined) {
                             map[m.name] = {
                                 expanded: false,
