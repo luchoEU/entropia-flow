@@ -39,11 +39,11 @@ function CraftMaterialList() {
     return (
         <ExpandableSection title='Budget Materials' expanded={s.craftBudget.expanded} setExpanded={setMaterialCraftListExpanded}>
             { s.craftBudget.stage === STAGE_INITIALIZING ? '' : <p>{StageText[s.craftBudget.stage]}...</p> }
-            { Object.keys(m).map(k => 
+            { Object.keys(m).sort().map(k => 
                 m[k].total > 0 ?
                     <ExpandableMaterial key={k} quantity={m[k].total} name={k} expanded={m[k].expanded} setExpanded={setMaterialCraftExpanded(k)}>
                         <table>
-                            { m[k].list.map(b =>
+                            { m[k].list.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
                                 <tr key={`${k}_${b}`}>
                                     <td>{b.itemName}</td>
                                     <td>{b.quantity}</td>
