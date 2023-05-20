@@ -18,9 +18,9 @@ const RefinedMaterial = (p: {
             <ExpandableSection title={material.name} expanded={material.expanded} setExpanded={setRefinedExpanded(material.name)} >
                 <RefinedCalculator material={material} />
                 <RefinedBuy material={material} />
+                <RefinedRefine material={material} />
                 <RefinedOrder material={material} />
                 <RefinedUse material={material} />
-                <RefinedRefine material={material} />
             </ExpandableSection>
         </>
     )
