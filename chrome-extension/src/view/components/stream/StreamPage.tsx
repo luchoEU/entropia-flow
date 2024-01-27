@@ -24,7 +24,7 @@ const StreamBackground = (p: {
                     <div className='stream-title'>Entropia Flow</div>
                     <div className='stream-subtitle'>{p.background.title}</div>
                 </div>
-            </div>            
+            </div>
         </div>
     )
 }
@@ -45,7 +45,7 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { enabled ? 
+            { enabled ?
                 <>
                     <ExpandableSection title='Background' expanded={background.expanded} setExpanded={setStreamBackgroundExpanded}>
                         { backgroundList.map((b: BackgroundSpec) =>

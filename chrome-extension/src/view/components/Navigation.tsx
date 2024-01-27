@@ -1,5 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { SHOW_PAGES_IN_DEVELOPMENT } from '../../config'
 import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
@@ -20,9 +21,6 @@ const Tab = (p: {
 }
 
 const Navigation = () => {
-    const dispatch = useDispatch()
-    const menu = useSelector(getSelectedMenu)
-
     return (
         <nav>
             <div>
@@ -30,12 +28,14 @@ const Navigation = () => {
                 <strong>Entropia Flow</strong>
             </div>
             <Tab id={MONITOR_PAGE} title="Monitor" />
-            <Tab id={TRADE_PAGE} title="Trading" />
-            <Tab id={REFINED_PAGE} title="Refined" />
             <Tab id={INVENTORY_PAGE} title='Inventory' />
-            <Tab id={CRAFT_PAGE} title='Crafting' />
+            {SHOW_PAGES_IN_DEVELOPMENT ?
+                <><Tab id={TRADE_PAGE} title="Trading" />
+                <Tab id={REFINED_PAGE} title="Refined" />
+                <Tab id={CRAFT_PAGE} title='Crafting' />
+                <Tab id={SETTING_PAGE} title='Settings' /></> : ''
+            }
             <Tab id={STREAM_PAGE} title='Stream' />
-            <Tab id={SETTING_PAGE} title='Settings' />
             <Tab id={ABOUT_PAGE} title='About' />
         </nav>
     )
