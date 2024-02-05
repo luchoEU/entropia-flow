@@ -1,0 +1,18 @@
+﻿<Window x:Class="EntropiaFlowLogReader.GameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EntropiaFlowLogReader"
+        mc:Ignorable="d" WindowStyle="None"
+        AllowsTransparency="False" Background="GhostWhite"
+        ResizeMode="NoResize" Height="400" Width="600">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                  ResizeBorderThickness="12"
+                  CornerRadius="20"/>
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <WebBrowser x:Name="webBrowser" />
+    </Grid>
+</Window>
