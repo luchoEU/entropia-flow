@@ -15,6 +15,7 @@ import {
     MSG_NAME_REQUEST_SET_LAST,
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
+    MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
     NORMAL_WAIT_MINUTES,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
@@ -25,6 +26,7 @@ import {
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
 import ContentTabManager from './content/contentTab'
+import WebSocketClient from './content/webSocketClient'
 import InventoryManager from './inventory/inventory'
 import InventoryStorage from './inventory/inventoryStorage'
 import ListStorage from './listStorage'
@@ -63,6 +65,10 @@ async function wiring(
     // tabs
     const contentTabManager = new ContentTabManager(contentPortManager)
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
+
+    // web socket
+    const webSocketClient = new WebSocketClient()
+    webSocketClient.start()
 
     // links
     contentTabManager.onMessage = (c, m) => viewStateManager.setStatus(c, m)
@@ -120,6 +126,10 @@ async function wiring(
         await viewStateManager.setStatus()
     }
 
+    async function sendWebSocketMessage(msg: any) {
+        webSocketClient.send(msg)
+    }
+
     // port handlers
     contentPortManager.handlers = {
         [MSG_NAME_NEW_INVENTORY]: async (m: any) => {
@@ -156,7 +166,8 @@ async function wiring(
             viewStateManager.reload()
         },
         [MSG_NAME_REQUEST_TIMER_ON]: setTimerOn,
-        [MSG_NAME_REQUEST_TIMER_OFF]: setTimerOff
+        [MSG_NAME_REQUEST_TIMER_OFF]: setTimerOff,
+        [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: sendWebSocketMessage
     }
 
     // prepare alarm

@@ -1,4 +1,5 @@
-import { BackgroundSpec, BackgroundType, StreamState } from "../state/stream";
+import { BackgroundType } from '../../../stream/background'
+import { BackgroundSpec, StreamState } from "../state/stream";
 
 const initialState: StreamState = {
     enabled: false,

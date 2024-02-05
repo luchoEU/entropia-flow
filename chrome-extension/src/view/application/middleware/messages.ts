@@ -2,7 +2,7 @@ import { ViewState } from '../../../common/state'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
-import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON } from '../actions/messages'
+import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE } from '../actions/messages'
 import { setStatus } from '../actions/status'
 import { PAGE_LOADED } from '../actions/ui'
 import { getLatestFromHistory } from '../helpers/history'
@@ -42,6 +42,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }
         case TIMER_ON: { api.messages.requestTimerOn(); break }
         case TIMER_OFF: { api.messages.requestTimerOff(); break }
+        case SEND_WEB_SOCKET_MESSAGE: { api.messages.sendWebSocketMessage(action.payload.type, action.payload.data); break }
     }
 }
 

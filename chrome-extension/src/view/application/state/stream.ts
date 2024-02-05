@@ -1,8 +1,4 @@
-enum BackgroundType {
-    Light,
-    Dark,
-    Ashfall,
-}
+import { BackgroundType } from '../../../stream/background'
 
 interface BackgroundSpec {
     key: number,
@@ -20,7 +16,6 @@ interface StreamState {
 }
 
 export {
-    BackgroundType,
     BackgroundSpec,
     StreamState
 }

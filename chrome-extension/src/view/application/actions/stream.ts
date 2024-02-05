@@ -1,4 +1,5 @@
-import { BackgroundType, StreamState } from "../state/stream"
+import { BackgroundType } from '../../../stream/background'
+import { StreamState } from "../state/stream"
 
 const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"

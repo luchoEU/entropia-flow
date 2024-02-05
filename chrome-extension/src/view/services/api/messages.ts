@@ -1,6 +1,6 @@
 import { ChromeMessagesClient } from "../../../chrome/messagesChrome"
 import { PortHandler } from "../../../chrome/portInterface"
-import { CLASS_REQUESTED, MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW } from "../../../common/const"
+import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW, MSG_NAME_SEND_WEB_SOCKET_MESSAGE } from "../../../common/const"
 import { traceId } from "../../../common/trace"
 
 let messagesClient: ChromeMessagesClient
@@ -29,6 +29,10 @@ function requestTimerOff() {
     messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
 }
 
+function sendWebSocketMessage(type: string, data: any) {
+    messagesClient.send(MSG_NAME_SEND_WEB_SOCKET_MESSAGE, { type, data })
+}
+
 traceId('V')
 
 export default {
@@ -36,5 +40,6 @@ export default {
     requestRefresh,
     requestSetLast,
     requestTimerOn,
-    requestTimerOff
+    requestTimerOff,
+    sendWebSocketMessage
 }
