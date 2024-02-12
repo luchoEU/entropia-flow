@@ -4,6 +4,7 @@ import { getHistory } from "../selectors/history"
 import { HistoryState } from "../state/history"
 
 const INTERVAL_MILLISECONDS = 10 * 60 * 1000  // 10 minutes
+const NOTIFICATION_TIMES = 3
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -15,17 +16,23 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_HISTORY_LIST: {
-            const state: HistoryState = getHistory(getState())            
+            const state: HistoryState = getHistory(getState())
 
             if (state.intervalId !== undefined)
                 clearInterval(state.intervalId)
 
+            var notificationTimes = 0
             const intervalId = setInterval(
                 () => {
-                    chrome.notifications.create(
-                        undefined,
-                        { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: "Disconnected" }
-                    )
+                    notificationTimes++
+                    if (notificationTimes < NOTIFICATION_TIMES) {
+                        chrome.notifications.create(
+                            undefined,
+                            { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: "Disconnected" }
+                        )
+                    } else {
+                        clearInterval(state.intervalId)
+                    }
                 },
                 INTERVAL_MILLISECONDS
             )

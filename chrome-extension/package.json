@@ -8,6 +8,8 @@
         "build": "webpack --config webpack.prod.js",
         "dev": "webpack --config webpack.dev.js",
         "watch": "webpack -w --config webpack.dev.js",
+        "stream": "webpack --config webpack.stream.prod.js",
+        "stream-dev": "webpack --config webpack.stream.dev.js",
         "test": "jest"
     },
     "devDependencies": {
@@ -34,9 +36,11 @@
     },
     "dependencies": {
         "lzutf8": "^0.6.0",
+        "mustache": "^4.2.0",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-redux": "^7.2.4",
-        "redux": "^4.1.1"
+        "redux": "^4.1.1",
+        "snabbdom": "^3.6.2"
     }
 }

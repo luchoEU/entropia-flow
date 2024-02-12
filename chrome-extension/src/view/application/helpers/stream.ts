@@ -1,5 +1,5 @@
 import { BackgroundType } from '../../../stream/background'
-import { BackgroundSpec, StreamState } from "../state/stream";
+import { StreamState } from "../state/stream";
 
 const initialState: StreamState = {
     enabled: false,
@@ -36,33 +36,8 @@ const setBackgroundSelected = (state: StreamState, selected: BackgroundType): St
     }
 })
 
-const backgroundList: BackgroundSpec[] = [
-    {
-        key: 0,
-        type: BackgroundType.Light,
-        title: 'Light',
-        icon: 'img/flow128.png',
-    },
-    {
-        key: 1,
-        type: BackgroundType.Dark,
-        title: 'Dark',
-        icon: 'img/flow128w.png',
-    },
-    {
-        key: 2,
-        type: BackgroundType.Ashfall,
-        title: 'Ashfall',
-        icon: 'img/flow128w.png',
-    }
-]
-
-const getIcon = (type: BackgroundType): string => backgroundList[type].icon
-
 export {
     initialState,
-    backgroundList,
-    getIcon,
     setState,
     setEnabled,
     setBackgroundExpanded,

@@ -26,7 +26,7 @@ import {
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
 import ContentTabManager from './content/contentTab'
-import WebSocketClient from './content/webSocketClient'
+import WebSocketClient from './client/webSocketClient'
 import InventoryManager from './inventory/inventory'
 import InventoryStorage from './inventory/inventoryStorage'
 import ListStorage from './listStorage'
@@ -34,6 +34,7 @@ import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
+import GameLogManager from './client/gameLogManager'
 
 async function wiring(
     messages: IMessagesHub,
@@ -70,6 +71,9 @@ async function wiring(
     const webSocketClient = new WebSocketClient()
     webSocketClient.start()
 
+    // game log
+    const gameLogManager = new GameLogManager()
+
     // links
     contentTabManager.onMessage = (c, m) => viewStateManager.setStatus(c, m)
     contentPortManager.onConnect = async (port) => {
@@ -90,7 +94,13 @@ async function wiring(
     }
     viewPortManager.onConnect = port => viewTabManager.onConnect(port)
     viewPortManager.onDisconnect = port => viewTabManager.onDisconnect(port)
-
+    webSocketClient.onMessage = async msg => {
+        switch (msg.type) {
+            case "log":
+                await gameLogManager.onMessage(msg.data)
+                break;
+        }
+    }
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })
@@ -124,10 +134,6 @@ async function wiring(
         }
         await contentTabManager.setStatus(false)
         await viewStateManager.setStatus()
-    }
-
-    async function sendWebSocketMessage(msg: any) {
-        webSocketClient.send(msg)
     }
 
     // port handlers
@@ -167,7 +173,9 @@ async function wiring(
         },
         [MSG_NAME_REQUEST_TIMER_ON]: setTimerOn,
         [MSG_NAME_REQUEST_TIMER_OFF]: setTimerOff,
-        [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: sendWebSocketMessage
+        [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: async (m: { type: string, data: any }) => {
+            webSocketClient.send(m.type, m.data)
+        }
     }
 
     // prepare alarm

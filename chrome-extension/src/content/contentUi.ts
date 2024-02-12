@@ -1,4 +1,4 @@
-class ContentUi {
+class ContentUI {
     public isMonitoring = false
     private showView: () => void
     private setIsMonitoring: (isMonitoring: boolean) => void
@@ -78,4 +78,4 @@ class ContentUi {
     }
 }
 
-export default ContentUi
+export default ContentUI

@@ -11,7 +11,7 @@ import {
 import { traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/messagesChrome'
 import { EntropiaServerManager } from './entropiaServer'
-import ContentUi from './contentUi'
+import ContentUi from './contentUI'
 
 
 //// INITIALIZATION ////

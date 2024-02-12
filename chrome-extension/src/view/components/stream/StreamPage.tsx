@@ -1,11 +1,11 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { setStreamBackgroundExpanded, setStreamBackgroundSelected, setStreamEnabled } from '../../application/actions/stream';
-import { backgroundList } from '../../application/helpers/stream';
 import { getStream } from '../../application/selectors/stream';
-import { BackgroundSpec, StreamState } from '../../application/state/stream';
+import { StreamState } from '../../application/state/stream';
 import ExpandableSection from '../common/ExpandableSection';
 import useBackground from '../hooks/UseBackground';
+import { BackgroundSpec, backgroundList } from '../../../stream/background';
 
 const StreamBackground = (p: {
     background: BackgroundSpec,

@@ -30,7 +30,9 @@ function requestTimerOff() {
 }
 
 function sendWebSocketMessage(type: string, data: any) {
-    messagesClient.send(MSG_NAME_SEND_WEB_SOCKET_MESSAGE, { type, data })
+    if (messagesClient) {
+        messagesClient.send(MSG_NAME_SEND_WEB_SOCKET_MESSAGE, { type, data })
+    }
 }
 
 traceId('V')

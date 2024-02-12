@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getIcon } from '../../application/helpers/stream';
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status';
 import { getStream } from '../../application/selectors/stream';
 import { StreamState } from '../../application/state/stream';
 import { sendWebSocketMessage } from '../../application/actions/messages';
 import useBackground from '../hooks/UseBackground';
-import renderStream from '../../../stream/render';
+import { getIcon } from '../../../stream/background';
+import StreamViewDiv from '../../../stream/StreamViewDiv';
 
 function StreamView() {
     const dispatch = useDispatch()
@@ -28,11 +28,14 @@ function StreamView() {
         dispatch(sendWebSocketMessage('stream', data))
     }, [ data ])
 
-    const htmlContent = renderStream(data)
-    useBackground(background.selected, 'stream', [ background.selected, enabled, htmlContent ])
+    useBackground(background.selected, 'stream', [ background.selected, enabled ])
 
     if (enabled)
-        return <section dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        return (
+            <section>
+                <StreamViewDiv logoSrc={data.logoSrc} deltaClass={data.deltaClass} delta={data.delta} deltaWord={data.deltaWord} message={data.message}/>
+            </section>
+        )
     else
         return <></>
 }

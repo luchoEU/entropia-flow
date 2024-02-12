@@ -9,9 +9,10 @@ under the fragment shader.
 declare const window: any
 import vertexShader from './vertexShader'
 import fragmentShader from './fragmentShader'
+import { NOISE_PNG } from './noise.png'
 
 class AshfallBackground {
-  private container: HTMLElement
+  public container: HTMLElement
   private camera: any
   private scene: any
   private renderer: any
@@ -22,7 +23,7 @@ class AshfallBackground {
     const loader = new window.THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
     const that = this
-    loader.load('effects/ashfall/noise.png',
+    loader.load(NOISE_PNG, // Embbed noise.png to avoid CORS in Entropia Flow Client
       function do_something_with_texture(texture: any) {
         that.init(texture);
         animate(0);
@@ -92,6 +93,9 @@ function animate(delta: number) {
 }
 
 function load(container: HTMLElement) {
+  if (instance && instance.container == container)
+    return
+
   instance = new AshfallBackground(container)
   container.style['color'] = 'white'
 }

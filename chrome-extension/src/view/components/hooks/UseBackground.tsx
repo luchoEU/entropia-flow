@@ -3,7 +3,9 @@ import { BackgroundType, loadBackground } from '../../../stream/background'
 
 const useBackground = (type: BackgroundType, contentId: string, deps: DependencyList = []) => {
   useEffect(() => {
-    loadBackground(type, contentId)
+    const container = document.getElementById(contentId)
+    if (container)
+      loadBackground(type, container)
     return () => { }
   }, deps)
 }
