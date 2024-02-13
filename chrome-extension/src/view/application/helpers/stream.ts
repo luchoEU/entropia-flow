@@ -1,7 +1,7 @@
 import { BackgroundType } from '../../../stream/background'
-import { StreamState } from "../state/stream";
+import { StreamState, StreamStateIn } from "../state/stream";
 
-const initialState: StreamState = {
+const initialStateIn: StreamStateIn = {
     enabled: false,
     background: {
         expanded: true,
@@ -9,37 +9,60 @@ const initialState: StreamState = {
     }
 }
 
-const isValid = (state: StreamState): boolean => state.background !== undefined
-
-const setState = (state: StreamState, newState: StreamState): StreamState => {
-    return isValid(newState) ? newState : initialState
+const initialState: StreamState = {
+    in: initialStateIn,
+    out: undefined
 }
+
+const setState = (state: StreamState, newState: StreamStateIn): StreamState => ({
+    in: newState,
+    out: undefined
+})
 
 const setEnabled = (state: StreamState, enabled: boolean) => ({
     ...state,
-    enabled
+    in: {
+        ...state.in,
+        enabled
+    }
 })
 
 const setBackgroundExpanded = (state: StreamState, expanded: boolean): StreamState => ({
     ...state,
-    background: {
-        ...state.background,
-        expanded
+    in: {
+        ...state.in,
+        background: {
+            ...state.in.background,
+            expanded
+        }
     }
 })
 
 const setBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => ({
     ...state,
-    background: {
-        ...state.background,
-        selected
+    in: {
+        ...state.in,
+        background: {
+            ...state.in.background,
+            selected
+        }
+    }
+})
+
+const setStreamData = (state: StreamState, data: any): StreamState => ({
+    ...state,
+    out: {
+        ...state.out,
+        data
     }
 })
 
 export {
     initialState,
+    initialStateIn,
     setState,
     setEnabled,
     setBackgroundExpanded,
-    setBackgroundSelected
+    setBackgroundSelected,
+    setStreamData
 }

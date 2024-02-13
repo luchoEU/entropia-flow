@@ -1,6 +1,6 @@
 import { BackgroundType } from '../../../stream/background'
 
-interface StreamState {
+interface StreamStateIn {
     enabled: boolean,
     background: {
         expanded: boolean,
@@ -8,6 +8,17 @@ interface StreamState {
     }
 }
 
+interface StreamStateOut {
+    data: any
+}
+
+interface StreamState {
+    in: StreamStateIn,
+    out: StreamStateOut
+}
+
 export {
-    StreamState
+    StreamState,
+    StreamStateIn,
+    StreamStateOut
 }

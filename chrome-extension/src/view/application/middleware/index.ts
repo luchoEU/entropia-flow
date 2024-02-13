@@ -21,6 +21,7 @@ import settings from './settings'
 import menu from './menu'
 import refined from './refined'
 import materials from './materials'
+import log from './log'
 
 export default [
     ...messages,
@@ -45,5 +46,6 @@ export default [
     ...craft,
     ...settings,
     ...menu,
-    ...refined
+    ...refined,
+    ...log
 ]

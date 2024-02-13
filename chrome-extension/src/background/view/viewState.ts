@@ -11,6 +11,7 @@ import {
     STATUS_TYPE_LOG,
     ViewState
 } from '../../common/state'
+import { LootLogData } from '../client/logData'
 import InventoryManager from '../inventory/inventory'
 import AlarmSettings from '../settings/alarmSettings'
 import ViewSettings from '../settings/viewSettings'
@@ -64,6 +65,12 @@ class ViewStateManager {
             const last = await this.viewSettings.getLast()
             const status = await this._getAlarmStatus()
             await this.onChange({ list, last, status })
+        }
+    }
+
+    public async setGameLog(gameLog: Array<LootLogData>) {
+        if (this.onChange) {
+            await this.onChange({ gameLog })
         }
     }
 

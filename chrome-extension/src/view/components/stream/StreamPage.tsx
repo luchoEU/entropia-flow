@@ -1,8 +1,8 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { setStreamBackgroundExpanded, setStreamBackgroundSelected, setStreamEnabled } from '../../application/actions/stream';
-import { getStream } from '../../application/selectors/stream';
-import { StreamState } from '../../application/state/stream';
+import { getStreamIn } from '../../application/selectors/stream';
+import { StreamStateIn } from '../../application/state/stream';
 import ExpandableSection from '../common/ExpandableSection';
 import useBackground from '../hooks/UseBackground';
 import { BackgroundSpec, backgroundList } from '../../../stream/background';
@@ -31,7 +31,7 @@ const StreamBackground = (p: {
 
 function StreamPage() {
     const dispatch = useDispatch()
-    const { enabled, background }: StreamState = useSelector(getStream);
+    const { enabled, background }: StreamStateIn = useSelector(getStreamIn);
 
     return (
         <>

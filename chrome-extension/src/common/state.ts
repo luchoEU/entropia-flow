@@ -1,5 +1,7 @@
 //// STATE ////
 
+import { LootLogData } from "../background/client/logData"
+
 interface ItemData {
     id: string // identifier, number
     n: string // name, string
@@ -46,7 +48,8 @@ interface Status {
 interface ViewState {
     list?: Array<Inventory>
     last?: number
-    status: Status
+    status?: Status
+    gameLog?: Array<LootLogData>
 }
 
 let mockDate = undefined

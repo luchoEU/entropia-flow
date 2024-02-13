@@ -35,6 +35,7 @@ import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
 import GameLogManager from './client/gameLogManager'
+import LootHistory from './client/lootHistory'
 
 async function wiring(
     messages: IMessagesHub,
@@ -73,6 +74,7 @@ async function wiring(
 
     // game log
     const gameLogManager = new GameLogManager()
+    const lootHistory = new LootHistory()
 
     // links
     contentTabManager.onMessage = (c, m) => viewStateManager.setStatus(c, m)
@@ -101,6 +103,8 @@ async function wiring(
                 break;
         }
     }
+    gameLogManager.onLoot = lootHistory.onLoot
+    lootHistory.onChange = viewStateManager.setGameLog
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })

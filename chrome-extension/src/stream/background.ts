@@ -46,7 +46,12 @@ const backgroundList: BackgroundSpec[] = [
   }
 ]
 
-const getIcon = (type: BackgroundType): string => backgroundList[type].icon
+const getIcon = (type: BackgroundType): string => {
+  if (type)
+    return backgroundList[type].icon
+  else
+    return 'img/flow128.png'
+}
 
 export {
   BackgroundType,

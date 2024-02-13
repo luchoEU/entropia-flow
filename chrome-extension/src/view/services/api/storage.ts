@@ -19,7 +19,8 @@ import {
     STORAGE_VIEW_CRAFT,
     STORAGE_VIEW_SETTINGS,
     STORAGE_VIEW_REFINED,
-    STORAGE_VIEW_MATERIALS
+    STORAGE_VIEW_MATERIALS,
+    STORAGE_VIEW_GAME_LOG
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -28,6 +29,7 @@ import { CraftState } from "../../application/state/craft";
 import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
+import { GameLogState } from "../../application/state/log";
 import { MaterialsState } from "../../application/state/materials";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
@@ -194,8 +196,16 @@ async function saveAbout(state: AboutState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_ABOUT, state)
 }
 
-async function loadAbout(): Promise<InventoryState> {
+async function loadAbout(): Promise<AboutState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_ABOUT)
+}
+
+async function saveGameLog(state: GameLogState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_GAME_LOG, state)
+}
+
+async function loadGameLog(): Promise<GameLogState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_GAME_LOG)
 }
 
 export default {
@@ -239,4 +249,6 @@ export default {
     loadSettings,
     saveAbout,
     loadAbout,
+    saveGameLog,
+    loadGameLog,
 }

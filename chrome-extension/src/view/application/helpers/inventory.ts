@@ -238,6 +238,7 @@ const cleanForSave = (state: InventoryState): InventoryState => {
 
 export {
     initialState,
+    initialList,
     loadInventoryState,
     setCurrentInventory,
     setAuctionExpanded,

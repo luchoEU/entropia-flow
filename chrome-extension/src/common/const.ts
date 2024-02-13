@@ -66,6 +66,7 @@ const STORAGE_VIEW_CRAFT = 'craft'
 const STORAGE_VIEW_MATERIALS = 'materials'
 const STORAGE_VIEW_SETTINGS = 'settings'
 const STORAGE_VIEW_ABOUT = 'about'
+const STORAGE_VIEW_GAME_LOG = 'log'
 
 // Html
 const HTML_VIEW = 'view.html'
@@ -134,6 +135,7 @@ export {
     STORAGE_VIEW_MATERIALS,
     STORAGE_VIEW_SETTINGS,
     STORAGE_VIEW_ABOUT,
+    STORAGE_VIEW_GAME_LOG,
     HTML_VIEW,
     ERROR_429,
     URL_MY_ITEMS,

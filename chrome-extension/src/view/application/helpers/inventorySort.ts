@@ -139,6 +139,7 @@ export {
     CONTAINER,
     SORT_NAME_ASCENDING,
     SORT_VALUE_DESCENDING,
+    SortItemData,
     nextSortType,
     sortList,
     sortListSelect,

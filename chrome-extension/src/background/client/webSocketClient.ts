@@ -3,6 +3,7 @@
 
 class WebSocketClient {
     private socket: WebSocket
+    private pendingJson: string
     public onMessage: (msg: any) => Promise<void>
 
     public start() {
@@ -10,6 +11,10 @@ class WebSocketClient {
         this.socket.onopen = event => {
             console.log('WebSocket connection opened:', event)
             this.send('version', '0.2.0')
+            if (this.pendingJson) {
+                this.socket.send(this.pendingJson)
+                this.pendingJson = null
+            }
         };
         this.socket.onmessage = async event => {
             console.log('WebSocket message received:', event.data)
@@ -24,10 +29,11 @@ class WebSocketClient {
     }
 
     public send(type: string, data: any) {
+        const json = JSON.stringify({ type, data })
         if (this.socket.readyState == WebSocket.OPEN) {
-            const json = JSON.stringify({ type, data })
             this.socket.send(json);
         } else if (this.socket.readyState == WebSocket.CLOSED) {
+            this.pendingJson = json;
             this.start() // reconnect for the next message
         }
     }

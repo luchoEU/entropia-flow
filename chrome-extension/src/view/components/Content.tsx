@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, CRAFT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
+import { ABOUT_PAGE, CRAFT_PAGE, GAME_LOG_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
 import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
@@ -11,36 +11,37 @@ import SettingsPage from './settings/SettingsPage'
 import StreamPage from './stream/StreamPage'
 import StreamView from './stream/StreamView'
 import TradePage from './trade/TradePage'
+import GameLogPage from './log/GameLogPage'
 
 function ContentPage() {
     const menu = useSelector(getSelectedMenu)
     switch (menu) {
         case MONITOR_PAGE:
-            return (<MonitorPage />)
+            return <MonitorPage />
         case INVENTORY_PAGE:
-            return (<InventoryPage />)
+            return <InventoryPage />
         case STREAM_PAGE:
-            return (<StreamPage />)
+            return <StreamPage />
         case REFINED_PAGE:
-            return (<RefinedPage />)
+            return <RefinedPage />
         case ABOUT_PAGE:
-            return (<AboutPage />)
+            return <AboutPage />
         case CRAFT_PAGE:
-            return (<CraftPage />)
+            return <CraftPage />
         case TRADE_PAGE:
-            return (<TradePage />)
+            return <TradePage />
         case SETTING_PAGE:
-            return (<SettingsPage />)
+            return <SettingsPage />
+        case GAME_LOG_PAGE:
+            return <GameLogPage />
         default:
             return <></>
     }
 }
 
 function Content() {
-    const menu = useSelector(getSelectedMenu)
-    // hide in stream page because ashfall effect doesn't work in more than one element
     return <>
-        {menu === STREAM_PAGE ? <></> : <StreamView />}
+        <StreamView />
         <ContentPage />
     </>
 }

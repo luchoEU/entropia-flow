@@ -1,39 +1,21 @@
-import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { getLast } from '../../application/selectors/last'
-import { getStatus } from '../../application/selectors/status';
+import React from 'react'
+import { useSelector } from 'react-redux';
 import { getStream } from '../../application/selectors/stream';
-import { StreamState } from '../../application/state/stream';
-import { sendWebSocketMessage } from '../../application/actions/messages';
 import useBackground from '../hooks/UseBackground';
-import { getIcon } from '../../../stream/background';
 import StreamViewDiv from '../../../stream/StreamViewDiv';
+import { StreamState } from '../../application/state/stream';
 
 function StreamView() {
-    const dispatch = useDispatch()
-    const { enabled } = useSelector(getStream)
-    const { delta, deltaClass, deltaWord } = useSelector(getLast)
-    const { message } = useSelector(getStatus)
-    const { background }: StreamState = useSelector(getStream)
+    const s: StreamState = useSelector(getStream)
+    const { enabled, background } = s.in
+    const d = s.out?.data
 
-    const data = {
-        logoSrc: getIcon(background.selected),
-        deltaClass,
-        delta,
-        deltaWord,
-        message
-    }
+    useBackground(background.selected, 'stream', [ s ])
 
-    useEffect(() => {
-        dispatch(sendWebSocketMessage('stream', data))
-    }, [ data ])
-
-    useBackground(background.selected, 'stream', [ background.selected, enabled ])
-
-    if (enabled)
+    if (enabled && d)
         return (
             <section>
-                <StreamViewDiv logoSrc={data.logoSrc} deltaClass={data.deltaClass} delta={data.delta} deltaWord={data.deltaWord} message={data.message}/>
+                <StreamViewDiv background={d.background} deltaClass={d.deltaClass} delta={d.delta} deltaWord={d.deltaWord} message={d.message}/>
             </section>
         )
     else

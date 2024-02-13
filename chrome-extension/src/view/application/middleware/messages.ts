@@ -2,6 +2,7 @@ import { ViewState } from '../../../common/state'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
+import { setCurrentGameLog } from '../actions/log'
 import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE } from '../actions/messages'
 import { setStatus } from '../actions/status'
 import { PAGE_LOADED } from '../actions/ui'
@@ -20,6 +21,8 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
         const newest = m.list.find(e => e.log === undefined)
         if (newest !== undefined)
             dispatch(setCurrentInventory(newest))
+        if (m.gameLog)
+            dispatch(setCurrentGameLog(m.gameLog))
     }
     if (m.status)
         dispatch(setStatus(m.status))

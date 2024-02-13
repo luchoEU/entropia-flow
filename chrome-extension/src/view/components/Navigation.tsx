@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SHOW_PAGES_IN_DEVELOPMENT } from '../../config'
-import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE } from '../application/actions/menu';
+import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE, GAME_LOG_PAGE } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
 const Tab = (p: {
@@ -28,6 +28,7 @@ const Navigation = () => {
                 <strong>Entropia Flow</strong>
             </div>
             <Tab id={MONITOR_PAGE} title="Monitor" />
+            <Tab id={GAME_LOG_PAGE} title="Game Log" />
             <Tab id={INVENTORY_PAGE} title='Inventory' />
             {SHOW_PAGES_IN_DEVELOPMENT ?
                 <><Tab id={TRADE_PAGE} title="Trading" />

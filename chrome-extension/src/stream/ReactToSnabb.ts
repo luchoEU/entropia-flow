@@ -1,4 +1,4 @@
-import { ComponentType, ReactElement } from 'react';
+import { ReactElement } from 'react';
 import { VNode, VNodeData, h } from 'snabbdom';
 
 // Function to recursively convert a React element to a Snabbdom VNode
@@ -17,20 +17,9 @@ function reactElementToVNode(reactElement: ReactElement): VNode {
 
   // Convert props from React to Snabbdom format
   const snabbdomProps: VNodeData = {
-    props: { },
+    props: { ...props, children: undefined, style: undefined },
     style: props.style
   };
-  for (const prop in props) {
-    if (prop == 'style') {
-        
-/*        snabbdomProps[prop] = Object.entries(props[prop])
-            .map(([property, value]) => `${property}:${value}`)
-            .join(';');*/
-    }
-    else if (prop !== 'children') {
-      snabbdomProps.props[prop] = props[prop];
-    }
-  }
 
   // Convert children recursively
   const snabbdomChildren = Array.isArray(children)

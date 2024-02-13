@@ -48,8 +48,7 @@ const InventoryVisibleList = (p: {
     return (
         <>
             <ExpandableSection title='List' expanded={list.expanded} setExpanded={setVisibleInventoryExpanded}>
-            <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
-
+                <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
                 <table className='table-diff'>
                     <tbody>
                         {
