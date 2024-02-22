@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Path = System.IO.Path;
 
-namespace EntropiaFlowLogReader
+namespace EntropiaFlowClient
 {
     public class LogWatcher : IDisposable
     {

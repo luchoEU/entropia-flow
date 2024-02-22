@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntropiaFlowLogReader", "EntropiaFlowLogReader.csproj", "{BC65F5B8-9923-4F88-845A-9F413CB34E74}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntropiaFlowClient", "EntropiaFlowClient.csproj", "{BC65F5B8-9923-4F88-845A-9F413CB34E74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

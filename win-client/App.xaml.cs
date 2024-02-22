@@ -1,10 +1,8 @@
-﻿using System.Text.Json;
-using System;
-using WebSocketSharp;
-using WebSocketSharp.Server;
+﻿using System.Windows.Interop;
+using static EntropiaFlowClient.WebSocketChat;
 using Application = System.Windows.Application;
 
-namespace EntropiaFlowLogReader
+namespace EntropiaFlowClient
 {
     /// <summary>
     /// Interaction logic for App.xaml
@@ -25,7 +23,6 @@ namespace EntropiaFlowLogReader
         protected override void OnStartup(System.Windows.StartupEventArgs e)
         {
             InitializeNotifyIcon();
-            
             InitializeWebSocket();
             InitializeLogReader();
             base.OnStartup(e);
@@ -68,7 +65,15 @@ namespace EntropiaFlowLogReader
         private void InitializeWebSocket()
         {
             _webSocketServer.Start();
+            _webSocketServer.StreamMessageReceived += _webSocketServer_StreamMessageReceived;
         }
+
+        private void _webSocketServer_StreamMessageReceived(object? sender, StreamMessageEventArgs e)
+        {
+            StreamMessageReceived?.Invoke(this, e);
+        }
+
+        public event EventHandler<StreamMessageEventArgs> StreamMessageReceived;
 
         #endregion
 
@@ -82,7 +87,7 @@ namespace EntropiaFlowLogReader
 
         private void Watcher_NewLine(object? sender, LogWatcher.LogDataEventArgs e)
         {
-            _webSocketServer.Send(e.Data);
+            _webSocketServer.Send("log", e.Data);
         }
 
         #endregion

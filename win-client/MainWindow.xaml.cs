@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace EntropiaFlowLogReader
+namespace EntropiaFlowClient
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
