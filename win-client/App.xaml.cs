@@ -1,5 +1,4 @@
-﻿using System.Windows.Interop;
-using static EntropiaFlowClient.WebSocketChat;
+﻿using static EntropiaFlowClient.WebSocketChat;
 using Application = System.Windows.Application;
 
 namespace EntropiaFlowClient
@@ -87,7 +86,7 @@ namespace EntropiaFlowClient
 
         private void Watcher_NewLine(object? sender, LogWatcher.LogDataEventArgs e)
         {
-            _webSocketServer.Send("log", e.Data);
+            _webSocketServer.Send("log", e.Line);
         }
 
         #endregion

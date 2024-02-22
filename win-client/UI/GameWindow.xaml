@@ -7,7 +7,7 @@
         xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d" WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="NoResize" Height="400" Width="600">
+        ResizeMode="NoResize" Height="80" Width="200">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                   ResizeBorderThickness="12"

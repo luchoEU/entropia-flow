@@ -21,15 +21,19 @@ namespace EntropiaFlowClient
             ((App)System.Windows.Application.Current).StreamMessageReceived += GameWindow_StreamMessageReceived;
         }
 
+        private string m_LastMessage;
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
+            //if (e.Data.Equals(m_LastMessage))
+            //    return;
+
             Dispatcher.Invoke(() => webView2.CoreWebView2?.ExecuteScriptAsync($"render({e.Data})"));
         }
 
         private void WebBrowser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
-            {                
+            {
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
                 var file = Path.Combine(Directory.GetCurrentDirectory(), "GameWindow", "StreamView.html");
@@ -91,14 +95,10 @@ namespace EntropiaFlowClient
             window = w;
         }
 
-        public void OnRendered(string width, string height)
+        public void OnRendered(int width, int height)
         {
-            if (int.TryParse(width.Replace("px", ""), out int nWidth)
-                && int.TryParse(height.Replace("px", ""), out int nHeight))
-            {
-                window.Width = nWidth;
-                window.Height = nHeight;
-            }
+            window.Width = Math.Max(20, width);
+            window.Height = Math.Max(20, height);
         }
     }
 }
