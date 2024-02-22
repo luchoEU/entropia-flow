@@ -15,7 +15,7 @@ const patch = init([
 ])
 
 export function render(data: any): SizeData {
-    var streamElement = document.getElementById('stream')
+    const streamElement = document.getElementById('stream')
 
     const vNode = reactElementToVNode(StreamViewDiv(data))
     patch(streamElement, vNode)

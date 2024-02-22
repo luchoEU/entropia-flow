@@ -103,6 +103,7 @@ async function wiring(
                 break;
         }
     }
+    webSocketClient.onStateChanged = viewStateManager.setClientState
     gameLogManager.onLoot = lootHistory.onLoot
     lootHistory.onChange = viewStateManager.setGameLog
     actions.clickListen(() => {
@@ -190,6 +191,5 @@ async function wiring(
     })
     trace(`alarm status ${await alarms.getStatus()}`)
 }
-
 
 export default wiring

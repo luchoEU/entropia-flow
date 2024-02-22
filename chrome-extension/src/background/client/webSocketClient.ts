@@ -5,11 +5,13 @@ class WebSocketClient {
     private socket: WebSocket
     private pendingJson: string
     public onMessage: (msg: any) => Promise<void>
+    public onStateChanged: (state: string, message: string) => Promise<void>
 
     public start() {
         this.socket = new WebSocket('ws://192.168.1.34:6521')
-        this.socket.onopen = event => {
+        this.socket.onopen = async event => {
             console.log('WebSocket connection opened:', event)
+            await this.onStateChanged('connected', '')
             this.send('version', '0.2.0')
             if (this.pendingJson) {
                 this.socket.send(this.pendingJson)
@@ -20,11 +22,13 @@ class WebSocketClient {
             console.log('WebSocket message received:', event.data)
             await this.onMessage(event.data)
         };
-        this.socket.onerror = event => {
+        this.socket.onerror = async event => {
             console.error('WebSocket error:', event)
+            await this.onStateChanged('error', '')
         };
-        this.socket.onclose = event => {
+        this.socket.onclose = async event => {
             console.log('WebSocket connection closed:', event)
+            await this.onStateChanged('closed', '')
         };
     }
 

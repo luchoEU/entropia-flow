@@ -45,11 +45,17 @@ interface Status {
     time?: TimeLeft
 }
 
+interface ClientState {
+    state: string
+    message: string
+}
+
 interface ViewState {
     list?: Array<Inventory>
     last?: number
     status?: Status
     gameLog?: Array<LootLogData>
+    clientState?: ClientState
 }
 
 let mockDate = undefined

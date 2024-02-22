@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SHOW_PAGES_IN_DEVELOPMENT } from '../../config'
-import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE, GAME_LOG_PAGE } from '../application/actions/menu';
+import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE, GAME_LOG_PAGE, CONNECTION_PAGE } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
 const Tab = (p: {
@@ -37,6 +37,7 @@ const Navigation = () => {
                 <Tab id={SETTING_PAGE} title='Settings' /></> : ''
             }
             <Tab id={STREAM_PAGE} title='Stream' />
+            <Tab id={CONNECTION_PAGE} title='Connection' />
             <Tab id={ABOUT_PAGE} title='About' />
         </nav>
     )

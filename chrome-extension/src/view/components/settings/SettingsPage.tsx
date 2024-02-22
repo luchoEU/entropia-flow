@@ -1,44 +1,10 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { documentIdSettingChanged, googlePrivateKeyChanged, googleServiceAccountEmailChanged, setSheetSettingExpanded } from '../../application/actions/settings';
 import { getSettings } from '../../application/selectors/settings';
 import { SettingsState } from '../../application/state/settings';
 import ExpandableSection from '../common/ExpandableSection';
-
-function Field(p: {
-    label: string,
-    value: string,
-    getChangeAction: (v: string) => any
-}) {
-    const dispatch = useDispatch()
-
-    return (
-        <p>
-            <label>{p.label}</label>
-            <input
-                type='text'
-                value={p.value}
-                onChange={(e) => dispatch(p.getChangeAction(e.target.value))} />
-        </p>
-    )
-}
-
-function FieldArea(p: {
-    label: string,
-    value: string,
-    getChangeAction: (v: string) => any
-}) {
-    const dispatch = useDispatch()
-
-    return (
-        <p>
-            <label>{p.label}</label>
-            <textarea
-                value={p.value}
-                onChange={(e) => dispatch(p.getChangeAction(e.target.value))} />
-        </p>
-    )
-}
+import { Field, FieldArea } from '../components/Field';
 
 function SettingsPage() {
     const s: SettingsState = useSelector(getSettings);
@@ -59,6 +25,10 @@ function SettingsPage() {
                         label='Google Private Key'
                         value={s.sheet.googlePrivateKey}
                         getChangeAction={googlePrivateKeyChanged} />
+                </div>
+                <div>
+                    <a href="https://theoephraim.github.io/node-google-spreadsheet/#/guides/authentication">Follow instructions from here, use Service Account</a>
+                    <p>TODO: load from json</p>
                 </div>
             </ExpandableSection>
         </>

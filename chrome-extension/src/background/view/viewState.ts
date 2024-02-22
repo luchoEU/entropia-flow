@@ -74,6 +74,12 @@ class ViewStateManager {
         }
     }
 
+    public async setClientState(state: string, message: string): Promise<void> {
+        if (this.onChange) {
+            await this.onChange({ clientState: { state, message } })
+        }
+    }
+
     private async _getAlarmStatus(): Promise<Status> {
         const isMonitoringOn = await this.alarmSettings.isMonitoringOn()
         if (!isMonitoringOn) {

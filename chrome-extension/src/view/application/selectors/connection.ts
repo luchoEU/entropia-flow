@@ -1,0 +1,1 @@
+export const getConnection = state => state.connection
