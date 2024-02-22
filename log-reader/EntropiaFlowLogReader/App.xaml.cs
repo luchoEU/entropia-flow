@@ -12,22 +12,20 @@ namespace EntropiaFlowLogReader
     public partial class App : Application
     {
         private readonly NotifyIcon _notifyIcon;
-        private readonly WebSocketServer _webSocket;
         private WebSocketChat _webSocketServer;
         private readonly LogWatcher _watcher;
-
-        private const int WEB_SOCKET_PORT = 6521;
 
         public App()
         {
             _notifyIcon = new();
-            _webSocket = new(WEB_SOCKET_PORT);
+            _webSocketServer = new WebSocketChat();
             _watcher = new();
         }
 
         protected override void OnStartup(System.Windows.StartupEventArgs e)
         {
             InitializeNotifyIcon();
+            
             InitializeWebSocket();
             InitializeLogReader();
             base.OnStartup(e);
@@ -69,25 +67,7 @@ namespace EntropiaFlowLogReader
 
         private void InitializeWebSocket()
         {
-            _webSocketServer = new WebSocketChat();
-            _webSocket.AddWebSocketService("/", () => _webSocketServer);
-            _webSocket.Start();
-            Console.WriteLine($"WebSocket server listening on port {WEB_SOCKET_PORT}");
-            //_webSocket.Stop();
-        }
-
-        public class WebSocketChat : WebSocketBehavior
-        {
-            protected override void OnMessage(MessageEventArgs e)
-            {
-                //e.Data
-            }
-
-            public void Send(object data)
-            {
-                string jsonString = JsonSerializer.Serialize(data);
-                Sessions.Broadcast(jsonString);
-            }
+            _webSocketServer.Start();
         }
 
         #endregion
