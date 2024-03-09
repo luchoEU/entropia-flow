@@ -5,6 +5,7 @@ import IAlarmManager from './alarmInterface'
 
 class ChromeAlarmManager implements IAlarmManager {
     private name: string
+    private periodInSeconds: number | undefined
     public onStarted: () => Promise<void>
     public onEnded: () => Promise<void>
 
@@ -16,16 +17,20 @@ class ChromeAlarmManager implements IAlarmManager {
         chrome.alarms.onAlarm.addListener(async function(alarm) {
             if (alarm.name == this.name)
                 await callback()
+            if (this.periodInSeconds)
+                chrome.alarms.create(this.name, { when: Date.now() + this.periodInSeconds * 1000 });
         }.bind(this))
     }
 
-    public async start(periodInMinutes: number): Promise<void> {
-        chrome.alarms.create(this.name, { periodInMinutes });
+    public async start(periodInSeconds: number): Promise<void> {
+        this.periodInSeconds = periodInSeconds
+        chrome.alarms.create(this.name, { when: Date.now() + periodInSeconds * 1000 });
         if (this.onStarted)
             await this.onStarted()
     }
 
     public async end(): Promise<boolean> {
+        this.periodInSeconds = undefined
         const res = await chrome.alarms.clear(this.name)
         if (this.onEnded)
             await this.onEnded()

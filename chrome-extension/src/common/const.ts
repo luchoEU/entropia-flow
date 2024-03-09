@@ -73,14 +73,17 @@ const STORAGE_VIEW_GAME_LOG = 'log'
 const HTML_VIEW = 'view.html'
 
 // Http errors
+const ERROR_425 = 'Access blocked, wait 24 hours to retry'
 const ERROR_429 = 'Too many requests'
 
 // Url
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
 
 // Waits
-const NORMAL_WAIT_MINUTES = 3
-const LONG_WAIT_MINUTES = 6 // wait longer if the last request didn't do the normal wait period
+const NORMAL_WAIT_SECONDS = 3 * 60
+const LONG_WAIT_SECONDS = 6 * 60 // wait longer if the last request didn't do the normal wait period
+const TOO_MANY_WAIT_SECONDS = 15 * 60 // wait 15 minutes if the server received too many requests
+const ACCESS_BLOCKED_WAIT_SECONDS = 24 * 60 * 60 // wait a day if the server doesn't want to process the request
 
 export {
     INVENTORY_LIMIT,
@@ -139,8 +142,11 @@ export {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_GAME_LOG,
     HTML_VIEW,
+    ERROR_425,
     ERROR_429,
     URL_MY_ITEMS,
-    NORMAL_WAIT_MINUTES,
-    LONG_WAIT_MINUTES
+    NORMAL_WAIT_SECONDS,
+    LONG_WAIT_SECONDS,
+    TOO_MANY_WAIT_SECONDS,
+    ACCESS_BLOCKED_WAIT_SECONDS
 }

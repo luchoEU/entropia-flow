@@ -164,7 +164,7 @@ const sameName = {
             const p = pList[0]
             if (i2.c == p.c
                 && i.q + i2.q - p.q === 0
-                && Math.abs(i.v + i2.v - p.v) < 0.01) {
+                && Math.abs(i.v + i2.v - p.v) < 0.005) {
                 const c = reverse ? `${i.c} ⭢ ${i2.c}` : `${i2.c} ⭢ ${i.c}`
                 add(i.q, i.v, c)
                 iList.splice(0, 2)

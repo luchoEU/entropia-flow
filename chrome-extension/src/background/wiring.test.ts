@@ -160,7 +160,7 @@ describe('full', () => {
             expect(contentPort.sendMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
             expect(contentPort.sendMock.mock.calls[1].length).toBe(2)
             expect(contentPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_ITEMS)
-            expect(contentPort.sendMock.mock.calls[1][1]).toEqual({ tag: undefined, shortWait: true })
+            expect(contentPort.sendMock.mock.calls[1][1]).toEqual({ tag: undefined, waitSeconds: 1 })
         })
     })
 

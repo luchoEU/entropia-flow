@@ -8,9 +8,7 @@ interface ViewPedData {
 interface LastRequiredState {
     show: boolean,
     text?: string,
-    delta?: string,
-    deltaClass?: string,
-    deltaWord?: string,
+    delta?: number,
     expanded?: boolean,
     date: number,
     diff: Array<ViewItemData>,

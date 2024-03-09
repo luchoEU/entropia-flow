@@ -46,6 +46,7 @@ function setStatus(state: STATUS_STATE, status: any): STATUS_STATE {
         case STATUS_TYPE_MONITORING_OFF:
             return {
                 ...state,
+                message: 'monitor is off',
                 showTimer: false,
                 time: [0, 0],
                 isMonitoring: false

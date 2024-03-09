@@ -1,4 +1,3 @@
-import { STATUS_TYPE_MONITORING_OFF, STATUS_TYPE_LOG, STATUS_TYPE_TIME } from '../../../common/state';
 import { SET_STATUS, TICK_STATUS } from '../actions/status';
 import { initialState, setStatus, tickStatus } from '../helpers/status';
 

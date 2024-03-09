@@ -3,8 +3,8 @@ import IAlarmManager from "./alarmInterface"
 
 class MockAlarmManager implements IAlarmManager {
     startMock = jest.fn()
-    async start(periodInMinutes: number): Promise<void> {
-        return this.startMock(periodInMinutes)
+    async start(periodInSeconds: number): Promise<void> {
+        return this.startMock(periodInSeconds)
     }
 
     endMock = jest.fn()

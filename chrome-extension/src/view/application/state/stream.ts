@@ -9,7 +9,13 @@ interface StreamStateIn {
 }
 
 interface StreamStateOut {
-    data: any
+    data: StreamData
+}
+
+interface StreamData {
+    background: number,
+    delta: number,
+    message: string
 }
 
 interface StreamState {
@@ -20,5 +26,6 @@ interface StreamState {
 export {
     StreamState,
     StreamStateIn,
-    StreamStateOut
+    StreamStateOut,
+    StreamData
 }

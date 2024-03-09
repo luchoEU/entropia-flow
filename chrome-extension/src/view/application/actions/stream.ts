@@ -1,5 +1,5 @@
 import { BackgroundType } from '../../../stream/background'
-import { StreamState } from "../state/stream"
+import { StreamData, StreamState } from "../state/stream"
 
 const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"
@@ -35,7 +35,7 @@ const setStreamBackgroundSelected = (selected: BackgroundType) => ({
     }
 })
 
-const setStreamData = (data: any) => ({
+const setStreamData = (data: StreamData) => ({
     type: SET_STREAM_DATA,
     payload: {
         data

@@ -1,7 +1,7 @@
 import { TimeLeft } from "../common/state"
 
 interface IAlarmManager {
-    start(periodInMinutes: number): Promise<void>
+    start(periodInSeconds: number): Promise<void>
     end(): Promise<boolean>
     getTimeLeft(): Promise<TimeLeft>
     getStatus(): Promise<string>

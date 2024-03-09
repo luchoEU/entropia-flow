@@ -9,13 +9,24 @@ import { CraftState } from '../../application/state/craft'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 
+function getDeltaClass(delta: number) {
+    if (Math.abs(delta) < 0.005)
+        delta = 0
+    if (delta > 0) {
+        return 'positive'
+    } else if (delta < 0) {
+        return 'negative'
+    } else {
+        return ''
+    }
+}
+
 const Last = () => {
     const dispatch = useDispatch()
     const {
         show,
         text,
         delta,
-        deltaClass,
         expanded,
         diff,
         peds
@@ -51,7 +62,7 @@ const Last = () => {
                         {diff === null ? '' : (expanded ? '-' : '+')}
                     </button>
                     {text}
-                    <span className={`difference ${deltaClass}`}>{delta}</span>
+                    <span className={`difference ${getDeltaClass(delta)}`}>{delta.toFixed(2)}</span>
                     {hasWarning ?
                         <img src='img/warning.png'
                             className='img-warning'

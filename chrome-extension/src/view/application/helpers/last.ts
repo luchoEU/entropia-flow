@@ -75,28 +75,6 @@ function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
     diff.forEach(item => item.w = !item.e && hasValue(item) && blacklist.includes(item.n))
 }
 
-function getDeltaAndClass(delta: number) {
-    let deltaClass: string
-    let deltaWord: string
-    if (Math.abs(delta) < 0.01)
-        delta = 0
-    if (delta > 0) {
-        deltaClass = "positive"
-        deltaWord = "Profit"
-    } else if (delta < 0) {
-        deltaClass = "negative"
-        deltaWord = "Loss"
-    } else {
-        deltaClass = ""
-        deltaWord = ""
-    }
-    return {
-        delta: delta.toFixed(2),
-        deltaClass,
-        deltaWord
-    }
-}
-
 const setExpanded = (state: LastRequiredState, expanded: boolean) => ({
     ...state,
     expanded
@@ -114,9 +92,10 @@ function changeExclude(state: LastRequiredState, key: number, excluded: boolean,
         blacklist = blacklist.filter(s => s !== item.n)
     }
     applyWarning(diff, blacklist)
+    const delta = Number(state.delta) + getValue(item) * mult
     return {
         ...state,
-        ...getDeltaAndClass(Number(state.delta) + getValue(item) * mult),
+        delta,
         diff,
         blacklist
     }
@@ -138,7 +117,7 @@ function excludeWarnings(state: LastRequiredState): LastRequiredState {
     const diff = state.diff.map(i => ({ ...i, e: i.e || i.w, w: false }))
     return {
         ...state,
-        ...getDeltaAndClass(delta),
+        delta,
         diff
     }
 }
@@ -197,7 +176,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
         if (inv === lastInv) {
             return {
                 ...state,
-                ...getDeltaAndClass(0),
+                delta: 0,
                 show: true,
                 text: getText(inv, true),
                 date: last,
@@ -216,7 +195,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
             state.peds.forEach(p => d += Number(p.value))
             return {
                 ...state,
-                ...getDeltaAndClass(d),
+                delta: d,
                 show: true,
                 text: getText(inv, true),
                 diff: diff || state.diff
@@ -233,7 +212,7 @@ const addActions = (state: LastRequiredState, availableCriteria: AvailableCriter
     }))
 })
 
-const setPeds = (state: LastRequiredState, inState: Array<ViewPedData>) => ({
+const setPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
     ...state,
     peds: inState
 })
@@ -243,23 +222,23 @@ const addPeds = (state: LastRequiredState, value: string): LastRequiredState => 
     const delta = Number(state.delta) + v
     return {
         ...state,
-        ...getDeltaAndClass(delta),
+        delta,
         peds: [...state.peds, { key: new Date().getTime(), value: v.toFixed(2) }]
     }
 }
 
-const removePeds = (state: LastRequiredState, key: number) => {
+const removePeds = (state: LastRequiredState, key: number): LastRequiredState => {
     const p = state.peds.find(s => s.key === key)
     const v = Number(p.value)
     const delta = Number(state.delta) - v
     return {
         ...state,
-        ...getDeltaAndClass(delta),
+        delta,
         peds: state.peds.filter(s => s.key !== key)
     }
 }
 
-function sortByPart(state: LastRequiredState, part: number) {
+function sortByPart(state: LastRequiredState, part: number): LastRequiredState {
     const sortType = nextSortType(part, state.sortType)
     return {
         ...state,

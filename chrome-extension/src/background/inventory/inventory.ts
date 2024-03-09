@@ -32,8 +32,6 @@ class InventoryManager {
         inventory.itemlist.forEach(item => {
             total += Number(item.v)
 
-            item.n = item.n.split('&apos;').join("'")
-
             const c_index = item.c.lastIndexOf('(');
             const res = item.c.match(/.*\(([\d)]+)\)/);
             if (res !== null) {

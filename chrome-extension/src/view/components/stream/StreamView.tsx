@@ -15,7 +15,7 @@ function StreamView() {
     if (enabled && d)
         return (
             <section>
-                <StreamViewDiv background={d.background} deltaClass={d.deltaClass} delta={d.delta} deltaWord={d.deltaWord} message={d.message}/>
+                <StreamViewDiv background={d.background} delta={d.delta} message={d.message}/>
             </section>
         )
     else

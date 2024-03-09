@@ -6,7 +6,7 @@ import IStorageArea from '../chrome/storageAreaInterface'
 import ITabManager from '../chrome/tabsInterface'
 import {
     CLASS_ERROR,
-    LONG_WAIT_MINUTES,
+    LONG_WAIT_SECONDS,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_REGISTER_CONTENT,
@@ -16,12 +16,13 @@ import {
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
     MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
-    NORMAL_WAIT_MINUTES,
+    NORMAL_WAIT_SECONDS,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_LIST_CONTENTS,
     STORAGE_LIST_VIEWS,
     STRING_ALARM_OFF,
+    STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
@@ -84,10 +85,7 @@ async function wiring(
         await contentTabManager.setStatus(on)
         if (on) {
             // if monitoring is on do the request inmediatly
-            await contentTabManager.requestItems(undefined, true)
-        } else {
-            // if monitoring is off wait the minutes
-            await alarms.start(NORMAL_WAIT_MINUTES)
+            await contentTabManager.requestItems(undefined, NORMAL_WAIT_SECONDS)
         }
     }
     contentPortManager.onDisconnect = async (port) => {
@@ -145,15 +143,16 @@ async function wiring(
     contentPortManager.handlers = {
         [MSG_NAME_NEW_INVENTORY]: async (m: any) => {
             try {
-                if (m.inventory.log !== undefined
-                    && m.inventory.log.message === STRING_PLEASE_LOG_IN) {
+                if (m.inventory.log?.message === STRING_PLEASE_LOG_IN) {
                     await viewStateManager.setStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
                 } else {
-                    await alarms.start(m.inventory.shortWait ? LONG_WAIT_MINUTES : NORMAL_WAIT_MINUTES)
-                    const keepDate = await viewSettings.getLast()
-                    const list = await inventoryManager.onNew(m.inventory, keepDate)
-                    await viewSettings.setLastIfEqual(list)
-                    await viewStateManager.setList(list)
+                    await alarms.start(m.inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
+                    if (m.inventory.log?.message !== STRING_NO_DATA) { // don't add no data to history since it is common in my items page reload
+                        const keepDate = await viewSettings.getLast()
+                        const list = await inventoryManager.onNew(m.inventory, keepDate)
+                        await viewSettings.setLastIfEqual(list)
+                        await viewStateManager.setList(list)
+                    }
                 }
             } catch (e) {
                 trace('wiring.handlers exception:')
@@ -168,7 +167,7 @@ async function wiring(
     viewPortManager.handlers = {
         [MSG_NAME_REQUEST_NEW]: async (m: { tag: any }) => {
             await alarms.end()
-            await contentTabManager.requestItems(m.tag, true)
+            await contentTabManager.requestItems(m.tag, LONG_WAIT_SECONDS)
         },
         [MSG_NAME_REQUEST_SET_LAST]: async (m: { tag: any, last: number }) => {
             await viewSettings.setLast(m.last)

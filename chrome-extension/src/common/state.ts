@@ -8,7 +8,7 @@ interface ItemData {
     q: string // quantity, number
     v: string // value, number (2 decimals)
     c: string // container, string
-    r?: string // reference, number
+    r?: string // reference, number (calculated from container)
 }
 
 interface Log {
@@ -27,7 +27,7 @@ interface Inventory {
     itemlist?: Array<ItemData>
     meta: Meta
     tag?: any
-    shortWait?: boolean
+    waitSeconds?: number
 }
 
 interface TimeLeft {

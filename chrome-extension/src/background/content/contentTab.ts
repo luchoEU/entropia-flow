@@ -32,11 +32,11 @@ class ContentTabManager {
         await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
     }
 
-    public async requestItems(tag?: any, shortWait?: boolean): Promise<void> {
+    public async requestItems(tag?: any, waitSeconds?: number): Promise<void> {
         const port = await this.portManager.first()
         if (port !== undefined) {
             try {
-                port.send(MSG_NAME_REFRESH_ITEMS, { tag, shortWait })
+                port.send(MSG_NAME_REFRESH_ITEMS, { tag, waitSeconds })
                 await this._setViewStatus(CLASS_INFO, STRING_LOADING)
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {

@@ -39,7 +39,7 @@ class ContentInitializer {
             PORT_NAME_BACK_CONTENT, {
             [MSG_NAME_REFRESH_ITEMS]: async (m) => {
                 traceStart('Refresh item received')
-                const inventory = await serverManager.requestItems(m.tag, m.shortWait)
+                const inventory = await serverManager.requestItems(m.tag, m.waitSeconds)
                 traceEnd('Refresh item completed')
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
