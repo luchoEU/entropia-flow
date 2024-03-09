@@ -96,14 +96,6 @@ class EntropiaServerManager {
             const res = await fetch(URL_MY_ITEMS, options)
             json = await this._getJson(res)
             waitSeconds = this._getWaitSeconds(res, waitSeconds)
-            if (res.ok) {
-                // The Hub container has '&#10;' in the json but an '\a' when read from html
-                // Some names have '&apos;' in the json but a ' when read from html
-                let jsonString = JSON.stringify(json);
-                jsonString = jsonString.replace(/&#10;/g, '\a');
-                jsonString = jsonString.replace(/&apos;/g, "'");
-                json = JSON.parse(jsonString);
-            }
         } catch (e) {
             trace('json exception:')
             traceData(e)
