@@ -42,7 +42,8 @@ namespace EntropiaFlowClient
 
         private void OnExitClicked(object? sender, EventArgs e)
         {
-            ((MainWindow)MainWindow).CloseWindow();
+            //((MainWindow)MainWindow).CloseWindow();
+            MainWindow.Close();
         }
 
         protected override void OnExit(System.Windows.ExitEventArgs e)

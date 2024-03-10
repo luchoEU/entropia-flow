@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Point = System.Drawing.Point;
@@ -43,6 +44,26 @@ namespace EntropiaFlowClient
             {
                 throw e.InitializationException;
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            string left = ConfigurationManager.AppSettings["WindowLeft"];
+            string top = ConfigurationManager.AppSettings["WindowTop"];
+
+            if (!string.IsNullOrEmpty(left) && !string.IsNullOrEmpty(top))
+            {
+                Left = Convert.ToDouble(left);
+                Top = Convert.ToDouble(top);
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["WindowLeft"].Value = Left.ToString();
+            config.AppSettings.Settings["WindowTop"].Value = Top.ToString();
+            config.Save(ConfigurationSaveMode.Modified);
         }
 
         [ClassInterface(ClassInterfaceType.AutoDual)]
