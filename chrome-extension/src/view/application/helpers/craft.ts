@@ -131,10 +131,13 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
 
             const itemMaterial = materials.find(m => m.name === 'Item')
             const isLimited = materials.find(m => m.name === 'Blueprint')
-            const residueNeeded = itemMaterial.value - clickTTCost
-            if (isLimited) {
-                const residueMaterial = materials.find(m => m.type === 'Residue')
-                residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
+            let residueNeeded = 0
+            if (itemMaterial) {
+                residueNeeded = itemMaterial.value - clickTTCost
+                if (isLimited) {
+                    const residueMaterial = materials.find(m => m.type === 'Residue')
+                    residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
+                }
             }
 
             const clicksAvailable = Math.min(...materials.map(m => m.clicks ?? Infinity))
