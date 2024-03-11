@@ -32,11 +32,13 @@ class InventoryManager {
         inventory.itemlist.forEach(item => {
             total += Number(item.v)
 
-            // Some names have '&apos;' in the json but a ' when read from html
+            // Some names have '&apos;' in json but a ' when read from html
             item.n = item.n.replace(/&apos;/g, "'");
 
-            // The Hub container has '&#10;' in the json but an '\r' when read from html
+            // The Hub container has '&#10;' in json but an '\r' when read from html
+            // Bukin has '&apos;' in json
             item.c = item.c.replace(/&#10;/g, '\r');
+            item.c = item.c.replace(/&apos;/g, "'");
 
             const c_index = item.c.lastIndexOf('(');
             const res = item.c.match(/.*\(([\d)]+)\)/);
