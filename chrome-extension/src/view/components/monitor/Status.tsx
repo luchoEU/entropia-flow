@@ -6,6 +6,7 @@ import { refresh, timerOff, timerOn } from '../../application/actions/messages';
 import { getHistory } from '../../application/selectors/history';
 import { getStatus } from '../../application/selectors/status';
 import { HistoryState } from '../../application/state/history';
+import { STRING_PLEASE_LOG_IN } from '../../../common/const';
 
 const Status = ({ minutes = 0, seconds = 0 }) => {
     const dispatch = useDispatch()
@@ -33,7 +34,12 @@ const Status = ({ minutes = 0, seconds = 0 }) => {
                         title={history.hiddenError} />
                     : ''
                 }
-                <span className={className}>{message}</span>
+                <span className={className}>
+                    {message === STRING_PLEASE_LOG_IN ?
+                        <a href="https://account.entropiauniverse.com/account/my-account/my-items/">{message}</a>
+                        : message
+                    }
+                </span>
                 <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
                     Stop Monitoring
                 </button>
