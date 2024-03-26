@@ -29,25 +29,13 @@ class EntropiaServerManager {
         return waitSeconds
     }
 
-    async requestItems(tag: any, waitSeconds?: number) {
-        let json: Inventory
-        if (this.loadFromHtml) {
-            json = await this.requestItemsHtml(waitSeconds)
-        } else {
-            json = await this.requestItemsAjax(waitSeconds)
-        }
-        json.tag = tag;
-        return json
-    }
-
-    async requestItemsHtml(waitSeconds?: number) {
+    async requestItemsHtml(): Promise<Inventory> {
         let json: Inventory
         const items = document.getElementById('myItems')
         if (items) {
             const rows = items.getElementsByTagName('tr')
             if (rows.length <= 1) {
-                json = makeLogInventory(CLASS_REQUESTED, STRING_NO_DATA)
-                waitSeconds = 2
+                return undefined // not ready yet, retry in a few seconds
             } else {
                 json = { itemlist: [], meta: { date: (new Date()).getTime() } }
                 for (var i = 1; i < rows.length; i++) {
@@ -71,17 +59,18 @@ class EntropiaServerManager {
                         json.itemlist.push({ id, n, q, v, c })
                     }
                 }
-                this.loadFromHtml = false // only the first time
-                waitSeconds = NORMAL_WAIT_SECONDS
+                this.loadFromHtml = false // only the first time from html
+                return json
             }
         } else {
-            json = makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
+            return makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
-        json.waitSeconds = waitSeconds
-        return json
     }
 
-    async requestItemsAjax(waitSeconds?: number) {
+    async requestItemsAjax(waitSeconds?: number): Promise<Inventory> {
+        if (this.loadFromHtml)
+            return makeLogInventory(CLASS_REQUESTED, STRING_NO_DATA)
+
         let json: Inventory
         try {
             const options = {

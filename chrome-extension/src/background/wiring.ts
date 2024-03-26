@@ -5,8 +5,9 @@ import { PortManagerFactory } from '../chrome/portInterface'
 import IStorageArea from '../chrome/storageAreaInterface'
 import ITabManager from '../chrome/tabsInterface'
 import {
+    AFTER_MANUAL_WAIT_SECONDS,
     CLASS_ERROR,
-    LONG_WAIT_SECONDS,
+    MSG_NAME_NEW_INVENTORY_NOT_READY,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_REGISTER_CONTENT,
@@ -24,6 +25,8 @@ import {
     STRING_ALARM_OFF,
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
+    NEXT_HTML_CHECK_WAIT_SECONDS,
+    FIRST_HTML_CHECK_WAIT_SECONDS,
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
 import ContentTabManager from './content/contentTab'
@@ -37,12 +40,15 @@ import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
 import GameLogManager from './client/gameLogManager'
 import LootHistory from './client/lootHistory'
+import IWebSocketClient from './client/webSocketInterface'
 
 async function wiring(
     messages: IMessagesHub,
-    alarms: IAlarmManager,
+    refreshItemHtmlAlarm: IAlarmManager,
+    refreshItemAjaxAlarm: IAlarmManager,
     tabs: ITabManager,
     actions: IActionManager,
+    webSocketClient: IWebSocketClient,
     portManagerFactory: PortManagerFactory,
     inventoryStorageArea: IStorageArea,
     listStorageArea: IStorageArea,
@@ -59,7 +65,7 @@ async function wiring(
 
     // state
     const inventoryManager = new InventoryManager(inventoryStorage)
-    const viewStateManager = new ViewStateManager(alarms, alarmSettings, viewSettings, inventoryManager)
+    const viewStateManager = new ViewStateManager(refreshItemAjaxAlarm, alarmSettings, viewSettings, inventoryManager)
 
     // port manager
     const contentPortManager = portManagerFactory(contentListStorage, messages, tabs, PORT_NAME_BACK_CONTENT)
@@ -70,7 +76,6 @@ async function wiring(
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
 
     // web socket
-    const webSocketClient = new WebSocketClient()
     webSocketClient.start()
 
     // game log
@@ -83,13 +88,11 @@ async function wiring(
         await contentTabManager.onConnect(port)
         const on = await alarmSettings.isMonitoringOn()
         await contentTabManager.setStatus(on)
-        if (on) {
-            // if monitoring is on do the request inmediatly
-            await contentTabManager.requestItems(undefined, NORMAL_WAIT_SECONDS)
-        }
+        await refreshItemHtmlAlarm.start(FIRST_HTML_CHECK_WAIT_SECONDS) // read the items loaded by the page when ready
     }
     contentPortManager.onDisconnect = async (port) => {
-        await alarms.end()
+        await refreshItemHtmlAlarm.end()
+        await refreshItemAjaxAlarm.end()
         await contentTabManager.onDisconnect(port)
     }
     viewPortManager.onConnect = port => viewTabManager.onConnect(port)
@@ -121,8 +124,8 @@ async function wiring(
             await viewStateManager.setStatus()
         } else {
             await alarmSettings.turnMonitoringOn(true)
-            if (await alarms.getStatus() === STRING_ALARM_OFF) {
-                await contentTabManager.requestItems()
+            if (await refreshItemAjaxAlarm.getStatus() === STRING_ALARM_OFF) {
+                await contentTabManager.requestItemsAjax()
             } else {
                 await viewStateManager.setStatus()
             }
@@ -141,18 +144,23 @@ async function wiring(
 
     // port handlers
     contentPortManager.handlers = {
+        [MSG_NAME_NEW_INVENTORY_NOT_READY]: async (m: any) => {
+            refreshItemHtmlAlarm.start(NEXT_HTML_CHECK_WAIT_SECONDS)
+        },
         [MSG_NAME_NEW_INVENTORY]: async (m: any) => {
             try {
                 if (m.inventory.log?.message === STRING_PLEASE_LOG_IN) {
                     await viewStateManager.setStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
+                } else if (m.inventory.log?.message === STRING_NO_DATA) {
+                    // the page has not load the first item list yet
+                    // don't add no data to history since it is common in my items page reload
+                    // don't start the alarm eighter, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message
                 } else {
-                    await alarms.start(m.inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
-                    if (m.inventory.log?.message !== STRING_NO_DATA) { // don't add no data to history since it is common in my items page reload
-                        const keepDate = await viewSettings.getLast()
-                        const list = await inventoryManager.onNew(m.inventory, keepDate)
-                        await viewSettings.setLastIfEqual(list)
-                        await viewStateManager.setList(list)
-                    }
+                    await refreshItemAjaxAlarm.start(m.inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
+                    const keepDate = await viewSettings.getLast()
+                    const list = await inventoryManager.onNew(m.inventory, keepDate)
+                    await viewSettings.setLastIfEqual(list)
+                    await viewStateManager.setList(list)
                 }
             } catch (e) {
                 trace('wiring.handlers exception:')
@@ -166,8 +174,9 @@ async function wiring(
     }
     viewPortManager.handlers = {
         [MSG_NAME_REQUEST_NEW]: async (m: { tag: any }) => {
-            await alarms.end()
-            await contentTabManager.requestItems(m.tag, LONG_WAIT_SECONDS)
+            // manual request by user
+            await refreshItemAjaxAlarm.end()
+            await contentTabManager.requestItemsAjax(m.tag, AFTER_MANUAL_WAIT_SECONDS)
         },
         [MSG_NAME_REQUEST_SET_LAST]: async (m: { tag: any, last: number }) => {
             await viewSettings.setLast(m.last)
@@ -182,13 +191,17 @@ async function wiring(
         }
     }
 
-    // prepare alarm
-    alarms.listen(async () => {
-        await alarms.end()
-        if (await alarmSettings.isMonitoringOn())
-            await contentTabManager.requestItems()
+    // prepare alarms
+    refreshItemHtmlAlarm.listen(async () => {
+        await refreshItemHtmlAlarm.end()
+        await contentTabManager.requestItemsHtml()
     })
-    trace(`alarm status ${await alarms.getStatus()}`)
+    refreshItemAjaxAlarm.listen(async () => {
+        await refreshItemAjaxAlarm.end()
+        if (await alarmSettings.isMonitoringOn())
+            await contentTabManager.requestItemsAjax()
+    })
+    trace(`alarm status ${await refreshItemAjaxAlarm.getStatus()}`)
 }
 
 export default wiring

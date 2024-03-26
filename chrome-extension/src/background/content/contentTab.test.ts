@@ -3,7 +3,7 @@ import MockPortManager, { MockPort } from "../../chrome/portMock"
 import {
     CLASS_ERROR,
     CLASS_INFO,
-    MSG_NAME_REFRESH_ITEMS,
+    MSG_NAME_REFRESH_ITEMS_AJAX,
     STRING_LOADING,
     STRING_PLEASE_LOG_IN
 } from "../../common/const"
@@ -34,11 +34,11 @@ describe('content', () => {
         const port = new MockPort()
         ports.firstMock.mockReturnValue(port)
 
-        await contentTabManager.requestItems(TAG)
+        await contentTabManager.requestItemsAjax(TAG)
 
         expect(port.sendMock.mock.calls.length).toBe(1)
         expect(port.sendMock.mock.calls[0].length).toBe(2)
-        expect(port.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_ITEMS)
+        expect(port.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_ITEMS_AJAX)
         expect(port.sendMock.mock.calls[0][1]).toEqual({ tag: TAG })
         expect(onMessage.mock.calls.length).toBe(1)
         expect(onMessage.mock.calls[0].length).toBe(2)
@@ -49,7 +49,7 @@ describe('content', () => {
     test('when request without port expect login error', async () => {
         ports.firstMock.mockReturnValue(undefined)
 
-        await contentTabManager.requestItems(TAG)
+        await contentTabManager.requestItemsAjax(TAG)
 
         expect(onMessage.mock.calls.length).toBe(1)
         expect(onMessage.mock.calls[0].length).toBe(2)

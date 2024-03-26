@@ -1,7 +1,9 @@
 //// WEB SOCKET ////
 // Communication with Entropia Flow Client in Windows
 
-class WebSocketClient {
+import IWebSocketClient from "./webSocketInterface"
+
+class WebSocketClient implements IWebSocketClient {
     private socket: WebSocket
     private pendingJson: string
     public onMessage: (msg: any) => Promise<void>

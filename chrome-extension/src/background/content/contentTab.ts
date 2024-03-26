@@ -4,7 +4,8 @@ import {
     CLASS_ERROR,
     STRING_PLEASE_LOG_IN,
     STRING_LOADING,
-    MSG_NAME_REFRESH_ITEMS,
+    MSG_NAME_REFRESH_ITEMS_HTML,
+    MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_CONTENT
 } from '../../common/const'
 import { trace, traceData } from '../../common/trace'
@@ -32,11 +33,28 @@ class ContentTabManager {
         await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
     }
 
-    public async requestItems(tag?: any, waitSeconds?: number): Promise<void> {
+    public async requestItemsHtml(): Promise<void> {
         const port = await this.portManager.first()
         if (port !== undefined) {
             try {
-                port.send(MSG_NAME_REFRESH_ITEMS, { tag, waitSeconds })
+                port.send(MSG_NAME_REFRESH_ITEMS_HTML, { })
+            } catch (e) {
+                if (e.message === 'Attempting to use a disconnected port object') {
+                    // expected fail
+                    trace('ContentTabManager.requestItems send failed')
+                } else {
+                    trace('ContentTabManager.requestItems exception:')
+                    traceData(e)
+                }
+            }
+        }
+    }
+
+    public async requestItemsAjax(tag?: any, waitSeconds?: number): Promise<void> {
+        const port = await this.portManager.first()
+        if (port !== undefined) {
+            try {
+                port.send(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
                 await this._setViewStatus(CLASS_INFO, STRING_LOADING)
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {

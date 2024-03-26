@@ -36,7 +36,7 @@ const Status = ({ minutes = 0, seconds = 0 }) => {
                 }
                 <span className={className}>
                     {message === STRING_PLEASE_LOG_IN ?
-                        <a href="https://account.entropiauniverse.com/account/my-account/my-items/">{message}</a>
+                        <a href="https://account.entropiauniverse.com/account/my-account/my-items/" target="_blank">{message}</a>
                         : message
                     }
                 </span>

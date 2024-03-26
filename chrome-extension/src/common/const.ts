@@ -9,7 +9,9 @@ const STORAGE_QUOTA_BYTES_PER_ITEM = 8100 // 8k - 92 bytes for extra
 const PORT_NAME_BACK_CONTENT = 'EntropiaFlowBackgroundContent'
 const MSG_NAME_REGISTER_CONTENT = 'RegisterContent'
 const MSG_NAME_REFRESH_CONTENT = 'RefreshContent'
-const MSG_NAME_REFRESH_ITEMS = 'RefreshItems'
+const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
+const MSG_NAME_REFRESH_ITEMS_HTML = 'RefreshItemsHtml'
+const MSG_NAME_NEW_INVENTORY_NOT_READY = 'NewInventoryNotReady' // when items in html are not loaded yet
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
 
 // Messages with view
@@ -37,7 +39,8 @@ const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
 const STRING_ALARM_OFF = 'OFF'
 
 // Alarm
-const ALARM_NAME = 'refreshItemsAlarm'
+const HTML_ALARM_NAME = 'refreshItemsHtmlAlarm'
+const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
 
 // Storage
 const STORAGE_INVENTORY_ = 'inventoryList'
@@ -80,9 +83,11 @@ const ERROR_429 = 'Too many requests'
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
 
 // Waits
-const NORMAL_WAIT_SECONDS = 3 * 60
-const LONG_WAIT_SECONDS = 6 * 60 // wait longer if the last request didn't do the normal wait period
-const TOO_MANY_WAIT_SECONDS = 15 * 60 // wait 15 minutes if the server received too many requests
+const FIRST_HTML_CHECK_WAIT_SECONDS = 5 // read items from html after 5 seconds
+const NEXT_HTML_CHECK_WAIT_SECONDS = 2 // if they weren't ready check again every 2 seconds
+const NORMAL_WAIT_SECONDS = 3 * 60 // minimum wait to avoid ERROR_429
+const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
+const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
 const ACCESS_BLOCKED_WAIT_SECONDS = 24 * 60 * 60 // wait a day if the server doesn't want to process the request
 
 export {
@@ -90,7 +95,9 @@ export {
     PORT_NAME_BACK_CONTENT,
     MSG_NAME_REGISTER_CONTENT,
     MSG_NAME_REFRESH_CONTENT,
-    MSG_NAME_REFRESH_ITEMS,
+    MSG_NAME_REFRESH_ITEMS_AJAX,
+    MSG_NAME_REFRESH_ITEMS_HTML,
+    MSG_NAME_NEW_INVENTORY_NOT_READY,
     MSG_NAME_NEW_INVENTORY,
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,
@@ -110,7 +117,8 @@ export {
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_ALARM_OFF,
-    ALARM_NAME,
+    HTML_ALARM_NAME,
+    AJAX_ALARM_NAME,
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,
     STORAGE_QUOTA_BYTES,
@@ -145,8 +153,10 @@ export {
     ERROR_425,
     ERROR_429,
     URL_MY_ITEMS,
+    FIRST_HTML_CHECK_WAIT_SECONDS,
+    NEXT_HTML_CHECK_WAIT_SECONDS,
     NORMAL_WAIT_SECONDS,
-    LONG_WAIT_SECONDS,
+    AFTER_MANUAL_WAIT_SECONDS,
     TOO_MANY_WAIT_SECONDS,
     ACCESS_BLOCKED_WAIT_SECONDS
 }

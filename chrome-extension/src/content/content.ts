@@ -1,7 +1,9 @@
 import {
     MSG_NAME_REGISTER_CONTENT,
     PORT_NAME_BACK_CONTENT,
-    MSG_NAME_REFRESH_ITEMS,
+    MSG_NAME_REFRESH_ITEMS_AJAX,
+    MSG_NAME_REFRESH_ITEMS_HTML,
+    MSG_NAME_NEW_INVENTORY_NOT_READY,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_OPEN_VIEW,
@@ -37,11 +39,19 @@ class ContentInitializer {
         messagesClient = new ChromeMessagesClient(
             MSG_NAME_REGISTER_CONTENT,
             PORT_NAME_BACK_CONTENT, {
-            [MSG_NAME_REFRESH_ITEMS]: async (m) => {
+            [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
                 traceStart('Refresh item received')
-                const inventory = await serverManager.requestItems(m.tag, m.waitSeconds)
+                const inventory = await serverManager.requestItemsAjax(m.waitSeconds)
+                inventory.tag = m.tag
                 traceEnd('Refresh item completed')
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
+            },
+            [MSG_NAME_REFRESH_ITEMS_HTML]: async (m) => {
+                const inventory = await serverManager.requestItemsHtml()
+                if (inventory)
+                    return { name: MSG_NAME_NEW_INVENTORY, inventory }
+                else
+                    return { name: MSG_NAME_NEW_INVENTORY_NOT_READY }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {
                 contentUi.isMonitoring = m.isMonitoring
