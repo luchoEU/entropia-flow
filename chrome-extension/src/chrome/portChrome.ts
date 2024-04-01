@@ -81,7 +81,7 @@ class ChromePortManager implements IPortManager {
         const tabsToRemove: Array<number> = []
         const validPortList: Array<IPort> = portList
             .filter((port, index) => {
-                if (port === undefined) {
+                if (!port) {
                     tabsToRemove.push(tabList[index])
                     return false
                 } else {
