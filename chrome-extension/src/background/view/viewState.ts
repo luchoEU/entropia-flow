@@ -6,10 +6,8 @@ import {
 import {
     Inventory,
     Status,
-    STATUS_TYPE_TIME,
-    STATUS_TYPE_MONITORING_OFF,
-    STATUS_TYPE_LOG,
-    ViewState
+    ViewState,
+    StatusType
 } from '../../common/state'
 import { LootLogData } from '../client/logData'
 import InventoryManager from '../inventory/inventory'
@@ -48,14 +46,12 @@ class ViewStateManager {
         if (this.onChange) {
             let status: Status
             if (message !== undefined) {
-                const isMonitoringOn = await this.alarmSettings.isMonitoringOn()
-                if (isMonitoringOn)
-                    status = { type: STATUS_TYPE_LOG, log: { class: _class, message } }
-                else
-                    status = { type: STATUS_TYPE_MONITORING_OFF }
+                const isMonitoring = await this.alarmSettings.isMonitoringOn()
+                status = { type: StatusType.Log, log: { class: _class, message }, isMonitoring }
             }
-            else
+            else {
                 status = await this._getAlarmStatus()
+            }
             await this.onChange({ status })
         }
     }
@@ -81,15 +77,12 @@ class ViewStateManager {
     }
 
     private async _getAlarmStatus(): Promise<Status> {
-        const isMonitoringOn = await this.alarmSettings.isMonitoringOn()
-        if (!isMonitoringOn) {
-            return { type: STATUS_TYPE_MONITORING_OFF }
-        }
+        const isMonitoring = await this.alarmSettings.isMonitoringOn()
         const time = await this.alarm.getTimeLeft()
         if (time !== undefined) {
-            return { type: STATUS_TYPE_TIME, time }
+            return { type: StatusType.Time, time, isMonitoring }
         } else {
-            return { type: STATUS_TYPE_LOG, log: { class: CLASS_ERROR, message: STRING_PLEASE_LOG_IN } }
+            return { type: StatusType.Log, log: { class: CLASS_ERROR, message: STRING_PLEASE_LOG_IN }, isMonitoring }
         }
     }
 }

@@ -8,52 +8,47 @@ import { getStatus } from '../../application/selectors/status';
 import { HistoryState } from '../../application/state/history';
 import { STRING_PLEASE_LOG_IN } from '../../../common/const';
 
-const Status = ({ minutes = 0, seconds = 0 }) => {
+const Status = () => {
     const dispatch = useDispatch()
     const history: HistoryState = useSelector(getHistory)
     const { className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
 
-    if (isMonitoring) {
-        return (
-            <section>
-                {showTimer ?
-                    <img src='img/reload.png'
-                        className='img-refresh'
-                        onClick={() => dispatch(refresh)} />
-                    : ''
+    return (
+        <section>
+            {isMonitoring && showTimer ?
+                <img src='img/reload.png'
+                    className='img-refresh'
+                    onClick={() => dispatch(refresh)} />
+                : ''
+            }
+            {isMonitoring && showLoading ?
+                <img src='img/loading.gif'
+                    className='img-refresh' />
+                : ''
+            }
+            {history.hiddenError ?
+                <img src='img/error.png'
+                    className='img-refresh'
+                    onClick={() => dispatch(setHistoryExpanded(true))}
+                    title={history.hiddenError} />
+                : ''
+            }
+            <span className={className}>
+                {message === STRING_PLEASE_LOG_IN ?
+                    <a href="https://account.entropiauniverse.com/account/my-account/my-items/" target="_blank">{message}</a>
+                    : message
                 }
-                {showLoading ?
-                    <img src='img/loading.gif'
-                        className='img-refresh' />
-                    : ''
-                }
-                {history.hiddenError ?
-                    <img src='img/error.png'
-                        className='img-refresh'
-                        onClick={() => dispatch(setHistoryExpanded(true))}
-                        title={history.hiddenError} />
-                    : ''
-                }
-                <span className={className}>
-                    {message === STRING_PLEASE_LOG_IN ?
-                        <a href="https://account.entropiauniverse.com/account/my-account/my-items/" target="_blank">{message}</a>
-                        : message
-                    }
-                </span>
+            </span>
+            {isMonitoring ?
                 <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
-                    Stop Monitoring
-                </button>
-            </section>
-        )
-    } else {
-        return (
-            <section>
+                    Stop Automatic Refresh
+                </button> :
                 <button className="button-timer start" onClick={() => dispatch(timerOn)}>
-                    Start Monitoring
+                    Start Automatic Refresh
                 </button>
-            </section>
-        )
-    }
+            }
+        </section>
+    )
 }
 
 export default Status

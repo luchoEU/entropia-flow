@@ -13,10 +13,10 @@ class ContentUI {
         const div = document.getElementById('EntropiaFlowExtension')
         const btn = document.getElementById('EntropiaFlowButton')
         if (this.isMonitoring) {
-            btn.innerText = "Stop Monitoring"
+            btn.innerText = "Stop Automatic Refresh"
             div.className = "stop"
         } else {
-            btn.innerText = "Start Monitoring"
+            btn.innerText = "Start Automatic Refresh"
             div.className = "start"
         }
     }

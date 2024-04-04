@@ -35,14 +35,16 @@ interface TimeLeft {
     seconds: number
 }
 
-const STATUS_TYPE_MONITORING_OFF = "monitoring off"
-const STATUS_TYPE_LOG = "log"
-const STATUS_TYPE_TIME = "time"
+enum StatusType {
+    Log,
+    Time
+}
 
 interface Status {
-    type: string
+    type: StatusType
     log?: Log
     time?: TimeLeft
+    isMonitoring: boolean
 }
 
 interface ClientState {
@@ -109,10 +111,8 @@ export {
     ItemData,
     TimeLeft,
     Status,
+    StatusType,
     ViewState,
-    STATUS_TYPE_MONITORING_OFF,
-    STATUS_TYPE_LOG,
-    STATUS_TYPE_TIME,
     setMockDate,
     makeLogInventory,
     areEqualInventoryList

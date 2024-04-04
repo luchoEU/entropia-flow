@@ -1,5 +1,4 @@
-import { STATUS_TYPE_MONITORING_OFF, STATUS_TYPE_LOG, STATUS_TYPE_TIME } from "../../../common/state"
-import { timerOff } from "../actions/messages"
+import { Status, StatusType } from "../../../common/state"
 import { STATUS_STATE } from "../state/status"
 
 const initialState: STATUS_STATE = {
@@ -11,10 +10,15 @@ const initialState: STATUS_STATE = {
     isMonitoring: true
 }
 
-function getUpdatesInMessage(time: Array<number>): string {
+function getUpdatesInMessage(time: Array<number>, isMonitoring: boolean): string {
     const [m, s] = time
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    return `updates in ${pad(m)}:${pad(s)}`
+    if (!isMonitoring && m === 0 && s === 0) {
+        return 'safe to refresh now'
+    } else {
+        const pad = (n: number) => n.toString().padStart(2, '0')
+        const msg = isMonitoring ? 'updates' : 'safe to refresh'
+        return `${msg} in ${pad(m)}:${pad(s)}`
+    }
 }
 
 function tick(time: Array<number>): Array<number> {
@@ -34,41 +38,33 @@ function tickStatus(state: STATUS_STATE): STATUS_STATE {
 
     let message : string
     if (state.showTimer)
-        message = getUpdatesInMessage(time)
+        message = getUpdatesInMessage(time, state.isMonitoring)
     else
         message = state.message
     
     return { ...state, time, message }
 }
 
-function setStatus(state: STATUS_STATE, status: any): STATUS_STATE {
+function setStatus(state: STATUS_STATE, status: Status): STATUS_STATE {
     switch (status.type) {
-        case STATUS_TYPE_MONITORING_OFF:
-            return {
-                ...state,
-                message: 'monitor is off',
-                showTimer: false,
-                time: [0, 0],
-                isMonitoring: false
-            }
-        case STATUS_TYPE_LOG:
+        case StatusType.Log:
             return {
                 className: status.log.class,
                 message: status.log.message,
                 showLoading: status.log.message.includes('...'),
                 showTimer: false,
                 time: [0, 0],
-                isMonitoring: true
+                isMonitoring: status.isMonitoring
             }
-        case STATUS_TYPE_TIME:
+        case StatusType.Time:
             const time = [status.time.minutes, status.time.seconds]
             return {
                 className: 'info',
-                message: getUpdatesInMessage(time),
+                message: getUpdatesInMessage(time, status.isMonitoring),
                 showLoading: false,
                 showTimer: true,
                 time,
-                isMonitoring: true
+                isMonitoring: status.isMonitoring
             }
         default:
             return state

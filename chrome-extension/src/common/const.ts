@@ -86,6 +86,7 @@ const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my
 const FIRST_HTML_CHECK_WAIT_SECONDS = 5 // read items from html after 5 seconds
 const NEXT_HTML_CHECK_WAIT_SECONDS = 2 // if they weren't ready check again every 2 seconds
 const NORMAL_WAIT_SECONDS = 3 * 60 // minimum wait to avoid ERROR_429
+const FIRST_WAIT_SECONDS = 6 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
 const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
 const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
 const ACCESS_BLOCKED_WAIT_SECONDS = 24 * 60 * 60 // wait a day if the server doesn't want to process the request
@@ -156,6 +157,7 @@ export {
     FIRST_HTML_CHECK_WAIT_SECONDS,
     NEXT_HTML_CHECK_WAIT_SECONDS,
     NORMAL_WAIT_SECONDS,
+    FIRST_WAIT_SECONDS,
     AFTER_MANUAL_WAIT_SECONDS,
     TOO_MANY_WAIT_SECONDS,
     ACCESS_BLOCKED_WAIT_SECONDS
