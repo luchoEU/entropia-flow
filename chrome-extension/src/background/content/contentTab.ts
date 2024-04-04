@@ -3,10 +3,11 @@ import {
     CLASS_INFO,
     CLASS_ERROR,
     STRING_PLEASE_LOG_IN,
-    STRING_LOADING,
+    STRING_LOADING_ITEMS,
     MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_REFRESH_ITEMS_AJAX,
-    MSG_NAME_REFRESH_CONTENT
+    MSG_NAME_REFRESH_CONTENT,
+    STRING_LOADING_PAGE
 } from '../../common/const'
 import { trace, traceData } from '../../common/trace'
 
@@ -26,7 +27,7 @@ class ContentTabManager {
     }
 
     public async onConnect(port: IPort): Promise<void> {
-        await this._setViewStatus(CLASS_INFO, undefined)
+        await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE)
     }
 
     public async onDisconnect(port: IPort): Promise<void> {
@@ -55,7 +56,7 @@ class ContentTabManager {
         if (port !== undefined) {
             try {
                 port.send(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
-                await this._setViewStatus(CLASS_INFO, STRING_LOADING)
+                await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail

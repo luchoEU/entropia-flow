@@ -30,7 +30,6 @@ import {
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
 import ContentTabManager from './content/contentTab'
-import WebSocketClient from './client/webSocketClient'
 import InventoryManager from './inventory/inventory'
 import InventoryStorage from './inventory/inventoryStorage'
 import ListStorage from './listStorage'

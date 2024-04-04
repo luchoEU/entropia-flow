@@ -27,12 +27,13 @@ import {
     DATE_CONST,
     STATE_1_MIN,
     STATE_MONITORING_OFF,
-    STATE_LOADING,
+    STATE_LOADING_ITEMS,
     STATE_NO_DATA_1_MIN,
     STATE_NO_DATA_MONITORING_OFF,
     STATE_NO_DATA_PLEASE_LOG_IN,
     STATE_PLEASE_LOG_IN,
-    TIME_1_MIN
+    TIME_1_MIN,
+    STATE_LOADING_PAGE
 } from "./stateConst"
 import ViewStateManager from "./view/viewState"
 import wiring from "./wiring"
@@ -165,6 +166,17 @@ describe('full', () => {
             expect(contentPort.sendMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
             expect(htmlAlarm.startMock.mock.calls.length).toBe(1)
         })
+
+        test('when content connects expect loading message', async () => {
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+
+            await contentPortManager.onConnect(contentPort)
+
+            expect(viewPort.sendMock.mock.calls.length).toBe(1)
+            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_PAGE)
+        })
     })
 
     describe('alarm', () => {
@@ -227,7 +239,7 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_ITEMS)
         })
 
         test('when turned on, alarm is off and content is down, change view state', async () => {

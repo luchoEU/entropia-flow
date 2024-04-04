@@ -1,10 +1,9 @@
-import MockAlarmManager from "../../chrome/alarmMock"
 import MockPortManager, { MockPort } from "../../chrome/portMock"
 import {
     CLASS_ERROR,
     CLASS_INFO,
     MSG_NAME_REFRESH_ITEMS_AJAX,
-    STRING_LOADING,
+    STRING_LOADING_ITEMS,
     STRING_PLEASE_LOG_IN
 } from "../../common/const"
 import { traceOff } from "../../common/trace"
@@ -43,7 +42,7 @@ describe('content', () => {
         expect(onMessage.mock.calls.length).toBe(1)
         expect(onMessage.mock.calls[0].length).toBe(2)
         expect(onMessage.mock.calls[0][0]).toBe(CLASS_INFO)
-        expect(onMessage.mock.calls[0][1]).toBe(STRING_LOADING)
+        expect(onMessage.mock.calls[0][1]).toBe(STRING_LOADING_ITEMS)
     })
 
     test('when request without port expect login error', async () => {

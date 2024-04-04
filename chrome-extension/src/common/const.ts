@@ -33,7 +33,8 @@ const CLASS_REQUESTED = 'requested'
 const CLASS_LAST = 'last'
 
 // Strings
-const STRING_LOADING = 'loading...'
+const STRING_LOADING_PAGE = 'loading page...'
+const STRING_LOADING_ITEMS = 'loading items...'
 const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
 const STRING_ALARM_OFF = 'OFF'
@@ -114,7 +115,8 @@ export {
     CLASS_ERROR,
     CLASS_REQUESTED,
     CLASS_LAST,
-    STRING_LOADING,
+    STRING_LOADING_PAGE,
+    STRING_LOADING_ITEMS,
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_ALARM_OFF,

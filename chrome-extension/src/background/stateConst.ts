@@ -1,4 +1,4 @@
-import { CLASS_ERROR, CLASS_INFO, STRING_LOADING, STRING_NO_DATA, STRING_PLEASE_LOG_IN } from "../common/const"
+import { CLASS_ERROR, CLASS_INFO, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_PLEASE_LOG_IN } from "../common/const"
 import { Inventory, ViewState, Status, TimeLeft, StatusType } from "../common/state"
 
 const TIME_1_MIN: TimeLeft = {
@@ -8,12 +8,23 @@ const TIME_1_MIN: TimeLeft = {
 
 const DATE_CONST = 1
 
-const STATE_LOADING: ViewState = {
+const STATE_LOADING_PAGE: ViewState = {
     status: {
         type: StatusType.Log,
         log: {
             class: CLASS_INFO,
-            message: STRING_LOADING
+            message: STRING_LOADING_PAGE
+        },
+        isMonitoring: false
+    }
+}
+
+const STATE_LOADING_ITEMS: ViewState = {
+    status: {
+        type: StatusType.Log,
+        log: {
+            class: CLASS_INFO,
+            message: STRING_LOADING_ITEMS
         },
         isMonitoring: true
     }
@@ -79,7 +90,8 @@ const STATE_NO_DATA_1_MIN: ViewState = {
 export {
     TIME_1_MIN,
     DATE_CONST,
-    STATE_LOADING,
+    STATE_LOADING_PAGE,
+    STATE_LOADING_ITEMS,
     STATE_1_MIN,
     STATE_PLEASE_LOG_IN,
     STATE_MONITORING_OFF,
