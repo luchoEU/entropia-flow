@@ -33,11 +33,13 @@ class InventoryManager {
             total += Number(item.v)
 
             // Some names have '&apos;' in json but a ' when read from html
+            // Remove extra space at the end of 'Mission Galactica Coin (Green) '
             item.n = item.n.replace(/&apos;/g, "'");
+            item.n = item.n.trim()
 
-            // The Hub container has '&#10;' in json but an '\r' when read from html
+            // The Hub container has '&#10;' in json but an '\n' when read from html
             // Bukin has '&apos;' in json
-            item.c = item.c.replace(/&#10;/g, '\r');
+            item.c = item.c.replace(/&#10;/g, '\n');
             item.c = item.c.replace(/&apos;/g, "'");
 
             const c_index = item.c.lastIndexOf('(');
