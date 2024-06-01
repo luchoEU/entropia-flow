@@ -4,6 +4,7 @@ import { BlueprintSessionDiff, BluprintWebData, CraftState } from '../state/craf
 const SET_CRAFT_STATE = '[craft] set state'
 const ADD_BLUEPRINT = '[craft] add blueprint'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
+const RELOAD_BLUEPRINT = '[craft] reload blueprint'
 const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_ACTIVE_BLUEPRINTS_EXPANDED = '[craft] set active blueprints expanded'
 const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
@@ -50,6 +51,13 @@ const addBlueprint = (name: string) => ({
 
 const removeBlueprint = (name: string) => ({
     type: REMOVE_BLUEPRINT,
+    payload: {
+        name
+    }
+})
+
+const reloadBlueprint = (name: string) => ({
+    type: RELOAD_BLUEPRINT,
     payload: {
         name
     }
@@ -248,6 +256,7 @@ export {
     SET_CRAFT_STATE,
     ADD_BLUEPRINT,
     REMOVE_BLUEPRINT,
+    RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
     SET_ACTIVE_BLUEPRINTS_EXPANDED,
     ADD_BLUEPRINT_DATA,
@@ -279,6 +288,7 @@ export {
     setCraftState,
     addBlueprint,
     removeBlueprint,
+    reloadBlueprint,
     sortBlueprintsBy,
     setActiveBlueprintsExpanded,
     addBlueprintData,

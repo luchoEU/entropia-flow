@@ -79,6 +79,7 @@ interface BluprintWebData {
     ItemValue: string
     StatusCode: number
     Url: string
+    Text?: string
     Material: BlueprintWebMaterial[]
 }
 

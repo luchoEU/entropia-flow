@@ -68,7 +68,7 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                     info: {
                         ...bp.info,
                         loading: false,
-                        url: data.Url,                        
+                        url: data.Url,
                         materials: data.Material.map(m => ({
                             name: m.Name,
                             quantity: Number(m.Quantity),
@@ -83,7 +83,8 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                     info: {
                         ...bp.info,
                         loading: false,
-                        error: `Loading Error, Code ${data.StatusCode}`
+                        url: data.Url,
+                        errorText: `Loading Error, Code ${data.StatusCode}, Text: ${data.Text}`
                     }
                 }
             }
@@ -111,7 +112,7 @@ const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
 })
 
 const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
-    let blueprints: BlueprintData[] = []    
+    let blueprints: BlueprintData[] = []
     for (let bp of state.blueprints) {
         if (bp.info.loading) {
             blueprints.push(bp)
