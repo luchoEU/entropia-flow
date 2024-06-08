@@ -4,6 +4,7 @@ const SET_AS_LAST = "[msg] set as last"
 const TIMER_ON = "[msg] timer on"
 const TIMER_OFF = "[msg] timer off"
 const SEND_WEB_SOCKET_MESSAGE = "[msg] send websocket message"
+const SET_WEB_SOCKET_URL = "[msg] set websocket url"
 
 const refresh = {
     type: REFRESH
@@ -36,6 +37,13 @@ const sendWebSocketMessage = (type: string, data: any) => ({
     }
 })
 
+const setWebSocketUrl = (url: string) => ({
+    type: SET_WEB_SOCKET_URL,
+    payload: {
+        url
+    }
+})
+
 export {
     REFRESH,
     SET_LAST,
@@ -43,10 +51,12 @@ export {
     TIMER_ON,
     TIMER_OFF,
     SEND_WEB_SOCKET_MESSAGE,
+    SET_WEB_SOCKET_URL,
     refresh,
     setLast,
     setAsLast,
     timerOn,
     timerOff,
-    sendWebSocketMessage
+    sendWebSocketMessage,
+    setWebSocketUrl
 }

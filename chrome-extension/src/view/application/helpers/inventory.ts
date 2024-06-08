@@ -25,7 +25,8 @@ const initialState: InventoryState = {
     hidden: initialList(false, SORT_NAME_ASCENDING),
     hiddenCriteria: emptyCriteria,
     available: initialList(true, SORT_NAME_ASCENDING),
-    availableCriteria: { name: [] }
+    availableCriteria: { name: [] },
+    ttService: initialList(true, SORT_NAME_ASCENDING),
 }
 
 function sortAndStats<D>(select: (d: D) => ItemData, list: InventoryList<D>): InventoryList<D> {
@@ -135,10 +136,18 @@ const setAuctionExpanded = (state: InventoryState, expanded: boolean): Inventory
     }
 })
 
-const setAvailableExpanded = (state: InventoryState, expanded: boolean) => ({
+const setAvailableExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
     ...state,
     available: {
         ...state.available,
+        expanded
+    }
+})
+
+const setTTServiceExpanded = (state: InventoryState, expanded: boolean): InventoryState => ({
+    ...state,
+    ttService: {
+        ...state.ttService,
         expanded
     }
 })
@@ -243,6 +252,7 @@ export {
     setCurrentInventory,
     setAuctionExpanded,
     setAvailableExpanded,
+    setTTServiceExpanded,
     setVisibleExpanded,
     setHiddenExpanded,
     setBlueprintsExpanded,

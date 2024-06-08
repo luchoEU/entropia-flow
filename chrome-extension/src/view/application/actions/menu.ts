@@ -11,6 +11,7 @@ const SETTING_PAGE = 6
 const REFINED_PAGE = 7
 const GAME_LOG_PAGE = 8
 const CONNECTION_PAGE = 9
+const GAME_SPLIT_PAGE = 10
 
 const selectMenu = (menu: number) => ({
     type: SELECT_MENU,
@@ -40,6 +41,7 @@ export {
     REFINED_PAGE,
     GAME_LOG_PAGE,
     CONNECTION_PAGE,
+    GAME_SPLIT_PAGE,
     selectMenu,
     selectForAction,
 }

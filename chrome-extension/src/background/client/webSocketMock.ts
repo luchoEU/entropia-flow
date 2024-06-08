@@ -2,17 +2,17 @@ import IWebSocketClient from "./webSocketInterface";
 
 class MockWebSocketClient implements IWebSocketClient {
     startMock = jest.fn()
-    public start() {
-        this.startMock()
+    public async start(url: string): Promise<void> {
+        this.startMock(url)
     }
 
     sendMock = jest.fn()
-    public send(type: string, data: any) {
+    public async send(type: string, data: any): Promise<void> {
         this.sendMock(type, data)
     }
 
     closeMock = jest.fn()
-    public close() {
+    public async close(): Promise<void> {
         this.closeMock()
     }
 

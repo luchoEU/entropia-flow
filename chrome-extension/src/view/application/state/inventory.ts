@@ -37,6 +37,7 @@ interface InventoryState {
     hiddenCriteria: HideCriteria,
     available: InventoryList<ItemData>,
     availableCriteria: AvailableCriteria,
+    ttService: InventoryList<ItemData>,
 }
 
 export {

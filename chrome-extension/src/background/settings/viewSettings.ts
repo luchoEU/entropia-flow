@@ -1,10 +1,12 @@
 import IStorageArea from "../../chrome/storageAreaInterface"
 import { STORAGE_VIEW } from "../../common/const"
 import { Inventory } from "../../common/state"
+import { DEFAULT_WEB_SOCKET_URL } from "../client/webSocketClient"
 
 class ViewSettings {
     private storage: IStorageArea
     private last: number
+    private webSocketUrl: string
 
     constructor(storage: IStorageArea) {
         this.storage = storage
@@ -40,12 +42,25 @@ class ViewSettings {
         }
     }
 
+    public async setWebSocketUrl(url: string): Promise<void> {
+        this.webSocketUrl = url
+        await this._save()
+    }
+
+    public async getWebSocketUrl(): Promise<string> {
+        if (this.webSocketUrl === undefined)
+            await this._load()
+        return this.webSocketUrl
+    }
+
     private async _load(): Promise<void> {
         const value = await this.storage.get(STORAGE_VIEW)
         if (value !== undefined) {
             this.last = value.last
+            this.webSocketUrl = value.webSocketClient
         } else {
             this.last = null
+            this.webSocketUrl = DEFAULT_WEB_SOCKET_URL
         }
     }
 

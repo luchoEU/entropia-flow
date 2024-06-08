@@ -4,10 +4,11 @@ import { addAvailable, removeAvailable, setAuctionInventoryExpanded, setAvailabl
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
+import TTServiceList from './TTServiceList'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
-    
+
     let toAuction = {}
     for (let availableItem of s.available.items)
         if (!s.auction.items.some(i => i.n == availableItem.n))
@@ -21,6 +22,7 @@ function TradePage() {
             <TradeList title='Available' list={s.available} setExpanded={setAvailableInventoryExpanded}
                 image='img/cross.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
                 showAction={() => true} />
+            <TTServiceList list={s.ttService} />
         </>
     )
 }

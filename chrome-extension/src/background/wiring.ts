@@ -27,6 +27,7 @@ import {
     STRING_PLEASE_LOG_IN,
     NEXT_HTML_CHECK_WAIT_SECONDS,
     FIRST_HTML_CHECK_WAIT_SECONDS,
+    MSG_NAME_SET_WEB_SOCKET_URL,
 } from '../common/const'
 import { trace, traceData } from '../common/trace'
 import ContentTabManager from './content/contentTab'
@@ -74,9 +75,6 @@ async function wiring(
     const contentTabManager = new ContentTabManager(contentPortManager)
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
 
-    // web socket
-    webSocketClient.start()
-
     // game log
     const gameLogManager = new GameLogManager()
     const lootHistory = new LootHistory()
@@ -110,6 +108,10 @@ async function wiring(
         viewTabManager.createOrOpenView()
     })
 
+    // start web socket client
+    const webSocketUrl = await viewSettings.getWebSocketUrl()
+    webSocketClient.start(webSocketUrl)
+    
     // listen to new content or view
     messages.listen({
         [MSG_NAME_REGISTER_CONTENT]: contentPortManager,
@@ -186,7 +188,10 @@ async function wiring(
         [MSG_NAME_REQUEST_TIMER_ON]: setTimerOn,
         [MSG_NAME_REQUEST_TIMER_OFF]: setTimerOff,
         [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: async (m: { type: string, data: any }) => {
-            webSocketClient.send(m.type, m.data)
+            await webSocketClient.send(m.type, m.data)
+        },
+        [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => {
+            await webSocketClient.start(m.url)
         }
     }
 

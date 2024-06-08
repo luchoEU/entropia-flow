@@ -24,6 +24,7 @@ const MSG_NAME_REQUEST_TIMER_OFF = 'RequestTimerOff'
 const MSG_NAME_REQUEST_SET_LAST = 'RequestSetLast'
 const MSG_NAME_OPEN_VIEW = 'OpenView'
 const MSG_NAME_SEND_WEB_SOCKET_MESSAGE = 'SendWebSocketMessage'
+const MSG_NAME_SET_WEB_SOCKET_URL = 'SetWebSocketUrl'
 
 // Classes
 const CLASS_INFO = 'info'
@@ -110,6 +111,7 @@ export {
     MSG_NAME_REQUEST_SET_LAST,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
+    MSG_NAME_SET_WEB_SOCKET_URL,
     CLASS_INFO,
     CLASS_NEW_DATE,
     CLASS_ERROR,

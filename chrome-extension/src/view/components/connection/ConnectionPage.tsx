@@ -17,6 +17,7 @@ function ConnectionPage() {
                         label='WebSocket'
                         value={s.client.webSocket}
                         getChangeAction={webSocketConnectionChanged} />
+                    Status: {s.client.status} {s.client.message}
                 </div>
             </ExpandableSection>
         </>
