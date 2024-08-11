@@ -31,7 +31,7 @@ interface HistoryState {
     expanded: boolean
     hiddenError: string
     list: Array<ViewInventory>
-    intervalId: NodeJS.Timer
+    intervalId: NodeJS.Timeout
 }
 
 export {

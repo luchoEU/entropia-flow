@@ -154,7 +154,7 @@ function setItemExpanded(state: HistoryState, key: number, expanded: boolean): H
     }
 }
 
-function setHistoryIntervalId(state: HistoryState, intervalId: NodeJS.Timer): HistoryState {
+function setHistoryIntervalId(state: HistoryState, intervalId: NodeJS.Timeout): HistoryState {
     return {
         ...state,
         intervalId

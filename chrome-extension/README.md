@@ -1,8 +1,9 @@
 ## Building
 
-1.  `npm i` to install dependencies
-2.  `npm run dev` to compile once or `npm run watch` to run the dev task in watch mode
-3.  `npm run build` to build a production (minified) version
+1.  `nvm use 21.7.1`
+2.  `npm i` to install dependencies
+3.  `npm run dev` to compile once or `npm run watch` to run the dev task in watch mode
+4.  `npm run build` to build a production (minified) version
 
 ## Installation
 
