@@ -1,5 +1,4 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet'
-import { JWT } from 'google-auth-library';
 import { SheetAccessInfo } from '../../../application/state/settings';
 import { SetStage, STAGE_LOADING_INVENTORY_SHEET, STAGE_LOADING_ME_LOG_SHEET, STAGE_LOADING_SPREADSHEET, STAGE_SAVING, STAGE_BUDGET_HAS_SHEET, STATE_LOADING_BUDGET_SHEET, STAGE_CREATING_BUDGET_SHEET } from './sheetsStages';
 
@@ -10,13 +9,12 @@ const DATE_FORMAT = { type: 'DATE', pattern: 'd/m/yy' }
 async function getSpreadsheet(accessInfo: SheetAccessInfo, setStage: SetStage) {
     setStage(STAGE_LOADING_SPREADSHEET)
 
-    const serviceAccountAuth = new JWT({
-        email: accessInfo.googleServiceAccountEmail,
-        key: accessInfo.googlePrivateKey,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+    const doc = new GoogleSpreadsheet(accessInfo.documentId)
 
-    const doc = new GoogleSpreadsheet(accessInfo.documentId, serviceAccountAuth)
+    await doc.useServiceAccountAuth({
+        client_email: accessInfo.googleServiceAccountEmail,
+        private_key: accessInfo.googlePrivateKey,
+    })
 
     await doc.loadInfo()
     return doc
