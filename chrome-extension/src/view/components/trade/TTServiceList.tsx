@@ -31,7 +31,10 @@ const TTServiceList = (p: {
         <>
             <ExpandableSection title='TT Service' expanded={list.expanded} setExpanded={setTTServiceInventoryExpanded}>
                 <p>Total value {list.stats.ped} PED for {list.stats.count} items
-                    <img src='img/reload.png' onClick={() => dispatch(reloadTTService())}></img></p>
+                    <img src='img/reload.png'
+                        className='img-refresh'
+                        onClick={() => dispatch(reloadTTService())} />
+                </p>
                 <table className='table-diff'>
                     <tbody>
                         {

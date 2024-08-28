@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, CONNECTION_PAGE, CRAFT_PAGE, GAME_LOG_PAGE, GAME_SPLIT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
+import { ABOUT_PAGE, BUDGET_PAGE, CONNECTION_PAGE, CRAFT_PAGE, GAME_LOG_PAGE, GAME_SPLIT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
 import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
@@ -14,6 +14,7 @@ import TradePage from './trade/TradePage'
 import GameLogPage from './log/GameLogPage'
 import ConnectionPage from './connection/ConnectionPage'
 import GameSplitPage from './split/GameSplitPage'
+import BudgetPage from './budget/BudgetPage'
 
 function ContentPage() {
     const menu = useSelector(getSelectedMenu)
@@ -30,6 +31,8 @@ function ContentPage() {
             return <AboutPage />
         case CRAFT_PAGE:
             return <CraftPage />
+        case BUDGET_PAGE:
+            return <BudgetPage />
         case TRADE_PAGE:
             return <TradePage />
         case SETTING_PAGE:

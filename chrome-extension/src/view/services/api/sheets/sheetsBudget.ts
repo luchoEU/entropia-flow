@@ -18,11 +18,13 @@ const START_ROW = 6
 
 interface BudgetSheetGetInfo {
     total: number
+    totalMU: number
     peds: number
     materials: { [name: string] : {
         unitValue: number
         markup: number
         current: number
+        totalMU: number
         total: number
     }}
 }
@@ -125,6 +127,7 @@ class BudgetSheet {
     public async getInfo(): Promise<BudgetSheetGetInfo> {
         const sheet = this.sheet
         const info: BudgetSheetGetInfo = {
+            totalMU: Number(sheet.getCell(TOTAL_MU_ROW, BUDGET_COLUMN).value),
             total: Number(sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).value),
             peds: Number(sheet.getCell(TOTAL_ROW, PED_COLUMN).value),
             materials: {}
@@ -135,6 +138,7 @@ class BudgetSheet {
                 unitValue: Number(get(UNIT_VALUE_ROW)),
                 markup: Number(get(MARKUP_ROW)),
                 current: Number(get(CURRENT_ROW)),
+                totalMU: Number(get(TOTAL_MU_ROW)),
                 total: Number(get(TOTAL_ROW)),
             }
         }
@@ -200,28 +204,11 @@ class BudgetSheet {
             }
         }
     }
-
-    public async getMaterials(): Promise<BudgetMaterial[]> {
-        const materials = []
-        for (let column = MATERIAL_COLUMN; column < this.sheet.columnCount; column++) {
-            materials.push({
-                name: this.sheet.getCell(TITLE_ROW, column).value,
-                quantity: Number(this.sheet.getCell(CURRENT_ROW, column).value)
-            })
-        }
-        return materials
-    }
-}
-
-interface BudgetMaterial {
-    name: string,
-    quantity: number
 }
 
 export {
     BudgetSheet,
     BudgetSheetGetInfo,
     BudgetInfoData,
-    BudgetLineData,
-    BudgetMaterial,
+    BudgetLineData
 }

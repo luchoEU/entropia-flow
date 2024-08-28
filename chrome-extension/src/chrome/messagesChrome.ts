@@ -48,6 +48,11 @@ class ChromeMessagesClient {
     }
 
     public send(name: string, data?: object) {
+        if (!this.port) {
+            trace(`ChromeMessagesClient.send message dropped: '${name}' on ${this.registerName}`)
+            return
+        }
+
         try {
             this.port.postMessage({ name, ...data })
         } catch (e) {

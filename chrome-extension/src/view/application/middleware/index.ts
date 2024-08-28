@@ -23,6 +23,7 @@ import refined from './refined'
 import materials from './materials'
 import log from './log'
 import connection from './connection'
+import budget from './budget'
 
 export default [
     ...messages,
@@ -49,5 +50,6 @@ export default [
     ...menu,
     ...refined,
     ...log,
-    ...connection
+    ...connection,
+    ...budget,
 ]

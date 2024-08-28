@@ -1,6 +1,4 @@
-import { objectMap } from "../../../common/utils"
-import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { MaterialsCraftMap, MaterialsMap, MaterialsState } from "../state/materials"
+import { MaterialsMap, MaterialsState } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -112,26 +110,10 @@ const refinedInitialMap: MaterialsMap = {
 }
 
 const initialState: MaterialsState = {
-    map: refinedInitialMap,
-    craftBudget: {
-        expanded: false,
-        stage: STAGE_INITIALIZING,
-        map: { }
-    }
+    map: refinedInitialMap
 }
 
 const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
-
-const setMaterialsCraftMap = (state: MaterialsState, map: MaterialsCraftMap): MaterialsState => ({
-    ...state,
-    craftBudget: {
-        ...state.craftBudget,
-        map: objectMap(map, (v, k) => ({
-            ...v,
-            expanded: state.craftBudget.map[k]?.expanded ?? false
-        }))
-    }
-})
 
 const materialChanged = (state: MaterialsState, material: string, change: any): MaterialsState => ({
     ...state,
@@ -167,38 +149,14 @@ const cleanForSave = (state: MaterialsState): MaterialsState => {
     Object.keys(cState.map).forEach(k => {
         delete cState.map[k].c
     })
-    cState.craftBudget.stage = STAGE_INITIALIZING
     return cState
 }
-
-const setMaterialCraftListExpanded = (state: MaterialsState, expanded: boolean) => ({
-    ...state,
-    craftBudget: {
-        ...state.craftBudget,
-        expanded
-    }
-})
-
-const setMaterialCraftExpanded = (state: MaterialsState, material: string, expanded: boolean): MaterialsState => {
-    const cState: MaterialsState = JSON.parse(JSON.stringify(state))
-    cState.craftBudget.map[material].expanded = expanded
-    return cState
-}
-
-const setMaterialCraftBudgetStage = (state: MaterialsState, stage: number) => ({
-    ...state,
-    craftBudget: {
-        ...state.craftBudget,
-        stage
-    }
-})
 
 export {
     initialState,
     materialMap,
     refinedInitialMap,
     setState,
-    setMaterialsCraftMap,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
     materialUseAmountChanged,
@@ -206,9 +164,6 @@ export {
     materialBuyAmountChanged,
     materialOrderValueChanged,
     cleanForSave,
-    setMaterialCraftListExpanded,
-    setMaterialCraftExpanded,
-    setMaterialCraftBudgetStage,
     MATERIAL_PED,
     MATERIAL_ME,
     MATERIAL_LME,

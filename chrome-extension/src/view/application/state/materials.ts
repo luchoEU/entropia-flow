@@ -1,11 +1,10 @@
 interface MaterialsState {
-    map: MaterialsMap,
-    craftBudget: MaterialsCraftBudget
+    map: MaterialsMap
 }
 
 type MaterialsMap = { [name: string] : MaterialState }
 
-interface MaterialState {    
+interface MaterialState {
     buyMarkup: string,
     buyAmount: string,
     orderMarkup?: string,
@@ -21,28 +20,8 @@ interface MaterialState {
     }
 }
 
-interface MaterialsCraftBudget {
-    expanded: boolean,
-    stage: number,
-    map: MaterialsCraftMap
-}
-
-type MaterialsCraftMap = { [name: string] : MaterialCraftState }
-
-interface MaterialCraftState {
-    expanded: boolean,
-    total: number,
-    list: MaterialBudget[]
-}
-
-interface MaterialBudget {
-    itemName: string
-    quantity: number
-}
-
 export {
     MaterialsState,
     MaterialsMap,
-    MaterialsCraftMap,
     MaterialState,
 }

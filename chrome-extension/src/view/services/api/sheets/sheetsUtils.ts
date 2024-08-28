@@ -63,6 +63,12 @@ async function createBudgetSheet(doc: any, setStage: SetStage, itemName: string,
     return sheet
 }
 
+async function listBudgetSheet(doc: any): Promise<string[]> {
+    return doc.sheetsByIndex
+        .filter(s => s.title.endsWith(TITLE_SUFFIX))
+        .map(s => s.title.slice(0, -TITLE_SUFFIX.length));
+}
+
 async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
     setStage(STAGE_SAVING)
     await sheet.saveUpdatedCells()
@@ -114,6 +120,7 @@ export {
     hasBudgetSheet,
     getBudgetSheet,
     createBudgetSheet,
+    listBudgetSheet,
     saveUpdatedCells,
     getLastRow,
     setDayDate,

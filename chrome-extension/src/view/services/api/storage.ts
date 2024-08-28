@@ -21,10 +21,12 @@ import {
     STORAGE_VIEW_REFINED,
     STORAGE_VIEW_MATERIALS,
     STORAGE_VIEW_GAME_LOG,
-    STORAGE_VIEW_CONNECTION
+    STORAGE_VIEW_CONNECTION,
+    STORAGE_VIEW_BUDGET
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
+import { BudgetState } from "../../application/state/budget";
 import { CalculatorStateIn } from "../../application/state/calculator";
 import { ConnectionState } from "../../application/state/connection";
 import { CraftState } from "../../application/state/craft";
@@ -186,6 +188,14 @@ async function loadMaterials(): Promise<MaterialsState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
 }
 
+async function saveBudget(state: BudgetState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_BUDGET, state)
+}
+
+async function loadBudget(): Promise<BudgetState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_BUDGET)
+}
+
 async function saveSettings(state: SettingsState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_SETTINGS, state)
 }
@@ -254,6 +264,8 @@ export default {
     loadCraft,
     saveMaterials,
     loadMaterials,
+    saveBudget,
+    loadBudget,
     saveSettings,
     loadSettings,
     saveConnection,

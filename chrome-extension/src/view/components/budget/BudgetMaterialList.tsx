@@ -1,10 +1,9 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { MaterialsCraftMap, MaterialsState } from '../../application/state/materials'
-import { getMaterials } from '../../application/selectors/materials'
-import { refreshMaterialCraftBudgets, setMaterialCraftListExpanded, setMaterialCraftExpanded } from '../../application/actions/materials'
-import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import ExpandableSection from '../common/ExpandableSection'
+import { getBudget } from '../../application/selectors/budget'
+import { BudgetMaterialsMap, BudgetState } from '../../application/state/budget'
+import { setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
 
 const ExpandableMaterial = (p: {
     quantity: number,
@@ -31,17 +30,15 @@ const ExpandableMaterial = (p: {
     )
 }
 
-function CraftMaterialList() {
-    const s: MaterialsState = useSelector(getMaterials)
-    const m: MaterialsCraftMap = s.craftBudget.map
-    const dispatch = useDispatch()
+function BudgetMaterialList() {
+    const s: BudgetState = useSelector(getBudget)
+    const m: BudgetMaterialsMap = s.materials.map
 
     return (
-        <ExpandableSection title='Budget Materials' expanded={s.craftBudget.expanded} setExpanded={setMaterialCraftListExpanded}>
-            { s.craftBudget.stage === STAGE_INITIALIZING ? '' : <p>{StageText[s.craftBudget.stage]}...</p> }
+        <ExpandableSection title='Budget Materials' expanded={s.materials.expanded} setExpanded={setBudgetMaterialListExpanded}>
             { Object.keys(m).sort().map(k => 
                 m[k].total > 0 ?
-                    <ExpandableMaterial key={k} quantity={m[k].total} name={k} expanded={m[k].expanded} setExpanded={setMaterialCraftExpanded(k)}>
+                    <ExpandableMaterial key={k} quantity={m[k].total} name={k} expanded={m[k].expanded} setExpanded={setBudgetMaterialExpanded(k)}>
                         <table>
                             { m[k].list.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
                                 <tr key={`${k}_${b}`}>
@@ -52,9 +49,8 @@ function CraftMaterialList() {
                         </table>
                     </ExpandableMaterial> : <></>
             )}
-            <button onClick={() => dispatch(refreshMaterialCraftBudgets)}>Refresh</button>
         </ExpandableSection>
     )
 }
 
-export default CraftMaterialList
+export default BudgetMaterialList
