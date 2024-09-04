@@ -110,19 +110,20 @@ function removeMaterialsByItemName(
             const filteredList = map[name].budgetList.filter(m => m.itemName !== itemNameToRemove)
             if (filteredList.length > 0) {
                 const newTotal = filteredList.reduce((sum, m) => sum + m.quantity, 0)
-                const newValue = filteredList.reduce((sum, m) => sum + m.value, 0) -
+                const newValue = filteredList.reduce((sum, m) => sum + m.value, 0) +
                     map[name].realList.reduce((sum, m) => sum + m.value, 0)
                 updatedMap[name] = {
                     ...map[name],
                     budgetList: filteredList,
                     totalListQuantity: newTotal,
+                    quantityBalance: newTotal + map[name].realList.reduce((sum, m) => sum + m.quantity, 0),
                     valueBalance: newValue
                 }
             }
         }
     }
 
-    return updatedMap;
+    return updatedMap
 }
 
 const disableBudgetItem = (state: BudgetState, name: string) => ({
