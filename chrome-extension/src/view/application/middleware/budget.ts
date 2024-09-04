@@ -2,7 +2,7 @@ import { ItemData } from "../../../common/state"
 import { mergeDeep } from "../../../common/utils"
 import { BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, REFRESH_BUDGET, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/budget"
 import { joinList } from "../helpers/inventory"
@@ -30,7 +30,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ENABLE_BUDGET_ITEM:
         case DISABLE_BUDGET_ITEM:
         case ENABLE_BUDGET_MATERIAL:
-        case DISABLE_BUDGET_MATERIAL: {
+        case DISABLE_BUDGET_MATERIAL:
+        case ADD_BUDGET_MATERIAL_SELECTION:
+        case REMOVE_BUDGET_MATERIAL_SELECTION: {
             const state: BudgetState = getBudget(getState())
             await api.storage.saveBudget(cleanForSave(state))
             break
@@ -40,14 +42,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const budget: BudgetState = getBudget(getState())
             const materials: MaterialsState = getMaterials(getState())
             const inventory: Array<ItemData> = joinList(getInventory(getState()))
+
             const map: BudgetMaterialsMap = { }
             const items: BudgetItem[] = []
+            dispatch(setBudgetFromSheet(map, items, 0))
 
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
             const list: string[] = await api.sheets.getBudgetSheetList(settings.sheet, setStage)
 
             let loaded = 0
-            dispatch(setBudgetFromSheet(map, items, 0))
             for (const itemName of list) {
                 if (budget.disabledItems.names.indexOf(itemName) != -1) continue
 
@@ -63,6 +66,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         if (map[name] === undefined) {
                             map[name] = {
                                 expanded: false,
+                                selected: false,
                                 totalListQuantity: 0,
                                 quantityBalance: 0,
                                 valueBalance: 0,

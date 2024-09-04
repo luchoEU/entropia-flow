@@ -12,6 +12,7 @@ const initialState: BudgetState = {
     disabledMaterials: { },
     materials: {
         expanded: false,
+        selectedCount: 0,
         map: { }
     },
     list: {
@@ -30,7 +31,8 @@ const setBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: 
         map: objectMap(map, (v, k) => ({
             ...v,
             expanded: state.materials.map[k]?.expanded ?? false
-        }))
+        })),
+        selectedCount: Object.keys(map).filter(key => map[key].selected).length
     },
     list: {
         ...state.list,
@@ -199,7 +201,35 @@ const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName
     };
 };
 
+const addBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
+    ...state,
+    materials: {
+        ...state.materials,
+        map: {
+            ...state.materials.map,
+            [materialName]: {
+                ...state.materials.map[materialName],
+                selected: true
+            }
+        },
+        selectedCount: Object.keys(state.materials.map).filter(key => state.materials.map[key].selected || key === materialName).length
+    }
+})
 
+const removeBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
+    ...state,
+    materials: {
+        ...state.materials,
+        map: {
+            ...state.materials.map,
+            [materialName]: {
+                ...state.materials.map[materialName],
+                selected: false
+            }
+        },
+        selectedCount: Object.keys(state.materials.map).filter(key => state.materials.map[key].selected && key !== materialName).length
+    }
+})
 
 export {
     initialState,
@@ -214,5 +244,7 @@ export {
     enableBudgetItem,
     disableBudgetItem,
     enableBudgetMaterial,
-    disableBudgetMaterial
+    disableBudgetMaterial,
+    addBudgetMaterialSelection,
+    removeBudgetMaterialSelection
 }

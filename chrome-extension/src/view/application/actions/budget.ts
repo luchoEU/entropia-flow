@@ -12,6 +12,8 @@ const DISABLE_BUDGET_ITEM = '[budget] disable item'
 const ENABLE_BUDGET_MATERIAL = '[budget] enable material'
 const DISABLE_BUDGET_MATERIAL = '[budget] disable material'
 const REFRESH_BUDGET = '[budget] refresh'
+const ADD_BUDGET_MATERIAL_SELECTION = '[budget] add material selection'
+const REMOVE_BUDGET_MATERIAL_SELECTION = '[budget] remove material selection'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -99,6 +101,20 @@ const disableBudgetMaterial = (itemName: string, materialName: string) => ({
     }
 })
 
+const addBudgetMaterialSelection = (materialName: string) => ({
+    type: ADD_BUDGET_MATERIAL_SELECTION,
+    payload: {
+        materialName
+    }
+})
+
+const removeBudgetMaterialSelection = (materialName: string) => ({
+    type: REMOVE_BUDGET_MATERIAL_SELECTION,
+    payload: {
+        materialName
+    }
+})
+
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
@@ -111,6 +127,8 @@ export {
     DISABLE_BUDGET_ITEM,
     ENABLE_BUDGET_MATERIAL,
     DISABLE_BUDGET_MATERIAL,
+    ADD_BUDGET_MATERIAL_SELECTION,
+    REMOVE_BUDGET_MATERIAL_SELECTION,
     REFRESH_BUDGET,
     setBudgetState,
     setBudgetFromSheet,
@@ -123,5 +141,7 @@ export {
     disableBudgetItem,
     enableBudgetMaterial,
     disableBudgetMaterial,
+    addBudgetMaterialSelection,
+    removeBudgetMaterialSelection,
     refreshBudget,
 }

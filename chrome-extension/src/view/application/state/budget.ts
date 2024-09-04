@@ -16,6 +16,7 @@ type BudgetDisabledMaterials = { [name: string] : Array<string> }
 
 interface BudgetMaterials {
     expanded: boolean
+    selectedCount: number
     map: BudgetMaterialsMap
 }
 
@@ -23,6 +24,7 @@ type BudgetMaterialsMap = { [name: string] : BudgetMaterialState }
 
 interface BudgetMaterialState {
     expanded: boolean
+    selected: boolean
     totalListQuantity: number // sum(list.quantity)
     quantityBalance: number // sum(list.quantity) - sum(stored.quantity)
     valueBalance: number // sum(list.value) - sum(stored.value)
@@ -52,5 +54,6 @@ interface BudgetItem {
 export {
     BudgetState,
     BudgetMaterialsMap,
+    BudgetMaterialState,
     BudgetItem
 }

@@ -1,5 +1,5 @@
-import { DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_FROM_SHEET, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE } from "../actions/budget"
-import { disableBudgetItem, disableBudgetMaterial, enableBudgetItem, enableBudgetMaterial, initialState, setBudgetDisabledExpanded, setBudgetFromSheet, setBudgetListExpanded, setBudgetMaterialExpanded, setBudgetMaterialListExpanded, setBudgetStage, setState } from "../helpers/budget"
+import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_FROM_SHEET, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE } from "../actions/budget"
+import { addBudgetMaterialSelection, disableBudgetItem, disableBudgetMaterial, enableBudgetItem, enableBudgetMaterial, initialState, removeBudgetMaterialSelection, setBudgetDisabledExpanded, setBudgetFromSheet, setBudgetListExpanded, setBudgetMaterialExpanded, setBudgetMaterialListExpanded, setBudgetStage, setState } from "../helpers/budget"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -14,6 +14,8 @@ export default (state = initialState, action) => {
         case DISABLE_BUDGET_ITEM: return disableBudgetItem(state, action.payload.name)
         case ENABLE_BUDGET_MATERIAL: return enableBudgetMaterial(state, action.payload.itemName, action.payload.materialName)
         case DISABLE_BUDGET_MATERIAL: return disableBudgetMaterial(state, action.payload.itemName, action.payload.materialName)
+        case ADD_BUDGET_MATERIAL_SELECTION: return addBudgetMaterialSelection(state, action.payload.materialName)
+        case REMOVE_BUDGET_MATERIAL_SELECTION: return removeBudgetMaterialSelection(state, action.payload.materialName)
         default: return state
     }
 }

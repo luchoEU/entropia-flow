@@ -2,14 +2,12 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection'
 import { getBudget } from '../../application/selectors/budget'
-import { BudgetMaterialsMap, BudgetState } from '../../application/state/budget'
-import { disableBudgetMaterial, enableBudgetMaterial, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
+import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
+import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
 
 const ExpandableMaterial = (p: {
-    quantity: number,
-    balance: number,
     name: string,
-    expanded: boolean,
+    material: BudgetMaterialState,
     setExpanded: (expanded: boolean) => any,
     children: any
 }) => {
@@ -18,14 +16,20 @@ const ExpandableMaterial = (p: {
     return (
         <div className='craft-material'>
             <h3>
-                <div>{p.quantity}</div>
-                <div>{p.name} {Math.abs(p.balance) > 999 ? '!!' : ''}</div>                
-                {p.expanded ?
+                <div>{p.material.totalListQuantity}</div>
+                <div>{p.material.selected ? <strong>{p.name}</strong> : p.name}</div>
+                {Math.abs(p.material.quantityBalance) > 999 ?
+                    (p.material.selected ?
+                        <button onClick={() => dispatch(removeBudgetMaterialSelection(p.name))}>!! selected</button> :
+                        <button onClick={() => dispatch(addBudgetMaterialSelection(p.name))}>!!</button>) :
+                    <></>
+                }
+                {p.material.expanded ?
                     <img className='hide' src='img/up.png' onClick={() => dispatch(p.setExpanded(false))} /> :
                     <img src='img/down.png' onClick={() => dispatch(p.setExpanded(true))} />}
             </h3>
             {
-                p.expanded ? p.children : ''
+                p.material.expanded ? p.children : ''
             }
         </div>
     )
@@ -40,7 +44,7 @@ function BudgetMaterialList() {
         <ExpandableSection title='Budget Materials' expanded={s.materials.expanded} setExpanded={setBudgetMaterialListExpanded}>
             { Object.keys(m).sort().map(k => 
                 m[k].totalListQuantity > 0 ?
-                    <ExpandableMaterial key={k} quantity={m[k].totalListQuantity} balance={m[k].quantityBalance} name={k} expanded={m[k].expanded} setExpanded={setBudgetMaterialExpanded(k)}>
+                    <ExpandableMaterial key={k} name={k} material={m[k]} setExpanded={setBudgetMaterialExpanded(k)}>
                         <table className='table-diff'>
                             { m[k].budgetList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
                                 <tr key={`${k}_${b}`}>
@@ -75,6 +79,7 @@ function BudgetMaterialList() {
                         </table>
                     </ExpandableMaterial> : <></>
             )}
+            <div>Selected: {s.materials.selectedCount}</div>
         </ExpandableSection>
     )
 }
