@@ -35,7 +35,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             await api.storage.saveBudget(cleanForSave(state))
             break
         }
-        case REFRESH_BUDGET: {     
+        case REFRESH_BUDGET: { 
             const settings: SettingsState = getSettings(getState())
             const budget: BudgetState = getBudget(getState())
             const materials: MaterialsState = getMaterials(getState())
@@ -57,7 +57,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 for (const name of Object.keys(info.materials)) {
                     var m = info.materials[name]
                     if (m.current > 0 && name !== 'Blueprint' && name !== 'Item') {
-                        const matInfo = materials.map[name]                        
+                        const matInfo = materials.map[name]
                         const unitValue = matInfo ? matInfo.c.kValue / 1000 : 0
 
                         if (map[name] === undefined) {
@@ -85,21 +85,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     }
                 }
 
-                for (const invMat of inventory) {
-                    if (map[invMat.n] !== undefined) {
-                        const realElement = {
-                            itemName: invMat.c,
-                            disabled: false,
-                            quantity: -Number(invMat.q),
-                            value: -Number(invMat.v)
-                        }
-
-                        map[invMat.n].realList.push(realElement)
-                        map[invMat.n].quantityBalance += realElement.quantity
-                        map[invMat.n].valueBalance += realElement.value
-                    }
-                }
-
                 items.push({
                     name: itemName,
                     totalMU: info.totalMU,
@@ -107,8 +92,25 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     peds: info.peds
                 })
 
-                dispatch(setBudgetFromSheet(map, items, ++loaded / list.length * 100))
+                dispatch(setBudgetFromSheet(map, items, ++loaded / list.length * 99))
             }
+
+            for (const invMat of inventory) {
+                if (map[invMat.n] !== undefined) {
+                    const realElement = {
+                        itemName: invMat.c,
+                        disabled: false,
+                        quantity: -Number(invMat.q),
+                        value: -Number(invMat.v)
+                    }
+
+                    map[invMat.n].realList.push(realElement)
+                    map[invMat.n].quantityBalance += realElement.quantity
+                    map[invMat.n].valueBalance += realElement.value
+                }
+            }
+
+            dispatch(setBudgetFromSheet(map, items, 100))
 
             setStage(STAGE_INITIALIZING)
             break
