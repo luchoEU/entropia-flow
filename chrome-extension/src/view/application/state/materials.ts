@@ -15,7 +15,7 @@ interface MaterialState {
     // constants
     c: {
         name: string,
-        unit: string, // of markup
+        unit: string, // of markup (i.e % or ped/k)
         kValue: number // TT value in PED of 1k
     }
 }

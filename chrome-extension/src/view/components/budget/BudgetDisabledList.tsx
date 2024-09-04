@@ -10,7 +10,7 @@ function BudgetDisabledList() {
     const dispatch = useDispatch()
 
     return <>
-        <ExpandableSection title='Disabled' expanded={s.disabled.expanded} setExpanded={setBudgetDisabledExpanded}>
+        <ExpandableSection title='Disabled' expanded={s.disabledItems.expanded} setExpanded={setBudgetDisabledExpanded}>
             <table className='table-diff'>
                 <thead>
                     <tr>
@@ -19,7 +19,7 @@ function BudgetDisabledList() {
                 </thead>
                 <tbody>
                     {
-                        s.disabled.names.map((name: string) =>
+                        s.disabledItems.names.map((name: string) =>
                             <tr key={name}>
                                 <td>
                                     <img src='img/tick.png' onClick={(e) => {

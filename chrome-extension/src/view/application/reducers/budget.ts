@@ -1,5 +1,5 @@
-import { DISABLE_BUDGET_ITEM, ENABLE_BUDGET_ITEM, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_FROM_SHEET, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE } from "../actions/budget"
-import { disableBudgetItem, enableBudgetItem, initialState, setBudgetDisabledExpanded, setBudgetFromSheet, setBudgetListExpanded, setBudgetMaterialExpanded, setBudgetMaterialListExpanded, setBudgetStage, setState } from "../helpers/budget"
+import { DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_FROM_SHEET, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE } from "../actions/budget"
+import { disableBudgetItem, disableBudgetMaterial, enableBudgetItem, enableBudgetMaterial, initialState, setBudgetDisabledExpanded, setBudgetFromSheet, setBudgetListExpanded, setBudgetMaterialExpanded, setBudgetMaterialListExpanded, setBudgetStage, setState } from "../helpers/budget"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -12,6 +12,8 @@ export default (state = initialState, action) => {
         case SET_BUDGET_DISABLED_EXPANDED: return setBudgetDisabledExpanded(state, action.payload.expanded)
         case ENABLE_BUDGET_ITEM: return enableBudgetItem(state, action.payload.name)
         case DISABLE_BUDGET_ITEM: return disableBudgetItem(state, action.payload.name)
+        case ENABLE_BUDGET_MATERIAL: return enableBudgetMaterial(state, action.payload.itemName, action.payload.materialName)
+        case DISABLE_BUDGET_MATERIAL: return disableBudgetMaterial(state, action.payload.itemName, action.payload.materialName)
         default: return state
     }
 }

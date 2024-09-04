@@ -28,14 +28,17 @@ function _mergeOverride(target: any, ...sources: any[]) {
     if (!sources.length) return target;
     const source = sources.shift();
 
-    if (isObject(target) && isObject(source)) {        
+    if (isObject(target) && isObject(source)) {
         for (const key in source) {
-            if (isObject(source[key]) !== isObject(target[key]) || isArray(source[key]) !== isArray(target[key])) {
+            if (target[key] !== undefined &&
+                (isObject(source[key]) !== isObject(target[key])
+                || isArray(source[key]) !== isArray(target[key]))) {
                 // structure type changed, don't use saved value
             } else if (isObject(source[key])) {
                 if (target[key] === undefined) Object.assign(target, { [key]: {} });
                 _mergeOverride(target[key], source[key]);
             } else if (isArray(source[key])) {
+                if (target[key] === undefined) Object.assign(target, { [key]: [] });
                 _mergeArray(target[key], source[key])
             } else {
                 Object.assign(target, { [key]: source[key] });

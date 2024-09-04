@@ -5,10 +5,11 @@ import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
     loadPercentage: 0,
-    disabled: {
+    disabledItems: {
         expanded: false,
         names: []
     },
+    disabledMaterials: { },
     materials: {
         expanded: false,
         map: { }
@@ -72,17 +73,17 @@ const setBudgetListExpanded = (state: BudgetState, expanded: boolean) => ({
 
 const setBudgetDisabledExpanded = (state: BudgetState, expanded: boolean) => ({
     ...state,
-    disabled: {
-        ...state.disabled,
+    disabledItems: {
+        ...state.disabledItems,
         expanded
     }
 })
 
 const enableBudgetItem = (state: BudgetState, name: string) => ({
     ...state,
-    disabled: {
-        ...state.disabled,
-        names: state.disabled.names.filter(n => n !== name)
+    disabledItems: {
+        ...state.disabledItems,
+        names: state.disabledItems.names.filter(n => n !== name)
     },
     list: {
         ...state.list,
@@ -106,13 +107,16 @@ function removeMaterialsByItemName(
 
     for (const name in map) {
         if (map.hasOwnProperty(name)) {
-            const filteredList = map[name].list.filter(m => m.itemName !== itemNameToRemove)
+            const filteredList = map[name].budgetList.filter(m => m.itemName !== itemNameToRemove)
             if (filteredList.length > 0) {
                 const newTotal = filteredList.reduce((sum, m) => sum + m.quantity, 0)
+                const newValue = filteredList.reduce((sum, m) => sum + m.value, 0) -
+                    map[name].realList.reduce((sum, m) => sum + m.value, 0)
                 updatedMap[name] = {
                     ...map[name],
-                    list: filteredList,
-                    total: newTotal
+                    budgetList: filteredList,
+                    totalListQuantity: newTotal,
+                    valueBalance: newValue
                 }
             }
         }
@@ -123,9 +127,9 @@ function removeMaterialsByItemName(
 
 const disableBudgetItem = (state: BudgetState, name: string) => ({
     ...state,
-    disabled: {
-        ...state.disabled,
-        names: [ ...state.disabled.names, name ]
+    disabledItems: {
+        ...state.disabledItems,
+        names: [ ...state.disabledItems.names, name ]
     },
     list: {
         ...state.list,
@@ -136,6 +140,65 @@ const disableBudgetItem = (state: BudgetState, name: string) => ({
         map: removeMaterialsByItemName(state.materials.map, name)
     }
 })
+
+const disableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string) => ({
+    ...state,
+    disabledMaterials: {
+        ...state.disabledMaterials,
+        [itemName]: [...(state.disabledMaterials[itemName] || []), materialName]
+    },
+    materials: {
+        ...state.materials,
+        map: {
+            ...state.materials.map,
+            [itemName]: {
+                ...state.materials.map[itemName],
+                realList: state.materials.map[itemName].realList.map(material => 
+                    material.itemName === materialName ? { ...material, disabled: true } : material
+                ),
+                quantityBalance: state.materials.map[itemName].quantityBalance -
+                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0),
+                valueBalance: state.materials.map[itemName].valueBalance -
+                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.value || 0)
+            }
+        }
+    }
+})
+
+const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string) => {
+    const updatedDisabledMaterials = {
+        ...state.disabledMaterials,
+        [itemName]: (state.disabledMaterials[itemName] || []).filter(name => name !== materialName)
+    };
+
+    // Remove the entry if the list is empty
+    if (updatedDisabledMaterials[itemName].length === 0) {
+        delete updatedDisabledMaterials[itemName];
+    }
+
+    return {
+        ...state,
+        disabledMaterials: updatedDisabledMaterials,
+        materials: {
+            ...state.materials,
+            map: {
+                ...state.materials.map,
+                [itemName]: {
+                    ...state.materials.map[itemName],
+                    realList: state.materials.map[itemName].realList.map(material => 
+                        material.itemName === materialName ? { ...material, disabled: false } : material
+                    ),
+                    quantityBalance: state.materials.map[itemName].quantityBalance +
+                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0),
+                    valueBalance: state.materials.map[itemName].valueBalance +
+                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.value || 0)
+                }
+            }
+        }
+    };
+};
+
+
 
 export {
     initialState,
@@ -148,5 +211,7 @@ export {
     setBudgetListExpanded,
     setBudgetDisabledExpanded,
     enableBudgetItem,
-    disableBudgetItem
+    disableBudgetItem,
+    enableBudgetMaterial,
+    disableBudgetMaterial
 }

@@ -9,6 +9,8 @@ const SET_BUDGET_LIST_EXPANDED = '[budget] set list expanded'
 const SET_BUDGET_DISABLED_EXPANDED = '[budget] set disabled expanded'
 const ENABLE_BUDGET_ITEM = '[budget] enable item'
 const DISABLE_BUDGET_ITEM = '[budget] disable item'
+const ENABLE_BUDGET_MATERIAL = '[budget] enable material'
+const DISABLE_BUDGET_MATERIAL = '[budget] disable material'
 const REFRESH_BUDGET = '[budget] refresh'
 
 const setBudgetState = (state: BudgetState) => ({
@@ -81,6 +83,22 @@ const refreshBudget = {
     type: REFRESH_BUDGET
 }
 
+const enableBudgetMaterial = (itemName: string, materialName: string) => ({
+    type: ENABLE_BUDGET_MATERIAL,
+    payload: {
+        itemName,
+        materialName
+    }
+})
+
+const disableBudgetMaterial = (itemName: string, materialName: string) => ({
+    type: DISABLE_BUDGET_MATERIAL,
+    payload: {
+        itemName,
+        materialName
+    }
+})
+
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
@@ -91,6 +109,8 @@ export {
     SET_BUDGET_DISABLED_EXPANDED,
     ENABLE_BUDGET_ITEM,
     DISABLE_BUDGET_ITEM,
+    ENABLE_BUDGET_MATERIAL,
+    DISABLE_BUDGET_MATERIAL,
     REFRESH_BUDGET,
     setBudgetState,
     setBudgetFromSheet,
@@ -101,5 +121,7 @@ export {
     setBudgetDisabledExpanded,
     enableBudgetItem,
     disableBudgetItem,
+    enableBudgetMaterial,
+    disableBudgetMaterial,
     refreshBudget,
 }
