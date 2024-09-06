@@ -1,9 +1,9 @@
 class ContentUI {
     public isMonitoring = false
-    private showView: () => void
-    private setIsMonitoring: (isMonitoring: boolean) => void
+    private showView: () => boolean
+    private setIsMonitoring: (isMonitoring: boolean) => boolean
 
-    constructor(showView: () => void, setIsMonitoring: (isMonitoring: boolean) => void) {
+    constructor(showView: () => boolean, setIsMonitoring: (isMonitoring: boolean) => boolean) {
         this.showView = showView
         this.setIsMonitoring = setIsMonitoring
         this.addDiv()

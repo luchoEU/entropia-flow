@@ -13,30 +13,31 @@ function initMessageClient(refreshViewHandler: PortHandler) {
     })
 }
 
-function requestRefresh() {
-    messagesClient.send(MSG_NAME_REQUEST_NEW, { tag: { requested: true } })
+function requestRefresh(): boolean {
+    return messagesClient.send(MSG_NAME_REQUEST_NEW, { tag: { requested: true } })
 }
 
-function requestSetLast(addTag: boolean, last: number) {
-    messagesClient.send(MSG_NAME_REQUEST_SET_LAST, { tag: addTag ? { last: true } : undefined, last })
+function requestSetLast(addTag: boolean, last: number): boolean {
+    return messagesClient.send(MSG_NAME_REQUEST_SET_LAST, { tag: addTag ? { last: true } : undefined, last })
 }
 
-function requestTimerOn() {
-    messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
+function requestTimerOn(): boolean {
+    return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
 }
 
-function requestTimerOff() {
-    messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
+function requestTimerOff(): boolean {
+    return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
 }
 
 function sendWebSocketMessage(type: string, data: any) {
     if (messagesClient) {
-        messagesClient.send(MSG_NAME_SEND_WEB_SOCKET_MESSAGE, { type, data })
+        return messagesClient.send(MSG_NAME_SEND_WEB_SOCKET_MESSAGE, { type, data })
     }
+    return false
 }
 
-function setWebSocketUrl(url: string) {
-    messagesClient.send(MSG_NAME_SET_WEB_SOCKET_URL, { url })
+function setWebSocketUrl(url: string): boolean {
+    return messagesClient.send(MSG_NAME_SET_WEB_SOCKET_URL, { url })
 }
 
 traceId('V')

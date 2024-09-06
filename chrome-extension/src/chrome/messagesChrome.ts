@@ -47,10 +47,17 @@ class ChromeMessagesClient {
         chrome.runtime.sendMessage({ name: this.registerName })
     }
 
-    public send(name: string, data?: object) {
+    public send(name: string, data?: object): boolean {
         if (!this.port) {
-            trace(`ChromeMessagesClient.send message dropped: '${name}' on ${this.registerName}`)
-            return
+            if (!this.pendingMesssage) {
+                this.pendingMesssage = { name, ...data }
+                chrome.runtime.sendMessage({ name: this.registerName })
+                return true
+            }
+            else {
+                trace(`ChromeMessagesClient.send message dropped: '${name}' on ${this.registerName}`)
+                return false
+            }
         }
 
         try {
@@ -63,6 +70,8 @@ class ChromeMessagesClient {
             this.pendingMesssage = { name, ...data }
             chrome.runtime.sendMessage({ name: this.registerName })
         }
+
+        return true
     }
 }
 

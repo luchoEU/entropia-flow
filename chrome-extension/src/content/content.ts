@@ -23,14 +23,14 @@ class ContentInitializer {
         traceId('C')
 
         let messagesClient: ChromeMessagesClient
-        function showView() {
-            messagesClient.send(MSG_NAME_OPEN_VIEW)
+        function showView(): boolean {
+            return messagesClient.send(MSG_NAME_OPEN_VIEW)
         }
-        function setIsMonitoring(isMonitoring: boolean) {
+        function setIsMonitoring(isMonitoring: boolean): boolean {
             if (isMonitoring)
-                messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
+                return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
             else
-                messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
+                return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
         }
 
         const serverManager = new EntropiaServerManager()

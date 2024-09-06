@@ -38,6 +38,7 @@ const STRING_LOADING_PAGE = 'loading page...'
 const STRING_LOADING_ITEMS = 'loading items...'
 const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
+const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
 const STRING_ALARM_OFF = 'OFF'
 
 // Alarm
@@ -120,6 +121,7 @@ export {
     CLASS_LAST,
     STRING_LOADING_PAGE,
     STRING_LOADING_ITEMS,
+    STRING_CONNECTION_BACKGROUND_TO_CONTENT,
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_ALARM_OFF,

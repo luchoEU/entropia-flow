@@ -7,7 +7,8 @@ import {
     MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_CONTENT,
-    STRING_LOADING_PAGE
+    STRING_LOADING_PAGE,
+    STRING_CONNECTION_BACKGROUND_TO_CONTENT
 } from '../../common/const'
 import { trace, traceData } from '../../common/trace'
 
@@ -36,39 +37,44 @@ class ContentTabManager {
 
     public async requestItemsHtml(): Promise<void> {
         const port = await this.portManager.first()
-        if (port !== undefined) {
+        if (port === undefined) {
+            trace('ContentTabManager.requestItemsHtml port undefined')
+            await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT)
+        } else {
             try {
                 port.send(MSG_NAME_REFRESH_ITEMS_HTML, { })
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail
-                    trace('ContentTabManager.requestItems send failed')
+                    trace('ContentTabManager.requestItemsHtml send failed')
                 } else {
-                    trace('ContentTabManager.requestItems exception:')
+                    trace('ContentTabManager.requestItemsHtml exception:')
                     traceData(e)
                 }
+                await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT)
             }
         }
     }
 
     public async requestItemsAjax(tag?: any, waitSeconds?: number): Promise<void> {
         const port = await this.portManager.first()
-        if (port !== undefined) {
+        if (port === undefined) {
+            trace('ContentTabManager.requestItemsAjax port undefined')
+            await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
+        } else {
             try {
                 port.send(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
                 await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail
-                    trace('ContentTabManager.requestItems send failed')
+                    trace('ContentTabManager.requestItemsAjax send failed')
                 } else {
-                    trace('ContentTabManager.requestItems exception:')
+                    trace('ContentTabManager.requestItemsAjax exception:')
                     traceData(e)
                 }
-                await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
+                await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
             }
-        } else {
-            await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
     }
 
