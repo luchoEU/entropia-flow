@@ -14,6 +14,7 @@ const DISABLE_BUDGET_MATERIAL = '[budget] disable material'
 const REFRESH_BUDGET = '[budget] refresh'
 const ADD_BUDGET_MATERIAL_SELECTION = '[budget] add material selection'
 const REMOVE_BUDGET_MATERIAL_SELECTION = '[budget] remove material selection'
+const PROCESS_BUDGET_MATERIAL_SELECTION = '[budget] process material selection'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -115,6 +116,10 @@ const removeBudgetMaterialSelection = (materialName: string) => ({
     }
 })
 
+const processBudgetMaterialSelection = () => ({
+    type: PROCESS_BUDGET_MATERIAL_SELECTION
+})
+
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
@@ -130,6 +135,7 @@ export {
     ADD_BUDGET_MATERIAL_SELECTION,
     REMOVE_BUDGET_MATERIAL_SELECTION,
     REFRESH_BUDGET,
+    PROCESS_BUDGET_MATERIAL_SELECTION,
     setBudgetState,
     setBudgetFromSheet,
     setBudgetMaterialListExpanded,
@@ -144,4 +150,5 @@ export {
     addBudgetMaterialSelection,
     removeBudgetMaterialSelection,
     refreshBudget,
+    processBudgetMaterialSelection
 }

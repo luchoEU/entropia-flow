@@ -62,7 +62,8 @@ const setBudgetMaterialExpanded = (state: BudgetState, material: string, expande
 
 const setBudgetStage = (state: BudgetState, stage: number) => ({
     ...state,
-    stage
+    stage,
+    loadPercentage: stage === STAGE_INITIALIZING ? 0 : state.loadPercentage
 })
 
 const setBudgetListExpanded = (state: BudgetState, expanded: boolean) => ({
@@ -112,14 +113,11 @@ function removeMaterialsByItemName(
             const filteredList = map[name].budgetList.filter(m => m.itemName !== itemNameToRemove)
             if (filteredList.length > 0) {
                 const newTotal = filteredList.reduce((sum, m) => sum + m.quantity, 0)
-                const newValue = filteredList.reduce((sum, m) => sum + m.value, 0) +
-                    map[name].realList.reduce((sum, m) => sum + m.value, 0)
                 updatedMap[name] = {
                     ...map[name],
                     budgetList: filteredList,
                     totalListQuantity: newTotal,
-                    quantityBalance: newTotal + map[name].realList.reduce((sum, m) => sum + m.quantity, 0),
-                    valueBalance: newValue
+                    quantityBalance: newTotal + map[name].realList.reduce((sum, m) => sum + m.quantity, 0)
                 }
             }
         }
@@ -160,9 +158,7 @@ const disableBudgetMaterial = (state: BudgetState, itemName: string, materialNam
                     material.itemName === materialName ? { ...material, disabled: true } : material
                 ),
                 quantityBalance: state.materials.map[itemName].quantityBalance -
-                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0),
-                valueBalance: state.materials.map[itemName].valueBalance -
-                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.value || 0)
+                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0)
             }
         }
     }
@@ -192,9 +188,7 @@ const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName
                         material.itemName === materialName ? { ...material, disabled: false } : material
                     ),
                     quantityBalance: state.materials.map[itemName].quantityBalance +
-                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0),
-                    valueBalance: state.materials.map[itemName].valueBalance +
-                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.value || 0)
+                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0)
                 }
             }
         }

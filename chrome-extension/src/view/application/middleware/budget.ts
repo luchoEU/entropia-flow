@@ -1,8 +1,8 @@
 import { ItemData } from "../../../common/state"
 import { mergeDeep } from "../../../common/utils"
-import { BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
-import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
+import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
+import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_DISABLED_EXPANDED, SET_BUDGET_LIST_EXPANDED, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_MATERIAL_LIST_EXPANDED, SET_BUDGET_STAGE, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/budget"
 import { joinList } from "../helpers/inventory"
@@ -43,8 +43,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const materials: MaterialsState = getMaterials(getState())
             const inventory: Array<ItemData> = joinList(getInventory(getState()))
 
-            const map: BudgetMaterialsMap = { }
-            const items: BudgetItem[] = []
+            let map: BudgetMaterialsMap = { }
+            let items: BudgetItem[] = []
             dispatch(setBudgetFromSheet(map, items, 0))
 
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
@@ -54,47 +54,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             for (const itemName of list) {
                 if (budget.disabledItems.names.indexOf(itemName) != -1) continue
 
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
-                const info: BudgetSheetGetInfo = await sheet.getInfo()
-
-                for (const name of Object.keys(info.materials)) {
-                    var m = info.materials[name]
-                    if (m.current > 0 && name !== 'Blueprint' && name !== 'Item') {
-                        const matInfo = materials.map[name]
-                        const unitValue = matInfo ? matInfo.c.kValue / 1000 : 0
-
-                        if (map[name] === undefined) {
-                            map[name] = {
-                                expanded: false,
-                                selected: false,
-                                totalListQuantity: 0,
-                                quantityBalance: 0,
-                                valueBalance: 0,
-                                budgetList: [],
-                                realList: []
-                            }
-                        }
-
-                        const budgetElement = {
-                            itemName,
-                            disabled: budget.disabledMaterials[itemName]?.includes(name) || false,
-                            quantity: m.current,
-                            value: m.current * unitValue
-                        }
-
-                        map[name].budgetList.push(budgetElement)
-                        map[name].totalListQuantity += budgetElement.quantity
-                        map[name].quantityBalance += budgetElement.quantity
-                        map[name].valueBalance += budgetElement.value
-                    }
-                }
-
-                items.push({
-                    name: itemName,
-                    totalMU: info.totalMU,
-                    total: info.total,
-                    peds: info.peds
-                })
+                const { updatedMap, updatedItems } = await processSheetInfo(api, setStage, settings, itemName, budget.disabledMaterials[itemName], materials, map, items)
+                map = updatedMap
+                items = updatedItems
 
                 dispatch(setBudgetFromSheet(map, items, ++loaded / list.length * 99))
             }
@@ -103,14 +65,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (map[invMat.n] !== undefined) {
                     const realElement = {
                         itemName: invMat.c,
-                        disabled: false,
-                        quantity: -Number(invMat.q),
-                        value: -Number(invMat.v)
+                        disabled: budget.disabledMaterials[invMat.n]?.includes(invMat.c) || false,
+                        quantity: -Number(invMat.q)
                     }
 
                     map[invMat.n].realList.push(realElement)
                     map[invMat.n].quantityBalance += realElement.quantity
-                    map[invMat.n].valueBalance += realElement.value
                 }
             }
 
@@ -119,7 +79,110 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             setStage(STAGE_INITIALIZING)
             break
         }
+        case PROCESS_BUDGET_MATERIAL_SELECTION: {
+            const settings: SettingsState = getSettings(getState())
+            const budget: BudgetState = getBudget(getState())
+            const materials: MaterialsState = getMaterials(getState())
+
+            const lines : { [itemName: string]: BudgetLineData } = { }
+
+            for (var materialName of Object.keys(budget.materials.map)) {
+                const material = budget.materials.map[materialName]
+                if (material.selected) {
+                    const itemName = material.budgetList[0].itemName
+                    if (!lines[itemName]) {
+                        lines[itemName] = {
+                            reason: 'Balance',
+                            ped: 0,
+                            materials: []
+                        }
+                    }
+                    lines[itemName].materials.push({
+                        name: materialName,
+                        quantity: -material.quantityBalance
+                    })
+                    lines[itemName].ped += material.quantityBalance * material.unitValue * material.markup
+                }
+            }
+
+            let map: BudgetMaterialsMap = budget.materials.map
+            let items: BudgetItem[] = budget.list.items
+
+            const setStage = (stage: number) => dispatch(setBudgetStage(stage))
+            let loaded = 0
+            for (const itemName in lines) {
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
+                await sheet.addLine(lines[itemName])
+                await sheet.save()
+
+                for (const materialName in map) {
+                    map[materialName].budgetList = map[materialName].budgetList.filter(item => item.itemName !== itemName);
+                    map[materialName].totalListQuantity = map[materialName].budgetList.reduce((total, item) => total + item.quantity, 0);
+                    map[materialName].quantityBalance = map[materialName].totalListQuantity + (map[materialName].realList?.reduce((total, item) => total + item.quantity, 0) || 0);
+                }
+                items = items.filter(i => i.name !== itemName)
+
+                const { updatedMap, updatedItems } = await processSheetInfo(api, setStage, settings, itemName, budget.disabledMaterials[itemName], materials, map, items)
+                map = updatedMap
+                items = updatedItems
+
+                dispatch(setBudgetFromSheet(map, items, ++loaded / Object.keys(lines).length * 99))
+            }
+
+            for (const materialName in map) {
+                map[materialName].selected = false;
+            }
+            dispatch(setBudgetFromSheet(map, items, 100))
+
+            setStage(STAGE_INITIALIZING)
+
+            break
+        }
     }
+}
+
+async function processSheetInfo(api: any, setStage: SetStage, settings: SettingsState, itemName: string, disabledMaterials: string[], materials: MaterialsState, map: BudgetMaterialsMap, items: BudgetItem[]): Promise<{ updatedMap: BudgetMaterialsMap, updatedItems: BudgetItem[] }> {
+    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
+    const info: BudgetSheetGetInfo = await sheet.getInfo()
+
+    for (const name of Object.keys(info.materials)) {
+        var m = info.materials[name]
+        if (m.current > 0 && name !== 'Blueprint' && name !== 'Item') {
+            const matInfo = materials.map[name]
+
+            if (map[name] === undefined) {
+                map[name] = {
+                    expanded: false,
+                    selected: false,
+                    totalListQuantity: 0,
+                    quantityBalance: 0,
+                    markup: m.markup,
+                    unitValue: matInfo ? matInfo.c.kValue / 1000 : 0,
+                    budgetList: [],
+                    realList: []
+                }
+            }
+
+            const budgetElement = {
+                itemName,
+                disabled: disabledMaterials?.includes(name) || false,
+                quantity: m.current
+            }
+
+            map[name].budgetList.push(budgetElement)
+            map[name].totalListQuantity += budgetElement.quantity
+            map[name].quantityBalance += budgetElement.quantity
+        }
+    }
+
+    items.push({
+        name: itemName,
+        totalMU: info.totalMU,
+        total: info.total,
+        peds: info.peds
+    })
+
+    return { updatedMap: map, updatedItems: items }
 }
 
 export default [

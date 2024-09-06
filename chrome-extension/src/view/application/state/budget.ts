@@ -27,7 +27,8 @@ interface BudgetMaterialState {
     selected: boolean
     totalListQuantity: number // sum(list.quantity)
     quantityBalance: number // sum(list.quantity) - sum(stored.quantity)
-    valueBalance: number // sum(list.value) - sum(stored.value)
+    unitValue: number // quantity * unitValue = value
+    markup: number // value * markup = market value in PEDs
     budgetList: Array<BudgetMaterial>
     realList: Array<BudgetMaterial>
 }
@@ -36,7 +37,6 @@ interface BudgetMaterial {
     itemName: string
     disabled: boolean
     quantity: number
-    value: number
 }
 
 interface BudgetList {

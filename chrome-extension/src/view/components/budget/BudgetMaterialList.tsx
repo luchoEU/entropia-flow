@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection'
 import { getBudget } from '../../application/selectors/budget'
 import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
-import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
+import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
 
 const ExpandableMaterial = (p: {
     name: string,
@@ -50,7 +50,7 @@ function BudgetMaterialList() {
                                 <tr key={`${k}_${b}`}>
                                     <td>{b.itemName}</td>
                                     <td align='right'>{b.quantity}</td>
-                                    <td align='right'>{b.value.toFixed(2)} PED</td>
+                                    <td align='right'>{(b.quantity * m[k].unitValue).toFixed(2)} PED</td>
                                 </tr>
                             )}
                             { m[k].realList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
@@ -68,18 +68,28 @@ function BudgetMaterialList() {
                                         {b.itemName}
                                     </td>
                                     <td align='right'>{b.disabled ? `(${b.quantity})` : b.quantity}</td>
-                                    <td align='right'>{b.disabled ? '' : b.value.toFixed(2) + ' PED'}</td>
+                                    <td align='right'>{b.disabled ? '' : (b.quantity * m[k].unitValue).toFixed(2) + ' PED'}</td>
                                 </tr>
                             )}
+
                             <tr key='total'>
-                                    <td>TOTAL</td>
-                                    <td align='right'>{m[k].quantityBalance}</td>
-                                    <td align='right'>{m[k].valueBalance.toFixed(2)} PED</td>
+                                <td>TOTAL</td>
+                                <td align='right'>{m[k].quantityBalance}</td>
+                                <td align='right'>{(m[k].totalListQuantity * m[k].unitValue).toFixed(2)} PED</td>
+                            </tr>
+
+                            <tr key='markup'>
+                                <td>Markup</td>
+                                <td align='right'>{(m[k].markup * 100).toFixed(2)}%</td>
+                                <td align='right'>{(m[k].quantityBalance * m[k].unitValue* m[k].markup).toFixed(2)} PED</td>
                             </tr>
                         </table>
                     </ExpandableMaterial> : <></>
             )}
-            <div>Selected: {s.materials.selectedCount}</div>
+            <div>
+                Selected: {s.materials.selectedCount}
+                {s.materials.selectedCount > 0 ? <button onClick={() => dispatch(processBudgetMaterialSelection())}>Adjust</button> : ''}
+            </div>
         </ExpandableSection>
     )
 }
