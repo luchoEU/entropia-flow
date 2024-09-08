@@ -18,7 +18,7 @@ const ExpandableMaterial = (p: {
             <h3>
                 <div>{p.material.totalListQuantity}</div>
                 <div>{p.material.selected ? <strong>{p.name}</strong> : p.name}</div>
-                {Math.abs(p.material.quantityBalance) > 999 ?
+                {Math.abs(p.material.quantityBalance * p.material.unitValue* p.material.markup) > 20 ?
                     (p.material.selected ?
                         <button onClick={() => dispatch(removeBudgetMaterialSelection(p.name))}>!! selected</button> :
                         <button onClick={() => dispatch(addBudgetMaterialSelection(p.name))}>!!</button>) :
