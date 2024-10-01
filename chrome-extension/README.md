@@ -1,3 +1,5 @@
+# Chrome Extension
+
 ## Building
 
 1.  `nvm use 21.7.1`
