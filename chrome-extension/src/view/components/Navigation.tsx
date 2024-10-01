@@ -29,18 +29,19 @@ const Navigation = () => {
             </div>
             <Tab id={MONITOR_PAGE} title="Monitor" />
             <Tab id={INVENTORY_PAGE} title='Inventory' />
+            <Tab id={TRADE_PAGE} title="Trading" />
             {SHOW_PAGES_IN_DEVELOPMENT ?
-                <><Tab id={TRADE_PAGE} title="Trading" />
+                <>
                 <Tab id={REFINED_PAGE} title="Refined" />
                 <Tab id={CRAFT_PAGE} title='Crafting' />
                 <Tab id={BUDGET_PAGE} title='Budget' />
                 <Tab id={SETTING_PAGE} title='Settings' />
                 <Tab id={GAME_LOG_PAGE} title="Game Log" />
                 <Tab id={GAME_SPLIT_PAGE} title="Game Split" />
-            </> : ''
+                <Tab id={CONNECTION_PAGE} title='Connection' />
+                </> : ''
             }
             <Tab id={STREAM_PAGE} title='Stream' />
-            <Tab id={CONNECTION_PAGE} title='Connection' />
             <Tab id={ABOUT_PAGE} title='About' />
         </nav>
     )

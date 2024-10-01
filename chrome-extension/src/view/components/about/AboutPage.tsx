@@ -40,11 +40,10 @@ const faq = [
         id: 1,
         question: 'Is there any security vulnerability by allowing this plugin to access potentially sensitive information on the EU account page?',
         response: [
-            'This extension only calls a service that returns the list of items.',
-            'Technically for a chrome extension like this, you are letting it communicate to the entropia server with your credentials, it can see anything in the website. But only stuff in the website. Not something’s like you do ingame because there you log in a different application, the game client. Also it can\'t do any harmful like deposit, withdraw or transfer your stuff to other player, because it requires more input.',
-            'I play the game since 2007. I don\'t want to steal any information or anything. Just want to share the tool that it is useful to me.',
-            'To answer you question, it can technically see your information in your My Account page, but it doesn\’t. What I was trying to say about privacy in the video is that all the information about your items it gets from the Entropia Universe site isn’t sent to any server, in fact I don’t have a server for this.',
-            'It is the same with any extension, you have to trust the author. I am trying to be transparent by releasing the source code.'
+            'This extension only reads the items list from the Entropia Universe (EU) website, and while it does require access to your EU account page, there’s no direct security risk beyond that.',
+            'Since it’s a Chrome extension, it can technically view anything on the EU website once you log in with your credentials, but it cannot access or interfere with the game client itself, your in-game actions remain private. More importantly, sensitive actions like deposits, withdrawals, or item transfers require additional inputs that the extension cannot perform. The extension has access to view information from your “My Account” page, but it doesn’t. Also it doesn’t collect or send this data anywhere, in fact, I don’t even have a server for this extension.',
+            'I’ve been playing Entropia Universe since 2007, and I created this tool simply to share something I found useful.',
+            'At the end of the day, like with any extension, trust in the author is key. To ensure transparency, I’ve made the source code available for review.'
         ],
         link: 'https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/post-3804891'
     },
@@ -52,9 +51,11 @@ const faq = [
         id: 2,
         question: 'I remember a similar tool for tracking took the my item page down for few days',
         response: [
-            'MindArk fixed that by putting a limit on how often you can refresh. This tool considers that and only asks for the items every 3 minutes or 6 minutes after a manual refresh.',
-            'I have been using it for months and never had a problem.',
-            'Of course, if you click the manual refresh like a maniac the items list may be offline for you for a few hours.  I only recommend refreshing manually once then waiting for autorefresh.'
+            'MindArk implemented a limit on how frequently you can refresh the page.',
+            'This tool takes that into account—it only requests data every 3 minutes, or you can choose to refresh manually if you prefer.',
+            'I’ve been using it for years, and I only encountered an issue once because I was testing some changes on the extension. If MindArk blocks your access, you’ll see an HTTP 425 error. In that case, you’d need to open a support ticket with MindArk to get your account unblocked.',
+            'This issue only happens if you refresh the “My Items” page too frequently within a short window, like less than 3 minutes.',
+            'If you want to play it safe, you can stop the automatic refresh and manually visit the “My Items” page on the Entropia Universe website. The extension will then capture the data without sending any additional requests.'
         ],
         link: 'https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/post-3805320'
     }
@@ -85,7 +86,7 @@ function AboutPage() {
                 </ExpandableSection>
 
                 <ExpandableSection title='Donations' expanded={isDonationsExpanded} setExpanded={setExpanded(DONATIONS)} block={true}>
-                    <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame.</p>
+                    <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame (my full avatar name is Lucho MUCHO Ireton).</p>
                 </ExpandableSection>
 
                 <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)} block={true}>

@@ -5,6 +5,7 @@ import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
 import TTServiceList from './TTServiceList'
+import { SHOW_PAGES_IN_DEVELOPMENT } from '../../../config'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
@@ -16,13 +17,16 @@ function TradePage() {
 
     return (
         <>
-            <TradeList title='Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
+            <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
                 image='img/tick.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
                 showAction={(n) => !s.availableCriteria.name.includes(n)} />
-            <TradeList title='Available' list={s.available} setExpanded={setAvailableInventoryExpanded}
+            <TradeList title='Available to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
                 image='img/cross.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
                 showAction={() => true} />
-            <TTServiceList list={s.ttService} />
+            {SHOW_PAGES_IN_DEVELOPMENT ?
+                <TTServiceList list={s.ttService} />
+                : ''
+            }
         </>
     )
 }
