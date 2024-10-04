@@ -136,7 +136,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
             const load = async (bpName: string): Promise<void> => {
                 try {
-                    const bpInfo = state.blueprints.find(bp => bp.name == bpName)    
+                    const bpInfo = state.blueprints.find(bp => bp.name == bpName)
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
     
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)

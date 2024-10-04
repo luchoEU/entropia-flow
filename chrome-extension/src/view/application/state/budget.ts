@@ -25,12 +25,21 @@ type BudgetMaterialsMap = { [name: string] : BudgetMaterialState }
 interface BudgetMaterialState {
     expanded: boolean
     selected: boolean
-    totalListQuantity: number // sum(list.quantity)
-    quantityBalance: number // sum(list.quantity) - sum(stored.quantity)
     unitValue: number // quantity * unitValue = value
     markup: number // value * markup = market value in PEDs
     budgetList: Array<BudgetMaterial>
     realList: Array<BudgetMaterial>
+    c: BudgetMaterialCalcState // calculated from previous
+}
+
+interface BudgetMaterialCalcState {
+    totalBudgetQuantity: number // sum(budgetList.quantity)
+    totalRealQuantity: number // sum(realList.quantity)
+    totalBudget: number // totalBudgetQuantity * unitValue
+    totalReal: number // totalRealQuantity * unitValue
+    balanceQuantity: number // totalBudgetQuantity - totalRealQuantity
+    balance: number // balanceQuantity * unitValue
+    balanceWithMarkup: number // balance * markup
 }
 
 interface BudgetMaterial {

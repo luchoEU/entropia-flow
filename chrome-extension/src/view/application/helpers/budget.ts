@@ -1,6 +1,6 @@
 import { objectMap } from "../../../common/utils"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
+import { BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
 
 const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
@@ -21,14 +21,42 @@ const initialState: BudgetState = {
     }
 }
 
-const setState = (state: BudgetState, inState: BudgetState): BudgetState => inState
+const setState = (state: BudgetState, inState: BudgetState): BudgetState => ({
+    ...inState,
+    materials: {
+        ...inState.materials,
+        map: objectMap(inState.materials.map, fillBudgetMaterialCalc)
+    }
+})
+
+function fillBudgetMaterialCalc(state: BudgetMaterialState): BudgetMaterialState {
+    const totalBudgetQuantity = state.budgetList.reduce((sum, item) => sum + item.quantity, 0);
+    const totalRealQuantity = state.realList.reduce((sum, item) => item.disabled ? sum : sum + item.quantity, 0);
+    const totalBudget = totalBudgetQuantity * state.unitValue;
+    const totalReal = totalRealQuantity * state.unitValue;
+    const balanceQuantity = totalBudgetQuantity + totalRealQuantity
+    const balance = balanceQuantity * state.unitValue;
+    const balanceWithMarkup = balance * state.markup;
+    return {
+        ...state,
+        c: {
+            totalBudgetQuantity,
+            totalRealQuantity,
+            totalBudget,
+            totalReal,
+            balanceQuantity,
+            balance,
+            balanceWithMarkup
+        }
+    }
+}
 
 const setBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: BudgetItem[], loadPercentage: number): BudgetState => ({
     ...state,
     loadPercentage,
     materials: {
         ...state.materials,
-        map: objectMap(map, (v, k) => ({
+        map: objectMap(map, (v, k) => fillBudgetMaterialCalc({
             ...v,
             expanded: state.materials.map[k]?.expanded ?? false
         })),
@@ -40,11 +68,14 @@ const setBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: 
     }
 })
 
-const cleanForSave = (state: BudgetState): BudgetState => {
-    const cState: BudgetState = JSON.parse(JSON.stringify(state))
-    cState.stage = STAGE_INITIALIZING
-    return cState
-}
+const cleanForSave = (state: BudgetState): BudgetState => ({
+    ...state,
+    stage: STAGE_INITIALIZING,
+    materials: {
+        ...state.materials,
+        map: objectMap(state.materials.map, (v) => ({ ...v, c: undefined}))
+    }
+})
 
 const setBudgetMaterialListExpanded = (state: BudgetState, expanded: boolean) => ({
     ...state,
@@ -112,13 +143,10 @@ function removeMaterialsByItemName(
         if (map.hasOwnProperty(name)) {
             const filteredList = map[name].budgetList.filter(m => m.itemName !== itemNameToRemove)
             if (filteredList.length > 0) {
-                const newTotal = filteredList.reduce((sum, m) => sum + m.quantity, 0)
-                updatedMap[name] = {
+                updatedMap[name] = fillBudgetMaterialCalc({
                     ...map[name],
-                    budgetList: filteredList,
-                    totalListQuantity: newTotal,
-                    quantityBalance: newTotal + map[name].realList.reduce((sum, m) => sum + m.quantity, 0)
-                }
+                    budgetList: filteredList
+                })
             }
         }
     }
@@ -142,7 +170,7 @@ const disableBudgetItem = (state: BudgetState, name: string) => ({
     }
 })
 
-const disableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string) => ({
+const disableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => ({
     ...state,
     disabledMaterials: {
         ...state.disabledMaterials,
@@ -152,19 +180,17 @@ const disableBudgetMaterial = (state: BudgetState, itemName: string, materialNam
         ...state.materials,
         map: {
             ...state.materials.map,
-            [itemName]: {
+            [itemName]: fillBudgetMaterialCalc({
                 ...state.materials.map[itemName],
                 realList: state.materials.map[itemName].realList.map(material => 
                     material.itemName === materialName ? { ...material, disabled: true } : material
-                ),
-                quantityBalance: state.materials.map[itemName].quantityBalance -
-                    (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0)
-            }
+                )
+            })
         }
     }
 })
 
-const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string) => {
+const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => {
     const updatedDisabledMaterials = {
         ...state.disabledMaterials,
         [itemName]: (state.disabledMaterials[itemName] || []).filter(name => name !== materialName)
@@ -182,14 +208,12 @@ const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName
             ...state.materials,
             map: {
                 ...state.materials.map,
-                [itemName]: {
+                [itemName]: fillBudgetMaterialCalc({
                     ...state.materials.map[itemName],
                     realList: state.materials.map[itemName].realList.map(material => 
                         material.itemName === materialName ? { ...material, disabled: false } : material
-                    ),
-                    quantityBalance: state.materials.map[itemName].quantityBalance +
-                        (state.materials.map[itemName].realList.find(m => m.itemName === materialName)?.quantity || 0)
-                }
+                    )
+                })
             }
         }
     };

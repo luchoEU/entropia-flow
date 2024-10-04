@@ -70,7 +70,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     }
 
                     map[invMat.n].realList.push(realElement)
-                    map[invMat.n].quantityBalance += realElement.quantity
                 }
             }
 
@@ -99,9 +98,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     }
                     lines[itemName].materials.push({
                         name: materialName,
-                        quantity: -material.quantityBalance
+                        quantity: -material.c.balanceQuantity
                     })
-                    lines[itemName].ped += material.quantityBalance * material.unitValue * material.markup
+                    lines[itemName].ped += material.c.balanceWithMarkup
                 }
             }
 
@@ -115,11 +114,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 await sheet.addLine(lines[itemName])
                 await sheet.save()
 
-                for (const materialName in map) {
+                for (const materialName in map)
                     map[materialName].budgetList = map[materialName].budgetList.filter(item => item.itemName !== itemName);
-                    map[materialName].totalListQuantity = map[materialName].budgetList.reduce((total, item) => total + item.quantity, 0);
-                    map[materialName].quantityBalance = map[materialName].totalListQuantity + (map[materialName].realList?.reduce((total, item) => total + item.quantity, 0) || 0);
-                }
                 items = items.filter(i => i.name !== itemName)
 
                 const { updatedMap, updatedItems } = await processSheetInfo(api, setStage, settings, itemName, budget.disabledMaterials[itemName], materials, map, items)
@@ -154,12 +150,11 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
                 map[name] = {
                     expanded: false,
                     selected: false,
-                    totalListQuantity: 0,
-                    quantityBalance: 0,
                     markup: m.markup,
                     unitValue: matInfo ? matInfo.c.kValue / 1000 : 0,
                     budgetList: [],
-                    realList: []
+                    realList: [],
+                    c: undefined
                 }
             }
 
@@ -170,8 +165,6 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
             }
 
             map[name].budgetList.push(budgetElement)
-            map[name].totalListQuantity += budgetElement.quantity
-            map[name].quantityBalance += budgetElement.quantity
         }
     }
 
