@@ -48,7 +48,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_DATA: {
             const { data }: StreamStateOut = getStreamOut(getState())
-            dispatch(sendWebSocketMessage('stream', data))
+            // TODO: it should only send this message if connected
+            // Also check if reconnection to background works
+            //dispatch(sendWebSocketMessage('stream', data))
             break
         }
     }

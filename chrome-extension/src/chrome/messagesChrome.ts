@@ -35,6 +35,7 @@ class ChromeMessagesClient {
 
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
+                trace(`ChromeMessagesClient connected: port '${portName}' registerName ${this.registerName}`)
                 _setListener(port, handlerMap)
                 this.port = port
                 if (this.pendingMesssage) {
@@ -55,7 +56,8 @@ class ChromeMessagesClient {
                 return true
             }
             else {
-                trace(`ChromeMessagesClient.send message dropped: '${name}' on ${this.registerName}`)
+                trace(`ChromeMessagesClient.send message dropped: '${name}' on registerName ${this.registerName}`)
+                chrome.runtime.sendMessage({ name: this.registerName })
                 return false
             }
         }
