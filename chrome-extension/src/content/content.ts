@@ -3,7 +3,6 @@ import {
     PORT_NAME_BACK_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_ITEMS_HTML,
-    MSG_NAME_NEW_INVENTORY_NOT_READY,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_OPEN_VIEW,
@@ -48,10 +47,7 @@ class ContentInitializer {
             },
             [MSG_NAME_REFRESH_ITEMS_HTML]: async (m) => {
                 const inventory = await serverManager.requestItemsHtml()
-                if (inventory)
-                    return { name: MSG_NAME_NEW_INVENTORY, inventory }
-                else
-                    return { name: MSG_NAME_NEW_INVENTORY_NOT_READY }
+                return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {
                 contentUi.isMonitoring = m.isMonitoring

@@ -22,6 +22,7 @@ import { setMockDate } from "../common/state"
 import { traceOff } from "../common/trace"
 import MockWebSocketClient from "./client/webSocketMock"
 import ContentTabManager from "./content/contentTab"
+import RefreshManager from "./content/refreshManager"
 import AlarmSettings from "./settings/alarmSettings"
 import {
     DATE_CONST,
@@ -305,13 +306,14 @@ describe('full', () => {
 describe('partial', () => {
     test('when request items expect on change', async () => {
         const onChange = jest.fn()
-        const alarmStorage = new MockStorageArea()
-        const viewState = new ViewStateManager(undefined, new AlarmSettings(alarmStorage), undefined, undefined)
+        const viewState = new ViewStateManager(undefined, undefined, undefined)
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager())
-        contentTabManager.onMessage = (c, m) => viewState.setStatus(c, m)
-        await contentTabManager.requestItemsAjax()
+        const refreshManager = new RefreshManager(undefined, undefined, undefined)
+        refreshManager.setContentTab(contentTabManager)
+        refreshManager.setViewStatus = (status) => viewState.setStatus(status)
+        await refreshManager.manualRefresh()
 
         expect(onChange.mock.calls.length).toBe(1)
     })

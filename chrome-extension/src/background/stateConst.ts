@@ -62,28 +62,31 @@ const STATE_MONITORING_OFF: ViewState = {
     status: STATUS_MONTORING_OFF
 }
 
-const LIST_NO_DATA: Array<Inventory> = [{
-    log: {
-        class: CLASS_INFO,
-        message: STRING_NO_DATA
-    },
-    meta: {
-        date: DATE_CONST
-    }
-}]
+const STATE_NO_DATA: ViewState = {
+    last: null,
+    list: [{
+        log: {
+            class: CLASS_INFO,
+            message: STRING_NO_DATA
+        },
+        meta: {
+            date: DATE_CONST
+        }
+    }]
+}
 
 const STATE_NO_DATA_PLEASE_LOG_IN: ViewState = {
-    list: LIST_NO_DATA,
+    ...STATE_NO_DATA,
     status: STATUS_PLEASE_LOG_IN
 }
 
 const STATE_NO_DATA_MONITORING_OFF: ViewState = {
-    list: LIST_NO_DATA,
+    ...STATE_NO_DATA,
     status: STATUS_MONTORING_OFF
 }
 
 const STATE_NO_DATA_1_MIN: ViewState = {
-    list: LIST_NO_DATA,
+    ...STATE_NO_DATA,
     status: STATUS_1_MIN
 }
 

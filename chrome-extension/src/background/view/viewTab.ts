@@ -25,7 +25,7 @@ class ViewTabManager {
     }
 
     public async onConnect(port: IPort): Promise<void> {
-        return await this._refreshOne(port)
+        await this._refreshOne(port)
     }
 
     public async onDisconnect(port: IPort): Promise<void> {

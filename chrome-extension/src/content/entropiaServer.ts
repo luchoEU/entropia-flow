@@ -1,4 +1,4 @@
-import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS } from '../common/const'
+import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY } from '../common/const'
 import { Inventory, makeLogInventory } from '../common/state'
 import { trace, traceData } from '../common/trace'
 
@@ -35,7 +35,7 @@ class EntropiaServerManager {
         if (items) {
             const rows = items.getElementsByTagName('tr')
             if (rows.length <= 1) {
-                return undefined // not ready yet, retry in a few seconds
+                return makeLogInventory(CLASS_ERROR, STRING_NOT_READY) // not ready yet, retry in a few seconds
             } else {
                 json = { itemlist: [], meta: { date: (new Date()).getTime() } }
                 for (var i = 1; i < rows.length; i++) {

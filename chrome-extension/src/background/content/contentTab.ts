@@ -1,79 +1,61 @@
 import IPortManager, { IPort } from '../../chrome/portInterface'
 import {
-    CLASS_INFO,
-    CLASS_ERROR,
-    STRING_PLEASE_LOG_IN,
-    STRING_LOADING_ITEMS,
     MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_CONTENT,
-    STRING_LOADING_PAGE,
-    STRING_CONNECTION_BACKGROUND_TO_CONTENT
+    STRING_CONNECTION_BACKGROUND_TO_CONTENT,
+    STRING_PLEASE_LOG_IN
 } from '../../common/const'
 import { trace, traceData } from '../../common/trace'
+import { IContentTab } from './refreshManager'
 
 //// CONTENT TAB ////
 
-class ContentTabManager {
+class ContentTabManager implements IContentTab {
     private portManager: IPortManager
-    public onMessage: (_class: string, message: string) => Promise<void>
+    public onConnected: () => Promise<void>
+    public onDisconnected: () => Promise<void>
 
     constructor(portManager: IPortManager) {
         this.portManager = portManager
     }
 
-    private async _setViewStatus(_class: string, message: string) {
-        if (this.onMessage)
-            await this.onMessage(_class, message)
-    }
-
     public async onConnect(port: IPort): Promise<void> {
-        await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE)
+        if (this.onConnected)
+            await this.onConnected()
     }
 
     public async onDisconnect(port: IPort): Promise<void> {
-        await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
+        if (this.onDisconnected)
+            await this.onDisconnected()
     }
 
-    public async requestItemsHtml(): Promise<void> {
+    public async requestItemsHtml(): Promise<string> {
+        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_HTML, { })
+    }
+
+    public async requestItemsAjax(tag?: any, waitSeconds?: number): Promise<string> {
+        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
+    }
+
+    private async requestItems(name: string, data: object): Promise<string> {
         const port = await this.portManager.first()
         if (port === undefined) {
-            trace('ContentTabManager.requestItemsHtml port undefined')
-            await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT)
+            trace('ContentTabManager.requestItems port undefined')
+            return STRING_PLEASE_LOG_IN
         } else {
             try {
-                port.send(MSG_NAME_REFRESH_ITEMS_HTML, { })
+                port.send(name, data)
+                return undefined
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail
-                    trace('ContentTabManager.requestItemsHtml send failed')
+                    trace('ContentTabManager.requestItems send failed')
                 } else {
-                    trace('ContentTabManager.requestItemsHtml exception:')
+                    trace('ContentTabManager.requestItems exception:')
                     traceData(e)
                 }
-                await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT)
-            }
-        }
-    }
-
-    public async requestItemsAjax(tag?: any, waitSeconds?: number): Promise<void> {
-        const port = await this.portManager.first()
-        if (port === undefined) {
-            trace('ContentTabManager.requestItemsAjax port undefined')
-            await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
-        } else {
-            try {
-                port.send(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
-                await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
-            } catch (e) {
-                if (e.message === 'Attempting to use a disconnected port object') {
-                    // expected fail
-                    trace('ContentTabManager.requestItemsAjax send failed')
-                } else {
-                    trace('ContentTabManager.requestItemsAjax exception:')
-                    traceData(e)
-                }
-                await this._setViewStatus(CLASS_ERROR, STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
+                return STRING_CONNECTION_BACKGROUND_TO_CONTENT // STRING_PLEASE_LOG_IN
             }
         }
     }

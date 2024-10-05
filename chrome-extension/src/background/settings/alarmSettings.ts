@@ -22,11 +22,7 @@ class AlarmSettings {
 
     private async _load() {
         const value = await this.storage.get(STORAGE_ALARM)
-        if (value !== undefined) {
-            this.isMonitoring = value.isMonitoring
-        } else {
-            this.isMonitoring = true
-        }
+        this.isMonitoring = value?.isMonitoring ?? true
     }
 
     private async _save() {

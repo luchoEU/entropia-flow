@@ -1,6 +1,6 @@
 import MockPortManager, { MockPort } from "../../chrome/portMock"
 import MockStorageArea from "../../chrome/storageAreaMock"
-import { CLASS_INFO, MSG_NAME_REFRESH_VIEW, STRING_LOADING_ITEMS } from "../../common/const"
+import { MSG_NAME_REFRESH_VIEW } from "../../common/const"
 import { traceOff } from "../../common/trace"
 import AlarmSettings from "../settings/alarmSettings"
 import { STATE_LOADING_ITEMS } from "../stateConst"
@@ -19,9 +19,9 @@ describe('view tab', () => {
 
         const alarmStorage = new MockStorageArea()
         const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(undefined, alarmSettings, undefined, undefined)
+        const viewState = new ViewStateManager(undefined, undefined, undefined)
         const viewTab = new ViewTabManager(portManager, viewState, undefined)
-        await viewState.setStatus(CLASS_INFO, STRING_LOADING_ITEMS)
+        await viewState.setStatus(STATE_LOADING_ITEMS.status)
 
         expect(portManager.allMock.mock.calls.length).toBe(1)
         expect(port.sendMock.mock.calls.length).toBe(1)

@@ -1,19 +1,19 @@
 import MockAlarmManager from "../../chrome/alarmMock"
 import MockStorageArea from "../../chrome/storageAreaMock"
-import { CLASS_INFO, STRING_LOADING_ITEMS } from "../../common/const"
 import { STATE_1_MIN, STATE_LOADING_ITEMS, TIME_1_MIN } from "../stateConst"
 import AlarmSettings from "../settings/alarmSettings"
 import ViewStateManager from "./viewState"
+import RefreshManager from "../content/refreshManager"
 
 describe('view state', () => {
     test('when setStatus expect onChange', async () => {
         const onChange = jest.fn()
         const alarmStorage = new MockStorageArea()
         const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(undefined, alarmSettings, undefined, undefined)
+        const viewState = new ViewStateManager(undefined, undefined, undefined)
         viewState.onChange = onChange
 
-        await viewState.setStatus(CLASS_INFO, STRING_LOADING_ITEMS)
+        await viewState.setStatus(STATE_LOADING_ITEMS.status)
 
         expect(onChange.mock.calls.length).toBe(1)
         expect(onChange.mock.calls[0].length).toBe(1)
@@ -22,14 +22,16 @@ describe('view state', () => {
 
     test('when setStatus undefined expect onChange with time', async () => {
         const onChange = jest.fn()
-        const alarms = new MockAlarmManager()
-        const alarmStorage = new MockStorageArea()
-        const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(alarms, alarmSettings, undefined, undefined)
+        const alarm = new MockAlarmManager()
+        const alarmStorage = new MockStorageArea();
+        const alarmSettings = new AlarmSettings(alarmStorage);
+        const refreshManager = new RefreshManager(undefined, alarm, alarmSettings)
+        const viewState = new ViewStateManager(refreshManager, undefined, undefined)
         viewState.onChange = onChange
-        alarms.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
+        refreshManager.setViewStatus = (status) => viewState.setStatus(status)
+        alarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
-        await viewState.setStatus(undefined, undefined)
+        await refreshManager.setTimerOn()
 
         expect(onChange.mock.calls.length).toBe(1)
         expect(onChange.mock.calls[0].length).toBe(1)

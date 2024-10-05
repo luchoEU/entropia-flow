@@ -11,7 +11,6 @@ const MSG_NAME_REGISTER_CONTENT = 'RegisterContent'
 const MSG_NAME_REFRESH_CONTENT = 'RefreshContent'
 const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
 const MSG_NAME_REFRESH_ITEMS_HTML = 'RefreshItemsHtml'
-const MSG_NAME_NEW_INVENTORY_NOT_READY = 'NewInventoryNotReady' // when items in html are not loaded yet
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
 
 // Messages with view
@@ -36,6 +35,7 @@ const CLASS_LAST = 'last'
 // Strings
 const STRING_LOADING_PAGE = 'loading page...'
 const STRING_LOADING_ITEMS = 'loading items...'
+const STRING_NOT_READY = 'not ready' // when items in html are not loaded yet
 const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
@@ -80,7 +80,7 @@ const STORAGE_VIEW_GAME_LOG = 'log'
 const HTML_VIEW = 'view.html'
 
 // Http errors
-const ERROR_425 = 'Access blocked, wait 24 hours to retry'
+const ERROR_425 = 'Access blocked, contact MindArk support to unblock'
 const ERROR_429 = 'Too many requests'
 
 // Url
@@ -93,7 +93,7 @@ const NORMAL_WAIT_SECONDS = 3 * 60 // minimum wait to avoid ERROR_429
 const FIRST_WAIT_SECONDS = 6 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
 const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
 const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
-const ACCESS_BLOCKED_WAIT_SECONDS = 24 * 60 * 60 // wait a day if the server doesn't want to process the request
+const ACCESS_BLOCKED_WAIT_SECONDS = 365 * 24 * 60 * 60 // contect support to unblock ERROR_425
 
 export {
     INVENTORY_LIMIT,
@@ -102,7 +102,6 @@ export {
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_ITEMS_HTML,
-    MSG_NAME_NEW_INVENTORY_NOT_READY,
     MSG_NAME_NEW_INVENTORY,
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,
@@ -122,6 +121,7 @@ export {
     STRING_LOADING_PAGE,
     STRING_LOADING_ITEMS,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
+    STRING_NOT_READY,
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_ALARM_OFF,
