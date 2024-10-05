@@ -5,7 +5,7 @@ import { getBudget } from '../../application/selectors/budget'
 import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
 
-const SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP = 20
+const SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP = 50
 
 const ExpandableMaterial = (p: {
     name: string,
