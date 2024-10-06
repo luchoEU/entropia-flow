@@ -25,6 +25,8 @@ function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers) {
 
 //// Messsages ////
 
+// Send and receives message to between content, view and background
+
 class ChromeMessagesClient {
     private registerName: string
     private port: chrome.runtime.Port
@@ -35,7 +37,7 @@ class ChromeMessagesClient {
 
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
-                trace(`ChromeMessagesClient connected: port '${portName}' registerName ${this.registerName}`)
+                trace(`ChromeMessagesClient connected: port '${portName}' registerName '${this.registerName}'`)
                 _setListener(port, handlerMap)
                 this.port = port
                 if (this.pendingMesssage) {
@@ -45,19 +47,29 @@ class ChromeMessagesClient {
             }
         })
 
-        chrome.runtime.sendMessage({ name: this.registerName })
+        this.connect()
+    }
+
+    private connect() {
+        try {
+            trace(`ChromeMessagesClient establishing connection: registerName '${this.registerName}'`)
+            chrome.runtime.sendMessage({ name: this.registerName })
+        } catch (e) {
+            trace('ChromeMessagesClient.connect exception:')
+            traceData(e)
+        }
     }
 
     public send(name: string, data?: object): boolean {
         if (!this.port) {
             if (!this.pendingMesssage) {
                 this.pendingMesssage = { name, ...data }
-                chrome.runtime.sendMessage({ name: this.registerName })
+                this.connect()
                 return true
             }
             else {
-                trace(`ChromeMessagesClient.send message dropped: '${name}' on registerName ${this.registerName}`)
-                chrome.runtime.sendMessage({ name: this.registerName })
+                trace(`ChromeMessagesClient.send message dropped: '${name}' on registerName '${this.registerName}'`)
+                this.connect()
                 return false
             }
         }
@@ -70,16 +82,20 @@ class ChromeMessagesClient {
             traceData(e)
             trace('trying to reconnect')
             this.pendingMesssage = { name, ...data }
-            chrome.runtime.sendMessage({ name: this.registerName })
+            this.connect()
         }
 
         return true
     }
 }
 
+
+// listen to register requests and open a port with the tab
+
 class ChromeMessagesHub {
     public connect(tabId: number, portName: string, handlers: PortHandlers): IPort {
         const port = chrome.tabs.connect(tabId, { name: portName })
+        trace(`ChromeMessagesHub connected: tab ${tabId} port '${portName}'`)
         _setListener(port, handlers)
         return new ChromePort(tabId, port)
     }
@@ -91,9 +107,10 @@ class ChromeMessagesHub {
 
             const portManager = handlers[message.name]
             if (portManager) {
-                await portManager.handle(sender.tab.id)
+                trace(`ChromeMessagesHub.listen connection requested: tab ${sender.tab.id} title '${sender.tab.title}' registerName '${message.name}'`)
+                await portManager.handle(sender.tab.id, sender.tab.title)
             } else {
-                trace('ChromeMessagesClient.listen unknown message')
+                trace('ChromeMessagesHub.listen unknown message')
             }
         }
 

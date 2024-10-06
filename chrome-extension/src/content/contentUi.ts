@@ -1,3 +1,5 @@
+// Renders and handles the UI in Entropia Universe website
+
 class ContentUI {
     public isMonitoring = false
     private showView: () => boolean

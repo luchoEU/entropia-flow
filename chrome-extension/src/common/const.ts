@@ -48,8 +48,8 @@ const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
 // Storage
 const STORAGE_INVENTORY_ = 'inventoryList'
 const STORAGE_INVENTORY_STRINGS_ = 'inventoryListStrings'
-const STORAGE_LIST_VIEWS = 'views'
-const STORAGE_LIST_CONTENTS = 'contents'
+const STORAGE_TAB_VIEWS = 'tabViews'
+const STORAGE_TAB_CONTENTS = 'tabContents'
 const STORAGE_ALARM = 'alarm'
 const STORAGE_VIEW = 'view'
 const STORAGE_VIEW_MENU = 'menu'
@@ -131,8 +131,8 @@ export {
     STORAGE_INVENTORY_STRINGS_,
     STORAGE_QUOTA_BYTES,
     STORAGE_QUOTA_BYTES_PER_ITEM,
-    STORAGE_LIST_VIEWS,
-    STORAGE_LIST_CONTENTS,
+    STORAGE_TAB_VIEWS,
+    STORAGE_TAB_CONTENTS,
     STORAGE_ALARM,
     STORAGE_VIEW,
     STORAGE_VIEW_MENU,

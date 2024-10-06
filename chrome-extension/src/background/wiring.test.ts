@@ -54,7 +54,7 @@ describe('full', () => {
     let contentPort: MockPort
     let viewPort: MockPort
     let inventoryStorage: MockStorageArea
-    let listStorage: MockStorageArea
+    let tabStorage: MockStorageArea
     let settingsStorage: MockStorageArea
 
     beforeEach(async () => {
@@ -81,9 +81,9 @@ describe('full', () => {
         viewPortManager.isEmptyMock.mockReturnValue(false)
 
         inventoryStorage = new MockStorageArea()
-        listStorage = new MockStorageArea()
+        tabStorage = new MockStorageArea()
         settingsStorage = new MockStorageArea()
-        await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, listStorage, settingsStorage)
+        await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, tabStorage, settingsStorage)
     })
 
     test('init', () => {

@@ -1,7 +1,9 @@
-import ListStorage from '../background/listStorage'
+import TabStorage from '../background/tabStorage'
 import IPortManager, { IPort, PortHandlers } from './portInterface'
 import ITabManager, { ITab } from './tabsInterface'
 import IMessagesHub from './messagesInterface'
+import { trace } from '../common/trace'
+import { TabData } from '../background/tabStorage'
 
 //// Ports ////
 
@@ -28,7 +30,7 @@ class ChromePort implements IPort {
 }
 
 class ChromePortManager implements IPortManager {
-    private storage: ListStorage
+    private storage: TabStorage
     private messages: IMessagesHub
     private tabs: ITabManager
     private portName: string
@@ -37,7 +39,7 @@ class ChromePortManager implements IPortManager {
     public onConnect: (port: IPort) => Promise<void>
     public onDisconnect: (port: IPort) => Promise<void>
 
-    constructor(storage: ListStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) {
+    constructor(storage: TabStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) {
         this.storage = storage
         this.messages = messages
         this.tabs = tabs
@@ -45,16 +47,16 @@ class ChromePortManager implements IPortManager {
         this.ports = {}
     }
 
-    public async handle(tabId: number): Promise<void> {
-        await this._connect(tabId, false)
+    public async handle(tabId: number, tabTitle: string): Promise<void> {
+        await this._connect(tabId, tabTitle, false)
     }
 
-    private async _connect(tabId: number, isReconnect: boolean): Promise<IPort> {
+    private async _connect(tabId: number, tabTitle: string, isReconnect: boolean): Promise<IPort> {
         const tab = await this.tabs.get(tabId)
         if (tab) {
             const port = this.messages.connect(tabId, this.portName, this.handlers)
             this.ports[tabId] = port
-            await this.storage.add(tabId)
+            await this.storage.add(tabId, tabTitle)
             if (!isReconnect)
                 await this.onConnect(port) // don't call on reconnect to avoid a duplicate requestItems
             port.onDisconnect(async () => {
@@ -71,10 +73,13 @@ class ChromePortManager implements IPortManager {
     private async _getList(): Promise<Array<IPort>> {
         const tabList = await this.storage.get()
 
-        const portList: Array<IPort> = await Promise.all(tabList.map(async (tabId) => {
-            let port = this.ports[tabId]
-            if (!port)
-                port = await this._connect(tabId, true) // reconnect needed because service worker goes inactive and loses the connections
+        const portList: Array<IPort> = await Promise.all(tabList.map(async (tab: TabData) => {
+            let port = this.ports[tab.id]
+            if (!port) {
+                // reconnect needed because service worker goes inactive and loses the connections
+                trace(`ChromePortManager._getList trying to reconnect: tab ${tab.id} title '${tab.title}'`)
+                port = await this._connect(tab.id, tab.title, true)
+            }
             return port
         }))
 
@@ -82,7 +87,7 @@ class ChromePortManager implements IPortManager {
         const validPortList: Array<IPort> = portList
             .filter((port, index) => {
                 if (!port) {
-                    tabsToRemove.push(tabList[index])
+                    tabsToRemove.push(tabList[index].id)
                     return false
                 } else {
                     return true
@@ -108,7 +113,7 @@ class ChromePortManager implements IPortManager {
     public async firstTab(): Promise<ITab> {
         const tabList = await this.storage.get()
         if (tabList.length > 0)
-            return await this.tabs.get(tabList[0])
+            return await this.tabs.get(tabList[0].id)
         else
             return undefined
     }

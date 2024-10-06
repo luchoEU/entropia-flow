@@ -2,12 +2,14 @@ import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, 
 import { Inventory, makeLogInventory } from '../common/state'
 import { trace, traceData } from '../common/trace'
 
-//// ENTROPIA SERVER ////
+// Read items from local html or get them using ajax
 
-class EntropiaServerManager {
+//// ITEMS READER ////
+
+class ItemsReader {
     private loadFromHtml = true
 
-    async _getJson(res: Response): Promise<Inventory> {
+    private async _getJson(res: Response): Promise<Inventory> {
         if (res.ok) {
             return await res.json()
         } else {
@@ -19,7 +21,7 @@ class EntropiaServerManager {
         }
     }
 
-    _getWaitSeconds(res: Response, waitSeconds?: number): number {
+    private _getWaitSeconds(res: Response, waitSeconds?: number): number {
         if (!res.ok) {
             if (res.status === 425)
                 return ACCESS_BLOCKED_WAIT_SECONDS
@@ -29,7 +31,7 @@ class EntropiaServerManager {
         return waitSeconds
     }
 
-    async requestItemsHtml(): Promise<Inventory> {
+    public async requestItemsHtml(): Promise<Inventory> {
         let json: Inventory
         const items = document.getElementById('myItems')
         if (items) {
@@ -68,7 +70,7 @@ class EntropiaServerManager {
         }
     }
 
-    async requestItemsAjax(waitSeconds?: number): Promise<Inventory> {
+    public async requestItemsAjax(waitSeconds?: number): Promise<Inventory> {
         if (this.loadFromHtml)
             return makeLogInventory(CLASS_REQUESTED, STRING_NO_DATA)
 
@@ -97,5 +99,5 @@ class EntropiaServerManager {
 }
 
 export {
-    EntropiaServerManager
+    ItemsReader
 }

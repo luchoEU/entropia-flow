@@ -11,9 +11,10 @@ import {
 } from '../common/const'
 import { traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/messagesChrome'
-import { EntropiaServerManager } from './entropiaServer'
+import { ItemsReader } from './itemsReader'
 import ContentUi from './contentUI'
 
+// Main function that runs in Entropia Universe website
 
 //// INITIALIZATION ////
 
@@ -32,7 +33,7 @@ class ContentInitializer {
                 return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
         }
 
-        const serverManager = new EntropiaServerManager()
+        const itemReader = new ItemsReader()
         const contentUi = new ContentUi(showView, setIsMonitoring)
 
         messagesClient = new ChromeMessagesClient(
@@ -40,13 +41,13 @@ class ContentInitializer {
             PORT_NAME_BACK_CONTENT, {
             [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
                 traceStart('Refresh item received')
-                const inventory = await serverManager.requestItemsAjax(m.waitSeconds)
+                const inventory = await itemReader.requestItemsAjax(m.waitSeconds)
                 inventory.tag = m.tag
                 traceEnd('Refresh item completed')
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_ITEMS_HTML]: async (m) => {
-                const inventory = await serverManager.requestItemsHtml()
+                const inventory = await itemReader.requestItemsHtml()
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {

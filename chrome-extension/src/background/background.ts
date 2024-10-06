@@ -9,7 +9,7 @@ import ITabManager from "../chrome/tabsInterface"
 import { AJAX_ALARM_NAME, HTML_ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
 import WebSocketClient from "./client/webSocketClient"
-import ListStorage from "./listStorage"
+import TabStorage from "./tabStorage"
 import wiring from "./wiring"
 
 class BackgroundInitializer {
@@ -25,7 +25,7 @@ class BackgroundInitializer {
 
         // ports
         const webSocketClient = new WebSocketClient()
-        const portManagerFactory = (storage: ListStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) =>
+        const portManagerFactory = (storage: TabStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) =>
             new ChromePortManager(storage, messages, tabs, portName)
 
         // wiring

@@ -16,14 +16,14 @@ import {
     MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
-    STORAGE_LIST_CONTENTS,
-    STORAGE_LIST_VIEWS,
+    STORAGE_TAB_CONTENTS,
+    STORAGE_TAB_VIEWS,
     MSG_NAME_SET_WEB_SOCKET_URL,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
 import InventoryStorage from './inventory/inventoryStorage'
-import ListStorage from './listStorage'
+import TabStorage from './tabStorage'
 import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
@@ -42,13 +42,13 @@ async function wiring(
     webSocketClient: IWebSocketClient,
     portManagerFactory: PortManagerFactory,
     inventoryStorageArea: IStorageArea,
-    listStorageArea: IStorageArea,
+    tabStorageArea: IStorageArea,
     settingsStorageArea: IStorageArea) {
 
     // storage
     const inventoryStorage = new InventoryStorage(inventoryStorageArea)
-    const contentListStorage = new ListStorage(listStorageArea, STORAGE_LIST_CONTENTS)
-    const viewListStorage = new ListStorage(listStorageArea, STORAGE_LIST_VIEWS)
+    const contentListStorage = new TabStorage(tabStorageArea, STORAGE_TAB_CONTENTS)
+    const viewListStorage = new TabStorage(tabStorageArea, STORAGE_TAB_VIEWS)
 
     // settings
     const alarmSettings = new AlarmSettings(settingsStorageArea)

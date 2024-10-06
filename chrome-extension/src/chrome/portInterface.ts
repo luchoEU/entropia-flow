@@ -1,10 +1,10 @@
-import ListStorage from "../background/listStorage"
+import TabStorage from "../background/tabStorage"
 import IMessagesHub from "./messagesInterface"
 import ITabManager, { ITab } from "./tabsInterface"
 
 type PortHandler = (message: any) => Promise<any>
 type PortHandlers = { [key: string]: PortHandler }
-type PortManagerFactory = (storage: ListStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) => IPortManager
+type PortManagerFactory = (storage: TabStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) => IPortManager
 
 interface IPort {
     getTabId(): number
@@ -18,7 +18,7 @@ interface IPortManager {
     firstTab(): Promise<ITab>
     all(): Promise<Array<IPort>>
     remove(port: IPort): Promise<void>
-    handle(tabId: number): Promise<void>
+    handle(tabId: number, tabTitle: string): Promise<void>
 
     onConnect: (port: IPort) => Promise<void>
     onDisconnect: (port: IPort) => Promise<void>
