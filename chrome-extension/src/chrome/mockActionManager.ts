@@ -1,4 +1,4 @@
-import IActionManager from "./actionInterface";
+import IActionManager from "./IActionManager";
 
 class MockActionManager implements IActionManager {
     clickListenMock = jest.fn()

@@ -1,7 +1,7 @@
 /// <reference types="chrome"/>
 import { STRING_ALARM_OFF } from '../common/const'
 import { TimeLeft } from '../common/state'
-import IAlarmManager from './alarmInterface'
+import IAlarmManager from './IAlarmManager'
 
 class ChromeAlarmManager implements IAlarmManager {
     private name: string

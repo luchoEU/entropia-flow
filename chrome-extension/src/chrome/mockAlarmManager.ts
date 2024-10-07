@@ -1,5 +1,5 @@
 import { TimeLeft } from "../common/state"
-import IAlarmManager from "./alarmInterface"
+import IAlarmManager from "./IAlarmManager"
 
 class MockAlarmManager implements IAlarmManager {
     startMock = jest.fn()

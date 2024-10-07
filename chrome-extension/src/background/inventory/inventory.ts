@@ -29,7 +29,7 @@ class InventoryManager {
 
     private _adjust(inventory: Inventory) {
         let total = 0;
-        inventory.itemlist.forEach(item => {
+        inventory.itemlist?.forEach(item => {
             total += Number(item.v)
 
             // Some names have '&apos;' in json but a ' when read from html

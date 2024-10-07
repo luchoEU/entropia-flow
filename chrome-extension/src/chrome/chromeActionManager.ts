@@ -1,6 +1,6 @@
 /// <reference types="chrome"/>
 
-import IActionManager from "./actionInterface"
+import IActionManager from "./IActionManager"
 
 // Click on action
 class ChromeActionManager implements IActionManager {

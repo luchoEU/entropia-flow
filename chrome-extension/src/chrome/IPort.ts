@@ -1,6 +1,6 @@
 import TabStorage from "../background/tabStorage"
-import IMessagesHub from "./messagesInterface"
-import ITabManager, { ITab } from "./tabsInterface"
+import IMessagesHub from "./IMessagesHub"
+import ITabManager, { ITab } from "./ITab"
 
 type PortHandler = (message: any) => Promise<any>
 type PortHandlers = { [key: string]: PortHandler }

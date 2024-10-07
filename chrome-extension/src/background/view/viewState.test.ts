@@ -1,5 +1,5 @@
-import MockAlarmManager from "../../chrome/alarmMock"
-import MockStorageArea from "../../chrome/storageAreaMock"
+import MockAlarmManager from "../../chrome/mockAlarmManager"
+import MockStorageArea from "../../chrome/mockStorageArea"
 import { STATE_1_MIN, STATE_LOADING_ITEMS, TIME_1_MIN } from "../stateConst"
 import AlarmSettings from "../settings/alarmSettings"
 import ViewStateManager from "./viewState"

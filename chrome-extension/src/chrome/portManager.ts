@@ -1,35 +1,10 @@
-import TabStorage from '../background/tabStorage'
-import IPortManager, { IPort, PortHandlers } from './portInterface'
-import ITabManager, { ITab } from './tabsInterface'
-import IMessagesHub from './messagesInterface'
-import { trace } from '../common/trace'
-import { TabData } from '../background/tabStorage'
+import TabStorage, { TabData } from "../background/tabStorage"
+import { trace } from "../common/trace"
+import IMessagesHub from "./IMessagesHub"
+import IPortManager, { IPort, PortHandlers } from "./IPort"
+import ITabManager, { ITab } from "./ITab"
 
-//// Ports ////
-
-class ChromePort implements IPort {
-    private tabId: number
-    private port: chrome.runtime.Port
-
-    constructor(tabId: number, port: chrome.runtime.Port) {
-        this.tabId = tabId
-        this.port = port
-    }
-
-    public getTabId() {
-        return this.tabId
-    }
-
-    public send(name: string, data: object) {
-        this.port.postMessage({ name, ...data })
-    }
-
-    public onDisconnect(callback: (port: IPort) => void) {
-        this.port.onDisconnect.addListener(() => callback(this))
-    }
-}
-
-class ChromePortManager implements IPortManager {
+class PortManager implements IPortManager {
     private storage: TabStorage
     private messages: IMessagesHub
     private tabs: ITabManager
@@ -56,8 +31,9 @@ class ChromePortManager implements IPortManager {
         if (tab) {
             const port = this.messages.connect(tabId, this.portName, this.handlers)
             this.ports[tabId] = port
+            trace(`PortManager._connect connected: tab ${tabId} title '${tabTitle}'`)
             await this.storage.add(tabId, tabTitle)
-            if (!isReconnect)
+            if (!isReconnect && this.onConnect)
                 await this.onConnect(port) // don't call on reconnect to avoid a duplicate requestItems
             port.onDisconnect(async () => {
                 this.ports[tabId] = null
@@ -66,6 +42,7 @@ class ChromePortManager implements IPortManager {
             })
             return port
         } else {
+            trace(`PortManager._connect not found: tab ${tabId} title '${tabTitle}'`)
             return undefined
         }
     }
@@ -77,7 +54,7 @@ class ChromePortManager implements IPortManager {
             let port = this.ports[tab.id]
             if (!port) {
                 // reconnect needed because service worker goes inactive and loses the connections
-                trace(`ChromePortManager._getList trying to reconnect: tab ${tab.id} title '${tab.title}'`)
+                trace(`PortManager._getList trying to reconnect: tab ${tab.id} title '${tab.title}'`)
                 port = await this._connect(tab.id, tab.title, true)
             }
             return port
@@ -128,7 +105,4 @@ class ChromePortManager implements IPortManager {
     }
 }
 
-export default ChromePortManager
-export {
-    ChromePort
-}
+export default PortManager

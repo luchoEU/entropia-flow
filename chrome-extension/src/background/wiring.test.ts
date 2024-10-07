@@ -1,10 +1,11 @@
-import MockActionManager from "../chrome/actionMock"
-import MockAlarmManager from "../chrome/alarmMock"
-import MockMessagesHub from "../chrome/messagesMock"
-import MockPortManager, { MockPort } from "../chrome/portMock"
-import MockStorageArea from "../chrome/storageAreaMock"
-import MockTabManager from "../chrome/tabsMock"
+import MockActionManager from "../chrome/mockActionManager"
+import MockAlarmManager from "../chrome/mockAlarmManager"
+import MockMessagesHub from "../chrome/mockMessages"
+import MockPortManager, { MockPort } from "../chrome/mockPort"
+import MockStorageArea from "../chrome/mockStorageArea"
+import MockTabManager from "../chrome/mockTab"
 import {
+    MSG_NAME_NEW_INVENTORY,
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_VIEW,
@@ -18,12 +19,11 @@ import {
     STORAGE_ALARM,
     STRING_ALARM_OFF
 } from "../common/const"
-import { setMockDate } from "../common/state"
+import { Inventory, setMockDate } from "../common/state"
 import { traceOff } from "../common/trace"
 import MockWebSocketClient from "./client/webSocketMock"
 import ContentTabManager from "./content/contentTab"
 import RefreshManager from "./content/refreshManager"
-import AlarmSettings from "./settings/alarmSettings"
 import {
     DATE_CONST,
     STATE_1_MIN,
@@ -177,6 +177,20 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_PAGE)
+        })
+    })
+
+    describe('refresh items', () => {
+        test('on new inventory, send it to view', async() => {
+            const inv: Inventory = {
+                meta: { date: 111 }
+            }
+            await contentPortManager.handlers[MSG_NAME_NEW_INVENTORY]({ inventory: inv })
+
+            expect(viewPort.sendMock.mock.calls.length).toBe(1)
+            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ last: null, list: [inv], ...STATE_PLEASE_LOG_IN })
         })
     })
 

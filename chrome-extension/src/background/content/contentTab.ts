@@ -1,4 +1,4 @@
-import IPortManager, { IPort } from '../../chrome/portInterface'
+import IPortManager, { IPort } from '../../chrome/IPort'
 import {
     MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_REFRESH_ITEMS_AJAX,

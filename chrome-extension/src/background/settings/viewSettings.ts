@@ -1,4 +1,4 @@
-import IStorageArea from "../../chrome/storageAreaInterface"
+import IStorageArea from "../../chrome/IStorageArea"
 import { STORAGE_VIEW } from "../../common/const"
 import { Inventory } from "../../common/state"
 import { DEFAULT_WEB_SOCKET_URL } from "../client/webSocketClient"

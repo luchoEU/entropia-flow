@@ -1,5 +1,5 @@
-import IMessagesHub, { MessageHandlers } from "./messagesInterface";
-import { PortHandlers, IPort } from "./portInterface";
+import IMessagesHub, { MessageHandlers } from "./IMessagesHub";
+import { PortHandlers, IPort } from "./IPort";
 
 class MockMessagesHub implements IMessagesHub {
     connectMock = jest.fn()

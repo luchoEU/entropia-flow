@@ -1,9 +1,9 @@
-import ITabManager from '../../chrome/tabsInterface'
+import ITabManager from '../../chrome/ITab'
 import {
     HTML_VIEW,
     MSG_NAME_REFRESH_VIEW
 } from '../../common/const'
-import IPortManager, { IPort } from '../../chrome/portInterface'
+import IPortManager, { IPort } from '../../chrome/IPort'
 import { trace, traceData } from '../../common/trace'
 import ViewStateManager, { ViewState } from './viewState'
 
@@ -64,7 +64,7 @@ class ViewTabManager {
 
     private async _refreshAll(state: ViewState): Promise<void> {
         const portList = await this.portManager.all()
-        Promise.all(portList.map(port => this.sendRefresh(port, state)))
+        await Promise.all(portList.map(port => this.sendRefresh(port, state)))
     }
 }
 

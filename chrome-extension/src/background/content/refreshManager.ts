@@ -1,4 +1,4 @@
-import IAlarmManager from "../../chrome/alarmInterface";
+import IAlarmManager from "../../chrome/IAlarmManager";
 import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_ALARM_OFF, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN } from "../../common/const";
 import { Inventory, Status, StatusType } from "../../common/state";
 import { trace, traceData } from "../../common/trace";
@@ -85,26 +85,21 @@ class RefreshManager {
 
     public async handleNewInventory(inventory: Inventory) {
         try {
-            switch (inventory.log?.message) {
-                case STRING_NOT_READY:
-                    await this.htmlAlarm.start(NEXT_HTML_CHECK_WAIT_SECONDS)
-                    break;
-                case STRING_PLEASE_LOG_IN:
-                case ERROR_425:
-                    // don't start the alarm
-                    await this._setViewStatus(CLASS_ERROR, inventory.log?.message)
-                    break;
-                case STRING_NO_DATA:
-                    // the page has not load the first item list yet
-                    // don't add no data to history since it is common in my items page reload
-                    // don't start the alarm eighter, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message
-                    break;
-                default:
-                    await this.ajaxAlarm.start(inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
-                    if (this.onInventory) {
-                        this.onInventory(inventory)
-                    }    
-                    break;
+            const logMessage = inventory.log?.message
+            if (logMessage === STRING_NOT_READY) {
+                await this.htmlAlarm.start(NEXT_HTML_CHECK_WAIT_SECONDS)
+            } else if (logMessage === STRING_PLEASE_LOG_IN || logMessage == ERROR_425) {
+                // Don't start the alarm
+                await this._setViewStatus(CLASS_ERROR, logMessage)
+            } else if (logMessage == STRING_NO_DATA) {
+                // The page has not load the first item list yet
+                // Don't add no data to history since it is common in my items page reload
+                // Don't start the alarm either, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message
+            } else {
+                await this.ajaxAlarm.start(inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
+                if (this.onInventory) {
+                    await this.onInventory(inventory)
+                }
             }
         } catch (e) {
             trace('RefreshManager.handleNewInventory exception:')

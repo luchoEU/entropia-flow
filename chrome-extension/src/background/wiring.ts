@@ -1,9 +1,9 @@
-import IActionManager from '../chrome/actionInterface'
-import IAlarmManager from '../chrome/alarmInterface'
-import IMessagesHub from '../chrome/messagesInterface'
-import { PortManagerFactory } from '../chrome/portInterface'
-import IStorageArea from '../chrome/storageAreaInterface'
-import ITabManager from '../chrome/tabsInterface'
+import IActionManager from '../chrome/IActionManager'
+import IAlarmManager from '../chrome/IAlarmManager'
+import IMessagesHub from '../chrome/IMessagesHub'
+import { PortManagerFactory } from '../chrome/IPort'
+import IStorageArea from '../chrome/IStorageArea'
+import ITabManager from '../chrome/ITab'
 import {
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_OPEN_VIEW,
@@ -110,7 +110,7 @@ async function wiring(
 
     // port handlers
     contentPortManager.handlers = {
-        [MSG_NAME_NEW_INVENTORY]: (m) => refreshManager.handleNewInventory(m.Inventory),
+        [MSG_NAME_NEW_INVENTORY]: (m) => refreshManager.handleNewInventory(m.inventory),
         [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff()

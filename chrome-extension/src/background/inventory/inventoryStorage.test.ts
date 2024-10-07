@@ -10,7 +10,7 @@ import { Inventory } from '../../common/state'
 import { traceOff } from '../../common/trace'
 import { EMPTY_INVENTORY, REAL_INVENTORY_1, SIMPLE_ITEM_DATA } from '../examples'
 import InventoryStorage from './inventoryStorage'
-import IStorageArea from '../../chrome/storageAreaInterface'
+import IStorageArea from '../../chrome/IStorageArea'
 
 traceOff()
 

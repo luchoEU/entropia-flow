@@ -1,7 +1,7 @@
 /// <reference types="chrome"/>
 
 import { trace, traceData } from "../common/trace";
-import ITabManager, { ITab } from "./tabsInterface";
+import ITabManager, { ITab } from "./ITab";
 
 class ChromeTab implements ITab {
     private tabId: number

@@ -1,5 +1,5 @@
-import MockPortManager, { MockPort } from "../../chrome/portMock"
-import MockStorageArea from "../../chrome/storageAreaMock"
+import MockPortManager, { MockPort } from "../../chrome/mockPort"
+import MockStorageArea from "../../chrome/mockStorageArea"
 import { MSG_NAME_REFRESH_VIEW } from "../../common/const"
 import { traceOff } from "../../common/trace"
 import AlarmSettings from "../settings/alarmSettings"

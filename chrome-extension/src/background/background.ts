@@ -1,11 +1,11 @@
-import ChromeActionManager from "../chrome/actionChrome"
-import ChromeAlarmManager from "../chrome/alarmChrome"
-import ChromeMessagesHub from "../chrome/messagesChrome"
-import IMessagesHub from "../chrome/messagesInterface"
-import ChromePortManager from "../chrome/portChrome"
-import { LOCAL_STORAGE } from "../chrome/storageAreaChrome"
-import ChromeTabManager from "../chrome/tabsChrome"
-import ITabManager from "../chrome/tabsInterface"
+import ChromeActionManager from "../chrome/chromeActionManager"
+import ChromeAlarmManager from "../chrome/chromeAlarmManager"
+import ChromeMessagesHub from "../chrome/chromeMessages"
+import IMessagesHub from "../chrome/IMessagesHub"
+import PortManager from "../chrome/portManager"
+import { LOCAL_STORAGE } from "../chrome/chromeStorageArea"
+import ChromeTabManager from "../chrome/chromeTab"
+import ITabManager from "../chrome/ITab"
 import { AJAX_ALARM_NAME, HTML_ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
 import WebSocketClient from "./client/webSocketClient"
@@ -26,7 +26,7 @@ class BackgroundInitializer {
         // ports
         const webSocketClient = new WebSocketClient()
         const portManagerFactory = (storage: TabStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) =>
-            new ChromePortManager(storage, messages, tabs, portName)
+            new PortManager(storage, messages, tabs, portName)
 
         // wiring
         await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient,

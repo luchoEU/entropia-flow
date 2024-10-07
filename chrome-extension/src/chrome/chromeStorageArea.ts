@@ -1,5 +1,5 @@
 import { trace, traceData } from '../common/trace'
-import IStorageArea from './storageAreaInterface'
+import IStorageArea from './IStorageArea'
 
 class ChromeStorageArea implements IStorageArea {
     private area: chrome.storage.StorageArea

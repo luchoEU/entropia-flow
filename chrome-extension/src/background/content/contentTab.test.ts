@@ -1,4 +1,4 @@
-import MockPortManager, { MockPort } from "../../chrome/portMock"
+import MockPortManager, { MockPort } from "../../chrome/mockPort"
 import {
     MSG_NAME_REFRESH_ITEMS_AJAX,
     STRING_PLEASE_LOG_IN

@@ -9,7 +9,7 @@ import {
 import { areEqualInventoryList, Inventory, Log, makeLogInventory, Meta } from '../../common/state'
 import { trace, traceData } from '../../common/trace'
 import StringTable from './stringTable'
-import IStorageArea from '../../chrome/storageAreaInterface'
+import IStorageArea from '../../chrome/IStorageArea'
 import LZUTF8 from 'lzutf8'
 import { serializeInventory, deserializeInventory, serializeStrings } from './inventorySerialization'
 import { matchDate } from '../../common/date'

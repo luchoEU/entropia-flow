@@ -1,4 +1,4 @@
-import IPortManager, { IPort, PortHandlers } from "./portInterface"
+import IPortManager, { IPort, PortHandlers } from "./IPort"
 
 type MessageHandlers = { [key: string]: IPortManager }
 

@@ -10,7 +10,7 @@ import {
     MSG_NAME_REQUEST_TIMER_ON
 } from '../common/const'
 import { traceEnd, traceId, traceStart } from '../common/trace'
-import { ChromeMessagesClient } from '../chrome/messagesChrome'
+import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUi from './contentUI'
 

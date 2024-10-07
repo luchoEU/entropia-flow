@@ -1,4 +1,4 @@
-import IStorageArea from "./storageAreaInterface";
+import IStorageArea from "./IStorageArea";
 
 class MockStorageArea implements IStorageArea {
     getMock = jest.fn()

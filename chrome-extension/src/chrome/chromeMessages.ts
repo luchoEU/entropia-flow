@@ -1,8 +1,8 @@
 /// <reference types="chrome"/>
 import { trace, traceData } from '../common/trace'
-import { MessageHandlers } from './messagesInterface'
-import { ChromePort } from './portChrome'
-import { IPort, PortHandlers } from './portInterface'
+import { MessageHandlers } from './IMessagesHub'
+import ChromePort from './chromePort'
+import { IPort, PortHandlers } from './IPort'
 
 //// Utils ////
 

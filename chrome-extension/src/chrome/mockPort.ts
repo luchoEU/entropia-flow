@@ -1,5 +1,5 @@
-import IPortManager, { IPort, PortHandlers } from "./portInterface";
-import { ITab } from "./tabsInterface";
+import IPortManager, { IPort, PortHandlers } from "./IPort";
+import { ITab } from "./ITab";
 
 class MockPort implements IPort {
     getTabIdMock = jest.fn()

@@ -1,4 +1,5 @@
-import ITabManager, { ITab } from "./tabsInterface";
+
+import ITabManager, { ITab } from "./ITab";
 
 class MockTab implements ITab {
     selectMock = jest.fn()

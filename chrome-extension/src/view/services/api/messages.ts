@@ -1,5 +1,5 @@
-import { ChromeMessagesClient } from "../../../chrome/messagesChrome"
-import { PortHandler } from "../../../chrome/portInterface"
+import { ChromeMessagesClient } from "../../../chrome/chromeMessages"
+import { PortHandler } from "../../../chrome/IPort"
 import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW, MSG_NAME_SEND_WEB_SOCKET_MESSAGE, MSG_NAME_SET_WEB_SOCKET_URL } from "../../../common/const"
 import { traceId } from "../../../common/trace"
 

@@ -1,4 +1,4 @@
-import IStorageArea from "../../chrome/storageAreaInterface";
+import IStorageArea from "../../chrome/IStorageArea";
 import { STORAGE_ALARM } from "../../common/const";
 
 class AlarmSettings {

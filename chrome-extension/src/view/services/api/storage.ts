@@ -1,4 +1,4 @@
-import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/storageAreaChrome";
+import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea";
 import {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
