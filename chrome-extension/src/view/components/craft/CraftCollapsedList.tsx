@@ -5,6 +5,7 @@ import { BUDGET, CASH, CLICKS, ITEMS, NAME } from '../../application/helpers/cra
 import { getCraft } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
 import ExpandableSection from '../common/ExpandableSection'
+import ExpandableButton from '../common/ExpandableButton'
 
 function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
@@ -44,6 +45,7 @@ function CraftCollapsedList() {
         })
 
         const sortBy = (part: number) => () => dispatch(sortBlueprintsBy(part))
+        const expand = (name: string) => setBlueprintExpanded(name)
 
         return (
             <ExpandableSection title='Active Blueprints' expanded={s.activeBlueprintsExpanded} setExpanded={setActiveBlueprintsExpanded}>
@@ -63,11 +65,7 @@ function CraftCollapsedList() {
                         {
                             s.blueprints.map((d: BlueprintData) =>
                                 <tr key={d.name}>
-                                    <td>
-                                        {d.expanded ?
-                                            <img src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name, false))} /> :
-                                            <img src='img/up.png' onClick={() => dispatch(setBlueprintExpanded(d.name, true))} />}
-                                    </td>
+                                    <td><ExpandableButton expanded={d.expanded} setExpanded={expand(d.name)} /></td>
                                     <td onClick={sortBy(NAME)}>{d.itemName}</td>
                                     { clicksMap ? <td align='center' onClick={sortBy(CLICKS)}>{clicksMap[d.name]}</td> : <></> }
                                     { itemsMap ? <td align='center' onClick={sortBy(ITEMS)}>{itemsMap[d.name]}</td> : <></> }

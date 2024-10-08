@@ -1,25 +1,20 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { setExpanded } from '../../application/actions/about'
 import { isExpanded } from '../../application/selectors/about'
 import { DONATIONS, FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../../application/state/about'
 import ExpandableSection from '../common/ExpandableSection'
+import ExpandableButton from '../common/ExpandableButton'
 
 const ExpandableQuestion = (p: { q: Question }) => {
     const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
-    const dispatch = useDispatch()
-    const expand = (expanded: boolean) => () => dispatch(setExpanded(QUESTION(p.q.id))(expanded))
+    const expand = setExpanded(QUESTION(p.q.id))
 
     return (
         <>
-            <h3>{p.q.question}
-                { expanded ?
-                    <img className='hide' src='img/up.png' onClick={expand(false)} /> :
-                    <img src='img/down.png' onClick={expand(true)} />}
-            </h3>
+            <h3>{p.q.question} <ExpandableButton expanded={expanded} setExpanded={expand} /></h3>
             {  
                 expanded ? <>
-                
                     { p.q.response.map((str: string) => <p key={str}>{str}</p>) }
                     <p><a href={p.q.link}></a></p>
                 </> : ''

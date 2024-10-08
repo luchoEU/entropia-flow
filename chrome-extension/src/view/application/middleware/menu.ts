@@ -16,7 +16,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const state: CraftState = getCraft(getState())
                 const expBpName = state.blueprints.find(bp => bp.itemName === action.payload.name)?.name
                 if (expBpName !== undefined) {
-                    dispatch(setBlueprintExpanded(expBpName, true))
+                    dispatch(setBlueprintExpanded(expBpName)(true))
                 } else {
                     const inv: InventoryState = getInventory(getState())
                     const addBpName = inv.blueprints.items.find(bp => itemNameFromBpName(bp.n) == action.payload.name)?.n

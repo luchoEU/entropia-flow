@@ -1,5 +1,5 @@
 import React from "react"
-import { useDispatch } from "react-redux"
+import ExpandableButton from "./ExpandableButton"
 
 const ExpandableSection = (p: {
     title: string,
@@ -8,14 +8,9 @@ const ExpandableSection = (p: {
     block?: boolean,
     children: any
 }) => {
-    const dispatch = useDispatch()
-
     return (
         <section {...(p.block ? { className: 'block' } : {})}>
-            <h1>{p.title}
-                {p.expanded ?
-                    <img className='hide' src='img/up.png' onClick={() => dispatch(p.setExpanded(false))} /> :
-                    <img src='img/down.png' onClick={() => dispatch(p.setExpanded(true))} />}
+            <h1>{p.title} <ExpandableButton expanded={p.expanded} setExpanded={p.setExpanded} />
             </h1>
             {
                 p.expanded ? p.children : ''

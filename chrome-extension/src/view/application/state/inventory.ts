@@ -1,49 +1,56 @@
 import { ItemData } from "../../../common/state";
 
 interface InventoryList<T> {
-    expanded: boolean,
-    sortType: number,
-    items: Array<T>
-    stats: {
-        count: number,
-        ped: string
-    }
+  expanded: boolean;
+  sortType: number;
+  items: Array<T>;
+  stats: {
+    count: number;
+    ped: string;
+  };
+}
+
+interface InventoryTree<T> {
+  data: T;
+  list?: InventoryList<InventoryTree<T>>;
 }
 
 interface HideCriteria {
-    name: Array<string>,
-    container: Array<string>,
-    value: number
+  name: Array<string>;
+  container: Array<string>;
+  value: number;
 }
 
 interface AvailableCriteria {
-    name: Array<string>
+  name: Array<string>;
 }
 
 interface ItemHidden {
-    data: ItemData,
-    criteria: {
-        name: boolean,
-        container: boolean,
-        value: boolean
-    }
+  data: ItemData;
+  criteria: {
+    name: boolean;
+    container: boolean;
+    value: boolean;
+  };
 }
 
 interface InventoryState {
-    blueprints: InventoryList<ItemData>,
-    auction: InventoryList<ItemData>,
-    visible: InventoryList<ItemData>,
-    hidden: InventoryList<ItemHidden>,
-    hiddenCriteria: HideCriteria,
-    available: InventoryList<ItemData>,
-    availableCriteria: AvailableCriteria,
-    ttService: InventoryList<ItemData>,
+  blueprints: InventoryList<ItemData>;
+  auction: InventoryList<ItemData>;
+  visible: InventoryList<ItemData>;
+  hidden: InventoryList<ItemHidden>;
+  hiddenCriteria: HideCriteria;
+  byStore: InventoryList<InventoryTree<ItemData>>;
+  available: InventoryList<ItemData>;
+  availableCriteria: AvailableCriteria;
+  ttService: InventoryList<ItemData>;
 }
 
 export {
-    HideCriteria,
-    AvailableCriteria,
-    ItemHidden,
-    InventoryList,
-    InventoryState
-}
+  HideCriteria,
+  AvailableCriteria,
+  ItemHidden,
+  InventoryList,
+  InventoryTree,
+  InventoryState,
+};

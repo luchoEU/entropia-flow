@@ -91,7 +91,7 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     }
 })
 
-const setBlueprintExpanded = (name: string, expanded: boolean) => ({
+const setBlueprintExpanded = (name: string) => (expanded: boolean) => ({
     type: SET_BLUEPRINT_EXPANDED,
     payload: {
         name,

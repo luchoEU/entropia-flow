@@ -1,61 +1,54 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, sortVisibleBy } from '../../application/actions/inventory'
-import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
-import { InventoryList } from '../../application/state/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy } from '../../application/actions/inventory'
+import { InventoryList, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
+import ExpandableButton from '../common/ExpandableButton'
 
 const ItemRow = (p: {
-    item: ItemData
+    tree: InventoryTree<ItemData>
 }) => {
-    const { item } = p
+    const { tree } = p
     const dispatch = useDispatch()
+    const expand = setByStoreItemExpanded(tree.data.id)
     const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
+
+    //<p>Total value {tree.list.stats.ped} PED for {tree.list.stats.count} items</p>
 
     return (
         <tr>
-            <td onClick={sortBy(NAME)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByName(item.n))
-                }} />
-                {item.n}
-            </td>
-            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
-            <td onClick={sortBy(VALUE)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByValue(item.v))
-                }} />
-                {item.v + ' PED'}
-            </td>
-            <td onClick={sortBy(CONTAINER)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByContainer(item.c))
-                }} />
-                {item.c}
+            <td>
+                { tree.list ? <ExpandableButton expanded={tree.list?.expanded} setExpanded={expand} /> : <></> }
+                {tree.data.n}
+                {tree.list?.expanded ?
+                    <table>
+                        <tbody>
+                            {tree.list.items.map((item: InventoryTree<ItemData>) =>
+                                <ItemRow tree={item} key={item.data.id} />
+                            )}
+                        </tbody>
+                    </table> : <></>
+                }
             </td>
         </tr>
     )
 }
 
 const InventoryByStoreList = (p: {
-    list: InventoryList<ItemData>
+    list: InventoryList<InventoryTree<ItemData>>
 }) => {
     const { list } = p
     return (
         <>
-            <ExpandableSection title='Containers' expanded={list.expanded} setExpanded={setVisibleInventoryExpanded}>
-                <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
+            <ExpandableSection title='Containers' expanded={list.expanded} setExpanded={setByStoreInventoryExpanded}>
                 <table className='table-diff'>
                     <tbody>
                         {
-                            list.items.map((item: ItemData) =>
+                            list.items.map((item: InventoryTree<ItemData>) =>
                                 <ItemRow
-                                    key={item.id}
-                                    item={item} />
+                                    key={item.data.id}
+                                    tree={item} />
                             )
                         }
                     </tbody>

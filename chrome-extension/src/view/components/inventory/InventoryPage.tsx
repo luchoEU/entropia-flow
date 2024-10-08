@@ -12,7 +12,7 @@ function InventoryPage() {
     return (
         <>
             <div>
-                <InventoryByStoreList list={s.visible}/>
+                <InventoryByStoreList list={s.byStore}/>
             </div>
             <div>
                 <InventoryVisibleList list={s.visible}/>
