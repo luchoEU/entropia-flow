@@ -5,6 +5,7 @@ import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, set
 import { InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
+import SearchInput from '../common/SearchInput'
 
 const INDENT_SPACE = 10
 
@@ -57,14 +58,13 @@ const InventoryByStoreList = (p: {
     inv: InventoryListWithFilter<InventoryTree<ItemData>>
 }) => {
     const { inv } = p
-    const dispatch = useDispatch()
 
     return (
         <>
             <ExpandableSection title='Containers' expanded={inv.originalList.expanded} setExpanded={setByStoreInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <p>Total value {inv.showList.stats.ped} PED in {inv.showList.stats.count} container{inv.showList.stats.count == 1 ? '' : 's'}</p>
-                    <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setByStoreInventoryFilter(e.target.value))} />
+                    <SearchInput filter={inv.filter} setFilter={setByStoreInventoryFilter} />
                 </div>
                 <table className='table-diff'>
                     <tbody>

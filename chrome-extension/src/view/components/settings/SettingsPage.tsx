@@ -4,7 +4,7 @@ import { documentIdSettingChanged, googlePrivateKeyChanged, googleServiceAccount
 import { getSettings } from '../../application/selectors/settings';
 import { SettingsState } from '../../application/state/settings';
 import ExpandableSection from '../common/ExpandableSection';
-import { Field, FieldArea } from '../components/Field';
+import { Field, FieldArea } from '../common/Field';
 
 function SettingsPage() {
     const s: SettingsState = useSelector(getSettings);

@@ -575,17 +575,30 @@ const removeAvailable = (state: InventoryState, name: string): InventoryState =>
     joinList(state),
   );
 
-const cleanForSave = (state: InventoryState): InventoryState => {
-  const cState = JSON.parse(JSON.stringify(state));
-  // items and stats can be reconstructed
-  Object.keys(cState).forEach((k) => {
-    delete cState[k].items;
-    delete cState[k].stats;
-  });
-  delete cState.byStore.showList; // calculation will be reconstructed
-  delete cState.byStore.originalList; // TODO: fix to save expanded state
-  return cState;
-};
+const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> => ({
+  ...list,
+  items: undefined,
+  stats: undefined
+});
+
+const cleanForSaveInventoryListWithFilter = <D>(list: InventoryListWithFilter<D>): InventoryListWithFilter<D> => ({
+  ...list,
+  showList: undefined,
+  originalList: cleanForSaveInventoryList(list.originalList)
+})
+
+const cleanForSave = (state: InventoryState): InventoryState => ({
+  // remove what will be reconstructed in loadInventory
+  blueprints: cleanForSaveInventoryList(state.blueprints),
+  auction: cleanForSaveInventoryList(state.auction),
+  visible: cleanForSaveInventoryListWithFilter(state.visible),
+  hidden: cleanForSaveInventoryListWithFilter(state.hidden),
+  hiddenCriteria: state.hiddenCriteria,
+  byStore: cleanForSaveInventoryListWithFilter(state.byStore),
+  available: cleanForSaveInventoryList(state.available),
+  availableCriteria: state.availableCriteria,
+  ttService: cleanForSaveInventoryList(state.ttService)
+});
 
 export {
   initialState,

@@ -2,8 +2,9 @@ import React from 'react'
 import { useDispatch } from 'react-redux'
 import { setHiddenInventoryExpanded, setHiddenInventoryFilter, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
-import { InventoryList, InventoryListWithFilter, ItemHidden } from '../../application/state/inventory'
+import { InventoryListWithFilter, ItemHidden } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
+import SearchInput from '../common/SearchInput'
 
 const ItemRow = (p: {
     item: ItemHidden
@@ -51,6 +52,7 @@ const InventoryHiddenList = (p: {
 }) => {
     const { inv } = p
     const dispatch = useDispatch()
+
     return (
         <>
             <ExpandableSection title='Hidden' expanded={inv.originalList.expanded} setExpanded={setHiddenInventoryExpanded}>
@@ -64,7 +66,7 @@ const InventoryHiddenList = (p: {
                             Show All
                         </span>
                     </p>
-                    <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setHiddenInventoryFilter(e.target.value))} />
+                    <SearchInput filter={inv.filter} setFilter={setHiddenInventoryFilter} />
                 </div>
                 <table className='table-diff table-diff-row'>
                     <tbody>

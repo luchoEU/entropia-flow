@@ -3,8 +3,9 @@ import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, sortVisibleBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
-import { InventoryList, InventoryListWithFilter } from '../../application/state/inventory'
+import { InventoryListWithFilter } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
+import SearchInput from '../common/SearchInput'
 
 const ItemRow = (p: {
     item: ItemData
@@ -45,14 +46,13 @@ const InventoryVisibleList = (p: {
     inv: InventoryListWithFilter<ItemData>
 }) => {
     const { inv } = p
-    const dispatch = useDispatch()
 
     return (
         <>
             <ExpandableSection title='List' expanded={inv.originalList.expanded} setExpanded={setVisibleInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <p>Total value {inv.showList.stats.ped} PED for {inv.showList.stats.count} item{inv.showList.stats.count == 1 ? '' : 's'}</p>
-                    <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setVisibleInventoryFilter(e.target.value))} />
+                    <SearchInput filter={inv.filter} setFilter={setVisibleInventoryFilter} />
                 </div>
                 <table className='table-diff'>
                     <tbody>

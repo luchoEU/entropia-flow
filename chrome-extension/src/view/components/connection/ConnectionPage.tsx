@@ -4,7 +4,7 @@ import { ConnectionState } from "../../application/state/connection"
 import { getConnection } from "../../application/selectors/connection"
 import { setConnectionClientExpanded, webSocketConnectionChanged } from "../../application/actions/connection"
 import ExpandableSection from "../common/ExpandableSection"
-import { Field } from "../components/Field"
+import { Field } from "../common/Field"
 
 function ConnectionPage() {
     const s: ConnectionState = useSelector(getConnection)
