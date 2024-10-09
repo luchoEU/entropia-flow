@@ -185,10 +185,7 @@ const getByStore = (list: Array<ItemData>): Array<InventoryTree<ItemData>> => {
         data: d,
         list: getList(r[`${d.n};${d.id}`])
       })),
-      stats: {
-        count: items.length,
-        ped: '0.00'
-      }
+      stats: undefined
     }
   }
 
@@ -382,15 +379,29 @@ const setByStoreInventoryFilter = (
 const applyByStoreFilter = (
   list: InventoryList<InventoryTree<ItemData>>,
   filter: string
-): InventoryList<InventoryTree<ItemData>> => ({
-  ...list,
-  expanded: true,
-  items: list.items.map((tree) => ({
-    ...tree,
-    list: tree.list ? applyByStoreFilter(tree.list, filter) : undefined
-  }))
-  .filter((tree) => multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0)
-})
+): InventoryList<InventoryTree<ItemData>> => {
+  const items = list.items
+    .map((tree) => ({
+      ...tree,
+      list: tree.list ? applyByStoreFilter(tree.list, filter) : undefined
+    }))
+    .filter((tree) => multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
+
+  const sum = items.reduce(
+    (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),
+    0,
+  );
+
+  return {
+    ...list,
+    expanded: true,
+    items,
+    stats: {
+      count: items.length,
+      ped: sum.toFixed(2)
+    }
+  }
+}
 
 function sortByPart<D>(
   list: InventoryList<D>,

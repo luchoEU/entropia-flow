@@ -17,8 +17,6 @@ const ItemRow = (p: {
     const expand = setByStoreItemExpanded(tree.data.id)
     const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
 
-    //<p>Total value {tree.list.stats.ped} PED for {tree.list.stats.count} items</p>
-
     return (
         <>
             <tr>
@@ -26,13 +24,29 @@ const ItemRow = (p: {
                     { tree.list ? <ExpandableButton expanded={tree.list?.expanded} setExpanded={expand} /> : <></> }
                     { tree.data.n }
                 </td>
-                <td align='right'>{tree.data.q}</td>
-                <td align='right'>{tree.data.v + ' PED'}</td>
+                { tree.list ?
+                    <>
+                        <td align='right'>{tree.list.stats.count}</td>
+                        <td align='right'>{tree.list.stats.ped + ' PED'}</td>
+                    </> : <>
+                        <td align='right'>{tree.data.q}</td>
+                        <td align='right'>{tree.data.v + ' PED'}</td>
+                    </>
+                }
             </tr>
             { tree.list?.expanded ?
-                tree.list.items.map((item: InventoryTree<ItemData>) =>
-                    <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} />
-                ): <></>
+                <>
+                    { tree.data.q === '1' ?
+                        <tr>
+                            <td style={{ paddingLeft: space + INDENT_SPACE }}>(item value)</td>
+                            <td></td>
+                            <td align='right'>{tree.data.v + ' PED'}</td>
+                        </tr> : <></>
+                    }
+                    { tree.list.items.map((item: InventoryTree<ItemData>) =>
+                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} />
+                    )}
+                </> : <></>
             }
         </>
     )
@@ -47,7 +61,12 @@ const InventoryByStoreList = (p: {
     return (
         <>
             <ExpandableSection title='Containers' expanded={inv.originalList.expanded} setExpanded={setByStoreInventoryExpanded}>
-                <input type='text' className='form-control' placeholder='filter' value={inv.filter ?? ''} onChange={(e) => dispatch(setByStoreInventoryFilter(e.target.value))} />
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <p>
+                        Total value {inv.showList.stats.ped} PED in {inv.showList.stats.count} containers
+                    </p>
+                    <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setByStoreInventoryFilter(e.target.value))} />
+                </div>
                 <table className='table-diff'>
                     <tbody>
                         {
