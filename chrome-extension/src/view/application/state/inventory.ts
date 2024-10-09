@@ -11,14 +11,14 @@ interface InventoryList<T> {
 }
 
 interface InventoryTree<T> {
-  data: T;
-  list?: InventoryList<InventoryTree<T>>;
+  data: T
+  list?: InventoryList<InventoryTree<T>>
 }
 
-interface InventoryByStore {
+interface InventoryListWithFilter<T> {
   filter: string
-  showList: InventoryList<InventoryTree<ItemData>>
-  originalList: InventoryList<InventoryTree<ItemData>>
+  showList: InventoryList<T>
+  originalList: InventoryList<T>
 }
 
 interface HideCriteria {
@@ -43,10 +43,10 @@ interface ItemHidden {
 interface InventoryState {
   blueprints: InventoryList<ItemData>;
   auction: InventoryList<ItemData>;
-  visible: InventoryList<ItemData>;
-  hidden: InventoryList<ItemHidden>;
+  visible: InventoryListWithFilter<ItemData>;
+  hidden: InventoryListWithFilter<ItemHidden>;
   hiddenCriteria: HideCriteria;
-  byStore: InventoryByStore;
+  byStore: InventoryListWithFilter<InventoryTree<ItemData>>;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
   ttService: InventoryList<ItemData>;
@@ -58,6 +58,6 @@ export {
   ItemHidden,
   InventoryList,
   InventoryTree,
-  InventoryByStore,
+  InventoryListWithFilter,
   InventoryState,
 };

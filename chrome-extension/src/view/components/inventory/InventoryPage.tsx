@@ -15,10 +15,10 @@ function InventoryPage() {
                 <InventoryByStoreList inv={s.byStore}/>
             </div>
             <div>
-                <InventoryVisibleList list={s.visible}/>
+                <InventoryVisibleList inv={s.visible}/>
             </div>
             <div>
-                <InventoryHiddenList list={s.hidden} />
+                <InventoryHiddenList inv={s.hidden} />
             </div>
         </>
     )

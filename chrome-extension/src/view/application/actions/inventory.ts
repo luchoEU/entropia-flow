@@ -7,7 +7,9 @@ const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
 const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
 const SET_TT_SERVICE_EXPANDED = "[inv] set tt service expanded"
 const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
+const SET_VISIBLE_FILTER = "[inv] set visible filter"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
+const SET_HIDDEN_FILTER = "[inv] set hidden filter"
 const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
 const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
@@ -89,6 +91,20 @@ const setByStoreItemExpanded = (id: string) => (expanded: boolean) => ({
     payload: {
         id,
         expanded
+    }
+})
+
+const setVisibleInventoryFilter = (filter: string) => ({
+    type: SET_VISIBLE_FILTER,
+    payload: {
+        filter
+    }
+})
+
+const setHiddenInventoryFilter = (filter: string) => ({
+    type: SET_HIDDEN_FILTER,
+    payload: {
+        filter
     }
 })
 
@@ -212,7 +228,9 @@ export {
     SET_AVAILABLE_EXPANDED,
     SET_TT_SERVICE_EXPANDED,
     SET_VISIBLE_EXPANDED,
+    SET_VISIBLE_FILTER,
     SET_HIDDEN_EXPANDED,
+    SET_HIDDEN_FILTER,
     SET_BLUEPRINTS_EXPANDED,
     SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
@@ -238,7 +256,9 @@ export {
     setAvailableInventoryExpanded,
     setTTServiceInventoryExpanded,
     setVisibleInventoryExpanded,
+    setVisibleInventoryFilter,
     setHiddenInventoryExpanded,
+    setHiddenInventoryFilter,
     setOwnedBlueprintsExpanded,
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,

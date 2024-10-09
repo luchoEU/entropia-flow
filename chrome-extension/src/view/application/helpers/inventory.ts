@@ -6,6 +6,7 @@ import {
   ItemHidden,
   AvailableCriteria,
   InventoryTree,
+  InventoryListWithFilter,
 } from "../state/inventory";
 import {
   cloneSortListSelect,
@@ -31,7 +32,7 @@ const initialList = (expanded: boolean, sortType: number) => ({
   },
 });
 
-const initialByStore = (expanded: boolean, sortType: number) => ({
+const initialListWithFilter = (expanded: boolean, sortType: number) => ({
   filter: undefined,
   showList: initialList(true, sortType),
   originalList: initialList(expanded, sortType),
@@ -40,14 +41,17 @@ const initialByStore = (expanded: boolean, sortType: number) => ({
 const initialState: InventoryState = {
   blueprints: initialList(true, SORT_NAME_ASCENDING),
   auction: initialList(true, SORT_NAME_ASCENDING),
-  visible: initialList(true, SORT_VALUE_DESCENDING),
-  hidden: initialList(false, SORT_NAME_ASCENDING),
+  visible: initialListWithFilter(true, SORT_VALUE_DESCENDING),
+  hidden: initialListWithFilter(false, SORT_NAME_ASCENDING),
   hiddenCriteria: emptyCriteria,
-  byStore: initialByStore(true, SORT_NAME_ASCENDING),
+  byStore: initialListWithFilter(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
   availableCriteria: { name: [] },
   ttService: initialList(true, SORT_NAME_ASCENDING),
 };
+
+const visibleSelect = (x: ItemData): ItemData => x;
+const hiddenSelect = (x: ItemHidden): ItemData => x.data;
 
 function sortAndStats<D>(
   select: (d: D) => ItemData,
@@ -65,6 +69,18 @@ function sortAndStats<D>(
   return list;
 }
 
+function sortAndStatsWithFilter<D>(
+  select: (d: D) => ItemData,
+  inv: InventoryListWithFilter<D>,
+  items: Array<D>
+): InventoryListWithFilter<D> {
+  const originalList = sortAndStats(select, { ...inv.originalList, items });
+  return {
+    ...inv,
+    originalList,
+    showList: applyListFilter(originalList, inv.filter, select),
+  }
+}
 
 function multiIncludes(multiSearch: string, mainStr: string): boolean {
   if (!multiSearch || multiSearch.length == 0)
@@ -215,14 +231,8 @@ const loadInventory = (
     ...state.auction,
     items: getAuction(list),
   }),
-  visible: sortAndStats((x) => x, {
-    ...state.visible,
-    items: getVisible(list, state.hiddenCriteria),
-  }),
-  hidden: sortAndStats((x) => x.data, {
-    ...state.hidden,
-    items: getHidden(list, state.hiddenCriteria),
-  }),
+  visible: sortAndStatsWithFilter(visibleSelect, state.visible, getVisible(list, state.hiddenCriteria)),
+  hidden: sortAndStatsWithFilter(hiddenSelect, state.hidden, getHidden(list, state.hiddenCriteria)),
   available: sortAndStats((x) => x, {
     ...state.available,
     items: getAvailable(list, state.availableCriteria),
@@ -235,15 +245,15 @@ const loadInventory = (
     }
     return {
       ...state.byStore,
+      originalList,
       showList: applyByStoreFilter(originalList, state.byStore.filter),
-      originalList
     }
   })()
 });
 
 const joinList = (state: InventoryState): Array<ItemData> => [
-  ...state.visible.items,
-  ...state.hidden.items.map((x) => x.data),
+  ...state.visible.originalList.items,
+  ...state.hidden.originalList.items.map(hiddenSelect),
 ];
 
 const loadInventoryState = (
@@ -296,8 +306,11 @@ const setVisibleExpanded = (
   ...state,
   visible: {
     ...state.visible,
-    expanded,
-  },
+    originalList: {
+      ...state.visible.originalList,
+      expanded
+    }
+  }
 });
 
 const setHiddenExpanded = (
@@ -307,8 +320,11 @@ const setHiddenExpanded = (
   ...state,
   hidden: {
     ...state.hidden,
-    expanded,
-  },
+    originalList: {
+      ...state.hidden.originalList,
+      expanded
+    }
+  }
 });
 
 const setBlueprintsExpanded = (
@@ -364,6 +380,30 @@ const setByStoreItemExpanded = (
   }
 })
 
+const setVisibleFilter = (
+  state: InventoryState,
+  filter: string
+): InventoryState => ({
+  ...state,
+  visible: {
+    ...state.visible,
+    filter,
+    showList: applyListFilter(state.visible.originalList, filter, visibleSelect)
+  }
+})
+
+const setHiddenFilter = (
+  state: InventoryState,
+  filter: string
+): InventoryState => ({
+  ...state,
+  hidden: {
+    ...state.hidden,
+    filter,
+    showList: applyListFilter(state.hidden.originalList, filter, hiddenSelect)
+  }
+})
+
 const setByStoreInventoryFilter = (
   state: InventoryState,
   filter: string
@@ -403,6 +443,24 @@ const applyByStoreFilter = (
   }
 }
 
+function applyListFilter<D>(list: InventoryList<D>, filter: string, select: (d: D) => ItemData): InventoryList<D> {
+  const items = list.items
+    .filter((d) => multiIncludes(filter, select(d).n));
+  const sum = items.reduce(
+    (partialSum, d) => partialSum + Number(select(d).v),
+    0,
+  );
+  return {
+    ...list,
+    expanded: true,
+    items,
+    stats: {
+      count: items.length,
+      ped: sum.toFixed(2),
+    },
+  };
+}
+
 function sortByPart<D>(
   list: InventoryList<D>,
   part: number,
@@ -413,6 +471,19 @@ function sortByPart<D>(
     ...list,
     sortType,
     items: cloneSortListSelect(list.items, sortType, select),
+  };
+}
+
+function sortByPartWithFilter<D>(
+  inv: InventoryListWithFilter<D>,
+  part: number,
+  select: (d: D) => ItemData,
+): InventoryListWithFilter<D> {
+  const originalList = sortByPart(inv.originalList, part, select)
+  return {
+    ...inv,
+    originalList,
+    showList: applyListFilter(originalList, inv.filter, select)
   };
 }
 
@@ -429,12 +500,12 @@ const sortVisibleBy = (
   part: number,
 ): InventoryState => ({
   ...state,
-  visible: sortByPart(state.visible, part, (x) => x),
+  visible: sortByPartWithFilter(state.visible, part, visibleSelect),
 });
 
 const sortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
   ...state,
-  hidden: sortByPart(state.hidden, part, (x) => x.data),
+  hidden: sortByPartWithFilter(state.hidden, part, hiddenSelect),
 });
 
 const sortAvailableBy = (
@@ -525,7 +596,9 @@ export {
   setAvailableExpanded,
   setTTServiceExpanded,
   setVisibleExpanded,
+  setVisibleFilter,
   setHiddenExpanded,
+  setHiddenFilter,
   setBlueprintsExpanded,
   setByStoreExpanded,
   setByStoreItemExpanded,

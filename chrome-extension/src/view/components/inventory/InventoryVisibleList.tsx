@@ -1,9 +1,9 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, sortVisibleBy } from '../../application/actions/inventory'
+import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, sortVisibleBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
-import { InventoryList } from '../../application/state/inventory'
+import { InventoryList, InventoryListWithFilter } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 
 const ItemRow = (p: {
@@ -42,17 +42,22 @@ const ItemRow = (p: {
 }
 
 const InventoryVisibleList = (p: {
-    list: InventoryList<ItemData>
+    inv: InventoryListWithFilter<ItemData>
 }) => {
-    const { list } = p
+    const { inv } = p
+    const dispatch = useDispatch()
+
     return (
         <>
-            <ExpandableSection title='List' expanded={list.expanded} setExpanded={setVisibleInventoryExpanded}>
-                <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
+            <ExpandableSection title='List' expanded={inv.originalList.expanded} setExpanded={setVisibleInventoryExpanded}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <p>Total value {inv.showList.stats.ped} PED for {inv.showList.stats.count} item{inv.showList.stats.count == 1 ? '' : 's'}</p>
+                    <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setVisibleInventoryFilter(e.target.value))} />
+                </div>
                 <table className='table-diff'>
                     <tbody>
                         {
-                            list.items.map((item: ItemData) =>
+                            inv.showList.items.map((item: ItemData) =>
                                 <ItemRow
                                     key={item.id}
                                     item={item} />

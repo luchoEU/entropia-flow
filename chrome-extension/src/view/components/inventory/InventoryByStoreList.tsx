@@ -2,7 +2,7 @@ import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter } from '../../application/actions/inventory'
-import { InventoryByStore, InventoryTree } from '../../application/state/inventory'
+import { InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
 
@@ -10,9 +10,10 @@ const INDENT_SPACE = 10
 
 const ItemRow = (p: {
     tree: InventoryTree<ItemData>
-    space: number
+    space: number,
+    inSearch: boolean
 }) => {
-    const { tree, space } = p
+    const { tree, space, inSearch } = p
     const dispatch = useDispatch()
     const expand = setByStoreItemExpanded(tree.data.id)
     const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
@@ -26,7 +27,7 @@ const ItemRow = (p: {
                 </td>
                 { tree.list ?
                     <>
-                        <td align='right'>{tree.list.stats.count}</td>
+                        <td align='right'>[{tree.list.stats.count}]</td>
                         <td align='right'>{tree.list.stats.ped + ' PED'}</td>
                     </> : <>
                         <td align='right'>{tree.data.q}</td>
@@ -36,7 +37,7 @@ const ItemRow = (p: {
             </tr>
             { tree.list?.expanded ?
                 <>
-                    { tree.data.q === '1' ?
+                    { !inSearch && tree.data.q === '1' ?
                         <tr>
                             <td style={{ paddingLeft: space + INDENT_SPACE }}>(item value)</td>
                             <td></td>
@@ -44,7 +45,7 @@ const ItemRow = (p: {
                         </tr> : <></>
                     }
                     { tree.list.items.map((item: InventoryTree<ItemData>) =>
-                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} />
+                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} inSearch={inSearch} />
                     )}
                 </> : <></>
             }
@@ -53,7 +54,7 @@ const ItemRow = (p: {
 }
 
 const InventoryByStoreList = (p: {
-    inv: InventoryByStore
+    inv: InventoryListWithFilter<InventoryTree<ItemData>>
 }) => {
     const { inv } = p
     const dispatch = useDispatch()
@@ -62,9 +63,7 @@ const InventoryByStoreList = (p: {
         <>
             <ExpandableSection title='Containers' expanded={inv.originalList.expanded} setExpanded={setByStoreInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <p>
-                        Total value {inv.showList.stats.ped} PED in {inv.showList.stats.count} containers
-                    </p>
+                    <p>Total value {inv.showList.stats.ped} PED in {inv.showList.stats.count} container{inv.showList.stats.count == 1 ? '' : 's'}</p>
                     <input type='text' className='form-control' placeholder='search' value={inv.filter ?? ''} onChange={(e) => dispatch(setByStoreInventoryFilter(e.target.value))} />
                 </div>
                 <table className='table-diff'>
@@ -74,7 +73,8 @@ const InventoryByStoreList = (p: {
                                 <ItemRow
                                     key={item.data.id}
                                     tree={item}
-                                    space={0} />
+                                    space={0}
+                                    inSearch={inv.filter?.length > 0} />
                             )
                         }
                     </tbody>
