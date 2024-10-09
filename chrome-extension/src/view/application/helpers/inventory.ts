@@ -31,9 +31,10 @@ const initialList = (expanded: boolean, sortType: number) => ({
   },
 });
 
-const initialTree = (expanded: boolean, sortType: number) => ({
-  data: undefined,
-  list: initialList(expanded, sortType),
+const initialByStore = (expanded: boolean, sortType: number) => ({
+  filter: undefined,
+  showList: initialList(true, sortType),
+  originalList: initialList(expanded, sortType),
 });
 
 const initialState: InventoryState = {
@@ -42,7 +43,7 @@ const initialState: InventoryState = {
   visible: initialList(true, SORT_VALUE_DESCENDING),
   hidden: initialList(false, SORT_NAME_ASCENDING),
   hiddenCriteria: emptyCriteria,
-  byStore: initialList(true, SORT_NAME_ASCENDING),
+  byStore: initialByStore(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
   availableCriteria: { name: [] },
   ttService: initialList(true, SORT_NAME_ASCENDING),
@@ -62,6 +63,31 @@ function sortAndStats<D>(
     ped: sum.toFixed(2),
   };
   return list;
+}
+
+
+function multiIncludes(multiSearch: string, mainStr: string): boolean {
+  if (!multiSearch || multiSearch.length == 0)
+    return true;
+
+  function check(multi: string[], main: string[]): boolean {
+    if (multi.length == 0)
+      return true;
+
+    for (let n = 0; n < main.length; n++) {
+      if (main[n].includes(multi[0])) {
+        const newMain = main.slice(0, n).concat(main.slice(n + 1));
+        if (check(multi.slice(1), newMain))
+          return true;
+      }  
+    }
+
+    return false;
+  }
+
+  const multi = multiSearch.toLowerCase().split(' ').filter(x => x.length > 0);
+  const main = mainStr.toLowerCase().split(' ').filter(x => x.length > 0);
+  return check(multi, main);
 }
 
 const isHiddenByName = (c: HideCriteria, d: ItemData): boolean =>
@@ -204,10 +230,18 @@ const loadInventory = (
     ...state.available,
     items: getAvailable(list, state.availableCriteria),
   }),
-  byStore: {
-    ...state.byStore,
-    items: getByStore(list),
-  },
+  byStore: (() => {
+    const items = getByStore(list);
+    const originalList = {
+      ...state.byStore.originalList,
+      items
+    }
+    return {
+      ...state.byStore,
+      showList: applyByStoreFilter(originalList, state.byStore.filter),
+      originalList
+    }
+  })()
 });
 
 const joinList = (state: InventoryState): Array<ItemData> => [
@@ -298,7 +332,10 @@ const setByStoreExpanded = (
   ...state,
   byStore: {
     ...state.byStore,
-    expanded
+    originalList: {
+      ...state.byStore.originalList,
+      expanded
+    }
   }
 })
 
@@ -323,8 +360,36 @@ const setByStoreItemExpanded = (
   ...state,
   byStore: {
     ...state.byStore,
-    items: setByStoreExpandedItems(state.byStore.items, id, expanded)
+    showList: {
+      ...state.byStore.showList,
+      items: setByStoreExpandedItems(state.byStore.showList.items, id, expanded)
+    }
   }
+})
+
+const setByStoreInventoryFilter = (
+  state: InventoryState,
+  filter: string
+): InventoryState => ({
+  ...state,
+  byStore: {
+    ...state.byStore,
+    filter,
+    showList: applyByStoreFilter(state.byStore.originalList, filter)
+  }
+})
+
+const applyByStoreFilter = (
+  list: InventoryList<InventoryTree<ItemData>>,
+  filter: string
+): InventoryList<InventoryTree<ItemData>> => ({
+  ...list,
+  expanded: true,
+  items: list.items.map((tree) => ({
+    ...tree,
+    list: tree.list ? applyByStoreFilter(tree.list, filter) : undefined
+  }))
+  .filter((tree) => multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0)
 })
 
 function sortByPart<D>(
@@ -428,13 +493,15 @@ const removeAvailable = (state: InventoryState, name: string): InventoryState =>
     joinList(state),
   );
 
-// items and stats can be reconstructed
 const cleanForSave = (state: InventoryState): InventoryState => {
   const cState = JSON.parse(JSON.stringify(state));
+  // items and stats can be reconstructed
   Object.keys(cState).forEach((k) => {
     delete cState[k].items;
     delete cState[k].stats;
   });
+  delete cState.byStore.showList; // calculation will be reconstructed
+  delete cState.byStore.originalList; // TODO: fix to save expanded state
   return cState;
 };
 
@@ -451,6 +518,7 @@ export {
   setBlueprintsExpanded,
   setByStoreExpanded,
   setByStoreItemExpanded,
+  setByStoreInventoryFilter,
   sortAuctionBy,
   sortVisibleBy,
   sortHiddenBy,

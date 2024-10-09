@@ -25,7 +25,7 @@ class ChromeStorageArea implements IStorageArea {
         this.area.set({ [name]: value }, () => {
             let error = chrome.runtime.lastError;
             if (error) {
-                trace(`set value in '${name}' length ${value.length} error ${chrome.runtime.lastError.message}:`)
+                trace(`set value in '${name}' length ${JSON.stringify(value).length} error ${chrome.runtime.lastError.message}:`)
                 traceData(value)
                 throw new Error(chrome.runtime.lastError.message)
             }

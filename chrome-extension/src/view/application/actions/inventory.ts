@@ -11,6 +11,7 @@ const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
 const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
+const SET_BY_STORE_FILTER = "[inv] set by store filter"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
@@ -88,6 +89,13 @@ const setByStoreItemExpanded = (id: string) => (expanded: boolean) => ({
     payload: {
         id,
         expanded
+    }
+})
+
+const setByStoreInventoryFilter = (filter: string) => ({
+    type: SET_BY_STORE_FILTER,
+    payload: {
+        filter
     }
 })
 
@@ -208,6 +216,7 @@ export {
     SET_BLUEPRINTS_EXPANDED,
     SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
+    SET_BY_STORE_FILTER,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
@@ -233,6 +242,7 @@ export {
     setOwnedBlueprintsExpanded,
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,
+    setByStoreInventoryFilter,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,

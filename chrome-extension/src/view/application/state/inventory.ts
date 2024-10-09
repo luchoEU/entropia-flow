@@ -15,6 +15,12 @@ interface InventoryTree<T> {
   list?: InventoryList<InventoryTree<T>>;
 }
 
+interface InventoryByStore {
+  filter: string
+  showList: InventoryList<InventoryTree<ItemData>>
+  originalList: InventoryList<InventoryTree<ItemData>>
+}
+
 interface HideCriteria {
   name: Array<string>;
   container: Array<string>;
@@ -40,7 +46,7 @@ interface InventoryState {
   visible: InventoryList<ItemData>;
   hidden: InventoryList<ItemHidden>;
   hiddenCriteria: HideCriteria;
-  byStore: InventoryList<InventoryTree<ItemData>>;
+  byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
   ttService: InventoryList<ItemData>;
@@ -52,5 +58,6 @@ export {
   ItemHidden,
   InventoryList,
   InventoryTree,
+  InventoryByStore,
   InventoryState,
 };
