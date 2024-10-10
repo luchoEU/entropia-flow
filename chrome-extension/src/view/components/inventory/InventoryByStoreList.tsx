@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter } from '../../application/actions/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing } from '../../application/actions/inventory'
 import { InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
@@ -23,8 +23,31 @@ const ItemRow = (p: {
         <>
             <tr>
                 <td style={{ paddingLeft: space }}>
-                    { tree.list ? <ExpandableButton expanded={tree.list?.expanded} setExpanded={expand} /> : <></> }
-                    { tree.data.n }
+                    { tree.list && <ExpandableButton expanded={tree.list?.expanded} setExpanded={expand} /> }
+                    { tree.editing ?
+                        <>
+                            <input style={{ width: '200px' }} type='text' value={tree.name} onChange={(e) => {
+                                dispatch(setByStoreItemName(tree.data.id, e.target.value))
+                            }} autoFocus />
+                            <img src='img/cross.png' data-show onClick={(e) => {
+                                e.stopPropagation()
+                                dispatch(cancelByStoreItemNameEditing(tree.data.id))
+                            }} />
+                            <img src='img/tick.png' data-show onClick={(e) => {
+                                e.stopPropagation()
+                                dispatch(confirmByStoreItemNameEditing(tree.data.id))
+                            }} />
+                        </> :
+                        <>
+                            { tree.name }
+                            { !tree.data.id.startsWith('-') && tree.list &&
+                                <img src='img/edit.png' onClick={(e) => {
+                                    e.stopPropagation()
+                                    dispatch(startByStoreItemNameEditing(tree.data.id))
+                                }} />
+                            }
+                        </>
+                    }
                 </td>
                 { tree.list ?
                     <>
@@ -40,7 +63,7 @@ const ItemRow = (p: {
                 <>
                     { !inSearch && tree.data.q === '1' ?
                         <tr>
-                            <td style={{ paddingLeft: space + INDENT_SPACE }}>(item value)</td>
+                            <td style={{ paddingLeft: space + INDENT_SPACE }}>({ tree.data.n === tree.name ? 'item': tree.data.n } value)</td>
                             <td></td>
                             <td align='right'>{tree.data.v + ' PED'}</td>
                         </tr> : <></>

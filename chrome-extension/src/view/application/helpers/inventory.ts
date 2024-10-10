@@ -190,7 +190,7 @@ const getByStore = (list: Array<ItemData>): Array<InventoryTree<ItemData>> => {
     r[c].push(d);
     return r;
   }, {} as { [c: string]: Array<ItemData> })
- 
+
   function getList(items: Array<ItemData>): InventoryList<InventoryTree<ItemData>> {
     if (!items) return undefined
 
@@ -199,6 +199,7 @@ const getByStore = (list: Array<ItemData>): Array<InventoryTree<ItemData>> => {
       sortType: SORT_NAME_ASCENDING,
       items: items.map((d) => ({
         data: d,
+        name: d.n,
         list: getList(r[`${d.n};${d.id}`])
       })),
       stats: undefined
@@ -211,9 +212,10 @@ const getByStore = (list: Array<ItemData>): Array<InventoryTree<ItemData>> => {
       id: (id--).toString(),
       q: '',
       v: '',
-      n: c.split(';')[0],
+      n: '',
       c: ''
     },
+    name: c.split(';')[0],
     list: getList(items)
   }))
 }
@@ -352,33 +354,59 @@ const setByStoreExpanded = (
   }
 })
 
-const setByStoreExpandedItems = (
+const applyByStoreItemsChange = (
   items: Array<InventoryTree<ItemData>>,
   id: string,
-  expanded: boolean
-): Array<InventoryTree<ItemData>> => items.map((tree) => ({
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
+): Array<InventoryTree<ItemData>> => items.map((tree) => tree.data.id === id ? f(tree) : {
   ...tree,
   list: tree.list ? {
     ...tree.list,
-    expanded: tree.data.id === id ? expanded : tree.list.expanded,
-    items: setByStoreExpandedItems(tree.list.items, id, expanded)
-  } : undefined,
-}))
+    items: applyByStoreItemsChange(tree.list.items, id, f)
+  } : undefined
+})
 
-const setByStoreItemExpanded = (
+const applyByStoreStateChange = (
   state: InventoryState,
   id: string,
-  expanded: boolean
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
 ): InventoryState => ({
   ...state,
   byStore: {
     ...state.byStore,
     showList: {
       ...state.byStore.showList,
-      items: setByStoreExpandedItems(state.byStore.showList.items, id, expanded)
+      items: applyByStoreItemsChange(state.byStore.showList.items, id, f)
     }
   }
 })
+
+const setByStoreItemExpanded = (
+  state: InventoryState,
+  id: string,
+  expanded: boolean
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }))
+
+const startByStoreItemNameEditing = (
+  state: InventoryState,
+  id: string
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: { originalName: t.name} }))
+
+const confirmByStoreItemNameEditing = (
+  state: InventoryState,
+  id: string
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.name.length > 0 ? t.name : t.data.n }))
+
+const cancelByStoreItemNameEditing = (
+  state: InventoryState,
+  id: string
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.editing.originalName }))
+
+const setByStoreItemName = (
+  state: InventoryState,
+  id: string,
+  name: string
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, name }))
 
 const setVisibleFilter = (
   state: InventoryState,
@@ -616,6 +644,10 @@ export {
   setByStoreExpanded,
   setByStoreItemExpanded,
   setByStoreInventoryFilter,
+  startByStoreItemNameEditing,
+  confirmByStoreItemNameEditing,
+  cancelByStoreItemNameEditing,
+  setByStoreItemName,
   sortAuctionBy,
   sortVisibleBy,
   sortHiddenBy,

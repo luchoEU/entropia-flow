@@ -12,6 +12,10 @@ interface InventoryList<T> {
 
 interface InventoryTree<T> {
   data: T
+  editing?: { // undefined if not editing
+    originalName: string
+  }
+  name: string
   list?: InventoryList<InventoryTree<T>>
 }
 

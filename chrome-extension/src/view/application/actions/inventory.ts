@@ -14,6 +14,10 @@ const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
 const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
 const SET_BY_STORE_FILTER = "[inv] set by store filter"
+const START_BY_STORE_ITEM_NAME_EDITING = "[inv] start by store item name editing"
+const CONFIRM_BY_STORE_ITEM_NAME_EDITING = "[inv] confirm by store item name editing"
+const CANCEL_BY_STORE_ITEM_NAME_EDITING = "[inv] cancel by store item name editing"
+const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
@@ -91,6 +95,35 @@ const setByStoreItemExpanded = (id: string) => (expanded: boolean) => ({
     payload: {
         id,
         expanded
+    }
+})
+
+const startByStoreItemNameEditing = (id: string) => ({
+    type: START_BY_STORE_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const confirmByStoreItemNameEditing = (id: string) => ({
+    type: CONFIRM_BY_STORE_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const cancelByStoreItemNameEditing = (id: string) => ({
+    type: CANCEL_BY_STORE_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const setByStoreItemName = (id: string, name: string) => ({
+    type: SET_BY_STORE_ITEM_NAME,
+    payload: {
+        id,
+        name
     }
 })
 
@@ -235,6 +268,10 @@ export {
     SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
     SET_BY_STORE_FILTER,
+    START_BY_STORE_ITEM_NAME_EDITING,
+    CONFIRM_BY_STORE_ITEM_NAME_EDITING,
+    CANCEL_BY_STORE_ITEM_NAME_EDITING,
+    SET_BY_STORE_ITEM_NAME,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
@@ -263,6 +300,10 @@ export {
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,
     setByStoreInventoryFilter,
+    startByStoreItemNameEditing,
+    confirmByStoreItemNameEditing,
+    cancelByStoreItemNameEditing,
+    setByStoreItemName,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
