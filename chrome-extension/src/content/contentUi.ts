@@ -11,7 +11,7 @@ class ContentUI {
         this.addDiv()
     }
 
-    public refresh() {
+    public refreshButton() {
         const div = document.getElementById('EntropiaFlowExtension')
         const btn = document.getElementById('EntropiaFlowButton')
         if (this.isMonitoring) {
@@ -21,6 +21,21 @@ class ContentUI {
             btn.innerText = "Start Automatic Refresh"
             div.className = "start"
         }
+    }
+
+    public refreshItemsLoadTime(loadedTime: number, loadingTime?: number) {
+        const div = document.getElementById('EntropiaFlowExtension')
+
+        const now = new Date().getTime()
+        function pad(t: number) {
+            const time = now - t;
+            const hours = Math.floor(time / (1000 * 60 * 60));
+            const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((time % (1000 * 60)) / 1000);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        div.title = `Click icon to open extension. Items loaded ${pad(loadedTime)} ago` + (loadingTime ? `, new request started ${pad(loadingTime)} ago` : '');
     }
 
     private getAvatarName(): string {
@@ -49,7 +64,7 @@ class ContentUI {
                 border-radius:10px;
             }
             #EntropiaFlowExtension.start {
-                background-color: #4CAF50;
+                background-color: green;
             }
             #EntropiaFlowExtension.stop {
                 background-color: red;
@@ -71,7 +86,7 @@ class ContentUI {
         div.id = 'EntropiaFlowExtension';
         div.innerHTML = `
             <img id='EntropiaFlowIcon' src='https://i.ibb.co/5RxzC2Y/flow128w.png'>
-            <button id='EntropiaFlowButton'>Connecting...</button>`;
+            <button id='EntropiaFlowButton'>Connecting to Entropia Flow extension...</button>`;
         document.body.appendChild(div);
         const icon = document.getElementById('EntropiaFlowIcon')
         icon.addEventListener('click', () => this.showView())

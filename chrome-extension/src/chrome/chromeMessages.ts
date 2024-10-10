@@ -7,13 +7,13 @@ import { IPort, PortHandlers } from './IPort'
 //// Utils ////
 
 function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers) {
-    port.onMessage.addListener(async (m) => {
+    port.onMessage.addListener(async (m, p) => {
         const handler = handlerMap[m.name]
         if (handler) {
             const response = await handler(m)
             if (response && response.name) {
                 try {
-                    port.postMessage(response)
+                    p.postMessage(response)
                 } catch (e) {
                     trace('_setListener exception:')
                     traceData(e)
@@ -50,14 +50,13 @@ class ChromeMessagesClient {
         this.connect()
     }
 
+
     private connect() {
-        try {
-            trace(`ChromeMessagesClient establishing connection: registerName '${this.registerName}'`)
-            chrome.runtime.sendMessage({ name: this.registerName })
-        } catch (e) {
-            trace('ChromeMessagesClient.connect exception:')
-            traceData(e)
-        }
+        trace(`ChromeMessagesClient establishing connection: registerName '${this.registerName}'`)
+        chrome.runtime.sendMessage({ name: this.registerName }, (response: any) => {
+            const str = (n: string, x: any) => x ? `${n}: ${JSON.stringify(x)}` : `no ${n}`
+            trace(`ChromeMessagesClient.connect ${str('response', response)} ${str('lastError', chrome.runtime.lastError)}`)
+        })
     }
 
     public send(name: string, data?: object): boolean {
@@ -104,13 +103,14 @@ class ChromeMessagesHub {
         const callback = async (message: any,
             sender: chrome.runtime.MessageSender,
             _sendResponse: (response?: any) => void) => {
-
             const portManager = handlers[message.name]
             if (portManager) {
                 trace(`ChromeMessagesHub.listen connection requested: tab ${sender.tab.id} title '${sender.tab.title}' registerName '${message.name}'`)
                 await portManager.handle(sender.tab.id, sender.tab.title)
+                _sendResponse({ result: 'connected' })
             } else {
-                trace('ChromeMessagesHub.listen unknown message')
+                trace('ChromeMessagesHub.listen unknown name in message')
+                _sendResponse({ result: 'unknown name', failed: true })
             }
         }
 

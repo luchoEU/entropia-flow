@@ -12,13 +12,16 @@ import {
 import { traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
-import ContentUi from './contentUI'
+import ContentUI from './contentUi'
 
 // Main function that runs in Entropia Universe website
 
 //// INITIALIZATION ////
 
 class ContentInitializer {
+    private static itemsLoadedTime: number;
+    private static itemsLoadingTime?: number;
+
     public static init() {
         traceId('C')
 
@@ -34,16 +37,19 @@ class ContentInitializer {
         }
 
         const itemReader = new ItemsReader()
-        const contentUi = new ContentUi(showView, setIsMonitoring)
+        const contentUI = new ContentUI(showView, setIsMonitoring)
 
         messagesClient = new ChromeMessagesClient(
             MSG_NAME_REGISTER_CONTENT,
             PORT_NAME_BACK_CONTENT, {
             [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
+                ContentInitializer.itemsLoadingTime = new Date().getTime();
                 traceStart('Refresh item received')
                 const inventory = await itemReader.requestItemsAjax(m.waitSeconds)
                 inventory.tag = m.tag
                 traceEnd('Refresh item completed')
+                ContentInitializer.itemsLoadedTime = new Date().getTime();
+                ContentInitializer.itemsLoadingTime = undefined;
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_ITEMS_HTML]: async (m) => {
@@ -51,10 +57,17 @@ class ContentInitializer {
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {
-                contentUi.isMonitoring = m.isMonitoring
-                contentUi.refresh()
+                contentUI.isMonitoring = m.isMonitoring
+                contentUI.refreshButton()
             }
         })
+
+        ContentInitializer.itemsLoadedTime = new Date().getTime();
+        const updateItemsLoadTime = () => {
+            contentUI.refreshItemsLoadTime(ContentInitializer.itemsLoadedTime, ContentInitializer.itemsLoadingTime);
+            setTimeout(updateItemsLoadTime, 1000);
+        };
+        updateItemsLoadTime();
     }
 }
 

@@ -15,23 +15,20 @@ const Status = () => {
 
     return (
         <section>
-            {isMonitoring && showTimer ?
+            { showTimer &&
                 <img src='img/reload.png'
                     className='img-refresh'
                     onClick={() => dispatch(refresh)} />
-                : ''
             }
-            {isMonitoring && showLoading ?
+            { showLoading &&
                 <img src='img/loading.gif'
                     className='img-refresh' />
-                : ''
             }
-            {history.hiddenError ?
+            { history.hiddenError &&
                 <img src='img/error.png'
                     className='img-refresh'
                     onClick={() => dispatch(setHistoryExpanded(true))}
                     title={history.hiddenError} />
-                : ''
             }
             <span className={className}>
                 {message === STRING_PLEASE_LOG_IN ?

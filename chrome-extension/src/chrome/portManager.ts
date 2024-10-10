@@ -49,6 +49,7 @@ class PortManager implements IPortManager {
 
     private async _getList(): Promise<Array<IPort>> {
         const tabList = await this.storage.get()
+        trace(`PortManager._getList start: tabList ${JSON.stringify(tabList)}`)
 
         const portList: Array<IPort> = await Promise.all(tabList.map(async (tab: TabData) => {
             let port = this.ports[tab.id]
@@ -72,6 +73,7 @@ class PortManager implements IPortManager {
             })
         await this.storage.removeAll(tabsToRemove)
 
+        trace(`PortManager._getList start: tabsToRemove ${JSON.stringify(tabsToRemove)} validPortList ${JSON.stringify(validPortList.map(p => p.getTabId()))}`)
         return validPortList
     }
 
