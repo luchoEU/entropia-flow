@@ -211,10 +211,12 @@ const getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { i
 
   // update the id in containers based on data and items
   const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
-    if (!st[c.data.n]) {
-      st[c.data.n] = [];
+    if (c.data) { // root containers don't have data
+      if (!st[c.data.n]) {
+        st[c.data.n] = [];
+      }
+      st[c.data.n].push(c);
     }
-    st[c.data.n].push(c);
     return st;
   }, {} as { [name: string]: Array<ContainerMapDataItem> });
 
@@ -234,12 +236,12 @@ const getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { i
       continue;
     }
 
-    const toMatch = listByName[name]?.map((d) => ({
+    const toMatch = listByName[name]?.filter((d) => listContainers.children[d.id]).map((d) => ({
       id: d.id,
       data: d,
       items: listContainers.children[d.id]
     }));
-    if (toMatch) {
+    if (toMatch && toMatch.length > 0) {
       // calculate hamming distance from each element in oldList to each element in toMatch
       // add 1 for different data.v, in items ignore order matching by n
       const hammingDistance = (a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }) => {
