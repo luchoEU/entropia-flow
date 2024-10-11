@@ -102,19 +102,21 @@ class ChromeMessagesHub {
     public listen(handlers: MessageHandlers) {
         const callback = async (message: any,
             sender: chrome.runtime.MessageSender,
-            _sendResponse: (response?: any) => void) => {
+            sendResponse: (response?: any) => void) => {
             const portManager = handlers[message.name]
             if (portManager) {
                 trace(`ChromeMessagesHub.listen connection requested: tab ${sender.tab.id} title '${sender.tab.title}' registerName '${message.name}'`)
                 await portManager.handle(sender.tab.id, sender.tab.title)
-                _sendResponse({ result: 'connected' })
+                sendResponse({ result: 'connected' })
             } else {
                 trace('ChromeMessagesHub.listen unknown name in message')
-                _sendResponse({ result: 'unknown name', failed: true })
+                sendResponse({ result: 'unknown name', failed: true })
             }
         }
 
+        trace('ChromeMessagesHub listening')
         chrome.runtime.onMessage.addListener(callback)
+        // chrome.runtime.sendMessage({name: "test"}, (response) => { console.log(response); console.log(chrome.runtime.lastError) })
     }
 }
 

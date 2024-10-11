@@ -32,7 +32,7 @@ class TabStorage {
 
     public async add(id: number, title: string): Promise<Array<TabData>> {
         const list = await this.get()
-        if (!list.some(d => d.id)) {
+        if (!list.some(d => d.id === id)) {
             list.push({ id, title })
             await this._set(list)
         }
