@@ -25,6 +25,25 @@ interface InventoryListWithFilter<T> {
   originalList: InventoryList<T>
 }
 
+interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemData>> {
+  containers: ContainerMapData;
+}
+
+type ContainerMapData = { [id: string] : ContainerMapDataItem };
+
+interface ContainerMapDataItem {
+  name: string;
+  expanded: boolean;
+  data: BasicItemData; // data and items can be used the get the id in a new load
+  items: Array<BasicItemData>;
+}
+
+interface BasicItemData { // subset of ItemData
+  n: string // name, string
+  q: string // quantity, number
+  v: string // value, number (2 decimals)
+}
+
 interface HideCriteria {
   name: Array<string>;
   container: Array<string>;
@@ -50,7 +69,7 @@ interface InventoryState {
   visible: InventoryListWithFilter<ItemData>;
   hidden: InventoryListWithFilter<ItemHidden>;
   hiddenCriteria: HideCriteria;
-  byStore: InventoryListWithFilter<InventoryTree<ItemData>>;
+  byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
   ttService: InventoryList<ItemData>;
@@ -60,8 +79,12 @@ export {
   HideCriteria,
   AvailableCriteria,
   ItemHidden,
+  ContainerMapData,
+  ContainerMapDataItem,
+  BasicItemData,
   InventoryList,
   InventoryTree,
   InventoryListWithFilter,
+  InventoryByStore,
   InventoryState,
 };

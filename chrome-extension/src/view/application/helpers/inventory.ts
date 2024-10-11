@@ -7,6 +7,10 @@ import {
   AvailableCriteria,
   InventoryTree,
   InventoryListWithFilter,
+  InventoryByStore,
+  ContainerMapData,
+  ContainerMapDataItem,
+  BasicItemData,
 } from "../state/inventory";
 import {
   cloneSortListSelect,
@@ -22,7 +26,7 @@ const emptyCriteria: HideCriteria = {
   value: -0.01,
 };
 
-const initialList = (expanded: boolean, sortType: number) => ({
+const initialList = <D>(expanded: boolean, sortType: number): InventoryList<D> => ({
   expanded,
   sortType,
   items: [],
@@ -32,10 +36,15 @@ const initialList = (expanded: boolean, sortType: number) => ({
   },
 });
 
-const initialListWithFilter = (expanded: boolean, sortType: number) => ({
+const initialListWithFilter = <D>(expanded: boolean, sortType: number): InventoryListWithFilter<D> => ({
   filter: undefined,
   showList: initialList(true, sortType),
   originalList: initialList(expanded, sortType),
+});
+
+const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
+  ...initialListWithFilter(expanded, sortType),
+  containers: { }
 });
 
 const initialState: InventoryState = {
@@ -44,7 +53,7 @@ const initialState: InventoryState = {
   visible: initialListWithFilter(true, SORT_VALUE_DESCENDING),
   hidden: initialListWithFilter(false, SORT_NAME_ASCENDING),
   hiddenCriteria: emptyCriteria,
-  byStore: initialListWithFilter(true, SORT_NAME_ASCENDING),
+  byStore: initialListByStore(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
   availableCriteria: { name: [] },
   ttService: initialList(true, SORT_NAME_ASCENDING),
@@ -181,43 +190,163 @@ const getAvailable = (
       ),
   );
 
-const getByStore = (list: Array<ItemData>): Array<InventoryTree<ItemData>> => {
-  const r = list.reduce((r, d) => {
-    const c = `${d.c};${d.r}`;
-    if (!r[c]) {
-      r[c] = [];
+const getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
+  // get root and children of the tree
+  let nextRootContainerId = -1
+  const listContainers = list.reduce((st, d) => {
+    let containerId = d.r;
+    if (!containerId ||containerId === '0') {
+      if (!st.root[d.c]) {
+        st.root[d.c] = (nextRootContainerId--).toString();
+      }
+      containerId = st.root[d.c];
     }
-    r[c].push(d);
-    return r;
-  }, {} as { [c: string]: Array<ItemData> })
 
-  function getList(items: Array<ItemData>): InventoryList<InventoryTree<ItemData>> {
+    if (!st.children[containerId]) {
+      st.children[containerId] = [];
+    }
+    st.children[containerId].push(d);
+    return st;
+  }, { root: {}, children: {} } as { root: { [name: string]: string }, children: { [id: string]: Array<ItemData> } })
+
+  // update the id in containers based on data and items
+  const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
+    if (!st[c.data.n]) {
+      st[c.data.n] = [];
+    }
+    st[c.data.n].push(c);
+    return st;
+  }, {} as { [name: string]: Array<ContainerMapDataItem> });
+
+  const listByName = list.reduce((st, d) => {
+    if (!st[d.n]) {
+      st[d.n] = [];
+    }
+    st[d.n].push(d);
+    return st;
+  }, {} as { [name: string]: Array<ItemData> });
+
+  const containers = { }
+  for (const [name, oldList] of Object.entries(oldContainersByName)) {
+    const rootContainerId = listContainers.root[name]
+    if (rootContainerId) {
+      containers[rootContainerId] = oldList[0];
+      continue;
+    }
+
+    const toMatch = listByName[name]?.map((d) => ({
+      id: d.id,
+      data: d,
+      items: listContainers.children[d.id]
+    }));
+    if (toMatch) {
+      // calculate hamming distance from each element in oldList to each element in toMatch
+      // add 1 for different data.v, in items ignore order matching by n
+      const hammingDistance = (a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }) => {
+        let distance = 0;
+        if (a.data.v !== b.data.v) {
+          distance += 1;
+        }
+        const itemsA = a.items.sort((a, b) => a.n.localeCompare(b.n));
+        const itemsB = b.items.sort((a, b) => a.n.localeCompare(b.n));
+        const lenA = itemsA.length;
+        const lenB = itemsB.length;
+        let j = 0;
+        let k = 0;
+        while (j < lenA && k < lenB) {
+          if (itemsA[j].n < itemsB[k].n) {
+            j++;
+            distance++;
+          } else if (itemsA[j].n > itemsB[k].n) {
+            k++;
+            distance++;
+          } else {
+            j++;
+            k++;
+          }
+        }
+        distance += lenA - j + lenB - k;
+        return distance;
+      }
+
+      // get the ones with less distance, add it to containers remove them from the lists and repeat
+      while (oldList.length > 0) {
+        let bestMatch: {a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }, distance: number} | undefined;
+        for (const a of oldList) {
+          for (const b of toMatch) {
+            const distance = hammingDistance(a, b);
+            if (!bestMatch || distance < bestMatch.distance) {
+              bestMatch = { a, b, distance };
+            }
+          }
+        }
+
+        if (!bestMatch) break;
+        
+        containers[bestMatch.b.id] = bestMatch.a;
+        oldList.splice(oldList.indexOf(bestMatch.a), 1);
+        toMatch.splice(toMatch.indexOf(bestMatch.b), 1);
+      }
+    }
+
+    for (const c of oldList) {
+      containers[nextRootContainerId--] = c; // save them just in case the container is found in the future
+    }
+  }
+
+  // add missing containers and update container data and items\
+  for (const [n, id] of Object.entries(listContainers.root)) {
+    if (!containers[id]) {
+      containers[id] = {
+        expanded: true,
+        name: n
+      }
+    }
+  }
+  for (const d of list) {
+    const ch = listContainers.children[d.id]
+    if (!ch) continue // not a container
+    if (!containers[d.id]) {
+      containers[d.id] = {
+        expanded: true,
+        name: d.n
+      }
+    }
+    const toBasic = (d: ItemData): BasicItemData => ({ n: d.n, q: d.q, v: d.v })
+    containers[d.id].data = toBasic(d)
+    containers[d.id].items = ch.map(toBasic)
+  }
+
+  // create tree
+  function getList(id: string): InventoryList<InventoryTree<ItemData>> {
+    const items = listContainers.children[id]
     if (!items) return undefined
 
     return {
-      expanded: true,
+      expanded: containers[id].expanded,
       sortType: SORT_NAME_ASCENDING,
       items: items.map((d) => ({
         data: d,
-        name: d.n,
-        list: getList(r[`${d.n};${d.id}`])
+        name: containers[d.id]?.name ?? d.n,
+        list: getList(d.id)
       })),
       stats: undefined
     }
   }
 
-  let id = -1
-  return Object.entries(r).filter(([c, _]) => c.endsWith(';0')).map(([c, items]) => ({
+  const resultItems = Object.entries(listContainers.root).map(([name, id]) => ({
     data: {
-      id: (id--).toString(),
+      id,
       q: '',
       v: '',
       n: '',
       c: ''
     },
-    name: c.split(';')[0],
-    list: getList(items)
+    name,
+    list: getList(id)
   }))
+
+  return { items: resultItems, containers }
 }
 
 const loadInventory = (
@@ -240,13 +369,14 @@ const loadInventory = (
     items: getAvailable(list, state.availableCriteria),
   }),
   byStore: (() => {
-    const items = getByStore(list);
+    const { items, containers } = getByStore(list, state.byStore.containers);
     const originalList = {
       ...state.byStore.originalList,
       items
     }
     return {
       ...state.byStore,
+      containers,
       originalList,
       showList: applyByStoreFilter(originalList, state.byStore.filter),
     }
@@ -358,34 +488,60 @@ const applyByStoreItemsChange = (
   items: Array<InventoryTree<ItemData>>,
   id: string,
   f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
-): Array<InventoryTree<ItemData>> => items.map((tree) => tree.data.id === id ? f(tree) : {
-  ...tree,
-  list: tree.list ? {
-    ...tree.list,
-    items: applyByStoreItemsChange(tree.list.items, id, f)
-  } : undefined
-})
+): { items: Array<InventoryTree<ItemData>>, tree: InventoryTree<ItemData> } => {
+  let resultTree = undefined
+  const resultItems = []
+  for (const tree of items) {
+    if (tree.data.id === id) {
+      resultTree = f(tree)
+      resultItems.push(resultTree)
+    } else if (tree.list) {
+      const { items: newItems, tree: newTree } = applyByStoreItemsChange(tree.list.items, id, f)
+      if (!resultTree) {
+        resultTree = newTree
+      }
+      resultItems.push({
+        ...tree,
+        list: {
+          ...tree.list,
+          items: newItems
+        }
+      })
+    } else {
+      resultItems.push(tree)
+    }
+  }
+  return {
+    items: resultItems,
+    tree: resultTree
+  }
+}
 
 const applyByStoreStateChange = (
   state: InventoryState,
   id: string,
-  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
-): InventoryState => ({
-  ...state,
-  byStore: {
-    ...state.byStore,
-    showList: {
-      ...state.byStore.showList,
-      items: applyByStoreItemsChange(state.byStore.showList.items, id, f)
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
+  g?: ((i: InventoryTree<ItemData>, j: ContainerMapDataItem) => ContainerMapDataItem)
+): InventoryState => {
+  const { items, tree } = applyByStoreItemsChange(state.byStore.showList.items, id, f)
+  return {
+    ...state,
+    byStore: {
+      ...state.byStore,
+      showList: {
+        ...state.byStore.showList,
+        items
+      },
+      containers: g && state.byStore.containers[id] ? { ...state.byStore.containers, [id]: g(tree, state.byStore.containers[id]) } : state.byStore.containers
     }
   }
-})
+}
 
 const setByStoreItemExpanded = (
   state: InventoryState,
   id: string,
   expanded: boolean
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }))
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (t, s) => ({ ...s, expanded }))
 
 const startByStoreItemNameEditing = (
   state: InventoryState,
@@ -395,7 +551,7 @@ const startByStoreItemNameEditing = (
 const confirmByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.name.length > 0 ? t.name : t.data.n }))
+): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.name.length > 0 ? t.name : t.data.n }), (t,s) => ({ ...s, name: t.name }))
 
 const cancelByStoreItemNameEditing = (
   state: InventoryState,
@@ -453,7 +609,7 @@ const applyByStoreFilter = (
       ...tree,
       list: tree.list ? applyByStoreFilter(tree.list, filter) : undefined
     }))
-    .filter((tree) => multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
+    .filter((tree) => multiIncludes(filter, tree.name) || tree.list && tree.list.items.length > 0);
 
   const sum = items.reduce(
     (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),
@@ -609,11 +765,20 @@ const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> 
   stats: undefined
 });
 
-const cleanForSaveInventoryListWithFilter = <D>(list: InventoryListWithFilter<D>): InventoryListWithFilter<D> => ({
+const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<any>>(list: L): L=> ({
   ...list,
   showList: undefined,
   originalList: cleanForSaveInventoryList(list.originalList)
 })
+
+const cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
+  const map = { }
+  for (const [id, c] of Object.entries(containers)) {
+    if (c.expanded && (!c.data || c.name === c.data.n)) continue // default data
+    map[id] = c
+  }
+  return map;
+}
 
 const cleanForSave = (state: InventoryState): InventoryState => ({
   // remove what will be reconstructed in loadInventory
@@ -622,7 +787,7 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   visible: cleanForSaveInventoryListWithFilter(state.visible),
   hidden: cleanForSaveInventoryListWithFilter(state.hidden),
   hiddenCriteria: state.hiddenCriteria,
-  byStore: cleanForSaveInventoryListWithFilter(state.byStore),
+  byStore: { ...cleanForSaveInventoryListWithFilter(state.byStore), containers: cleanForSaveContainers(state.byStore.containers) },
   available: cleanForSaveInventoryList(state.available),
   availableCriteria: state.availableCriteria,
   ttService: cleanForSaveInventoryList(state.ttService)

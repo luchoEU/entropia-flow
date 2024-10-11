@@ -2,7 +2,7 @@ import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing } from '../../application/actions/inventory'
-import { InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
+import { InventoryByStore, InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
 import SearchInput from '../common/SearchInput'
@@ -78,7 +78,7 @@ const ItemRow = (p: {
 }
 
 const InventoryByStoreList = (p: {
-    inv: InventoryListWithFilter<InventoryTree<ItemData>>
+    inv: InventoryByStore
 }) => {
     const { inv } = p
 
