@@ -198,7 +198,7 @@ const setBudgetState = (state: CraftState, name: string, stage: number): CraftSt
     changeBudget(state, name, { stage } )
 
 const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => {
-    let blueprints: BlueprintData[] = []    
+    let blueprints: BlueprintData[] = []
     for (let bp of state.blueprints) {
         if (bp.name !== name) {
             blueprints.push(bp)

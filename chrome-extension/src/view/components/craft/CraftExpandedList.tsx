@@ -155,6 +155,10 @@ function CraftSingle(p: {
         }
     }
 
+    // temporary hide this columns that I don't use
+    budgetMap = undefined
+    bought = undefined
+
     return (
         <>
             <section>
@@ -172,7 +176,7 @@ function CraftSingle(p: {
                                     className='img-delta-zero'
                                     onClick={() => dispatch(reloadBlueprint(d.name))} /></p> :
                                 <>
-                                <p>Budget Page: {d.budget.loading ?
+                                <p>Budget Page: { d.budget.loading ?
                                     <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
                                     <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
                                 }</p>
@@ -190,10 +194,10 @@ function CraftSingle(p: {
                                             <th>Type</th>
                                             <th>Available</th>
                                             <th>Clicks</th>
-                                            { markupMap ? <th>Markup</th> : <></> }
-                                            { budgetMap ? <th>Budget</th> : <></> }
-                                            { session ? <th>Difference</th> : <></> }
-                                            { bought ? <th>Bought</th> : <></> }
+                                            { markupMap && <th>Markup</th> }
+                                            { budgetMap && <th>Budget</th> }
+                                            { session && <th>Difference</th> }
+                                            { bought && <th>Bought</th> }
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -206,24 +210,24 @@ function CraftSingle(p: {
                                                     <td>{m.type}</td>
                                                     <td align='right'>{m.available}</td>
                                                     <td align='right'>{m.clicks}</td>
-                                                    { markupMap ? <td align='right'>{markupMap[m.name]}</td> : <></> }
-                                                    { budgetMap ? <td align='right'>{budgetMap[m.name]}</td> : <></> }
-                                                    { session ? <td align="right">{session[m.name]}</td> : <></> }                                                
+                                                    { markupMap && <td align='right'>{markupMap[m.name]}</td> }
+                                                    { budgetMap && <td align='right'>{budgetMap[m.name]}</td> }
+                                                    { session && <td align="right">{session[m.name]}</td> }
                                                     {
-                                                        bought !== undefined && bought[m.name] ?
-                                                            d.budget.loading ? <td><img className='img-loading' src='img/loading.gif' /></td> :
+                                                        bought !== undefined && bought[m.name] &&
                                                             <td>
-                                                                <input
-                                                                    type='text'
-                                                                    value={bought[m.name].value}
-                                                                    className='input-budget-buy'
-                                                                    onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
-                                                                PED <button
-                                                                    onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text, bought[m.name].finalValue, bought[m.name].quantity))}>
-                                                                    {`${bought[m.name].text} ${Math.abs(bought[m.name].quantity)}`}</button>
-                                                                {
-                                                                    bought[m.name].showFee ?
-                                                                    <>
+                                                            { d.budget.loading ?
+                                                                <img className='img-loading' src='img/loading.gif' /> :
+                                                                <>
+                                                                    <input
+                                                                        type='text'
+                                                                        value={bought[m.name].value}
+                                                                        className='input-budget-buy'
+                                                                        onChange={(e) => dispatch(changeBudgetPageBuyCost(d.name, m.name, e.target.value))} />
+                                                                    PED <button
+                                                                        onClick={() => dispatch(buyBudgetPageMaterial(d.name, m.name, bought[m.name].text, bought[m.name].finalValue, bought[m.name].quantity))}>
+                                                                        {`${bought[m.name].text} ${Math.abs(bought[m.name].quantity)}`}</button>
+                                                                    { bought[m.name].showFee && <>
                                                                         <input
                                                                             id='withFeeCheck'
                                                                             type='checkbox'
@@ -231,16 +235,16 @@ function CraftSingle(p: {
                                                                             onChange={(e) => dispatch(changeBudgetPageBuyFee(d.name, m.name, e.target.checked))} />
                                                                         <label htmlFor="withFeeCheck">Fee</label>
                                                                             &nbsp;{bought[m.name].fee}
-                                                                </> : <></>
-                                                                }
-                                                            </td> : <></>
+                                                                    </> }
+                                                                </>}
+                                                            </td>
                                                     }
                                                 </tr>)
                                         }
                                     </tbody>
                                 </table>
                                 {
-                                    d.inventory === undefined ? <></> :
+                                    d.inventory &&
                                     <>
                                         <p>Clicks available: {d.inventory.clicksAvailable}</p>
                                         <p>Click TT cost: {d.inventory.clickTTCost.toFixed(2)} PED</p>
