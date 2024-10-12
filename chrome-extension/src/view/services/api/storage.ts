@@ -22,7 +22,8 @@ import {
     STORAGE_VIEW_MATERIALS,
     STORAGE_VIEW_GAME_LOG,
     STORAGE_VIEW_CONNECTION,
-    STORAGE_VIEW_BUDGET
+    STORAGE_VIEW_BUDGET,
+    STORAGE_VIEW_INVENTORY_BY_STORE
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -43,6 +44,21 @@ import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
 import { UseState } from "../../application/state/use";
+
+import pako from 'pako';
+
+function _compress(json: object): string {
+    const jsonString = JSON.stringify(json);
+    const compressed = pako.deflate(jsonString, { to: 'string' });
+    return Buffer.from(compressed).toString('base64');
+}
+
+function _uncompress(compressed: any): any {
+    if (!compressed) return compressed
+    const compressedData = Buffer.from(compressed, 'base64');
+    const uncompressed = pako.inflate(compressedData, { to: 'string' });
+    return JSON.parse(uncompressed);
+}
 
 async function saveMenu(menu: number) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_MENU, menu)
@@ -172,6 +188,15 @@ async function loadInventoryState(): Promise<InventoryState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_INVENTORY)
 }
 
+async function saveInventoryByStoreState(state: InventoryState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_INVENTORY_BY_STORE, _compress(state))
+}
+
+async function loadInventoryByStoreState(): Promise<InventoryState> {
+    var compressedState = await LOCAL_STORAGE.get(STORAGE_VIEW_INVENTORY_BY_STORE)
+    return _uncompress(compressedState)
+}
+
 async function saveCraft(state: CraftState) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_CRAFT, state)
 }
@@ -260,6 +285,8 @@ export default {
     loadStream,
     saveInventoryState,
     loadInventoryState,
+    saveInventoryByStoreState,
+    loadInventoryByStoreState,
     saveCraft,
     loadCraft,
     saveMaterials,

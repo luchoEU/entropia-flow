@@ -2,17 +2,21 @@ import { mergeDeep } from "../../../common/utils"
 import { REMOVE_ACTIVE } from "../actions/actives"
 import { ADD_AVAILABLE, CANCEL_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, loadInventoryState, SET_AUCTION_EXPANDED, SET_AVAILABLE_EXPANDED, SET_BLUEPRINTS_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_FILTER, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_ITEM_NAME, SET_HIDDEN_EXPANDED, SET_HIDDEN_FILTER, SET_TT_SERVICE_EXPANDED, SET_VISIBLE_EXPANDED, SET_VISIBLE_FILTER, SHOW_ALL, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SORT_AUCTION_BY, SORT_AVAILABLE_BY, SORT_HIDDEN_BY, SORT_VISIBLE_BY, START_BY_STORE_ITEM_NAME_EDITING } from "../actions/inventory"
 import { PAGE_LOADED } from "../actions/ui"
-import { cleanForSave, initialState } from "../helpers/inventory"
+import { cleanForSave, cleanForSaveByStore, initialState } from "../helpers/inventory"
 import { getInventory } from "../selectors/inventory"
-import { InventoryState } from "../state/inventory"
+import { InventoryByStore, InventoryState } from "../state/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
             const state: InventoryState = await api.storage.loadInventoryState()
-            if (state)
+            if (state) {
+                const byStore: InventoryByStore = await api.storage.loadInventoryByStoreState()
+                if (byStore)
+                    state.byStore = byStore
                 dispatch(loadInventoryState(mergeDeep(initialState, state)))
+            }
             break
         }
         case SET_AUCTION_EXPANDED:
@@ -23,13 +27,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_HIDDEN_EXPANDED:
         case SET_HIDDEN_FILTER:
         case SET_BLUEPRINTS_EXPANDED:
-        case SET_BY_STORE_EXPANDED:
-        case SET_BY_STORE_ITEM_EXPANDED:
-        case SET_BY_STORE_FILTER:
-        case START_BY_STORE_ITEM_NAME_EDITING:
-        case CONFIRM_BY_STORE_ITEM_NAME_EDITING:
-        case CANCEL_BY_STORE_ITEM_NAME_EDITING:
-        case SET_BY_STORE_ITEM_NAME:
         case SORT_AUCTION_BY:
         case SORT_VISIBLE_BY:
         case SORT_HIDDEN_BY:
@@ -45,6 +42,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REMOVE_ACTIVE: {
             const state: InventoryState = getInventory(getState())
             await api.storage.saveInventoryState(cleanForSave(state))
+            break
+        }
+        case SET_BY_STORE_EXPANDED:
+        case SET_BY_STORE_ITEM_EXPANDED:
+        case SET_BY_STORE_FILTER:
+        case START_BY_STORE_ITEM_NAME_EDITING:
+        case CONFIRM_BY_STORE_ITEM_NAME_EDITING:
+        case CANCEL_BY_STORE_ITEM_NAME_EDITING:
+        case SET_BY_STORE_ITEM_NAME: {
+            const state: InventoryByStore = getInventory(getState()).byStore
+            await api.storage.saveInventoryByStoreState(cleanForSaveByStore(state))
             break
         }
     }

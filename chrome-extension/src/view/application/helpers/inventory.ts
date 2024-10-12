@@ -472,7 +472,7 @@ const setBlueprintsExpanded = (
   },
 })
 
-const setByStoreExpanded = (
+const reduceSetByStoreInventoryExpanded = (
   state: InventoryState,
   expanded: boolean
 ): InventoryState => ({
@@ -486,7 +486,7 @@ const setByStoreExpanded = (
   }
 })
 
-const applyByStoreItemsChange = (
+const _applyByStoreItemsChange = (
   items: Array<InventoryTree<ItemData>>,
   id: string,
   f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
@@ -498,7 +498,7 @@ const applyByStoreItemsChange = (
       resultTree = f(tree)
       resultItems.push(resultTree)
     } else if (tree.list) {
-      const { items: newItems, tree: newTree } = applyByStoreItemsChange(tree.list.items, id, f)
+      const { items: newItems, tree: newTree } = _applyByStoreItemsChange(tree.list.items, id, f)
       if (!resultTree) {
         resultTree = newTree
       }
@@ -519,13 +519,13 @@ const applyByStoreItemsChange = (
   }
 }
 
-const applyByStoreStateChange = (
+const _applyByStoreStateChange = (
   state: InventoryState,
   id: string,
   f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
   g?: ((i: InventoryTree<ItemData>, j: ContainerMapDataItem) => ContainerMapDataItem)
 ): InventoryState => {
-  const { items, tree } = applyByStoreItemsChange(state.byStore.showList.items, id, f)
+  const { items, tree } = _applyByStoreItemsChange(state.byStore.showList.items, id, f)
   return {
     ...state,
     byStore: {
@@ -539,32 +539,32 @@ const applyByStoreStateChange = (
   }
 }
 
-const setByStoreItemExpanded = (
+const reduceSetByStoreItemExpanded = (
   state: InventoryState,
   id: string,
   expanded: boolean
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (t, s) => ({ ...s, expanded }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (t, s) => ({ ...s, expanded }))
 
-const startByStoreItemNameEditing = (
+const reduceStartByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: { originalName: t.name} }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, editing: { originalName: t.name} }))
 
-const confirmByStoreItemNameEditing = (
+const reduceConfirmByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.name.length > 0 ? t.name : t.data.n }), (t,s) => ({ ...s, name: t.name }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.name.length > 0 ? t.name : t.data.n }), (t,s) => ({ ...s, name: t.name }))
 
-const cancelByStoreItemNameEditing = (
+const reduceCancelByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.editing.originalName }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, editing: undefined, name: t.editing.originalName }))
 
-const setByStoreItemName = (
+const reduceSetByStoreItemName = (
   state: InventoryState,
   id: string,
   name: string
-): InventoryState => applyByStoreStateChange(state, id, t => ({ ...t, name }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, name }))
 
 const setVisibleFilter = (
   state: InventoryState,
@@ -590,7 +590,7 @@ const setHiddenFilter = (
   }
 })
 
-const setByStoreInventoryFilter = (
+const reduceSetByStoreInventoryFilter = (
   state: InventoryState,
   filter: string
 ): InventoryState => ({
@@ -789,11 +789,16 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   visible: cleanForSaveInventoryListWithFilter(state.visible),
   hidden: cleanForSaveInventoryListWithFilter(state.hidden),
   hiddenCriteria: state.hiddenCriteria,
-  byStore: { ...cleanForSaveInventoryListWithFilter(state.byStore), containers: cleanForSaveContainers(state.byStore.containers) },
+  byStore: undefined, // saved independently because it is too big
   available: cleanForSaveInventoryList(state.available),
   availableCriteria: state.availableCriteria,
   ttService: cleanForSaveInventoryList(state.ttService)
 });
+
+const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
+  ...cleanForSaveInventoryListWithFilter(state),
+  containers: cleanForSaveContainers(state.containers)
+})
 
 export {
   initialState,
@@ -808,13 +813,13 @@ export {
   setHiddenExpanded,
   setHiddenFilter,
   setBlueprintsExpanded,
-  setByStoreExpanded,
-  setByStoreItemExpanded,
-  setByStoreInventoryFilter,
-  startByStoreItemNameEditing,
-  confirmByStoreItemNameEditing,
-  cancelByStoreItemNameEditing,
-  setByStoreItemName,
+  reduceSetByStoreInventoryExpanded,
+  reduceSetByStoreItemExpanded,
+  reduceSetByStoreInventoryFilter,
+  reduceStartByStoreItemNameEditing,
+  reduceConfirmByStoreItemNameEditing,
+  reduceCancelByStoreItemNameEditing,
+  reduceSetByStoreItemName,
   sortAuctionBy,
   sortVisibleBy,
   sortHiddenBy,
@@ -831,4 +836,5 @@ export {
   joinDuplicates,
   removeAvailable,
   cleanForSave,
+  cleanForSaveByStore,
 };
