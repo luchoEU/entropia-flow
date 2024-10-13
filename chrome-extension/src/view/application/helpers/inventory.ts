@@ -618,7 +618,7 @@ const applyByStoreFilter = (
   filter: string,
   expandedOnFilter?: boolean
 ): InventoryList<InventoryTree<ItemData>> => {
-  const items = list.items
+  let items = list.items
     .map((tree) => ({
       ...tree,
       list: tree.list ? applyByStoreFilter(tree.data.id, tree.list, containers, filter, expandedOnFilter) : undefined,
@@ -630,6 +630,18 @@ const applyByStoreFilter = (
     (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),
     0,
   );
+
+  // add list own item value to its contained ped total
+  items = items.map((tree) => tree.list && tree.showItemValueRow ? {
+    ...tree,
+    list: {
+      ...tree.list,
+      stats: {
+        ...tree.list.stats,
+        ped: (Number(tree.list.stats.ped) + Number(tree.data.v)).toFixed(2)
+      }
+    }
+  } : tree);
 
   const expanded = filter ?
     expandedOnFilter ?? containers[id]?.expandedOnFilter ?? true :
