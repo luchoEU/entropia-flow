@@ -329,7 +329,8 @@ const getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { i
       items: items.map((d) => ({
         data: d,
         name: containers[d.id]?.name ?? d.n,
-        list: getList(d.id)
+        list: getList(d.id),
+        showItemValueRow: true
       })),
       stats: undefined
     }
@@ -620,9 +621,10 @@ const applyByStoreFilter = (
   const items = list.items
     .map((tree) => ({
       ...tree,
-      list: tree.list ? applyByStoreFilter(tree.data.id, tree.list, containers, filter, expandedOnFilter) : undefined
+      list: tree.list ? applyByStoreFilter(tree.data.id, tree.list, containers, filter, expandedOnFilter) : undefined,
+      showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.name)
     }))
-    .filter((tree) => multiIncludes(filter, tree.name) || tree.list && tree.list.items.length > 0);
+    .filter((tree) => multiIncludes(filter, tree.name) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
 
   const sum = items.reduce(
     (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),

@@ -17,6 +17,7 @@ interface InventoryTree<T> {
   }
   name: string
   list?: InventoryList<InventoryTree<T>>
+  showItemValueRow?: boolean
 }
 
 interface InventoryListWithFilter<T> {

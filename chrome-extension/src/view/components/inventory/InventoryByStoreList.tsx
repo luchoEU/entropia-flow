@@ -11,10 +11,9 @@ const INDENT_SPACE = 10
 
 const ItemRow = (p: {
     tree: InventoryTree<ItemData>
-    space: number,
-    inSearch: boolean
+    space: number
 }) => {
-    const { tree, space, inSearch } = p
+    const { tree, space } = p
     const dispatch = useDispatch()
     const expand = setByStoreItemExpanded(tree.data.id)
     const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
@@ -59,19 +58,19 @@ const ItemRow = (p: {
                     </>
                 }
             </tr>
-            { tree.list?.expanded ?
+            { tree.list?.expanded &&
                 <>
-                    { !inSearch && tree.data.q === '1' ?
+                    { tree.showItemValueRow &&
                         <tr>
                             <td style={{ paddingLeft: space + INDENT_SPACE }}>({ tree.data.n === tree.name ? 'item': tree.data.n } value)</td>
                             <td></td>
                             <td align='right'>{tree.data.v + ' PED'}</td>
-                        </tr> : <></>
+                        </tr>
                     }
                     { tree.list.items.map((item: InventoryTree<ItemData>) =>
-                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} inSearch={inSearch} />
+                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} />
                     )}
-                </> : <></>
+                </>
             }
         </>
     )
@@ -96,8 +95,7 @@ const InventoryByStoreList = (p: {
                                 <ItemRow
                                     key={item.data.id}
                                     tree={item}
-                                    space={0}
-                                    inSearch={inv.filter?.length > 0} />
+                                    space={0} />
                             )
                         }
                     </tbody>
