@@ -211,12 +211,11 @@ const getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { i
 
   // update the id in containers based on data and items
   const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
-    if (c.data) { // root containers don't have data
-      if (!st[c.data.n]) {
-        st[c.data.n] = [];
-      }
-      st[c.data.n].push(c);
+    const name = c.data ? c.data.n : c.name; // root containers don't have data
+    if (!st[name]) {
+      st[name] = [];
     }
+    st[name].push(c);
     return st;
   }, {} as { [name: string]: Array<ContainerMapDataItem> });
 
@@ -380,7 +379,7 @@ const loadInventory = (
       ...state.byStore,
       containers,
       originalList,
-      showList: applyByStoreFilter(originalList, state.byStore.filter),
+      showList: applyByStoreFilter('', originalList, state.byStore.containers, state.byStore.filter),
     }
   })()
 });
@@ -543,7 +542,7 @@ const reduceSetByStoreItemExpanded = (
   state: InventoryState,
   id: string,
   expanded: boolean
-): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (t, s) => ({ ...s, expanded }))
+): InventoryState => _applyByStoreStateChange(state, id, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (_, s) => state.byStore.filter ? { ...s, expandedOnFilter: expanded } : { ...s, expanded })
 
 const reduceStartByStoreItemNameEditing = (
   state: InventoryState,
@@ -593,23 +592,35 @@ const setHiddenFilter = (
 const reduceSetByStoreInventoryFilter = (
   state: InventoryState,
   filter: string
-): InventoryState => ({
+): InventoryState => filter === undefined || filter.length === 0 ? {
+  ...state,
+  byStore: {
+    ...state.byStore,
+    filter: undefined,
+    showList: applyByStoreFilter('', state.byStore.originalList, state.byStore.containers, undefined),
+    containers: Object.fromEntries(
+      Object.entries(state.byStore.containers).map(([k, v]) => [k, { ...v, expandedOnFilter: undefined }]))
+  },
+} : {
   ...state,
   byStore: {
     ...state.byStore,
     filter,
-    showList: applyByStoreFilter(state.byStore.originalList, filter)
+    showList: applyByStoreFilter('', state.byStore.originalList, state.byStore.containers, filter, true)
   }
-})
+}
 
 const applyByStoreFilter = (
+  id: string,
   list: InventoryList<InventoryTree<ItemData>>,
-  filter: string
+  containers: ContainerMapData,
+  filter: string,
+  expandedOnFilter?: boolean
 ): InventoryList<InventoryTree<ItemData>> => {
   const items = list.items
     .map((tree) => ({
       ...tree,
-      list: tree.list ? applyByStoreFilter(tree.list, filter) : undefined
+      list: tree.list ? applyByStoreFilter(tree.data.id, tree.list, containers, filter, expandedOnFilter) : undefined
     }))
     .filter((tree) => multiIncludes(filter, tree.name) || tree.list && tree.list.items.length > 0);
 
@@ -618,9 +629,13 @@ const applyByStoreFilter = (
     0,
   );
 
+  const expanded = filter ?
+    expandedOnFilter ?? containers[id]?.expandedOnFilter ?? true :
+    list.expanded;
+
   return {
     ...list,
-    expanded: true,
+    expanded,
     items,
     stats: {
       count: items.length,
@@ -776,7 +791,7 @@ const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<a
 const cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
   const map = { }
   for (const [id, c] of Object.entries(containers)) {
-    if (c.expanded && (!c.data || c.name === c.data.n)) continue // default data
+    if (c.expanded && c.expandedOnFilter !== false && (!c.data || c.name === c.data.n)) continue // default data
     map[id] = c
   }
   return map;

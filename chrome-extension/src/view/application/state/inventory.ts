@@ -20,7 +20,7 @@ interface InventoryTree<T> {
 }
 
 interface InventoryListWithFilter<T> {
-  filter: string
+  filter?: string
   showList: InventoryList<T>
   originalList: InventoryList<T>
 }
@@ -34,6 +34,7 @@ type ContainerMapData = { [id: string] : ContainerMapDataItem };
 interface ContainerMapDataItem {
   name: string;
   expanded: boolean;
+  expandedOnFilter?: boolean;
   data: BasicItemData; // data and items can be used the get the id in a new load
   items: Array<BasicItemData>;
 }
