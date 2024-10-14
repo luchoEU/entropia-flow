@@ -1,3 +1,4 @@
+import { STRING_WAIT_3_MINUTES } from '../../../common/const'
 import { ViewState } from '../../../common/state'
 import { setConnectionStatus } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
@@ -38,7 +39,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             api.messages.initMessageClient(refreshViewHandler(dispatch))
             break
         }
-        case REFRESH: { api.messages.requestRefresh(); break }
+        case REFRESH: {
+            const history: HistoryState = getHistory(getState())
+            const forced = history.list.length > 0 && history.list[0].text.endsWith(STRING_WAIT_3_MINUTES)
+            api.messages.requestRefresh(forced);
+            break
+        }
         case SET_LAST: {
             const history: HistoryState = getHistory(getState())
             if (history.list.length > 0)

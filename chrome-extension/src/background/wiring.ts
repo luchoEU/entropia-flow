@@ -116,8 +116,8 @@ async function wiring(
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff()
     }
     viewPortManager.handlers = {
-        [MSG_NAME_REQUEST_NEW]: async (m: { tag: any }) => {
-            await refreshManager.manualRefresh(m.tag) // manual request by user
+        [MSG_NAME_REQUEST_NEW]: async (m: { tag: any, forced: boolean }) => {
+            await refreshManager.manualRefresh(m.tag, m.forced) // manual request by user
         },
         [MSG_NAME_REQUEST_SET_LAST]: async (m: { tag: any, last: number }) => {
             await viewSettings.setLast(m.last)

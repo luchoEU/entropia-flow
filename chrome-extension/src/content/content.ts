@@ -7,12 +7,16 @@ import {
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_REQUEST_TIMER_OFF,
-    MSG_NAME_REQUEST_TIMER_ON
+    MSG_NAME_REQUEST_TIMER_ON,
+    CLASS_ERROR,
+    STRING_WAIT_3_MINUTES,
+    NORMAL_WAIT_SECONDS
 } from '../common/const'
 import { traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
+import { makeLogInventory } from '../common/state'
 
 // Main function that runs in Entropia Universe website
 
@@ -43,6 +47,22 @@ class ContentInitializer {
             MSG_NAME_REGISTER_CONTENT,
             PORT_NAME_BACK_CONTENT, {
             [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
+                if (!m.forced) {
+                    const now = new Date().getTime()
+                    const time = now - ContentInitializer.itemsLoadedTime;
+                    const seconds = time / 1000;
+                    if (seconds < NORMAL_WAIT_SECONDS) {
+                        const waitSeconds = Math.ceil(NORMAL_WAIT_SECONDS - seconds);
+                        return {
+                            name: MSG_NAME_NEW_INVENTORY,
+                            inventory: {
+                                ...makeLogInventory(CLASS_ERROR, STRING_WAIT_3_MINUTES),
+                                waitSeconds
+                            }
+                        }
+                    }
+                }
+
                 ContentInitializer.itemsLoadingTime = new Date().getTime();
                 traceStart('Refresh item received')
                 const inventory = await itemReader.requestItemsAjax(m.waitSeconds)

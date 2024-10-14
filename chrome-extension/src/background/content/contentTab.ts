@@ -34,8 +34,8 @@ class ContentTabManager implements IContentTab {
         return await this.requestItems(MSG_NAME_REFRESH_ITEMS_HTML, { })
     }
 
-    public async requestItemsAjax(tag?: any, waitSeconds?: number): Promise<string> {
-        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds })
+    public async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
+        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds, forced })
     }
 
     private async requestItems(name: string, data: object): Promise<string> {

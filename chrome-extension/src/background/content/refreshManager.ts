@@ -7,7 +7,7 @@ import AlarmSettings from "../settings/alarmSettings";
 interface IContentTab {
     setStatus(isMonitoring: boolean): Promise<void>
     requestItemsHtml(): Promise<string>
-    requestItemsAjax(tag?: any, waitSeconds?: number): Promise<string>
+    requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
     onConnected: () => Promise<void>
     onDisconnected: () => Promise<void>
 }
@@ -58,8 +58,8 @@ class RefreshManager {
         await this.handleRequestResult(await this.contentTab.requestItemsHtml())
     }
 
-    private async requestItemsAjax(tag?: any, waitSeconds?: number) {
-        const message = await this.contentTab.requestItemsAjax(tag, waitSeconds)
+    private async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean) {
+        const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
         await this.handleRequestResult(message)
     }
 
@@ -132,9 +132,9 @@ class RefreshManager {
         await this._setViewStatus()
     }
 
-    public async manualRefresh(tag?: any) {
+    public async manualRefresh(tag?: any, forced?: boolean) {
         await this.ajaxAlarm?.end()
-        await this.requestItemsAjax(tag, AFTER_MANUAL_WAIT_SECONDS)
+        await this.requestItemsAjax(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
     }
 
     public async getAlarmStatus(): Promise<Status> {

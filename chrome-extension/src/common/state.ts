@@ -67,10 +67,7 @@ function setMockDate(date: number) {
 }
 
 function makeLogInventory(_class: string, message: string): Inventory {
-    let date = (new Date()).getTime()
-    if (mockDate !== undefined)
-        date = mockDate
-
+    let date = mockDate ? mockDate : new Date().getTime()
     return {
         log: { class: _class, message },
         meta: { date }

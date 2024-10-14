@@ -13,8 +13,8 @@ function initMessageClient(refreshViewHandler: PortHandler) {
     })
 }
 
-function requestRefresh(): boolean {
-    return messagesClient.send(MSG_NAME_REQUEST_NEW, { tag: { requested: true } })
+function requestRefresh(forced: boolean): boolean {
+    return messagesClient.send(MSG_NAME_REQUEST_NEW, { tag: { requested: true }, forced })
 }
 
 function requestSetLast(addTag: boolean, last: number): boolean {
