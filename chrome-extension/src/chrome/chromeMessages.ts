@@ -6,16 +6,18 @@ import { IPort, PortHandlers } from './IPort'
 
 //// Utils ////
 
-function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers) {
+function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, className: string, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
+        trace(`${className}._setListener received: '${m.name}' ${endPointName}`)
         const handler = handlerMap[m.name]
         if (handler) {
             const response = await handler(m)
             if (response && response.name) {
                 try {
+                    trace(`${className}._setListener response: '${response.name}' ${endPointName}`)
                     p.postMessage(response)
                 } catch (e) {
-                    trace('_setListener exception:')
+                    trace(`${className}._setListener exception:`)
                     traceData(e)
                 }
             }
@@ -38,9 +40,10 @@ class ChromeMessagesClient {
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
                 trace(`ChromeMessagesClient connected: port '${portName}' registerName '${this.registerName}'`)
-                _setListener(port, handlerMap)
+                _setListener(port, handlerMap, 'ChromeMessagesClient', `registerName '${registerName}'`)
                 this.port = port
                 if (this.pendingMesssage) {
+                    trace(`ChromeMessagesClient.send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)
                     this.port.postMessage(this.pendingMesssage)
                     this.pendingMesssage = undefined
                 }
@@ -74,6 +77,7 @@ class ChromeMessagesClient {
         }
 
         try {
+            trace(`ChromeMessagesClient.send: '${name}' on registerName '${this.registerName}'`)
             this.port.postMessage({ name, ...data })
         } catch (e) {
             this.port = undefined
@@ -95,7 +99,7 @@ class ChromeMessagesHub {
     public connect(tabId: number, portName: string, handlers: PortHandlers): IPort {
         const port = chrome.tabs.connect(tabId, { name: portName })
         trace(`ChromeMessagesHub connected: tab ${tabId} port '${portName}'`)
-        _setListener(port, handlers)
+        _setListener(port, handlers, 'ChromeMessagesHub', `port '${portName}'`)
         return new ChromePort(tabId, port)
     }
 
