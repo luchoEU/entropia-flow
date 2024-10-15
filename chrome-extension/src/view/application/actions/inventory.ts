@@ -21,6 +21,7 @@ const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
+const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_AVAILABLE_BY = "[inv] sort available by"
 const SORT_TT_SERVICE_BY = "[inv] sort tt service by"
 const RELOAD_TT_SERVICE = "[inv] reload tt service"
@@ -176,6 +177,13 @@ const sortHiddenBy = (part: number) => ({
     }
 })
 
+const sortByStoreBy = (part: number) => ({
+    type: SORT_BY_STORE_BY,
+    payload: {
+        part
+    }
+})
+
 const sortAvailableBy = (part: number) => ({
     type: SORT_AVAILABLE_BY,
     payload: {
@@ -275,6 +283,7 @@ export {
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
+    SORT_BY_STORE_BY,
     SORT_AVAILABLE_BY,
     SORT_TT_SERVICE_BY,
     RELOAD_TT_SERVICE,
@@ -307,6 +316,7 @@ export {
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
+    sortByStoreBy,
     sortAvailableBy,
     sortTTServiceBy,
     reloadTTService,

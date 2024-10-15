@@ -215,8 +215,14 @@ form label {
 
 .table-diff tr td:hover img,
 .table-diff-row tr:hover td img,
-.table-diff tr td img[data-show] {
+.table-diff tr td img[data-show],
+tr.sort-row td img {
     display: inline;
+}
+
+tr.sort-row td img {
+    width: 8px;
+    height: 8px;
 }
 
 .table-diff tr td input {

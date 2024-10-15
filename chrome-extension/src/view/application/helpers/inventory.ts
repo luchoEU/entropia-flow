@@ -62,35 +62,6 @@ const initialState: InventoryState = {
 const visibleSelect = (x: ItemData): ItemData => x;
 const hiddenSelect = (x: ItemHidden): ItemData => x.data;
 
-function sortAndStats<D>(
-  select: (d: D) => ItemData,
-  list: InventoryList<D>,
-): InventoryList<D> {
-  sortListSelect(list.items, list.sortType, select);
-  const sum = list.items.reduce(
-    (partialSum, d) => partialSum + Number(select(d).v),
-    0,
-  );
-  list.stats = {
-    count: list.items.length,
-    ped: sum.toFixed(2),
-  };
-  return list;
-}
-
-function sortAndStatsWithFilter<D>(
-  select: (d: D) => ItemData,
-  inv: InventoryListWithFilter<D>,
-  items: Array<D>
-): InventoryListWithFilter<D> {
-  const originalList = sortAndStats(select, { ...inv.originalList, items });
-  return {
-    ...inv,
-    originalList,
-    showList: applyListFilter(originalList, inv.filter, select),
-  }
-}
-
 function multiIncludes(multiSearch: string, mainStr: string): boolean {
   if (!multiSearch || multiSearch.length == 0)
     return true;
@@ -356,32 +327,32 @@ const loadInventory = (
   list: Array<ItemData>,
 ): InventoryState => ({
   ...state,
-  blueprints: sortAndStats((x) => x, {
+  blueprints: sortAndStats({
     ...state.blueprints,
     items: getBlueprints(list),
-  }),
-  auction: sortAndStats((x) => x, {
+  }, (x) => x),
+  auction: sortAndStats({
     ...state.auction,
     items: getAuction(list),
-  }),
-  visible: sortAndStatsWithFilter(visibleSelect, state.visible, getVisible(list, state.hiddenCriteria)),
-  hidden: sortAndStatsWithFilter(hiddenSelect, state.hidden, getHidden(list, state.hiddenCriteria)),
-  available: sortAndStats((x) => x, {
+  }, (x) => x),
+  visible: sortAndStatsWithFilter(state.visible, getVisible(list, state.hiddenCriteria), visibleSelect),
+  hidden: sortAndStatsWithFilter(state.hidden, getHidden(list, state.hiddenCriteria), hiddenSelect),
+  available: sortAndStats({
     ...state.available,
     items: getAvailable(list, state.availableCriteria),
-  }),
+  }, (x) => x),
   byStore: (() => {
     const { items, containers } = getByStore(list, state.byStore.containers);
     const originalList = {
       ...state.byStore.originalList,
       items
     }
-    return {
+    return sortByStore({
       ...state.byStore,
       containers,
       originalList,
       showList: applyByStoreFilter('', originalList, state.byStore.containers, state.byStore.filter),
-    }
+    })
   })()
 });
 
@@ -676,7 +647,7 @@ function applyListFilter<D>(list: InventoryList<D>, filter: string, select: (d: 
   };
 }
 
-function sortByPart<D>(
+function nextSortByPart<D>(
   list: InventoryList<D>,
   part: number,
   select: (d: D) => ItemData,
@@ -689,46 +660,126 @@ function sortByPart<D>(
   };
 }
 
-function sortByPartWithFilter<D>(
+const nextSortByPartWithFilter = <D>(
   inv: InventoryListWithFilter<D>,
   part: number,
   select: (d: D) => ItemData,
-): InventoryListWithFilter<D> {
-  const originalList = sortByPart(inv.originalList, part, select)
+): InventoryListWithFilter<D> => {
+  const sortType = nextSortType(part, inv.originalList.sortType);
   return {
     ...inv,
-    originalList,
-    showList: applyListFilter(originalList, inv.filter, select)
-  };
+    originalList: {
+      ...inv.originalList,
+      sortType
+    },
+    showList: {
+      ...inv.showList,
+      sortType,
+      items: cloneSortListSelect(inv.showList.items, sortType, select)
+    }
+  }
 }
 
-const sortAuctionBy = (
+const byStoreSelect = (x: InventoryTree<ItemData>) => x.list ? { ...x.data, n: x.name, q: x.list.stats.count.toString(), v: x.list.stats.ped } : x.data;
+
+const nextSortByStore = (
+  inv: InventoryByStore,
+  part: number
+): InventoryByStore => {
+  const sortType = nextSortType(part, inv.originalList.sortType);
+  const sortTreeList = (list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> => ({
+      ...list,
+      sortType,
+      items: cloneSortListSelect(list.items, sortType, byStoreSelect).map(t => t.list ? {
+        ...t,
+        list: sortTreeList(t.list)
+      } : t)
+  })
+  return {
+    ...inv,
+    originalList: {
+      ...inv.originalList,
+      sortType
+    },
+    showList: sortTreeList(inv.showList)
+  }
+}
+
+const sortByStore = (
+  inv: InventoryByStore
+): InventoryByStore => {
+  const sortType = inv.originalList.sortType
+  const sortTreeList = (list: InventoryList<InventoryTree<ItemData>>) => {
+    list.sortType = sortType;
+    sortListSelect(list.items, sortType, byStoreSelect);
+    list.items.forEach(t => t.list && sortTreeList(t.list));
+  }
+  sortTreeList(inv.showList);
+  return inv;
+};
+
+function sortAndStats<D>(
+  list: InventoryList<D>,
+  select: (d: D) => ItemData,
+): InventoryList<D> {
+  sortListSelect(list.items, list.sortType, select);
+  const sum = list.items.reduce(
+    (partialSum, d) => partialSum + Number(select(d).v),
+    0,
+  );
+  list.stats = {
+    count: list.items.length,
+    ped: sum.toFixed(2),
+  };
+  return list;
+}
+
+function sortAndStatsWithFilter<D>(
+  inv: InventoryListWithFilter<D>,
+  items: Array<D>,
+  select: (d: D) => ItemData,
+): InventoryListWithFilter<D> {
+  sortListSelect(items, inv.originalList.sortType, select);
+  inv.originalList.items = items;
+  inv.showList = applyListFilter(inv.originalList, inv.filter, select);
+  return inv;
+}
+
+const reduceSortAuctionBy = (
   state: InventoryState,
   part: number,
 ): InventoryState => ({
   ...state,
-  auction: sortByPart(state.auction, part, (x) => x),
+  auction: nextSortByPart(state.auction, part, (x) => x),
 });
 
-const sortVisibleBy = (
+const reduceSortVisibleBy = (
   state: InventoryState,
   part: number,
 ): InventoryState => ({
   ...state,
-  visible: sortByPartWithFilter(state.visible, part, visibleSelect),
+  visible: nextSortByPartWithFilter(state.visible, part, visibleSelect),
 });
 
-const sortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
+const reduceSortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
   ...state,
-  hidden: sortByPartWithFilter(state.hidden, part, hiddenSelect),
+  hidden: nextSortByPartWithFilter(state.hidden, part, hiddenSelect),
 });
 
-const sortAvailableBy = (
+const reduceSortByStoreBy = (
   state: InventoryState,
   part: number,
 ): InventoryState => ({
   ...state,
-  available: sortByPart(state.available, part, (x) => x),
+  byStore: nextSortByStore(state.byStore, part)
+});
+
+const reduceSortAvailableBy = (
+  state: InventoryState,
+  part: number,
+): InventoryState => ({
+  ...state,
+  available: nextSortByPart(state.available, part, (x) => x),
 });
 
 const changeHiddenCriteria = (state: InventoryState, newCriteria: any) =>
@@ -849,10 +900,11 @@ export {
   reduceConfirmByStoreItemNameEditing,
   reduceCancelByStoreItemNameEditing,
   reduceSetByStoreItemName,
-  sortAuctionBy,
-  sortVisibleBy,
-  sortHiddenBy,
-  sortAvailableBy,
+  reduceSortAuctionBy,
+  reduceSortVisibleBy,
+  reduceSortHiddenBy,
+  reduceSortByStoreBy,
+  reduceSortAvailableBy,
   hideByName,
   hideByContainer,
   hideByValue,

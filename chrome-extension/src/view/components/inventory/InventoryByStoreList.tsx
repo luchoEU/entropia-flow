@@ -1,11 +1,12 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing } from '../../application/actions/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy } from '../../application/actions/inventory'
 import { InventoryByStore, InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
 import SearchInput from '../common/SearchInput'
+import { NAME, QUANTITY, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventorySort'
 
 const INDENT_SPACE = 10
 
@@ -16,7 +17,6 @@ const ItemRow = (p: {
     const { tree, space } = p
     const dispatch = useDispatch()
     const expand = setByStoreItemExpanded(tree.data.id)
-    const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
 
     return (
         <>
@@ -26,6 +26,7 @@ const ItemRow = (p: {
                     { tree.editing ?
                         <>
                             <input style={{ width: '200px' }} type='text' value={tree.name} onChange={(e) => {
+                                e.stopPropagation()
                                 dispatch(setByStoreItemName(tree.data.id, e.target.value))
                             }} autoFocus />
                             <img src='img/cross.png' data-show onClick={(e) => {
@@ -76,6 +77,29 @@ const ItemRow = (p: {
     )
 }
 
+const SortRow = (p: {
+    sortType: number
+}) => {
+    const { sortType } = p
+    const dispatch = useDispatch()
+    const sortBy = (part: number) => () => dispatch(sortByStoreBy(part))
+
+    const Column = (q: { part: number, text: string, up: number, down: number }) =>
+        <td onClick={sortBy(q.part)}>
+            <strong>{q.text}</strong>
+            { sortType === q.up && <img src='img/up.png' /> }
+            { sortType === q.down && <img src='img/down.png' /> }
+        </td>
+
+    return (
+        <tr className='sort-row'>
+            <Column part={NAME} text='Name' up={SORT_NAME_ASCENDING} down={SORT_NAME_DESCENDING} />
+            <Column part={QUANTITY} text='Quantity' up={SORT_QUANTITY_ASCENDING} down={SORT_QUANTITY_DESCENDING} />
+            <Column part={VALUE} text='Value' up={SORT_VALUE_ASCENDING} down={SORT_VALUE_DESCENDING} />
+        </tr>
+    )
+}
+
 const InventoryByStoreList = (p: {
     inv: InventoryByStore
 }) => {
@@ -89,6 +113,9 @@ const InventoryByStoreList = (p: {
                     <SearchInput filter={inv.filter} setFilter={setByStoreInventoryFilter} />
                 </div>
                 <table className='table-diff'>
+                    <thead>
+                        <SortRow sortType={inv.showList.sortType} />
+                    </thead>
                     <tbody>
                         {
                             inv.showList.items.map((item: InventoryTree<ItemData>) =>
