@@ -4,12 +4,17 @@ import { MessageHandlers } from './IMessagesHub'
 import ChromePort from './chromePort'
 import { IPort, PortHandlers } from './IPort'
 
-//// Utils ////
+//// Listeners ////
+
+const PING_HANDLER: PortHandlers = {
+    ping: async (m) => ({ name: 'pong' }),
+    pong: async (m) => { /* ignore */ }
+}
 
 function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, className: string, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
         trace(`${className}._setListener received: '${m.name}' ${endPointName}`)
-        const handler = handlerMap[m.name]
+        const handler = PING_HANDLER[m.name] ?? handlerMap[m.name]
         if (handler) {
             const response = await handler(m)
             if (response && response.name) {
@@ -59,18 +64,20 @@ class ChromeMessagesClient {
         chrome.runtime.sendMessage({ name: this.registerName }, (response: any) => {
             const str = (n: string, x: any) => x ? `${n}: ${JSON.stringify(x)}` : `no ${n}`
             trace(`ChromeMessagesClient.connect ${str('response', response)} ${str('lastError', chrome.runtime.lastError)}`)
+            this.send('ping') // test connection
         })
     }
 
     public send(name: string, data?: object): boolean {
         if (!this.port) {
             if (!this.pendingMesssage) {
+                trace(`ChromeMessagesClient reconnect, message pending: '${name}' on registerName '${this.registerName}'`)
                 this.pendingMesssage = { name, ...data }
                 this.connect()
                 return true
             }
             else {
-                trace(`ChromeMessagesClient.send message dropped: '${name}' on registerName '${this.registerName}'`)
+                trace(`ChromeMessagesClient reconnect, message dropped: '${name}' on registerName '${this.registerName}'`)
                 this.connect()
                 return false
             }
