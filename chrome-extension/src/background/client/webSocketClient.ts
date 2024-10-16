@@ -27,7 +27,13 @@ class WebSocketClient implements IWebSocketClient {
 
         this.url = url
         await this.onStateChanged(`connecting to ${url} ...`, '')
-        this.socket = new WebSocket(url)
+        try {
+            this.socket = new WebSocket(url)
+        } catch (error) {
+            console.error('WebSocket connection failed:', error)
+            await this.onStateChanged('error', 'connection failed')
+            return
+        }
         this.socket.onopen = async event => {
             console.log('WebSocket connection opened:', event)
             await this.onStateChanged('connected', '')
