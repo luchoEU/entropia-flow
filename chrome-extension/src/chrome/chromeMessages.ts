@@ -7,8 +7,12 @@ import { IPort, PortHandlers } from './IPort'
 //// Listeners ////
 
 const PING_HANDLER: PortHandlers = {
-    ping: async (m) => ({ name: 'pong' }),
-    pong: async (m) => { /* ignore */ }
+    ping: async () => ({ name: 'pong' }),
+    pong: async () => {
+        // Reply before 30 seconds to keep background service worker alive
+        await new Promise(resolve => setTimeout(resolve, 25000));
+        return { name: 'ping' };
+    }
 }
 
 function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, className: string, endPointName: string) {
