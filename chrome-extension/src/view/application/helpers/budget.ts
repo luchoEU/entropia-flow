@@ -51,22 +51,31 @@ function fillBudgetMaterialCalc(state: BudgetMaterialState): BudgetMaterialState
     }
 }
 
-const setBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: BudgetItem[], loadPercentage: number): BudgetState => ({
-    ...state,
-    loadPercentage,
-    materials: {
-        ...state.materials,
-        map: objectMap(map, (v, k) => fillBudgetMaterialCalc({
-            ...v,
-            expanded: state.materials.map[k]?.expanded ?? false
-        })),
-        selectedCount: Object.keys(map).filter(key => map[key].selected).length
-    },
-    list: {
-        ...state.list,
-        items
+const SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP = 50
+
+const reduceSetBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: BudgetItem[], loadPercentage: number): BudgetState => {
+    const mapc = objectMap(map, (v, k) => {
+        const vc = fillBudgetMaterialCalc(v)
+        return {
+            ...vc,
+            expanded: state.materials.map[k]?.expanded ?? false,
+            selected: Math.abs(vc.c.balanceWithMarkup) >= SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP
+        }
+    })
+    return {
+        ...state,
+        loadPercentage,
+        materials: {
+            ...state.materials,
+            map: mapc,
+            selectedCount: Object.keys(mapc).filter(key => mapc[key].selected).length
+        },
+        list: {
+            ...state.list,
+            items
+        }
     }
-})
+}
 
 const cleanForSave = (state: BudgetState): BudgetState => ({
     ...state,
@@ -113,7 +122,7 @@ const setBudgetDisabledExpanded = (state: BudgetState, expanded: boolean) => ({
     }
 })
 
-const enableBudgetItem = (state: BudgetState, name: string) => ({
+const reduceEnableBudgetItem = (state: BudgetState, name: string) => ({
     ...state,
     disabledItems: {
         ...state.disabledItems,
@@ -154,7 +163,7 @@ function removeMaterialsByItemName(
     return updatedMap
 }
 
-const disableBudgetItem = (state: BudgetState, name: string) => ({
+const reduceDisableBudgetItem = (state: BudgetState, name: string) => ({
     ...state,
     disabledItems: {
         ...state.disabledItems,
@@ -170,7 +179,7 @@ const disableBudgetItem = (state: BudgetState, name: string) => ({
     }
 })
 
-const disableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => ({
+const reduceDisableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => ({
     ...state,
     disabledMaterials: {
         ...state.disabledMaterials,
@@ -190,7 +199,7 @@ const disableBudgetMaterial = (state: BudgetState, itemName: string, materialNam
     }
 })
 
-const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => {
+const reduceEnableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => {
     const updatedDisabledMaterials = {
         ...state.disabledMaterials,
         [itemName]: (state.disabledMaterials[itemName] || []).filter(name => name !== materialName)
@@ -219,7 +228,7 @@ const enableBudgetMaterial = (state: BudgetState, itemName: string, materialName
     };
 };
 
-const addBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
+const reduceAddBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
     ...state,
     materials: {
         ...state.materials,
@@ -234,7 +243,7 @@ const addBudgetMaterialSelection = (state: BudgetState, materialName: string): B
     }
 })
 
-const removeBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
+const reduceRemoveBudgetMaterialSelection = (state: BudgetState, materialName: string): BudgetState => ({
     ...state,
     materials: {
         ...state.materials,
@@ -251,7 +260,8 @@ const removeBudgetMaterialSelection = (state: BudgetState, materialName: string)
 
 export {
     initialState,
-    setBudgetFromSheet,
+    SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP,
+    reduceSetBudgetFromSheet,
     setState,
     cleanForSave,
     setBudgetMaterialListExpanded,
@@ -259,10 +269,10 @@ export {
     setBudgetStage,
     setBudgetListExpanded,
     setBudgetDisabledExpanded,
-    enableBudgetItem,
-    disableBudgetItem,
-    enableBudgetMaterial,
-    disableBudgetMaterial,
-    addBudgetMaterialSelection,
-    removeBudgetMaterialSelection
+    reduceEnableBudgetItem,
+    reduceDisableBudgetItem,
+    reduceEnableBudgetMaterial,
+    reduceDisableBudgetMaterial,
+    reduceAddBudgetMaterialSelection,
+    reduceRemoveBudgetMaterialSelection
 }

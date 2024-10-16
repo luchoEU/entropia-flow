@@ -143,7 +143,7 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
 
     for (const name of Object.keys(info.materials)) {
         var m = info.materials[name]
-        if (m.current > 0 && name !== 'Blueprint' && name !== 'Item') {
+        if (name !== 'Blueprint' && name !== 'Item') {
             const matInfo = materials.map[name]
 
             if (map[name] === undefined) {
