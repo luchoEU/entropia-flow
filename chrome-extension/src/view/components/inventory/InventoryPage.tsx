@@ -2,8 +2,6 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
-import InventoryHiddenList from './InventoryHiddenList'
-import InventoryVisibleList from './InventoryVisibleList'
 import InventoryByStoreList from './InventoryByStoreList'
 
 function InventoryPage() {
@@ -11,15 +9,7 @@ function InventoryPage() {
 
     return (
         <>
-            <div>
-                <InventoryByStoreList inv={s.byStore}/>
-            </div>
-            <div>
-                <InventoryVisibleList inv={s.visible}/>
-            </div>
-            <div>
-                <InventoryHiddenList inv={s.hidden} />
-            </div>
+            <InventoryByStoreList inv={s.byStore}/>
         </>
     )
 }

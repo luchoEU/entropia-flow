@@ -6,6 +6,8 @@ import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
 import TTServiceList from './TTServiceList'
 import { SHOW_PAGES_IN_DEVELOPMENT } from '../../../config'
+import InventoryVisibleList from './InventoryVisibleList'
+import InventoryHiddenList from './InventoryHiddenList'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
@@ -17,12 +19,18 @@ function TradePage() {
 
     return (
         <>
-            <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
-                image='img/tick.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
-                showAction={(n) => !s.availableCriteria.name.includes(n)} />
-            <TradeList title='Available to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
-                image='img/cross.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
-                showAction={() => true} />
+            <div className='inline'>
+                <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
+                    image='img/staroff.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
+                    showAction={(n) => !s.availableCriteria.name.includes(n)} />
+                <TradeList title='Stared to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
+                    image='img/staron.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
+                    showAction={() => true} />
+            </div>
+            <div className='inline'>
+                <InventoryVisibleList inv={s.visible}/>
+                <InventoryHiddenList inv={s.hidden} />
+            </div>
             {SHOW_PAGES_IN_DEVELOPMENT ?
                 <TTServiceList list={s.ttService} />
                 : ''
