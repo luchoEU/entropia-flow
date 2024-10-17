@@ -2,6 +2,9 @@ function multiIncludes(multiSearch: string, mainStr: string): boolean {
     if (!multiSearch || multiSearch.length == 0)
         return true;
 
+    if (multiSearch[0] === '!') // exact match
+        return multiSearch.slice(1) === mainStr;
+
     function check(multi: string[], main: string[]): boolean {
         if (multi.length == 0)
         return true;

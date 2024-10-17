@@ -23,6 +23,10 @@ const ItemRow = (p: {
                     }} /> : ''
                 }
                 {item.data.n}
+                <img src='img/find.jpg' onClick={(e) => {
+                    e.stopPropagation()
+                    dispatch(setHiddenInventoryFilter(`!${item.data.n}`))
+                }} />
             </td>
             <td onClick={sortBy(QUANTITY)}>{item.data.q}</td>
             <td onClick={sortBy(VALUE)}>

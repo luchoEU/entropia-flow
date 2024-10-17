@@ -4,7 +4,6 @@ import { ItemData } from '../../../common/state'
 import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing } from '../../application/actions/inventory'
 import { InventoryByStore, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
-import ExpandableButton from '../common/ExpandableButton'
 import SearchInput from '../common/SearchInput'
 import { NAME, QUANTITY, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventory.sort'
 
@@ -19,7 +18,8 @@ const ItemRow = (p: {
         cancelItemNameEditing: (id: string) => any,
         confirmItemNameEditing: (id: string) => any,
         startItemNameEditing: (id: string) => any,
-        setItemStared: (id: string, stared: boolean) => any
+        setItemStared: (id: string, stared: boolean) => any,
+        setFilter: (filter: string) => any
     }
 }) => {
     const { tree, space } = p
@@ -59,6 +59,10 @@ const ItemRow = (p: {
                                     dispatch(p.d.startItemNameEditing(tree.data.id))
                                 }} />
                             }
+                            <img src='img/find.jpg' onClick={(e) => {
+                                e.stopPropagation()
+                                dispatch(p.d.setFilter(`!${tree.name}`))
+                            }} />
                             { tree.list && ( tree.stared ?
                                 <img src='img/staron.png' onClick={(e) => {
                                     e.stopPropagation()
@@ -154,6 +158,7 @@ const InventoryByStoreList = (p: {
                                         confirmItemNameEditing: confirmByStoreItemNameEditing,
                                         startItemNameEditing: startByStoreItemNameEditing,
                                         setItemStared: setByStoreItemStared,
+                                        setFilter: setByStoreInventoryFilter
                                     })} />
                             )
                         }
@@ -183,6 +188,7 @@ const InventoryByStoreList = (p: {
                                         confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
                                         startItemNameEditing: startByStoreStaredItemNameEditing,
                                         setItemStared: setByStoreStaredItemStared,
+                                        setFilter: setByStoreStaredInventoryFilter
                                     })} />
                             )
                         }

@@ -22,6 +22,10 @@ const ItemRow = (p: {
                     dispatch(hideByName(item.n))
                 }} />
                 {item.n}
+                <img src='img/find.jpg' onClick={(e) => {
+                    e.stopPropagation()
+                    dispatch(setVisibleInventoryFilter(`!${item.n}`))
+                }} />
             </td>
             <td onClick={sortBy(QUANTITY)}>{item.q}</td>
             <td onClick={sortBy(VALUE)}>
