@@ -30,10 +30,11 @@ const ItemRow = (p: {
         <>
             <tr>
                 <td style={{ paddingLeft: space }}>
-                    { tree.list && (tree.list.expanded ?
+                    { tree.list ? (tree.list.expanded ?
                         <span onClick={() => dispatch(expand(false))}>- </span> :
                         <span onClick={() => dispatch(expand(true))}>+ </span>
-                    )}
+                    ) : <span>&nbsp;&nbsp;</span>
+                    }
                     { tree.editing ?
                         <>
                             <input style={{ width: '200px' }} type='text' value={tree.name} onChange={(e) => {
@@ -90,7 +91,9 @@ const ItemRow = (p: {
                 <>
                     { tree.showItemValueRow &&
                         <tr>
-                            <td style={{ paddingLeft: space + INDENT_SPACE }}>({ tree.data.n === tree.name ? 'item': tree.data.n } value)</td>
+                            <td style={{ paddingLeft: space + INDENT_SPACE }}>
+                                &nbsp;&nbsp;({ tree.data.n === tree.name ? 'item': tree.data.n } value)
+                            </td>
                             <td></td>
                             <td align='right'>{tree.data.v + ' PED'}</td>
                         </tr>
