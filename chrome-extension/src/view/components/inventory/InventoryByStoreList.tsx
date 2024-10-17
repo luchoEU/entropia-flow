@@ -168,7 +168,7 @@ const InventoryByStoreList = (p: {
                     </tbody>
                 </table>
             </ExpandableSection>
-            <ExpandableSection title='Stared Containers' expanded={inv.staredList.expanded} setExpanded={setByStoreStaredInventoryExpanded}>
+            <ExpandableSection title='Favorite Containers' expanded={inv.staredList.expanded} setExpanded={setByStoreStaredInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <p>Total value {inv.staredList.stats.ped} PED in {inv.staredList.stats.count} container{inv.staredList.stats.count == 1 ? '' : 's'}</p>
                     <SearchInput filter={inv.staredFilter} setFilter={setByStoreStaredInventoryFilter} />

@@ -23,7 +23,7 @@ function TradePage() {
                 <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
                     image='img/staroff.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
                     showAction={(n) => !s.availableCriteria.name.includes(n)} />
-                <TradeList title='Stared to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
+                <TradeList title='Favorites to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
                     image='img/staron.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
                     showAction={() => true} />
             </div>

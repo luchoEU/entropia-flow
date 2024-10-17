@@ -83,7 +83,7 @@ const InventoryHiddenList = (p: {
 
     return (
         <>
-            <ExpandableSection title='Hidden' expanded={inv.originalList.expanded} setExpanded={setHiddenInventoryExpanded}>
+            <ExpandableSection title='Hidden List' expanded={inv.originalList.expanded} setExpanded={setHiddenInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <p>Total value {inv.showList.stats.ped} PED for {inv.showList.stats.count} item{inv.showList.stats.count == 1 ? '' : 's'}
                         <span className='show-all' onClick={(e) => {
