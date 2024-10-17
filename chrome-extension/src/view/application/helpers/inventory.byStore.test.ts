@@ -1,7 +1,7 @@
 import { ItemData } from "../../../common/state"
 import { InventoryState } from "../state/inventory"
 import { initialState, reduceLoadInventoryState, reduceSetCurrentInventory } from "./inventory"
-import { cleanForSaveByStore, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "./inventory.byStore"
+import { cleanForSaveByStore, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "./inventory.byStore"
 import { SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING } from "./inventory.sort"
 
 describe('inventory by store reducers', () => {
@@ -253,5 +253,16 @@ describe('inventory by store reducers', () => {
         state.byStore = cleanForSaveByStore(state.byStore)
         state = reduceLoadInventoryState(initialState, state)
         expect(state.byStore.staredList.items[0].list.items[0].displayName).toBe('aitem2')
+    })
+
+    test('preseve expanded when star container', async () => {
+        item1 = { id: '1', n: 'item1', q: '11', v: '0.00', c: 'A' }
+        item2 = { id: '2', n: 'item2', q: '12', v: '0.00', c: 'B' }
+        state = reduceSetCurrentInventory(initialState, { meta: undefined, itemlist: [item1, item2] })
+        state = reduceSetByStoreItemExpanded(state, '-1', false)
+        expect(state.byStore.showList.items[0].list.expanded).toBe(false)
+
+        state = reduceSetByStoreItemStared(state, '-2', true)
+        expect(state.byStore.showList.items[0].list.expanded).toBe(false)
     })
 })

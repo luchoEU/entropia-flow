@@ -237,9 +237,26 @@ const _loadByStoreShowList = (
   showList: _applyByStoreFilter(byStore.originalList, byStore.containers, byStore.filter),
 })
 
+const _loadByStoreOriginalList = (
+  byStore: InventoryByStore
+): InventoryByStore => {
+  const getList = (id: string, list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> => ({
+    ...list,
+    expanded: byStore.containers[id]?.expanded ?? list.expanded,
+    items: list.items.map((i) => ({
+      ...i,
+      list: i.list ? getList(i.data.id, i.list) : undefined
+    }))
+  })
+  return {
+    ...byStore,
+    originalList: getList('', byStore.originalList)
+  }
+}
+
 const _loadByStoreShowAndStaredList = (
   byStore: InventoryByStore
-): InventoryByStore => _loadByStoreStaredList(_loadByStoreShowList(byStore))
+): InventoryByStore => _loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))
 
 const loadInventoryByStore = (
   byStore: InventoryByStore,
