@@ -45,7 +45,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
 
   // update the id in containers based on data and items
   const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
-    const name = c.data ? c.data.n : c.name; // root containers don't have data
+    const name = c.data ? c.data.n : c.displayName; // root containers don't have data
     if (!st[name]) {
       st[name] = [];
     }
@@ -135,7 +135,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
       containers[id] = {
         expanded: true,
         stared: false,
-        name: n
+        displayName: n
       }
     }
   }
@@ -146,7 +146,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
       containers[d.id] = {
         expanded: true,
         stared: false,
-        name: d.n
+        displayName: d.n
       }
     }
     const toBasic = (d: ItemData): BasicItemData => ({ n: d.n, q: d.q, v: d.v })
@@ -167,7 +167,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
         return {
           data: d,
           canEditName: !!list,
-          name: containers[d.id]?.name ?? d.n,
+          displayName: containers[d.id]?.displayName ?? d.n,
           stared: containers[d.id]?.stared ?? false,
           list,
           showItemValueRow: true
@@ -186,7 +186,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
       c: ''
     },
     canEditName: false,
-    name,
+    displayName: name,
     stared: containers[id]?.stared ?? false,
     list: getList(id)
   }))
@@ -334,6 +334,14 @@ const _findTree = (id: string, list: InventoryList<InventoryTree<ItemData>>): In
   return undefined
 }
 
+const _applyToAllByStoreList = (
+  list: InventoryList<InventoryTree<ItemData>>,
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
+): InventoryList<InventoryTree<ItemData>> => ({
+  ...list,
+  items: list.items.map(t => t.list ? { ...f(t), list: _applyToAllByStoreList(t.list, f) } : f(t))
+})
+
 const _applyByStoreChange = (
   byStore: InventoryByStore,
   id: string,
@@ -373,7 +381,7 @@ const reduceSetByStoreItemExpanded = (
 const reduceStartByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, editing: { originalName: t.name} }))
+): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, editing: { originalName: t.displayName} }))
 
 const reduceConfirmByStoreItemNameEditing = (
   state: InventoryState,
@@ -383,13 +391,13 @@ const reduceConfirmByStoreItemNameEditing = (
 const reduceCancelByStoreItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, editing: undefined, name: t.editing.originalName }))
+): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, editing: undefined, displayName: t.editing.originalName }))
 
 const reduceSetByStoreItemName = (
   state: InventoryState,
   id: string,
   name: string
-): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, name }))
+): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, displayName: name }))
 
 const reduceSetByStoreItemStared = (
   state: InventoryState,
@@ -421,7 +429,7 @@ const reduceSetByStoreStaredItemExpanded = (
 const reduceStartByStoreStaredItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, editing: { originalName: t.name} }))
+): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, editing: { originalName: t.displayName} }))
 
 const _setContainerNameFrom = (
   state: InventoryState,
@@ -429,13 +437,14 @@ const _setContainerNameFrom = (
   listName: string
 ): InventoryState => {
   const tree = _findTree(id, state.byStore[listName])
-  const newName = tree.name.length > 0 ? tree.name : tree.data.n
+  const displayName = tree.displayName.length > 0 ? tree.displayName : tree.data.n
+  const stableName = tree.stableName ?? tree.editing.originalName
   const cid = _toContainerId(id)
-  const newByStore = {
-    ..._applyByStoreChange(state.byStore, cid, 'originalList', t => ({ ...t, name: newName })),
+  const newByStore: InventoryByStore = {
+    ..._applyByStoreChange(state.byStore, cid, 'originalList', t => ({ ...t, displayName, stableName })),
     containers: {
       ...state.byStore.containers,
-      [cid]: { ...state.byStore.containers[cid], name: newName }
+      [cid]: { ...state.byStore.containers[cid], displayName, stableName }
     }
   }
   return {
@@ -452,13 +461,13 @@ const reduceConfirmByStoreStaredItemNameEditing = (
 const reduceCancelByStoreStaredItemNameEditing = (
   state: InventoryState,
   id: string
-): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, editing: undefined, name: t.editing.originalName }))
+): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, editing: undefined, displayName: t.editing.originalName }))
 
 const reduceSetByStoreStaredItemName = (
   state: InventoryState,
   id: string,
   name: string
-): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, name }))
+): InventoryState => _applyByStoreStateChange(state, id, 'staredList', t => ({ ...t, displayName: name }))
 
 const reduceSetByStoreStaredItemStared = (
   state: InventoryState,
@@ -521,9 +530,9 @@ const _applyByStoreFilter4 = (
     .map((tree) => ({
       ...tree,
       list: tree.list ? _applyByStoreFilter4(tree.data.id, tree.list, filter, expandedOnFilter) : undefined,
-      showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.name)
+      showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.displayName)
     }))
-    .filter((tree) => multiIncludes(filter, tree.name) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
+    .filter((tree) => multiIncludes(filter, tree.displayName) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
 
   const sum = items.reduce(
     (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),
@@ -555,12 +564,17 @@ const _applyByStoreFilter4 = (
   }
 }
 
-const _byStoreSelect = (x: InventoryTree<ItemData>) => x.list ? { ...x.data, n: x.name, q: x.list.stats.count.toString(), v: x.list.stats.ped } : x.data;
+const _byStoreSelectToSort = (x: InventoryTree<ItemData>): ItemData => x.list ? {
+  ...x.data,
+  n: x.stableName ?? x.displayName,
+  q: x.list.stats.count.toString(),
+  v: x.list.stats.ped
+} : x.data;
 
 const _cloneSortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number): InventoryList<InventoryTree<ItemData>> => ({
   ...list,
   sortType,
-  items: cloneSortListSelect(list.items, sortType, _byStoreSelect).map(t => t.list ? {
+  items: cloneSortListSelect(list.items, sortType, _byStoreSelectToSort).map(t => t.list ? {
     ...t,
     list: _cloneSortByStoreTreeList(t.list, sortType)
   } : t)
@@ -568,42 +582,36 @@ const _cloneSortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>,
 
 const _sortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number) => {
   list.sortType = sortType;
-  sortListSelect(list.items, sortType, _byStoreSelect);
+  sortListSelect(list.items, sortType, _byStoreSelectToSort);
   list.items.forEach(t => t.list && _sortByStoreTreeList(t.list, sortType));
 }
 
 const _nextSortByStore = (
-  inv: InventoryByStore,
-  part: number
+  listName: string,
+  byStore: InventoryByStore,
+  part: number,
 ): InventoryByStore => {
-  const sortType = nextSortType(part, inv.originalList.sortType);
+  const sortType = nextSortType(part, byStore[listName].sortType);
+  const cleanStable = (i: InventoryTree<ItemData>) => ({ ...i, stableName: undefined })
   return {
-    ...inv,
+    ...byStore,
+    containers: Object.fromEntries(
+      Object.entries(byStore.containers).map(([key, value]) => [key, { ...value, stableName: undefined }])
+    ),
     originalList: {
-      ...inv.originalList,
-      sortType
+      ..._applyToAllByStoreList(byStore.originalList, cleanStable),
+      sortType: listName === 'showList' ? sortType : byStore.originalList.sortType
     },
-    showList: _cloneSortByStoreTreeList(inv.showList, sortType)
-  }
-}
-
-const _nextSortByStoreStared = (
-  inv: InventoryByStore,
-  part: number
-): InventoryByStore => {
-  const sortType = nextSortType(part, inv.staredList.sortType);
-  return {
-    ...inv,
-    staredList: _cloneSortByStoreTreeList(inv.staredList, sortType)
+    [listName]: _cloneSortByStoreTreeList(_applyToAllByStoreList(byStore[listName], cleanStable), sortType)
   }
 }
 
 const _sortByStore = (
   listName: string,
-  inv: InventoryByStore,
+  byStore: InventoryByStore,
 ): InventoryByStore => {
-  _sortByStoreTreeList(inv[listName], inv[listName].sortType);
-  return inv;
+  _sortByStoreTreeList(byStore[listName], byStore[listName].sortType);
+  return byStore;
 };
 
 const reduceSortByStoreBy = (
@@ -611,7 +619,7 @@ const reduceSortByStoreBy = (
   part: number,
 ): InventoryState => ({
   ...state,
-  byStore: _nextSortByStore(state.byStore, part)
+  byStore: _nextSortByStore('showList', state.byStore, part)
 });
 
 const reduceSortByStoreStaredBy = (
@@ -619,7 +627,7 @@ const reduceSortByStoreStaredBy = (
   part: number,
 ): InventoryState => ({
   ...state,
-  byStore: _nextSortByStoreStared(state.byStore, part)
+  byStore: _nextSortByStore('staredList', state.byStore, part)
 });
 
 const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
@@ -627,12 +635,12 @@ const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData
   for (const [id, c] of Object.entries(containers)) {
     if (c.expanded &&
       c.expandedOnFilter !== false &&
-      (!c.data || c.name === c.data.n) &&
+      (!c.data || c.displayName === c.data.n) &&
       !c.stared
     ) {
       continue // default data
     }
-    map[id] = c
+    map[id] = { ...c, stableName: undefined }
   }
   return map;
 }

@@ -37,7 +37,7 @@ const ItemRow = (p: {
                     }
                     { tree.editing ?
                         <>
-                            <input style={{ width: '200px' }} type='text' value={tree.name} onChange={(e) => {
+                            <input style={{ width: '200px' }} type='text' value={tree.displayName} onChange={(e) => {
                                 e.stopPropagation()
                                 dispatch(p.d.setItemName(tree.data.id, e.target.value))
                             }} autoFocus />
@@ -52,7 +52,7 @@ const ItemRow = (p: {
                         </> :
                         <>
                             <span onClick={() => tree.list && dispatch(expand(!tree.list.expanded))}>
-                                { tree.name }
+                                { tree.displayName }
                             </span>
                             { tree.canEditName &&
                                 <img src='img/edit.png' onClick={(e) => {
@@ -62,7 +62,7 @@ const ItemRow = (p: {
                             }
                             <img src='img/find.jpg' onClick={(e) => {
                                 e.stopPropagation()
-                                dispatch(p.d.setFilter(`!${tree.name}`))
+                                dispatch(p.d.setFilter(`!${tree.displayName}`))
                             }} />
                             { tree.list && ( tree.stared ?
                                 <img src='img/staron.png' onClick={(e) => {
@@ -92,7 +92,7 @@ const ItemRow = (p: {
                     { tree.showItemValueRow &&
                         <tr>
                             <td style={{ paddingLeft: space + INDENT_SPACE }}>
-                                &nbsp;&nbsp;({ tree.data.n === tree.name ? 'item': tree.data.n } value)
+                                &nbsp;&nbsp;({ tree.data.n === tree.displayName ? 'item': tree.data.n } value)
                             </td>
                             <td></td>
                             <td align='right'>{tree.data.v + ' PED'}</td>

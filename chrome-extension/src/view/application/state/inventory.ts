@@ -16,7 +16,8 @@ interface InventoryTree<T> {
   editing?: { // undefined if not editing
     originalName: string
   }
-  name: string
+  displayName: string
+  stableName?: string // name used for sorting
   stared: boolean,
   list?: InventoryList<InventoryTree<T>>
   showItemValueRow?: boolean
@@ -38,7 +39,8 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
 type ContainerMapData = { [id: string] : ContainerMapDataItem };
 
 interface ContainerMapDataItem {
-  name: string;
+  displayName: string;
+  stableName?: string; // name used for sorting, not persistent
   expanded: boolean;
   expandedOnFilter?: boolean;
   stared: boolean;
