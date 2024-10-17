@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
+import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryList } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 

@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { REFINE_AMOUNT_CHANGED, setRefineState } from "../actions/refine"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/refine"

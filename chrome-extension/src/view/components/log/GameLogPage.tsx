@@ -4,7 +4,7 @@ import { GameLogItemData, GameLogState } from '../../application/state/log'
 import { getGameLog } from '../../application/selectors/log'
 import ExpandableSection from '../common/ExpandableSection'
 import { setGameLogLootExpanded, sortLootBy } from '../../application/actions/log'
-import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventorySort'
+import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 
 const LootRow = (p: {
     item: GameLogItemData

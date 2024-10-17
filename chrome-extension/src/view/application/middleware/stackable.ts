@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { setStackableState, STACKABLE_MARKUP_CHANGED, STACKABLE_TT_VALUE_CHANGED } from "../actions/stackable"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn, } from "../helpers/stackable"

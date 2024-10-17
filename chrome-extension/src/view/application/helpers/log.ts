@@ -2,7 +2,7 @@ import { LootLogData } from "../../../background/client/logData";
 import { InventoryList } from "../state/inventory";
 import { GameLogItemData, GameLogState } from "../state/log";
 import { initialList } from "./inventory";
-import { SORT_NAME_ASCENDING, cloneSortListSelect, nextSortType } from "./inventorySort";
+import { SORT_NAME_ASCENDING, cloneSortListSelect, nextSortType } from "./inventory.sort";
 
 const initialState: GameLogState = {
     loot: initialList(true, SORT_NAME_ASCENDING),

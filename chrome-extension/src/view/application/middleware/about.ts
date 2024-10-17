@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { setState, SET_EXPANDED } from "../actions/about"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/about"

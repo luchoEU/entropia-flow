@@ -1,8 +1,9 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { REMOVE_ACTIVE } from "../actions/actives"
-import { ADD_AVAILABLE, CANCEL_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, loadInventoryState, SET_AUCTION_EXPANDED, SET_AVAILABLE_EXPANDED, SET_BLUEPRINTS_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_FILTER, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_ITEM_NAME, SET_HIDDEN_EXPANDED, SET_HIDDEN_FILTER, SET_TT_SERVICE_EXPANDED, SET_VISIBLE_EXPANDED, SET_VISIBLE_FILTER, SHOW_ALL, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SORT_AUCTION_BY, SORT_AVAILABLE_BY, SORT_BY_STORE_BY, SORT_HIDDEN_BY, SORT_VISIBLE_BY, START_BY_STORE_ITEM_NAME_EDITING } from "../actions/inventory"
+import { ADD_AVAILABLE, CANCEL_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING, HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, loadInventoryState, SET_AUCTION_EXPANDED, SET_AVAILABLE_EXPANDED, SET_BLUEPRINTS_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_FILTER, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_ITEM_NAME, SET_BY_STORE_ITEM_STARED, SET_BY_STORE_STARED_EXPANDED, SET_BY_STORE_STARED_FILTER, SET_BY_STORE_STARED_ITEM_EXPANDED, SET_BY_STORE_STARED_ITEM_NAME, SET_BY_STORE_STARED_ITEM_STARED, SET_HIDDEN_EXPANDED, SET_HIDDEN_FILTER, SET_TT_SERVICE_EXPANDED, SET_VISIBLE_EXPANDED, SET_VISIBLE_FILTER, SHOW_ALL, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SORT_AUCTION_BY, SORT_AVAILABLE_BY, SORT_BY_STORE_BY, SORT_BY_STORE_STARED_BY, SORT_HIDDEN_BY, SORT_VISIBLE_BY, START_BY_STORE_ITEM_NAME_EDITING, START_BY_STORE_STARED_ITEM_NAME_EDITING } from "../actions/inventory"
 import { PAGE_LOADED } from "../actions/ui"
-import { cleanForSave, cleanForSaveByStore, initialState } from "../helpers/inventory"
+import { cleanForSave, initialState } from "../helpers/inventory"
+import { cleanForSaveByStore } from "../helpers/inventory.byStore"
 import { getInventory } from "../selectors/inventory"
 import { InventoryByStore, InventoryState } from "../state/inventory"
 
@@ -10,11 +11,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state: InventoryState = await api.storage.loadInventoryState()
-            if (state) {
-                const byStore: InventoryByStore = await api.storage.loadInventoryByStoreState()
-                if (byStore)
-                    state.byStore = byStore
+            let state: InventoryState = await api.storage.loadInventoryState()
+            const byStore: InventoryByStore = await api.storage.loadInventoryByStoreState()
+            if (state || byStore) {
+                if (!state)
+                    state = initialState
+                state.byStore = byStore
                 dispatch(loadInventoryState(mergeDeep(initialState, state)))
             }
             break
@@ -51,7 +53,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case START_BY_STORE_ITEM_NAME_EDITING:
         case CONFIRM_BY_STORE_ITEM_NAME_EDITING:
         case CANCEL_BY_STORE_ITEM_NAME_EDITING:
-        case SET_BY_STORE_ITEM_NAME: {
+        case SET_BY_STORE_ITEM_NAME:
+        case SET_BY_STORE_ITEM_STARED:
+        case SET_BY_STORE_STARED_EXPANDED:
+        case SET_BY_STORE_STARED_ITEM_EXPANDED:
+        case SET_BY_STORE_STARED_FILTER:
+        case SORT_BY_STORE_STARED_BY:
+        case START_BY_STORE_STARED_ITEM_NAME_EDITING:
+        case CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING:
+        case CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING:
+        case SET_BY_STORE_STARED_ITEM_NAME:
+        case SET_BY_STORE_STARED_ITEM_STARED: {
             const state: InventoryByStore = getInventory(getState()).byStore
             await api.storage.saveInventoryByStoreState(cleanForSaveByStore(state))
             break

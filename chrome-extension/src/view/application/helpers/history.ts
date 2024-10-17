@@ -1,7 +1,7 @@
 import { CLASS_LAST, CLASS_NEW_DATE, CLASS_REQUESTED } from "../../../common/const";
 import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
-import * as Sort from "./inventorySort"
+import * as Sort from "./inventory.sort"
 import { HistoryState, ViewInventory } from "../state/history";
 
 const initialState: HistoryState = {

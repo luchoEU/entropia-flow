@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { DOCUMENT_ID_CHANGED, GOOGLE_PRIVATE_KEY_CHANGED, GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED, setSettingsState, SET_SHEET_EXPANDED } from "../actions/settings"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/settings"

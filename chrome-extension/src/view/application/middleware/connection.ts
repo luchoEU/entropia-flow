@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { SET_CONNECTION_CLIENT_EXPANDED, WEB_SOCKET_CHANGED, setConnectionState } from "../actions/connection"
 import { setWebSocketUrl } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"

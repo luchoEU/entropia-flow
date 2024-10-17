@@ -12,10 +12,12 @@ interface InventoryList<T> {
 
 interface InventoryTree<T> {
   data: T
+  canEditName: boolean
   editing?: { // undefined if not editing
     originalName: string
   }
   name: string
+  stared: boolean,
   list?: InventoryList<InventoryTree<T>>
   showItemValueRow?: boolean
 }
@@ -27,7 +29,10 @@ interface InventoryListWithFilter<T> {
 }
 
 interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemData>> {
-  containers: ContainerMapData;
+  containers: ContainerMapData
+  staredFilter?: string
+  staredExpanded: Array<string>
+  staredList: InventoryList<InventoryTree<ItemData>>
 }
 
 type ContainerMapData = { [id: string] : ContainerMapDataItem };
@@ -36,8 +41,9 @@ interface ContainerMapDataItem {
   name: string;
   expanded: boolean;
   expandedOnFilter?: boolean;
-  data: BasicItemData; // data and items can be used the get the id in a new load
-  items: Array<BasicItemData>;
+  stared: boolean;
+  data?: BasicItemData; // data and items can be used the get the id in a new load
+  items?: Array<BasicItemData>;
 }
 
 interface BasicItemData { // subset of ItemData

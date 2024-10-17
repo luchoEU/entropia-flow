@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { setHiddenInventoryExpanded, setHiddenInventoryFilter, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
-import { CONTAINER, NAME, QUANTITY, SORT_CONTAINER_ASCENDING, SORT_CONTAINER_DESCENDING, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventorySort'
+import { CONTAINER, NAME, QUANTITY, SORT_CONTAINER_ASCENDING, SORT_CONTAINER_DESCENDING, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryListWithFilter, ItemHidden } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'

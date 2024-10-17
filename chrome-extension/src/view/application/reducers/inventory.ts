@@ -1,18 +1,19 @@
-import { initialState, setCurrentInventory, setHiddenExpanded, loadInventoryState, setVisibleExpanded, hideByName, showByName, hideByContainer, showByContainer, hideByValue, showByValue, showAll, setAuctionExpanded, setAvailableExpanded, addAvailable, removeAvailable, setBlueprintsExpanded, setTTServiceExpanded, setHiddenFilter, setVisibleFilter, reduceSetByStoreInventoryExpanded, reduceSetByStoreItemExpanded, reduceSetByStoreInventoryFilter, reduceStartByStoreItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceCancelByStoreItemNameEditing, reduceSetByStoreItemName, reduceSortAuctionBy, reduceSortVisibleBy, reduceSortHiddenBy, reduceSortByStoreBy, reduceSortAvailableBy } from "../helpers/inventory"
-import { SET_CURRENT_INVENTORY, SET_HIDDEN_EXPANDED, LOAD_INVENTORY_STATE, SET_VISIBLE_EXPANDED, SORT_HIDDEN_BY, SORT_VISIBLE_BY, HIDE_BY_NAME, SHOW_BY_VALUE, HIDE_BY_CONTAINER, SHOW_BY_CONTAINER, SHOW_BY_NAME, HIDE_BY_VALUE, SHOW_ALL, SET_AUCTION_EXPANDED, SORT_AUCTION_BY, SET_AVAILABLE_EXPANDED, ADD_AVAILABLE, REMOVE_AVAILABLE, SORT_AVAILABLE_BY, SET_BLUEPRINTS_EXPANDED, SET_TT_SERVICE_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_FILTER, SET_HIDDEN_FILTER, SET_VISIBLE_FILTER, SET_BY_STORE_ITEM_NAME, START_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_ITEM_NAME_EDITING, SORT_BY_STORE_BY } from "../actions/inventory"
+import { initialState, reduceSetCurrentInventory, reduceLoadInventoryState, hideByName, showByName, hideByContainer, showByContainer, hideByValue, showByValue, showAll, addAvailable, removeAvailable, reduceSortAuctionBy, reduceSortVisibleBy, reduceSortHiddenBy, reduceSortAvailableBy, reduceSetAuctionExpanded, reduceSetAvailableExpanded, reduceSetTTServiceExpanded, reduceSetVisibleExpanded, reduceSetVisibleFilter, reduceSetHiddenExpanded, reduceSetHiddenFilter, reduceSetBlueprintsExpanded } from "../helpers/inventory"
+import { SET_CURRENT_INVENTORY, SET_HIDDEN_EXPANDED, LOAD_INVENTORY_STATE, SET_VISIBLE_EXPANDED, SORT_HIDDEN_BY, SORT_VISIBLE_BY, HIDE_BY_NAME, SHOW_BY_VALUE, HIDE_BY_CONTAINER, SHOW_BY_CONTAINER, SHOW_BY_NAME, HIDE_BY_VALUE, SHOW_ALL, SET_AUCTION_EXPANDED, SORT_AUCTION_BY, SET_AVAILABLE_EXPANDED, ADD_AVAILABLE, REMOVE_AVAILABLE, SORT_AVAILABLE_BY, SET_BLUEPRINTS_EXPANDED, SET_TT_SERVICE_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_FILTER, SET_HIDDEN_FILTER, SET_VISIBLE_FILTER, SET_BY_STORE_ITEM_NAME, START_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_ITEM_NAME_EDITING, SORT_BY_STORE_BY, SET_BY_STORE_ITEM_STARED, SET_BY_STORE_STARED_EXPANDED, SET_BY_STORE_STARED_ITEM_EXPANDED, SET_BY_STORE_STARED_FILTER, SORT_BY_STORE_STARED_BY, START_BY_STORE_STARED_ITEM_NAME_EDITING, CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING, CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING, SET_BY_STORE_STARED_ITEM_NAME, SET_BY_STORE_STARED_ITEM_STARED } from "../actions/inventory"
+import { reduceCancelByStoreItemNameEditing, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreInventoryExpanded, reduceSetByStoreInventoryFilter, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "../helpers/inventory.byStore"
 
 export default (state = initialState, action) => {
     switch (action.type) {
-        case LOAD_INVENTORY_STATE: return loadInventoryState(state, action.payload.state)
-        case SET_CURRENT_INVENTORY: return setCurrentInventory(state, action.payload.inventory)
-        case SET_AUCTION_EXPANDED: return setAuctionExpanded(state, action.payload.expanded)
-        case SET_AVAILABLE_EXPANDED: return setAvailableExpanded(state, action.payload.expanded)
-        case SET_TT_SERVICE_EXPANDED: return setTTServiceExpanded(state, action.payload.expanded)
-        case SET_VISIBLE_EXPANDED: return setVisibleExpanded(state, action.payload.expanded)
-        case SET_VISIBLE_FILTER: return setVisibleFilter(state, action.payload.filter)
-        case SET_HIDDEN_EXPANDED: return setHiddenExpanded(state, action.payload.expanded)
-        case SET_HIDDEN_FILTER: return setHiddenFilter(state, action.payload.filter)
-        case SET_BLUEPRINTS_EXPANDED: return setBlueprintsExpanded(state, action.payload.expanded)
+        case LOAD_INVENTORY_STATE: return reduceLoadInventoryState(state, action.payload.state)
+        case SET_CURRENT_INVENTORY: return reduceSetCurrentInventory(state, action.payload.inventory)
+        case SET_AUCTION_EXPANDED: return reduceSetAuctionExpanded(state, action.payload.expanded)
+        case SET_AVAILABLE_EXPANDED: return reduceSetAvailableExpanded(state, action.payload.expanded)
+        case SET_TT_SERVICE_EXPANDED: return reduceSetTTServiceExpanded(state, action.payload.expanded)
+        case SET_VISIBLE_EXPANDED: return reduceSetVisibleExpanded(state, action.payload.expanded)
+        case SET_VISIBLE_FILTER: return reduceSetVisibleFilter(state, action.payload.filter)
+        case SET_HIDDEN_EXPANDED: return reduceSetHiddenExpanded(state, action.payload.expanded)
+        case SET_HIDDEN_FILTER: return reduceSetHiddenFilter(state, action.payload.filter)
+        case SET_BLUEPRINTS_EXPANDED: return reduceSetBlueprintsExpanded(state, action.payload.expanded)
         case SET_BY_STORE_EXPANDED: return reduceSetByStoreInventoryExpanded(state, action.payload.expanded)
         case SET_BY_STORE_ITEM_EXPANDED: return reduceSetByStoreItemExpanded(state, action.payload.id, action.payload.expanded)
         case SET_BY_STORE_FILTER: return reduceSetByStoreInventoryFilter(state, action.payload.filter)
@@ -20,10 +21,20 @@ export default (state = initialState, action) => {
         case CONFIRM_BY_STORE_ITEM_NAME_EDITING: return reduceConfirmByStoreItemNameEditing(state, action.payload.id)
         case CANCEL_BY_STORE_ITEM_NAME_EDITING: return reduceCancelByStoreItemNameEditing(state, action.payload.id)
         case SET_BY_STORE_ITEM_NAME: return reduceSetByStoreItemName(state, action.payload.id, action.payload.name)
+        case SET_BY_STORE_ITEM_STARED: return reduceSetByStoreItemStared(state, action.payload.id, action.payload.stared)
+        case SET_BY_STORE_STARED_EXPANDED: return reduceSetByStoreStaredInventoryExpanded(state, action.payload.expanded)
+        case SET_BY_STORE_STARED_ITEM_EXPANDED: return reduceSetByStoreStaredItemExpanded(state, action.payload.id, action.payload.expanded)
+        case SET_BY_STORE_STARED_FILTER: return reduceSetByStoreStaredInventoryFilter(state, action.payload.filter)
+        case START_BY_STORE_STARED_ITEM_NAME_EDITING: return reduceStartByStoreStaredItemNameEditing(state, action.payload.id)
+        case CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING: return reduceConfirmByStoreStaredItemNameEditing(state, action.payload.id)
+        case CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING: return reduceCancelByStoreStaredItemNameEditing(state, action.payload.id)
+        case SET_BY_STORE_STARED_ITEM_NAME: return reduceSetByStoreStaredItemName(state, action.payload.id, action.payload.name)
+        case SET_BY_STORE_STARED_ITEM_STARED: return reduceSetByStoreStaredItemStared(state, action.payload.id, action.payload.stared)
         case SORT_AUCTION_BY: return reduceSortAuctionBy(state, action.payload.part)
         case SORT_VISIBLE_BY: return reduceSortVisibleBy(state, action.payload.part)
         case SORT_HIDDEN_BY: return reduceSortHiddenBy(state, action.payload.part)
         case SORT_BY_STORE_BY: return reduceSortByStoreBy(state, action.payload.part)
+        case SORT_BY_STORE_STARED_BY: return reduceSortByStoreStaredBy(state, action.payload.part)
         case SORT_AVAILABLE_BY: return reduceSortAvailableBy(state, action.payload.part)
         case HIDE_BY_NAME: return hideByName(state, action.payload.name)
         case SHOW_BY_NAME: return showByName(state, action.payload.name)

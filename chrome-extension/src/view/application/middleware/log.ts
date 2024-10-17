@@ -1,4 +1,4 @@
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 import { SET_CURRENT_GAME_LOG, SET_GAME_LOG_EXPANDED, SORT_LOOT_BY, setGameLogState } from "../actions/log"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/log"

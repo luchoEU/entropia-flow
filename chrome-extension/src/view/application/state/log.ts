@@ -1,4 +1,4 @@
-import { SortItemData } from "../helpers/inventorySort";
+import { SortItemData } from "../helpers/inventory.sort";
 import { InventoryList } from "./inventory";
 
 type GameLogItemData = SortItemData;

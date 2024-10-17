@@ -1,50 +1,73 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy } from '../../application/actions/inventory'
-import { InventoryByStore, InventoryListWithFilter, InventoryTree } from '../../application/state/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing } from '../../application/actions/inventory'
+import { InventoryByStore, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableButton from '../common/ExpandableButton'
 import SearchInput from '../common/SearchInput'
-import { NAME, QUANTITY, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventorySort'
+import { NAME, QUANTITY, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventory.sort'
 
 const INDENT_SPACE = 10
 
 const ItemRow = (p: {
     tree: InventoryTree<ItemData>
-    space: number
+    space: number,
+    d: {
+        setItemExpanded: (id: string) => (expanded: boolean) => any,
+        setItemName: (id: string, name: string) => any,
+        cancelItemNameEditing: (id: string) => any,
+        confirmItemNameEditing: (id: string) => any,
+        startItemNameEditing: (id: string) => any,
+        setItemStared: (id: string, stared: boolean) => any
+    }
 }) => {
     const { tree, space } = p
     const dispatch = useDispatch()
-    const expand = setByStoreItemExpanded(tree.data.id)
+    const expand = p.d.setItemExpanded(tree.data.id)
 
     return (
         <>
             <tr>
                 <td style={{ paddingLeft: space }}>
-                    { tree.list && <ExpandableButton expanded={tree.list?.expanded} setExpanded={expand} /> }
+                    { tree.list && (tree.list.expanded ?
+                        <span onClick={() => dispatch(expand(false))}>- </span> :
+                        <span onClick={() => dispatch(expand(true))}>+ </span>
+                    )}
                     { tree.editing ?
                         <>
                             <input style={{ width: '200px' }} type='text' value={tree.name} onChange={(e) => {
                                 e.stopPropagation()
-                                dispatch(setByStoreItemName(tree.data.id, e.target.value))
+                                dispatch(p.d.setItemName(tree.data.id, e.target.value))
                             }} autoFocus />
                             <img src='img/cross.png' data-show onClick={(e) => {
                                 e.stopPropagation()
-                                dispatch(cancelByStoreItemNameEditing(tree.data.id))
+                                dispatch(p.d.cancelItemNameEditing(tree.data.id))
                             }} />
                             <img src='img/tick.png' data-show onClick={(e) => {
                                 e.stopPropagation()
-                                dispatch(confirmByStoreItemNameEditing(tree.data.id))
+                                dispatch(p.d.confirmItemNameEditing(tree.data.id))
                             }} />
                         </> :
                         <>
-                            { tree.name }
-                            { !tree.data.id.startsWith('-') && tree.list &&
+                            <span onClick={() => tree.list && dispatch(expand(!tree.list.expanded))}>
+                                { tree.name }
+                            </span>
+                            { tree.canEditName &&
                                 <img src='img/edit.png' onClick={(e) => {
                                     e.stopPropagation()
-                                    dispatch(startByStoreItemNameEditing(tree.data.id))
+                                    dispatch(p.d.startItemNameEditing(tree.data.id))
                                 }} />
+                            }
+                            { tree.list && ( tree.stared ?
+                                <img src='img/staron.png' onClick={(e) => {
+                                    e.stopPropagation()
+                                    dispatch(p.d.setItemStared(tree.data.id, false))
+                                }} /> :
+                                <img src='img/staroff.png' onClick={(e) => {
+                                    e.stopPropagation()
+                                    dispatch(p.d.setItemStared(tree.data.id, true))
+                                }} /> )
                             }
                         </>
                     }
@@ -69,7 +92,7 @@ const ItemRow = (p: {
                         </tr>
                     }
                     { tree.list.items.map((item: InventoryTree<ItemData>) =>
-                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} />
+                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} d={p.d} />
                     )}
                 </>
             }
@@ -78,11 +101,12 @@ const ItemRow = (p: {
 }
 
 const SortRow = (p: {
-    sortType: number
+    sortType: number,
+    sortByPart: (part: number) => any
 }) => {
     const { sortType } = p
     const dispatch = useDispatch()
-    const sortBy = (part: number) => () => dispatch(sortByStoreBy(part))
+    const sortBy = (part: number) => () => dispatch(p.sortByPart(part))
 
     const Column = (q: { part: number, text: string, up: number, down: number }) =>
         <td onClick={sortBy(q.part)}>
@@ -114,7 +138,7 @@ const InventoryByStoreList = (p: {
                 </div>
                 <table className='table-diff'>
                     <thead>
-                        <SortRow sortType={inv.showList.sortType} />
+                        <SortRow sortType={inv.showList.sortType} sortByPart={sortByStoreBy} />
                     </thead>
                     <tbody>
                         {
@@ -122,7 +146,44 @@ const InventoryByStoreList = (p: {
                                 <ItemRow
                                     key={item.data.id}
                                     tree={item}
-                                    space={0} />
+                                    space={0}
+                                    d={({
+                                        setItemExpanded: setByStoreItemExpanded,
+                                        setItemName: setByStoreItemName,
+                                        cancelItemNameEditing: cancelByStoreItemNameEditing,
+                                        confirmItemNameEditing: confirmByStoreItemNameEditing,
+                                        startItemNameEditing: startByStoreItemNameEditing,
+                                        setItemStared: setByStoreItemStared,
+                                    })} />
+                            )
+                        }
+                    </tbody>
+                </table>
+            </ExpandableSection>
+            <ExpandableSection title='Stared Containers' expanded={inv.staredList.expanded} setExpanded={setByStoreStaredInventoryExpanded}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <p>Total value {inv.staredList.stats.ped} PED in {inv.staredList.stats.count} container{inv.staredList.stats.count == 1 ? '' : 's'}</p>
+                    <SearchInput filter={inv.staredFilter} setFilter={setByStoreStaredInventoryFilter} />
+                </div>
+                <table className='table-diff'>
+                    <thead>
+                        <SortRow sortType={inv.staredList.sortType} sortByPart={sortByStoreStaredBy} />
+                    </thead>
+                    <tbody>
+                        {
+                            inv.staredList.items.map((item: InventoryTree<ItemData>) =>
+                                <ItemRow
+                                    key={item.data.id}
+                                    tree={item}
+                                    space={0}
+                                    d={({
+                                        setItemExpanded: setByStoreStaredItemExpanded,
+                                        setItemName: setByStoreStaredItemName,
+                                        cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
+                                        confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
+                                        startItemNameEditing: startByStoreStaredItemNameEditing,
+                                        setItemStared: setByStoreStaredItemStared,
+                                    })} />
                             )
                         }
                     </tbody>

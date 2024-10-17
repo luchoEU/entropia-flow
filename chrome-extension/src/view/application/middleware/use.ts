@@ -3,7 +3,7 @@ import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/use"
 import { getUse } from "../selectors/use"
 import { UseState } from "../state/use"
-import { mergeDeep } from "../../../common/utils"
+import { mergeDeep } from "../../../common/merge"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)

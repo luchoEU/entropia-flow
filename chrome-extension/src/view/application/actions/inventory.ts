@@ -18,10 +18,20 @@ const START_BY_STORE_ITEM_NAME_EDITING = "[inv] start by store item name editing
 const CONFIRM_BY_STORE_ITEM_NAME_EDITING = "[inv] confirm by store item name editing"
 const CANCEL_BY_STORE_ITEM_NAME_EDITING = "[inv] cancel by store item name editing"
 const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
+const SET_BY_STORE_ITEM_STARED = "[inv] set by store item stared"
+const SET_BY_STORE_STARED_EXPANDED = "[inv] set by store stared expanded"
+const SET_BY_STORE_STARED_ITEM_EXPANDED = "[inv] set by store stared item expanded"
+const SET_BY_STORE_STARED_FILTER = "[inv] set by store stared filter"
+const START_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] start by store stared item name editing"
+const CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] confirm by store stared item name editing"
+const CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] cancel by store stared item name editing"
+const SET_BY_STORE_STARED_ITEM_NAME = "[inv] set by store stared item name"
+const SET_BY_STORE_STARED_ITEM_STARED = "[inv] set by store stared item stared"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const SORT_BY_STORE_BY = "[inv] sort by store by"
+const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
 const SORT_AVAILABLE_BY = "[inv] sort available by"
 const SORT_TT_SERVICE_BY = "[inv] sort tt service by"
 const RELOAD_TT_SERVICE = "[inv] reload tt service"
@@ -128,6 +138,67 @@ const setByStoreItemName = (id: string, name: string) => ({
     }
 })
 
+
+const setByStoreItemStared = (id: string, stared: boolean) => ({
+    type: SET_BY_STORE_ITEM_STARED,
+    payload: {
+        id,
+        stared
+    }
+})
+
+const setByStoreStaredInventoryExpanded = (expanded: boolean) => ({
+    type: SET_BY_STORE_STARED_EXPANDED,
+    payload: {
+        expanded
+    }
+})
+
+const setByStoreStaredItemExpanded = (id: string) => (expanded: boolean) => ({
+    type: SET_BY_STORE_STARED_ITEM_EXPANDED,
+    payload: {
+        id,
+        expanded
+    }
+})
+
+const startByStoreStaredItemNameEditing = (id: string) => ({
+    type: START_BY_STORE_STARED_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const confirmByStoreStaredItemNameEditing = (id: string) => ({
+    type: CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const cancelByStoreStaredItemNameEditing = (id: string) => ({
+    type: CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING,
+    payload: {
+        id
+    }
+})
+
+const setByStoreStaredItemName = (id: string, name: string) => ({
+    type: SET_BY_STORE_STARED_ITEM_NAME,
+    payload: {
+        id,
+        name
+    }
+})
+
+const setByStoreStaredItemStared = (id: string, stared: boolean) => ({
+    type: SET_BY_STORE_STARED_ITEM_STARED,
+    payload: {
+        id,
+        stared
+    }
+})
+
 const setVisibleInventoryFilter = (filter: string) => ({
     type: SET_VISIBLE_FILTER,
     payload: {
@@ -144,6 +215,13 @@ const setHiddenInventoryFilter = (filter: string) => ({
 
 const setByStoreInventoryFilter = (filter: string) => ({
     type: SET_BY_STORE_FILTER,
+    payload: {
+        filter
+    }
+})
+
+const setByStoreStaredInventoryFilter = (filter: string) => ({
+    type: SET_BY_STORE_STARED_FILTER,
     payload: {
         filter
     }
@@ -179,6 +257,13 @@ const sortHiddenBy = (part: number) => ({
 
 const sortByStoreBy = (part: number) => ({
     type: SORT_BY_STORE_BY,
+    payload: {
+        part
+    }
+})
+
+const sortByStoreStaredBy = (part: number) => ({
+    type: SORT_BY_STORE_STARED_BY,
     payload: {
         part
     }
@@ -280,10 +365,20 @@ export {
     CONFIRM_BY_STORE_ITEM_NAME_EDITING,
     CANCEL_BY_STORE_ITEM_NAME_EDITING,
     SET_BY_STORE_ITEM_NAME,
+    SET_BY_STORE_ITEM_STARED,
+    SET_BY_STORE_STARED_EXPANDED,
+    SET_BY_STORE_STARED_ITEM_EXPANDED,
+    SET_BY_STORE_STARED_FILTER,
+    START_BY_STORE_STARED_ITEM_NAME_EDITING,
+    CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING,
+    CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING,
+    SET_BY_STORE_STARED_ITEM_NAME,
+    SET_BY_STORE_STARED_ITEM_STARED,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
     SORT_BY_STORE_BY,
+    SORT_BY_STORE_STARED_BY,
     SORT_AVAILABLE_BY,
     SORT_TT_SERVICE_BY,
     RELOAD_TT_SERVICE,
@@ -313,10 +408,20 @@ export {
     confirmByStoreItemNameEditing,
     cancelByStoreItemNameEditing,
     setByStoreItemName,
+    setByStoreItemStared,
+    setByStoreStaredInventoryExpanded,
+    setByStoreStaredItemExpanded,
+    setByStoreStaredInventoryFilter,
+    startByStoreStaredItemNameEditing,
+    confirmByStoreStaredItemNameEditing,
+    cancelByStoreStaredItemNameEditing,
+    setByStoreStaredItemName,
+    setByStoreStaredItemStared,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,
     sortByStoreBy,
+    sortByStoreStaredBy,
     sortAvailableBy,
     sortTTServiceBy,
     reloadTTService,
