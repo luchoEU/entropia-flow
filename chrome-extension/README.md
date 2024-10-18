@@ -7,6 +7,11 @@
 3. `npm run dev` to compile once or `npm run watch` to run the dev task in watch mode
 4. `npm run build` to build a production (minified) version
 
+## Building for Windows Client
+
+1. `npm run stream` or `npm run stream-dev`
+2. Copy `chrome-extension\dist.win` directory to `win-client\bin\Debug\net8-windows\GameWindow\dist.win`
+
 ## Installation
 
 1. Complete the steps to build the project above

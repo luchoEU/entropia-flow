@@ -1,4 +1,6 @@
 dist/*.js
 dist/*.js.LICENSE.txt
+dist.win/
+dist.win.zip
 node_modules
 package-lock.json
