@@ -9,7 +9,7 @@
 ## Building for Windows Client
 
 1. `npm run stream` or `npm run stream-dev`
-1. Copy `chrome-extension\dist.win` directory to `win-client\bin\Debug\net8-windows\GameWindow\dist.win`
+1. Copy the content of `chrome-extension\dist.win` directory to `win-client\bin\Debug\net8-windows\GameWindow`
 
 ## Local Installation
 
