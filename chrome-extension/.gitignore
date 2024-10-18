@@ -1,5 +1,6 @@
 dist/*.js
 dist/*.js.LICENSE.txt
+dist.zip
 dist.win/
 dist.win.zip
 node_modules
