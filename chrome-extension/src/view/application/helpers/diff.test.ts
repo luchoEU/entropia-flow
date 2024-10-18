@@ -81,6 +81,38 @@ describe('difference', () => {
         ])
     })
 
+    test('move with use', () => {
+        expect(getDifference({
+            itemlist: [
+                { id: '1', n: 'Vehicle RK-25 (L)', q: '1', v: '11.50', c: 'CARRIED' },
+            ],
+            meta: { date: 1 }
+        }, {
+            itemlist: [
+                { id: '1', n: 'Vehicle RK-25 (L)', q: '1', v: '13.50', c: 'Haruspex Anti-Grav Chest' },
+            ], meta: { date: 2 }
+        })).toEqual([
+            { key: 0, n: 'Vehicle RK-25 (L)', q: '', v: '-2.00', c: 'Haruspex Anti-Grav Chest ⟹ CARRIED' }
+        ])
+    })
+
+    test('move with use with other item', () => {
+        expect(getDifference({
+            itemlist: [
+                { id: '1', n: 'Vehicle RK-25 (L)', q: '1', v: '11.50', c: 'CARRIED' },
+                { id: '2', n: 'Vehicle RK-25 (L)', q: '1', v: '13.50', c: 'CARRIED' },
+            ],
+            meta: { date: 1 }
+        }, {
+            itemlist: [
+                { id: '1', n: 'Vehicle RK-25 (L)', q: '1', v: '13.50', c: 'Haruspex Anti-Grav Chest' },
+                { id: '2', n: 'Vehicle RK-25 (L)', q: '1', v: '13.50', c: 'CARRIED' },
+            ], meta: { date: 2 }
+        })).toEqual([
+            { key: 0, n: 'Vehicle RK-25 (L)', q: '', v: '-2.00', c: 'Haruspex Anti-Grav Chest ⟹ CARRIED' }
+        ])
+    })
+
     test('move all out', () => {
         expect(getDifference({
             itemlist: [

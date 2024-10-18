@@ -142,16 +142,16 @@ const sameName = {
         while (n < iList.length && m < pList.length) {
             const i = iList[n]
             const p = pList[m]
-            let c = i.q - p.q
-            if (c === 0)
-                c = i.v - p.v
-            if (c === 0) {
+            let d = i.q - p.q
+            if (d === 0)
+                d = i.v - p.v
+            if (d === 0) {
                 add(i.q, i.v, `${p.c} ⭢ ${i.c}`)
                 iList.splice(n, 1)
                 pList.splice(m, 1)
-            } else if (c < 0) {
+            } else if (d < 0) {
                 n++
-            } else { // c > 0
+            } else { // d > 0
                 m++
             }
         }
@@ -187,6 +187,23 @@ const sameName = {
             } else if (c < 0) {
                 n++
             } else { // c > 0
+                m++
+            }
+        }
+    },
+    moveDifferentContainer: (add: AddFunc, iList: Array<ItemSameNameData>, pList: Array<ItemSameNameData>) => {
+        let n = 0
+        let m = 0
+        while (n < iList.length && m < pList.length) {
+            const i = iList[n]
+            const p = pList[m]
+            const c = i.c.localeCompare(p.c)
+            if (c !== 0) {
+                add(i.q - p.q, i.v - p.v, `${p.c} ⟹ ${i.c}`)
+                iList.splice(n, 1)
+                pList.splice(m, 1)
+            } else {
+                n++
                 m++
             }
         }
@@ -228,6 +245,7 @@ const sameName = {
         sameName.movePart(addFunc, iList, pList, false)
         sameName.movePart(addFunc, pList, iList, true)
         sameName.moveSameContainer(addFunc, iList, pList)
+        sameName.moveDifferentContainer(addFunc, iList, pList)
         sameName.addRemaining(addFunc, iList, 1)
         sameName.addRemaining(addFunc, pList, -1)
         sortList(items)
