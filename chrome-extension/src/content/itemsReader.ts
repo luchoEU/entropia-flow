@@ -48,14 +48,19 @@ class ItemsReader {
                         const n = cells[0].innerText
                         const q = cells[1].innerText
                         const v = cells[2].innerText
+                        let c = ''
                         const containerChildren = cells[3].childNodes
-                        let c = containerChildren[0].textContent
-                        if (containerChildren.length === 2) {
-                            var anchor = containerChildren[1] as HTMLAnchorElement
-                            if (anchor) {
-                                c += '('
-                                c += anchor.getAttribute('href').split('_')[2]
-                                c += ')'
+                        if (containerChildren.length === 0) {
+                            c = cells[3].innerText
+                        } else {
+                            c = containerChildren[0].textContent
+                            if (containerChildren.length === 2) {
+                                var anchor = containerChildren[1] as HTMLAnchorElement
+                                if (anchor) {
+                                    c += '('
+                                    c += anchor.getAttribute('href').split('_')[2]
+                                    c += ')'
+                                }
                             }
                         }
                         json.itemlist.push({ id, n, q, v, c })
