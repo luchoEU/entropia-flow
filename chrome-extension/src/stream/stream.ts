@@ -1,4 +1,4 @@
-import { BackgroundType, getIcon, loadBackground } from "./background"
+import { BackgroundType, loadBackground } from "./background"
 import { init, propsModule, styleModule } from 'snabbdom'
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./reactToSnabb"
@@ -20,7 +20,8 @@ export function render(data: any): SizeData {
     const vNode = reactElementToVNode(StreamViewDiv(data))
     patch(streamElement, vNode)
 
-    loadBackground(data.background, streamElement)
+    const newStreamElement = document.getElementById('stream') // get it again after patch
+    loadBackground(data.background, newStreamElement, streamElement)
 
     return {
         width: parseInt(streamElement.style.width),

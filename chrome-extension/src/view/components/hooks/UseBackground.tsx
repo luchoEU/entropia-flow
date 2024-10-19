@@ -5,7 +5,7 @@ const useBackground = (type: BackgroundType, contentId: string, deps: Dependency
   useEffect(() => {
     const container = document.getElementById(contentId)
     if (container)
-      loadBackground(type, container)
+      loadBackground(type, container, undefined)
     return () => { }
   }, deps)
 }
