@@ -1,5 +1,6 @@
 const path = require("path");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 
 module.exports = {
   mode: "development",
@@ -31,6 +32,13 @@ module.exports = {
         { from: 'dist/effects', to: 'effects' },
         { from: 'dist/img/flow128*.png', to: 'img/[name][ext]' },
       ]
-    })
+    }),
+    new WebpackShellPluginNext({
+      onBuildEnd: {
+        scripts: ['rm dist.win.zip; cd dist.win; zip -r ../dist.win.zip *'],
+        blocking: false,
+        parallel: false,
+      },
+    }),
   ]
 };
