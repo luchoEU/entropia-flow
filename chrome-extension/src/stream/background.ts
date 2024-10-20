@@ -2,13 +2,15 @@ import { IBackground, SimpleBackground } from './effects/baseBackground';
 import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
+import ColorOrbsBackground from './effects/color-orbs/main';
 
 enum BackgroundType {
   Light,
   Dark,
   Ashfall,
   Matrix,
-  Fireflies
+  Fireflies,
+  ColorOrbs,
 }
 
 interface BackgroundSpec {
@@ -25,6 +27,7 @@ const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBack
   [BackgroundType.Ashfall, AshfallBackground],
   [BackgroundType.Matrix, MatrixBackground],
   [BackgroundType.Fireflies, FirefliesBackground],
+  [BackgroundType.ColorOrbs, ColorOrbsBackground],
 ]);
 
 let instances: IBackground[] = []
@@ -134,7 +137,17 @@ const backgroundList: BackgroundSpec[] = [
       'color': 'white',
       'background-color': 'transparent'
     }
-  }
+  },
+  {
+    key: 5,
+    type: BackgroundType.ColorOrbs,
+    title: 'Color Orbs (WIP)',
+    icon: 'img/flow128w.png',
+    style: {
+      'color': 'white',
+      'background-color': 'transparent'
+    }
+  },
 ]
 
 const getIcon = (type: BackgroundType): string => {

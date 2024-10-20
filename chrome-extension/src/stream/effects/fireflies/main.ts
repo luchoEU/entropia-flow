@@ -1,64 +1,29 @@
 // Derived from https://codepen.io/mikegolus/pen/Jegvym Copyright (c) 2024 Mike Golus (MIT License)
 
-import { BaseBackground } from "../baseBackground";
+import { CssBackground } from "../baseBackground";
 
 const state = {
     quantity: 15
 }
 
-class FirefliesBackground extends BaseBackground {
+class FirefliesBackground extends CssBackground {
     constructor(container: HTMLElement) {
-        super(container, false)
-        this.addFireflyStyle()
-        this.generateFirefliesInContainer()
-        this.setReady()
+        super(container, state.quantity, 'firefly')
     }
 
-    private generateFirefliesInContainer() {
-        if (this.container.getElementsByClassName('firefly-container')[0]) return
-        
-        const fireflyContainer: HTMLDivElement = document.createElement('div');
-        fireflyContainer.className = 'firefly-container';
-        this.container.appendChild(fireflyContainer);
-
-        for (let i = 1; i <= state.quantity; i++) {
-            const firefly = document.createElement('div');
-            firefly.classList.add('firefly');
-            fireflyContainer.appendChild(firefly);
-        }
-    }
-
-    public override cleanUp(): void {
-        const fireflyContainer = this.container.getElementsByClassName('firefly-container')[0]
-        if (fireflyContainer)
-          this.container.removeChild(fireflyContainer)
-    }
-
-    private addFireflyStyle() {
-        if (document.getElementById('fireflies-style')) return
-        
-        const style: HTMLStyleElement = document.createElement('style');
-        style.id = 'fireflies-style';
-        document.head.appendChild(style);
-
-        style.innerHTML = `
-        .firefly-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+    protected override getStyle(containerClassName: string, itemClassName: string): string {
+        let style: string = `
+        .${containerClassName} {
             background-image: url('effects/fireflies.jpg');
             background-size: cover;
-            z-index: -1;
         }
-        .firefly {
-            position: absolute;
+        .${itemClassName} {
             width: 3px;
             height: 3px;
             animation: ease 200s alternate infinite;
             pointer-events: none;
         }
-        .firefly::before, .firefly::after {
+        .${itemClassName}::before, .${itemClassName}::after {
             content: "";
             position: absolute;
             width: 100%;
@@ -66,12 +31,12 @@ class FirefliesBackground extends BaseBackground {
             border-radius: 50%;
             transform-origin: -20px;
         }
-        .firefly::before {
+        .${itemClassName}::before {
             background: black;
             opacity: 0.4;
             animation: drift ease alternate infinite;
         }
-        .firefly::after {
+        .${itemClassName}::after {
             background: white;
             opacity: 0;
             box-shadow: 0 0 0 0 yellow;
@@ -100,7 +65,7 @@ class FirefliesBackground extends BaseBackground {
         for (let i = 1; i <= state.quantity; i++) {
             const steps = random(12, 28);
             const rotationSpeed = random(8, 18);
-            style.innerHTML += `
+            style += `
             @keyframes move${i} {
                 ${Array.from({ length: steps }, (_, step) => {
                     return `
@@ -111,18 +76,19 @@ class FirefliesBackground extends BaseBackground {
                     }
                 `}).join('')}
             }
-            .firefly:nth-child(${i}) {
+            .${itemClassName}:nth-child(${i}) {
                 animation-name: move${i}
             }
-            .firefly:nth-child(${i})::before {
+            .${itemClassName}:nth-child(${i})::before {
                 animation-duration: ${rotationSpeed}s;
             }
-            .firefly:nth-child(${i})::after {
+            .${itemClassName}:nth-child(${i})::after {
                 animation-duration: ${rotationSpeed}s, ${random(5000, 11000)}ms;
                 animation-delay: 0ms, ${random(500, 8500)}ms;
             }
             `;
         }
+        return style;
     }
 }
 
