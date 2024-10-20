@@ -7,10 +7,10 @@ import { StreamState } from '../../application/state/stream';
 
 function StreamView() {
     const s: StreamState = useSelector(getStream)
-    const { enabled, background } = s.in
+    const { enabled } = s.in
     const d = s.out?.data
 
-    useBackground(background.selected, 'stream', [ s ])
+    useBackground(d?.background, 'stream')
 
     if (enabled && d)
         return (

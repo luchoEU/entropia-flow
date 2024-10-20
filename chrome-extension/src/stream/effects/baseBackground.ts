@@ -4,6 +4,7 @@ interface IBackground {
     isAnimated: boolean,
     type?: number
     render(delta: number): void
+    cleanUp(): void
 }
 
 class BaseBackground implements IBackground {
@@ -28,6 +29,8 @@ class BaseBackground implements IBackground {
     public render(delta: number): void { }
 
     protected onContainerResize() { }
+
+    public cleanUp() { }
 }
 
 class SimpleBackground extends BaseBackground {
@@ -37,8 +40,21 @@ class SimpleBackground extends BaseBackground {
     }
 }
 
+class AnimatedBackground extends BaseBackground {
+    constructor(container: HTMLElement) {
+        super(container, true)
+    }
+
+    public override cleanUp(): void {
+        const canvas = this.container.querySelector('canvas')
+        if (canvas)
+          this.container.removeChild(canvas)
+    }
+}
+
 export {
     IBackground,
     BaseBackground,
-    SimpleBackground
+    SimpleBackground,
+    AnimatedBackground
 }

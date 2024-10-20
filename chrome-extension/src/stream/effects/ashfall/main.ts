@@ -10,16 +10,16 @@ declare const window: any
 import vertexShader from './vertexShader'
 import fragmentShader from './fragmentShader'
 import { NOISE_PNG } from './noise.png'
-import { BaseBackground } from "../baseBackground";
+import { AnimatedBackground } from "../baseBackground";
 
-class AshfallBackground extends BaseBackground {
+class AshfallBackground extends AnimatedBackground {
   private camera: any
   private scene: any
   private renderer: any
   private uniforms: any
   
   constructor(container: HTMLElement) {
-    super(container, true)
+    super(container)
     const loader = new window.THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
     const that = this

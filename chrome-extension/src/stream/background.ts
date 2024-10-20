@@ -1,12 +1,14 @@
-import AshfallBackground from './effects/ashfall/main'
 import { IBackground, SimpleBackground } from './effects/baseBackground';
+import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
+import FirefliesBackground from './effects/fireflies/main';
 
 enum BackgroundType {
   Light,
   Dark,
   Ashfall,
   Matrix,
+  Fireflies
 }
 
 interface BackgroundSpec {
@@ -21,7 +23,8 @@ const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBack
   [BackgroundType.Light, SimpleBackground],
   [BackgroundType.Dark, SimpleBackground],
   [BackgroundType.Ashfall, AshfallBackground],
-  [BackgroundType.Matrix, MatrixBackground]
+  [BackgroundType.Matrix, MatrixBackground],
+  [BackgroundType.Fireflies, FirefliesBackground],
 ]);
 
 let instances: IBackground[] = []
@@ -38,24 +41,25 @@ function animate(delta: number) {
 }
 
 function loadBackground(type: BackgroundType, container: HTMLElement, oldContainer: HTMLElement) {
+  if (type < 0 || type > factories.size - 1)
+    type = BackgroundType.Light
+
   if (instances.some(i => i.container == container && i.type == type && !i.ready))
     return // loading
   
   instances = instances.filter(i => {
     if (i.container == container && i.type != type) {
-      // remove old canvas, the type has changed
-      const canvas = container.querySelector('canvas')
-      if (canvas)
-        container.removeChild(canvas)
+      i.cleanUp()
       return false
     }
     return true
   })
 
-  if (container.querySelector('canvas'))
+  if (type === undefined || container.querySelector('canvas'))
     return
 
-  Object.assign(container.style, backgroundList[type].style);
+  const style = backgroundList[type].style
+  Object.keys(style).forEach(key => container.style[key] = style[key]);
 
   if (oldContainer) {
     instances.forEach(i => {
@@ -82,42 +86,54 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
 
 const backgroundList: BackgroundSpec[] = [
   {
-      key: 0,
-      type: BackgroundType.Light,
-      title: 'Light',
-      icon: 'img/flow128.png',
-      style: {
-          'color': 'black',
-          'background-color': 'white'
-      }
+    key: 0,
+    type: BackgroundType.Light,
+    title: 'Light',
+    icon: 'img/flow128.png',
+    style: {
+      'color': 'black',
+      'background-color': 'white'
+    }
   },
   {
-      key: 1,
-      type: BackgroundType.Dark,
-      title: 'Dark',
-      icon: 'img/flow128w.png',
-      style: {
-        'color': 'white',
-        'background-color': 'black'
-      }
+    key: 1,
+    type: BackgroundType.Dark,
+    title: 'Dark',
+    icon: 'img/flow128w.png',
+    style: {
+      'color': 'white',
+      'background-color': 'black'
+    }
   },
   {
-      key: 2,
-      type: BackgroundType.Ashfall,
-      title: 'Ashfall',
-      icon: 'img/flow128w.png',
-      style: {
-        'color': 'white',
-      }
+    key: 2,
+    type: BackgroundType.Ashfall,
+    title: 'Ashfall',
+    icon: 'img/flow128w.png',
+    style: {
+      'color': 'white',
+      'background-color': 'transparent'
+    }
   },
   {
-      key: 3,
-      type: BackgroundType.Matrix,
-      title: 'Matrix',
-      icon: 'img/flow128w.png',
-      style: {
-        'color': 'white',
-      }
+    key: 3,
+    type: BackgroundType.Matrix,
+    title: 'Matrix',
+    icon: 'img/flow128w.png',
+    style: {
+      'color': 'white',
+      'background-color': 'transparent'
+    }
+  },
+  {
+    key: 4,
+    type: BackgroundType.Fireflies,
+    title: 'Fireflies',
+    icon: 'img/flow128w.png',
+    style: {
+      'color': 'white',
+      'background-color': 'transparent'
+    }
   }
 ]
 

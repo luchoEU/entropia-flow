@@ -1,6 +1,6 @@
 // Derived from https://codepen.io/pavi2410/pen/oNjGVgM Copyright (c) 2024 Pavitra Golchha (MIT License)
 
-import { BaseBackground } from "../baseBackground";
+import { AnimatedBackground } from "../baseBackground";
 
 const state = {
   fullFallTime: 3.0,
@@ -11,7 +11,7 @@ const state = {
   opacity: 0.05
 };
 
-class MatrixBackground extends BaseBackground {
+class MatrixBackground extends AnimatedBackground {
   private elapsed: number = 0
   private width: number
   private height: number
@@ -19,8 +19,7 @@ class MatrixBackground extends BaseBackground {
   private positions: number[]
 
   constructor(container: HTMLElement) {
-    super(container, true)
-    this.container = container
+    super(container)
     this.init()
     this.setReady()
   }

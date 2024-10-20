@@ -13,6 +13,7 @@ const StreamBackground = (p: {
 }): JSX.Element => {
     const dispatch = useDispatch()
     const id = 'stream' + p.background.title
+
     useBackground(p.background.type, id)
 
     return (
