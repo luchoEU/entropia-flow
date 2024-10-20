@@ -59,29 +59,26 @@ const Last = () => {
                         className={expandedClass}
                         onClick={() => dispatch(setExpanded(!expanded))}
                     >
-                        {diff === null ? '' : (expanded ? '-' : '+')}
+                        { expanded ? '-' : '+' }
                     </button>
-                    {text}
-                    <span className={`difference ${getDeltaClass(delta)}`}>{delta.toFixed(2)}</span>
-                    {hasWarning ?
+                    { text }
+                    <span className={`difference ${getDeltaClass(delta)}`}>{ delta.toFixed(2) }</span>
+                    { hasWarning &&
                         <img src='img/warning.png'
                             className='img-warning'
                             onClick={() => dispatch(expanded ? excludeWarnings : setExpanded(true))} />
-                        : ''
                     }
-                    {diff !== null && craft.activeSession === undefined ?
+                    { diff !== null && craft.activeSession === undefined &&
                         <img src='img/tick.png'
                             className='img-delta-zero'
                             onClick={() => dispatch(setLast)} />
-                        : ''
                     }
                 </p>
-                {expanded ?
+                { expanded &&
                     <InventoryDifference
                         diff={diff}
                         peds={peds}
                         config={config} />
-                    : ''
                 }
             </section>
         )

@@ -28,12 +28,14 @@ const ItemRow = (p: {
     return (
         <tr>
             <td onClick={c.sortBy(NAME)}>{item.n}
-                {item.w ? <img data-show src='img/warning.png' onClick={(e) => {
-                    e.stopPropagation()
-                    c.exclude(item.key)
-                }} /> : ''}
+                { item.w &&
+                    <img data-show src='img/warning.png' onClick={(e) => {
+                        e.stopPropagation()
+                        c.exclude(item.key)
+                    }} />
+                }
                 {
-                    c.allowExclude && hasValue(item) ?
+                    c.allowExclude && hasValue(item) &&
                         (item.e ?
                             (item.x ?
                                 <img src='img/forbidden.png' data-show onClick={(e) => {
@@ -54,8 +56,7 @@ const ItemRow = (p: {
                             <img src='img/tick.png' onClick={(e) => {
                                 e.stopPropagation()
                                 c.exclude(item.key)
-                            }}></img>) :
-                        ''
+                            }}></img>)
                 }
             </td>
             <td onClick={c.sortBy(QUANTITY)}>{item.q}</td>
@@ -65,13 +66,13 @@ const ItemRow = (p: {
             </td>
             <td onClick={c.sortBy(CONTAINER)}>{item.c}</td>
             <td>
-                {item.a ?
+                { item.a &&
                     <button
                         className='button-me-log'
                         onClick={() => dispatch(selectForAction(item.a.menu, item.n))}>
-                        {'>'}
+                        { '>' }
                     </button>
-                    : ''}
+                }
             </td>
         </tr>
     )
@@ -89,7 +90,7 @@ const PedRow = (p: {
                 <img src='img/cross.png' onClick={() => { dispatch(removePeds(item.key)) }}></img>
             </td>
             <td></td>
-            <td>{item.value + ' PED'}</td>
+            <td>{ item.value + ' PED' }</td>
             <td></td>
             <td></td>
         </tr >
@@ -103,11 +104,11 @@ const PedNewRow = () => {
     return (
         <tr>
             <td>PED
-                {isValid ?
+                { isValid &&
                     <img src='img/tick.png' data-show onClick={() => {
                         dispatch(addPeds(peds))
                         setPeds('')
-                    }}></img> : <></>
+                    }}></img>
                 }
             </td>
             <td></td>
@@ -125,13 +126,10 @@ const InventoryDifference = (p: {
     peds: Array<ViewPedData>,
     config: Config
 }) => {
-    if (p.diff == undefined)
-        return (<></>)
-
     return (
         <table className='table-diff'>
             <tbody>
-                {
+                { p.diff &&
                     p.diff.map((item: ViewItemData) =>
                         <ItemRow
                             key={item.key}
@@ -147,7 +145,7 @@ const InventoryDifference = (p: {
                             c={p.config} />
                     )
                 }
-                {p.config.showPeds ? <PedNewRow key='0' /> : <></>}
+                { p.config.showPeds && <PedNewRow key='0' /> }
             </tbody>
         </table>
     )
