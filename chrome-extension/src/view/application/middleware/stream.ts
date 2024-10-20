@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { SHOW_PAGES_IN_DEVELOPMENT } from "../../../config"
+import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
@@ -49,7 +49,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_DATA: {
             const { data }: StreamStateOut = getStreamOut(getState())
-            if (SHOW_PAGES_IN_DEVELOPMENT) {
+            if (SHOW_FEATURES_IN_DEVELOPMENT) {
                 // TODO: it should only send this message if connected
                 // Also check if reconnection to background works
                 dispatch(sendWebSocketMessage('stream', data))

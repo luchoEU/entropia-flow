@@ -46,11 +46,11 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { enabled ?
+            { enabled &&
                 <>
                     <ExpandableSection title='Background' expanded={background.expanded} setExpanded={setStreamBackgroundExpanded}>
                         { backgroundList.map((b: BackgroundSpec) =>
-                            <StreamBackground key={b.key} background={b} isSelected={b.type === background.selected} />) }
+                            <StreamBackground key={b.type} background={b} isSelected={b.type === background.selected} />) }
                     </ExpandableSection>
                     <section>
                         <h1>
@@ -59,7 +59,7 @@ function StreamPage() {
                         <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>
                         <p>Also I can change the layout if you think on one better for you, contact me too.</p>
                     </section>
-                </>: '' }
+                </> }
         </>
     )
 }

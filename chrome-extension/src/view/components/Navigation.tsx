@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { SHOW_PAGES_IN_DEVELOPMENT } from '../../config'
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../config'
 import { ABOUT_PAGE, MONITOR_PAGE, STREAM_PAGE, INVENTORY_PAGE, CRAFT_PAGE, selectMenu, TRADE_PAGE, SETTING_PAGE, REFINED_PAGE, GAME_LOG_PAGE, CONNECTION_PAGE, GAME_SPLIT_PAGE, BUDGET_PAGE } from '../application/actions/menu';
 import { getSelectedMenu } from '../application/selectors/menu';
 
@@ -30,7 +30,7 @@ const Navigation = () => {
             <Tab id={MONITOR_PAGE} title="Monitor" />
             <Tab id={INVENTORY_PAGE} title='Inventory' />
             <Tab id={TRADE_PAGE} title="Trading" />
-            {SHOW_PAGES_IN_DEVELOPMENT ?
+            {SHOW_FEATURES_IN_DEVELOPMENT ?
                 <>
                 <Tab id={REFINED_PAGE} title="Refined" />
                 <Tab id={CRAFT_PAGE} title='Crafting' />

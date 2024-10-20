@@ -3,6 +3,7 @@ import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
 import ColorOrbsBackground from './effects/color-orbs/main';
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../config';
 
 enum BackgroundType {
   Light,
@@ -14,7 +15,6 @@ enum BackgroundType {
 }
 
 interface BackgroundSpec {
-  key: number,
   type: BackgroundType,
   title: string,
   icon: string,
@@ -89,7 +89,6 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
 
 const backgroundList: BackgroundSpec[] = [
   {
-    key: 0,
     type: BackgroundType.Light,
     title: 'Light',
     icon: 'img/flow128.png',
@@ -99,7 +98,6 @@ const backgroundList: BackgroundSpec[] = [
     }
   },
   {
-    key: 1,
     type: BackgroundType.Dark,
     title: 'Dark',
     icon: 'img/flow128w.png',
@@ -109,7 +107,6 @@ const backgroundList: BackgroundSpec[] = [
     }
   },
   {
-    key: 2,
     type: BackgroundType.Ashfall,
     title: 'Ashfall',
     icon: 'img/flow128w.png',
@@ -119,7 +116,6 @@ const backgroundList: BackgroundSpec[] = [
     }
   },
   {
-    key: 3,
     type: BackgroundType.Matrix,
     title: 'Matrix',
     icon: 'img/flow128w.png',
@@ -129,7 +125,6 @@ const backgroundList: BackgroundSpec[] = [
     }
   },
   {
-    key: 4,
     type: BackgroundType.Fireflies,
     title: 'Fireflies',
     icon: 'img/flow128w.png',
@@ -138,8 +133,10 @@ const backgroundList: BackgroundSpec[] = [
       'background-color': 'transparent'
     }
   },
-  {
-    key: 5,
+]
+
+if (SHOW_FEATURES_IN_DEVELOPMENT) {
+  backgroundList.push({
     type: BackgroundType.ColorOrbs,
     title: 'Color Orbs (WIP)',
     icon: 'img/flow128w.png',
@@ -147,8 +144,8 @@ const backgroundList: BackgroundSpec[] = [
       'color': 'white',
       'background-color': 'transparent'
     }
-  },
-]
+  })
+}
 
 const getIcon = (type: BackgroundType): string => {
   if (type)

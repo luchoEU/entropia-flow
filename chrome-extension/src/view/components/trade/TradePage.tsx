@@ -5,7 +5,7 @@ import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
 import TTServiceList from './TTServiceList'
-import { SHOW_PAGES_IN_DEVELOPMENT } from '../../../config'
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import InventoryVisibleList from './InventoryVisibleList'
 import InventoryHiddenList from './InventoryHiddenList'
 
@@ -31,7 +31,7 @@ function TradePage() {
                 <InventoryVisibleList inv={s.visible}/>
                 <InventoryHiddenList inv={s.hidden} />
             </div>
-            {SHOW_PAGES_IN_DEVELOPMENT ?
+            {SHOW_FEATURES_IN_DEVELOPMENT ?
                 <TTServiceList list={s.ttService} />
                 : ''
             }
