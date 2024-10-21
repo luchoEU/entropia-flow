@@ -1,5 +1,5 @@
 import React from "react"
-import ExpandableButton from "./ExpandableButton"
+import ExpandableArrowButton from "./ExpandableArrowButton"
 
 const ExpandableSection = (p: {
     title: string,
@@ -10,7 +10,7 @@ const ExpandableSection = (p: {
 }) => {
     return (
         <section {...(p.block ? { className: 'block' } : {})}>
-            <h1>{p.title} <ExpandableButton expanded={p.expanded} setExpanded={p.setExpanded} />
+            <h1>{p.title} <ExpandableArrowButton expanded={p.expanded} setExpanded={p.setExpanded} />
             </h1>
             {
                 p.expanded ? p.children : ''

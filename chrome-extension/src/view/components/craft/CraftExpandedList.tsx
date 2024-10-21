@@ -9,6 +9,7 @@ import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 
 function SessionInfo(p: {
     name: string,
@@ -176,14 +177,16 @@ function CraftSingle(p: {
                                     className='img-delta-zero'
                                     onClick={() => dispatch(reloadBlueprint(d.name))} /></p> :
                                 <>
-                                <p>Budget Page: { d.budget.loading ?
+                                { SHOW_FEATURES_IN_DEVELOPMENT && <>
+                                    <p>Budget Page: { d.budget.loading ?
                                     <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
                                     <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
-                                }</p>
-                                <p>Crafting Session: {
-                                    p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
-                                    <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} showMoveAll={showMoveAll} />
-                                }</p>
+                                    }</p>
+                                    <p>Crafting Session: {
+                                        p.activeSession !== undefined && d.name !== p.activeSession ? <>{p.activeSession}</> :
+                                        <SessionInfo name={d.name} session={d.session} dispatch={dispatch} message={p.message} showMoveAll={showMoveAll} />
+                                    }</p>
+                                </> }
                                 <p>Item: {d.itemName}</p>
                                 <table>
                                     <thead>

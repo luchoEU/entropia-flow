@@ -4,7 +4,7 @@ import { setExpanded } from '../../application/actions/about'
 import { isExpanded } from '../../application/selectors/about'
 import { DONATIONS, FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../../application/state/about'
 import ExpandableSection from '../common/ExpandableSection'
-import ExpandableButton from '../common/ExpandableButton'
+import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
 const ExpandableQuestion = (p: { q: Question }) => {
     const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
@@ -12,7 +12,7 @@ const ExpandableQuestion = (p: { q: Question }) => {
 
     return (
         <>
-            <h3>{p.q.question} <ExpandableButton expanded={expanded} setExpanded={expand} /></h3>
+            <h3>{p.q.question} <ExpandableArrowButton expanded={expanded} setExpanded={expand} /></h3>
             {  
                 expanded ? <>
                     { p.q.response.map((str: string) => <p key={str}>{str}</p>) }

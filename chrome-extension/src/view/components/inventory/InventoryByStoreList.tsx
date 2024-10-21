@@ -5,7 +5,9 @@ import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, set
 import { InventoryByStore, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
-import { NAME, QUANTITY, SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING, SORT_QUANTITY_DESCENDING, SORT_VALUE_ASCENDING, SORT_VALUE_DESCENDING, VALUE } from '../../application/helpers/inventory.sort'
+import { NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
+import ExpandablePlusButton from '../common/ExpandablePlusButton'
+import SortableTable from '../common/SortableTable'
 
 const INDENT_SPACE = 10
 
@@ -30,10 +32,8 @@ const ItemRow = (p: {
         <>
             <tr>
                 <td style={{ paddingLeft: space }}>
-                    { tree.list ? (tree.list.expanded ?
-                        <span onClick={() => dispatch(expand(false))}>- </span> :
-                        <span onClick={() => dispatch(expand(true))}>+ </span>
-                    ) : <span>&nbsp;&nbsp;</span>
+                    { tree.list ? <ExpandablePlusButton expanded={tree.list.expanded} setExpanded={expand} />
+                    : <span>&nbsp;&nbsp;</span>
                     }
                     { tree.editing ?
                         <>
@@ -107,30 +107,6 @@ const ItemRow = (p: {
     )
 }
 
-const SortRow = (p: {
-    sortType: number,
-    sortByPart: (part: number) => any
-}) => {
-    const { sortType } = p
-    const dispatch = useDispatch()
-    const sortBy = (part: number) => () => dispatch(p.sortByPart(part))
-
-    const Column = (q: { part: number, text: string, up: number, down: number }) =>
-        <td onClick={sortBy(q.part)}>
-            <strong>{q.text}</strong>
-            { sortType === q.up && <img src='img/up.png' /> }
-            { sortType === q.down && <img src='img/down.png' /> }
-        </td>
-
-    return (
-        <tr className='sort-row'>
-            <Column part={NAME} text='Name' up={SORT_NAME_ASCENDING} down={SORT_NAME_DESCENDING} />
-            <Column part={QUANTITY} text='Quantity' up={SORT_QUANTITY_ASCENDING} down={SORT_QUANTITY_DESCENDING} />
-            <Column part={VALUE} text='Value' up={SORT_VALUE_ASCENDING} down={SORT_VALUE_DESCENDING} />
-        </tr>
-    )
-}
-
 const InventoryByStoreList = (p: {
     inv: InventoryByStore
 }) => {
@@ -143,60 +119,57 @@ const InventoryByStoreList = (p: {
                     <p>Total value {inv.showList.stats.ped} PED in {inv.showList.stats.count} container{inv.showList.stats.count == 1 ? '' : 's'}</p>
                     <SearchInput filter={inv.filter} setFilter={setByStoreInventoryFilter} />
                 </div>
-                <table className='table-diff'>
-                    <thead>
-                        <SortRow sortType={inv.showList.sortType} sortByPart={sortByStoreBy} />
-                    </thead>
-                    <tbody>
-                        {
-                            inv.showList.items.map((item: InventoryTree<ItemData>) =>
-                                <ItemRow
-                                    key={item.data.id}
-                                    tree={item}
-                                    space={0}
-                                    d={({
-                                        setItemExpanded: setByStoreItemExpanded,
-                                        setItemName: setByStoreItemName,
-                                        cancelItemNameEditing: cancelByStoreItemNameEditing,
-                                        confirmItemNameEditing: confirmByStoreItemNameEditing,
-                                        startItemNameEditing: startByStoreItemNameEditing,
-                                        setItemStared: setByStoreItemStared,
-                                        setFilter: setByStoreInventoryFilter
-                                    })} />
-                            )
-                        }
-                    </tbody>
-                </table>
+                <SortableTable
+                    sortType={inv.showList.sortType}
+                    sortBy={sortByStoreBy}
+                    columns={[NAME, QUANTITY, VALUE]}
+                    definition={sortColumnDefinition}>
+                    {
+                        inv.showList.items.map((item: InventoryTree<ItemData>) =>
+                            <ItemRow
+                                key={item.data.id}
+                                tree={item}
+                                space={0}
+                                d={({
+                                    setItemExpanded: setByStoreItemExpanded,
+                                    setItemName: setByStoreItemName,
+                                    cancelItemNameEditing: cancelByStoreItemNameEditing,
+                                    confirmItemNameEditing: confirmByStoreItemNameEditing,
+                                    startItemNameEditing: startByStoreItemNameEditing,
+                                    setItemStared: setByStoreItemStared,
+                                    setFilter: setByStoreInventoryFilter
+                                })} />
+                        )
+                    }
+                </SortableTable>
             </ExpandableSection>
             <ExpandableSection title='Favorite Containers' expanded={inv.staredList.expanded} setExpanded={setByStoreStaredInventoryExpanded}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <p>Total value {inv.staredList.stats.ped} PED in {inv.staredList.stats.count} container{inv.staredList.stats.count == 1 ? '' : 's'}</p>
                     <SearchInput filter={inv.staredFilter} setFilter={setByStoreStaredInventoryFilter} />
                 </div>
-                <table className='table-diff'>
-                    <thead>
-                        <SortRow sortType={inv.staredList.sortType} sortByPart={sortByStoreStaredBy} />
-                    </thead>
-                    <tbody>
-                        {
-                            inv.staredList.items.map((item: InventoryTree<ItemData>) =>
-                                <ItemRow
-                                    key={item.data.id}
-                                    tree={item}
-                                    space={0}
-                                    d={({
-                                        setItemExpanded: setByStoreStaredItemExpanded,
-                                        setItemName: setByStoreStaredItemName,
-                                        cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
-                                        confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
-                                        startItemNameEditing: startByStoreStaredItemNameEditing,
-                                        setItemStared: setByStoreStaredItemStared,
-                                        setFilter: setByStoreStaredInventoryFilter
-                                    })} />
-                            )
-                        }
-                    </tbody>
-                </table>
+                <SortableTable sortType={inv.staredList.sortType}
+                    sortBy={sortByStoreStaredBy}
+                    columns={[NAME, QUANTITY, VALUE]}
+                    definition={sortColumnDefinition}>
+                    {
+                        inv.staredList.items.map((item: InventoryTree<ItemData>) =>
+                            <ItemRow
+                                key={item.data.id}
+                                tree={item}
+                                space={0}
+                                d={({
+                                    setItemExpanded: setByStoreStaredItemExpanded,
+                                    setItemName: setByStoreStaredItemName,
+                                    cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
+                                    confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
+                                    startItemNameEditing: startByStoreStaredItemNameEditing,
+                                    setItemStared: setByStoreStaredItemStared,
+                                    setFilter: setByStoreStaredInventoryFilter
+                                })} />
+                        )
+                    }
+                </SortableTable>
             </ExpandableSection>
         </>
     )

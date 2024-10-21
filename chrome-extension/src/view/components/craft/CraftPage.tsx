@@ -5,8 +5,8 @@ import CraftExpandedList from './CraftExpandedList'
 
 function CraftPage() {
     return <>
-        <CraftExpandedList />
         <CraftCollapsedList />
+        <CraftExpandedList />
         <CraftChooser />
     </>
 }

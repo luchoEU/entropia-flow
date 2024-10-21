@@ -4,7 +4,7 @@ import ExpandableSection from '../common/ExpandableSection'
 import { getBudget } from '../../application/selectors/budget'
 import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
-import ExpandableButton from '../common/ExpandableButton'
+import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP } from '../../application/helpers/budget'
 
 const ExpandableMaterial = (p: {
@@ -26,7 +26,7 @@ const ExpandableMaterial = (p: {
                         <button onClick={() => dispatch(removeBudgetMaterialSelection(p.name))}>{buttonText} selected</button> :
                         <button onClick={() => dispatch(addBudgetMaterialSelection(p.name))}>{buttonText}</button>)
                 }
-                <ExpandableButton expanded={p.material.expanded} setExpanded={p.setExpanded} />
+                <ExpandableArrowButton expanded={p.material.expanded} setExpanded={p.setExpanded} />
             </h3>
             {
                 p.material.expanded ? p.children : ''

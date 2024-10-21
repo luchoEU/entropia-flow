@@ -26,6 +26,29 @@ const contrarySort = [
     SORT_CONTAINER_DESCENDING
 ]
 
+const sortColumnDefinition = {
+    [NAME]: {
+        text: 'Name',
+        up: SORT_NAME_ASCENDING,
+        down: SORT_NAME_DESCENDING
+    },
+    [QUANTITY]: {
+        text: 'Quantity',
+        up: SORT_QUANTITY_ASCENDING,
+        down: SORT_QUANTITY_DESCENDING
+    },
+    [VALUE]: {
+        text: 'Value',
+        up: SORT_VALUE_ASCENDING,
+        down: SORT_VALUE_DESCENDING
+    },
+    [CONTAINER]: {
+        text: 'Container',
+        up: SORT_CONTAINER_ASCENDING,
+        down: SORT_CONTAINER_DESCENDING
+    }
+}
+
 interface SortItemData {
     n: string // name, string
     q: string // quantity, number
@@ -107,7 +130,8 @@ const comparer = [
 ]
 
 const nextSortType = (part: number, currentSortType: number): number =>
-    (currentSortType === defaultSort[part]) ? contrarySort[part] : defaultSort[part]
+    part === undefined ? SORT_NAME_ASCENDING :
+    (currentSortType === defaultSort[part] ? contrarySort[part] : defaultSort[part])
 
 // warning: it mutates the list
 function sortList<I extends SortItemData>(list: Array<I>, sortType: number) {
@@ -146,6 +170,7 @@ export {
     SORT_CONTAINER_ASCENDING,
     SORT_CONTAINER_DESCENDING,
     SortItemData,
+    sortColumnDefinition,
     nextSortType,
     sortList,
     sortListSelect,

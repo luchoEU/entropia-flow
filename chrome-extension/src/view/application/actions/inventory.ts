@@ -11,6 +11,8 @@ const SET_VISIBLE_FILTER = "[inv] set visible filter"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SET_HIDDEN_FILTER = "[inv] set hidden filter"
 const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
+const SET_BLUEPRINTS_FILTER = "[inv] set blueprints filter"
+const SORT_OWNED_BLUEPRINTS_BY = "[inv] sort owned blueprints by"
 const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
 const SET_BY_STORE_FILTER = "[inv] set by store filter"
@@ -234,6 +236,20 @@ const setOwnedBlueprintsExpanded = (expanded: boolean) => ({
     }
 })
 
+const setOwnedBlueprintsFilter = (filter: string) => ({
+    type: SET_BLUEPRINTS_FILTER,
+    payload: {
+        filter
+    }
+})
+
+const sortOwnedBlueprintsBy = (part: number) => ({
+    type: SORT_OWNED_BLUEPRINTS_BY,
+    payload: {
+        part
+    }
+})
+
 const sortAuctionBy = (part: number) => ({
     type: SORT_AUCTION_BY,
     payload: {
@@ -358,6 +374,8 @@ export {
     SET_HIDDEN_EXPANDED,
     SET_HIDDEN_FILTER,
     SET_BLUEPRINTS_EXPANDED,
+    SET_BLUEPRINTS_FILTER,
+    SORT_OWNED_BLUEPRINTS_BY,
     SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
     SET_BY_STORE_FILTER,
@@ -401,6 +419,8 @@ export {
     setHiddenInventoryExpanded,
     setHiddenInventoryFilter,
     setOwnedBlueprintsExpanded,
+    setOwnedBlueprintsFilter,
+    sortOwnedBlueprintsBy,
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,
     setByStoreInventoryFilter,

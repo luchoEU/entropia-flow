@@ -6,7 +6,6 @@ import {
   HideCriteria,
   ItemHidden,
   AvailableCriteria,
-  InventoryTree,
   InventoryListWithFilter
 } from "../state/inventory";
 import { initialListByStore, loadInventoryByStore } from "./inventory.byStore";
@@ -41,7 +40,7 @@ const initialListWithFilter = <D>(expanded: boolean, sortType: number): Inventor
 });
 
 const initialState: InventoryState = {
-  blueprints: initialList(true, SORT_NAME_ASCENDING),
+  blueprints: initialListWithFilter(true, SORT_NAME_ASCENDING),
   auction: initialList(true, SORT_NAME_ASCENDING),
   visible: initialListWithFilter(true, SORT_VALUE_DESCENDING),
   hidden: initialListWithFilter(false, SORT_NAME_ASCENDING),
@@ -54,6 +53,7 @@ const initialState: InventoryState = {
 
 const _visibleSelect = (x: ItemData): ItemData => x;
 const _hiddenSelect = (x: ItemHidden): ItemData => x.data;
+const _blueprintSelect = (x: ItemData): ItemData => x;
 
 const _isHiddenByName = (c: HideCriteria, d: ItemData): boolean =>
   c.name.includes(d.n);
@@ -135,10 +135,7 @@ const loadInventory = (
   list: Array<ItemData>,
 ): InventoryState => ({
   ...state,
-  blueprints: _sortAndStats({
-    ...state.blueprints,
-    items: _getBlueprints(list),
-  }, (x) => x),
+  blueprints: _sortAndStatsWithFilter(state.blueprints, _getBlueprints(list), _blueprintSelect),
   auction: _sortAndStats({
     ...state.auction,
     items: _getAuction(list),
@@ -235,9 +232,33 @@ const reduceSetBlueprintsExpanded = (
   ...state,
   blueprints: {
     ...state.blueprints,
-    expanded,
+    originalList : {
+      ...state.blueprints.originalList,
+      expanded,
+    }
   },
 })
+
+const reduceSetBlueprintsFilter = (
+  state: InventoryState,
+  filter: string,
+): InventoryState => ({
+  ...state,
+  blueprints: {
+    ...state.blueprints,
+    filter,
+    showList: applyListFilter(state.blueprints.originalList, filter, _blueprintSelect),
+  },
+})
+
+
+const reduceSortOwnedBlueprintsBy = (
+  state: InventoryState,
+  part: number,
+): InventoryState => ({
+  ...state,
+  blueprints: _nextSortByPartWithFilter(state.blueprints, part, _blueprintSelect),
+});
 
 const reduceSetVisibleFilter = (
   state: InventoryState,
@@ -300,17 +321,15 @@ const _nextSortByPartWithFilter = <D>(
   select: (d: D) => ItemData,
 ): InventoryListWithFilter<D> => {
   const sortType = nextSortType(part, inv.originalList.sortType);
+  const originalList = {
+    ...inv.originalList,
+    sortType,
+    items: cloneSortListSelect(inv.originalList.items, sortType, select)
+  }
   return {
     ...inv,
-    originalList: {
-      ...inv.originalList,
-      sortType
-    },
-    showList: {
-      ...inv.showList,
-      sortType,
-      items: cloneSortListSelect(inv.showList.items, sortType, select)
-    }
+    originalList,
+    showList: applyListFilter(originalList, inv.filter, select)
   }
 }
 
@@ -443,7 +462,7 @@ const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<a
 
 const cleanForSave = (state: InventoryState): InventoryState => ({
   // remove what will be reconstructed in loadInventory
-  blueprints: cleanForSaveInventoryList(state.blueprints),
+  blueprints: cleanForSaveInventoryListWithFilter(state.blueprints),
   auction: cleanForSaveInventoryList(state.auction),
   visible: cleanForSaveInventoryListWithFilter(state.visible),
   hidden: cleanForSaveInventoryListWithFilter(state.hidden),
@@ -468,6 +487,8 @@ export {
   reduceSetHiddenExpanded,
   reduceSetHiddenFilter,
   reduceSetBlueprintsExpanded,
+  reduceSetBlueprintsFilter,
+  reduceSortOwnedBlueprintsBy,
   reduceSortAuctionBy,
   reduceSortVisibleBy,
   reduceSortHiddenBy,

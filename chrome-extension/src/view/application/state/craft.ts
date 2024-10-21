@@ -56,6 +56,7 @@ interface BlueprintSessionDiff {
 
 interface BlueprintInventory {
     clicksAvailable: number
+    limitClickItems?: Array<string>
     clickTTCost: number
     residueNeeded: number
 }
