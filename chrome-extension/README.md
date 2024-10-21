@@ -29,9 +29,8 @@
 ## Publication
 
 1. Increase version in _package.json_ and _dist/manifest.json_
-1. `npm run build` to build a production (minified) version
-1. Make a zip of _dist_ folder without including the folder
-`(rm dist.zip;cd dist;zip -r ../dist.zip *)`
+1. `npm run build` to build a production (minified) version in `dist.zip`
 1. Enter to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/developer/dashboard) and sign in
 1. In the _Package_ section click _Upload Updated Package_ and select the new .zip
 1. Submit Changes and wait for approval
+1. Update CHANGESLOG.md
