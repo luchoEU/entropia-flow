@@ -55,9 +55,9 @@ const InventoryVisibleList = (p: {
     return (
         <>
             <ExpandableSection title='Owned List' expanded={inv.originalList.expanded} setExpanded={setVisibleInventoryExpanded}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className='search-container'>
                     <p>Total value {inv.showList.stats.ped} PED for {inv.showList.stats.count} item{inv.showList.stats.count == 1 ? '' : 's'}</p>
-                    <SearchInput filter={inv.filter} setFilter={setVisibleInventoryFilter} />
+                    <p className='search-input-container'><SearchInput filter={inv.filter} setFilter={setVisibleInventoryFilter} /></p>
                 </div>
                 <SortableTable sortType={inv.showList.sortType}
                     sortBy={sortVisibleBy}

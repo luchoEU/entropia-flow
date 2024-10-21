@@ -61,7 +61,7 @@ const InventoryHiddenList = (p: {
     return (
         <>
             <ExpandableSection title='Hidden List' expanded={inv.originalList.expanded} setExpanded={setHiddenInventoryExpanded}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className='search-container'>
                     <p>Total value {inv.showList.stats.ped} PED for {inv.showList.stats.count} item{inv.showList.stats.count == 1 ? '' : 's'}
                         <span className='show-all' onClick={(e) => {
                                 e.stopPropagation()
@@ -71,7 +71,7 @@ const InventoryHiddenList = (p: {
                             Show All
                         </span>
                     </p>
-                    <SearchInput filter={inv.filter} setFilter={setHiddenInventoryFilter} />
+                    <p className='search-input-container'><SearchInput filter={inv.filter} setFilter={setHiddenInventoryFilter} /></p>
                 </div>
                 <SortableTable sortType={inv.showList.sortType}
                     sortBy={sortHiddenBy}

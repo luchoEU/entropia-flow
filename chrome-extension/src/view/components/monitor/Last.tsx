@@ -8,6 +8,7 @@ import { getLast } from '../../application/selectors/last'
 import { CraftState } from '../../application/state/craft'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
+import ExpandablePlusButton from '../common/ExpandablePlusButton'
 
 function getDeltaClass(delta: number) {
     if (Math.abs(delta) < 0.005)
@@ -55,12 +56,10 @@ const Last = () => {
             <section>
                 <h1>Last</h1>
                 <p>
-                    <button
-                        className={expandedClass}
-                        onClick={() => dispatch(setExpanded(!expanded))}
-                    >
-                        { expanded ? '-' : '+' }
-                    </button>
+                    <ExpandablePlusButton
+                        expanded={expanded}
+                        setExpanded={setExpanded}
+                    />
                     { text }
                     <span className={`difference ${getDeltaClass(delta)}`}>{ delta.toFixed(2) }</span>
                     { hasWarning &&

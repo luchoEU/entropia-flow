@@ -199,8 +199,8 @@ form label {
 .table-diff {
     background-color: ghostwhite;
     border-radius: 4px;
-    margin-left: 40px;
-    margin-top: -5px;
+    margin-left: 20px;
+    margin-top: 5px;
 }
 
 .table-diff tr td {
@@ -396,6 +396,21 @@ button:active {
     background-color: grey;
 }
 
+.button-plus {
+    display: inline-block;
+    width: 11px;
+}
+
+.button-text {
+    background-color: transparent;
+    color: black;
+    border: solid 1px gray;
+    margin: 0px 5px;
+    padding: 0px;
+    height: 20px;
+    width: 20px;
+}
+
 .button-craft {
     margin-left: 15px;
 }
@@ -431,6 +446,24 @@ button:active {
 
 .stop {
     background-color: red;
+}
+
+// search
+.search-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-input-container {
+    display: flex;
+    flex: auto;
+    justify-content: end;
+}
+
+.search-input {
+    margin: 0px 10px;
 }
 
 // checkbox

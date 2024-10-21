@@ -15,6 +15,7 @@ const SET_BLUEPRINTS_FILTER = "[inv] set blueprints filter"
 const SORT_OWNED_BLUEPRINTS_BY = "[inv] sort owned blueprints by"
 const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
+const SET_BY_STORE_ALL_ITEMS_EXPANDED = "[inv] set by store all items expanded"
 const SET_BY_STORE_FILTER = "[inv] set by store filter"
 const START_BY_STORE_ITEM_NAME_EDITING = "[inv] start by store item name editing"
 const CONFIRM_BY_STORE_ITEM_NAME_EDITING = "[inv] confirm by store item name editing"
@@ -23,6 +24,7 @@ const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
 const SET_BY_STORE_ITEM_STARED = "[inv] set by store item stared"
 const SET_BY_STORE_STARED_EXPANDED = "[inv] set by store stared expanded"
 const SET_BY_STORE_STARED_ITEM_EXPANDED = "[inv] set by store stared item expanded"
+const SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED = "[inv] set by store stared all items expanded"
 const SET_BY_STORE_STARED_FILTER = "[inv] set by store stared filter"
 const START_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] start by store stared item name editing"
 const CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] confirm by store stared item name editing"
@@ -111,6 +113,13 @@ const setByStoreItemExpanded = (id: string) => (expanded: boolean) => ({
     }
 })
 
+const setByStoreAllItemsExpanded = (expanded: boolean) => ({
+    type: SET_BY_STORE_ALL_ITEMS_EXPANDED,
+    payload: {
+        expanded
+    }
+})
+
 const startByStoreItemNameEditing = (id: string) => ({
     type: START_BY_STORE_ITEM_NAME_EDITING,
     payload: {
@@ -160,6 +169,13 @@ const setByStoreStaredItemExpanded = (id: string) => (expanded: boolean) => ({
     type: SET_BY_STORE_STARED_ITEM_EXPANDED,
     payload: {
         id,
+        expanded
+    }
+})
+
+const setByStoreStaredAllItemsExpanded = (expanded: boolean) => ({
+    type: SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED,
+    payload: {
         expanded
     }
 })
@@ -378,6 +394,7 @@ export {
     SORT_OWNED_BLUEPRINTS_BY,
     SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
+    SET_BY_STORE_ALL_ITEMS_EXPANDED,
     SET_BY_STORE_FILTER,
     START_BY_STORE_ITEM_NAME_EDITING,
     CONFIRM_BY_STORE_ITEM_NAME_EDITING,
@@ -386,6 +403,7 @@ export {
     SET_BY_STORE_ITEM_STARED,
     SET_BY_STORE_STARED_EXPANDED,
     SET_BY_STORE_STARED_ITEM_EXPANDED,
+    SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED,
     SET_BY_STORE_STARED_FILTER,
     START_BY_STORE_STARED_ITEM_NAME_EDITING,
     CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING,
@@ -423,6 +441,7 @@ export {
     sortOwnedBlueprintsBy,
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,
+    setByStoreAllItemsExpanded,
     setByStoreInventoryFilter,
     startByStoreItemNameEditing,
     confirmByStoreItemNameEditing,
@@ -431,6 +450,7 @@ export {
     setByStoreItemStared,
     setByStoreStaredInventoryExpanded,
     setByStoreStaredItemExpanded,
+    setByStoreStaredAllItemsExpanded,
     setByStoreStaredInventoryFilter,
     startByStoreStaredItemNameEditing,
     confirmByStoreStaredItemNameEditing,

@@ -21,7 +21,7 @@ const setHistoryExpanded = (expanded: boolean) => ({
     }
 })
 
-const setItemExpanded = (key: number, expanded: boolean) => ({
+const setItemExpanded = (key: number) => (expanded: boolean) => ({
     type: SET_ITEM_EXPANDED,
     payload: {
         key,

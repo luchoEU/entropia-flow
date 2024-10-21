@@ -130,21 +130,21 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
   }
 
   // add missing containers and update container data and items\
-  for (const [n, id] of Object.entries(listContainers.root)) {
+  for (const [n, id] of Object.entries(listContainers.root)) { // Root containers
     if (!containers[id]) {
       containers[id] = {
-        expanded: true,
+        expanded: false,
         stared: false,
         displayName: n
       }
     }
   }
-  for (const d of list) {
+  for (const d of list) { // Non-root containers
     const ch = listContainers.children[d.id]
-    if (!ch) continue // not a container
+    if (!ch) continue // skip, not a container
     if (!containers[d.id]) {
       containers[d.id] = {
-        expanded: true,
+        expanded: false,
         stared: false,
         displayName: d.n
       }
@@ -310,7 +310,9 @@ const _applyByStoreItemsChange = (
   let resultTree = undefined
   const resultItems = []
   for (const tree of items) {
-    if (tree.data.id === id) {
+    if (resultTree) {
+      resultItems.push(tree)
+    } else if (tree.data.id === id) {
       resultTree = f(tree)
       resultItems.push(resultTree)
     } else if (tree.list) {
@@ -334,6 +336,19 @@ const _applyByStoreItemsChange = (
     tree: resultTree
   }
 }
+
+const _applyByStoreAllItemsChange = (
+  list: InventoryList<InventoryTree<ItemData>>,
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
+): InventoryList<InventoryTree<ItemData>> => ({
+  ...list,
+  items: list.items.map(t => {
+    const t1 = f(t)
+    if (t1.list)
+      t1.list = _applyByStoreAllItemsChange(t1.list, f)
+    return t1
+  })
+})
 
 const _toContainerId = (id: string) => id.split('.').slice(-1)[0]
 
@@ -378,6 +393,19 @@ const _applyByStoreChange = (
   }
 }
 
+const _applyByStoreAllChange = (
+  byStore: InventoryByStore,
+  listName: string,
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
+  g?: (c: ContainerMapDataItem) => ContainerMapDataItem
+): InventoryByStore => ({
+  ...byStore,
+  [listName]: _applyByStoreAllItemsChange(byStore[listName], f),
+  containers: g ? Object.fromEntries(
+    Object.entries(byStore.containers).map(([k, v]) => [k, g(v)])
+  ) : byStore.containers
+})
+
 const _applyByStoreStateChange = (
   state: InventoryState,
   id: string,
@@ -389,11 +417,26 @@ const _applyByStoreStateChange = (
   byStore: _applyByStoreChange(state.byStore, id, listName, f, g)
 })
 
+const _applyByStoreStateAllChange = (
+  state: InventoryState,
+  listName: string,
+  f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
+  g?: (c: ContainerMapDataItem) => ContainerMapDataItem
+): InventoryState => ({
+  ...state,
+  byStore: _applyByStoreAllChange(state.byStore, listName, f, g)
+})
+
 const reduceSetByStoreItemExpanded = (
   state: InventoryState,
   id: string,
   expanded: boolean
 ): InventoryState => _applyByStoreStateChange(state, id, 'showList', t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (_, s) => state.byStore.filter ? { ...s, expandedOnFilter: expanded } : { ...s, expanded })
+
+const reduceSetByStoreAllItemsExpanded = (
+  state: InventoryState,
+  expanded: boolean
+): InventoryState => _applyByStoreStateAllChange(state, 'showList', t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }), (s) => state.byStore.filter ? { ...s, expandedOnFilter: expanded } : { ...s, expanded })
 
 const reduceStartByStoreItemNameEditing = (
   state: InventoryState,
@@ -442,6 +485,21 @@ const reduceSetByStoreStaredItemExpanded = (
     }
   }
 }
+
+const _allId = (
+  list: InventoryList<InventoryTree<ItemData>>
+): Array<string> => list.items.map(i => i.data.id).concat(list.items.flatMap(i => i.list ? _allId(i.list) : []))
+
+const reduceSetByStoreStaredAllItemsExpanded = (
+  state: InventoryState,
+  expanded: boolean
+): InventoryState => ({
+  ...state,
+  byStore: {
+    ..._applyByStoreAllChange(state.byStore, 'staredList', t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined })),
+    staredExpanded: expanded ? _allId(state.byStore.staredList) : []
+  }
+})
 
 const reduceStartByStoreStaredItemNameEditing = (
   state: InventoryState,
@@ -678,6 +736,7 @@ export {
   loadInventoryByStore,
   reduceSetByStoreInventoryExpanded,
   reduceSetByStoreItemExpanded,
+  reduceSetByStoreAllItemsExpanded,
   reduceSetByStoreInventoryFilter,
   reduceStartByStoreItemNameEditing,
   reduceConfirmByStoreItemNameEditing,
@@ -686,6 +745,7 @@ export {
   reduceSetByStoreItemStared,
   reduceSetByStoreStaredInventoryExpanded,
   reduceSetByStoreStaredItemExpanded,
+  reduceSetByStoreStaredAllItemsExpanded,
   reduceSetByStoreStaredInventoryFilter,
   reduceStartByStoreStaredItemNameEditing,
   reduceConfirmByStoreStaredItemNameEditing,
