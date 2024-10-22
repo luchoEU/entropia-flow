@@ -169,7 +169,7 @@ function CraftSingle(p: {
                 </h1>
                 {
                     d.info.loading ?
-                        <img className='img-loading' src='img/loading.gif' /> :
+                        <><img className='img-loading' src='img/loading.gif' /> Loading from entropiawiki.com</>:
                         <div>
                             {d.info.url ? <a href={d.info.url} target='_blank'>entropiawiki</a> : <></>}
                             {d.info.materials.length === 0 ?

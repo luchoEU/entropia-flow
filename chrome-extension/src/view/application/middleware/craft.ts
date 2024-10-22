@@ -20,14 +20,19 @@ import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
+import { Dispatch } from 'react'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
             const state: CraftState = await api.storage.loadCraft()
-            if (state)
+            if (state) {
                 dispatch(setCraftState(mergeDeep(initialState, state)))
+                Promise.all(state.blueprints.filter(bp => bp.info.loading).map(bp =>
+                    fetchBlueprintData(bp.name, dispatch))
+                )
+            }
             break
         }
         case ADD_BLUEPRINT:
@@ -62,58 +67,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
     }
     if (action.type === ADD_BLUEPRINT) {
-        let name = action.payload.name.replaceAll(' ','%20')
-        let url = `https://apps5.genexus.com/entropia-flow-helper-1/rest/BlueprintInfo?name=${name}` // use server to get from entropiawiki to avoid CORS error
-        let data: BluprintWebData
-        try {
-            let response = await fetch(url)
-            data = await response.json()
-        } catch (e) {
-            data = {
-                Name: name,
-                ItemValue: '',
-                StatusCode: 1,
-                Url: url,
-                Text: e.toString(),
-                Material: []
-            }
-        }
-        if (data.StatusCode === 0) {
-            if (data.Name.endsWith('(L)')) {
-                data.Material.unshift({
-                    Name: 'Blueprint',
-                    Quantity: 1,
-                    Type: 'Blueprint',
-                    Value: '0.01'
-                })
-            }
-            data.Material.unshift({
-                Name: 'Item',
-                Quantity: 0,
-                Type: 'Crafted item',
-                Value: data.ItemValue
-            })
-            const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
-                if (data.Material.some(condition)) {
-                    data.Material.push({
-                        Name: name,
-                        Quantity: 0,
-                        Type: 'Residue',
-                        Value: '0.01'
-                    })
-                }
-            }
-            addResidue('Metal Residue', m => true)
-            addResidue('Energy Matter Residue', m => m.Type === 'Refined Enmatter')
-            addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
-            data.Material.push({
-                Name: 'Shrapnel',
-                Quantity: 0,
-                Type: 'Fragment',
-                Value: '0.0001'
-            })
-        }
-        dispatch(addBlueprintData(data))
+        await fetchBlueprintData(action.payload.name, dispatch)
     }
     switch (action.type) {
         case ADD_BLUEPRINT:
@@ -326,6 +280,61 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
     }
+}
+
+const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promise<void> => {
+    const urlName = name.replace(/ /g, '%20')
+    let url = `https://apps5.genexus.com/entropia-flow-helper-1/rest/BlueprintInfo?name=${urlName}` // use server to get from entropiawiki to avoid CORS error
+    let data: BluprintWebData
+    try {
+        let response = await fetch(url)
+        data = await response.json()
+    } catch (e) {
+        data = {
+            Name: name,
+            ItemValue: '',
+            StatusCode: 1,
+            Url: undefined,
+            Text: e.toString(),
+            Material: []
+        }
+    }
+    if (data.StatusCode === 0) {
+        if (data.Name.endsWith('(L)')) {
+            data.Material.unshift({
+                Name: 'Blueprint',
+                Quantity: 1,
+                Type: 'Blueprint',
+                Value: '0.01'
+            })
+        }
+        data.Material.unshift({
+            Name: 'Item',
+            Quantity: 0,
+            Type: 'Crafted item',
+            Value: data.ItemValue
+        })
+        const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
+            if (data.Material.some(condition)) {
+                data.Material.push({
+                    Name: name,
+                    Quantity: 0,
+                    Type: 'Residue',
+                    Value: '0.01'
+                })
+            }
+        }
+        addResidue('Metal Residue', m => true)
+        addResidue('Energy Matter Residue', m => m.Type === 'Refined Enmatter')
+        addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
+        data.Material.push({
+            Name: 'Shrapnel',
+            Quantity: 0,
+            Type: 'Fragment',
+            Value: '0.0001'
+        })
+    }
+    dispatch(addBlueprintData(data))
 }
 
 export default [

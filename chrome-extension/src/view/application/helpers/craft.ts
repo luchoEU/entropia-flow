@@ -84,7 +84,7 @@ const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState 
                         ...bp.info,
                         loading: false,
                         url: data.Url,
-                        errorText: `Loading Error, Code ${data.StatusCode}, Text: ${data.Text}`
+                        errorText: `Loading Error, Code ${data.StatusCode}: ${data.Text}`
                     }
                 }
             }

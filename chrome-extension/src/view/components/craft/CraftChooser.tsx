@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addBlueprint } from '../../application/actions/craft'
+import { addBlueprint, removeBlueprint } from '../../application/actions/craft'
 import { setOwnedBlueprintsExpanded, setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { getCraft } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
@@ -18,8 +18,8 @@ function CraftChooser() {
 
     let bp = inv.blueprints.showList.items.map(d => d.n)
     let added = s.blueprints.map(d => d.name)
-    let unique = bp.filter((element, index) => {
-        return bp.indexOf(element) === index && !added.includes(element);
+    let unique = bp.filter((element, index) => { // show only 1 instance of each blueprint
+        return bp.indexOf(element) === index;
     })
 
     return (
@@ -37,7 +37,10 @@ function CraftChooser() {
                         <tr key={n}>
                             <td>
                                 {n}
-                                <img src="img/staroff.png" onClick={() => { dispatch(addBlueprint(n)) }}></img>
+                                { added.includes(n) ?
+                                    <img src="img/staron.png" onClick={() => { dispatch(removeBlueprint(n)) }}></img> :
+                                    <img src="img/staroff.png" onClick={() => { dispatch(addBlueprint(n)) }}></img>
+                                }
                             </td>
                         </tr>
                     )}
