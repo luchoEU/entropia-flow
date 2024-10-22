@@ -3,18 +3,23 @@
 ## Building
 
 1. `nvm use 21.7.1`
+
 1. `npm i` to install dependencies
+
 1. `npm run dev` to compile once or `npm run watch` to run the dev task in watch mode
 
 ## Building for Windows Client
 
 1. `npm run stream` or `npm run stream-dev`
+
 1. Extract `chrome-extension\dist.win.zip` in `win-client\bin\Debug\net8-windows\GameWindow`
 
 ## Local Installation
 
 1. Complete the steps to build the project above
+
 1. Go to [_chrome://extensions_](chrome://extensions) in Google Chrome
+
 1. With the developer mode checkbox ticked, click **Load unpacked extension...** and select the _dist_ folder from this repo
 
 ## Testing
@@ -28,9 +33,14 @@
 
 ## Publication
 
-1. Increase version in _package.json_ and _dist/manifest.json_
-1. `npm run build` to build a production (minified) version in `dist.zip`
+1. Increase version in [package.json](package.json), [manifest.json](dist/manifest.json) and [AboutPage.tsx](src/view/components/about/AboutPage.tsx)
+
+1. `npm run build` to build a production (minified) version in [dist.zip](dist.zip)
+
 1. Enter to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/developer/dashboard) and sign in
+
 1. In the _Package_ section click _Upload Updated Package_ and select the new .zip
+
 1. Submit Changes and wait for approval
+
 1. Update CHANGESLOG.md

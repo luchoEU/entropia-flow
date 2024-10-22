@@ -52,6 +52,7 @@ section {
     margin: 10px;
     border-radius: 15px;
     width: fit-content;
+    height: fit-content;
 }
 
 input {
@@ -61,6 +62,11 @@ input {
 .inline {
     display: inline-block;
     vertical-align: top;
+}
+
+.flex {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .block {

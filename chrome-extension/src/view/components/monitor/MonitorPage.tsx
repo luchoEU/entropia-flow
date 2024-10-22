@@ -6,15 +6,11 @@ import Status from './Status'
 function MonitorPage() {
     return (
         <>
-            <div className='inline'>
+            <div className='flex'>
                 <Last />
-            </div>
-            <div className='inline'>
                 <Status />
             </div>
-            <div>
-                <History />
-            </div>
+            <History />
         </>
     )
 }

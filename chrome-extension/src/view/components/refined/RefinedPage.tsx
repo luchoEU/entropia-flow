@@ -12,7 +12,7 @@ function RefinedPage() {
         <>
             <RefinedActive />
             { Object.keys(state.map).map(name =>
-                <div key={name} className='inline'>
+                <div key={name} className='flex'>
                     <RefinedMaterial material={state.map[name]} />
                 </div>
             )}

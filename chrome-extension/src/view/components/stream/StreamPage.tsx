@@ -17,7 +17,7 @@ const StreamBackground = (p: {
     useBackground(p.background.type, id)
 
     return (
-        <div className={p.isSelected ? 'inline stream-selected' : 'inline'}
+        <div {...(p.isSelected ? { className: 'stream-selected' } : {})}
             onClick={() => dispatch(setStreamBackgroundSelected(p.background.type))}>
             <div id={id} className='stream-view demo'>
                 <div className='stream-frame demo'>
@@ -48,7 +48,7 @@ function StreamPage() {
             </section>
             { enabled &&
                 <>
-                    <ExpandableSection title='Background' expanded={background.expanded} setExpanded={setStreamBackgroundExpanded}>
+                    <ExpandableSection className='flex' title='Background' expanded={background.expanded} setExpanded={setStreamBackgroundExpanded}>
                         { backgroundList.map((b: BackgroundSpec) =>
                             <StreamBackground key={b.type} background={b} isSelected={b.type === background.selected} />) }
                     </ExpandableSection>

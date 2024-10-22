@@ -19,7 +19,7 @@ function TradePage() {
 
     return (
         <>
-            <div className='inline'>
+            <div className='flex'>
                 <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
                     image='img/staroff.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
                     showAction={(n) => !s.availableCriteria.name.includes(n)} />
@@ -27,7 +27,7 @@ function TradePage() {
                     image='img/staron.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
                     showAction={() => true} />
             </div>
-            <div className='inline'>
+            <div className='flex'>
                 <InventoryVisibleList inv={s.visible}/>
                 <InventoryHiddenList inv={s.hidden} />
             </div>

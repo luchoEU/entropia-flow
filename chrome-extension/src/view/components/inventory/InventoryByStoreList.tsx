@@ -154,26 +154,7 @@ const InventoryByStoreList = (p: {
     const { inv } = p
 
     return (
-        <>
-            <TreeSection
-                title='Containers'
-                sectionExpanded={inv.originalList.expanded}
-                setSectionExpanded={setByStoreInventoryExpanded}
-                setAllItemsExpanded={setByStoreAllItemsExpanded}
-                filter={inv.filter}
-                setFilter={setByStoreInventoryFilter}
-                list={inv.showList}
-                sortBy={sortByStoreBy}
-                d={({
-                    setItemExpanded: setByStoreItemExpanded,
-                    setItemName: setByStoreItemName,
-                    cancelItemNameEditing: cancelByStoreItemNameEditing,
-                    confirmItemNameEditing: confirmByStoreItemNameEditing,
-                    startItemNameEditing: startByStoreItemNameEditing,
-                    setItemStared: setByStoreItemStared,
-                    setFilter: setByStoreInventoryFilter
-                })}
-            />
+        <div className='flex'>
             <TreeSection
                 title='Favorite Containers'
                 sectionExpanded={inv.staredList.expanded}
@@ -193,7 +174,26 @@ const InventoryByStoreList = (p: {
                     setFilter: setByStoreStaredInventoryFilter
                 })}
             />
-        </>
+            <TreeSection
+                title='Containers'
+                sectionExpanded={inv.originalList.expanded}
+                setSectionExpanded={setByStoreInventoryExpanded}
+                setAllItemsExpanded={setByStoreAllItemsExpanded}
+                filter={inv.filter}
+                setFilter={setByStoreInventoryFilter}
+                list={inv.showList}
+                sortBy={sortByStoreBy}
+                d={({
+                    setItemExpanded: setByStoreItemExpanded,
+                    setItemName: setByStoreItemName,
+                    cancelItemNameEditing: cancelByStoreItemNameEditing,
+                    confirmItemNameEditing: confirmByStoreItemNameEditing,
+                    startItemNameEditing: startByStoreItemNameEditing,
+                    setItemStared: setByStoreItemStared,
+                    setFilter: setByStoreInventoryFilter
+                })}
+            />
+        </div>
     )
 }
 

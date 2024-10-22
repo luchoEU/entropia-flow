@@ -5,8 +5,10 @@ import CraftExpandedList from './CraftExpandedList'
 
 function CraftPage() {
     return <>
-        <CraftCollapsedList />
-        <CraftExpandedList />
+        <div className='flex'>
+            <CraftCollapsedList />
+            <CraftExpandedList />
+        </div>
         <CraftChooser />
     </>
 }

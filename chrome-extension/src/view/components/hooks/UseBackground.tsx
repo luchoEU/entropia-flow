@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { DependencyList, useEffect, useRef } from 'react';
 import { BackgroundType, loadBackground } from '../../../stream/background'
 
-const useBackground = (type: BackgroundType, containerId: string) => {
+const useBackground = (type: BackgroundType, containerId: string, deps: DependencyList = []) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const useBackground = (type: BackgroundType, containerId: string) => {
         loadBackground(undefined, container, undefined);
       }
     };
-  }, [ type, containerId ]);
+  }, [ ...deps, type, containerId ]);
 }
 
 export default useBackground

@@ -1,3 +1,4 @@
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../../config'
 import { SheetAccessInfo } from '../../../application/state/settings'
 import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
 import { newDayInventory } from './sheetsInventory'
@@ -15,11 +16,15 @@ async function loadDoc(accessInfo: SheetAccessInfo, setStage: SetStage) {
 }
 
 async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<string[]> {
+    if (!SHOW_FEATURES_IN_DEVELOPMENT) return []
+
     await loadDoc(accessInfo, setStage)
     return listBudgetSheet(doc)
 }
 
 async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
+    if (!SHOW_FEATURES_IN_DEVELOPMENT) return undefined
+
     await loadDoc(accessInfo, setStage)
     const sheet = new BudgetSheet(setStage)
     if (await sheet.load(doc, data.itemName)) {
@@ -33,6 +38,8 @@ async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, 
 }
 
 async function newDay(accessInfo: SheetAccessInfo, setStage: SetStage) {
+    if (!SHOW_FEATURES_IN_DEVELOPMENT) return
+
     await loadDoc(accessInfo, setStage)
     newDayInventory(doc, setStage)
 }

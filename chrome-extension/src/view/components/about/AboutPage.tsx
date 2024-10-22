@@ -6,6 +6,8 @@ import { DONATIONS, FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../..
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
+const VERSION = '0.4.1'
+
 const ExpandableQuestion = (p: { q: Question }) => {
     const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
     const expand = setExpanded(QUESTION(p.q.id))
@@ -64,40 +66,38 @@ function AboutPage() {
     const isFaqExpanded = useSelector(isExpanded(FAQ))
 
     return (
-        <>
+        <div className='about-page'>
             <section>
                 <img src='img/flow128.png'
                     className='img-about' />
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
                     <p>A tool to help you see your returns in Entropia Universe.</p>
-                    <p>Version: 0.2.0</p>
+                    <p>Version: {VERSION}</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
             </section>
-            <div className='inline'>
-                <ExpandableSection title='Feedback' expanded={isFeedbackExpanded} setExpanded={setExpanded(FEEDBACK)} block={true}>
-                    <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
-                </ExpandableSection>
+            <ExpandableSection title='Feedback' expanded={isFeedbackExpanded} setExpanded={setExpanded(FEEDBACK)}>
+                <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
+            </ExpandableSection>
 
-                <ExpandableSection title='Donations' expanded={isDonationsExpanded} setExpanded={setExpanded(DONATIONS)} block={true}>
-                    <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame (my full avatar name is Lucho MUCHO Ireton).</p>
-                </ExpandableSection>
+            <ExpandableSection title='Donations' expanded={isDonationsExpanded} setExpanded={setExpanded(DONATIONS)}>
+                <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame (my full avatar name is Lucho MUCHO Ireton).</p>
+            </ExpandableSection>
 
-                <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)} block={true}>
-                    <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
-                    <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
-                </ExpandableSection>
+            <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)}>
+                <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
+                <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
+            </ExpandableSection>
 
-                <ExpandableSection title='Source Code' expanded={isSourceCodeExpanded} setExpanded={setExpanded(SOURCECODE)} block={true}>
-                    <p>The source code is available in <a href='https://github.com/luchoEU/entropia-flow' target="_blank">GitHub</a>, so if you are a fellow programmer you can look around or collaborate.</p>
-                </ExpandableSection>
+            <ExpandableSection title='Source Code' expanded={isSourceCodeExpanded} setExpanded={setExpanded(SOURCECODE)}>
+                <p>The source code is available in <a href='https://github.com/luchoEU/entropia-flow' target="_blank">GitHub</a>, so if you are a fellow programmer you can look around or collaborate.</p>
+            </ExpandableSection>
 
-                <ExpandableSection title='FAQ' expanded={isFaqExpanded} setExpanded={setExpanded(FAQ)} block={true}>
-                    { faq.map((q: Question) => <ExpandableQuestion q={q} key={q.id}/>) }
-                </ExpandableSection>
-            </div>
-        </>
+            <ExpandableSection title='FAQ' expanded={isFaqExpanded} setExpanded={setExpanded(FAQ)}>
+                { faq.map((q: Question) => <ExpandableQuestion q={q} key={q.id}/>) }
+            </ExpandableSection>
+        </div>
     )
 }
 
