@@ -10,6 +10,7 @@ import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DO
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
+import ImgButton from '../common/ImgButton'
 
 function SessionInfo(p: {
     name: string,
@@ -173,9 +174,11 @@ function CraftSingle(p: {
                         <div>
                             {d.info.url ? <a href={d.info.url} target='_blank'>entropiawiki</a> : <></>}
                             {d.info.materials.length === 0 ?
-                                <p>{d.info.errorText} <img src='img/reload.png'
+                                <p>{d.info.errorText} <ImgButton
+                                    title='Try to load blueprint again'
+                                    src='img/reload.png'
                                     className='img-delta-zero'
-                                    onClick={() => dispatch(reloadBlueprint(d.name))} /></p> :
+                                    dispatch={() => reloadBlueprint(d.name)} /></p> :
                                 <>
                                 { SHOW_FEATURES_IN_DEVELOPMENT && <>
                                     <p>Budget Page: { d.budget.loading ?

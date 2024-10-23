@@ -7,6 +7,8 @@ import { InventoryListWithFilter } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
 import SortableTable from '../common/SortableTable'
+import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 const ItemRow = (p: {
     item: ItemData
@@ -16,32 +18,24 @@ const ItemRow = (p: {
     const sortBy = (part: number) => () => dispatch(sortVisibleBy(part))
 
     return (
-        <tr>
+        <tr className='item-row'>
             <td onClick={sortBy(NAME)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByName(item.n))
-                }} />
-                {item.n}
-                <img src='img/find.jpg' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(setVisibleInventoryFilter(`!${item.n}`))
-                }} />
+                <ImgButton title='Hide this item name' src='img/cross.png' dispatch={() => hideByName(item.n)} />
+                <ItemText text={item.n} />
             </td>
-            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
+            <td>
+                <ImgButton title='Search by this item name' src='img/find.jpg' dispatch={() => setVisibleInventoryFilter(`!${item.n}`)} />
+            </td>
+            <td onClick={sortBy(QUANTITY)}>
+                <ItemText text={item.q} />
+            </td>
             <td onClick={sortBy(VALUE)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByValue(item.v))
-                }} />
-                {item.v + ' PED'}
+                <ImgButton title='Hide this value or lower' src='img/cross.png' dispatch={() => hideByValue(item.v)} />
+                <ItemText text={item.v + ' PED'} />
             </td>
             <td onClick={sortBy(CONTAINER)}>
-                <img src='img/cross.png' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(hideByContainer(item.c))
-                }} />
-                {item.c}
+                <ImgButton title='Hide this container' src='img/cross.png' dispatch={() => hideByContainer(item.c)} />
+                <ItemText text={item.c} />
             </td>
         </tr>
     )
@@ -61,7 +55,7 @@ const InventoryVisibleList = (p: {
                 </div>
                 <SortableTable sortType={inv.showList.sortType}
                     sortBy={sortVisibleBy}
-                    columns={[NAME, QUANTITY, VALUE, CONTAINER]}
+                    columns={[NAME, -1, QUANTITY, VALUE, CONTAINER]}
                     definition={sortColumnDefinition}>
                     {
                         inv.showList.items.map((item: ItemData) =>

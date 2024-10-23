@@ -9,6 +9,7 @@ import { CraftState } from '../../application/state/craft'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
+import ImgButton from '../common/ImgButton'
 
 function getDeltaClass(delta: number) {
     if (Math.abs(delta) < 0.005)
@@ -23,7 +24,6 @@ function getDeltaClass(delta: number) {
 }
 
 const Last = () => {
-    const dispatch = useDispatch()
     const {
         show,
         text,
@@ -34,12 +34,12 @@ const Last = () => {
     }: LastRequiredState = useSelector(getLast)
 
     const config = {
-        sortBy: (part: number) => () => dispatch(sortBy(part)),
+        sortBy: sortBy,
         allowExclude: true,
-        include: (key: number) => dispatch(include(key)),
-        exclude: (key: number) => dispatch(exclude(key)),
-        permanentExcludeOn: (key: number) => dispatch(permanentExcludeOn(key)),
-        permanentExcludeOff: (key: number) => dispatch(permanentExcludeOff(key)),
+        include: include,
+        exclude: exclude,
+        permanentExcludeOn: permanentExcludeOn,
+        permanentExcludeOff: permanentExcludeOff,
         showPeds: true,
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"
     }
@@ -63,14 +63,18 @@ const Last = () => {
                     { text }
                     <span className={`difference ${getDeltaClass(delta)}`}>{ delta.toFixed(2) }</span>
                     { hasWarning &&
-                        <img src='img/warning.png'
+                        <ImgButton
+                            title={ expanded ? 'Exclude Warnings' : 'Show Warnings' }
+                            src='img/warning.png'
                             className='img-warning'
-                            onClick={() => dispatch(expanded ? excludeWarnings : setExpanded(true))} />
+                            dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />
                     }
                     { diff !== null && craft.activeSession === undefined &&
-                        <img src='img/tick.png'
+                        <ImgButton
+                            title='Set as Last'
+                            src='img/tick.png'
                             className='img-delta-zero'
-                            onClick={() => dispatch(setLast)} />
+                            dispatch={() => setLast} />
                     }
                 </p>
                 { expanded &&

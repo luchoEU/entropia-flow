@@ -10,6 +10,8 @@ import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
 import SortableTable from '../common/SortableTable'
 import { NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
+import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 function CraftChooser() {
     const inv: InventoryState = useSelector(getInventory)
@@ -34,12 +36,13 @@ function CraftChooser() {
                     columns={[NAME]}
                     definition={sortColumnDefinition}>
                     { unique.map((n: string) =>
-                        <tr key={n}>
+                        <tr key={n} className='item-row'
+                            onClick={() => !added.includes(n) && dispatch(addBlueprint(n))}>
                             <td>
-                                {n}
+                                <ItemText text={n} />
                                 { added.includes(n) ?
-                                    <img src="img/staron.png" onClick={() => { dispatch(removeBlueprint(n)) }}></img> :
-                                    <img src="img/staroff.png" onClick={() => { dispatch(addBlueprint(n)) }}></img>
+                                    <ImgButton title='Remove from Active Blueprints' src="img/staron.png" dispatch={() => removeBlueprint(n)} /> :
+                                    <ImgButton title='Add to Active Blueprints' src="img/staroff.png" dispatch={() => addBlueprint(n)} />
                                 }
                             </td>
                         </tr>

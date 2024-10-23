@@ -6,14 +6,15 @@ import { useDispatch } from 'react-redux'
 import { selectForAction } from '../../application/actions/menu'
 import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
+import ImgButton from '../common/ImgButton'
 
 interface Config {
-    sortBy: (part: number) => () => void
+    sortBy: (part: number) => any
     allowExclude: boolean
-    include?: (key: number) => void
-    exclude?: (key: number) => void
-    permanentExcludeOn?: (key: number) => void
-    permanentExcludeOff?: (key: number) => void
+    include?: (key: number) => any
+    exclude?: (key: number) => any
+    permanentExcludeOn?: (key: number) => any
+    permanentExcludeOff?: (key: number) => any
     showPeds: boolean
     movedTitle: string
 }
@@ -29,34 +30,20 @@ const ItemRow = (p: {
         <tr>
             <td onClick={c.sortBy(NAME)}>{item.n}
                 { item.w &&
-                    <img data-show src='img/warning.png' onClick={(e) => {
-                        e.stopPropagation()
-                        c.exclude(item.key)
-                    }} />
+                    <ImgButton title='Exclude' show src='img/warning.png' dispatch={() => c.exclude(item.key)} />
                 }
                 {
                     c.allowExclude && hasValue(item) &&
                         (item.e ?
                             (item.x ?
-                                <img src='img/forbidden.png' data-show onClick={(e) => {
-                                    e.stopPropagation()
-                                    c.permanentExcludeOff(item.key)
-                                }}></img> :
+                                <ImgButton title='Permanent Exclude Off' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff(item.key)} /> :
                                 <>
-                                    <img src='img/cross.png' data-show onClick={(e) => {
-                                        e.stopPropagation()
-                                        c.include(item.key)
-                                    }}></img>
-                                    <img src='img/forbidden.png' onClick={(e) => {
-                                        e.stopPropagation()
-                                        c.permanentExcludeOn(item.key)
-                                    }}></img>
+                                    <ImgButton title='Include' src='img/cross.png' show dispatch={() => c.include(item.key)} />
+                                    <ImgButton title='Permanent Exclude On' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn(item.key)} />
                                 </>
-                             ) :
-                            <img src='img/tick.png' onClick={(e) => {
-                                e.stopPropagation()
-                                c.exclude(item.key)
-                            }}></img>)
+                            ) :
+                            <ImgButton title='Exclude' src='img/tick.png' dispatch={() => c.exclude(item.key)} />
+                        )
                 }
             </td>
             <td onClick={c.sortBy(QUANTITY)}>{item.q}</td>
@@ -79,15 +66,13 @@ const ItemRow = (p: {
 }
 
 const PedRow = (p: {
-    item: ViewPedData,
-    c: Config
+    item: ViewPedData
 }) => {
-    const { item, c } = p
-    const dispatch = useDispatch()
+    const { item } = p
     return (
         <tr>
             <td>PED
-                <img src='img/cross.png' onClick={() => { dispatch(removePeds(item.key)) }}></img>
+                <ImgButton title='Remove PEDs' src='img/cross.png' dispatch={() => removePeds(item.key)} />
             </td>
             <td></td>
             <td>{ item.value + ' PED' }</td>
@@ -98,17 +83,18 @@ const PedRow = (p: {
 }
 
 const PedNewRow = () => {
-    const dispatch = useDispatch()
     const [peds, setPeds] = useState('')
     const isValid = !isNaN(Number(peds)) && Number(peds) !== 0
     return (
         <tr>
             <td>PED
                 { isValid &&
-                    <img src='img/tick.png' data-show onClick={() => {
-                        dispatch(addPeds(peds))
+                    <ImgButton
+                        title='Add PEDs'
+                        src='img/tick.png' show dispatch={() => {
                         setPeds('')
-                    }}></img>
+                        return addPeds(peds)
+                    }} />
                 }
             </td>
             <td></td>
@@ -141,8 +127,7 @@ const InventoryDifference = (p: {
                     p.peds.map((item: ViewPedData) =>
                         <PedRow
                             key={item.key}
-                            item={item}
-                            c={p.config} />
+                            item={item} />
                     )
                 }
                 { p.config.showPeds && <PedNewRow key='0' /> }

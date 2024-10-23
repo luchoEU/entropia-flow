@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { addAvailable, removeAvailable, setAuctionInventoryExpanded, setAvailableInventoryExpanded, sortAuctionBy, sortAvailableBy } from '../../application/actions/inventory'
+import { setAuctionInventoryExpanded, setAvailableInventoryExpanded, sortAuctionBy, sortAvailableBy } from '../../application/actions/inventory'
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
@@ -21,19 +21,16 @@ function TradePage() {
         <>
             <div className='flex'>
                 <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
-                    image='img/staroff.png' classMap={{}} sort={sortAuctionBy} action={addAvailable}
-                    showAction={(n) => !s.availableCriteria.name.includes(n)} />
+                    isFavorite={(n) => s.availableCriteria.name.includes(n)} classMap={{}} sort={sortAuctionBy} />
                 <TradeList title='Favorites to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
-                    image='img/staron.png' classMap={toAuction} sort={sortAvailableBy} action={removeAvailable}
-                    showAction={() => true} />
+                    isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
             </div>
             <div className='flex'>
                 <InventoryVisibleList inv={s.visible}/>
                 <InventoryHiddenList inv={s.hidden} />
             </div>
-            {SHOW_FEATURES_IN_DEVELOPMENT ?
+            { SHOW_FEATURES_IN_DEVELOPMENT &&
                 <TTServiceList list={s.ttService} />
-                : ''
             }
         </>
     )

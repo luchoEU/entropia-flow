@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version NEXT
+### Fixed
+- Improve page layout stability
+
 ## Version 0.4.1 - 2024-10-22
 ### Fixed
 - Move Containers to the right of Favorite Containers

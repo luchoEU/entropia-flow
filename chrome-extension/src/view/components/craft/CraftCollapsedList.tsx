@@ -7,6 +7,8 @@ import { BlueprintData, CraftState } from '../../application/state/craft'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import SortableTable from '../common/SortableTable'
+import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
@@ -56,7 +58,6 @@ function CraftCollapsedList() {
         }
     })
 
-    const expand = (name: string) => setBlueprintExpanded(name)
     const columns: number[] = [NAME]
     if (clicksMap) columns.push(CLICKS)
     if (limitMap) columns.push(LIMIT)
@@ -73,16 +74,18 @@ function CraftCollapsedList() {
                 definition={sortColumnDefinition}>
                 {
                     s.blueprints.map((d: BlueprintData) =>
-                        <tr key={d.name}>
+                        <tr key={d.name} className='item-row'
+                            onClick={() => dispatch(setBlueprintExpanded(d.name)(!d.expanded))}>
                             <td>
-                                <ExpandablePlusButton expanded={d.expanded} setExpanded={expand(d.name)} />{d.itemName}
-                                <img src='img/staron.png' onClick={() => dispatch(removeBlueprint(d.name))} />
+                                <ExpandablePlusButton expanded={d.expanded} setExpanded={setBlueprintExpanded(d.name)} />
+                                <ItemText text={d.itemName} />
+                                <ImgButton title='Remove this blueprint from Favorites' src='img/staron.png' dispatch={() => removeBlueprint(d.name)} />
                             </td>
-                            { clicksMap && <td align='center'>{clicksMap[d.name]}</td> }
-                            { limitMap && <td style={{ textAlign: 'left' }}>{limitMap[d.name]}</td> }
-                            { itemsMap && <td align='center'>{itemsMap[d.name]}</td> }
-                            { budgetMap && <td align='right'>{budgetMap[d.name]}</td> }
-                            { cashMap && <td align='right'>{cashMap[d.name]}</td> }
+                            { clicksMap && <td align='center'><ItemText text={clicksMap[d.name]} /></td> }
+                            { limitMap && <td style={{ textAlign: 'left' }}><ItemText text={limitMap[d.name]} /></td> }
+                            { itemsMap && <td align='center'><ItemText text={itemsMap[d.name]} /></td> }
+                            { budgetMap && <td align='right'><ItemText text={budgetMap[d.name]} /></td> }
+                            { cashMap && <td align='right'><ItemText text={cashMap[d.name]} /></td> }
                         </tr>)
                 }
             </SortableTable>

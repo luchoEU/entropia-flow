@@ -7,6 +7,7 @@ import { getHistory } from '../../application/selectors/history';
 import { getStatus } from '../../application/selectors/status';
 import { HistoryState } from '../../application/state/history';
 import { STRING_PLEASE_LOG_IN } from '../../../common/const';
+import ImgButton from '../common/ImgButton';
 
 const Status = () => {
     const dispatch = useDispatch()
@@ -16,19 +17,22 @@ const Status = () => {
     return (
         <section>
             { showTimer &&
-                <img src='img/reload.png'
+                <ImgButton
+                    title='Refresh'
+                    src='img/reload.png'
                     className='img-refresh'
-                    onClick={() => dispatch(refresh)} />
+                    dispatch={() => refresh} />
             }
             { showLoading &&
                 <img src='img/loading.gif'
                     className='img-refresh' />
             }
             { history.hiddenError &&
-                <img src='img/error.png'
+                <ImgButton
+                    title={history.hiddenError}
+                    src='img/error.png'
                     className='img-refresh'
-                    onClick={() => dispatch(setHistoryExpanded(true))}
-                    title={history.hiddenError} />
+                    dispatch={() => setHistoryExpanded(true)} />
             }
             <span className={className}>
                 {message === STRING_PLEASE_LOG_IN ?

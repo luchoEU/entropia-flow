@@ -8,6 +8,8 @@ import SearchInput from '../common/SearchInput'
 import { NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import SortableTable from '../common/SortableTable'
+import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 const INDENT_SPACE = 10
 
@@ -21,18 +23,22 @@ interface ItemRowEvents {
     setFilter: (filter: string) => any
 }
 
-const ItemRow = (p: {
+const ItemTreeRow = (p: {
     tree: InventoryTree<ItemData>
     space: number,
+    collapsed: boolean,
     d: ItemRowEvents
 }) => {
     const { tree, space } = p
     const dispatch = useDispatch()
     const expand = p.d.setItemExpanded(tree.data.id)
+    const childrenCollapsed = p.collapsed || !tree.list?.expanded
 
     return (
         <>
-            <tr>
+            <tr className='item-row'
+                style={{ visibility: p.collapsed ? 'collapse' : 'visible' }}
+                onClick={() => tree.list && dispatch(expand(!tree.list.expanded))}>
                 <td style={{ paddingLeft: space }}>
                     <ExpandablePlusButton expanded={tree.list?.expanded} setExpanded={expand} />
                     { tree.editing ?
@@ -41,62 +47,47 @@ const ItemRow = (p: {
                                 e.stopPropagation()
                                 dispatch(p.d.setItemName(tree.data.id, e.target.value))
                             }} autoFocus />
-                            <img src='img/cross.png' data-show onClick={(e) => {
-                                e.stopPropagation()
-                                dispatch(p.d.cancelItemNameEditing(tree.data.id))
-                            }} />
-                            <img src='img/tick.png' data-show onClick={(e) => {
-                                e.stopPropagation()
-                                dispatch(p.d.confirmItemNameEditing(tree.data.id))
-                            }} />
+                            <ImgButton title='Cancel' src='img/cross.png' show dispatch={() => p.d.cancelItemNameEditing(tree.data.id)} />
+                            <ImgButton title='Confirm' src='img/tick.png' show dispatch={() => p.d.confirmItemNameEditing(tree.data.id)} />
                         </> :
                         <>
-                            <span onClick={() => tree.list && dispatch(expand(!tree.list.expanded))}>
-                                { tree.displayName }
-                            </span>
+                            <ItemText text={tree.displayName} />
                             { tree.canEditName &&
-                                <img src='img/edit.png' onClick={(e) => {
-                                    e.stopPropagation()
-                                    dispatch(p.d.startItemNameEditing(tree.data.id))
-                                }} />
-                            }
-                            <img src='img/find.jpg' onClick={(e) => {
-                                e.stopPropagation()
-                                dispatch(p.d.setFilter(`!${tree.displayName}`))
-                            }} />
-                            { tree.list && ( tree.stared ?
-                                <img src='img/staron.png' onClick={(e) => {
-                                    e.stopPropagation()
-                                    dispatch(p.d.setItemStared(tree.data.id, false))
-                                }} /> :
-                                <img src='img/staroff.png' onClick={(e) => {
-                                    e.stopPropagation()
-                                    dispatch(p.d.setItemStared(tree.data.id, true))
-                                }} /> )
+                                <ImgButton title='Edit this item name' src='img/edit.png' dispatch={() => p.d.startItemNameEditing(tree.data.id)} />
                             }
                         </>
                     }
                 </td>
-                <td align='right'>{tree.list ? `[${tree.list.stats.count}]` : tree.data.q}</td>
-                <td align='right'>{(tree.list ? tree.list.stats.ped : tree.data.v) + ' PED'}</td>
-            </tr>
-            { tree.list?.expanded &&
-                <>
-                    { tree.showItemValueRow &&
-                        <tr>
-                            <td style={{ paddingLeft: space + INDENT_SPACE }}>
-                                <ExpandablePlusButton expanded={undefined} setExpanded={undefined} />{/* to add the space of a button */}
-                                ({ tree.data.n === tree.displayName ? 'item': tree.data.n } value)
-                            </td>
-                            <td></td>
-                            <td align='right'>{tree.data.v + ' PED'}</td>
-                        </tr>
+                <td>
+                    { tree.list && ( tree.stared ?
+                        <ImgButton title='Rmove from Favorites' src='img/staron.png' dispatch={() => p.d.setItemStared(tree.data.id, false)} /> :
+                        <ImgButton title='Add to Favorites'src='img/staroff.png' dispatch={() => p.d.setItemStared(tree.data.id, true)} />)
                     }
-                    { tree.list.items.map((item: InventoryTree<ItemData>) =>
-                        <ItemRow key={item.data.id} tree={item} space={p.space + INDENT_SPACE} d={p.d} />
-                    )}
-                </>
-            }
+                    <ImgButton title='Search by this item name' src='img/find.jpg' dispatch={() => p.d.setFilter(`!${tree.displayName}`)} />
+                </td>
+                <td align='right'><ItemText text={tree.list ? `[${tree.list.stats.count}]` : tree.data.q} /></td>
+                <td align='right'><ItemText text={(tree.list ? tree.list.stats.ped : tree.data.v) + ' PED'} /></td>
+            </tr>
+            { tree.list && <>
+                { tree.showItemValueRow &&
+                    <tr style={{ visibility: childrenCollapsed ? 'collapse' : 'visible' }} className='item-row'>
+                        <td style={{ paddingLeft: space + INDENT_SPACE }}>
+                            <ExpandablePlusButton expanded={undefined} setExpanded={undefined} />{/* to add the space of a button */}
+                            <ItemText text={`(${tree.data.n === tree.displayName ? 'item': tree.data.n} value)`} />
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td align='right'><ItemText text={tree.data.v + ' PED'} /></td>
+                    </tr>
+                }
+                { tree.list.items.map((item: InventoryTree<ItemData>) =>
+                    <ItemTreeRow key={item.data.id}
+                        tree={item}
+                        space={p.space + INDENT_SPACE}
+                        collapsed={childrenCollapsed}
+                        d={p.d} />
+                )}
+            </>}
         </>
     )
 }
@@ -132,14 +123,15 @@ const TreeSection = (p: {
             <SortableTable
                 sortType={p.list.sortType}
                 sortBy={p.sortBy}
-                columns={[NAME, QUANTITY, VALUE]}
+                columns={[NAME, -1, QUANTITY, VALUE]}
                 definition={sortColumnDefinition}>
                 {
                     p.list.items.map((item: InventoryTree<ItemData>) =>
-                        <ItemRow
+                        <ItemTreeRow
                             key={item.data.id}
                             tree={item}
                             space={0}
+                            collapsed={false}
                             d={p.d} />
                     )
                 }

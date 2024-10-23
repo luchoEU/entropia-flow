@@ -6,6 +6,8 @@ import { InventoryListWithFilter, ItemHidden } from '../../application/state/inv
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
 import SortableTable from '../common/SortableTable'
+import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 const ItemRow = (p: {
     item: ItemHidden
@@ -15,38 +17,30 @@ const ItemRow = (p: {
     const sortBy = (part: number) => () => dispatch(sortHiddenBy(part))
 
     return (
-        <tr>
+        <tr className='item-row'>
             <td onClick={sortBy(NAME)}>
-                {item.criteria.name ?
-                    <img src='img/tick.png' onClick={(e) => {
-                        e.stopPropagation()
-                        dispatch(showByName(item.data.n))
-                    }} /> : ''
+                { item.criteria.name &&
+                    <ImgButton title='Show this item name' src='img/tick.png' dispatch={() => showByName(item.data.n)} />
                 }
-                {item.data.n}
-                <img src='img/find.jpg' onClick={(e) => {
-                    e.stopPropagation()
-                    dispatch(setHiddenInventoryFilter(`!${item.data.n}`))
-                }} />
+                <ItemText text={item.data.n} />
             </td>
-            <td onClick={sortBy(QUANTITY)}>{item.data.q}</td>
+            <td>
+                <ImgButton title='Search by this item name' src='img/find.jpg' dispatch={() => setHiddenInventoryFilter(`!${item.data.n}`)} />
+            </td>
+            <td onClick={sortBy(QUANTITY)}>
+                <ItemText text={item.data.q} />
+            </td>
             <td onClick={sortBy(VALUE)}>
-                {item.criteria.value ?
-                    <img src='img/tick.png' onClick={(e) => {
-                        e.stopPropagation()
-                        dispatch(showByValue(item.data.v))
-                    }} /> : ''
+                { item.criteria.value &&
+                    <ImgButton title='Show this value or higher' src='img/tick.png' dispatch={() => showByValue(item.data.v)} />
                 }
-            {item.data.v + ' PED'}
+                <ItemText text={item.data.v + ' PED'} />
             </td>
             <td onClick={sortBy(CONTAINER)}>
-                {item.criteria.container ?
-                    <img src='img/tick.png' onClick={(e) => {
-                        e.stopPropagation()
-                        dispatch(showByContainer(item.data.c))
-                    }} /> : ''
+                { item.criteria.container &&
+                    <ImgButton title='Show this container' src='img/tick.png' dispatch={() => showByContainer(item.data.c)} />
                 }
-            {item.data.c}
+                <ItemText text={item.data.c} />
             </td>
         </tr>
     )
@@ -68,14 +62,14 @@ const InventoryHiddenList = (p: {
                                 dispatch(showAll())
                             }}>
                             <img src='img/tick.png' />
-                            Show All
+                            Unhide All
                         </span>
                     </p>
                     <p className='search-input-container'><SearchInput filter={inv.filter} setFilter={setHiddenInventoryFilter} /></p>
                 </div>
                 <SortableTable sortType={inv.showList.sortType}
                     sortBy={sortHiddenBy}
-                    columns={[NAME, QUANTITY, VALUE, CONTAINER]}
+                    columns={[NAME, -1, QUANTITY, VALUE, CONTAINER]}
                     definition={sortColumnDefinition}>
                     {
                         inv.showList.items.map((item: ItemHidden) =>

@@ -163,7 +163,7 @@ const setPermanentBlacklist = (state: LastRequiredState, list: Array<string>): L
     permanentBlacklist: list
 })
 
-function onLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
+function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
     const inv = findInventory(list, last)
     if (inv === null) {
         return {
@@ -178,6 +178,7 @@ function onLast(state: LastRequiredState, list: Array<Inventory>, last: number):
                 ...state,
                 delta: 0,
                 show: true,
+                expanded: false,
                 text: getText(inv, true),
                 date: last,
                 diff: null,
@@ -252,7 +253,7 @@ export {
     initialState,
     setBlacklist,
     setPermanentBlacklist,
-    onLast,
+    reduceOnLast,
     addActions,
     setExpanded,
     include,

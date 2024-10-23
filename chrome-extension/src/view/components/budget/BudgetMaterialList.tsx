@@ -6,6 +6,7 @@ import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../appl
 import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP } from '../../application/helpers/budget'
+import ImgButton from '../common/ImgButton'
 
 const ExpandableMaterial = (p: {
     name: string,
@@ -55,14 +56,8 @@ function BudgetMaterialList() {
                         { m[k].realList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
                             <tr key={`${k}_${b.itemName}`}>
                                 <td>{b.disabled ?
-                                        <img src='img/tick.png' onClick={(e) => {
-                                            e.stopPropagation()
-                                            dispatch(enableBudgetMaterial(k, b.itemName))
-                                        }} /> :
-                                        <img src='img/cross.png' onClick={(e) => {
-                                            e.stopPropagation()
-                                            dispatch(disableBudgetMaterial(k, b.itemName))
-                                        }} />
+                                        <ImgButton title='Enable this material' src='img/tick.png' dispatch={() => enableBudgetMaterial(k, b.itemName)} /> :
+                                        <ImgButton title='Disable this material' src='img/cross.png' dispatch={() => disableBudgetMaterial(k, b.itemName)} />
                                     }
                                     {b.itemName}
                                 </td>

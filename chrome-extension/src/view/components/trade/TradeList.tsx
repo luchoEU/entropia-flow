@@ -1,36 +1,35 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
 import { ItemData } from '../../../common/state'
-import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
+import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryList } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
+import SortableTable from '../common/SortableTable'
+import ImgButton from '../common/ImgButton'
+import { addAvailable, removeAvailable } from '../../application/actions/inventory'
+import ItemText from '../common/ItemText'
 
 const ItemRow = (p: {
     item: ItemData,
     param: {
-        image: string,
-        classMap: { [k: string]: string },
-        showAction: (name: string) => boolean,
-        sort: (part: number) => any,
-        action: (name: string) => any
+        isFavorite: (name: string) => boolean,
+        classMap: { [k: string]: string }
     }
 }) => {
     const { item, param } = p
-    const { image, classMap, showAction, sort, action } = param
-    const dispatch = useDispatch()
-    const sortBy = (part: number) => () => dispatch(sort(part))
 
     return (
-        <tr>
-            <td className={classMap[item.n]} onClick={sortBy(NAME)}>{item.n}
-                {showAction(item.n) ?
-                    <img src={image} onClick={(e) => {
-                        e.stopPropagation()
-                        dispatch(action(item.n))
-                    }}></img> : <></>
-                }</td>
-            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
-            <td onClick={sortBy(VALUE)}>{item.v + ' PED'}</td>
+        <tr className='item-row'>
+            <td className={param.classMap[item.n]}>
+                <ItemText text={item.n} />
+            </td>
+            <td>
+                { param.isFavorite(item.n) ?
+                    <ImgButton title='Remove from Favorites' src='img/staron.png' dispatch={() => removeAvailable(item.n)} /> :
+                    <ImgButton title='Add to Favorites' src='img/staroff.png' dispatch={() => addAvailable(item.n)} />
+                }
+            </td>
+            <td><ItemText text={item.q} /></td>
+            <td><ItemText text={item.v + ' PED'} /></td>
         </tr>
     )
 }
@@ -39,29 +38,29 @@ const TradeList = (p: {
     title: string,
     list: InventoryList<ItemData>,
     setExpanded: (expanded: boolean) => any,
-    image: string,
+    isFavorite: (name: string) => boolean,
     classMap: { [k: string]: string },
-    showAction: (name: string) => boolean,
-    sort: (part: number) => any,
-    action: (name: string) => any
+    sort: (part: number) => any
 }) => {
     let { title, list, setExpanded } = p
     return (
         <>
             <ExpandableSection title={title} expanded={list.expanded} setExpanded={setExpanded}>
                 <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
-                <table className='table-diff'>
-                    <tbody>
-                        {
-                            list.items.map((item: ItemData) =>
-                                <ItemRow
-                                    key={item.id}
-                                    item={item}
-                                    param={p} />
-                            )
-                        }
-                    </tbody>
-                </table>
+                <SortableTable
+                    sortType={list.sortType}
+                    sortBy={p.sort}
+                    columns={[NAME, -1, QUANTITY, VALUE]}
+                    definition={sortColumnDefinition}>
+                    {
+                        list.items.map((item: ItemData) =>
+                            <ItemRow
+                                key={item.id}
+                                item={item}
+                                param={p} />
+                        )
+                    }
+                </SortableTable>
             </ExpandableSection>
         </>
     )

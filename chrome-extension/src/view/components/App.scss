@@ -216,14 +216,14 @@ form label {
 }
 
 .table-diff tr td img {
-    display: none;
+    visibility: hidden;
 }
 
 .table-diff tr td:hover img,
 .table-diff-row tr:hover td img,
 .table-diff tr td img[data-show],
 tr.sort-row th img {
-    display: inline;
+    visibility: visible;
 }
 
 tr.sort-row th img {
@@ -263,10 +263,6 @@ p:hover .img-info {
     padding: 8px;
     margin-left: 20px;
     font-size: 14px;
-}
-
-.to-auction {
-    font-weight: bold;
 }
 
 .positive {
@@ -405,6 +401,28 @@ button:active {
 .button-plus {
     display: inline-block;
     width: 11px;
+}
+
+.item-text {
+    padding-right: 5px;
+    position: relative;
+    font-weight: bold;
+    color: transparent;
+}
+
+.item-text::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: normal;
+    color: black;
+}
+
+.item-row:hover,
+.item-row:hover .item-text::after,
+.item-row .to-auction .item-text::after {
+    font-weight: bold;
 }
 
 .button-text {

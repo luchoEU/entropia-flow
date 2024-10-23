@@ -16,6 +16,7 @@ const SortableTable = (p: {
             <thead>
                 <tr className='sort-row'>
                     { columns.map((c) =>
+                        c < 0 ? <th></th> :
                         <th onClick={() => dispatch(sortBy(c))}>
                             <strong>{definition[c].text} </strong>
                             { sortType === definition[c].up && <img src='img/up.png' /> }

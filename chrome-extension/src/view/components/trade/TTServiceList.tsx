@@ -5,6 +5,7 @@ import { NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryList } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import { reloadTTService, setTTServiceInventoryExpanded, sortTTServiceBy } from '../../application/actions/inventory'
+import ImgButton from '../common/ImgButton'
 
 const ItemRow = (p: {
     item: ItemData
@@ -31,9 +32,11 @@ const TTServiceList = (p: {
         <>
             <ExpandableSection title='TT Service' expanded={list.expanded} setExpanded={setTTServiceInventoryExpanded}>
                 <p>Total value {list.stats.ped} PED for {list.stats.count} items
-                    <img src='img/reload.png'
+                    <ImgButton
+                        title='Reload'
+                        src='img/reload.png'
                         className='img-refresh'
-                        onClick={() => dispatch(reloadTTService())} />
+                        dispatch={() => dispatch(reloadTTService())} />
                 </p>
                 <table className='table-diff'>
                     <tbody>
