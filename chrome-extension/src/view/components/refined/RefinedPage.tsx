@@ -11,11 +11,11 @@ function RefinedPage() {
     return (
         <>
             <RefinedActive />
-            { Object.keys(state.map).map(name =>
-                <div key={name} className='flex'>
-                    <RefinedMaterial material={state.map[name]} />
-                </div>
-            )}
+            <div className='flex'>
+                { Object.keys(state.map).map(name =>
+                    <RefinedMaterial key={name} material={state.map[name]} />
+                )}
+            </div>
         </>
     )
 }

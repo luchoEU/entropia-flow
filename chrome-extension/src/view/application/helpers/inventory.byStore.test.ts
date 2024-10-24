@@ -2,7 +2,7 @@ import { ItemData } from "../../../common/state"
 import { InventoryState } from "../state/inventory"
 import { initialState, reduceLoadInventoryState, reduceSetCurrentInventory } from "./inventory"
 import { cleanForSaveByStore, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "./inventory.byStore"
-import { SORT_NAME_ASCENDING, SORT_NAME_DESCENDING, SORT_QUANTITY_ASCENDING } from "./inventory.sort"
+import { SORT_NAME_ASCENDING, SORT_QUANTITY_ASCENDING } from "./inventory.sort"
 
 describe('inventory by store reducers', () => {
     let item1: ItemData

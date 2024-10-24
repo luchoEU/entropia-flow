@@ -25,10 +25,14 @@ const ItemRow = (p: {
 }) => {
     const { item, c } = p
     const dispatch = useDispatch()
+    const sortBy = (part: number) => (e: any) => {
+        e.stopPropagation()
+        dispatch(c.sortBy(part))
+    }
 
     return (
         <tr>
-            <td onClick={c.sortBy(NAME)}>{item.n}
+            <td onClick={sortBy(NAME)}>{item.n}
                 { item.w &&
                     <ImgButton title='Exclude' show src='img/warning.png' dispatch={() => c.exclude(item.key)} />
                 }
@@ -46,17 +50,20 @@ const ItemRow = (p: {
                         )
                 }
             </td>
-            <td onClick={c.sortBy(QUANTITY)}>{item.q}</td>
-            <td onClick={c.sortBy(VALUE)}
+            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
+            <td onClick={sortBy(VALUE)}
                 title={item.v.includes('(') ? c.movedTitle : ''}>
                 {item.v === '' ? '' : item.v + ' PED'}
             </td>
-            <td onClick={c.sortBy(CONTAINER)}>{item.c}</td>
+            <td onClick={sortBy(CONTAINER)}>{item.c}</td>
             <td>
                 { item.a &&
                     <button
                         className='button-me-log'
-                        onClick={() => dispatch(selectForAction(item.a.menu, item.n))}>
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            dispatch(selectForAction(item.a.menu, item.n))
+                        }}>
                         { '>' }
                     </button>
                 }

@@ -9,7 +9,7 @@ import RefinedOutput from './RefinedOutput'
 import { sheetPendingRefinedAuction } from '../../application/selectors/sheets'
 import { refinedAuctionMaterial } from '../../application/actions/sheets'
 
-const RefinedMaterial = (p: {
+const RefineCaculator = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
@@ -41,4 +41,4 @@ const RefinedMaterial = (p: {
     )
 }
 
-export default RefinedMaterial
+export default RefineCaculator

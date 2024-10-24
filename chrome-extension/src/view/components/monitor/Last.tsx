@@ -1,5 +1,5 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
 import { setLast } from '../../application/actions/messages'
 import { LastRequiredState } from '../../application/helpers/last'
