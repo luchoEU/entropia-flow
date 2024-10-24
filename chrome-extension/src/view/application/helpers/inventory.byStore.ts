@@ -199,26 +199,37 @@ const _loadByStoreStaredList = (
 ): InventoryByStore => {
   const staredItems: Array<InventoryTree<ItemData>> = []
 
-  const process = (path: Array<string>) => (i: InventoryTree<ItemData>): InventoryTree<ItemData> =>{
+  const process = (path: Array<string>, planet: string) => (i: InventoryTree<ItemData>): InventoryTree<ItemData> => {
+    // Fix id to be unique on all tree, load expanded, and set container with the root
     const newPath = [ ...path, i.data.id ]
     return {
       ...i,
       data: {
         ...i.data,
-        id: newPath.join('.')
+        id: newPath.join('.'),
+        c: planet
       },
       list: i.list ? {
         ...i.list,
         expanded: byStore.staredExpanded.includes(i.data.id),
-        items: i.list.items.map(process(newPath)),
+        items: i.list.items.map(process(newPath, planet)),
       }: undefined
     }
   }
 
-  function add(list: InventoryList<InventoryTree<ItemData>>) {
+  function getPlanetName(name: string): string {
+    if (name.startsWith('STORAGE (')) {
+      return name.replace('STORAGE (', '').replace(')', '').replace('Planet', '').trim()
+    } else {
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+    }
+  }
+
+  function add(list: InventoryList<InventoryTree<ItemData>>, planet?: string) {
     for (const i of list.items) {
-      if (i.stared) staredItems.push(process([])(i))
-      if (i.list) add(i.list)
+      const iPlanet = planet ?? getPlanetName(i.displayName)
+      if (i.stared) staredItems.push(process([], iPlanet)(i))
+      if (i.list) add(i.list, iPlanet)
     }
   }
   add(byStore.originalList)

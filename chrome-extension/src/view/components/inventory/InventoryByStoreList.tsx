@@ -5,7 +5,7 @@ import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, set
 import { InventoryByStore, InventoryList, InventoryTree } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
-import { NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
+import { CONTAINER, NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import SortableTable from '../common/SortableTable'
 import ImgButton from '../common/ImgButton'
@@ -14,6 +14,7 @@ import ItemText from '../common/ItemText'
 const INDENT_SPACE = 10
 
 interface ItemRowEvents {
+    showContainer?: boolean,
     setItemExpanded: (id: string) => (expanded: boolean) => any,
     setItemName: (id: string, name: string) => any,
     cancelItemNameEditing: (id: string) => any,
@@ -65,6 +66,11 @@ const ItemTreeRow = (p: {
                     }
                     <ImgButton title='Search by this item name' src='img/find.jpg' dispatch={() => p.d.setFilter(`!${tree.displayName}`)} />
                 </td>
+                { p.d.showContainer &&
+                    <td align='left'>
+                        <ItemText text={tree.data.c} />
+                        <ImgButton title='Search in all containers by this item name' src='img/find.jpg' dispatch={() => setByStoreInventoryFilter(`!${tree.displayName}`)} />
+                    </td> }
                 <td align='right'><ItemText text={tree.list ? `[${tree.list.stats.count}]` : tree.data.q} /></td>
                 <td align='right'><ItemText text={(tree.list ? tree.list.stats.ped : tree.data.v) + ' PED'} /></td>
             </tr>
@@ -76,6 +82,7 @@ const ItemTreeRow = (p: {
                             <ItemText text={`(${tree.data.n === tree.displayName ? 'item': tree.data.n} value)`} />
                         </td>
                         <td></td>
+                        { p.d.showContainer && <td></td> }
                         <td></td>
                         <td align='right'><ItemText text={tree.data.v + ' PED'} /></td>
                     </tr>
@@ -101,6 +108,7 @@ const TreeSection = (p: {
     setFilter: (filter: string) => any,
     list: InventoryList<InventoryTree<ItemData>>,
     sortBy: (part: number) => any,
+    columnNameOverride?: { [key: string]: string },
     d: ItemRowEvents
 }) => {
     const dispatch = useDispatch()
@@ -123,7 +131,8 @@ const TreeSection = (p: {
             <SortableTable
                 sortType={p.list.sortType}
                 sortBy={p.sortBy}
-                columns={[NAME, -1, QUANTITY, VALUE]}
+                columns={p.d.showContainer ? [NAME, -1, CONTAINER, QUANTITY, VALUE] : [NAME, -1, QUANTITY, VALUE]}
+                nameOverride={p.columnNameOverride}
                 definition={sortColumnDefinition}>
                 {
                     p.list.items.map((item: InventoryTree<ItemData>) =>
@@ -154,9 +163,11 @@ const InventoryByStoreList = (p: {
                 setAllItemsExpanded={setByStoreStaredAllItemsExpanded}
                 filter={inv.staredFilter}
                 setFilter={setByStoreStaredInventoryFilter}
+                columnNameOverride={{ [CONTAINER]: 'Planet' }}
                 list={inv.staredList}
                 sortBy={sortByStoreStaredBy}
                 d={({
+                    showContainer: true,
                     setItemExpanded: setByStoreStaredItemExpanded,
                     setItemName: setByStoreStaredItemName,
                     cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
