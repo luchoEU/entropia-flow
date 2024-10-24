@@ -48,8 +48,8 @@ namespace EntropiaFlowClient
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            string left = ConfigurationManager.AppSettings["WindowLeft"];
-            string top = ConfigurationManager.AppSettings["WindowTop"];
+            string? left = ConfigurationManager.AppSettings["WindowLeft"];
+            string? top = ConfigurationManager.AppSettings["WindowTop"];
 
             if (!string.IsNullOrEmpty(left) && !string.IsNullOrEmpty(top))
             {

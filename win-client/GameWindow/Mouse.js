@@ -1,24 +1,20 @@
-﻿document.addEventListener('contextmenu', function(event)
-{
-    //event.returnValue = false;
+﻿document.addEventListener('contextmenu', function(event) {
+    //event.preventDefault();
 });
 
-document.addEventListener('mousedown', function(event)
-{
-    event.returnValue = false;
+document.addEventListener('mousedown', function(event) {
+    event.preventDefault();
     if (event.button === 0) // left
-        chrome.webview.hostObjects.mouse.OnMouseDown();
+        chrome.webview?.hostObjects.mouse.OnMouseDown();
 });
 
-document.addEventListener('mousemove', function(event)
-{
-    event.returnValue = false;
-    chrome.webview.hostObjects.mouse.OnMouseMove();
+document.addEventListener('mousemove', function(event) {
+    event.preventDefault();
+    chrome.webview?.hostObjects.mouse.OnMouseMove();
 });
 
-document.addEventListener('mouseup', function(event)
-{
-    event.returnValue = false;
+document.addEventListener('mouseup', function(event) {
+    event.preventDefault();
     if (event.button === 0) // left
-        chrome.webview.hostObjects.mouse.OnMouseUp();
+        chrome.webview?.hostObjects.mouse.OnMouseUp();
 });

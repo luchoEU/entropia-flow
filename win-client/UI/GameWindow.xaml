@@ -8,13 +8,15 @@
         mc:Ignorable="d" WindowStyle="None"
         AllowsTransparency="True"
         Loaded="Window_Loaded" Closing="Window_Closing"
-        ResizeMode="NoResize" Height="80" Width="200">
+        ResizeMode="NoResize" Height="70" Width="200"
+        Icon="/UI/flow128w.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                   ResizeBorderThickness="12"
                   CornerRadius="20"/>
     </WindowChrome.WindowChrome>
     <Grid>
+        <TextBlock Text="Loading..." VerticalAlignment="Center" HorizontalAlignment="Center" />
         <wpf:WebView2 x:Name="webView2" />
     </Grid>
 </Window>

@@ -1,4 +1,5 @@
-﻿using static EntropiaFlowClient.WebSocketChat;
+﻿using EntropiaFlowClient.UI;
+using static EntropiaFlowClient.WebSocketChat;
 using Application = System.Windows.Application;
 
 namespace EntropiaFlowClient
@@ -9,13 +10,14 @@ namespace EntropiaFlowClient
     public partial class App : Application
     {
         private readonly NotifyIcon _notifyIcon;
-        private WebSocketChat _webSocketServer;
+        private readonly WebSocketChat _webSocketServer;
         private readonly LogWatcher _watcher;
+        private SettingsWindow _settingsWindow;
 
         public App()
         {
             _notifyIcon = new();
-            _webSocketServer = new WebSocketChat();
+            _webSocketServer = new();
             _watcher = new();
         }
 
@@ -36,6 +38,7 @@ namespace EntropiaFlowClient
             _notifyIcon.Click += NotifyIcon_Click;
 
             _notifyIcon.ContextMenuStrip = new ContextMenuStrip();
+            _notifyIcon.ContextMenuStrip.Items.Add("Settings", null, OnSettingsClicked);
             _notifyIcon.ContextMenuStrip.Items.Add("Exit", null, OnExitClicked);
             _notifyIcon.Visible = true;
         }
@@ -44,6 +47,17 @@ namespace EntropiaFlowClient
         {
             //((MainWindow)MainWindow).CloseWindow();
             MainWindow.Close();
+            _settingsWindow?.Close();
+        }
+
+        private void OnSettingsClicked(object? sender, EventArgs e)
+        {
+            if (_settingsWindow == null)
+                _settingsWindow = new SettingsWindow();
+            else
+                _settingsWindow.WindowState = System.Windows.WindowState.Normal;
+            _settingsWindow.SetListening(_webSocketServer.IsListening, _webSocketServer.ListeningUri);
+            _settingsWindow.Show();
         }
 
         protected override void OnExit(System.Windows.ExitEventArgs e)
@@ -54,8 +68,8 @@ namespace EntropiaFlowClient
 
         private void NotifyIcon_Click(object? sender, EventArgs e)
         {
-            MainWindow.WindowState = System.Windows.WindowState.Normal;
-            MainWindow.Show();
+            if (e is MouseEventArgs me && me.Button == MouseButtons.Left)
+                OnSettingsClicked(sender, e);
         }
 
         #endregion

@@ -10,7 +10,6 @@ namespace EntropiaFlowClient
         public MainWindow()
         {
             InitializeComponent();
-
             Closing += MainWindow_Closing;
         }
 
