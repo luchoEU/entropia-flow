@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
 import { setLast } from '../../application/actions/messages'
 import { LastRequiredState } from '../../application/helpers/last'
@@ -45,6 +45,7 @@ const Last = () => {
     }
 
     const craft: CraftState = useSelector(getCraft)
+    const dispatch = useDispatch()
 
     let expandedClass = 'button-diff'
     const hasWarning = diff && diff.some((i: ViewItemData) => i.w === true)
@@ -60,11 +61,11 @@ const Last = () => {
                         expanded={expanded}
                         setExpanded={setExpanded}
                     />
-                    { text }
+                    <span onClick={() => dispatch(setExpanded(!expanded))}>{ text }</span>
                     <span className={`difference ${getDeltaClass(delta)}`}>{ delta.toFixed(2) }</span>
                     { hasWarning &&
                         <ImgButton
-                            title={ expanded ? 'Exclude Warnings' : 'Show Warnings' }
+                            title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
                             src='img/warning.png'
                             className='img-warning'
                             dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />

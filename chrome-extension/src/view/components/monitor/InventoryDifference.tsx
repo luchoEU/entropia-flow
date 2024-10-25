@@ -7,6 +7,7 @@ import { selectForAction } from '../../application/actions/menu'
 import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
 import ImgButton from '../common/ImgButton'
+import ItemText from '../common/ItemText'
 
 interface Config {
     sortBy: (part: number) => any
@@ -31,31 +32,38 @@ const ItemRow = (p: {
     }
 
     return (
-        <tr>
-            <td onClick={sortBy(NAME)}>{item.n}
+        <tr className='item-row'>
+            <td onClick={sortBy(NAME)}>
+                <ItemText text={item.n} />
                 { item.w &&
-                    <ImgButton title='Exclude' show src='img/warning.png' dispatch={() => c.exclude(item.key)} />
+                    <ImgButton title='There is already a similar item excluded from the sum' show src='img/warning.png' dispatch={() => c.exclude(item.key)} />
                 }
+            </td>
+            <td>
                 {
                     c.allowExclude && hasValue(item) &&
                         (item.e ?
                             (item.x ?
-                                <ImgButton title='Permanent Exclude Off' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff(item.key)} /> :
+                                <ImgButton title='Remove permanently exclusion from the sum' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff(item.key)} /> :
                                 <>
-                                    <ImgButton title='Include' src='img/cross.png' show dispatch={() => c.include(item.key)} />
-                                    <ImgButton title='Permanent Exclude On' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn(item.key)} />
+                                    <ImgButton title='This item is currently excluded from the sum, click to include it again' src='img/cross.png' show dispatch={() => c.include(item.key)} />
+                                    <ImgButton title='Permanently exclude this item from the sum' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn(item.key)} />
                                 </>
                             ) :
-                            <ImgButton title='Exclude' src='img/tick.png' dispatch={() => c.exclude(item.key)} />
+                            <ImgButton title='Exclude this item from the sum' src='img/cross.png' dispatch={() => c.exclude(item.key)} />
                         )
                 }
             </td>
-            <td onClick={sortBy(QUANTITY)}>{item.q}</td>
+            <td onClick={sortBy(QUANTITY)}>
+                <ItemText text={item.q} />
+            </td>
             <td onClick={sortBy(VALUE)}
                 title={item.v.includes('(') ? c.movedTitle : ''}>
-                {item.v === '' ? '' : item.v + ' PED'}
+                <ItemText text={item.v === '' ? '' : item.v + ' PED'} />
             </td>
-            <td onClick={sortBy(CONTAINER)}>{item.c}</td>
+            <td onClick={sortBy(CONTAINER)}>
+                <ItemText text={item.c} />
+            </td>
             <td>
                 { item.a &&
                     <button
@@ -78,11 +86,16 @@ const PedRow = (p: {
     const { item } = p
     return (
         <tr>
-            <td>PED
+            <td>
+                <ItemText text={'PED'} />
+            </td>
+            <td>
                 <ImgButton title='Remove PEDs' src='img/cross.png' dispatch={() => removePeds(item.key)} />
             </td>
             <td></td>
-            <td>{ item.value + ' PED' }</td>
+            <td>
+                <ItemText text={item.value + ' PED'} />
+            </td>
             <td></td>
             <td></td>
         </tr >
@@ -94,21 +107,27 @@ const PedNewRow = () => {
     const isValid = !isNaN(Number(peds)) && Number(peds) !== 0
     return (
         <tr>
-            <td>PED
-                { isValid &&
+            <td>PED</td>
+            <td></td>
+            <td></td>
+            <td>
+                <input id='newPedInput' type='text' value={peds} onChange={(e) => setPeds(e.target.value)} />
+            </td>
+            <td>
+                { peds && (isValid ?
                     <ImgButton
                         title='Add PEDs'
                         src='img/tick.png' show dispatch={() => {
                         setPeds('')
                         return addPeds(peds)
-                    }} />
+                    }} /> : <ImgButton
+                        title='Cancel'
+                        src='img/cross.png' show dispatch={() => {
+                        setPeds('')
+                        return undefined
+                    }} />)
                 }
             </td>
-            <td></td>
-            <td>
-                <input id='newPedInput' type='text' value={peds} onChange={(e) => setPeds(e.target.value)} />
-            </td>
-            <td></td>
             <td></td>
         </tr >
     )

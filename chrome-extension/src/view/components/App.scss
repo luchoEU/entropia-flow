@@ -75,7 +75,7 @@ input {
 
 table tr td img, .search-input img {
     height: 12px;
-    margin: 5px;
+    margin: 0px 5px;
 }
 
 img {
@@ -194,12 +194,8 @@ form label {
     font-size: 14px;
 }
 
-.requested {
-    font-style: italic;
-}
-
-.last {
-    font-weight: bold;
+.table-history tr {
+    height: 20px;
 }
 
 .table-diff {
@@ -209,20 +205,22 @@ form label {
     margin-top: 5px;
 }
 
-.table-diff tr td {
+.table-diff tr td,
+.sort-table tr td {
     padding-left: 7px;
     padding-right: 7px;
     cursor: default;
 }
 
-.table-diff tr td img {
+.table-diff tr td img,
+.sort-table tr td img {
     visibility: hidden;
 }
 
-.table-diff tr td:hover img,
-.table-diff-row tr:hover td img,
+.table-diff tr:hover td img,
 .table-diff tr td img[data-show],
-tr.sort-row th img {
+.sort-table tr:hover td img,
+.sort-table tr td img[data-show] {
     visibility: visible;
 }
 
@@ -235,24 +233,24 @@ tr.sort-row th img {
     width: 50px;
 }
 
-.table-diff tr td:nth-child(2),
-.table-diff tr td:nth-child(3) {
-    text-align: right;
+.table-diff tr td:nth-child(3),
+.table-diff tr td:nth-child(4) {
+    text-align: end;
 }
 
-p .img-up {
+td .img-up {
     display: none;
 }
 
-p:hover .img-up {
+td:hover .img-up {
     display: inline;
 }
 
-p .img-info {
+td .img-info {
     display: none;
 }
 
-p:hover .img-info {
+td:hover .img-info {
     display: inline;
 }
 
@@ -403,6 +401,14 @@ button:active {
     width: 11px;
 }
 
+.requested {
+    font-style: italic;
+}
+
+.last {
+    font-weight: bold;
+}
+
 .item-text {
     padding-right: 5px;
     position: relative;
@@ -419,9 +425,13 @@ button:active {
     color: black;
 }
 
+.last.item-text::after {
+    font-weight: bold;
+}
+
 .item-row:hover,
 .item-row:hover .item-text::after,
-.item-row .to-auction .item-text::after {
+.item-row .to-auction.item-text::after {
     font-weight: bold;
 }
 

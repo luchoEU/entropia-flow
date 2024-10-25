@@ -13,7 +13,7 @@ const SortableTable = (p: {
     const dispatch = useDispatch()
 
     return (
-        <table className='table-diff table-diff-row'>
+        <table className='sort-table'>
             <thead>
                 <tr className='sort-row'>
                     { columns.map((c) =>

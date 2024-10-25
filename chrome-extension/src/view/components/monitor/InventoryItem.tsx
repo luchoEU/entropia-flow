@@ -1,12 +1,11 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { sortBy, setItemExpanded } from '../../application/actions/history'
 import { setAsLast } from '../../application/actions/messages'
-import { getCraft } from '../../application/selectors/craft'
-import { CraftState } from '../../application/state/craft'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
+import ItemText from '../common/ItemText'
 
 const InventoryItem = (p: { item: ViewInventory }) => {
     const { item } = p
@@ -23,33 +22,40 @@ const InventoryItem = (p: { item: ViewInventory }) => {
     if (item.diff && item.diff.some((i: ViewItemData) => i.a !== undefined))
         expandedClass += ' button-with-actions'
 
-    return (
-        <>
-            <p {...(item.class !== null ? { className: item.class } : {})}>
+    return <>
+        <tr className='item-row' onClick={() => dispatch(setItemExpanded(item.key)(!item.expanded))}>
+            <td>
                 <ExpandablePlusButton
+                    className={item.class}
                     expanded={item.diff ? item.expanded : undefined}
                     setExpanded={setItemExpanded(item.key)}
                 />
-                { item.text }
+                <ItemText className={item.class} text={ item.text } />
                 { item.info &&
                     <span
                         className='img-info'
                         title={item.info}>i</span>
                 }
+            </td>
+            <td>
                 { item.isLast ?
                     <span className='label-up'>Last</span> :
                     (item.canBeLast &&
                         <span className='img-up'
-                            onClick={() => dispatch(setAsLast(item.key))}>
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                dispatch(setAsLast(item.key))
+                            }}>
                             <img src='img/up.png' />Last
                         </span>)
                 }
-            </p>
-            { item.expanded &&
+            </td>
+        </tr>
+        { item.expanded && <tr><td colSpan={2}>
                 <InventoryDifference diff={item.diff} peds={[]} config={config} />
-            }
-        </>
-    )
+            </td></tr>
+        }
+    </>
 }
 
 export default InventoryItem

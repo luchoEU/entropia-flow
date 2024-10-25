@@ -15,10 +15,12 @@ const History = () => {
                 title='History'
                 expanded={history.expanded}
                 setExpanded={setHistoryExpanded}>
-            {
-                history.list.map((inv: ViewInventory) =>
-                    <InventoryItem key={inv.key} item={inv} />)
-            }
+                <table className='table-history'>
+                {
+                    history.list.map((inv: ViewInventory) =>
+                        <InventoryItem key={inv.key} item={inv} />)
+                }
+                </table>
             </ExpandableSection>
         )
     } else {

@@ -19,8 +19,8 @@ const ItemRow = (p: {
 
     return (
         <tr className='item-row'>
-            <td className={param.classMap[item.n]}>
-                <ItemText text={item.n} />
+            <td>
+                <ItemText className={param.classMap[item.n]} text={item.n} />
             </td>
             <td>
                 { param.isFavorite(item.n) ?

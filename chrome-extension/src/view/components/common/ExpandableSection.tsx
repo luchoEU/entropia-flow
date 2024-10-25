@@ -1,5 +1,6 @@
 import React from "react"
 import ExpandableArrowButton from "./ExpandableArrowButton"
+import { useDispatch } from "react-redux"
 
 const ExpandableSection = (p: {
     title: string,
@@ -8,9 +9,15 @@ const ExpandableSection = (p: {
     className?: string,
     children: any
 }) => {
+    const dispatch = useDispatch()
     return (
         <section>
-            <h1>{p.title} <ExpandableArrowButton expanded={p.expanded} setExpanded={p.setExpanded} />
+            <h1 onClick={(e) => {
+                    e.stopPropagation()
+                    dispatch(p.setExpanded(!p.expanded))}
+                }>
+                {p.title}
+                <ExpandableArrowButton expanded={p.expanded} setExpanded={p.setExpanded} />
             </h1>
             <div className={p.className}>
             {
