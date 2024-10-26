@@ -26,8 +26,8 @@ function TradePage() {
                     isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
             </div>
             <div className='flex'>
-                <InventoryVisibleList inv={s.visible}/>
-                <InventoryHiddenList inv={s.hidden} />
+                <InventoryVisibleList />
+                <InventoryHiddenList />
             </div>
             { SHOW_FEATURES_IN_DEVELOPMENT &&
                 <TTServiceList list={s.ttService} />

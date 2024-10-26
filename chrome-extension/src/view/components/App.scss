@@ -73,9 +73,17 @@ input {
     display: block;
 }
 
-table tr td img, .search-input img {
+table tr td img,
+.search-input img,
+.sort-row img,
+.item-row img {
     height: 12px;
     margin: 0px 5px;
+}
+
+.sort-row {
+    padding-bottom: 8px;
+    cursor: pointer;
 }
 
 img {
@@ -213,14 +221,14 @@ form label {
 }
 
 .table-diff tr td img,
-.sort-table tr td img {
+.item-row img {
     visibility: hidden;
 }
 
 .table-diff tr:hover td img,
 .table-diff tr td img[data-show],
-.sort-table tr:hover td img,
-.sort-table tr td img[data-show] {
+.item-row:hover img,
+.item-row img[data-show] {
     visibility: visible;
 }
 
@@ -411,27 +419,16 @@ button:active {
 
 .item-text {
     padding-right: 5px;
-    position: relative;
-    font-weight: bold;
-    color: transparent;
-}
-
-.item-text::after {
-    content: attr(data-text);
-    position: absolute;
-    left: 0;
-    top: 0;
     font-weight: normal;
-    color: black;
 }
 
-.last.item-text::after {
+.last.item-text {
     font-weight: bold;
 }
 
 .item-row:hover,
-.item-row:hover .item-text::after,
-.item-row .to-auction.item-text::after {
+.item-row:hover .item-text,
+.item-row .to-auction.item-text {
     font-weight: bold;
 }
 

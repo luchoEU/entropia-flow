@@ -5,7 +5,7 @@ const ItemText = (p: {
     className?: string
 }) => {
     return (
-        <span className={(p.className ?? '') + ' item-text'} data-text={p.text}>
+        <span className={(p.className ?? '') + ' item-text'}>
             { p.text }
         </span>
     )
