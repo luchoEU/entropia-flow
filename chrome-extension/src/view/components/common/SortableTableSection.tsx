@@ -43,9 +43,11 @@ interface ItemRowColumnData {
 interface ItemRowSubColumnData {
     flex?: number
     visible?: boolean
+    class?: string
     button?: {
         title: string
         src: string
+        text?: string
         dispatch: () => void
     }
     text?: string
@@ -84,6 +86,17 @@ const ItemRow = <T extends any>(
     )
 }
 
+const ItemSubRowRender = (p: {part?: number, sub: ItemRowSubColumnData[]}): JSX.Element => <>
+    { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
+        <span key={j} className={sc.class} style={{ flex: sc.flex, visibility: sc.visible === false ? 'hidden' : undefined }}>
+            { sc.button && <ImgButton title={sc.button.title} text={sc.button.text} src={sc.button.src} dispatch={sc.button.dispatch} /> }
+            { sc.text && <ItemText text={sc.text} /> }
+            { sc.strong && <strong>{sc.strong}</strong> }
+            { sc.img && <img src={sc.img} /> }
+        </span>
+    )}
+</>
+
 const ItemRowRender = (p: {
     data: ItemRowData,
     columns: ColumnWidthData[]
@@ -93,16 +106,9 @@ const ItemRowRender = (p: {
         { p.columns.map((c: ColumnWidthData) => {
             const d = p.data[c.part]
             return <div key={c.part} style={{ width: c.width, font: FONT, display: 'inline-flex', justifyContent: d.justifyContent ?? 'start' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}>
-            { d.sub.map((sc: ItemRowSubColumnData, j: number) => {
-                const style: CSSProperties = { flex: sc.flex, visibility: sc.visible === false ? 'hidden' : undefined }
-                return <>
-                    { sc.button && <ImgButton style={style} title={sc.button.title} src={sc.button.src} dispatch={sc.button.dispatch} /> }
-                    { sc.text && <ItemText style={style} text={sc.text} /> }
-                    { sc.strong && <strong style={style}>{sc.strong}</strong> }
-                    { sc.img && <img style={style} src={sc.img} /> }
-                </>
-            })}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}
+            >
+                <ItemSubRowRender sub={d.sub} />
             </div>
         })}
     </>
@@ -118,7 +124,8 @@ const SortableTableSection = <T extends any>(p: {
     inv: InventoryListWithFilter<T>,
     sortRowData: SortRowData,
     getRowData: (item: T) => any,
-    itemSelector: (index: number) => (state: any) => T
+    itemSelector: (index: number) => (state: any) => T,
+    searchRowColumnData?: ItemRowColumnData
 }) => {
     const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
     const subColumnsWidth = p.inv.originalList.items.reduce((acc, item) => { // use originalList so widths don't change when filtering
@@ -156,7 +163,9 @@ const SortableTableSection = <T extends any>(p: {
     const height = Math.min(itemCount * ITEM_SIZE, LIST_TOTAL_HEIGHT)
     return <ExpandableSection title={p.title} expanded={p.inv.originalList.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
-            <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}</p>
+            <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}
+                { p.searchRowColumnData && <ItemSubRowRender sub={p.searchRowColumnData.sub} /> }
+            </p>
             <p className='search-input-container'><SearchInput filter={p.inv.filter} setFilter={p.setFilter} /></p>
         </div>
         <div className='sort-table'>
@@ -179,5 +188,6 @@ const SortableTableSection = <T extends any>(p: {
 export default SortableTableSection
 export {
     ItemRowData,
+    ItemRowColumnData,
     SortRowData
 }

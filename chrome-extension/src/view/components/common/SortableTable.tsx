@@ -16,9 +16,9 @@ const SortableTable = (p: {
         <table className='sort-table'>
             <thead>
                 <tr className='sort-row'>
-                    { columns.map((c) =>
-                        c < 0 ? <th></th> :
-                        <th onClick={() => dispatch(sortBy(c))}>
+                    { columns.map((c,i) =>
+                        c < 0 ? <th key={i}></th> :
+                        <th key={i} onClick={() => dispatch(sortBy(c))}>
                             <strong>{(nameOverride ? nameOverride[c] : undefined) ?? definition[c].text} </strong>
                             { sortType === definition[c].up && <img src='img/up.png' /> }
                             { sortType === definition[c].down && <img src='img/down.png' /> }

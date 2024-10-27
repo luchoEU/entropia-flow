@@ -2,7 +2,7 @@ import React from 'react'
 import { setHiddenInventoryExpanded, setHiddenInventoryFilter, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryListWithFilter, ItemHidden } from '../../application/state/inventory'
-import SortableTableSection, { ItemRowData, SortRowData } from '../common/SortableTableSection'
+import SortableTableSection, { ItemRowColumnData, ItemRowData, SortRowData } from '../common/SortableTableSection'
 import { getHiddenInventory, getHiddenInventoryItem } from '../../application/selectors/inventory'
 import { useSelector } from 'react-redux'
 
@@ -64,12 +64,12 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
     }
 });
 
-const searchRowData = {
+const searchRowColumnData: ItemRowColumnData = {
     sub: [{
+        class: 'show-all',
         button: {
             title: 'Clear all hide filters',
             text: 'Unhide All',
-            class: 'show-all',
             src: 'img/tick.png',
             dispatch: showAll
         }
@@ -91,7 +91,7 @@ const InventoryHiddenList = () => {
             sortRowData={sortRowData}
             getRowData={getRowData}
             itemSelector={getHiddenInventoryItem}
-//            searchRowData={searchRowData}
+            searchRowColumnData={searchRowColumnData}
         />
     )
 }
