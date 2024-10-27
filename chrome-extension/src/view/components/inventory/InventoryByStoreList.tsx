@@ -1,5 +1,5 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
 import { InventoryByStore, InventoryList, InventoryTree } from '../../application/state/inventory'
@@ -10,6 +10,8 @@ import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import SortableTable from '../common/SortableTable'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
+import SortableTableSection, { ItemRowData, SortRowData } from '../common/SortableTableSection'
+import { getByStoreInventory, getByStoreInventoryStaredItem } from '../../application/selectors/inventory'
 
 const INDENT_SPACE = 10
 
@@ -149,15 +151,44 @@ const TreeSection = (p: {
     )
 }
 
-const InventoryByStoreList = (p: {
-    inv: InventoryByStore
-}) => {
-    const { inv } = p
+const columns = [NAME, CONTAINER, QUANTITY, VALUE]
+const sortRowData: SortRowData = {
+    [NAME]: { justifyContent: 'center' },
+    [QUANTITY]: { justifyContent: 'end' },
+    [VALUE]: { justifyContent: 'end' },
+}
+const getRowData = (item: InventoryTree<ItemData>): ItemRowData => ({
+    [NAME]: {
+        sub: [{
+            text: item.displayName
+        }]
+    }
+});
+
+const InventoryByStoreList = () => {
+    const inv: InventoryByStore = useSelector(getByStoreInventory)
 
     return (
         <div className='flex'>
-            <TreeSection
+            <SortableTableSection
                 title='Favorite Containers'
+                expanded={inv.staredList.expanded}
+                filter={inv.staredFilter}
+                allItems={inv.originalList.items}
+                showItems={inv.staredList.items}
+                sortType={inv.staredList.sortType}
+                stats={inv.staredList.stats}
+                setExpanded={setByStoreStaredInventoryExpanded}
+                setFilter={setByStoreStaredInventoryFilter}
+                sortBy={sortByStoreStaredBy}
+                columns={columns}
+                definition={sortColumnDefinition}
+                sortRowData={sortRowData}
+                getRowData={getRowData}
+                itemSelector={getByStoreInventoryStaredItem}
+            />
+            <TreeSection
+                title='OLD Favorite Containers'
                 sectionExpanded={inv.staredList.expanded}
                 setSectionExpanded={setByStoreStaredInventoryExpanded}
                 setAllItemsExpanded={setByStoreStaredAllItemsExpanded}

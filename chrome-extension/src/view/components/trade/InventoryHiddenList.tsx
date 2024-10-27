@@ -82,12 +82,17 @@ const InventoryHiddenList = () => {
     return (
         <SortableTableSection
             title='Hidden List'
+            expanded={inv.originalList.expanded}
+            filter={inv.filter}
+            allItems={inv.originalList.items}
+            showItems={inv.showList.items}
+            sortType={inv.showList.sortType}
+            stats={inv.showList.stats}
             setExpanded={setHiddenInventoryExpanded}
             setFilter={setHiddenInventoryFilter}
             sortBy={sortHiddenBy}
             columns={columns}
             definition={sortColumnDefinition}
-            inv={inv}
             sortRowData={sortRowData}
             getRowData={getRowData}
             itemSelector={getHiddenInventoryItem}

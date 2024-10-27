@@ -68,12 +68,17 @@ const InventoryVisibleList = () => {
     return (
         <SortableTableSection
             title='Owned List'
+            expanded={inv.originalList.expanded}
+            filter={inv.filter}
+            allItems={inv.originalList.items}
+            showItems={inv.showList.items}
+            sortType={inv.showList.sortType}
+            stats={inv.showList.stats}
             setExpanded={setVisibleInventoryExpanded}
             setFilter={setVisibleInventoryFilter}
             sortBy={sortVisibleBy}
             columns={columns}
             definition={sortColumnDefinition}
-            inv={inv}
             sortRowData={sortRowData}
             getRowData={getRowData}
             itemSelector={getVisibleInventoryItem}

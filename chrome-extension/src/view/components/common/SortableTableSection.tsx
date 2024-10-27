@@ -1,10 +1,9 @@
-import React, { CSSProperties } from 'react'
+import React from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
 import ImgButton from './ImgButton';
 import SearchInput from './SearchInput';
-import { InventoryListWithFilter } from '../../application/state/inventory';
 import ExpandableSection from './ExpandableSection';
 
 const FONT = 'bold 12px system-ui, sans-serif'
@@ -105,7 +104,7 @@ const ItemRowRender = (p: {
     return <>
         { p.columns.map((c: ColumnWidthData) => {
             const d = p.data[c.part]
-            return <div key={c.part} style={{ width: c.width, font: FONT, display: 'inline-flex', justifyContent: d.justifyContent ?? 'start' }}
+            return d && <div key={c.part} style={{ width: c.width, font: FONT, display: 'inline-flex', justifyContent: d.justifyContent ?? 'start' }}
                 {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}
             >
                 <ItemSubRowRender sub={d.sub} />
@@ -116,57 +115,61 @@ const ItemRowRender = (p: {
 
 const SortableTableSection = <T extends any>(p: {
     title: string,
+    expanded: boolean,
+    filter: string,
+    allItems: T[],
+    showItems: T[],
+    sortType: number,
+    stats: { count: number, ped: string },
     setExpanded: (expanded: boolean) => any,
     setFilter: (v: string) => any,
     sortBy: (part: number) => any,
     columns: number[],
     definition: { [part: number]: { text: string, up: number, down: number} },
-    inv: InventoryListWithFilter<T>,
     sortRowData: SortRowData,
-    getRowData: (item: T) => any,
+    getRowData: (item: T) => ItemRowData,
     itemSelector: (index: number) => (state: any) => T,
     searchRowColumnData?: ItemRowColumnData
 }) => {
     const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
-    const subColumnsWidth = p.inv.originalList.items.reduce((acc, item) => { // use originalList so widths don't change when filtering
+    const itemsSubColumnsWidth = p.allItems.reduce((acc, item) => {
         const cw = getColumnsWidth(p.getRowData(item))
         return Object.fromEntries(Object.entries(cw).map(([k, w]) => [k,
             acc[k] ? w.map((sw, j) => Math.max(sw, acc[k][j])) : w
         ]))
     }, { } as { [part: number]: number[] })
-    let columnsWidth = sumSubWidth(subColumnsWidth)
+    const itemsColumnsWidth = sumSubWidth(itemsSubColumnsWidth)
 
-    const sortType = p.inv.showList.sortType
     const sortItemRowData: ItemRowData = Object.fromEntries(p.columns.map(c => [c, {
         dispatch: () => p.sortBy(c),
         justifyContent: p.sortRowData[c]?.justifyContent ?? 'center',
         sub: [
             { strong: p.sortRowData[c]?.nameOverride ?? p.definition[c].text },
-            { visible: sortType === p.definition[c].up || sortType === p.definition[c].down,
-                img: sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
+            { visible: p.sortType === p.definition[c].up || p.sortType === p.definition[c].down,
+                img: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
         ]
     }]))
     const sortSubColumnsWidth = getColumnsWidth(sortItemRowData)
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
-    columnsWidth = Object.fromEntries(Object.entries(columnsWidth).map(([k, w]) => [k, Math.max(w, sortColumnsWidth[k])]))
 
-    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => p.columns.map(c => ({
+    const columnsWidth = p.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
+    const totalWidth = Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
+
+    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => p.columns.map((c,i) => ({
         part: c,
-        width: columnsWidth[c],
+        width: columnsWidth[i],
         subWidth: subWidths[c],
     }))
 
-    const totalWidth = Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
-
-    const stats = p.inv.showList.stats
-    const itemCount = p.inv.showList.items.length
+    const stats = p.stats
+    const itemCount = p.showItems.length
     const height = Math.min(itemCount * ITEM_SIZE, LIST_TOTAL_HEIGHT)
-    return <ExpandableSection title={p.title} expanded={p.inv.originalList.expanded} setExpanded={p.setExpanded}>
+    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
             <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}
                 { p.searchRowColumnData && <ItemSubRowRender sub={p.searchRowColumnData.sub} /> }
             </p>
-            <p className='search-input-container'><SearchInput filter={p.inv.filter} setFilter={p.setFilter} /></p>
+            <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} /></p>
         </div>
         <div className='sort-table'>
             <div className='sort-row'>
@@ -179,7 +182,7 @@ const SortableTableSection = <T extends any>(p: {
                 itemCount={itemCount}
                 itemSize={ITEM_SIZE}
                 width={totalWidth}>
-                {ItemRow(p.getRowData, p.itemSelector, getColumnsWidthData(subColumnsWidth))}
+                {ItemRow(p.getRowData, p.itemSelector, getColumnsWidthData(itemsSubColumnsWidth))}
             </FixedSizeList>
         </div>
     </ExpandableSection>
