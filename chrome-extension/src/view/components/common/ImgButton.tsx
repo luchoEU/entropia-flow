@@ -1,4 +1,4 @@
-import React from "react"
+import React, { CSSProperties } from "react"
 import { useDispatch } from "react-redux"
 
 const ImgButton = (p: {
@@ -6,6 +6,7 @@ const ImgButton = (p: {
     src: string,
     dispatch: () => any,
     className?: string
+    style?: CSSProperties
     show?: boolean
 }) => {
     const dispatch = useDispatch()
@@ -18,6 +19,7 @@ const ImgButton = (p: {
             dispatch(p.dispatch())
         }}
         {...p.className ? { className: p.className } : {}}
+        {...p.style ? { style: p.style } : {}}
         {...p.show ? { 'data-show': true } : {}}
     />
 }

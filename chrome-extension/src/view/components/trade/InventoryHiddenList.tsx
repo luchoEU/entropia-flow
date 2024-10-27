@@ -15,7 +15,7 @@ const sortRowData: SortRowData = {
 const getRowData = (item: ItemHidden): ItemRowData => ({
     [NAME]: {
         sub: [{
-            visible: item.criteria.name !== undefined,
+            visible: item.criteria.name,
             button: {
                 title: 'Show this item name',
                 src: 'img/tick.png',
@@ -40,7 +40,7 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
     [VALUE]: {
         justifyContent: 'end',
         sub: [{
-            visible: item.criteria.value !== undefined,
+            visible: item.criteria.value,
             button: {
                 title: 'Show this value or higher',
                 src: 'img/tick.png',
@@ -52,7 +52,7 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
     },
     [CONTAINER]: {
         sub: [{
-            visible: item.criteria.container !== undefined,
+            visible: item.criteria.container,
             button: {
                 title: 'Show this container',
                 src: 'img/tick.png',

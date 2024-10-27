@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
@@ -8,8 +8,7 @@ import { InventoryListWithFilter } from '../../application/state/inventory';
 import ExpandableSection from './ExpandableSection';
 
 const FONT = 'bold 12px system-ui, sans-serif'
-const IMG_WIDTH = 12
-const IMG_PADDING = 10
+const IMG_WIDTH = 26
 const TEXT_PADDING = 5
 const LIST_TOTAL_HEIGHT = 610 // not multiple of ITEM_SIZE so it is visible there are more
 const ITEM_SIZE = 20
@@ -54,49 +53,56 @@ interface ItemRowSubColumnData {
     img?: string
 }
 
+interface ColumnWidthData {
+    part: number
+    width: number
+    subWidth: number[]
+}
+
 const getColumnsWidth = (d: ItemRowData): { [part: number]: number[] } => Object.fromEntries(Object.entries(d)
     .map(([k, v]) => [k, v.sub.map(sc =>
-        (sc.button ? IMG_WIDTH + IMG_PADDING : 0) +
+        (sc.button ? IMG_WIDTH: 0) +
         (sc.text ? getTextWidth(sc.text, FONT) + TEXT_PADDING : 0) +
         (sc.strong ? getTextWidth(sc.strong, FONT) + TEXT_PADDING : 0) +
-        (sc.img ? IMG_WIDTH + IMG_PADDING : 0)
+        (sc.img ? IMG_WIDTH : 0)
     )])
 );
 
 const ItemRow = <T extends any>(
     getData: (item: T) => ItemRowData,
     itemSelector: (index: number) => (state: any) => T,
-    columns: number[],
-    columnsWidth: { [part: number]: number }) =>
+    columns: ColumnWidthData[]) =>
     ({ index, style }) => {
     const item: T = useSelector(itemSelector(index))
 
     return (
         <div className='item-row' style={style}>
-            <ItemRowRender data={getData(item)} columns={columns} columnsWidth={columnsWidth} />
+            <ItemRowRender
+                data={getData(item)}
+                columns={columns} />
         </div>
     )
 }
 
 const ItemRowRender = (p: {
     data: ItemRowData,
-    columns: number[],
-    columnsWidth: { [part: number]: number }
+    columns: ColumnWidthData[]
 }): JSX.Element => {
     const dispatch = useDispatch()
     return <>
-        { p.columns.map((part: number) => {
-            const c = p.data[part]
-            return <div key={part} style={{ width: p.columnsWidth[part], font: FONT, display: 'inline-flex', justifyContent: c.justifyContent ?? 'start' }}
-                {...c.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(c.dispatch()) } } : {}}>
-            { c.sub.map((sc: ItemRowSubColumnData, j: number) => sc.visible !== false &&
-                <div key={j} style={{ flex: sc.flex }}>
-                    { sc.button && <ImgButton title={sc.button.title} src={sc.button.src} dispatch={sc.button.dispatch} /> }
-                    { sc.text && <ItemText text={sc.text} /> }
-                    { sc.strong && <strong>{sc.strong}</strong> }
-                    { sc.img && <img src={sc.img} /> }
-                </div>)
-            }
+        { p.columns.map((c: ColumnWidthData) => {
+            const d = p.data[c.part]
+            return <div key={c.part} style={{ width: c.width, font: FONT, display: 'inline-flex', justifyContent: d.justifyContent ?? 'start' }}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}>
+            { d.sub.map((sc: ItemRowSubColumnData, j: number) => {
+                const style: CSSProperties = { flex: sc.flex, visibility: sc.visible === false ? 'hidden' : undefined }
+                return <>
+                    { sc.button && <ImgButton style={style} title={sc.button.title} src={sc.button.src} dispatch={sc.button.dispatch} /> }
+                    { sc.text && <ItemText style={style} text={sc.text} /> }
+                    { sc.strong && <strong style={style}>{sc.strong}</strong> }
+                    { sc.img && <img style={style} src={sc.img} /> }
+                </>
+            })}
             </div>
         })}
     </>
@@ -129,12 +135,19 @@ const SortableTableSection = <T extends any>(p: {
         justifyContent: p.sortRowData[c]?.justifyContent ?? 'center',
         sub: [
             { strong: p.sortRowData[c]?.nameOverride ?? p.definition[c].text },
-            { img: sortType === p.definition[c].up ? 'img/up.png' :
-                (sortType === p.definition[c].down ? 'img/down.png' : ' ') }
+            { visible: sortType === p.definition[c].up || sortType === p.definition[c].down,
+                img: sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
         ]
     }]))
-    const sortColumnsWidth = sumSubWidth(getColumnsWidth(sortItemRowData))
+    const sortSubColumnsWidth = getColumnsWidth(sortItemRowData)
+    const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
     columnsWidth = Object.fromEntries(Object.entries(columnsWidth).map(([k, w]) => [k, Math.max(w, sortColumnsWidth[k])]))
+
+    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => p.columns.map(c => ({
+        part: c,
+        width: columnsWidth[c],
+        subWidth: subWidths[c],
+    }))
 
     const totalWidth = Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
 
@@ -148,14 +161,16 @@ const SortableTableSection = <T extends any>(p: {
         </div>
         <div className='sort-table'>
             <div className='sort-row'>
-                <ItemRowRender data={sortItemRowData} columns={p.columns} columnsWidth={columnsWidth} />
+                <ItemRowRender
+                    data={sortItemRowData}
+                    columns={getColumnsWidthData(sortSubColumnsWidth)} />
             </div>
             <FixedSizeList
                 height={height}
                 itemCount={itemCount}
                 itemSize={ITEM_SIZE}
                 width={totalWidth}>
-                {ItemRow(p.getRowData, p.itemSelector, p.columns, columnsWidth)}
+                {ItemRow(p.getRowData, p.itemSelector, getColumnsWidthData(subColumnsWidth))}
             </FixedSizeList>
         </div>
     </ExpandableSection>

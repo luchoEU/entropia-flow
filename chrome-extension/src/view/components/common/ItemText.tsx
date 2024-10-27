@@ -1,11 +1,15 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 
 const ItemText = (p: {
     text: string
     className?: string
+    style?: CSSProperties
 }) => {
     return (
-        <span className={(p.className ?? '') + ' item-text'}>
+        <span
+            {...p.style ? { style: p.style } : {}}
+            className={(p.className ?? '') + ' item-text'}
+        >
             { p.text }
         </span>
     )
