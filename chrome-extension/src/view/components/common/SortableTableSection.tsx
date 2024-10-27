@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
@@ -25,17 +25,21 @@ function getTextWidth(text: string, font: string): number {
     return 0;
 }
 
-type ItemRowData = { [part: number]: ItemRowColumnData }
+interface ItemRowData {
+    columns: { [part: number]: ItemRowColumnData }
+    dispatch?: () => void
+}
+
 type SortRowData = { [part: number]: SortRowColumnData }
 
 interface SortRowColumnData {
-    justifyContent?: string
-    nameOverride?: string
+    justifyContent?: CSSProperties['justifyContent']
+    text?: string
 }
 
 interface ItemRowColumnData {
     sub: ItemRowSubColumnData[]
-    justifyContent?: string
+    style?: React.CSSProperties
     dispatch?: () => void
 }
 
@@ -60,13 +64,15 @@ interface ColumnWidthData {
     subWidth: number[]
 }
 
-const getColumnsWidth = (d: ItemRowData): { [part: number]: number[] } => Object.fromEntries(Object.entries(d)
-    .map(([k, v]) => [k, v.sub.map(sc =>
-        (sc.button ? IMG_WIDTH: 0) +
-        (sc.text ? getTextWidth(sc.text, FONT) + TEXT_PADDING : 0) +
-        (sc.strong ? getTextWidth(sc.strong, FONT) + TEXT_PADDING : 0) +
-        (sc.img ? IMG_WIDTH : 0)
-    )])
+const getSubColumnsWidth = (d: ItemRowData): { [part: number]: number[] } => Object.fromEntries(Object.entries(d.columns)
+    .map(([k, c]) => [k, [
+        _getPadding(c),
+        ...c.sub.map(sc =>
+            (sc.button ? IMG_WIDTH: 0) +
+            (sc.text ? getTextWidth(sc.text, FONT) + TEXT_PADDING : 0) +
+            (sc.strong ? getTextWidth(sc.strong, FONT) + TEXT_PADDING : 0) +
+            (sc.img ? IMG_WIDTH : 0))
+    ]])
 );
 
 const ItemRow = <T extends any>(
@@ -75,11 +81,14 @@ const ItemRow = <T extends any>(
     columns: ColumnWidthData[]) =>
     ({ index, style }) => {
     const item: T = useSelector(itemSelector(index))
+    const dispatch = useDispatch()
+    const data = getData(item)
 
     return (
-        <div className='item-row' style={style}>
+        <div className='item-row' style={style}
+            {...data.dispatch && { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch) } }}>
             <ItemRowRender
-                data={getData(item)}
+                data={data}
                 columns={columns} />
         </div>
     )
@@ -96,6 +105,12 @@ const ItemSubRowRender = (p: {part?: number, sub: ItemRowSubColumnData[]}): JSX.
     )}
 </>
 
+function _getPadding(c: ItemRowColumnData): number {
+    const paddingLeft = c.style?.paddingLeft ? parseInt(c.style.paddingLeft.toString()) : 0;
+    const paddingRight = c.style?.paddingRight ? parseInt(c.style.paddingRight.toString()) : 0;
+    return paddingLeft + paddingRight;
+}
+
 const ItemRowRender = (p: {
     data: ItemRowData,
     columns: ColumnWidthData[]
@@ -103,8 +118,8 @@ const ItemRowRender = (p: {
     const dispatch = useDispatch()
     return <>
         { p.columns.map((c: ColumnWidthData) => {
-            const d = p.data[c.part]
-            return d && <div key={c.part} style={{ width: c.width, font: FONT, display: 'inline-flex', justifyContent: d.justifyContent ?? 'start' }}
+            const d = p.data.columns[c.part]
+            return d && <div key={c.part} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
                 {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}
             >
                 <ItemSubRowRender sub={d.sub} />
@@ -133,23 +148,25 @@ const SortableTableSection = <T extends any>(p: {
 }) => {
     const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
     const itemsSubColumnsWidth = p.allItems.reduce((acc, item) => {
-        const cw = getColumnsWidth(p.getRowData(item))
+        const cw = getSubColumnsWidth(p.getRowData(item))
         return Object.fromEntries(Object.entries(cw).map(([k, w]) => [k,
             acc[k] ? w.map((sw, j) => Math.max(sw, acc[k][j])) : w
         ]))
     }, { } as { [part: number]: number[] })
     const itemsColumnsWidth = sumSubWidth(itemsSubColumnsWidth)
 
-    const sortItemRowData: ItemRowData = Object.fromEntries(p.columns.map(c => [c, {
-        dispatch: () => p.sortBy(c),
-        justifyContent: p.sortRowData[c]?.justifyContent ?? 'center',
-        sub: [
-            { strong: p.sortRowData[c]?.nameOverride ?? p.definition[c].text },
-            { visible: p.sortType === p.definition[c].up || p.sortType === p.definition[c].down,
-                img: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
-        ]
-    }]))
-    const sortSubColumnsWidth = getColumnsWidth(sortItemRowData)
+    const sortItemRowData: ItemRowData = {
+        columns: Object.fromEntries(p.columns.map(c => [c, {
+            dispatch: () => p.sortBy(c),
+            style: { justifyContent: p.sortRowData[c]?.justifyContent ?? 'center' },
+            sub: [
+                { strong: p.sortRowData[c]?.text ?? p.definition[c].text },
+                { visible: p.sortType === p.definition[c].up || p.sortType === p.definition[c].down,
+                    img: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
+            ]
+        }]))
+    }
+    const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData)
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
 
     const columnsWidth = p.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))

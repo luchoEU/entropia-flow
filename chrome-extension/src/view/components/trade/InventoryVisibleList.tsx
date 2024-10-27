@@ -14,51 +14,53 @@ const sortRowData: SortRowData = {
     [VALUE]: { justifyContent: 'end' },
 }
 const getRowData = (item: ItemData): ItemRowData => ({
-    [NAME]: {
-        sub: [{
-            button: {
-                title: 'Hide this item name',
-                src: 'img/cross.png',
-                dispatch: () => hideByName(item.n)
-            }
-        }, {
-            text: item.n
-        }, {
-            button: {
-                title: 'Search by this item name',
-                src: 'img/find.jpg',
-                dispatch: () => setVisibleInventoryFilter(`!${item.n}`)
-            }
-        }]
-    },
-    [QUANTITY]: {
-        justifyContent: 'center',
-        sub: [{
-            text: item.q
-        }]
-    },
-    [VALUE]: {
-        justifyContent: 'end',
-        sub: [{
-            button: {
-                title: 'Hide this value or lower',
-                src: 'img/cross.png',
-                dispatch: () => hideByValue(item.v)
-            }
-        }, {
-            text: item.v + ' PED'
-        }]
-    },
-    [CONTAINER]: {
-        sub: [{
-            button: {
-                title: 'Hide this container',
-                src: 'img/cross.png',
-                dispatch: () => hideByContainer(item.c)
-            }
-        }, {
-            text: item.c
-        }]
+    columns: {
+        [NAME]: {
+            sub: [{
+                button: {
+                    title: 'Hide this item name',
+                    src: 'img/cross.png',
+                    dispatch: () => hideByName(item.n)
+                }
+            }, {
+                text: item.n
+            }, {
+                button: {
+                    title: 'Search by this item name',
+                    src: 'img/find.jpg',
+                    dispatch: () => setVisibleInventoryFilter(`!${item.n}`)
+                }
+            }]
+        },
+        [QUANTITY]: {
+            style: { justifyContent: 'center' },
+            sub: [{
+                text: item.q
+            }]
+        },
+        [VALUE]: {
+            style: { justifyContent: 'end' },
+            sub: [{
+                button: {
+                    title: 'Hide this value or lower',
+                    src: 'img/cross.png',
+                    dispatch: () => hideByValue(item.v)
+                }
+            }, {
+                text: item.v + ' PED'
+            }]
+        },
+        [CONTAINER]: {
+            sub: [{
+                button: {
+                    title: 'Hide this container',
+                    src: 'img/cross.png',
+                    dispatch: () => hideByContainer(item.c)
+                }
+            }, {
+                text: item.c
+            }]
+        }
     }
 });
 

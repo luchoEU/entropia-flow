@@ -31,9 +31,16 @@ interface InventoryListWithFilter<T> {
 
 interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemData>> {
   containers: ContainerMapData
-  staredFilter?: string
-  staredExpanded: Array<string>
-  staredList: InventoryList<InventoryTree<ItemData>>
+  stared: {
+    filter?: string
+    expanded: Array<string>
+    list: InventoryList<InventoryTree<ItemData>>
+  }
+  flat: {
+    original: Array<TreeLineData>
+    show: Array<TreeLineData>
+    stared: Array<TreeLineData>
+  }
 }
 
 type ContainerMapData = { [id: string] : ContainerMapDataItem };
@@ -52,6 +59,12 @@ interface BasicItemData { // subset of ItemData
   n: string // name, string
   q: string // quantity, number
   v: string // value, number (2 decimals)
+}
+
+interface TreeLineData extends ItemData {
+  indent: number
+  expanded: boolean
+  hasChildren: boolean
 }
 
 interface HideCriteria {
@@ -92,6 +105,7 @@ export {
   ContainerMapData,
   ContainerMapDataItem,
   BasicItemData,
+  TreeLineData,
   InventoryList,
   InventoryTree,
   InventoryListWithFilter,

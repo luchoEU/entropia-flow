@@ -2,7 +2,7 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { ItemData } from '../../../common/state'
 import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
-import { InventoryByStore, InventoryList, InventoryTree } from '../../application/state/inventory'
+import { InventoryByStore, InventoryList, InventoryTree, TreeLineData } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection'
 import SearchInput from '../common/SearchInput'
 import { CONTAINER, NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
@@ -154,59 +154,81 @@ const TreeSection = (p: {
 const columns = [NAME, CONTAINER, QUANTITY, VALUE]
 const sortRowData: SortRowData = {
     [NAME]: { justifyContent: 'center' },
+    [CONTAINER] : { text: 'Planet' },
     [QUANTITY]: { justifyContent: 'end' },
     [VALUE]: { justifyContent: 'end' },
 }
-const getRowData = (item: InventoryTree<ItemData>): ItemRowData => ({
-    [NAME]: {
-        sub: [{
-            text: item.displayName
-        }]
+const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
+    dispatch: item.hasChildren ? () => v.setItemExpanded(item.id)(!item.expanded) : undefined,
+    columns: {
+        [NAME]: {
+            style: { paddingLeft: item.indent * INDENT_SPACE },
+            sub: [{
+                text: item.n
+            }]
+        },
+        [QUANTITY]: {
+            sub: [{
+                text: item.q
+            }]
+        },
+        [VALUE]: {
+            sub: [{
+                text: `${item.v} PED`
+            }]
+        },
+        [CONTAINER]: {
+            sub: [{
+                text: item.c
+            }]
+        }
     }
 });
 
 const InventoryByStoreList = () => {
     const inv: InventoryByStore = useSelector(getByStoreInventory)
 
+    const favoriteRowEvents: ItemRowEvents = {
+        showContainer: true,
+        setItemExpanded: setByStoreStaredItemExpanded,
+        setItemName: setByStoreStaredItemName,
+        cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
+        confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
+        startItemNameEditing: startByStoreStaredItemNameEditing,
+        setItemStared: setByStoreStaredItemStared,
+        setFilter: setByStoreStaredInventoryFilter
+    }
+
     return (
         <div className='flex'>
             <SortableTableSection
                 title='Favorite Containers'
-                expanded={inv.staredList.expanded}
-                filter={inv.staredFilter}
-                allItems={inv.originalList.items}
-                showItems={inv.staredList.items}
-                sortType={inv.staredList.sortType}
-                stats={inv.staredList.stats}
+                expanded={inv.stared.list.expanded}
+                filter={inv.stared.filter}
+                allItems={inv.flat.original}
+                showItems={inv.flat.stared}
+                sortType={inv.stared.list.sortType}
+                stats={inv.stared.list.stats}
                 setExpanded={setByStoreStaredInventoryExpanded}
                 setFilter={setByStoreStaredInventoryFilter}
                 sortBy={sortByStoreStaredBy}
                 columns={columns}
                 definition={sortColumnDefinition}
                 sortRowData={sortRowData}
-                getRowData={getRowData}
+                getRowData={getRowData(favoriteRowEvents)}
                 itemSelector={getByStoreInventoryStaredItem}
             />
             <TreeSection
                 title='OLD Favorite Containers'
-                sectionExpanded={inv.staredList.expanded}
+                sectionExpanded={inv.stared.list.expanded}
                 setSectionExpanded={setByStoreStaredInventoryExpanded}
                 setAllItemsExpanded={setByStoreStaredAllItemsExpanded}
-                filter={inv.staredFilter}
+                filter={inv.stared.filter}
                 setFilter={setByStoreStaredInventoryFilter}
                 columnNameOverride={{ [CONTAINER]: 'Planet' }}
-                list={inv.staredList}
+                list={inv.stared.list}
                 sortBy={sortByStoreStaredBy}
-                d={({
-                    showContainer: true,
-                    setItemExpanded: setByStoreStaredItemExpanded,
-                    setItemName: setByStoreStaredItemName,
-                    cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
-                    confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
-                    startItemNameEditing: startByStoreStaredItemNameEditing,
-                    setItemStared: setByStoreStaredItemStared,
-                    setFilter: setByStoreStaredInventoryFilter
-                })}
+                d={favoriteRowEvents}
             />
             <TreeSection
                 title='Containers'

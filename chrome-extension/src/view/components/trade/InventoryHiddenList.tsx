@@ -13,54 +13,56 @@ const sortRowData: SortRowData = {
     [VALUE]: { justifyContent: 'end' },
 }
 const getRowData = (item: ItemHidden): ItemRowData => ({
-    [NAME]: {
-        sub: [{
-            visible: item.criteria.name,
-            button: {
-                title: 'Show this item name',
-                src: 'img/tick.png',
-                dispatch: () => showByName(item.data.n)
-            }
-        }, {
-            text: item.data.n
-        }, {
-            button: {
-                title: 'Search by this item name',
-                src: 'img/find.jpg',
-                dispatch: () => setHiddenInventoryFilter(`!${item.data.n}`)
-            }
-        }]
-    },
-    [QUANTITY]: {
-        justifyContent: 'center',
-        sub: [{
-            text: item.data.q
-        }]
-    },
-    [VALUE]: {
-        justifyContent: 'end',
-        sub: [{
-            visible: item.criteria.value,
-            button: {
-                title: 'Show this value or higher',
-                src: 'img/tick.png',
-                dispatch: () => showByValue(item.data.v)
-            }
-        }, {
-            text: item.data.v + ' PED'
-        }]
-    },
-    [CONTAINER]: {
-        sub: [{
-            visible: item.criteria.container,
-            button: {
-                title: 'Show this container',
-                src: 'img/tick.png',
-                dispatch: () => showByContainer(item.data.c)
-            }
-        }, {
-            text: item.data.c
-        }]
+    columns: {
+        [NAME]: {
+            sub: [{
+                visible: item.criteria.name,
+                button: {
+                    title: 'Show this item name',
+                    src: 'img/tick.png',
+                    dispatch: () => showByName(item.data.n)
+                }
+            }, {
+                text: item.data.n
+            }, {
+                button: {
+                    title: 'Search by this item name',
+                    src: 'img/find.jpg',
+                    dispatch: () => setHiddenInventoryFilter(`!${item.data.n}`)
+                }
+            }]
+        },
+        [QUANTITY]: {
+            style: { justifyContent: 'center' },
+            sub: [{
+                text: item.data.q
+            }]
+        },
+        [VALUE]: {
+            style: { justifyContent: 'end' },
+            sub: [{
+                visible: item.criteria.value,
+                button: {
+                    title: 'Show this value or higher',
+                    src: 'img/tick.png',
+                    dispatch: () => showByValue(item.data.v)
+                }
+            }, {
+                text: item.data.v + ' PED'
+            }]
+        },
+        [CONTAINER]: {
+            sub: [{
+                visible: item.criteria.container,
+                button: {
+                    title: 'Show this container',
+                    src: 'img/tick.png',
+                    dispatch: () => showByContainer(item.data.c)
+                }
+            }, {
+                text: item.data.c
+            }]
+        }
     }
 });
 

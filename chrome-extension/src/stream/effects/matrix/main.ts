@@ -50,14 +50,9 @@ class MatrixBackground extends AnimatedBackground {
     canvas.height = this.height;
 
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    /* Commented because of performance issues
     for (let i = 0; i < this.heightInCharacters; i++) {
       this.draw(ctx);
     }
-    */
   }
 
   private draw(ctx: CanvasRenderingContext2D) {
@@ -77,6 +72,9 @@ class MatrixBackground extends AnimatedBackground {
   }
 
   public override render(delta: number) {
+    if (this.elapsed == 0)
+      this.elapsed = delta - 1
+
     const canvas = this.container.querySelector("canvas") as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
 
