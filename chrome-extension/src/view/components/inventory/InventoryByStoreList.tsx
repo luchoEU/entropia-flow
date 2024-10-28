@@ -163,23 +163,46 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
     columns: {
         [NAME]: {
             style: { paddingLeft: item.indent * INDENT_SPACE },
-            sub: [{
-                text: item.n
-            }]
+            sub: [
+                { plusButton: { expanded: item.expanded, setExpanded: v.setItemExpanded(item.id) } },
+                ...item.isEditing ? [
+                    { input: { value: item.n, onChange: (value: string) => v.setItemName(item.id, value) } },
+                    { button: { src: 'img/cross.png', title: 'Cancel', dispatch: () => v.cancelItemNameEditing(item.id) } },
+                    { button: { src: 'img/tick.png', title: 'Confirm', dispatch: () => v.confirmItemNameEditing(item.id) } }
+                ] : [
+                    { text: item.n, flex: 1 },
+                    { visible: item.canEditName, button: { src: 'img/edit.png', title: 'Edit this item name', dispatch: () => v.startItemNameEditing(item.id) } }
+                ],
+                { visible: item.hasChildren, button: {
+                    src: item.stared ? 'img/staron.png' : 'img/staroff.png',
+                    title: item.stared ? 'Remove from Favorites' : 'Add to Favorites',
+                    dispatch: () => v.setItemStared(item.id, !item.stared)
+                } },
+                { button: { src: 'img/find.jpg', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
+            ]
         },
         [QUANTITY]: {
+            style: { justifyContent: 'end' },
             sub: [{
                 text: item.q
             }]
         },
         [VALUE]: {
+            style: { justifyContent: 'end' },
             sub: [{
                 text: `${item.v} PED`
             }]
         },
         [CONTAINER]: {
+            style: { justifyContent: 'center' },
             sub: [{
                 text: item.c
+            }, {
+                button: {
+                    src: 'img/find.jpg',
+                    title: 'Search in this container by this item name',
+                    dispatch: () => setByStoreInventoryFilter(`!${item.n}`)
+                }
             }]
         }
     }

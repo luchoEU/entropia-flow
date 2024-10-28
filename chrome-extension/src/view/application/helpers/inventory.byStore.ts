@@ -195,16 +195,41 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
   return { items: resultItems, containers }
 }
 
-const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number, expanded?: boolean): Array<TreeLineData> => list.items.flatMap(i => [
-  {
-    ...i.data,
-    indent,
-    expanded: i.list && (expanded || i.list.expanded),
-    hasChildren: i.list !== undefined,
-    n: i.displayName
-  },
-  ...i.list && (expanded || i.list.expanded) ? _flatTree(i.list, indent + 1, expanded) : []
-])
+const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number, expanded?: boolean): Array<TreeLineData> => list.items.flatMap(i =>
+  !i.list ? [
+    {
+      ...i.data,
+      indent,
+      hasChildren: false,
+    }
+  ] : [
+    {
+      ...i.data,
+      indent,
+      hasChildren: true,
+      expanded: expanded || i.list.expanded,
+      stared: i.stared,
+      canEditName: i.canEditName,
+      isEditing: i.editing !== undefined,
+      n: i.displayName,
+      q: `[${i.list.stats?.count ?? '0'}]`,
+      v: i.list.stats?.ped ?? '0',
+    },
+    ...expanded || i.list.expanded ? [
+      ...i.showItemValueRow ? [{
+        indent: indent + 1,
+        hasChildren: false,
+        expanded: undefined,
+        id: `(${i.data.id})`,
+        n: `(${i.data.n === i.displayName ? 'item': i.data.n} value)`,
+        q: '1',
+        v: i.data.v,
+        c: i.data.c
+      }] : [],
+      ..._flatTree(i.list, indent + 1, expanded)
+    ] : []
+  ]
+);
 
 const _loadByStoreStaredList = (
   byStore: InventoryByStore

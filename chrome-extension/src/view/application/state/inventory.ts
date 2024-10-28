@@ -63,8 +63,11 @@ interface BasicItemData { // subset of ItemData
 
 interface TreeLineData extends ItemData {
   indent: number
-  expanded: boolean
   hasChildren: boolean
+  expanded?: boolean // undefined if not a container
+  stared?: boolean
+  canEditName?: boolean
+  isEditing?: boolean
 }
 
 interface HideCriteria {

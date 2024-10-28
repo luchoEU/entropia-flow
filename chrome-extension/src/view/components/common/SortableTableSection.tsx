@@ -5,12 +5,17 @@ import ItemText from './ItemText';
 import ImgButton from './ImgButton';
 import SearchInput from './SearchInput';
 import ExpandableSection from './ExpandableSection';
+import ExpandablePlusButton from './ExpandablePlusButton';
 
-const FONT = 'bold 12px system-ui, sans-serif'
+const FONT = '12px system-ui, sans-serif'
+const FONT_BOLD = `bold ${FONT}`
 const IMG_WIDTH = 26
+const PLUS_WIDTH = 11 // ExpandablePlusButton
+const INPUT_WIDTH = 200
 const TEXT_PADDING = 5
+const SCROLL_BAR_WIDTH = 15
 const LIST_TOTAL_HEIGHT = 610 // not multiple of ITEM_SIZE so it is visible there are more
-const ITEM_SIZE = 20
+const ITEM_HEIGHT = 20
 
 function getTextWidth(text: string, font: string): number {
     const canvas = document.createElement("canvas");
@@ -27,7 +32,7 @@ function getTextWidth(text: string, font: string): number {
 
 interface ItemRowData {
     columns: { [part: number]: ItemRowColumnData }
-    dispatch?: () => void
+    dispatch?: () => any
 }
 
 type SortRowData = { [part: number]: SortRowColumnData }
@@ -40,7 +45,7 @@ interface SortRowColumnData {
 interface ItemRowColumnData {
     sub: ItemRowSubColumnData[]
     style?: React.CSSProperties
-    dispatch?: () => void
+    dispatch?: () => any
 }
 
 interface ItemRowSubColumnData {
@@ -51,9 +56,17 @@ interface ItemRowSubColumnData {
         title: string
         src: string
         text?: string
-        dispatch: () => void
+        dispatch: () => any
+    }
+    plusButton?: {
+        expanded: boolean
+        setExpanded: (expanded: boolean) => any
     }
     text?: string
+    input?: {
+        value: string,
+        onChange: (value: string) => any
+    }
     strong?: string
     img?: string
 }
@@ -69,11 +82,39 @@ const getSubColumnsWidth = (d: ItemRowData): { [part: number]: number[] } => Obj
         _getPadding(c),
         ...c.sub.map(sc =>
             (sc.button ? IMG_WIDTH: 0) +
-            (sc.text ? getTextWidth(sc.text, FONT) + TEXT_PADDING : 0) +
-            (sc.strong ? getTextWidth(sc.strong, FONT) + TEXT_PADDING : 0) +
+            (sc.plusButton ? PLUS_WIDTH: 0) +
+            (sc.text ? getTextWidth(sc.text, FONT_BOLD) + TEXT_PADDING : 0) +
+            (sc.input ? INPUT_WIDTH : 0) +
+            (sc.strong ? getTextWidth(sc.strong, FONT_BOLD) + TEXT_PADDING : 0) +
             (sc.img ? IMG_WIDTH : 0))
     ]])
 );
+
+const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Element => {
+    const dispatch = useDispatch()
+    return <input
+        style={{ width: INPUT_WIDTH }}
+        value={p.value}
+        onClick={(e) => { e.stopPropagation() }}
+        onChange={(e) => {
+            e.stopPropagation();
+            dispatch(p.onChange(e.target.value))
+        }}
+    />
+}
+
+const ItemSubRowRender = (p: {part?: number, sub: ItemRowSubColumnData[]}): JSX.Element => <>
+    { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
+        <span key={j} className={sc.class} style={{ flex: sc.flex, visibility: sc.visible === false ? 'hidden' : undefined }}>
+            { sc.button && <ImgButton title={sc.button.title} text={sc.button.text} src={sc.button.src} dispatch={sc.button.dispatch} /> }
+            { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
+            { sc.text && <ItemText text={sc.text} /> }
+            { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
+            { sc.strong && <strong>{sc.strong}</strong> }
+            { sc.img && <img src={sc.img} /> }
+        </span>
+    )}
+</>
 
 const ItemRow = <T extends any>(
     getData: (item: T) => ItemRowData,
@@ -86,24 +127,13 @@ const ItemRow = <T extends any>(
 
     return (
         <div className='item-row' style={style}
-            {...data.dispatch && { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch) } }}>
+            onClick={(e) => { e.stopPropagation(); data.dispatch && dispatch(data.dispatch()) }}>
             <ItemRowRender
                 data={data}
                 columns={columns} />
         </div>
     )
 }
-
-const ItemSubRowRender = (p: {part?: number, sub: ItemRowSubColumnData[]}): JSX.Element => <>
-    { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
-        <span key={j} className={sc.class} style={{ flex: sc.flex, visibility: sc.visible === false ? 'hidden' : undefined }}>
-            { sc.button && <ImgButton title={sc.button.title} text={sc.button.text} src={sc.button.src} dispatch={sc.button.dispatch} /> }
-            { sc.text && <ItemText text={sc.text} /> }
-            { sc.strong && <strong>{sc.strong}</strong> }
-            { sc.img && <img src={sc.img} /> }
-        </span>
-    )}
-</>
 
 function _getPadding(c: ItemRowColumnData): number {
     const paddingLeft = c.style?.paddingLeft ? parseInt(c.style.paddingLeft.toString()) : 0;
@@ -170,7 +200,7 @@ const SortableTableSection = <T extends any>(p: {
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
 
     const columnsWidth = p.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
-    const totalWidth = Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
+    const totalWidth = SCROLL_BAR_WIDTH + Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
 
     const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => p.columns.map((c,i) => ({
         part: c,
@@ -180,7 +210,7 @@ const SortableTableSection = <T extends any>(p: {
 
     const stats = p.stats
     const itemCount = p.showItems.length
-    const height = Math.min(itemCount * ITEM_SIZE, LIST_TOTAL_HEIGHT)
+    const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
     return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
             <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}
@@ -197,7 +227,7 @@ const SortableTableSection = <T extends any>(p: {
             <FixedSizeList
                 height={height}
                 itemCount={itemCount}
-                itemSize={ITEM_SIZE}
+                itemSize={ITEM_HEIGHT}
                 width={totalWidth}>
                 {ItemRow(p.getRowData, p.itemSelector, getColumnsWidthData(itemsSubColumnsWidth))}
             </FixedSizeList>
