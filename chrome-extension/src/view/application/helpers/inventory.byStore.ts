@@ -195,40 +195,48 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
   return { items: resultItems, containers }
 }
 
-const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number, expanded?: boolean): Array<TreeLineData> => list.items.flatMap(i =>
-  !i.list ? [
+const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number, expanded?: boolean): Array<TreeLineData> => list.items.flatMap(tree =>
+  !tree.list ? [
     {
-      ...i.data,
+      ...tree.data,
       indent,
-      hasChildren: false,
+    }
+  ] : (tree.list.items.length === 0 && !tree.showItemValueRow ? [
+    {
+      ...tree.data,
+      indent,
+      stared: tree.stared,
+      canEditName: tree.canEditName,
+      isEditing: tree.editing !== undefined,
+      n: tree.displayName,
     }
   ] : [
     {
-      ...i.data,
+      ...tree.data,
       indent,
-      hasChildren: true,
-      expanded: expanded || i.list.expanded,
-      stared: i.stared,
-      canEditName: i.canEditName,
-      isEditing: i.editing !== undefined,
-      n: i.displayName,
-      q: `[${i.list.stats?.count ?? '0'}]`,
-      v: i.list.stats?.ped ?? '0',
+      isContainer: true,
+      expanded: expanded || tree.list.expanded,
+      stared: tree.stared,
+      canEditName: tree.canEditName,
+      isEditing: tree.editing !== undefined,
+      n: tree.displayName,
+      q: `[${tree.list.stats?.count ?? '0'}]`,
+      v: tree.list.stats?.ped ?? '0',
     },
-    ...expanded || i.list.expanded ? [
-      ...i.showItemValueRow ? [{
+    ...expanded || tree.list.expanded ? [
+      ...tree.showItemValueRow ? [{
         indent: indent + 1,
         hasChildren: false,
         expanded: undefined,
-        id: `(${i.data.id})`,
-        n: `(${i.data.n === i.displayName ? 'item': i.data.n} value)`,
+        id: `(${tree.data.id})`,
+        n: `(${tree.data.n === tree.displayName ? 'item': tree.data.n} value)`,
         q: '1',
-        v: i.data.v,
-        c: i.data.c
+        v: tree.data.v,
+        c: tree.data.c
       }] : [],
-      ..._flatTree(i.list, indent + 1, expanded)
+      ..._flatTree(tree.list, indent + 1, expanded)
     ] : []
-  ]
+  ])
 );
 
 const _loadByStoreStaredList = (
@@ -260,10 +268,10 @@ const _loadByStoreStaredList = (
   }
   add(byStore.originalList)
 
-  byStore.stared.list = _applyByStoreFilter4('', {
+  byStore.stared.list = _addStats(_applyByStoreFilter4('', {
     ...byStore.stared.list,
     items: staredItems
-  }, byStore.stared.filter, () => true)
+  }, byStore.stared.filter, () => true))
   byStore = _sortByStore(_staredListSelector, byStore)
   byStore.flat.stared = _flatTree(byStore.stared.list, 0)
   return byStore
@@ -274,7 +282,7 @@ const _loadByStoreShowList = (
 ): InventoryByStore => {
   byStore = _sortByStore(_showListSelector, {
     ...byStore,
-    showList: _applyByStoreFilter(byStore.originalList, byStore.containers, byStore.filter),
+    showList: _addStats(_applyByStoreFilter(byStore.originalList, byStore.containers, byStore.filter)),
   })
   byStore.flat.show = _flatTree(byStore.showList, 0)
   return byStore
@@ -291,7 +299,7 @@ const _loadByStoreOriginalList = (
       list: i.list ? loadExpanded(i.data.id, i.list) : undefined
     }))
   })
-  const originalList = loadExpanded('', byStore.originalList)
+  const originalList = _addStats(loadExpanded('', byStore.originalList))
   return {
     ...byStore,
     originalList,
@@ -614,7 +622,7 @@ const reduceSetByStoreInventoryFilter = (
   byStore: _sortByStore(_showListSelector, {
     ...state.byStore,
     filter: undefined,
-    showList: _applyByStoreFilter(state.byStore.originalList, state.byStore.containers),
+    showList: _addStats(_applyByStoreFilter(state.byStore.originalList, state.byStore.containers)),
     containers: Object.fromEntries(
       Object.entries(state.byStore.containers).map(([k, v]) => [k, { ...v, expandedOnFilter: undefined }]))
   }),
@@ -623,7 +631,7 @@ const reduceSetByStoreInventoryFilter = (
   byStore: _sortByStore(_showListSelector, {
     ...state.byStore,
     filter,
-    showList: _applyByStoreFilter4('', state.byStore.originalList, filter, () => true)
+    showList: _addStats(_applyByStoreFilter4('', state.byStore.originalList, filter, () => true))
   })
 }
 
@@ -665,40 +673,47 @@ const _applyByStoreFilter4 = (
 ): InventoryList<InventoryTree<ItemData>> => {
   let items = list.items
     .map((tree) => ({
-      ...tree,
-      list: tree.list ? _applyByStoreFilter4(tree.data.id, tree.list, filter, expandedOnFilter) : undefined,
-      showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.displayName)
+        ...tree,
+        list : tree.list ? _applyByStoreFilter4(tree.data.id, tree.list, filter, expandedOnFilter) : undefined,
+        showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.displayName)
     }))
     .filter((tree) => multiIncludes(filter, tree.displayName) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
 
-  const sum = items.reduce(
-    (partialSum, tree) => partialSum + Number(tree.data.v) + Number(tree.list?.stats.ped || 0),
-    0,
-  );
+    const expanded = filter ? expandedOnFilter(id) : list.expanded;
 
-  // add list own item value to its contained ped total
-  items = items.map((tree) => tree.list && tree.showItemValueRow ? {
-    ...tree,
-    list: {
-      ...tree.list,
+    return {
+      ...list,
+      expanded,
+      items
+    }
+}
+
+const _addStats = (
+  allList: InventoryList<InventoryTree<ItemData>>,
+): InventoryList<InventoryTree<ItemData>> => {
+  function innerAddStats(dataV: number, list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> {
+    const items = list.items.map((tree) => {
+      const v = tree.showItemValueRow ? Number(tree.data.v) : 0
+      let list = tree.list ? innerAddStats(v, tree.list) : undefined
+      return {
+        ...tree,
+        list
+      }
+    })
+    const sum = dataV + items.reduce(
+      (partialSum, tree) => partialSum + (tree.list ? Number(tree.list.stats.ped) : Number(tree.data.v)),
+      0,
+    );
+    return {
+      ...list,
+      items,
       stats: {
-        ...tree.list.stats,
-        ped: (Number(tree.list.stats.ped) + Number(tree.data.v)).toFixed(2)
+        count: items.length,
+        ped: sum.toFixed(2)
       }
     }
-  } : tree);
-
-  const expanded = filter ? expandedOnFilter(id) : list.expanded;
-
-  return {
-    ...list,
-    expanded,
-    items,
-    stats: {
-      count: items.length,
-      ped: sum.toFixed(2)
-    }
   }
+  return innerAddStats(0, allList)
 }
 
 const _byStoreSelectToSort = (x: InventoryTree<ItemData>): ItemData => x.list ? {

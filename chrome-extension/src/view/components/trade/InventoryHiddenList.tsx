@@ -17,15 +17,15 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
         [NAME]: {
             sub: [{
                 visible: item.criteria.name,
-                button: {
+                imgButton: {
                     title: 'Show this item name',
                     src: 'img/tick.png',
                     dispatch: () => showByName(item.data.n)
                 }
             }, {
-                text: item.data.n
+                itemText: item.data.n
             }, {
-                button: {
+                imgButton: {
                     title: 'Search by this item name',
                     src: 'img/find.jpg',
                     dispatch: () => setHiddenInventoryFilter(`!${item.data.n}`)
@@ -35,41 +35,41 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
         [QUANTITY]: {
             style: { justifyContent: 'center' },
             sub: [{
-                text: item.data.q
+                itemText: item.data.q
             }]
         },
         [VALUE]: {
             style: { justifyContent: 'end' },
             sub: [{
                 visible: item.criteria.value,
-                button: {
+                imgButton: {
                     title: 'Show this value or higher',
                     src: 'img/tick.png',
                     dispatch: () => showByValue(item.data.v)
                 }
             }, {
-                text: item.data.v + ' PED'
+                itemText: item.data.v + ' PED'
             }]
         },
         [CONTAINER]: {
             sub: [{
                 visible: item.criteria.container,
-                button: {
+                imgButton: {
                     title: 'Show this container',
                     src: 'img/tick.png',
                     dispatch: () => showByContainer(item.data.c)
                 }
             }, {
-                text: item.data.c
+                itemText: item.data.c
             }]
         }
     }
 });
 
-const searchRowColumnData: ItemRowColumnData = {
+const searchRowAfterTotalColumnData: ItemRowColumnData = {
     sub: [{
         class: 'show-all',
-        button: {
+        imgButton: {
             title: 'Clear all hide filters',
             text: 'Unhide All',
             src: 'img/tick.png',
@@ -98,7 +98,7 @@ const InventoryHiddenList = () => {
             sortRowData={sortRowData}
             getRowData={getRowData}
             itemSelector={getHiddenInventoryItem}
-            searchRowColumnData={searchRowColumnData}
+            searchRowAfterTotalColumnData={searchRowAfterTotalColumnData}
         />
     )
 }

@@ -10,13 +10,12 @@ import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import SortableTable from '../common/SortableTable'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
-import SortableTableSection, { ItemRowData, SortRowData } from '../common/SortableTableSection'
-import { getByStoreInventory, getByStoreInventoryStaredItem } from '../../application/selectors/inventory'
+import SortableTableSection, { ItemRowColumnData, ItemRowData, SortRowData } from '../common/SortableTableSection'
+import { getByStoreInventory, getByStoreInventoryItem, getByStoreInventoryStaredItem } from '../../application/selectors/inventory'
 
 const INDENT_SPACE = 10
 
 interface ItemRowEvents {
-    showContainer?: boolean,
     setItemExpanded: (id: string) => (expanded: boolean) => any,
     setItemName: (id: string, name: string) => any,
     cancelItemNameEditing: (id: string) => any,
@@ -68,11 +67,6 @@ const ItemTreeRow = (p: {
                     }
                     <ImgButton title='Search by this item name' src='img/find.jpg' dispatch={() => p.d.setFilter(`!${tree.displayName}`)} />
                 </td>
-                { p.d.showContainer &&
-                    <td align='left'>
-                        <ItemText text={tree.data.c} />
-                        <ImgButton title='Search in all containers by this item name' src='img/find.jpg' dispatch={() => setByStoreInventoryFilter(`!${tree.displayName}`)} />
-                    </td> }
                 <td align='right'><ItemText text={tree.list ? `[${tree.list.stats.count}]` : tree.data.q} /></td>
                 <td align='right'><ItemText text={(tree.list ? tree.list.stats.ped : tree.data.v) + ' PED'} /></td>
             </tr>
@@ -84,7 +78,6 @@ const ItemTreeRow = (p: {
                             <ItemText text={`(${tree.data.n === tree.displayName ? 'item': tree.data.n} value)`} />
                         </td>
                         <td></td>
-                        { p.d.showContainer && <td></td> }
                         <td></td>
                         <td align='right'><ItemText text={tree.data.v + ' PED'} /></td>
                     </tr>
@@ -133,7 +126,7 @@ const TreeSection = (p: {
             <SortableTable
                 sortType={p.list.sortType}
                 sortBy={p.sortBy}
-                columns={p.d.showContainer ? [NAME, -1, CONTAINER, QUANTITY, VALUE] : [NAME, -1, QUANTITY, VALUE]}
+                columns={[NAME, -1, QUANTITY, VALUE]}
                 nameOverride={p.columnNameOverride}
                 definition={sortColumnDefinition}>
                 {
@@ -151,7 +144,8 @@ const TreeSection = (p: {
     )
 }
 
-const columns = [NAME, CONTAINER, QUANTITY, VALUE]
+const columnsStaredContainers = [NAME, CONTAINER, QUANTITY, VALUE]
+const columnsContainers = [NAME, QUANTITY, VALUE]
 const sortRowData: SortRowData = {
     [NAME]: { justifyContent: 'center' },
     [CONTAINER] : { text: 'Planet' },
@@ -159,7 +153,7 @@ const sortRowData: SortRowData = {
     [VALUE]: { justifyContent: 'end' },
 }
 const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
-    dispatch: item.hasChildren ? () => v.setItemExpanded(item.id)(!item.expanded) : undefined,
+    dispatch: item.expanded !== undefined ? () => v.setItemExpanded(item.id)(!item.expanded) : undefined,
     columns: {
         [NAME]: {
             style: { paddingLeft: item.indent * INDENT_SPACE },
@@ -167,38 +161,38 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
                 { plusButton: { expanded: item.expanded, setExpanded: v.setItemExpanded(item.id) } },
                 ...item.isEditing ? [
                     { input: { value: item.n, onChange: (value: string) => v.setItemName(item.id, value) } },
-                    { button: { src: 'img/cross.png', title: 'Cancel', dispatch: () => v.cancelItemNameEditing(item.id) } },
-                    { button: { src: 'img/tick.png', title: 'Confirm', dispatch: () => v.confirmItemNameEditing(item.id) } }
+                    { imgButton: { src: 'img/cross.png', title: 'Cancel', show: true, dispatch: () => v.cancelItemNameEditing(item.id) } },
+                    { imgButton: { src: 'img/tick.png', title: 'Confirm', show: true, dispatch: () => v.confirmItemNameEditing(item.id) }, flex: 1 }
                 ] : [
-                    { text: item.n, flex: 1 },
-                    { visible: item.canEditName, button: { src: 'img/edit.png', title: 'Edit this item name', dispatch: () => v.startItemNameEditing(item.id) } }
+                    { itemText: item.n },
+                    { visible: !!item.canEditName, flex: 1, imgButton: { src: 'img/edit.png', title: 'Edit this item name', dispatch: () => v.startItemNameEditing(item.id) } }
                 ],
-                { visible: item.hasChildren, button: {
+                { visible: !!item.isContainer, imgButton: {
                     src: item.stared ? 'img/staron.png' : 'img/staroff.png',
                     title: item.stared ? 'Remove from Favorites' : 'Add to Favorites',
                     dispatch: () => v.setItemStared(item.id, !item.stared)
                 } },
-                { button: { src: 'img/find.jpg', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
+                { imgButton: { src: 'img/find.jpg', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
             ]
         },
         [QUANTITY]: {
             style: { justifyContent: 'end' },
             sub: [{
-                text: item.q
+                itemText: item.q
             }]
         },
         [VALUE]: {
             style: { justifyContent: 'end' },
             sub: [{
-                text: `${item.v} PED`
+                itemText: `${item.v} PED`
             }]
         },
         [CONTAINER]: {
             style: { justifyContent: 'center' },
             sub: [{
-                text: item.c
+                itemText: item.c
             }, {
-                button: {
+                imgButton: {
                     src: 'img/find.jpg',
                     title: 'Search in this container by this item name',
                     dispatch: () => setByStoreInventoryFilter(`!${item.n}`)
@@ -208,11 +202,26 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
     }
 });
 
+const searchRowAfterSearchColumnData = (setAllItemsExpanded: (expanded: boolean) => any): ItemRowColumnData => ({
+    sub: [{
+        textButton: {
+            title: 'Expand All',
+            text: '+',
+            dispatch: () => setAllItemsExpanded(true)
+        },
+    }, {
+        textButton: {
+            title: 'Collapse All',
+            text: '-',
+            dispatch: () => setAllItemsExpanded(false)
+        }
+    }]
+});
+
 const InventoryByStoreList = () => {
     const inv: InventoryByStore = useSelector(getByStoreInventory)
 
     const favoriteRowEvents: ItemRowEvents = {
-        showContainer: true,
         setItemExpanded: setByStoreStaredItemExpanded,
         setItemName: setByStoreStaredItemName,
         cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
@@ -220,6 +229,16 @@ const InventoryByStoreList = () => {
         startItemNameEditing: startByStoreStaredItemNameEditing,
         setItemStared: setByStoreStaredItemStared,
         setFilter: setByStoreStaredInventoryFilter
+    }
+
+    const containersRowEvents: ItemRowEvents = {
+        setItemExpanded: setByStoreItemExpanded,
+        setItemName: setByStoreItemName,
+        cancelItemNameEditing: cancelByStoreItemNameEditing,
+        confirmItemNameEditing: confirmByStoreItemNameEditing,
+        startItemNameEditing: startByStoreItemNameEditing,
+        setItemStared: setByStoreItemStared,
+        setFilter: setByStoreInventoryFilter
     }
 
     return (
@@ -235,26 +254,33 @@ const InventoryByStoreList = () => {
                 setExpanded={setByStoreStaredInventoryExpanded}
                 setFilter={setByStoreStaredInventoryFilter}
                 sortBy={sortByStoreStaredBy}
-                columns={columns}
+                columns={columnsStaredContainers}
                 definition={sortColumnDefinition}
                 sortRowData={sortRowData}
                 getRowData={getRowData(favoriteRowEvents)}
                 itemSelector={getByStoreInventoryStaredItem}
+                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreStaredAllItemsExpanded)}
             />
-            <TreeSection
-                title='OLD Favorite Containers'
-                sectionExpanded={inv.stared.list.expanded}
-                setSectionExpanded={setByStoreStaredInventoryExpanded}
-                setAllItemsExpanded={setByStoreStaredAllItemsExpanded}
-                filter={inv.stared.filter}
-                setFilter={setByStoreStaredInventoryFilter}
-                columnNameOverride={{ [CONTAINER]: 'Planet' }}
-                list={inv.stared.list}
-                sortBy={sortByStoreStaredBy}
-                d={favoriteRowEvents}
-            />
-            <TreeSection
+            <SortableTableSection
                 title='Containers'
+                expanded={inv.originalList.expanded}
+                filter={inv.filter}
+                allItems={inv.flat.original}
+                showItems={inv.flat.show}
+                sortType={inv.showList.sortType}
+                stats={inv.showList.stats}
+                setExpanded={setByStoreInventoryExpanded}
+                setFilter={setByStoreInventoryFilter}
+                sortBy={sortByStoreBy}
+                columns={columnsContainers}
+                definition={sortColumnDefinition}
+                sortRowData={sortRowData}
+                getRowData={getRowData(containersRowEvents)}
+                itemSelector={getByStoreInventoryItem}
+                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreAllItemsExpanded)}
+            />
+            <TreeSection
+                title='OLD Containers'
                 sectionExpanded={inv.originalList.expanded}
                 setSectionExpanded={setByStoreInventoryExpanded}
                 setAllItemsExpanded={setByStoreAllItemsExpanded}
@@ -262,15 +288,7 @@ const InventoryByStoreList = () => {
                 setFilter={setByStoreInventoryFilter}
                 list={inv.showList}
                 sortBy={sortByStoreBy}
-                d={({
-                    setItemExpanded: setByStoreItemExpanded,
-                    setItemName: setByStoreItemName,
-                    cancelItemNameEditing: cancelByStoreItemNameEditing,
-                    confirmItemNameEditing: confirmByStoreItemNameEditing,
-                    startItemNameEditing: startByStoreItemNameEditing,
-                    setItemStared: setByStoreItemStared,
-                    setFilter: setByStoreInventoryFilter
-                })}
+                d={containersRowEvents}
             />
         </div>
     )

@@ -17,15 +17,15 @@ const getRowData = (item: ItemData): ItemRowData => ({
     columns: {
         [NAME]: {
             sub: [{
-                button: {
+                imgButton: {
                     title: 'Hide this item name',
                     src: 'img/cross.png',
                     dispatch: () => hideByName(item.n)
                 }
             }, {
-                text: item.n
+                itemText: item.n
             }, {
-                button: {
+                imgButton: {
                     title: 'Search by this item name',
                     src: 'img/find.jpg',
                     dispatch: () => setVisibleInventoryFilter(`!${item.n}`)
@@ -35,30 +35,30 @@ const getRowData = (item: ItemData): ItemRowData => ({
         [QUANTITY]: {
             style: { justifyContent: 'center' },
             sub: [{
-                text: item.q
+                itemText: item.q
             }]
         },
         [VALUE]: {
             style: { justifyContent: 'end' },
             sub: [{
-                button: {
+                imgButton: {
                     title: 'Hide this value or lower',
                     src: 'img/cross.png',
                     dispatch: () => hideByValue(item.v)
                 }
             }, {
-                text: item.v + ' PED'
+                itemText: item.v + ' PED'
             }]
         },
         [CONTAINER]: {
             sub: [{
-                button: {
+                imgButton: {
                     title: 'Hide this container',
                     src: 'img/cross.png',
                     dispatch: () => hideByContainer(item.c)
                 }
             }, {
-                text: item.c
+                itemText: item.c
             }]
         }
     }

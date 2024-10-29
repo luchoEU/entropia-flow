@@ -63,7 +63,7 @@ interface BasicItemData { // subset of ItemData
 
 interface TreeLineData extends ItemData {
   indent: number
-  hasChildren: boolean
+  isContainer?: boolean
   expanded?: boolean // undefined if not a container
   stared?: boolean
   canEditName?: boolean
