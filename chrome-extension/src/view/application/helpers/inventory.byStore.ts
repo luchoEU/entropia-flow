@@ -617,22 +617,27 @@ const reduceSetByStoreStaredItemStared = (
 const reduceSetByStoreInventoryFilter = (
   state: InventoryState,
   filter: string
-): InventoryState => filter === undefined || filter.length === 0 ? {
-  ...state,
-  byStore: _sortByStore(_showListSelector, {
-    ...state.byStore,
-    filter: undefined,
-    showList: _addStats(_applyByStoreFilter(state.byStore.originalList, state.byStore.containers)),
-    containers: Object.fromEntries(
-      Object.entries(state.byStore.containers).map(([k, v]) => [k, { ...v, expandedOnFilter: undefined }]))
-  }),
-} : {
-  ...state,
-  byStore: _sortByStore(_showListSelector, {
+): InventoryState => {
+  if (filter.length === 0)
+    filter = undefined
+
+  const byStore = _sortByStore(_showListSelector, {
     ...state.byStore,
     filter,
-    showList: _addStats(_applyByStoreFilter4('', state.byStore.originalList, filter, () => true))
+    showList: _addStats(
+      filter ? _applyByStoreFilter4('', state.byStore.originalList, filter, () => true) : _applyByStoreFilter(state.byStore.originalList, state.byStore.containers)
+    ),
+    containers: filter ? state.byStore.containers : Object.fromEntries(
+      Object.entries(state.byStore.containers).map(([k, v]) => [k, { ...v, expandedOnFilter: undefined }])),
   })
+
+  return {
+    ...state,
+    byStore: {
+      ...byStore,
+      flat: { ...state.byStore.flat, show: _flatTree(byStore.showList, 0) }
+    }
+  }
 }
 
 const reduceSetByStoreStaredInventoryFilter = (
@@ -700,16 +705,22 @@ const _addStats = (
         list
       }
     })
-    const sum = dataV + items.reduce(
-      (partialSum, tree) => partialSum + (tree.list ? Number(tree.list.stats.ped) : Number(tree.data.v)),
-      0,
-    );
+
+    const sumCount = items.reduce(
+      (partialSum, tree) => partialSum +
+        (tree.list ? tree.list.stats.count +
+          (tree.list.items.length === 0 || tree.showItemValueRow ? 1 : 0) :
+        1), 0);
+
+    const sumPed = dataV + items.reduce(
+      (partialSum, tree) => partialSum + (tree.list ? Number(tree.list.stats.ped) : Number(tree.data.v)), 0);
+
     return {
       ...list,
       items,
       stats: {
-        count: items.length,
-        ped: sum.toFixed(2)
+        count: sumCount,
+        ped: sumPed.toFixed(2)
       }
     }
   }

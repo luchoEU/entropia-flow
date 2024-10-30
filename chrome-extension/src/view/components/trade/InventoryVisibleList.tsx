@@ -23,6 +23,7 @@ const getRowData = (item: ItemData): ItemRowData => ({
                     dispatch: () => hideByName(item.n)
                 }
             }, {
+                flex: 1,
                 itemText: item.n
             }, {
                 imgButton: {

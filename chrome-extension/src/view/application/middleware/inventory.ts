@@ -30,7 +30,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_HIDDEN_FILTER:
         case SET_BLUEPRINTS_EXPANDED:
         case SET_BLUEPRINTS_FILTER:
-        case SET_BY_STORE_FILTER:
         case SORT_AUCTION_BY:
         case SORT_VISIBLE_BY:
         case SORT_HIDDEN_BY:

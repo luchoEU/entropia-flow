@@ -12,6 +12,7 @@ const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
 const IMG_WIDTH = 26
 const PLUS_WIDTH = 11 // ExpandablePlusButton
+const ITEM_TEXT_PADDING = 5
 const INPUT_WIDTH = 200
 const SCROLL_BAR_WIDTH = 15
 const LIST_TOTAL_HEIGHT = 610 // not multiple of ITEM_SIZE so it is visible there are more
@@ -83,19 +84,37 @@ interface ColumnWidthData {
     subWidth: number[]
 }
 
-const getSubColumnsWidth = (d: ItemRowData): { [part: number]: number[] } => Object.fromEntries(Object.entries(d.columns)
-    .map(([k, c]) => [k, [
-        _getPadding(c),
-        ...c.sub.map(sc =>
-            (sc.imgButton ? (sc.imgButton.text ? getTextWidth(sc.imgButton.text, FONT_BOLD) + IMG_WIDTH: 0) +
-            (sc.plusButton ? PLUS_WIDTH: 0) +
-            (sc.textButton ? getTextWidth(sc.textButton.text, FONT_BOLD) : 0) : 0) +
-            (sc.itemText ? getTextWidth(sc.itemText, FONT_BOLD) : 0) +
-            (sc.input ? INPUT_WIDTH : 0) +
-            (sc.strong ? getTextWidth(sc.strong, FONT_BOLD) : 0) +
-            (sc.img ? IMG_WIDTH : 0))
-    ]])
-);
+const getSubColumnsWidth = (d: ItemRowData): { [part: number]: number[] } =>
+    Object.fromEntries(Object.entries(d.columns).map(([k, c]) => [k, getRowColumnWidth(c)]));
+
+const getRowColumnWidth = (c: ItemRowColumnData): number[] => [
+    ...c.sub.map(sc =>
+        (sc.imgButton ? (sc.imgButton.text ? getTextWidth(sc.imgButton.text, FONT_BOLD): 0) + IMG_WIDTH : 0) +
+        (sc.plusButton ? PLUS_WIDTH : 0) +
+        (sc.textButton ? getTextWidth(sc.textButton.text, FONT_BOLD) : 0) +
+        (sc.itemText ? getTextWidth(sc.itemText, FONT_BOLD) + ITEM_TEXT_PADDING : 0) +
+        (sc.input ? INPUT_WIDTH : 0) +
+        (sc.strong ? getTextWidth(sc.strong, FONT_BOLD) : 0) +
+        (sc.img ? IMG_WIDTH : 0)),
+    _getPadding(c)
+];
+
+
+const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JSX.Element => <>
+    { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
+        sc.visible === false ?
+            <span key={j} style={{ flex: sc.flex, width: p.width[j] }} /> :
+            <span key={j} className={sc.class} style={{ flex: sc.flex }}>
+                { sc.imgButton && <ImgButton title={sc.imgButton.title} text={sc.imgButton.text} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
+                { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
+                { sc.textButton && <TextButton title={sc.textButton.title} text={sc.textButton.text} dispatch={sc.textButton.dispatch} /> }
+                { sc.itemText && <ItemText text={sc.itemText} /> }
+                { sc.strong && <strong>{sc.strong}</strong> }
+                { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
+                { sc.img && <img src={sc.img} /> }
+            </span>
+    )}
+</>
 
 const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Element => {
     const dispatch = useDispatch()
@@ -109,22 +128,6 @@ const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Elem
         }}
     />
 }
-
-const ItemSubRowRender = (p: {part?: number, sub: ItemRowSubColumnData[]}): JSX.Element => <>
-    { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
-        <span key={j} className={sc.class} style={{ flex: sc.flex }}>
-            { sc.visible !== false && <>
-                { sc.imgButton && <ImgButton title={sc.imgButton.title} text={sc.imgButton.text} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
-                { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
-                { sc.textButton && <TextButton title={sc.textButton.title} text={sc.textButton.text} dispatch={sc.textButton.dispatch} /> }
-                { sc.itemText && <ItemText text={sc.itemText} /> }
-                { sc.strong && <strong>{sc.strong}</strong> }
-                { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
-                { sc.img && <img src={sc.img} /> }
-            </>}
-        </span>
-    )}
-</>
 
 const ItemRow = <T extends any>(
     getData: (item: T) => ItemRowData,
@@ -162,7 +165,7 @@ const ItemRowRender = (p: {
             return d && <div key={c.part} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
                 {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}
             >
-                <ItemSubRowRender sub={d.sub} />
+                <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>
         })}
     </>
@@ -225,10 +228,10 @@ const SortableTableSection = <T extends any>(p: {
     return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
             <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}
-                { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} /> }
+                { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
             </p>
             <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} />
-                { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} /> }
+                { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(p.searchRowAfterSearchColumnData)} /> }
             </p>
         </div>
         <div className='sort-table'>
