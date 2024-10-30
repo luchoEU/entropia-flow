@@ -164,9 +164,9 @@ function CraftSingle(p: {
     return (
         <>
             <section>
-                <h1>
+                <h1 onClick={() => dispatch(setBlueprintExpanded(d.name)(false))}>
                     {d.name}
-                    <img className='hide' src='img/down.png' onClick={() => dispatch(setBlueprintExpanded(d.name)(false))} />
+                    <img className='hide' src='img/down.png' />
                 </h1>
                 {
                     d.info.loading ?
