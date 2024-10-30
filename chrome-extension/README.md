@@ -35,6 +35,8 @@
 
 1. Increase version in [package.json](package.json), [manifest.json](dist/manifest.json) and [AboutPage.tsx](src/view/components/about/AboutPage.tsx)
 
+1. Update CHANGESLOG.md
+
 1. `npm run build` to build a production (minified) version in [dist.zip](dist.zip)
 
 1. Enter to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/developer/dashboard) and sign in
@@ -42,5 +44,3 @@
 1. In the _Package_ section click _Upload Updated Package_ and select the new .zip
 
 1. Submit Changes and wait for approval
-
-1. Update CHANGESLOG.md
