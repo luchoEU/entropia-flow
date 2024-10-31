@@ -37,6 +37,8 @@
 
 1. Update CHANGESLOG.md
 
+1. Verify that SHOW_FEATURES_IN_DEVELOPMENT = false
+
 1. `npm run build` to build a production (minified) version in [dist.zip](dist.zip)
 
 1. Enter to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/developer/dashboard) and sign in
