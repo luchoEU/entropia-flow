@@ -2,7 +2,11 @@ interface CraftState {
     activeSession?: string
     sortType: number,
     activeBlueprintsExpanded: boolean
-    blueprints: BlueprintData[]
+    blueprints: Array<BlueprintData>
+    blueprintFilter: string
+    c: { // calculated from previuos
+        filteredBluprints: Array<BlueprintData>
+    }
 }
 
 interface BlueprintData {

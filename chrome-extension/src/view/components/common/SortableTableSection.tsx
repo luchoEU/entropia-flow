@@ -11,6 +11,7 @@ import TextButton from './TextButton';
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
 const IMG_WIDTH = 26
+const IMG_SORT_WIDTH = 18
 const PLUS_WIDTH = 11 // ExpandablePlusButton
 const ITEM_TEXT_PADDING = 5
 const INPUT_WIDTH = 200
@@ -72,10 +73,13 @@ interface ItemRowSubColumnData {
     itemText?: string
     strong?: string
     input?: {
-        value: string,
+        value: string
         onChange: (value: string) => any
     }
-    img?: string
+    img?: {
+        src: string
+        show?: boolean
+    }
 }
 
 interface ColumnWidthData {
@@ -84,10 +88,10 @@ interface ColumnWidthData {
     subWidth: number[]
 }
 
-const getSubColumnsWidth = (d: ItemRowData): { [part: number]: number[] } =>
-    Object.fromEntries(Object.entries(d.columns).map(([k, c]) => [k, getRowColumnWidth(c)]));
+const getSubColumnsWidth = (d: ItemRowData, imgWidth: number = IMG_WIDTH): { [part: number]: number[] } =>
+    Object.fromEntries(Object.entries(d.columns).map(([k, c]) => [k, getRowColumnWidth(c, imgWidth)]));
 
-const getRowColumnWidth = (c: ItemRowColumnData): number[] => [
+const getRowColumnWidth = (c: ItemRowColumnData, imgWidth: number = IMG_WIDTH): number[] => [
     ...c.sub.map(sc =>
         (sc.imgButton ? (sc.imgButton.text ? getTextWidth(sc.imgButton.text, FONT_BOLD): 0) + IMG_WIDTH : 0) +
         (sc.plusButton ? PLUS_WIDTH : 0) +
@@ -95,7 +99,7 @@ const getRowColumnWidth = (c: ItemRowColumnData): number[] => [
         (sc.itemText ? getTextWidth(sc.itemText, FONT_BOLD) + ITEM_TEXT_PADDING : 0) +
         (sc.input ? INPUT_WIDTH : 0) +
         (sc.strong ? getTextWidth(sc.strong, FONT_BOLD) : 0) +
-        (sc.img ? IMG_WIDTH : 0)),
+        (sc.img ? imgWidth : 0)),
     _getPadding(c)
 ];
 
@@ -111,7 +115,7 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
                 { sc.itemText && <ItemText text={sc.itemText} /> }
                 { sc.strong && <strong>{sc.strong}</strong> }
                 { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
-                { sc.img && <img src={sc.img} /> }
+                { sc.img && <img src={sc.img.src} {...sc.img.show ? { 'data-show': true } : {}} /> }
             </span>
     )}
 </>
@@ -178,7 +182,7 @@ const SortableTableSection = <T extends any>(p: {
     allItems: T[],
     showItems: T[],
     sortType: number,
-    stats: { count: number, ped: string },
+    stats: { count: number, ped?: string, itemTypeName?: string },
     setExpanded: (expanded: boolean) => any,
     setFilter: (v: string) => any,
     sortBy: (part: number) => any,
@@ -206,11 +210,11 @@ const SortableTableSection = <T extends any>(p: {
             sub: [
                 { strong: p.sortRowData[c]?.text ?? p.definition[c].text },
                 { visible: p.sortType === p.definition[c].up || p.sortType === p.definition[c].down,
-                    img: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' }
+                    img: { src: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' } }
             ]
         }]))
     }
-    const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData)
+    const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData, IMG_SORT_WIDTH)
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
 
     const columnsWidth = p.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
@@ -227,7 +231,9 @@ const SortableTableSection = <T extends any>(p: {
     const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
     return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
-            <p>Total value {stats.ped} PED for {stats.count} item{stats.count == 1 ? '' : 's'}
+            <p><span>{ stats.ped ? 'Total value {stats.ped} PED for' : 'Listing'}</span>
+                <span> {stats.count} </span>
+                <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
                 { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
             </p>
             <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} />

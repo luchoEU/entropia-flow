@@ -7,6 +7,7 @@ const REMOVE_BLUEPRINT = '[craft] remove blueprint'
 const RELOAD_BLUEPRINT = '[craft] reload blueprint'
 const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_ACTIVE_BLUEPRINTS_EXPANDED = '[craft] set active blueprints expanded'
+const SET_ACTIVE_BLUEPRINTS_FILTER = '[craft] set active blueprints filter'
 const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
@@ -74,6 +75,13 @@ const setActiveBlueprintsExpanded = (expanded: boolean) => ({
     type: SET_ACTIVE_BLUEPRINTS_EXPANDED,
     payload: {
         expanded
+    }
+})
+
+const setActiveBlueprintsFilter = (filter: string) => ({
+    type: SET_ACTIVE_BLUEPRINTS_FILTER,
+    payload: {
+        filter
     }
 })
 
@@ -259,6 +267,7 @@ export {
     RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
     SET_ACTIVE_BLUEPRINTS_EXPANDED,
+    SET_ACTIVE_BLUEPRINTS_FILTER,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_EXPANDED,
@@ -291,6 +300,7 @@ export {
     reloadBlueprint,
     sortBlueprintsBy,
     setActiveBlueprintsExpanded,
+    setActiveBlueprintsFilter,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,

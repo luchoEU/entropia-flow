@@ -1,3 +1,4 @@
+import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
@@ -6,14 +7,18 @@ import * as Sort from "./craftSort"
 const initialState: CraftState = {
     sortType: Sort.SORT_NAME_ASCENDING,
     activeBlueprintsExpanded: true,
-    blueprints: []
+    blueprints: [],
+    blueprintFilter: undefined,
+    c: {
+        filteredBluprints: []
+    }
 }
 
-const setState = (state: CraftState, inState: CraftState) => inState
+const reduceSetState = (state: CraftState, inState: CraftState) => inState
 
 const itemNameFromBpName = (bpName: string) => bpName.split('Blueprint')[0].trim()
 
-const addBlueprint = (state: CraftState, name: string): CraftState => ({
+const reduceAddBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
     ...state,
     blueprints: Sort.sortList(state.sortType, [
         ...state.blueprints,
@@ -39,26 +44,26 @@ const addBlueprint = (state: CraftState, name: string): CraftState => ({
     ])
 })
 
-const removeBlueprint = (state: CraftState, name: string): CraftState => ({
+const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.filter(bp => bp.name !== name)
 })
 
-const sortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
+const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
     const sortType = Sort.nextSortType(part, state.sortType)
-    return {
+    return _applyFilter({
         ...state,
         sortType,
         blueprints: Sort.cloneSortList(sortType, state.blueprints)
-    }
+    })
 }
 
-const setActiveBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
+const reduceSetActiveBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
     ...state,
     activeBlueprintsExpanded: expanded
 })
 
-const addBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => ({
+const reduceAddBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => _applyFilter({
     ...state,
     blueprints: Sort.sortList(state.sortType, state.blueprints.map(bp => {
         if (bp.name === data.Name) {
@@ -111,7 +116,7 @@ const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     }))
 })
 
-const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
+const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
     let blueprints: BlueprintData[] = []
     for (let bp of state.blueprints) {
         if (bp.info.loading) {
@@ -162,16 +167,16 @@ const setBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: numb
     }
 
     Sort.sortList(state.sortType, blueprints)
-    return {
+    return _applyFilter({
         ...state,
         blueprints
-    }
+    })
 }
 
-const setBlueprintExpanded = (state: CraftState, name: string, expanded: boolean): CraftState => ({
+const reduceSetBlueprintExpanded = (state: CraftState, name: string, expanded: boolean): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.map(
-        bp => bp.name === name ?        
+        bp => bp.name === name ?
         {
             ...bp,
             budget: {
@@ -180,26 +185,41 @@ const setBlueprintExpanded = (state: CraftState, name: string, expanded: boolean
                     loading: true,
                     stage: STAGE_INITIALIZING,
                     hasPage: false,
-                } : {})    
+                } : {})
             },
             expanded
         }
         : bp)
 })
 
-const changeBudget = (state: CraftState, name: string, data: object): CraftState => ({
+const _applyFilter = (state: CraftState): CraftState => {
+    if (state.blueprintFilter?.length === 0)
+        state.blueprintFilter = undefined
+    const filter = state.blueprintFilter
+    state.c.filteredBluprints = filter ?
+        state.blueprints.filter(bp => multiIncludes(filter, bp.name)) :
+        state.blueprints
+    return state
+}
+
+const reduceSetBlueprintFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
+    ...state,
+    blueprintFilter: filter
+})
+
+const _changeBudget = (state: CraftState, name: string, data: object): CraftState => _applyFilter({
     ...state,
     blueprints: Sort.sortList(state.sortType,
         state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp))
 })
 
-const startBudgetLoading = (state: CraftState, name: string): CraftState => 
-    changeBudget(state, name, { loading: true })
+const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState => 
+    _changeBudget(state, name, { loading: true })
 
-const setBudgetState = (state: CraftState, name: string, stage: number): CraftState =>
-    changeBudget(state, name, { stage } )
+const reduceSetBudgetState = (state: CraftState, name: string, stage: number): CraftState =>
+    _changeBudget(state, name, { stage } )
 
-const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => {
+const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => {
     let blueprints: BlueprintData[] = []
     for (let bp of state.blueprints) {
         if (bp.name !== name) {
@@ -240,19 +260,19 @@ const setBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo
     }
 
     Sort.sortList(state.sortType, blueprints)
-    return {
+    return _applyFilter({
         ...state,
         blueprints
-    }
+    })
 }
 
-const endBudgetLoading = (state: CraftState, name: string): CraftState =>
-    changeBudget(state, name, { loading: false } )
+const reduceEndBudgetLoading = (state: CraftState, name: string): CraftState =>
+    _changeBudget(state, name, { loading: false } )
 
-const errorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
-    changeBudget(state, name, { error: text } )
+const reduceErrorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
+    _changeBudget(state, name, { error: text } )
 
-const buyBudgetMaterial = (state: CraftState, name: string): CraftState => ({ 
+const reduceBuyBudgetMaterial = (state: CraftState, name: string): CraftState => _applyFilter({ 
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
@@ -264,7 +284,7 @@ const buyBudgetMaterial = (state: CraftState, name: string): CraftState => ({
         : bp)
 })
 
-const buyBudgetMaterialDone = (state: CraftState, name: string, materialName: string, quantity: number): CraftState => ({
+const reduceBuyBudgetMaterialDone = (state: CraftState, name: string, materialName: string, quantity: number): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
@@ -283,7 +303,7 @@ const buyBudgetMaterialDone = (state: CraftState, name: string, materialName: st
         : bp)
 })
 
-const buyBudgetMaterialClear = (state: CraftState): CraftState => ({
+const reduceBuyBudgetMaterialClear = (state: CraftState): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.map(bp => ({
         ...bp,
@@ -297,7 +317,7 @@ const buyBudgetMaterialClear = (state: CraftState): CraftState => ({
     }))
 })
 
-const changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: any): CraftState => ({
+const _changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: any): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.map(bp => bp.name === name ? {
         ...bp,
@@ -310,59 +330,61 @@ const changeBudgetMaterial = (state: CraftState, name: string, materialName: str
         : bp)
 })
 
-const changeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState =>
-    changeBudgetMaterial(state, name, materialName, { buyCost: cost })
+const reduceChangeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState =>
+    _changeBudgetMaterial(state, name, materialName, { buyCost: cost })
 
-const changeBudgetBuyFee = (state: CraftState, name: string, materialName: string, withFee: boolean): CraftState =>
-    changeBudgetMaterial(state, name, materialName, { withFee })
+const reduceChangeBudgetBuyFee = (state: CraftState, name: string, materialName: string, withFee: boolean): CraftState =>
+    _changeBudgetMaterial(state, name, materialName, { withFee })
 
-const changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => ({
+const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => _applyFilter({
     ...state,
     blueprints: Sort.sortList(state.sortType,
         state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp))
 })
 
-const startCraftSession = (state: CraftState, name: string): CraftState => ({
+const reduceStartCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, () => ({ step: STEP_REFRESH_TO_START })),
+    ..._changeSession(state, name, () => ({ step: STEP_REFRESH_TO_START })),
     activeSession: name
 })
 
-const errorCraftSession = (state: CraftState, name: string, errorText: string): CraftState => ({
+const reduceErrorCraftSession = (state: CraftState, name: string, errorText: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, () => ({ step: STEP_REFRESH_ERROR, errorText }))
+    ..._changeSession(state, name, () => ({ step: STEP_REFRESH_ERROR, errorText }))
 })
 
-const readyCraftSession = (state: CraftState, name: string): CraftState =>
-    changeSession(state, name, () => ({ step: STEP_READY }))
+const reduceReadyCraftSession = (state: CraftState, name: string): CraftState =>
+    _changeSession(state, name, () => ({ step: STEP_READY }))
 
-const setCraftSessionDiff = (state: CraftState, name: string, diffMaterials: BlueprintSessionDiff[]): CraftState =>
-    changeSession(state, name, (bp) => ({ ...bp.session, diffMaterials }))
+const reduceSetCraftSessionDiff = (state: CraftState, name: string, diffMaterials: BlueprintSessionDiff[]): CraftState =>
+    _changeSession(state, name, (bp) => ({ ...bp.session, diffMaterials }))
 
-const endCraftSession = (state: CraftState, name: string): CraftState =>
-    changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_REFRESH_TO_END }))
+const reduceEndCraftSession = (state: CraftState, name: string): CraftState =>
+    _changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_REFRESH_TO_END }))
 
-const saveCraftSession = (state: CraftState, name: string): CraftState =>
-    changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_SAVING, stage: STAGE_INITIALIZING }))
+const reduceSaveCraftSession = (state: CraftState, name: string): CraftState =>
+    _changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_SAVING, stage: STAGE_INITIALIZING }))
 
-const setCraftSaveStage = (state: CraftState, name: string, stage: number): CraftState =>
-    changeSession(state, name, (bp) => ({ ...bp.session, stage }))
+const reduceSetCraftSaveStage = (state: CraftState, name: string, stage: number): CraftState =>
+    _changeSession(state, name, (bp) => ({ ...bp.session, stage }))
 
-const doneCraftSession = (state: CraftState, name: string): CraftState => ({
+const reduceDoneCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_DONE })),
+    ..._changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_DONE })),
     activeSession: undefined
 })
 
-const clearCraftSession = (state: CraftState, name: string): CraftState => ({
+const reduceClearCraftSession = (state: CraftState, name: string): CraftState => ({
     ...state,
-    ...changeSession(state, name, () => ({ step: STEP_INACTIVE })),
-    activeSession: undefined
+    ..._changeSession(state, name, () => ({ step: STEP_INACTIVE })),
+    activeSession: undefined,
+    c: undefined
 })
 
 const cleanForSave = (state: CraftState): CraftState => {
     const cState = JSON.parse(JSON.stringify(state));
     delete cState.activeSession;
+    delete cState.c;
     cState.blueprints.forEach(bp => {
         bp.info.materials.forEach(m => {
             delete m.buyDone
@@ -381,37 +403,38 @@ const cleanForSave = (state: CraftState): CraftState => {
 
 export {
     initialState,
-    setState,
+    reduceSetState,
     itemName,
     itemNameFromString,
     itemStringFromName,
     budgetInfoFromBp,
-    addBlueprint,
-    removeBlueprint,
-    sortBlueprintsByPart,
-    setActiveBlueprintsExpanded,
-    addBlueprintData,
-    setBlueprintQuantity,
-    setBlueprintExpanded,
-    startBudgetLoading,
-    setBudgetState,
-    setBudgetInfo,
-    endBudgetLoading,
-    buyBudgetMaterial,
-    buyBudgetMaterialDone,
-    buyBudgetMaterialClear,
-    changeBudgetBuyCost,
-    changeBudgetBuyFee,
-    errorBudgetLoading,
-    startCraftSession,
-    endCraftSession,
-    errorCraftSession,
-    readyCraftSession,
-    setCraftSessionDiff,
-    saveCraftSession,
-    setCraftSaveStage,
-    doneCraftSession,
-    clearCraftSession,
+    reduceAddBlueprint,
+    reduceRemoveBlueprint,
+    reduceSortBlueprintsByPart,
+    reduceSetActiveBlueprintsExpanded,
+    reduceAddBlueprintData,
+    reduceSetBlueprintQuantity,
+    reduceSetBlueprintExpanded,
+    reduceSetBlueprintFilter,
+    reduceStartBudgetLoading,
+    reduceSetBudgetState,
+    reduceSetBudgetInfo,
+    reduceEndBudgetLoading,
+    reduceBuyBudgetMaterial,
+    reduceBuyBudgetMaterialDone,
+    reduceBuyBudgetMaterialClear,
+    reduceChangeBudgetBuyCost,
+    reduceChangeBudgetBuyFee,
+    reduceErrorBudgetLoading,
+    reduceStartCraftSession,
+    reduceEndCraftSession,
+    reduceErrorCraftSession,
+    reduceReadyCraftSession,
+    reduceSetCraftSessionDiff,
+    reduceSaveCraftSession,
+    reduceSetCraftSaveStage,
+    reduceDoneCraftSession,
+    reduceClearCraftSession,
     cleanForSave,
     itemNameFromBpName,
 }

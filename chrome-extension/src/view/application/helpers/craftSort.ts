@@ -71,6 +71,13 @@ const sortColumnDefinition = {
     }
 }
 
+const getLimitText = (d: BlueprintData): string =>
+    d.inventory?.limitClickItems.length > 2 ? 
+        `${d.inventory.limitClickItems.slice(0, 2).join(', ')}, ${d.inventory.limitClickItems.length - 2} more` : 
+        d.inventory?.limitClickItems.join(', ');
+const getItemAvailable = (d: BlueprintData): number =>
+    d.info.materials.find(m => m.name === "Item")?.available ?? 0
+
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_NAME_ASCENDING
@@ -82,31 +89,25 @@ const comparer = [
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_ASCENDING
-        const c = Math.abs(Number(a.inventory.clicksAvailable ?? '0')) - Math.abs(Number(a.inventory.clicksAvailable ?? '0'))
+        const c = Math.abs(Number(a.inventory?.clicksAvailable ?? '0')) - Math.abs(Number(a.inventory?.clicksAvailable ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_DESCENDING
-        const c = - Math.abs(Number(a.inventory.clicksAvailable ?? '0')) + Math.abs(Number(b.inventory.clicksAvailable ?? '0'))
+        const c = - Math.abs(Number(a.inventory?.clicksAvailable ?? '0')) + Math.abs(Number(b.inventory?.clicksAvailable ?? '0'))
         if (c != 0)
             return c
         return -a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_LIMIT_ASCENDING
-        const c = Math.abs(Number(a.inventory.clicksAvailable ?? '0')) - Math.abs(Number(a.inventory.clicksAvailable ?? '0'))
-        if (c != 0)
-            return c
-        return a.name.localeCompare(b.name)
+        return getLimitText(a).localeCompare(getLimitText(b))
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_LIMIT_DESCENDING
-        const c = - Math.abs(Number(a.inventory.clicksAvailable ?? '0')) + Math.abs(Number(b.inventory.clicksAvailable ?? '0'))
-        if (c != 0)
-            return c
-        return -a.name.localeCompare(b.name)
+        return -getLimitText(a).localeCompare(getLimitText(b))
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_BUDGET_ASCENDING
@@ -138,18 +139,14 @@ const comparer = [
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_ITEMS_ASCENDING
-        var aItemAvailable = a.info.materials.find(m => m.name === "Item")?.available ?? 0
-        var bItemAvailable = b.info.materials.find(m => m.name === "Item")?.available ?? 0
-        const c = aItemAvailable - bItemAvailable
+        const c = getItemAvailable(a) - getItemAvailable(b)
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_ITEM_DESCENDING
-        var aItemAvailable = a.info.materials.find(m => m.name === "Item")?.available ?? 0
-        var bItemAvailable = b.info.materials.find(m => m.name === "Item")?.available ?? 0
-        const c = - aItemAvailable + bItemAvailable
+        const c = - getItemAvailable(a) + getItemAvailable(b)
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
@@ -181,4 +178,6 @@ export {
     nextSortType,
     cloneSortList,
     sortList,
+    getItemAvailable,
+    getLimitText,
 }

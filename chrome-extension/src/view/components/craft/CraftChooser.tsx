@@ -28,7 +28,7 @@ function CraftChooser() {
         <>
             <ExpandableSection title='Owned Blueprints' expanded={inv.blueprints.originalList.expanded} setExpanded={setOwnedBlueprintsExpanded}>
                 <div className='search-container'>
-                    <p>Count {unique.length} blueprint{unique.length == 1 ? '' : 's'}</p>
+                    <p>Listing {unique.length} blueprint{unique.length == 1 ? '' : 's'}</p>
                     <p className='search-input-container'><SearchInput filter={inv.blueprints.filter} setFilter={setOwnedBlueprintsFilter} /></p>
                 </div>
                 <SortableTable sortType={inv.blueprints.showList.sortType}
