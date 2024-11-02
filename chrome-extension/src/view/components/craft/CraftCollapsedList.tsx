@@ -67,7 +67,6 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
 
 function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
-    const dispatch = useDispatch()
 
     if (s.blueprints.length == 0)
         return <></>

@@ -63,6 +63,11 @@ const reduceSetActiveBlueprintsExpanded = (state: CraftState, expanded: boolean)
     activeBlueprintsExpanded: expanded
 })
 
+const reduceSetActiveBlueprintsFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
+    ...state,
+    blueprintFilter: filter
+})
+
 const reduceAddBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => _applyFilter({
     ...state,
     blueprints: Sort.sortList(state.sortType, state.blueprints.map(bp => {
@@ -192,6 +197,14 @@ const reduceSetBlueprintExpanded = (state: CraftState, name: string, expanded: b
         : bp)
 })
 
+const reduceShowBlueprintMaterialData = (state: CraftState, name: string, materialName: string): CraftState => _applyFilter({
+    ...state,
+    blueprints: state.blueprints.map(bp => bp.name === name ? {
+        ...bp,
+        chain: [ materialName ],
+    } : bp)
+})
+
 const _applyFilter = (state: CraftState): CraftState => {
     if (state.blueprintFilter?.length === 0)
         state.blueprintFilter = undefined
@@ -201,11 +214,6 @@ const _applyFilter = (state: CraftState): CraftState => {
         state.blueprints
     return state
 }
-
-const reduceSetBlueprintFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
-    ...state,
-    blueprintFilter: filter
-})
 
 const _changeBudget = (state: CraftState, name: string, data: object): CraftState => _applyFilter({
     ...state,
@@ -412,10 +420,11 @@ export {
     reduceRemoveBlueprint,
     reduceSortBlueprintsByPart,
     reduceSetActiveBlueprintsExpanded,
+    reduceSetActiveBlueprintsFilter,
     reduceAddBlueprintData,
     reduceSetBlueprintQuantity,
     reduceSetBlueprintExpanded,
-    reduceSetBlueprintFilter,
+    reduceShowBlueprintMaterialData,
     reduceStartBudgetLoading,
     reduceSetBudgetState,
     reduceSetBudgetInfo,

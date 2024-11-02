@@ -17,6 +17,7 @@ interface BlueprintData {
     budget: BlueprintBudget
     session: BlueprintSession
     inventory?: BlueprintInventory
+    chain?: Array<string>
 }
 
 interface BlueprintInfo {

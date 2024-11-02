@@ -427,9 +427,26 @@ button:active {
     font-weight: bold;
 }
 
+.item-row.stable [data-text] {
+    position: relative;
+    color: transparent;
+    font-weight: bold;
+}
+
+.item-row.stable [data-text]::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: black;
+    font-weight: normal;
+    z-index: 1;
+}
+
 .item-row:hover,
 .item-row:hover .item-text,
-.item-row .to-auction.item-text {
+.item-row .to-auction.item-text,
+.item-row.stable:hover [data-text]::after {
     font-weight: bold;
 }
 
@@ -583,4 +600,11 @@ button:active {
 
 .craft-material table {
     margin-left: 85px;
+}
+
+.craft-chain {
+    background-color: floralwhite;
+    padding: 0px 10px;
+    margin-left: 10px;
+    border-radius: 15px;
 }

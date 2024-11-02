@@ -11,6 +11,7 @@ const SET_ACTIVE_BLUEPRINTS_FILTER = '[craft] set active blueprints filter'
 const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
+const SHOW_BLUEPRINT_MATERIAL_DATA = '[craft] show blueprint material data'
 const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
 const SET_BUDGET_PAGE_LOADING_STAGE = '[craft] set budget page stage'
 const SET_BUDGET_PAGE_INFO = '[craft] set budget page info'
@@ -104,6 +105,14 @@ const setBlueprintExpanded = (name: string) => (expanded: boolean) => ({
     payload: {
         name,
         expanded
+    }
+})
+
+const showBlueprintMaterialData = (name: string, materialName: string) => ({
+    type: SHOW_BLUEPRINT_MATERIAL_DATA,
+    payload: {
+        name,
+        materialName
     }
 })
 
@@ -271,6 +280,7 @@ export {
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_EXPANDED,
+    SHOW_BLUEPRINT_MATERIAL_DATA,
     START_BUDGET_PAGE_LOADING,
     SET_BUDGET_PAGE_LOADING_STAGE,
     SET_BUDGET_PAGE_INFO,
@@ -304,6 +314,7 @@ export {
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
+    showBlueprintMaterialData,
     startBudgetPageLoading,
     setBudgetPageStage,
     setBudgetPageInfo,
