@@ -74,9 +74,10 @@ const sortColumnDefinition = {
 const getLimitText = (d: BlueprintData): string =>
     d.inventory?.limitClickItems.length > 2 ? 
         `${d.inventory.limitClickItems.slice(0, 2).join(', ')}, ${d.inventory.limitClickItems.length - 2} more` : 
-        d.inventory?.limitClickItems.join(', ');
+        d.inventory?.limitClickItems.join(', ') ?? '';
+
 const getItemAvailable = (d: BlueprintData): number =>
-    d.info.materials.find(m => m.name === "Item")?.available ?? 0
+    d.info.materials.find(m => m.name === "Item")?.available ?? 0;
 
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
