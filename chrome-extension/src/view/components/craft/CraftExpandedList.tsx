@@ -9,7 +9,7 @@ import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintMaterial, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
-import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
+import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
 
 function SessionInfo(p: {
@@ -180,7 +180,7 @@ function CraftSingle(p: {
                                     className='img-delta-zero'
                                     dispatch={() => reloadBlueprint(d.name)} /></p> :
                                 <>
-                                { SHOW_FEATURES_IN_DEVELOPMENT && <>
+                                { SHOW_FEATURES_IN_DEVELOPMENT && SHOW_BUDGET_IN_CRAFT && <>
                                     <p>Budget Page: { d.budget.loading ?
                                     <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
                                     <button onClick={() => dispatch(startBudgetPageLoading(d.name))}>{d.budget.hasPage ? 'Refresh' : 'Create'}</button>
