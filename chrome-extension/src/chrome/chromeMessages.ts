@@ -15,9 +15,13 @@ const PING_HANDLER: PortHandlers = {
     }
 }
 
+const LOG_FILTER = [ 'SendWebSocketMessage' ]
+
 function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, className: string, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
-        trace(`${className}._setListener received: '${m.name}' ${endPointName}`)
+        if (!LOG_FILTER.includes(m.name)) {
+            trace(`${className}._setListener received: '${m.name}' ${endPointName}`)
+        }
         const handler = PING_HANDLER[m.name] ?? handlerMap[m.name]
         if (handler) {
             const response = await handler(m)
@@ -52,7 +56,9 @@ class ChromeMessagesClient {
                 _setListener(port, handlerMap, 'ChromeMessagesClient', `registerName '${registerName}'`)
                 this.port = port
                 if (this.pendingMesssage) {
-                    trace(`ChromeMessagesClient.send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)
+                    if (!LOG_FILTER.includes(this.pendingMesssage.name)) {
+                        trace(`ChromeMessagesClient.send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)
+                    }
                     this.port.postMessage(this.pendingMesssage)
                     this.pendingMesssage = undefined
                 }
@@ -88,7 +94,9 @@ class ChromeMessagesClient {
         }
 
         try {
-            trace(`ChromeMessagesClient.send: '${name}' on registerName '${this.registerName}'`)
+            if (!LOG_FILTER.includes(name)) {
+                trace(`ChromeMessagesClient.send: '${name}' on registerName '${this.registerName}'`)
+            }
             this.port.postMessage({ name, ...data })
         } catch (e) {
             this.port = undefined

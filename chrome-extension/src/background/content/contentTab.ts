@@ -45,6 +45,7 @@ class ContentTabManager implements IContentTab {
             return STRING_PLEASE_LOG_IN
         } else {
             try {
+                trace(`ContentTabManager.requestItems send ${name}`)
                 port.send(name, data)
                 return undefined
             } catch (e) {
