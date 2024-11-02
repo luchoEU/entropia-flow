@@ -1,11 +1,14 @@
 interface CraftState {
     activeSession?: string
-    sortType: number,
-    activeBlueprintsExpanded: boolean
     blueprints: Array<BlueprintData>
-    blueprintFilter: string
-    c: { // calculated from previuos
-        filteredBluprints: Array<BlueprintData>
+    stared: {
+        expanded: boolean
+        sortType: number,
+        filter: string
+        list: Array<string>
+    }
+    c: { // calculated from previous
+        filteredStaredBlueprints: Array<BlueprintData>
     }
 }
 
@@ -17,7 +20,7 @@ interface BlueprintData {
     budget: BlueprintBudget
     session: BlueprintSession
     inventory?: BlueprintInventory
-    chain?: Array<string>
+    chain?: string
 }
 
 interface BlueprintInfo {

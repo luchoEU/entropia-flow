@@ -1,8 +1,8 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { removeBlueprint, setActiveBlueprintsExpanded, setActiveBlueprintsFilter, setBlueprintExpanded, sortBlueprintsBy } from '../../application/actions/craft'
+import { useSelector } from 'react-redux'
+import { setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
-import { getActiveBlueprintItem, getCraft } from '../../application/selectors/craft'
+import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, SortRowData } from '../common/SortableTableSection'
 
@@ -28,7 +28,7 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
                 imgButton: {
                     title: 'Remove this blueprint from Favorites',
                     src: 'img/staron.png',
-                    dispatch: () => removeBlueprint(d.name)
+                    dispatch: () => setBlueprintStared(d.name, false)
                 }
             }]
         },
@@ -87,20 +87,20 @@ function CraftCollapsedList() {
     return <>
         <SortableTableSection
             title='Favorite Blueprints'
-            expanded={s.activeBlueprintsExpanded}
-            filter={s.blueprintFilter}
+            expanded={s.stared.expanded}
+            filter={s.stared.filter}
             allItems={s.blueprints}
-            showItems={s.c.filteredBluprints}
-            sortType={s.sortType}
-            stats={{ count: s.c.filteredBluprints.length, itemTypeName: 'blueprint' }}
-            setExpanded={setActiveBlueprintsExpanded}
-            setFilter={setActiveBlueprintsFilter}
+            showItems={s.c.filteredStaredBlueprints}
+            sortType={s.stared.sortType}
+            stats={{ count: s.c.filteredStaredBlueprints.length, itemTypeName: 'blueprint' }}
+            setExpanded={setStaredBlueprintsExpanded}
+            setFilter={setStaredBlueprintsFilter}
             sortBy={sortBlueprintsBy}
             columns={columns}
             definition={sortColumnDefinition}
             sortRowData={sortRowData}
             getRowData={getRowData}
-            itemSelector={getActiveBlueprintItem}
+            itemSelector={getStaredBlueprintItem}
         />
     </>
 }

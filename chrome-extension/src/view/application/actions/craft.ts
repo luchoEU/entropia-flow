@@ -2,15 +2,16 @@ import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BlueprintSessionDiff, BluprintWebData, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
-const ADD_BLUEPRINT = '[craft] add blueprint'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
 const RELOAD_BLUEPRINT = '[craft] reload blueprint'
 const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
-const SET_ACTIVE_BLUEPRINTS_EXPANDED = '[craft] set active blueprints expanded'
-const SET_ACTIVE_BLUEPRINTS_FILTER = '[craft] set active blueprints filter'
+const SET_STARED_BLUEPRINTS_EXPANDED = '[craft] set stared blueprints expanded'
+const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
+const ADD_BLUEPRINT_LOADING = '[craft] add blueprint loading'
 const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
+const SET_BLUEPRINT_STARED = '[craft] set blueprint stared'
 const SHOW_BLUEPRINT_MATERIAL_DATA = '[craft] show blueprint material data'
 const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
 const SET_BUDGET_PAGE_LOADING_STAGE = '[craft] set budget page stage'
@@ -44,13 +45,6 @@ const setCraftState = (state: CraftState) => ({
     }
 })
 
-const addBlueprint = (name: string) => ({
-    type: ADD_BLUEPRINT,
-    payload: {
-        name
-    }
-})
-
 const removeBlueprint = (name: string) => ({
     type: REMOVE_BLUEPRINT,
     payload: {
@@ -72,17 +66,25 @@ const sortBlueprintsBy = (part: number) => ({
     }
 })
 
-const setActiveBlueprintsExpanded = (expanded: boolean) => ({
-    type: SET_ACTIVE_BLUEPRINTS_EXPANDED,
+const setStaredBlueprintsExpanded = (expanded: boolean) => ({
+    type: SET_STARED_BLUEPRINTS_EXPANDED,
     payload: {
         expanded
     }
 })
 
-const setActiveBlueprintsFilter = (filter: string) => ({
-    type: SET_ACTIVE_BLUEPRINTS_FILTER,
+const setStaredBlueprintsFilter = (filter: string) => ({
+    type: SET_STARED_BLUEPRINTS_FILTER,
     payload: {
         filter
+    }
+})
+
+const addBlueprintLoading = (name: string, expanded: boolean) => ({
+    type: ADD_BLUEPRINT_LOADING,
+    payload: {
+        name,
+        expanded
     }
 })
 
@@ -105,6 +107,14 @@ const setBlueprintExpanded = (name: string) => (expanded: boolean) => ({
     payload: {
         name,
         expanded
+    }
+})
+
+const setBlueprintStared = (name: string, stared: boolean) => ({
+    type: SET_BLUEPRINT_STARED,
+    payload: {
+        name,
+        stared
     }
 })
 
@@ -271,15 +281,16 @@ const clearCraftingSession = (name: string) => ({
 
 export {
     SET_CRAFT_STATE,
-    ADD_BLUEPRINT,
     REMOVE_BLUEPRINT,
     RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
-    SET_ACTIVE_BLUEPRINTS_EXPANDED,
-    SET_ACTIVE_BLUEPRINTS_FILTER,
+    SET_STARED_BLUEPRINTS_EXPANDED,
+    SET_STARED_BLUEPRINTS_FILTER,
+    ADD_BLUEPRINT_LOADING,
     ADD_BLUEPRINT_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_EXPANDED,
+    SET_BLUEPRINT_STARED,
     SHOW_BLUEPRINT_MATERIAL_DATA,
     START_BUDGET_PAGE_LOADING,
     SET_BUDGET_PAGE_LOADING_STAGE,
@@ -305,15 +316,16 @@ export {
     BUDGET_SELL,
     BUDGET_MOVE,
     setCraftState,
-    addBlueprint,
     removeBlueprint,
     reloadBlueprint,
     sortBlueprintsBy,
-    setActiveBlueprintsExpanded,
-    setActiveBlueprintsFilter,
+    setStaredBlueprintsExpanded,
+    setStaredBlueprintsFilter,
+    addBlueprintLoading,
     addBlueprintData,
     setBlueprintQuantity,
     setBlueprintExpanded,
+    setBlueprintStared,
     showBlueprintMaterialData,
     startBudgetPageLoading,
     setBudgetPageStage,

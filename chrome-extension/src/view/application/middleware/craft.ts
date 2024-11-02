@@ -2,13 +2,13 @@ import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_ACTIVE_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, addBlueprint, SET_ACTIVE_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { budgetInfoFromBp, cleanForSave, initialState, itemName, itemNameFromString, itemStringFromName } from '../helpers/craft'
+import { bpNameFromItemName, budgetInfoFromBp, cleanForSave, initialState, itemName, itemNameFromString, itemStringFromName } from '../helpers/craft'
 import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -35,14 +35,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             break
         }
-        case ADD_BLUEPRINT:
         case REMOVE_BLUEPRINT:
         case SORT_BLUEPRINTS_BY:
-        case SET_ACTIVE_BLUEPRINTS_EXPANDED:
-        case SET_ACTIVE_BLUEPRINTS_FILTER:
+        case SET_STARED_BLUEPRINTS_EXPANDED:
+        case SET_STARED_BLUEPRINTS_FILTER:
+        case ADD_BLUEPRINT_LOADING:
         case ADD_BLUEPRINT_DATA:
         case SET_BLUEPRINT_QUANTITY:
         case SET_BLUEPRINT_EXPANDED:
+        case SET_BLUEPRINT_STARED:
         case SHOW_BLUEPRINT_MATERIAL_DATA:
         case START_BUDGET_PAGE_LOADING:
         case SET_BUDGET_PAGE_LOADING_STAGE:
@@ -68,11 +69,29 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
     }
-    if (action.type === ADD_BLUEPRINT) {
+    if (action.type === ADD_BLUEPRINT_LOADING) {
         await fetchBlueprintData(action.payload.name, dispatch)
     }
     switch (action.type) {
-        case ADD_BLUEPRINT:
+        case SET_BLUEPRINT_STARED: {
+            const state: CraftState = getCraft(getState())
+            if (action.payload.stared && !state.blueprints.find(bp => bp.name == action.payload.name)) {
+                dispatch(addBlueprintLoading(action.payload.name, true))
+            }
+            break
+        }
+        case SHOW_BLUEPRINT_MATERIAL_DATA: {
+            const inv: InventoryState = getInventory(getState())
+            const state: CraftState = getCraft(getState())
+            if (!state.blueprints.find(bp => bp.itemName == action.payload.materialName)) {
+                const addBpName = bpNameFromItemName(inv, action.payload.materialName)
+                if (addBpName) {
+                    dispatch(addBlueprintLoading(addBpName, false))
+                }
+            }
+            break
+        }
+        case ADD_BLUEPRINT_LOADING:
         case SET_CURRENT_INVENTORY: {
             let s: InventoryState = getInventory(getState())
             let items = joinDuplicates(joinList(s), [ "AUCTION" ])
@@ -125,8 +144,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case RELOAD_BLUEPRINT: {
+            const state: CraftState = getCraft(getState())
+            const expanded = state.blueprints.find(bp => bp.name == action.payload.name)?.expanded ?? true
             dispatch(removeBlueprint(action.payload.name))
-            dispatch(addBlueprint(action.payload.name))
+            dispatch(addBlueprintLoading(action.payload.name, expanded))
             break
         }
         case START_CRAFT_SESSION:

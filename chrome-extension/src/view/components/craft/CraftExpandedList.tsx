@@ -51,7 +51,7 @@ function SessionInfo(p: {
 function CraftSingle(p: {
     d: BlueprintData
     activeSession?: string,
-    message: string
+    message?: string
 }) {
     const { d } = p
     const dispatch = useDispatch()
@@ -278,6 +278,23 @@ function CraftExpandedList() {
             {
                 s.blueprints.map((d: BlueprintData) => {
                     if (!d.expanded) return <></>
+                    
+                    const chainNames: string[] = []
+                    let afterChain: string = undefined
+                    let lastBpChain: BlueprintData = undefined
+                    let chain = d.chain
+                    while (chain) {
+                        const nextBp = s.blueprints.find(b => b.itemName === chain)
+                        if (nextBp) {
+                            if (lastBpChain)
+                                chainNames.push(lastBpChain.name)
+                            lastBpChain = nextBp
+                        } else {
+                            afterChain = chain
+                        }
+                        chain = nextBp?.chain
+                    }
+
                     return <section>
                         <div className='inline'>
                             <h1 onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintExpanded(d.name)(false)) }}>
@@ -286,13 +303,24 @@ function CraftExpandedList() {
                             </h1>
                             <CraftSingle key={d.name} d={d} activeSession={s.activeSession} message={message} />
                         </div>
-                        { d.chain?.map(m => {
-                            const c = s.blueprints.find(b => b.itemName === m);
-                            return <div className='inline craft-chain'>
-                                <h2>{ c?.name ?? m }</h2>
-                                { c && <CraftSingle key={m} d={c} activeSession={s.activeSession} message={message} /> }
-                            </div>
-                        })}
+                        <div className='inline'>
+                            { chainNames.map(name =>
+                                <div className='craft-chain'>
+                                    <h2>{ name }</h2>
+                                </div>
+                            )}
+                            { lastBpChain &&
+                                <div className='craft-chain'>
+                                    <h2>{ lastBpChain.name }</h2>
+                                    <CraftSingle key={d.chain} d={lastBpChain} />
+                                </div>
+                            }
+                            { afterChain &&
+                                <div className='craft-chain'>
+                                    <h2>{ afterChain }</h2>
+                                </div>
+                            }
+                        </div>
                     </section>
                 })
             }

@@ -2,30 +2,63 @@ import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
 
 const initialState: CraftState = {
-    sortType: Sort.SORT_NAME_ASCENDING,
-    activeBlueprintsExpanded: true,
     blueprints: [],
-    blueprintFilter: undefined,
+    stared: {
+        expanded: true,
+        sortType: Sort.SORT_NAME_ASCENDING,
+        filter: undefined,
+        list: []
+    },
     c: {
-        filteredBluprints: []
+        filteredStaredBlueprints: []
     }
 }
 
 const reduceSetState = (state: CraftState, inState: CraftState) => inState
 
 const itemNameFromBpName = (bpName: string) => bpName.split('Blueprint')[0].trim()
+const bpNameFromItemName = (inv: InventoryState, itemName: string) =>
+    inv.blueprints.originalList.items.find(bp => itemNameFromBpName(bp.n) == itemName)?.n
 
-const reduceAddBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
+const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
+    const sortType = Sort.nextSortType(part, state.stared.sortType)
+    return _applyFilter({
+        ...state,
+        stared: {
+            ...state.stared,
+            sortType
+        }
+    })
+}
+
+const reduceSetStaredBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
     ...state,
-    blueprints: Sort.sortList(state.sortType, [
+    stared: {
+        ...state.stared,
+        expanded
+    }
+})
+
+const reduceSetStaredBlueprintsFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
+    ...state,
+    stared: {
+        ...state.stared,
+        filter
+    }
+})
+
+const reduceAddBlueprintLoading = (state: CraftState, name: string, expanded: boolean): CraftState => _applyFilter({
+    ...state,
+    blueprints: [
         ...state.blueprints,
         {
             name,
             itemName: itemNameFromBpName(name),
-            expanded: true,
+            expanded,
             info: {
                 loading: true,
                 url: undefined,
@@ -41,7 +74,7 @@ const reduceAddBlueprint = (state: CraftState, name: string): CraftState => _app
                 step: STEP_INACTIVE
             }
         }
-    ])
+    ]
 })
 
 const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
@@ -49,28 +82,9 @@ const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _
     blueprints: state.blueprints.filter(bp => bp.name !== name)
 })
 
-const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
-    const sortType = Sort.nextSortType(part, state.sortType)
-    return _applyFilter({
-        ...state,
-        sortType,
-        blueprints: Sort.cloneSortList(sortType, state.blueprints)
-    })
-}
-
-const reduceSetActiveBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
-    ...state,
-    activeBlueprintsExpanded: expanded
-})
-
-const reduceSetActiveBlueprintsFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
-    ...state,
-    blueprintFilter: filter
-})
-
 const reduceAddBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => _applyFilter({
     ...state,
-    blueprints: Sort.sortList(state.sortType, state.blueprints.map(bp => {
+    blueprints: state.blueprints.map(bp => {
         if (bp.name === data.Name) {
             if (data.StatusCode === 0) {
                return {
@@ -101,7 +115,7 @@ const reduceAddBlueprintData = (state: CraftState, data: BluprintWebData): Craft
         } else {
             return bp
         }
-    }))
+    })
 })
 
 const itemNameFromString = (bp: BlueprintData, name: string): string =>
@@ -171,7 +185,6 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
         }
     }
 
-    Sort.sortList(state.sortType, blueprints)
     return _applyFilter({
         ...state,
         blueprints
@@ -197,28 +210,35 @@ const reduceSetBlueprintExpanded = (state: CraftState, name: string, expanded: b
         : bp)
 })
 
+const reduceSetBlueprintStared = (state: CraftState, name: string, stared: boolean): CraftState => _applyFilter({
+    ...state,
+    stared: {
+        ...state.stared,
+        list: stared ? (state.stared.list.includes(name) ? state.stared.list : [...state.stared.list, name]) : state.stared.list.filter(n => n !== name)
+    },
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, expanded: stared } : bp)
+})
+
 const reduceShowBlueprintMaterialData = (state: CraftState, name: string, materialName: string): CraftState => _applyFilter({
     ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? {
-        ...bp,
-        chain: [ materialName ],
-    } : bp)
+    blueprints: state.blueprints.map(bp =>
+        bp.name === name ? { ...bp, chain: materialName } :
+        (bp.itemName == materialName ? { ...bp, chain: undefined } : bp))
 })
 
 const _applyFilter = (state: CraftState): CraftState => {
-    if (state.blueprintFilter?.length === 0)
-        state.blueprintFilter = undefined
-    const filter = state.blueprintFilter
-    state.c.filteredBluprints = filter ?
-        state.blueprints.filter(bp => multiIncludes(filter, bp.name)) :
-        state.blueprints
+    if (state.stared.filter?.length === 0)
+        state.stared.filter = undefined
+    const filter = state.stared.filter
+    state.c.filteredStaredBlueprints = Sort.sortList(state.stared.sortType, (filter ? state.stared.list
+        .filter(name => multiIncludes(filter, name)) : state.stared.list)
+        .map(name => state.blueprints.find(bp => bp.name === name)))
     return state
 }
 
 const _changeBudget = (state: CraftState, name: string, data: object): CraftState => _applyFilter({
     ...state,
-    blueprints: Sort.sortList(state.sortType,
-        state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp))
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp)
 })
 
 const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState => 
@@ -267,7 +287,6 @@ const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetG
         })
     }
 
-    Sort.sortList(state.sortType, blueprints)
     return _applyFilter({
         ...state,
         blueprints
@@ -346,8 +365,7 @@ const reduceChangeBudgetBuyFee = (state: CraftState, name: string, materialName:
 
 const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => _applyFilter({
     ...state,
-    blueprints: Sort.sortList(state.sortType,
-        state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp))
+    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp)
 })
 
 const reduceStartCraftSession = (state: CraftState, name: string): CraftState => ({
@@ -393,8 +411,20 @@ const cleanForSave = (state: CraftState): CraftState => {
     const cState = JSON.parse(JSON.stringify(state));
     delete cState.activeSession;
     delete cState.c;
-    cState.blueprints.forEach(bp => {
-        bp.info.materials.forEach(m => {
+
+    // remove duplicates
+    const blueprintsByName = {};
+    cState.blueprints = cState.blueprints.reduce((list: BlueprintData[], bp: BlueprintData) => {
+        if (!blueprintsByName[bp.name]) {
+            blueprintsByName[bp.name] = true;
+            list.push(bp);
+        }
+        return list
+    }, []);
+    cState.stared.list = cState.stared.list.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+
+    cState.blueprints.forEach((bp: BlueprintData) => {
+        bp.info.materials.forEach((m: BlueprintMaterial) => {
             delete m.buyDone
         })
         bp.budget = {
@@ -416,14 +446,15 @@ export {
     itemNameFromString,
     itemStringFromName,
     budgetInfoFromBp,
-    reduceAddBlueprint,
     reduceRemoveBlueprint,
     reduceSortBlueprintsByPart,
-    reduceSetActiveBlueprintsExpanded,
-    reduceSetActiveBlueprintsFilter,
+    reduceSetStaredBlueprintsExpanded,
+    reduceSetStaredBlueprintsFilter,
+    reduceAddBlueprintLoading,
     reduceAddBlueprintData,
     reduceSetBlueprintQuantity,
     reduceSetBlueprintExpanded,
+    reduceSetBlueprintStared,
     reduceShowBlueprintMaterialData,
     reduceStartBudgetLoading,
     reduceSetBudgetState,
@@ -445,5 +476,5 @@ export {
     reduceDoneCraftSession,
     reduceClearCraftSession,
     cleanForSave,
-    itemNameFromBpName,
+    bpNameFromItemName,
 }

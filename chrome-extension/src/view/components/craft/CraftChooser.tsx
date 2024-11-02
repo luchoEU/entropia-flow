@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addBlueprint, removeBlueprint } from '../../application/actions/craft'
+import { setBlueprintStared } from '../../application/actions/craft'
 import { setOwnedBlueprintsExpanded, setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { getCraft } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
@@ -19,7 +19,6 @@ function CraftChooser() {
     const dispatch = useDispatch()
 
     let bp = inv.blueprints.showList.items.map(d => d.n)
-    let added = s.blueprints.map(d => d.name)
     let unique = bp.filter((element, index) => { // show only 1 instance of each blueprint
         return bp.indexOf(element) === index;
     })
@@ -37,12 +36,12 @@ function CraftChooser() {
                     definition={sortColumnDefinition}>
                     { unique.map((n: string) =>
                         <tr key={n} className='item-row'
-                            onClick={() => !added.includes(n) && dispatch(addBlueprint(n))}>
+                            onClick={() => dispatch(setBlueprintStared(n, true))}>
                             <td>
                                 <ItemText text={n} />
-                                { added.includes(n) ?
-                                    <ImgButton title='Remove from Active Blueprints' src="img/staron.png" dispatch={() => removeBlueprint(n)} /> :
-                                    <ImgButton title='Add to Active Blueprints' src="img/staroff.png" dispatch={() => addBlueprint(n)} />
+                                { s.stared.list.includes(n) ?
+                                    <ImgButton title='Remove from Favorite Blueprints' src="img/staron.png" dispatch={() => setBlueprintStared(n, true)} /> :
+                                    <ImgButton title='Add to Favorite Blueprints' src="img/staroff.png" dispatch={() => setBlueprintStared(n, true)} />
                                 }
                             </td>
                         </tr>
