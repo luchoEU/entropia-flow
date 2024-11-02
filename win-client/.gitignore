@@ -2,3 +2,4 @@
 bin/
 obj/
 EntropiaFlowClient.csproj.user
+*.pubxml.user

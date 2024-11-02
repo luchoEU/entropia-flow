@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -47,13 +48,16 @@ namespace EntropiaFlowClient
 
         public class Message
         {
-            public string type { get; set; }
-            public object data { get; set; }
+            [JsonPropertyName("type")]
+            public required string Type { get; set; }
+
+            [JsonPropertyName("data")]
+            public required object Data { get; set; }
         }
 
         protected override void OnMessage(MessageEventArgs e)
         {
-            Message msg;
+            Message? msg;
             try
             {
                 msg = JsonSerializer.Deserialize<Message>(e.Data);
@@ -63,11 +67,11 @@ namespace EntropiaFlowClient
                 Console.WriteLine($"Websocket message received with invalid format: {e.Data}");
                 return;
             }
-            if (msg?.type == "stream")
-                StreamMessageReceived?.Invoke(this, new StreamMessageEventArgs(msg.data.ToString()));
+            if (msg?.Type == "stream" && msg.Data is string stringData)
+                StreamMessageReceived?.Invoke(this, new StreamMessageEventArgs(stringData));
         }
 
-        public event EventHandler<StreamMessageEventArgs> StreamMessageReceived;
+        public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;
 
         public class StreamMessageEventArgs(string data) : EventArgs
         {
@@ -78,7 +82,7 @@ namespace EntropiaFlowClient
         {
             if (Sessions == null) return;
 
-            var msg = new Message() { type = type, data = data };
+            var msg = new Message() { Type = type, Data = data };
             string jsonString = JsonSerializer.Serialize(msg);
             Sessions.Broadcast(jsonString);
         }

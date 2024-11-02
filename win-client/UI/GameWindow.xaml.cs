@@ -1,5 +1,7 @@
 ﻿using System.Configuration;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Point = System.Drawing.Point;
@@ -22,13 +24,16 @@ namespace EntropiaFlowClient
             ((App)System.Windows.Application.Current).StreamMessageReceived += GameWindow_StreamMessageReceived;
         }
 
-        private string m_LastMessage;
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
-            //if (e.Data.Equals(m_LastMessage))
-            //    return;
-
             Dispatcher.Invoke(() => webView2.CoreWebView2?.ExecuteScriptAsync($"render({e.Data})"));
+        }
+
+        private static string ReadResource(string name)
+        {
+            using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EntropiaFlowClient.GameWindow." + name) ?? throw new Exception(name + " not found");
+            using StreamReader reader = new(stream);
+            return reader.ReadToEnd();
         }
 
         private void WebBrowser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
@@ -37,8 +42,10 @@ namespace EntropiaFlowClient
             {
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
-                var file = Path.Combine(Directory.GetCurrentDirectory(), "GameWindow", "StreamView.html");
-                webView2.CoreWebView2.Navigate($"file://{file}");
+                string contentHtml = ReadResource("StreamView.html")
+                                .Replace("<script src=\"Mouse.js\"></script>", $"<script>{ReadResource("Mouse.js")}</script>")
+                                .Replace("<script src=\"Render.js\"></script>", $"<script>{ReadResource("Render.js")}</script>");
+                webView2.CoreWebView2.NavigateToString(contentHtml);
             }
             else
             {

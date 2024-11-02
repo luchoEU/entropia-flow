@@ -12,7 +12,7 @@ namespace EntropiaFlowClient
         private readonly NotifyIcon _notifyIcon;
         private readonly WebSocketChat _webSocketServer;
         private readonly LogWatcher _watcher;
-        private SettingsWindow _settingsWindow;
+        private SettingsWindow? _settingsWindow;
 
         public App()
         {
@@ -87,7 +87,7 @@ namespace EntropiaFlowClient
             StreamMessageReceived?.Invoke(this, e);
         }
 
-        public event EventHandler<StreamMessageEventArgs> StreamMessageReceived;
+        public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;
 
         #endregion
 
