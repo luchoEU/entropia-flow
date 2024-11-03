@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setBlueprintStared } from '../../application/actions/craft'
+import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft'
 import { setOwnedBlueprintsExpanded, setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { getCraft } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
@@ -36,7 +36,7 @@ function CraftChooser() {
                     definition={sortColumnDefinition}>
                     { unique.map((n: string) =>
                         <tr key={n} className='item-row'
-                            onClick={() => dispatch(setBlueprintStared(n, true))}>
+                            onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintActivePage(n)) }}>
                             <td>
                                 <ItemText text={n} />
                                 { s.stared.list.includes(n) ?

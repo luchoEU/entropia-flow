@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { setBlueprintActivePage, setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
@@ -13,15 +13,10 @@ const sortRowData: SortRowData = {
     [BUDGET]: { justifyContent: 'end' },
 }
 const getRowData = (d: BlueprintData): ItemRowData => ({
-    dispatch: () => setBlueprintExpanded(d.name)(!d.expanded),
+    dispatch: () => setBlueprintActivePage(d.name),
     columns: {
         [NAME]: {
             sub: [{
-                plusButton: {
-                    expanded: d.expanded,
-                    setExpanded: () => setBlueprintExpanded(d.name),
-                }
-            }, {
                 flex: 1,
                 itemText: d.itemName
             }, {

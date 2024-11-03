@@ -1,6 +1,6 @@
 import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, setBlueprintExpanded, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, setBlueprintActivePage, setBlueprintExpanded, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
@@ -272,59 +272,53 @@ function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
+    const d = s.blueprints.find(b => b.name === s.activePage)
+    if (!d) return <></>
+
+    const chainNames: string[] = []
+    let afterChain: string = undefined
+    let lastBpChain: BlueprintData = undefined
+    let chain = d.chain
+    while (chain) {
+        const nextBp = s.blueprints.find(b => b.itemName === chain)
+        if (nextBp) {
+            if (lastBpChain)
+                chainNames.push(lastBpChain.name)
+            lastBpChain = nextBp
+        } else {
+            afterChain = chain
+        }
+        chain = nextBp?.chain
+    }
 
     return (
-        <>
-            {
-                s.blueprints.map((d: BlueprintData) => {
-                    if (!d.expanded) return <></>
-                    
-                    const chainNames: string[] = []
-                    let afterChain: string = undefined
-                    let lastBpChain: BlueprintData = undefined
-                    let chain = d.chain
-                    while (chain) {
-                        const nextBp = s.blueprints.find(b => b.itemName === chain)
-                        if (nextBp) {
-                            if (lastBpChain)
-                                chainNames.push(lastBpChain.name)
-                            lastBpChain = nextBp
-                        } else {
-                            afterChain = chain
-                        }
-                        chain = nextBp?.chain
-                    }
-
-                    return <section>
-                        <div className='inline'>
-                            <h1 onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintExpanded(d.name)(false)) }}>
-                                {d.name}
-                                <img className='hide' src='img/down.png' />
-                            </h1>
-                            <CraftSingle key={d.name} d={d} activeSession={s.activeSession} message={message} />
-                        </div>
-                        <div className='inline'>
-                            { chainNames.map(name =>
-                                <div className='craft-chain'>
-                                    <h2>{ name }</h2>
-                                </div>
-                            )}
-                            { lastBpChain &&
-                                <div className='craft-chain'>
-                                    <h2>{ lastBpChain.name }</h2>
-                                    <CraftSingle key={d.chain} d={lastBpChain} />
-                                </div>
-                            }
-                            { afterChain &&
-                                <div className='craft-chain'>
-                                    <h2>{ afterChain }</h2>
-                                </div>
-                            }
-                        </div>
-                    </section>
-                })
-            }
-        </>
+        <section>
+            <div className='inline'>
+                <h1 onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintExpanded(d.name)(false)) }}>
+                    {d.name}
+                    <img className='hide' src='img/down.png' />
+                </h1>
+                <CraftSingle key={d.name} d={d} activeSession={s.activeSession} message={message} />
+            </div>
+            <div className='inline'>
+                { chainNames.map(name =>
+                    <div className='craft-chain'>
+                        <h2>{ name }</h2>
+                    </div>
+                )}
+                { lastBpChain &&
+                    <div className='craft-chain'>
+                        <h2>{ lastBpChain.name }</h2>
+                        <CraftSingle key={d.chain} d={lastBpChain} />
+                    </div>
+                }
+                { afterChain &&
+                    <div className='craft-chain'>
+                        <h2>{ afterChain }</h2>
+                    </div>
+                }
+            </div>
+        </section>
     )
 }
 

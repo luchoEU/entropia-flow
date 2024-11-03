@@ -35,6 +35,11 @@ const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState
     })
 }
 
+const reduceSetBlueprintActivePage = (state: CraftState, name: string): CraftState => ({
+    ...state,
+    activePage: name
+})
+
 const reduceSetStaredBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
     ...state,
     stared: {
@@ -51,14 +56,13 @@ const reduceSetStaredBlueprintsFilter = (state: CraftState, filter: string): Cra
     }
 })
 
-const reduceAddBlueprintLoading = (state: CraftState, name: string, expanded: boolean): CraftState => _applyFilter({
+const reduceAddBlueprintLoading = (state: CraftState, name: string): CraftState => _applyFilter({
     ...state,
     blueprints: [
         ...state.blueprints,
         {
             name,
             itemName: itemNameFromBpName(name),
-            expanded,
             info: {
                 loading: true,
                 url: undefined,
@@ -448,6 +452,7 @@ export {
     budgetInfoFromBp,
     reduceRemoveBlueprint,
     reduceSortBlueprintsByPart,
+    reduceSetBlueprintActivePage,
     reduceSetStaredBlueprintsExpanded,
     reduceSetStaredBlueprintsFilter,
     reduceAddBlueprintLoading,

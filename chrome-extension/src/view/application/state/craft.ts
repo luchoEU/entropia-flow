@@ -1,5 +1,6 @@
 interface CraftState {
     activeSession?: string
+    activePage?: string // blueprint name
     blueprints: Array<BlueprintData>
     stared: {
         expanded: boolean
@@ -15,7 +16,6 @@ interface CraftState {
 interface BlueprintData {
     name: string
     itemName: string
-    expanded: boolean
     info: BlueprintInfo
     budget: BlueprintBudget
     session: BlueprintSession

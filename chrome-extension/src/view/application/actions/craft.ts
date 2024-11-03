@@ -5,6 +5,7 @@ const SET_CRAFT_STATE = '[craft] set state'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
 const RELOAD_BLUEPRINT = '[craft] reload blueprint'
 const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
+const SET_BLUEPRINT_ACTIVE_PAGE = '[craft] set blueprint active page'
 const SET_STARED_BLUEPRINTS_EXPANDED = '[craft] set stared blueprints expanded'
 const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
 const ADD_BLUEPRINT_LOADING = '[craft] add blueprint loading'
@@ -66,6 +67,13 @@ const sortBlueprintsBy = (part: number) => ({
     }
 })
 
+const setBlueprintActivePage = (name: string) => ({
+    type: SET_BLUEPRINT_ACTIVE_PAGE,
+    payload: {
+        name
+    }
+})
+
 const setStaredBlueprintsExpanded = (expanded: boolean) => ({
     type: SET_STARED_BLUEPRINTS_EXPANDED,
     payload: {
@@ -80,11 +88,10 @@ const setStaredBlueprintsFilter = (filter: string) => ({
     }
 })
 
-const addBlueprintLoading = (name: string, expanded: boolean) => ({
+const addBlueprintLoading = (name: string) => ({
     type: ADD_BLUEPRINT_LOADING,
     payload: {
-        name,
-        expanded
+        name
     }
 })
 
@@ -284,6 +291,7 @@ export {
     REMOVE_BLUEPRINT,
     RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
+    SET_BLUEPRINT_ACTIVE_PAGE,
     SET_STARED_BLUEPRINTS_EXPANDED,
     SET_STARED_BLUEPRINTS_FILTER,
     ADD_BLUEPRINT_LOADING,
@@ -319,6 +327,7 @@ export {
     removeBlueprint,
     reloadBlueprint,
     sortBlueprintsBy,
+    setBlueprintActivePage,
     setStaredBlueprintsExpanded,
     setStaredBlueprintsFilter,
     addBlueprintLoading,
