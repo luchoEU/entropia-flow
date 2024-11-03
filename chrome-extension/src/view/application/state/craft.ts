@@ -83,7 +83,7 @@ interface BlueprintMaterial {
     withFee?: boolean // budget
 }
 
-interface BluprintWebData {
+interface BlueprintWebData {
     Name: string
     ItemValue: string
     StatusCode: number
@@ -105,7 +105,7 @@ export {
     BlueprintMaterial,
     BlueprintSession,
     BlueprintSessionDiff,
-    BluprintWebData,
+    BlueprintWebData,
     BlueprintWebMaterial,
     STEP_INACTIVE,
     STEP_REFRESH_TO_START,

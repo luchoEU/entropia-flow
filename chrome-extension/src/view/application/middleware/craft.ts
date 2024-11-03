@@ -15,7 +15,7 @@ import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintMaterial, BlueprintSessionDiff, BlueprintWebMaterial, BluprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintMaterial, BlueprintSessionDiff, BlueprintWebMaterial, BlueprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
@@ -315,7 +315,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promise<void> => {
     const urlName = name.replace(/ /g, '%20')
     let url = `https://apps5.genexus.com/entropia-flow-helper-1/rest/BlueprintInfo?name=${urlName}` // use server to get from entropiawiki to avoid CORS error
-    let data: BluprintWebData
+    let data: BlueprintWebData
     try {
         let response = await fetch(url)
         data = await response.json()

@@ -1,7 +1,7 @@
 import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BluprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BlueprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
 
@@ -86,7 +86,7 @@ const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _
     blueprints: state.blueprints.filter(bp => bp.name !== name)
 })
 
-const reduceAddBlueprintData = (state: CraftState, data: BluprintWebData): CraftState => _applyFilter({
+const reduceAddBlueprintData = (state: CraftState, data: BlueprintWebData): CraftState => _applyFilter({
     ...state,
     blueprints: state.blueprints.map(bp => {
         if (bp.name === data.Name) {

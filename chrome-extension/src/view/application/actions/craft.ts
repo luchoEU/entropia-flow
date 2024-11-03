@@ -1,5 +1,5 @@
 import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BlueprintSessionDiff, BluprintWebData, CraftState } from '../state/craft'
+import { BlueprintSessionDiff, BlueprintWebData, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
@@ -95,7 +95,7 @@ const addBlueprintLoading = (name: string) => ({
     }
 })
 
-const addBlueprintData = (data: BluprintWebData) => ({
+const addBlueprintData = (data: BlueprintWebData) => ({
     type: ADD_BLUEPRINT_DATA,
     payload: {
         data
