@@ -141,10 +141,11 @@ const ItemRow = <T extends any>(
     const item: T = useSelector(itemSelector(index))
     const dispatch = useDispatch()
     const data = getData(item)
+    const className = 'item-row' + (data.dispatch ? ' pointer' : '')
 
     return (
-        <div className='item-row' style={style}
-            onClick={(e) => { e.stopPropagation(); data.dispatch && dispatch(data.dispatch()) }}>
+        <div className={className} style={style}
+            {...data.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch()) } } : {}}>
             <ItemRowRender
                 data={data}
                 columns={columns} />
@@ -167,7 +168,7 @@ const ItemRowRender = (p: {
         { p.columns.map((c: ColumnWidthData) => {
             const d = p.data.columns[c.part]
             return d && <div key={c.part} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) } } : {}}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>

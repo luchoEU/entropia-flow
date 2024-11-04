@@ -17,8 +17,10 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
     columns: {
         [NAME]: {
             sub: [{
-                flex: 1,
                 itemText: d.itemName
+            }, {
+                flex: 1,
+                img: { src: 'img/right.png' }
             }, {
                 imgButton: {
                     title: 'Remove this blueprint from Favorites',

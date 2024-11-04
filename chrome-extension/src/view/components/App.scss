@@ -91,6 +91,10 @@ img {
     vertical-align: middle;
 }
 
+.pointer {
+    cursor: pointer;
+}
+
 // Refined
 form {
     display: grid;
@@ -222,14 +226,17 @@ form label {
 }
 
 .table-diff tr td img,
-.item-row img {
+.item-row img,
+.img-hover img {
     visibility: hidden;
 }
 
 .table-diff tr:hover td img,
 .table-diff tr td img[data-show],
 .item-row:hover img,
-.item-row img[data-show] {
+.item-row img[data-show],
+.img-hover:hover img,
+.img-hover img[data-show] {
     visibility: visible;
 }
 
@@ -339,8 +346,9 @@ td:hover .img-info {
     border-radius: 8px;
 }
 
-h1 img {
-    height: 10px;
+h1 img,
+h2 img {
+    height: 14px;
     margin-left: 5px;
 }
 
@@ -427,7 +435,8 @@ button:active {
     font-weight: bold;
 }
 
-.item-row.stable [data-text] {
+.item-row.stable [data-text],
+.item-row.stable [data-text-right] {
     position: relative;
     color: transparent;
     font-weight: bold;
@@ -443,10 +452,21 @@ button:active {
     z-index: 1;
 }
 
+.item-row.stable [data-text-right]::after {
+    content: attr(data-text-right);
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: black;
+    font-weight: normal;
+    z-index: 1;
+}
+
 .item-row:hover,
 .item-row:hover .item-text,
 .item-row .to-auction.item-text,
-.item-row.stable:hover [data-text]::after {
+.item-row.stable:hover [data-text]::after,
+.item-row.stable:hover [data-text-right]::after {
     font-weight: bold;
 }
 
@@ -604,7 +624,8 @@ button:active {
 
 .craft-chain {
     background-color: floralwhite;
-    padding: 0px 10px;
+    padding: 1px 10px;
     margin-left: 10px;
+    margin-bottom: 10px;
     border-radius: 15px;
 }

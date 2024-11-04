@@ -203,16 +203,19 @@ function CraftSingle(p: {
                     <tbody>
                         {
                             d.info.materials.map((m: BlueprintMaterial) =>
-                                <tr key={m.name} className='item-row stable' onClick={(e) => {
+                                <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(showBlueprintMaterialData(d.name, m.name))
+                                    dispatch(showBlueprintMaterialData(d.name, d.chain === m.name ? undefined : m.name))
                                 }}>
                                     <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
                                     <td align='right'>{addZeroes(m.value)}</td>
-                                    <td data-text={m.name}>{m.name}</td>
+                                    <td data-text={m.name}>
+                                        {m.name}
+                                        <img src={d.chain === m.name ? 'img/left.png' : 'img/right.png'}/>
+                                    </td>
                                     <td data-text={m.type}>{m.type}</td>
-                                    <td align='right'>{m.available}</td>
-                                    <td align='right'>{m.clicks}</td>
+                                    <td data-text-right={m.available}>{m.available}</td>
+                                    <td data-text-right={m.clicks}>{m.clicks}</td>
                                     { markupMap && <td align='right'>{markupMap[m.name]}</td> }
                                     { budgetMap && <td align='right'>{budgetMap[m.name]}</td> }
                                     { session && <td align="right">{session[m.name]}</td> }
@@ -277,6 +280,7 @@ function CraftExpandedList() {
 
     const chainNames: string[] = []
     let afterChain: string = undefined
+    let afterBpChain: BlueprintData = undefined
     let lastBpChain: BlueprintData = undefined
     let chain = d.chain
     while (chain) {
@@ -287,6 +291,7 @@ function CraftExpandedList() {
             lastBpChain = nextBp
         } else {
             afterChain = chain
+            afterBpChain = lastBpChain ?? d
         }
         chain = nextBp?.chain
     }
@@ -303,18 +308,33 @@ function CraftExpandedList() {
             <div className='inline'>
                 { chainNames.map(name =>
                     <div className='craft-chain'>
-                        <h2>{ name }</h2>
+                        <h2 className='pointer img-hover' onClick={(e) => {
+                                e.stopPropagation();
+                                dispatch(showBlueprintMaterialData(name, undefined))
+                            }}>
+                            { name }<img src='img/right.png' />
+                        </h2>
                     </div>
                 )}
                 { lastBpChain &&
                     <div className='craft-chain'>
-                        <h2>{ lastBpChain.name }</h2>
+                        <h2 className='pointer img-hover' onClick={(e) => {
+                                e.stopPropagation();
+                                dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : d.name, undefined))
+                            }}>
+                            { lastBpChain.name }<img src='img/left.png' />
+                        </h2>
                         <CraftSingle key={d.chain} d={lastBpChain} />
                     </div>
                 }
                 { afterChain &&
                     <div className='craft-chain'>
-                        <h2>{ afterChain }</h2>
+                        <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(afterBpChain.name, undefined)) }}>
+                            { afterChain }<img src='img/left.png' />
+                        </h2>
+                        <div>
+                            <p>Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}</p>
+                        </div>
                     </div>
                 }
             </div>

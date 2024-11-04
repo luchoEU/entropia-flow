@@ -35,10 +35,13 @@ function CraftChooser() {
                     columns={[NAME]}
                     definition={sortColumnDefinition}>
                     { unique.map((n: string) =>
-                        <tr key={n} className='item-row'
+                        <tr key={n} className='item-row pointer'
                             onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintActivePage(n)) }}>
                             <td>
                                 <ItemText text={n} />
+                                <img src="img/right.png" />
+                            </td>
+                            <td>
                                 { s.stared.list.includes(n) ?
                                     <ImgButton title='Remove from Favorite Blueprints' src="img/staron.png" dispatch={() => setBlueprintStared(n, true)} /> :
                                     <ImgButton title='Add to Favorite Blueprints' src="img/staroff.png" dispatch={() => setBlueprintStared(n, true)} />

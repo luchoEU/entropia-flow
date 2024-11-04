@@ -10,11 +10,14 @@ import { setBlueprintActivePage } from '../../application/actions/craft'
 const CraftBackToList = () => {
     const dispatch = useDispatch()
 
-    return <section onClick={(e) => {
+    return <section className='pointer' onClick={(e) => {
         e.stopPropagation();
         dispatch(setBlueprintActivePage(undefined))
     }}>
-        <h1>{ 'List <<' }</h1>
+        <h1>
+            <span>List</span>
+            <img src='img/left.png' />
+        </h1>
     </section>
 }
 
