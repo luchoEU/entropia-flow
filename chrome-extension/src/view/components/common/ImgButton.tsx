@@ -15,11 +15,11 @@ const ImgButton = (p: {
     return p.text ?
         <span
             title={p.title}
+            className={'pointer ' + (p.className ?? '')}
             onClick={(e) => {
                 e.stopPropagation()
                 dispatch(p.dispatch())
             }}
-            {...p.className ? { className: p.className } : {}}
             {...p.style ? { style: p.style } : {}}
             {...p.show ? { 'data-show': true } : {}}>
             <img src={p.src} />
@@ -28,6 +28,7 @@ const ImgButton = (p: {
         <img
             title={p.title}
             src={p.src}
+            className={'pointer ' + (p.className ?? '')}
             onClick={(e) => {
                 e.stopPropagation()
                 dispatch(p.dispatch())

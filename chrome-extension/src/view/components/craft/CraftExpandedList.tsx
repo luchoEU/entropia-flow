@@ -11,6 +11,8 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
+import { setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
+import { INVENTORY_PAGE, selectMenu } from '../../application/actions/menu'
 
 function SessionInfo(p: {
     name: string,
@@ -333,7 +335,18 @@ function CraftExpandedList() {
                             { afterChain }<img src='img/left.png' />
                         </h2>
                         <div>
-                            <p>Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}</p>
+                            <p>
+                                Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}
+                            </p>
+                            <p className='item-row pointer' onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(selectMenu(INVENTORY_PAGE));
+                                    dispatch(setByStoreStaredInventoryExpanded(false));
+                                    dispatch(setByStoreInventoryFilter(afterChain.split(' ')[0]));
+                                }}>
+                                Search {afterChain.split(' ')[0]}
+                                <img src='img/find.png' title='Search it in inventory' data-show />
+                            </p>
                         </div>
                     </div>
                 }

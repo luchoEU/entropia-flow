@@ -28,7 +28,7 @@ const getRowData = (item: ItemHidden): ItemRowData => ({
             }, {
                 imgButton: {
                     title: 'Search by this item name',
-                    src: 'img/find.jpg',
+                    src: 'img/find.png',
                     dispatch: () => setHiddenInventoryFilter(`!${item.data.n}`)
                 }
             }]

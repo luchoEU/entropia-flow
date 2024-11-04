@@ -46,7 +46,7 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
                     title: item.stared ? 'Remove from Favorites' : 'Add to Favorites',
                     dispatch: () => v.setItemStared(item.id, !item.stared)
                 } },
-                { imgButton: { src: 'img/find.jpg', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
+                { imgButton: { src: 'img/find.png', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
             ]
         },
         [QUANTITY]: {
@@ -67,7 +67,7 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
                 itemText: item.c
             }, {
                 imgButton: {
-                    src: 'img/find.jpg',
+                    src: 'img/find.png',
                     title: 'Search in this container by this item name',
                     dispatch: () => setByStoreInventoryFilter(`!${item.n}`)
                 }

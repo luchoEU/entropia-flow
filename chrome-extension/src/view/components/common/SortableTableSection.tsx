@@ -139,6 +139,9 @@ const ItemRow = <T extends any>(
     columns: ColumnWidthData[]) =>
     ({ index, style }) => {
     const item: T = useSelector(itemSelector(index))
+    if (!item)
+        return <p>{`Item ${index} not found`}</p>
+
     const dispatch = useDispatch()
     const data = getData(item)
     const className = 'item-row' + (data.dispatch ? ' pointer' : '')
@@ -232,7 +235,7 @@ const SortableTableSection = <T extends any>(p: {
     const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
     return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
         <div className='search-container'>
-            <p><span>{ stats.ped ? 'Total value {stats.ped} PED for' : 'Listing'}</span>
+            <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
                 <span> {stats.count} </span>
                 <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
                 { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
