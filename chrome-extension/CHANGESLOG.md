@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.4.4 - 2024-11-05
+### Added
+- Show related blueprints in Crafting tab
+
 ## Version 0.4.3 - 2024-10-30
 ### Added
 - Add planet column in favorite containers

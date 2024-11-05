@@ -427,7 +427,7 @@ button:active {
 }
 
 .item-text {
-    padding-right: 5px;
+    margin-right: 5px;
     font-weight: normal;
 }
 
@@ -628,4 +628,12 @@ button:active {
     margin-left: 10px;
     margin-bottom: 10px;
     border-radius: 15px;
+}
+
+.clicks-error .item-text {
+    margin-right: 2px;
+}
+
+.item-row .clicks-error img {
+    margin: unset;
 }

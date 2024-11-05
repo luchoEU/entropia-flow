@@ -77,9 +77,11 @@ interface ItemRowSubColumnData {
         onChange: (value: string) => any
     }
     img?: {
+        title?: string
         src: string
         show?: boolean
     }
+    compose?: ItemRowSubColumnData[]
 }
 
 interface ColumnWidthData {
@@ -99,7 +101,8 @@ const getRowColumnWidth = (c: ItemRowColumnData, imgWidth: number = IMG_WIDTH): 
         (sc.itemText ? getTextWidth(sc.itemText, FONT_BOLD) + ITEM_TEXT_PADDING : 0) +
         (sc.input ? INPUT_WIDTH : 0) +
         (sc.strong ? getTextWidth(sc.strong, FONT_BOLD) : 0) +
-        (sc.img ? imgWidth : 0)),
+        (sc.img ? imgWidth : 0) +
+        (sc.compose ? getRowColumnWidth({ sub: sc.compose }, imgWidth).reduce((acc, w) => acc + w, 0) : 0)),
     _getPadding(c)
 ];
 
@@ -115,7 +118,8 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
                 { sc.itemText && <ItemText text={sc.itemText} /> }
                 { sc.strong && <strong>{sc.strong}</strong> }
                 { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
-                { sc.img && <img src={sc.img.src} {...sc.img.show ? { 'data-show': true } : {}} /> }
+                { sc.img && <img src={sc.img.src} {...sc.img.show ? { 'data-show': true } : {}} {...sc.img.title ? { title: sc.img.title } : {}} /> }
+                { sc.compose && <ItemSubRowRender sub={sc.compose} width={Array(sc.compose.length).fill(0)} /> }
             </span>
     )}
 </>

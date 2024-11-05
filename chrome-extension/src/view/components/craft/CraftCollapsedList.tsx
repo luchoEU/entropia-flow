@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { setBlueprintActivePage, setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { reloadBlueprint, setBlueprintActivePage, setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
@@ -31,14 +31,15 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
         },
         [CLICKS]: {
             style: { justifyContent: 'center' },
-            sub: d.info.loading ? 
+            dispatch: d.info.loading || d.info.materials.length > 0 ? undefined : () => reloadBlueprint(d.name),
+            sub: d.info.loading ?
                 [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
-                [{ itemText: d.inventory?.clicksAvailable.toString() }]
+                (d.info.materials.length === 0 ?
+                    [{ class: 'clicks-error', compose: [{ itemText: 'Error' }, { img: { title: `${d.info.errorText}. Click to try to load blueprint again`, src:'img/reload.png', show: true }}] }] :
+                    [{ itemText: d.inventory?.clicksAvailable?.toString() }])
         },
         [LIMIT]: {
-            sub: [{
-                itemText: getLimitText(d)
-            }]
+            sub: [{ itemText: getLimitText(d) }]
         },
         [ITEMS]: {
             style: { justifyContent: 'center' },
