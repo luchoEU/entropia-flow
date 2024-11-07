@@ -32,8 +32,10 @@ class InventoryManager {
         inventory.itemlist?.forEach(item => {
             total += Number(item.v)
 
+            // Some names have '&amp;' in json but a & when read from html, like 'A&amp;P Series Mayhem LP-100, Modified (L)'
             // Some names have '&apos;' in json but a ' when read from html
             // Remove extra space at the end of 'Mission Galactica Coin (Green) '
+            item.n = item.n.replace(/&amp;/g, "&");
             item.n = item.n.replace(/&apos;/g, "'");
             item.n = item.n.trim()
 

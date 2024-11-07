@@ -2,13 +2,16 @@ import TabStorage from "../background/tabStorage"
 import IMessagesHub from "./IMessagesHub"
 import ITabManager, { ITab } from "./ITab"
 
-type PortHandler = (message: any) => Promise<any>
+type PortHandler = (message: any, sender?: IMessageSender) => Promise<any>
 type PortHandlers = { [key: string]: PortHandler }
 type PortManagerFactory = (storage: TabStorage, messages: IMessagesHub, tabs: ITabManager, portName: string) => IPortManager
 
-interface IPort {
+interface IMessageSender {
+    send(name: string, data?: object): void
+}
+
+interface IPort extends IMessageSender {
     getTabId(): number
-    send(name: string, data: object): void
     onDisconnect(callback: (port: IPort) => void): void
 }
 
@@ -28,6 +31,7 @@ interface IPortManager {
 export default IPortManager
 export {
     IPort,
+    IMessageSender,
     PortHandler,
     PortHandlers,
     PortManagerFactory

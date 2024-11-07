@@ -2,29 +2,31 @@
 import { trace, traceData } from '../common/trace'
 import { MessageHandlers } from './IMessagesHub'
 import ChromePort from './chromePort'
-import { IPort, PortHandlers } from './IPort'
+import { IMessageSender, IPort, PortHandlers } from './IPort'
 
 //// Listeners ////
 
 const PING_HANDLER: PortHandlers = {
     ping: async () => ({ name: 'pong' }),
-    pong: async () => {
+    pong: async (_, sender) => {
         // Reply before 30 seconds to keep background service worker alive
-        await new Promise(resolve => setTimeout(resolve, 25000));
-        return { name: 'ping' };
+        setTimeout(() => {
+            sender.send('ping');
+        }, 25000);
+        return null;
     }
 }
 
 const LOG_FILTER = [ 'SendWebSocketMessage' ]
 
-function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, className: string, endPointName: string) {
+function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, messageSender: IMessageSender, className: string, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
         if (!LOG_FILTER.includes(m.name)) {
             trace(`${className}._setListener received: '${m.name}' ${endPointName}`)
         }
         const handler = PING_HANDLER[m.name] ?? handlerMap[m.name]
         if (handler) {
-            const response = await handler(m)
+            const response = await handler(m, messageSender)
             if (response && response.name) {
                 try {
                     trace(`${className}._setListener response: '${response.name}' ${endPointName}`)
@@ -42,7 +44,7 @@ function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, class
 
 // Send and receives message to between content, view and background
 
-class ChromeMessagesClient {
+class ChromeMessagesClient implements IMessageSender {
     private registerName: string
     private port: chrome.runtime.Port
     private pendingMesssage: any
@@ -53,7 +55,7 @@ class ChromeMessagesClient {
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
                 trace(`ChromeMessagesClient connected: port '${portName}' registerName '${this.registerName}'`)
-                _setListener(port, handlerMap, 'ChromeMessagesClient', `registerName '${registerName}'`)
+                _setListener(port, handlerMap, this, 'ChromeMessagesClient', `registerName '${registerName}'`)
                 this.port = port
                 if (this.pendingMesssage) {
                     if (!LOG_FILTER.includes(this.pendingMesssage.name)) {
@@ -118,7 +120,7 @@ class ChromeMessagesHub {
     public connect(tabId: number, portName: string, handlers: PortHandlers): IPort {
         const port = chrome.tabs.connect(tabId, { name: portName })
         trace(`ChromeMessagesHub connected: tab ${tabId} port '${portName}'`)
-        _setListener(port, handlers, 'ChromeMessagesHub', `port '${portName}'`)
+        _setListener(port, handlers, undefined,'ChromeMessagesHub', `port '${portName}'`)
         return new ChromePort(tabId, port)
     }
 
