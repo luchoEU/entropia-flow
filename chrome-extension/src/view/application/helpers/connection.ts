@@ -10,9 +10,9 @@ const initialState: ConnectionState = {
     }
 }
 
-const setState = (state: ConnectionState, inState: ConnectionState) => inState
+const reduceSetState = (state: ConnectionState, inState: ConnectionState) => inState
 
-const setConnectionClientExpanded = (state: ConnectionState, expanded: boolean) => ({
+const reduceSetConnectionClientExpanded = (state: ConnectionState, expanded: boolean) => ({
     ...state,
     client: {
         ...state.client,
@@ -20,7 +20,7 @@ const setConnectionClientExpanded = (state: ConnectionState, expanded: boolean) 
     }
 })
 
-const setConnectionWebSocket = (state: ConnectionState, webSocket: string) => ({
+const reduceSetConnectionWebSocket = (state: ConnectionState, webSocket: string) => ({
     ...state,
     client: {
         ...state.client,
@@ -28,7 +28,7 @@ const setConnectionWebSocket = (state: ConnectionState, webSocket: string) => ({
     }
 })
 
-const setConnectionStatus = (state: ConnectionState, status: string, message: string) => ({
+const reduceSetConnectionStatus = (state: ConnectionState, status: string, message: string) => ({
     ...state,
     client: {
         ...state.client,
@@ -39,8 +39,8 @@ const setConnectionStatus = (state: ConnectionState, status: string, message: st
 
 export {
     initialState,
-    setState,
-    setConnectionClientExpanded,
-    setConnectionWebSocket,
-    setConnectionStatus
+    reduceSetState,
+    reduceSetConnectionClientExpanded,
+    reduceSetConnectionWebSocket,
+    reduceSetConnectionStatus
 }

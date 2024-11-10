@@ -64,7 +64,8 @@ class ViewTabManager {
 
     private async _refreshAll(state: ViewState): Promise<void> {
         const portList = await this.portManager.all()
-        await Promise.all(portList.map(port => this.sendRefresh(port, state)))
+        const that = this
+        await Promise.all(portList.map(port => that.sendRefresh(port, state)))
     }
 }
 

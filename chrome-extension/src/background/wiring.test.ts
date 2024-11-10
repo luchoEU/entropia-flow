@@ -314,6 +314,15 @@ describe('full', () => {
             expect(contentPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_CONTENT)
             expect(contentPort.sendMock.mock.calls[1][1]).toEqual({ isMonitoring: true })
         })
+
+        test('when websocket state changes, send it to content', async () => {
+            await webSocketClient.onStateChanged('state', 'message')
+
+            expect(viewPort.sendMock.mock.calls.length).toBe(1)
+            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: { state: 'state', message: 'message' }})
+        })
     })
 })
 

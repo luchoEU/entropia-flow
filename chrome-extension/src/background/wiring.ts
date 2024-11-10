@@ -91,9 +91,9 @@ async function wiring(
                 break;
         }
     }
-    webSocketClient.onStateChanged = viewStateManager.setClientState
-    gameLogManager.onLoot = lootHistory.onLoot
-    lootHistory.onChange = viewStateManager.setGameLog
+    webSocketClient.onStateChanged = (state, message) => viewStateManager.setClientState(state, message)
+    gameLogManager.onLoot = (d) => lootHistory.onLoot(d)
+    lootHistory.onChange = (gameLog) => viewStateManager.setGameLog(gameLog)
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })
