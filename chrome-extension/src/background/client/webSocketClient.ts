@@ -36,7 +36,7 @@ class WebSocketClient implements IWebSocketClient {
         }
         this.socket.onopen = async event => {
             console.log('WebSocket connection opened:', event)
-            await this.onStateChanged('connected', '')
+            await this.onStateChanged(`connected to ${url}`, '')
             this.send('version', '0.2.0')
             for (const json in this.pendingJson)
                 this.socket.send(json)
@@ -63,8 +63,8 @@ class WebSocketClient implements IWebSocketClient {
         } else if (this.socket.readyState == WebSocket.OPEN) {
             this.socket.send(json);
         } else if (this.socket.readyState == WebSocket.CLOSED) {
-            this.pendingJson.push(json);
-            await this.start(this.url) // reconnect for the next message
+            //this.pendingJson.push(json);
+            //await this.start(this.url) // reconnect for the next message
         }
     }
 
