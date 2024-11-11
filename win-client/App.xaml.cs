@@ -1,4 +1,6 @@
 ﻿using EntropiaFlowClient.UI;
+using System.IO;
+using System.Reflection;
 using static EntropiaFlowClient.WebSocketChat;
 using Application = System.Windows.Application;
 
@@ -33,7 +35,11 @@ namespace EntropiaFlowClient
 
         private void InitializeNotifyIcon()
         {
-            _notifyIcon.Icon = new Icon("Resources/flow128w.ico");
+            using (Stream? iconStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EntropiaFlowClient.Resources.flow128w.ico"))
+            {
+                if (iconStream != null)
+                    _notifyIcon.Icon = new Icon(iconStream);
+            }
             _notifyIcon.Text = "Entropia Flow Log Reader";
             _notifyIcon.Click += NotifyIcon_Click;
 

@@ -16,6 +16,7 @@ namespace EntropiaFlowClient
         public WebSocketChat()
         {
             _webSocket = new(WEB_SOCKET_PORT);
+            //_webSocket.KeepClean = false; // Avoids cleaning up connections aggressively, this doesn't work correctly to receive the messages, it only receives the message number starting with 0
         }
 
         public string ListeningUri => $"ws://{GetLocalIPAddress()}:{_webSocket.Port}";
@@ -57,6 +58,12 @@ namespace EntropiaFlowClient
 
         protected override void OnMessage(MessageEventArgs e)
         {
+            if (!Context.WebSocket.IsAlive)
+            {
+                Console.WriteLine("Connection is not alive.");
+                return;
+            }
+
             Message? msg;
             try
             {
@@ -69,6 +76,18 @@ namespace EntropiaFlowClient
             }
             if (msg?.Type == "stream" && msg.Data is string stringData)
                 StreamMessageReceived?.Invoke(this, new StreamMessageEventArgs(stringData));
+        }
+
+        protected override void OnError(ErrorEventArgs e)
+        {
+            base.OnError(e);
+            Console.WriteLine("WebSocket error: " + e.Message);
+            Console.WriteLine(e.Exception.StackTrace);
+        }
+
+        protected override void OnClose(CloseEventArgs e)
+        {
+            base.OnClose(e);
         }
 
         public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;

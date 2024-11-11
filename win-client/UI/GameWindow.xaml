@@ -8,7 +8,7 @@
         mc:Ignorable="d" WindowStyle="None"
         AllowsTransparency="True"
         Loaded="Window_Loaded" Closing="Window_Closing"
-        ResizeMode="NoResize" Height="70" Width="200"
+        ResizeMode="NoResize" Height="70" Width="250"
         Icon="/UI/flow128w.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
