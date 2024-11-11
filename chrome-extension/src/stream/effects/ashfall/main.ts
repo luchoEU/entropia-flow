@@ -9,6 +9,7 @@ under the fragment shader.
 declare const window: any
 import vertexShader from './vertexShader'
 import fragmentShader from './fragmentShader'
+import * as THREE from 'three';
 import { NOISE_PNG } from './noise.png'
 import { AnimatedBackground } from "../baseBackground";
 
@@ -20,7 +21,7 @@ class AshfallBackground extends AnimatedBackground {
   
   constructor(container: HTMLElement) {
     super(container)
-    const loader = new window.THREE.TextureLoader();
+    const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
     const that = this
     loader.load(NOISE_PNG, // Embbed noise.png to avoid CORS in Entropia Flow Client
@@ -31,35 +32,35 @@ class AshfallBackground extends AnimatedBackground {
   }
 
   private init(texture: any) {
-    this.camera = new window.THREE.Camera();
+    this.camera = new THREE.Camera();
     this.camera.position.z = 1;
 
-    this.scene = new window.THREE.Scene();
+    this.scene = new THREE.Scene();
 
-    const geometry = new window.THREE.PlaneBufferGeometry( 2, 2 );
+    const geometry = new THREE.PlaneGeometry( 2, 2 );
 
-    texture.wrapS = window.THREE.RepeatWrapping;
-    texture.wrapT = window.THREE.RepeatWrapping;
-    texture.minFilter = window.THREE.LinearFilter;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.minFilter = THREE.LinearFilter;
 
     this.uniforms = {
       u_time: { type: "f", value: 1.0 },
-      u_resolution: { type: "v2", value: new window.THREE.Vector2() },
+      u_resolution: { type: "v2", value: new THREE.Vector2() },
       u_noise: { type: "t", value: texture },
-      u_mouse: { type: "v2", value: new window.THREE.Vector2() }
+      u_mouse: { type: "v2", value: new THREE.Vector2() }
     };
 
-    var material = new window.THREE.ShaderMaterial( {
+    var material = new THREE.ShaderMaterial( {
       uniforms: this.uniforms,
       vertexShader: vertexShader,
       fragmentShader: fragmentShader
     } )
     material.extensions.derivatives = true;
 
-    var mesh = new window.THREE.Mesh( geometry, material );
+    var mesh = new THREE.Mesh( geometry, material );
     this.scene.add( mesh );
 
-    this.renderer = new window.THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio( window.devicePixelRatio );
 
     this.container.appendChild( this.renderer.domElement );
