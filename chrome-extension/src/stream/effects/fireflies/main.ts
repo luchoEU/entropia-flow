@@ -1,6 +1,7 @@
 // Derived from https://codepen.io/mikegolus/pen/Jegvym Copyright (c) 2024 Mike Golus (MIT License)
 
 import { CssBackground } from "../baseBackground";
+import fireflies_jpg from "./fireflies.jpg";
 
 const state = {
     quantity: 15
@@ -14,7 +15,7 @@ class FirefliesBackground extends CssBackground {
     protected override getStyle(containerClassName: string, itemClassName: string): string {
         let style: string = `
         .${containerClassName} {
-            background-image: url('effects/fireflies.jpg');
+            background-image: url(${fireflies_jpg});
             background-size: cover;
         }
         .${itemClassName} {

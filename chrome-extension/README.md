@@ -12,7 +12,7 @@
 
 1. `npm run stream` or `npm run stream-dev`
 
-1. Extract `chrome-extension\dist.win.zip` in `win-client\bin\Debug\net8-windows\GameWindow`
+1. Use `chrome-extension/dist.win/EntropiaFlowStream.js` in Windows Client
 
 ## Local Installation
 

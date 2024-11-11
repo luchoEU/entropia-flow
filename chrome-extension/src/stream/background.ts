@@ -4,6 +4,8 @@ import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
 import ColorOrbsBackground from './effects/color-orbs/main';
 import { SHOW_FEATURES_IN_DEVELOPMENT } from '../config';
+import flow128_png from './img/flow128.png';
+import flow128w_png from './img/flow128w.png';
 
 enum BackgroundType {
   Light,
@@ -91,7 +93,7 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Light,
     title: 'Light',
-    icon: 'img/flow128.png',
+    icon: flow128_png,
     style: {
       'color': 'black',
       'background-color': 'white'
@@ -100,7 +102,7 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Dark,
     title: 'Dark',
-    icon: 'img/flow128w.png',
+    icon: flow128w_png,
     style: {
       'color': 'white',
       'background-color': 'black'
@@ -109,7 +111,7 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Ashfall,
     title: 'Ashfall',
-    icon: 'img/flow128w.png',
+    icon: flow128w_png,
     style: {
       'color': 'white',
       'background-color': 'transparent'
@@ -118,7 +120,7 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Matrix,
     title: 'Matrix',
-    icon: 'img/flow128w.png',
+    icon: flow128w_png,
     style: {
       'color': 'white',
       'background-color': 'transparent'
@@ -127,7 +129,7 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Fireflies,
     title: 'Fireflies',
-    icon: 'img/flow128w.png',
+    icon: flow128w_png,
     style: {
       'color': 'white',
       'background-color': 'transparent'
@@ -139,7 +141,7 @@ if (SHOW_FEATURES_IN_DEVELOPMENT) {
   backgroundList.push({
     type: BackgroundType.ColorOrbs,
     title: 'Color Orbs (WIP)',
-    icon: 'img/flow128w.png',
+    icon: flow128w_png,
     style: {
       'color': 'white',
       'background-color': 'transparent'
@@ -147,17 +149,17 @@ if (SHOW_FEATURES_IN_DEVELOPMENT) {
   })
 }
 
-const getIcon = (type: BackgroundType): string => {
+const getIconUrl = (type: BackgroundType): string => {
   if (type)
     return backgroundList[type].icon
   else
-    return 'img/flow128.png'
+    return flow128_png
 }
 
 export {
   BackgroundType,
   BackgroundSpec,
   backgroundList,
-  getIcon,
+  getIconUrl,
   loadBackground
 }

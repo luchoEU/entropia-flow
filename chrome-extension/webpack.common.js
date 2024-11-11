@@ -32,6 +32,17 @@ module.exports = {
             loader: "sass-loader" // Compiles Sass to CSS
           }
         ]
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 819200, // Files smaller than 800 KB will be inlined as Base64
+            }
+          }
+        ]
       }
     ]
   },

@@ -1,6 +1,4 @@
 const path = require("path");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 
 module.exports = {
   mode: "development",
@@ -17,6 +15,17 @@ module.exports = {
         test: /\.tsx?$/,
         use: "ts-loader"
       },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 819200, // Files smaller than 800 KB will be inlined as Base64
+            }
+          }
+        ]
+      }
     ]
   },
   resolve: {
@@ -25,20 +34,5 @@ module.exports = {
       fs: false,
       child_process: false
     }
-  },
-  plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'dist/effects', to: 'effects' },
-        { from: 'dist/img/flow128*.png', to: 'img/[name][ext]' },
-      ]
-    }),
-    new WebpackShellPluginNext({
-      onBuildEnd: {
-        scripts: ['rm dist.win.zip; cd dist.win; zip -r ../dist.win.zip *'],
-        blocking: false,
-        parallel: false,
-      },
-    }),
-  ]
+  }
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getIcon } from './background';
+import { getIconUrl } from './background';
 
 function getDeltaData(delta: number | undefined) {
   let deltaBackColor: string
@@ -32,7 +32,7 @@ const StreamViewDiv = (d: {
   return (
     <div id='stream' style={{ width: '494px', height: '150px' }}>
       <div style={{ margin: '50px', position: 'absolute' }}>
-        <img style={{ width: '50px', position: 'absolute', top: '0px', left: '0px' }} src={getIcon(d.background)} alt="Logo"></img>
+        <img style={{ width: '50px', position: 'absolute', top: '0px', left: '0px' }} src={getIconUrl(d.background)} alt="Logo"></img>
         <div style={{ fontSize: '20px', fontWeight: 'bold', position: 'absolute', top: '0px', left: '60px', width: '200px' }}>
           Entropia Flow
         </div>
