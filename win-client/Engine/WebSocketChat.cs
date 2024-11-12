@@ -74,8 +74,8 @@ namespace EntropiaFlowClient
                 Console.WriteLine($"Websocket message received with invalid format: {e.Data}");
                 return;
             }
-            if (msg?.Type == "stream" && msg.Data is string stringData)
-                StreamMessageReceived?.Invoke(this, new StreamMessageEventArgs(stringData));
+            if (msg?.Type == "stream")
+                StreamMessageReceived?.Invoke(this, new StreamMessageEventArgs(msg.Data.ToString()!));
         }
 
         protected override void OnError(ErrorEventArgs e)

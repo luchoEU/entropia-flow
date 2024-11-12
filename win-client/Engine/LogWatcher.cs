@@ -5,23 +5,29 @@ namespace EntropiaFlowClient
 {
     public class LogWatcher : IDisposable
     {
-        private const string FILE_NAME = "C:/Users/Cristian/OneDrive/Documentos/Entropia Universe/chat.log";
+        private const string FILE_NAME = @"Entropia Universe\chat.log";
         private FileSystemWatcher? _watcher;
         private long _lastPosition;
 
         public void Start()
         {
-            var file = new FileInfo(FILE_NAME);
-            _lastPosition = file.Exists ? file.Length : 0;
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string chatFilePath = Path.Combine(documentsPath, FILE_NAME);
 
-            if (file.Directory != null)
+            var file = new FileInfo(chatFilePath);
+            if (file.Exists && file.Directory != null)
             {
+                _lastPosition = file.Length;
                 _watcher = new(file.Directory.FullName)
                 {
                     Filter = Path.GetFileName(file.FullName)
                 };
                 _watcher.Changed += OnFileChanged;
                 _watcher.EnableRaisingEvents = true;
+            }
+            else
+            {
+                Console.WriteLine($"Chat File not found: {chatFilePath}");
             }
         }
 

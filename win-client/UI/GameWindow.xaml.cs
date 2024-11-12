@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Xml.Linq;
 using Point = System.Drawing.Point;
 
 namespace EntropiaFlowClient
@@ -29,11 +30,31 @@ namespace EntropiaFlowClient
             Dispatcher.Invoke(() => webView2.CoreWebView2?.ExecuteScriptAsync($"render({e.Data})"));
         }
 
-        private static string ReadResource(string name)
+        private static string ReadResourceToString(string name)
         {
             using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EntropiaFlowClient.GameWindow." + name) ?? throw new Exception(name + " not found");
             using StreamReader reader = new(stream);
             return reader.ReadToEnd();
+        }
+
+        private static string ReadResourceToUrl(string name)
+        {
+            using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EntropiaFlowClient.Resources." + name) ?? throw new Exception(name + " not found");
+            using MemoryStream ms = new();
+            stream.CopyTo(ms);
+            byte[] imageBytes = ms.ToArray();
+            string base64String = Convert.ToBase64String(imageBytes);
+            return $"data:image/png;base64,{base64String}";
+        }
+
+        private static string SaveResourceToFile(string name, bool isImage)
+        {
+            string outputPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, name);
+            string resourceFolder = isImage ? "Resources" : "GameWindow";
+            using Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"EntropiaFlowClient.{resourceFolder}.{name}") ?? throw new Exception(name + " not found");
+            using FileStream fileStream = new(outputPath, FileMode.Create, FileAccess.Write);
+            resourceStream.CopyTo(fileStream);
+            return outputPath;
         }
 
         private void WebBrowser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
@@ -42,10 +63,28 @@ namespace EntropiaFlowClient
             {
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
-                string contentHtml = ReadResource("StreamView.html")
-                                .Replace("<script src=\"Mouse.js\"></script>", $"<script>{ReadResource("Mouse.js")}</script>")
-                                .Replace("<script src=\"Render.js\"></script>", $"<script>{ReadResource("Render.js")}</script>");
+
+#if DEBUG
+                // Save to files to be able to debug in browser
+                string htmlPath = SaveResourceToFile("StreamView.html", false);
+                foreach (var jsName in new string[] { "Mouse.js", "Render.js", "EntropiaFlowStream.js" })
+                    SaveResourceToFile(jsName, false);
+                SaveResourceToFile("flow128.png", true);
+                webView2.CoreWebView2.Navigate(htmlPath);
+#else
+                string contentHtml = ReadResourceToString("StreamView.html");
+                contentHtml = contentHtml.Replace("src=\"flow128.png\"", $"src=\"{ReadResourceToUrl("flow128.png")}\"");
+
+                foreach (var jsName in new string[] { "Mouse.js", "Render.js" })
+                    contentHtml = contentHtml.Replace($"<script src=\"{jsName}\"></script>", $"<script>//{jsName}\n{ReadResourceToString(jsName)}</script>");
                 webView2.CoreWebView2.NavigateToString(contentHtml);
+
+                webView2.CoreWebView2.NavigationCompleted += (sender, args) =>
+                {
+                    string javascriptCode = ReadResourceToString("EntropiaFlowStream.js");
+                    webView2.CoreWebView2.ExecuteScriptAsync(javascriptCode);
+                };
+#endif
             }
             else
             {

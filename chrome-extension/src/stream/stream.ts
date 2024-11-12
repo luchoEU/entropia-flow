@@ -14,17 +14,27 @@ const patch = init([
     styleModule, // handles styling on elements with support for animations
 ])
 
-export function render(data: any): SizeData {
-    const streamElement = document.getElementById('stream')
+let isRendering = false;
+export function render(data: any): SizeData | null {
+    if (isRendering) {
+        return null
+    }
 
-    const vNode = reactElementToVNode(StreamViewDiv(data))
-    patch(streamElement, vNode)
+    isRendering = true;
+    try {
+        const streamElement = document.getElementById('stream')
 
-    const newStreamElement = document.getElementById('stream') // get it again after patch
-    loadBackground(data.background, newStreamElement, streamElement)
+        const vNode = reactElementToVNode(StreamViewDiv(data))
+        patch(streamElement, vNode)
 
-    return {
-        width: parseInt(streamElement.style.width),
-        height: parseInt(streamElement.style.height)
+        const newStreamElement = document.getElementById('stream') // get it again after patch
+        loadBackground(data.background, newStreamElement, streamElement)
+
+        return {
+            width: parseInt(streamElement.style.width),
+            height: parseInt(streamElement.style.height)
+        }
+    } finally {
+        isRendering = false;
     }
 }
