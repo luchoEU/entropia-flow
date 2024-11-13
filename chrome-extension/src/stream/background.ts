@@ -32,14 +32,14 @@ const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBack
   [BackgroundType.ColorOrbs, ColorOrbsBackground],
 ]);
 
-let instances: IBackground[] = []
+let instances: { [id: string]: IBackground } = { }
 let animating: boolean
 
 function animate(delta: number) {
-  instances = instances.filter(i => i.container.parentElement)
-  const actives = instances.filter(i => i.container.querySelector('canvas') && i.isAnimated)
+  instances = Object.fromEntries(Object.entries(instances).filter(([,v]) => v.container.parentElement))
+  const actives = Object.values(instances).filter(i => i.container.querySelector('canvas') && i.isAnimated)
   actives.forEach(i => i.render(delta));
-  if (instances.length > 0)
+  if (actives.length > 0)
     window.requestAnimationFrame(animate);
   else
     animating = false
@@ -49,16 +49,16 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
   if (type < 0 || type > factories.size - 1)
     type = BackgroundType.Light
 
-  if (instances.some(i => i.container == container && i.type == type && !i.ready))
+  const id = container.id
+  let i = instances[id]
+  if (i && i.type == type && !i.ready)
     return // loading
   
-  instances = instances.filter(i => {
-    if (i.container == container && i.type != type) {
+  if (i && i.type != type) {
       i.cleanUp()
-      return false
-    }
-    return true
-  })
+      delete instances[id]
+      i = undefined
+  }
 
   if (type === undefined || container.querySelector('canvas'))
     return
@@ -67,10 +67,9 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
   Object.keys(style).forEach(key => container.style[key] = style[key]);
 
   if (oldContainer) {
-    instances.forEach(i => {
-      if (i.container == oldContainer)
-        i.container = container
-    })
+    if (i && i.container == oldContainer) {
+      i.container = container
+    }
     const canvas = oldContainer.querySelector('canvas')
     if (canvas) {
       container.append(canvas)
@@ -80,8 +79,7 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
 
   const newBackground: IBackground = new (factories.get(type))(container)
   newBackground.type = type
-  instances = instances.filter(i => i.container !== container)
-  instances.push(newBackground)
+  instances[id] = newBackground
 
   if (!animating && newBackground.isAnimated) {
     animate(0);
