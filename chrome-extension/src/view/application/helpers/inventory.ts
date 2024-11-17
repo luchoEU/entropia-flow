@@ -470,7 +470,7 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   byStore: undefined, // saved independently because it is too big
   available: cleanForSaveInventoryList(state.available),
   availableCriteria: state.availableCriteria,
-  ttService: cleanForSaveInventoryList(state.ttService)
+  ttService: cleanForSaveInventoryList(state.ttService),
 });
 
 export {

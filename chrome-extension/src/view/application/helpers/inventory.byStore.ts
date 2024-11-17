@@ -23,6 +23,7 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
   containers: { },
   stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
   flat: { original: [], show: [], stared: [] },
+  c: { validPlanets: [] },
 });
 
 const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
@@ -310,9 +311,21 @@ const _loadByStoreOriginalList = (
   }
 }
 
+const _loadValidPlanets = (
+  byStore: InventoryByStore
+): InventoryByStore => {
+  return {
+    ...byStore,
+    c: {
+      ...byStore.c,
+      validPlanets: Array.from(new Set(byStore.flat.original.flatMap(i => i.c).sort())).filter(c => c !== 'Carried' && c !== 'Auction'),
+    }
+  }
+}
+
 const _loadByStoreShowAndStaredList = (
   byStore: InventoryByStore
-): InventoryByStore => _loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))
+): InventoryByStore => _loadValidPlanets(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore))))
 
 const loadInventoryByStore = (
   byStore: InventoryByStore,
@@ -817,7 +830,8 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
       items: undefined
     }
   },
-  flat: undefined
+  flat: undefined,
+  c: undefined
 })
 
 export {

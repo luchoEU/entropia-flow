@@ -34,6 +34,7 @@ const SAVE_CRAFT_SESSION = '[craft] save session'
 const SET_CRAFT_SAVE_STAGE = '[craft] set save stage'
 const DONE_CRAFT_SESSION = '[craft] done session'
 const CLEAR_CRAFT_SESSION = '[craft] clear session'
+const SET_CRAFT_ACTIVE_PLANET = '[craft] set active planet'
 
 const BUDGET_BUY = 'Buy'
 const BUDGET_SELL = 'Sell'
@@ -286,6 +287,13 @@ const clearCraftingSession = (name: string) => ({
     }
 })
 
+const setCraftActivePlanet = (name: string) => ({
+    type: SET_CRAFT_ACTIVE_PLANET,
+    payload: {
+        name
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     REMOVE_BLUEPRINT,
@@ -323,6 +331,7 @@ export {
     BUDGET_BUY,
     BUDGET_SELL,
     BUDGET_MOVE,
+    SET_CRAFT_ACTIVE_PLANET,
     setCraftState,
     removeBlueprint,
     reloadBlueprint,
@@ -356,4 +365,5 @@ export {
     setCraftingSessionStage,
     doneCraftingSession,
     clearCraftingSession,
+    setCraftActivePlanet,
 }

@@ -41,6 +41,9 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
     show: Array<TreeLineData>
     stared: Array<TreeLineData>
   }
+  c: {
+    validPlanets: Array<string>
+  }
 }
 
 type ContainerMapData = { [id: string] : ContainerMapDataItem };

@@ -2,7 +2,7 @@ import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED, setBlueprintActivePage, SET_BLUEPRINT_ACTIVE_PAGE } from '../actions/craft'
+import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED, setBlueprintActivePage, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
@@ -64,7 +64,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_NEW_CRAFT_SESSION_DIFF:
         case SET_CRAFT_SAVE_STAGE:
         case DONE_CRAFT_SESSION:
-        case CLEAR_CRAFT_SESSION: {
+        case CLEAR_CRAFT_SESSION:
+        case SET_CRAFT_ACTIVE_PLANET: {
             const state: CraftState = getCraft(getState())
             await api.storage.saveCraft(cleanForSave(state))
             break
@@ -100,11 +101,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case ADD_BLUEPRINT_LOADING:
+        case SET_CRAFT_ACTIVE_PLANET:
         case SET_CURRENT_INVENTORY: {
-            let s: InventoryState = getInventory(getState())
-            let items = joinDuplicates(joinList(s), [ "AUCTION" ])
-            let dictionary: { [k: string]: number } = Object.fromEntries(items.map((x: ItemData) => [x.n, Number(x.q)]));
-            dispatch(setBlueprintQuantity(dictionary))
+            const s: CraftState = getCraft(getState())
+            const inv: InventoryState = getInventory(getState())
+            const planetItems = inv.byStore.flat.original.filter(i => i.c === 'Carried' || i.c == s.activePlanet)
+            let itemMap: { [k: string]: number } = {}
+            planetItems.forEach(i => {
+                if (i.n in itemMap) {
+                    itemMap[i.n] += Number(i.q)
+                } else {
+                    itemMap[i.n] = Number(i.q)
+                }
+            })
+            dispatch(setBlueprintQuantity(itemMap))
             break
         }
         case ADD_BLUEPRINT_DATA:

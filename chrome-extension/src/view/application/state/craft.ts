@@ -1,10 +1,11 @@
 interface CraftState {
     activeSession?: string
     activePage?: string // blueprint name
+    activePlanet?: string
     blueprints: Array<BlueprintData>
     stared: {
         expanded: boolean
-        sortType: number,
+        sortType: number
         filter: string
         list: Array<string>
     }

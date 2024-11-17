@@ -411,6 +411,11 @@ const reduceClearCraftSession = (state: CraftState, name: string): CraftState =>
     c: undefined
 })
 
+const reduceSetCraftActivePlanet = (state: CraftState, name: string): CraftState => ({
+    ...state,
+    activePlanet: name
+})
+
 const cleanForSave = (state: CraftState): CraftState => {
     const cState = JSON.parse(JSON.stringify(state));
     delete cState.activeSession;
@@ -479,6 +484,7 @@ export {
     reduceSaveCraftSession,
     reduceSetCraftSaveStage,
     reduceDoneCraftSession,
+    reduceSetCraftActivePlanet,
     reduceClearCraftSession,
     cleanForSave,
     bpNameFromItemName,
