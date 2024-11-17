@@ -25,5 +25,8 @@
         "storage",
         "notifications"
     ],
-    "host_permissions": ["https://api.entropianexus.com/*"]
+    "host_permissions": [
+        "https://api.entropianexus.com/*",
+        "http://www.entropiawiki.com/*"
+    ]
 }

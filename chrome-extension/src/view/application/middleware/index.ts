@@ -25,6 +25,7 @@ import log from './log'
 import connection from './connection'
 import budget from './budget'
 import nexus from './nexus'
+import wiki from './wiki'
 
 export default [
     ...messages,
@@ -54,4 +55,5 @@ export default [
     ...connection,
     ...budget,
     ...nexus,
+    ...wiki,
 ]

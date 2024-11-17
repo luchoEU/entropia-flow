@@ -16,6 +16,9 @@ import { INVENTORY_PAGE, selectMenu } from '../../application/actions/menu'
 import { EntropiaNexusState } from '../../application/state/nexus'
 import { getEntropiaNexus } from '../../application/selectors/nexus'
 import { loadEntropiaNexusAcquisition } from '../../application/actions/nexus'
+import { EntropiaWikiState } from '../../application/state/wiki'
+import { getEntropiaWiki } from '../../application/selectors/wiki'
+import { loadEntropiaWikiMaterial } from '../../application/actions/wiki'
 
 function SessionInfo(p: {
     name: string,
@@ -278,7 +281,8 @@ function CraftSingle(p: {
 
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
-    const nex: EntropiaNexusState = useSelector(getEntropiaNexus)
+    const nexus: EntropiaNexusState = useSelector(getEntropiaNexus)
+    const wiki: EntropiaWikiState = useSelector(getEntropiaWiki)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
     const d = s.blueprints.find(b => b.name === s.activePage)
@@ -343,12 +347,26 @@ function CraftExpandedList() {
                                 Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}
                             </p>
                             <p className='item-row'>
-                                { nex.acquisition[afterChain] ?
-                                    (nex.acquisition[afterChain].result ?
-                                    nex.acquisition[afterChain].result.RefiningRecipes[0].Ingredients[0].Item.Name :
-                                    `Error loading from Entropia Nexus, status code ${nex.acquisition[afterChain].code}`) :
+                                { nexus.acquisition[afterChain] ?
+                                    (nexus.acquisition[afterChain].loading ?
+                                        <><img data-show className='img-loading' src='img/loading.gif' /> Loading from Entropia Nexus...</> :
+                                        (nexus.acquisition[afterChain].result ?
+                                            nexus.acquisition[afterChain].result.RefiningRecipes[0].Ingredients[0].Item.Name :
+                                            `Error loading from Entropia Nexus, status code ${nexus.acquisition[afterChain].code}`)) :
                                     <ImgButton text='Load from Entropia Nexus' src='img/find.png' title='Search it in Entropia Nexus'
                                         show dispatch={() => loadEntropiaNexusAcquisition(afterChain)}
+                                    />
+                                }
+                            </p>
+                            <p className='item-row'>
+                                { wiki.material[afterChain] ?
+                                    (wiki.material[afterChain].loading ?
+                                        <><img data-show className='img-loading' src='img/loading.gif' /> Loading from Entropia Wiki...</> :
+                                        (wiki.material[afterChain].result ?
+                                            wiki.material[afterChain].result :
+                                            `Error loading from Entropia Wiki, status code ${wiki.material[afterChain].code}`)) :
+                                    <ImgButton text='Load from Entropia Wiki' src='img/find.png' title='Search it in Entropia Wiki'
+                                        show dispatch={() => loadEntropiaWikiMaterial(afterChain)}
                                     />
                                 }
                             </p>

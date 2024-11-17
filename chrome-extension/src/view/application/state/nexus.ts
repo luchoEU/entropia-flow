@@ -1,20 +1,18 @@
+import { EntropiaSiteRequestMap } from "./site"
+
 interface EntropiaNexusState {
-    acquisition: { [item: string]: {
-        loading: boolean
-        code: string
-        result: {
-            "RefiningRecipes": {
-                "Id": number,
-                "Ingredients": {
-                    "Amount": number,
-                    "Item": EntropiaNexusMaterial
-                }[]
+    acquisition: EntropiaSiteRequestMap<{
+        "RefiningRecipes": {
+            "Id": number,
+            "Ingredients": {
                 "Amount": number,
-                "Product": EntropiaNexusMaterial,
-                "Links": EntropiaNexusLinks
+                "Item": EntropiaNexusMaterial
             }[]
-        }
-    }}
+            "Amount": number,
+            "Product": EntropiaNexusMaterial,
+            "Links": EntropiaNexusLinks
+        }[]
+    }>
 }
 
 interface EntropiaNexusMaterial {

@@ -108,10 +108,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const planetItems = inv.byStore.flat.original.filter(i => i.c === 'Carried' || i.c == s.activePlanet)
             let itemMap: { [k: string]: number } = {}
             planetItems.forEach(i => {
-                if (i.n in itemMap) {
-                    itemMap[i.n] += Number(i.q)
+                let q: number
+                if (i.q.startsWith('[')) {
+                    q = 1 // container
                 } else {
-                    itemMap[i.n] = Number(i.q)
+                    q = Number(i.q)
+                }
+                if (i.n in itemMap) {
+                    itemMap[i.n] += q
+                } else {
+                    itemMap[i.n] = q
                 }
             })
             dispatch(setBlueprintQuantity(itemMap))
