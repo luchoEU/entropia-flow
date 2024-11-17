@@ -24,5 +24,6 @@
         "alarms",
         "storage",
         "notifications"
-    ]
+    ],
+    "host_permissions": ["https://api.entropianexus.com/*"]
 }

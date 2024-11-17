@@ -13,6 +13,9 @@ import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../con
 import ImgButton from '../common/ImgButton'
 import { setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
 import { INVENTORY_PAGE, selectMenu } from '../../application/actions/menu'
+import { EntropiaNexusState } from '../../application/state/nexus'
+import { getEntropiaNexus } from '../../application/selectors/nexus'
+import { loadEntropiaNexusAcquisition } from '../../application/actions/nexus'
 
 function SessionInfo(p: {
     name: string,
@@ -275,6 +278,7 @@ function CraftSingle(p: {
 
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
+    const nex: EntropiaNexusState = useSelector(getEntropiaNexus)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
     const d = s.blueprints.find(b => b.name === s.activePage)
@@ -337,6 +341,16 @@ function CraftExpandedList() {
                         <div>
                             <p>
                                 Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}
+                            </p>
+                            <p className='item-row'>
+                                { nex.acquisition[afterChain] ?
+                                    (nex.acquisition[afterChain].result ?
+                                    nex.acquisition[afterChain].result.RefiningRecipes[0].Ingredients[0].Item.Name :
+                                    `Error loading from Entropia Nexus, status code ${nex.acquisition[afterChain].code}`) :
+                                    <ImgButton text='Load from Entropia Nexus' src='img/find.png' title='Search it in Entropia Nexus'
+                                        show dispatch={() => loadEntropiaNexusAcquisition(afterChain)}
+                                    />
+                                }
                             </p>
                             <p className='item-row pointer' onClick={(e) => {
                                     e.stopPropagation();
