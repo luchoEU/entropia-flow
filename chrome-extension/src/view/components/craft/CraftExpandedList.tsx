@@ -11,7 +11,7 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
-import { setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
+import { setByStoreCraftFilter, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
 import { INVENTORY_PAGE, selectMenu } from '../../application/actions/menu'
 import { EntropiaNexusState } from '../../application/state/nexus'
 import { getEntropiaNexus } from '../../application/selectors/nexus'
@@ -372,9 +372,10 @@ function CraftExpandedList() {
                             </p>
                             <p className='item-row pointer' onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(selectMenu(INVENTORY_PAGE));
+                                    //dispatch(selectMenu(INVENTORY_PAGE));
                                     dispatch(setByStoreStaredInventoryExpanded(false));
                                     dispatch(setByStoreInventoryFilter(afterChain.split(' ')[0]));
+                                    dispatch(setByStoreCraftFilter(afterChain.split(' ')[0]));
                                 }}>
                                 Search {afterChain.split(' ')[0]}
                                 <img src='img/find.png' title='Search it in inventory' data-show />

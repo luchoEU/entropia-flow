@@ -31,6 +31,7 @@ const CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] confirm by store stared
 const CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] cancel by store stared item name editing"
 const SET_BY_STORE_STARED_ITEM_NAME = "[inv] set by store stared item name"
 const SET_BY_STORE_STARED_ITEM_STARED = "[inv] set by store stared item stared"
+const SET_BY_STORE_CRAFT_FILTER = "[inv] set by store craft filter"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
@@ -214,6 +215,13 @@ const setByStoreStaredItemStared = (id: string, stared: boolean) => ({
     payload: {
         id,
         stared
+    }
+})
+
+const setByStoreCraftFilter = (filter: string) => ({
+    type: SET_BY_STORE_CRAFT_FILTER,
+    payload: {
+        filter
     }
 })
 
@@ -410,6 +418,7 @@ export {
     CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING,
     SET_BY_STORE_STARED_ITEM_NAME,
     SET_BY_STORE_STARED_ITEM_STARED,
+    SET_BY_STORE_CRAFT_FILTER,
     SORT_AUCTION_BY,
     SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
@@ -457,6 +466,7 @@ export {
     cancelByStoreStaredItemNameEditing,
     setByStoreStaredItemName,
     setByStoreStaredItemStared,
+    setByStoreCraftFilter,
     sortAuctionBy,
     sortVisibleBy,
     sortHiddenBy,

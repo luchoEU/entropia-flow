@@ -22,7 +22,8 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
   ...initialListWithFilter(expanded, sortType),
   containers: { },
   stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
-  flat: { original: [], show: [], stared: [] },
+  craft: { filter: undefined, list: initialList(true, sortType) },
+  flat: { original: [], show: [], stared: [], craft: [] },
   c: { validPlanets: [] },
 });
 
@@ -289,6 +290,20 @@ const _loadByStoreShowList = (
   return byStore
 }
 
+const _loadByStoreCraftList = (
+  byStore: InventoryByStore
+): InventoryByStore => {
+  byStore = _sortByStore(_craftListSelector, {
+    ...byStore,
+    craft: {
+      ...byStore.craft,
+      list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.craft.filter, () => true))
+    }
+  })
+  byStore.flat.show = _flatTree(byStore.showList, 0)
+  return byStore
+}
+
 const _loadByStoreOriginalList = (
   byStore: InventoryByStore
 ): InventoryByStore => {
@@ -325,7 +340,7 @@ const _loadValidPlanets = (
 
 const _loadByStoreShowAndStaredList = (
   byStore: InventoryByStore
-): InventoryByStore => _loadValidPlanets(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore))))
+): InventoryByStore => _loadValidPlanets(_loadByStoreCraftList(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))))
 
 const loadInventoryByStore = (
   byStore: InventoryByStore,
@@ -513,6 +528,11 @@ const _staredListSelector: ListSelector = {
   set: (byStore, list) => ({...byStore, stared: { ...byStore.stared, list }, flat: { ...byStore.flat, stared: _flatTree(list, 0) } }),
 }
 
+const _craftListSelector: ListSelector = {
+  get: (byStore) => byStore.craft.list,
+  set: (byStore, list) => ({...byStore, craft: { ...byStore.stared, list }, flat: { ...byStore.flat, craft: _flatTree(list, 0) } }),
+}
+
 const reduceSetByStoreItemExpanded = (
   state: InventoryState,
   id: string,
@@ -577,6 +597,11 @@ const reduceSetByStoreStaredAllItemsExpanded = (
   byStore.stared.expanded = expanded ? allId(byStore.stared.list) : []
   return { ...state, byStore }
 }
+
+const reduceSetByStoreCraftFilter = (
+  state: InventoryState,
+  filter: string
+): InventoryState => _applyByStoreStateChange(state, filter, _craftListSelector, t => ({ ...t, filter }))
 
 const reduceStartByStoreStaredItemNameEditing = (
   state: InventoryState,
@@ -830,6 +855,7 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
       items: undefined
     }
   },
+  craft: undefined,
   flat: undefined,
   c: undefined
 })
@@ -855,6 +881,7 @@ export {
   reduceCancelByStoreStaredItemNameEditing,
   reduceSetByStoreStaredItemName,
   reduceSetByStoreStaredItemStared,
+  reduceSetByStoreCraftFilter,
   reduceSortByStoreBy,
   reduceSortByStoreStaredBy,
   cleanForSaveByStore,

@@ -36,10 +36,15 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
     expanded: Array<string>
     list: InventoryList<InventoryTree<ItemData>>
   }
+  craft: {
+    filter?: string
+    list: InventoryList<InventoryTree<ItemData>>
+  }
   flat: {
     original: Array<TreeLineData>
     show: Array<TreeLineData>
     stared: Array<TreeLineData>
+    craft: Array<TreeLineData>
   }
   c: {
     validPlanets: Array<string>
