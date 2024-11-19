@@ -24,8 +24,6 @@ import materials from './materials'
 import log from './log'
 import connection from './connection'
 import budget from './budget'
-import nexus from './nexus'
-import wiki from './wiki'
 
 export default [
     ...messages,
@@ -54,6 +52,4 @@ export default [
     ...log,
     ...connection,
     ...budget,
-    ...nexus,
-    ...wiki,
 ]

@@ -1,6 +1,6 @@
 import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, setBlueprintActivePage, setBlueprintExpanded, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, setBlueprintExpanded, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { itemName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
@@ -12,13 +12,9 @@ import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
 import { setByStoreCraftFilter, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
-import { INVENTORY_PAGE, selectMenu } from '../../application/actions/menu'
-import { EntropiaNexusState } from '../../application/state/nexus'
-import { getEntropiaNexus } from '../../application/selectors/nexus'
-import { loadEntropiaNexusAcquisition } from '../../application/actions/nexus'
-import { EntropiaWikiState } from '../../application/state/wiki'
-import { getEntropiaWiki } from '../../application/selectors/wiki'
-import { loadEntropiaWikiMaterial } from '../../application/actions/wiki'
+import { MaterialsMap } from '../../application/state/materials'
+import { getMaterialsMap } from '../../application/selectors/materials'
+import { loadMaterialRawMaterials } from '../../application/actions/materials'
 
 function SessionInfo(p: {
     name: string,
@@ -281,8 +277,7 @@ function CraftSingle(p: {
 
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
-    const nexus: EntropiaNexusState = useSelector(getEntropiaNexus)
-    const wiki: EntropiaWikiState = useSelector(getEntropiaWiki)
+    const mat: MaterialsMap = useSelector(getMaterialsMap)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
     const d = s.blueprints.find(b => b.name === s.activePage)
@@ -304,6 +299,10 @@ function CraftExpandedList() {
             afterBpChain = lastBpChain ?? d
         }
         chain = nextBp?.chain
+    }
+
+    if (afterChain && !mat[afterChain]?.web) {
+        dispatch(loadMaterialRawMaterials(afterChain))
     }
 
     return (
@@ -346,30 +345,30 @@ function CraftExpandedList() {
                             <p>
                                 Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}
                             </p>
-                            <p className='item-row'>
-                                { nexus.acquisition[afterChain] ?
-                                    (nexus.acquisition[afterChain].loading ?
-                                        <><img data-show className='img-loading' src='img/loading.gif' /> Loading from Entropia Nexus...</> :
-                                        (nexus.acquisition[afterChain].result ?
-                                            nexus.acquisition[afterChain].result.RefiningRecipes[0].Ingredients[0].Item.Name :
-                                            `Error loading from Entropia Nexus, status code ${nexus.acquisition[afterChain].code}`)) :
-                                    <ImgButton text='Load from Entropia Nexus' src='img/find.png' title='Search it in Entropia Nexus'
-                                        show dispatch={() => loadEntropiaNexusAcquisition(afterChain)}
-                                    />
-                                }
-                            </p>
-                            <p className='item-row'>
-                                { wiki.material[afterChain] ?
-                                    (wiki.material[afterChain].loading ?
-                                        <><img data-show className='img-loading' src='img/loading.gif' /> Loading from Entropia Wiki...</> :
-                                        (wiki.material[afterChain].result ?
-                                            wiki.material[afterChain].result :
-                                            `Error loading from Entropia Wiki, status code ${wiki.material[afterChain].code}`)) :
-                                    <ImgButton text='Load from Entropia Wiki' src='img/find.png' title='Search it in Entropia Wiki'
-                                        show dispatch={() => loadEntropiaWikiMaterial(afterChain)}
-                                    />
-                                }
-                            </p>
+                            { mat[afterChain]?.web && (
+                                mat[afterChain].web.loading ?
+                                    <><img data-show className='img-loading' src='img/loading.gif' /> Loading from {mat[afterChain].web.loading.source}...</> :
+                                (mat[afterChain].web.errors ?
+                                    mat[afterChain].web.errors.map(e => <p>{e.message}</p>) :
+                                    mat[afterChain].web.rawMaterials.length > 0 &&
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Raw Material</th>
+                                                <th>Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            { mat[afterChain].web.rawMaterials.map(rm => (
+                                                <tr>
+                                                    <td>{rm.name}</td>
+                                                    <td align='center'>{rm.quantity}</td>
+                                                </tr>
+                                            )) }
+                                        </tbody>
+                                    </table>
+                                )
+                            )}
                             <p className='item-row pointer' onClick={(e) => {
                                     e.stopPropagation();
                                     //dispatch(selectMenu(INVENTORY_PAGE));

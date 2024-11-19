@@ -1,4 +1,4 @@
-import { MaterialsMap, MaterialsState } from "../state/materials"
+import { MaterialsMap, MaterialsState, MaterialState, MaterialStateWebData } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -113,9 +113,9 @@ const initialState: MaterialsState = {
     map: refinedInitialMap
 }
 
-const setState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
+const reduceSetState = (state: MaterialsState, inState: MaterialsState): MaterialsState => inState
 
-const materialChanged = (state: MaterialsState, material: string, change: any): MaterialsState => ({
+const _materialChanged = (state: MaterialsState, material: string, change: Partial<MaterialState>): MaterialsState => ({
     ...state,
     map: {
         ...state.map,
@@ -126,28 +126,32 @@ const materialChanged = (state: MaterialsState, material: string, change: any): 
     }
 })
 
-const materialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
-    materialChanged(state, material, { buyMarkup })
+const reduceMaterialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
+    _materialChanged(state, material, { buyMarkup })
 
-const materialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
-    materialChanged(state, material, { orderMarkup })
+const reduceMaterialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
+    _materialChanged(state, material, { orderMarkup })
 
-const materialUseAmountChanged = (state: MaterialsState, material: string, useAmount: string): MaterialsState =>
-    materialChanged(state, material, { useAmount })
+const reduceMaterialUseAmountChanged = (state: MaterialsState, material: string, useAmount: string): MaterialsState =>
+    _materialChanged(state, material, { useAmount })
 
-const materialRefineAmountChanged = (state: MaterialsState, material: string, refineAmount: string): MaterialsState =>
-    materialChanged(state, material, { refineAmount })
+const reduceMaterialRefineAmountChanged = (state: MaterialsState, material: string, refineAmount: string): MaterialsState =>
+    _materialChanged(state, material, { refineAmount })
 
-const materialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
-    materialChanged(state, material, { buyAmount })
+const reduceMaterialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
+    _materialChanged(state, material, { buyAmount })
 
-const materialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
-    materialChanged(state, material, { orderValue })
+const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
+    _materialChanged(state, material, { orderValue })
+
+const reduceMaterialSetWebData = (state: MaterialsState, material: string, data: MaterialStateWebData): MaterialsState =>
+    _materialChanged(state, material, { web: data })
 
 const cleanForSave = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
-    Object.keys(cState.map).forEach(k => {
-        delete cState.map[k].c
+    Object.values(cState.map).forEach(v => {
+        if (v.web?.loading) delete v.web
+        delete v.c
     })
     return cState
 }
@@ -156,13 +160,14 @@ export {
     initialState,
     materialMap,
     refinedInitialMap,
-    setState,
-    materialBuyMarkupChanged,
-    materialOrderMarkupChanged,
-    materialUseAmountChanged,
-    materialRefineAmountChanged,
-    materialBuyAmountChanged,
-    materialOrderValueChanged,
+    reduceSetState,
+    reduceMaterialBuyMarkupChanged,
+    reduceMaterialOrderMarkupChanged,
+    reduceMaterialUseAmountChanged,
+    reduceMaterialRefineAmountChanged,
+    reduceMaterialBuyAmountChanged,
+    reduceMaterialOrderValueChanged,
+    reduceMaterialSetWebData,
     cleanForSave,
     MATERIAL_PED,
     MATERIAL_ME,

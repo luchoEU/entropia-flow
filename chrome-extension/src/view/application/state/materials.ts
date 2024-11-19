@@ -1,8 +1,20 @@
+import { RawMaterialWebData } from "../../../web/sources"
+
 interface MaterialsState {
     map: MaterialsMap
 }
 
 type MaterialsMap = { [name: string] : MaterialState }
+
+interface MaterialStateWebData {
+    loading?: {
+        source: string
+    }
+    errors?: {
+        message: string
+    }[]
+    rawMaterials?: RawMaterialWebData[]
+}
 
 interface MaterialState {
     buyMarkup: string,
@@ -11,6 +23,8 @@ interface MaterialState {
     orderValue?: string,
     useAmount?: string,
     refineAmount?: string,
+
+    web?: MaterialStateWebData
 
     // constants
     c: {
@@ -24,4 +38,5 @@ export {
     MaterialsState,
     MaterialsMap,
     MaterialState,
+    MaterialStateWebData,
 }
