@@ -11,7 +11,7 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
-import { setByStoreCraftFilter, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
+import { setByStoreCraftFilter, setByStoreCraftVisible, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
 import { MaterialsMap } from '../../application/state/materials'
 import { getMaterialsMap } from '../../application/selectors/materials'
 import { loadMaterialRawMaterials } from '../../application/actions/materials'
@@ -399,21 +399,23 @@ function CraftExpandedList() {
                                     </p>
                                 )
                             )}
-                            <SortableFixedSizeTable
-                                data={{
-                                    allItems: inv.flat.craft,
-                                    showItems: inv.flat.craft,
-                                    sortType: inv.craft.list.sortType,
-                                    sortBy: sortByStoreCraftBy,
-                                    itemSelector: getByStoreInventoryCraftItem,
-                                    tableData
-                                }}
-                            />
+                            { inv.craft.visible &&
+                                <SortableFixedSizeTable
+                                    data={{
+                                        allItems: inv.flat.craft,
+                                        showItems: inv.flat.craft,
+                                        sortType: inv.craft.list.sortType,
+                                        sortBy: sortByStoreCraftBy,
+                                        itemSelector: getByStoreInventoryCraftItem,
+                                        tableData
+                                    }}
+                                />
+                            }
                             <p className='item-row pointer' onClick={(e) => {
                                     e.stopPropagation();
-                                    //dispatch(selectMenu(INVENTORY_PAGE));
                                     dispatch(setByStoreStaredInventoryExpanded(false));
                                     dispatch(setByStoreInventoryFilter(afterChain.split(' ')[0]));
+                                    dispatch(setByStoreCraftVisible(true))
                                     dispatch(setByStoreCraftFilter(afterChain.split(' ')[0]));
                                 }}>
                                 Search {afterChain.split(' ')[0]}

@@ -22,7 +22,7 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
   ...initialListWithFilter(expanded, sortType),
   containers: { },
   stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
-  craft: { filter: undefined, list: initialList(true, sortType) },
+  craft: { visible: false, filter: undefined, list: initialList(true, sortType) },
   flat: { original: [], show: [], stared: [], craft: [] },
   c: { validPlanets: [] },
 });
@@ -534,7 +534,7 @@ const _staredListSelector: ListSelector = {
 
 const _craftListSelector: ListSelector = {
   get: (byStore) => byStore.craft.list,
-  set: (byStore, list) => ({...byStore, craft: { ...byStore.stared, list }, flat: { ...byStore.flat, craft: _flatTree(list, 0) } }),
+  set: (byStore, list) => ({...byStore, craft: { ...byStore.craft, list }, flat: { ...byStore.flat, craft: _flatTree(list, 0) } }),
 }
 
 const reduceSetByStoreItemExpanded = (
@@ -611,6 +611,17 @@ const reduceSetByStoreCraftFilter = (
     ...state.byStore,
     craft: { ...state.byStore.craft, filter }
   })
+})
+
+const reduceSetByStoreCraftVisible = (
+  state: InventoryState,
+  visible: boolean
+): InventoryState => ({
+  ...state,
+  byStore: {
+    ...state.byStore,
+    craft: { ...state.byStore.craft, visible }
+  }
 })
 
 const reduceStartByStoreStaredItemNameEditing = (
@@ -900,6 +911,7 @@ export {
   reduceSetByStoreStaredItemName,
   reduceSetByStoreStaredItemStared,
   reduceSetByStoreCraftFilter,
+  reduceSetByStoreCraftVisible,
   reduceSortByStoreBy,
   reduceSortByStoreStaredBy,
   reduceSortByStoreCraftBy,

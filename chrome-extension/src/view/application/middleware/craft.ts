@@ -4,7 +4,7 @@ import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED, setBlueprintActivePage, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
-import { SET_CURRENT_INVENTORY } from '../actions/inventory'
+import { SET_CURRENT_INVENTORY, setByStoreCraftVisible } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
@@ -98,6 +98,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     dispatch(addBlueprintLoading(addBpName))
                 }
             }
+            dispatch(setByStoreCraftVisible(false))
             break
         }
         case ADD_BLUEPRINT_LOADING:
