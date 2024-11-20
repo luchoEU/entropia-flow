@@ -11,10 +11,15 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
-import { setByStoreCraftFilter, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded } from '../../application/actions/inventory'
+import { setByStoreCraftFilter, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
 import { MaterialsMap } from '../../application/state/materials'
 import { getMaterialsMap } from '../../application/selectors/materials'
 import { loadMaterialRawMaterials } from '../../application/actions/materials'
+import { SortableFixedSizeTable, TableData } from '../common/SortableTableSection'
+import { getByStoreInventory, getByStoreInventoryCraftItem, getInventory } from '../../application/selectors/inventory'
+import { InventoryByStore, InventoryState, TreeLineData } from '../../application/state/inventory'
+import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
+import { ItemData } from '../../../common/state'
 
 function SessionInfo(p: {
     name: string,
@@ -275,6 +280,27 @@ function CraftSingle(p: {
     )
 }
 
+const INDENT_SPACE = 10
+const tableData: TableData<TreeLineData> = {
+    columns: [NAME, QUANTITY, VALUE],
+    definition: sortColumnDefinition,
+    sortRow: {
+        [NAME]: { justifyContent: 'center' },
+        [QUANTITY]: { justifyContent: 'end' },
+        [VALUE]: { justifyContent: 'end' },
+    },
+    getRow: (item: TreeLineData) => ({
+        columns: {
+            [NAME]: {
+                style: { paddingLeft: item.indent * INDENT_SPACE },
+                sub: [{ itemText: item.n }]
+            },
+            [QUANTITY]: { sub: [{ itemText: item.q }] },
+            [VALUE]: { sub: [{ itemText: item.v }] }
+        }
+    })
+}
+
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
     const mat: MaterialsMap = useSelector(getMaterialsMap)
@@ -304,6 +330,8 @@ function CraftExpandedList() {
     if (afterChain && !mat[afterChain]?.web) {
         dispatch(loadMaterialRawMaterials(afterChain))
     }
+
+    const inv: InventoryByStore = useSelector(getByStoreInventory)
 
     return (
         <section>
@@ -351,24 +379,36 @@ function CraftExpandedList() {
                                 (mat[afterChain].web.errors ?
                                     mat[afterChain].web.errors.map(e => <p>{e.message}</p>) :
                                     mat[afterChain].web.rawMaterials.length > 0 &&
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Raw Material</th>
-                                                <th>Quantity</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            { mat[afterChain].web.rawMaterials.map(rm => (
+                                    <p>
+                                        <table>
+                                            <thead>
                                                 <tr>
-                                                    <td>{rm.name}</td>
-                                                    <td align='center'>{rm.quantity}</td>
+                                                    <th>Raw Material</th>
+                                                    <th>Quantity</th>
                                                 </tr>
-                                            )) }
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                { mat[afterChain].web.rawMaterials.map(rm => (
+                                                    <tr>
+                                                        <td>{rm.name}</td>
+                                                        <td align='center'>{rm.quantity}</td>
+                                                    </tr>
+                                                )) }
+                                            </tbody>
+                                        </table>
+                                    </p>
                                 )
                             )}
+                            <SortableFixedSizeTable
+                                data={{
+                                    allItems: inv.flat.craft,
+                                    showItems: inv.flat.craft,
+                                    sortType: inv.craft.list.sortType,
+                                    sortBy: sortByStoreCraftBy,
+                                    itemSelector: getByStoreInventoryCraftItem,
+                                    tableData
+                                }}
+                            />
                             <p className='item-row pointer' onClick={(e) => {
                                     e.stopPropagation();
                                     //dispatch(selectMenu(INVENTORY_PAGE));

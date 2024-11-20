@@ -293,14 +293,18 @@ const _loadByStoreShowList = (
 const _loadByStoreCraftList = (
   byStore: InventoryByStore
 ): InventoryByStore => {
-  byStore = _sortByStore(_craftListSelector, {
-    ...byStore,
-    craft: {
-      ...byStore.craft,
-      list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.craft.filter, () => true))
-    }
-  })
-  byStore.flat.show = _flatTree(byStore.showList, 0)
+  if (byStore.craft.filter === undefined || byStore.craft.filter.length === 0) {
+    byStore.craft.list.items = []
+  } else {
+    byStore = _sortByStore(_craftListSelector, {
+      ...byStore,
+      craft: {
+        ...byStore.craft,
+        list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.craft.filter, () => true))
+      }
+    })
+  }
+  byStore.flat.craft = _flatTree(byStore.craft.list, 0)
   return byStore
 }
 
@@ -601,7 +605,13 @@ const reduceSetByStoreStaredAllItemsExpanded = (
 const reduceSetByStoreCraftFilter = (
   state: InventoryState,
   filter: string
-): InventoryState => _applyByStoreStateChange(state, filter, _craftListSelector, t => ({ ...t, filter }))
+): InventoryState => ({
+  ...state,
+  byStore: _loadByStoreCraftList({
+    ...state.byStore,
+    craft: { ...state.byStore.craft, filter }
+  })
+})
 
 const reduceStartByStoreStaredItemNameEditing = (
   state: InventoryState,
@@ -830,6 +840,14 @@ const reduceSortByStoreStaredBy = (
   byStore: _nextSortByStore(_staredListSelector, state.byStore, part)
 });
 
+const reduceSortByStoreCraftBy = (
+  state: InventoryState,
+  part: number,
+): InventoryState => ({
+  ...state,
+  byStore: _nextSortByStore(_craftListSelector, state.byStore, part)
+});
+
 const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
   const map = { }
   for (const [id, c] of Object.entries(containers)) {
@@ -884,5 +902,6 @@ export {
   reduceSetByStoreCraftFilter,
   reduceSortByStoreBy,
   reduceSortByStoreStaredBy,
+  reduceSortByStoreCraftBy,
   cleanForSaveByStore,
 };

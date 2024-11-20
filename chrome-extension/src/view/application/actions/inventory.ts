@@ -37,6 +37,7 @@ const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
+const SORT_BY_STORE_CRAFT_BY = "[inv] sort by store craft by"
 const SORT_AVAILABLE_BY = "[inv] sort available by"
 const SORT_TT_SERVICE_BY = "[inv] sort tt service by"
 const RELOAD_TT_SERVICE = "[inv] reload tt service"
@@ -309,6 +310,13 @@ const sortByStoreStaredBy = (part: number) => ({
     }
 })
 
+const sortByStoreCraftBy = (part: number) => ({
+    type: SORT_BY_STORE_CRAFT_BY,
+    payload: {
+        part
+    }
+})
+
 const sortAvailableBy = (part: number) => ({
     type: SORT_AVAILABLE_BY,
     payload: {
@@ -424,6 +432,7 @@ export {
     SORT_HIDDEN_BY,
     SORT_BY_STORE_BY,
     SORT_BY_STORE_STARED_BY,
+    SORT_BY_STORE_CRAFT_BY,
     SORT_AVAILABLE_BY,
     SORT_TT_SERVICE_BY,
     RELOAD_TT_SERVICE,
@@ -472,6 +481,7 @@ export {
     sortHiddenBy,
     sortByStoreBy,
     sortByStoreStaredBy,
+    sortByStoreCraftBy,
     sortAvailableBy,
     sortTTServiceBy,
     reloadTTService,

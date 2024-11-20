@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { setByStoreItemExpanded, setByStoreInventoryExpanded, sortVisibleBy, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
-import { InventoryByStore, InventoryList, InventoryTree, TreeLineData } from '../../application/state/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryExpanded, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
+import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
 import SortableTableSection, { ItemRowColumnData, ItemRowData, SortRowData } from '../common/SortableTableSection'
 import { getByStoreInventory, getByStoreInventoryItem, getByStoreInventoryStaredItem } from '../../application/selectors/inventory'
@@ -121,37 +121,45 @@ const InventoryByStoreList = () => {
                 title='Favorite Containers'
                 expanded={inv.stared.list.expanded}
                 filter={inv.stared.filter}
-                allItems={inv.flat.original}
-                showItems={inv.flat.stared}
-                sortType={inv.stared.list.sortType}
                 stats={inv.stared.list.stats}
                 setExpanded={setByStoreStaredInventoryExpanded}
                 setFilter={setByStoreStaredInventoryFilter}
-                sortBy={sortByStoreStaredBy}
-                columns={columnsStaredContainers}
-                definition={sortColumnDefinition}
-                sortRowData={sortRowData}
-                getRowData={getRowData(favoriteRowEvents)}
-                itemSelector={getByStoreInventoryStaredItem}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreStaredAllItemsExpanded)}
+                table={{
+                    allItems: inv.flat.original,
+                    showItems: inv.flat.stared,
+                    sortType: inv.stared.list.sortType,
+                    sortBy: sortByStoreStaredBy,
+                    itemSelector: getByStoreInventoryStaredItem,
+                    tableData: {
+                        columns: columnsStaredContainers,
+                        definition: sortColumnDefinition,
+                        sortRow: sortRowData,
+                        getRow: getRowData(favoriteRowEvents)
+                    }
+                }}
             />
             <SortableTableSection
                 title='Containers'
                 expanded={inv.originalList.expanded}
                 filter={inv.filter}
-                allItems={inv.flat.original}
-                showItems={inv.flat.show}
-                sortType={inv.showList.sortType}
                 stats={inv.showList.stats}
                 setExpanded={setByStoreInventoryExpanded}
                 setFilter={setByStoreInventoryFilter}
-                sortBy={sortByStoreBy}
-                columns={columnsContainers}
-                definition={sortColumnDefinition}
-                sortRowData={sortRowData}
-                getRowData={getRowData(containersRowEvents)}
-                itemSelector={getByStoreInventoryItem}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreAllItemsExpanded)}
+                table={{
+                    allItems: inv.flat.original,
+                    showItems: inv.flat.show,
+                    sortType: inv.showList.sortType,
+                    sortBy: sortByStoreBy,
+                    itemSelector: getByStoreInventoryItem,
+                    tableData: {
+                        columns: columnsContainers,
+                        definition: sortColumnDefinition,
+                        sortRow: sortRowData,
+                        getRow: getRowData(containersRowEvents)
+                    }
+                }}
             />
         </div>
     )

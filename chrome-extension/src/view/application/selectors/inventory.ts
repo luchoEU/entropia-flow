@@ -8,3 +8,4 @@ export const getVisibleInventoryItem = (index: number) => (state: any) => getVis
 export const getHiddenInventoryItem = (index: number) => (state: any) => getHiddenInventory(state).showList.items[index]
 export const getByStoreInventoryItem = (index: number) => (state: any) => getByStoreInventory(state).flat.show[index]
 export const getByStoreInventoryStaredItem = (index: number) => (state: any) => getByStoreInventory(state).flat.stared[index]
+export const getByStoreInventoryCraftItem = (index: number) => (state: any) => getByStoreInventory(state).flat.craft[index]

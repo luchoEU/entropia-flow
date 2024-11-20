@@ -90,6 +90,13 @@ interface ColumnWidthData {
     subWidth: number[]
 }
 
+interface TableData<T> {
+    columns: number[]
+    definition: { [part: number]: { text: string, up: number, down: number} }
+    sortRow: SortRowData,
+    getRow: (item: T) => ItemRowData
+}
+
 const getSubColumnsWidth = (d: ItemRowData, imgWidth: number = IMG_WIDTH): { [part: number]: number[] } =>
     Object.fromEntries(Object.entries(d.columns).map(([k, c]) => [k, getRowColumnWidth(c, imgWidth)]));
 
@@ -183,28 +190,23 @@ const ItemRowRender = (p: {
     </>
 }
 
-const SortableTableSection = <T extends any>(p: {
-    title: string,
-    expanded: boolean,
-    filter: string,
+interface TableParameters<T> {
     allItems: T[],
     showItems: T[],
     sortType: number,
-    stats: { count: number, ped?: string, itemTypeName?: string },
-    setExpanded: (expanded: boolean) => any,
-    setFilter: (v: string) => any,
     sortBy: (part: number) => any,
-    columns: number[],
-    definition: { [part: number]: { text: string, up: number, down: number} },
-    sortRowData: SortRowData,
-    getRowData: (item: T) => ItemRowData,
     itemSelector: (index: number) => (state: any) => T,
-    searchRowAfterTotalColumnData?: ItemRowColumnData,
-    searchRowAfterSearchColumnData?: ItemRowColumnData
+    tableData: TableData<T>
+}
+
+const SortableFixedSizeTable = <T extends any>(p: {
+    data: TableParameters<T>
 }) => {
+    const d = p.data
+    const t = d.tableData
     const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
-    const itemsSubColumnsWidth = p.allItems.reduce((acc, item) => {
-        const cw = getSubColumnsWidth(p.getRowData(item))
+    const itemsSubColumnsWidth = d.allItems.reduce((acc, item) => {
+        const cw = getSubColumnsWidth(t.getRow(item))
         return Object.fromEntries(Object.entries(cw).map(([k, w]) => [k,
             acc[k] ? w.map((sw, j) => Math.max(sw, acc[k][j])) : w
         ]))
@@ -212,42 +214,32 @@ const SortableTableSection = <T extends any>(p: {
     const itemsColumnsWidth = sumSubWidth(itemsSubColumnsWidth)
 
     const sortItemRowData: ItemRowData = {
-        columns: Object.fromEntries(p.columns.map(c => [c, {
-            dispatch: () => p.sortBy(c),
-            style: { justifyContent: p.sortRowData[c]?.justifyContent ?? 'center' },
+        columns: Object.fromEntries(t.columns.map(c => [c, {
+            dispatch: () => d.sortBy(c),
+            style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
             sub: [
-                { strong: p.sortRowData[c]?.text ?? p.definition[c].text },
-                { visible: p.sortType === p.definition[c].up || p.sortType === p.definition[c].down,
-                    img: { src: p.sortType === p.definition[c].up ? 'img/up.png' : 'img/down.png' } }
+                { strong: t.sortRow[c]?.text ?? t.definition[c].text },
+                { visible: d.sortType === t.definition[c].up || d.sortType === t.definition[c].down,
+                    img: { src: d.sortType === t.definition[c].up ? 'img/up.png' : 'img/down.png' } }
             ]
         }]))
     }
     const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData, IMG_SORT_WIDTH)
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
 
-    const columnsWidth = p.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
+    const columnsWidth = t.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
     const totalWidth = SCROLL_BAR_WIDTH + Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
 
-    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => p.columns.map((c,i) => ({
+    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => t.columns.map((c,i) => ({
         part: c,
         width: columnsWidth[i],
         subWidth: subWidths[c],
     }))
 
-    const stats = p.stats
-    const itemCount = p.showItems.length
+    const itemCount = d.showItems.length
     const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
-    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
-        <div className='search-container'>
-            <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
-                <span> {stats.count} </span>
-                <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
-                { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
-            </p>
-            <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} />
-                { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(p.searchRowAfterSearchColumnData)} /> }
-            </p>
-        </div>
+
+    return (
         <div className='sort-table'>
             <div className='sort-row'>
                 <ItemRowRender
@@ -259,15 +251,44 @@ const SortableTableSection = <T extends any>(p: {
                 itemCount={itemCount}
                 itemSize={ITEM_HEIGHT}
                 width={totalWidth}>
-                {ItemRow(p.getRowData, p.itemSelector, getColumnsWidthData(itemsSubColumnsWidth))}
+                {ItemRow(t.getRow, d.itemSelector, getColumnsWidthData(itemsSubColumnsWidth))}
             </FixedSizeList>
         </div>
+    )
+}
+
+const SortableTableSection = <T extends any>(p: {
+    title: string,
+    expanded: boolean,
+    filter: string,
+    stats: { count: number, ped?: string, itemTypeName?: string },
+    searchRowAfterTotalColumnData?: ItemRowColumnData,
+    searchRowAfterSearchColumnData?: ItemRowColumnData,
+    setExpanded: (expanded: boolean) => any,
+    setFilter: (v: string) => any,
+    table: TableParameters<T>
+}) => {
+    const stats = p.stats
+    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
+        <div className='search-container'>
+            <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
+                <span> {stats.count} </span>
+                <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
+                { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
+            </p>
+            <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} />
+                { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(p.searchRowAfterSearchColumnData)} /> }
+            </p>
+        </div>
+        <SortableFixedSizeTable data={p.table} />
     </ExpandableSection>
 }
 
 export default SortableTableSection
 export {
-    ItemRowData,
+    SortableFixedSizeTable,
+    TableData,
     ItemRowColumnData,
-    SortRowData
+    ItemRowData,
+    SortRowData,
 }

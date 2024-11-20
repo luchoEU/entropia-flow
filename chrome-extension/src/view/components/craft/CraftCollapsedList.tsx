@@ -87,18 +87,22 @@ function CraftCollapsedList() {
             title='Favorite Blueprints'
             expanded={s.stared.expanded}
             filter={s.stared.filter}
-            allItems={s.blueprints}
-            showItems={s.c.filteredStaredBlueprints}
-            sortType={s.stared.sortType}
             stats={{ count: s.c.filteredStaredBlueprints.length, itemTypeName: 'blueprint' }}
             setExpanded={setStaredBlueprintsExpanded}
             setFilter={setStaredBlueprintsFilter}
-            sortBy={sortBlueprintsBy}
-            columns={columns}
-            definition={sortColumnDefinition}
-            sortRowData={sortRowData}
-            getRowData={getRowData}
-            itemSelector={getStaredBlueprintItem}
+            table={{
+                allItems: s.blueprints,
+                showItems: s.c.filteredStaredBlueprints,
+                sortType: s.stared.sortType,
+                sortBy: sortBlueprintsBy,
+                itemSelector: getStaredBlueprintItem,
+                tableData: {
+                    columns,
+                    definition: sortColumnDefinition,
+                    sortRow: sortRowData,
+                    getRow: getRowData
+                }
+            }}
         />
     </>
 }
