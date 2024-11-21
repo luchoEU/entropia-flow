@@ -37,9 +37,10 @@ let animating: boolean
 
 function animate(delta: number) {
   instances = Object.fromEntries(Object.entries(instances).filter(([,v]) => v.container.parentElement))
-  const actives = Object.values(instances).filter(i => i.container.querySelector('canvas') && i.isAnimated)
-  actives.forEach(i => i.render(delta));
-  if (actives.length > 0)
+  const animated = Object.values(instances).filter(i => i.isAnimated)
+  const toRender = animated.filter(i => i.container.querySelector('canvas'))
+  toRender.forEach(i => i.render(delta));
+  if (animated.length > 0)
     window.requestAnimationFrame(animate);
   else
     animating = false
