@@ -1,9 +1,25 @@
+function filterExact(filter: string): string {
+    return `!${filter}`
+}
+
+function filterOr(filters: string[]): string {
+    return filters.join('|')
+}
+
 function multiIncludes(multiSearch: string, mainStr: string): boolean {
     if (!multiSearch || multiSearch.length == 0)
         return true;
 
     if (multiSearch[0] === '!') // exact match
-        return multiSearch.slice(1) === mainStr;
+    {
+        if (multiSearch.includes('|')) // or
+            return multiSearch.slice(1).split('|').some(x => x === mainStr);
+        else
+            return multiSearch.slice(1) === mainStr;
+    }
+
+    if (multiSearch[0].includes('|'))
+        return multiSearch.split('|').some(x => multiIncludes(x, mainStr));
 
     function check(multi: string[], main: string[]): boolean {
         if (multi.length == 0)
@@ -27,4 +43,6 @@ function multiIncludes(multiSearch: string, mainStr: string): boolean {
 
 export {
     multiIncludes,
+    filterExact,
+    filterOr,
 }

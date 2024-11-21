@@ -11,15 +11,13 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import ImgButton from '../common/ImgButton'
-import { setByStoreCraftFilter, setByStoreCraftVisible, setByStoreInventoryFilter, setByStoreStaredInventoryExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
+import { setByStoreCraftItemExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
 import { MaterialsMap } from '../../application/state/materials'
 import { getMaterialsMap } from '../../application/selectors/materials'
-import { loadMaterialRawMaterials } from '../../application/actions/materials'
 import { SortableFixedSizeTable, TableData } from '../common/SortableTableSection'
-import { getByStoreInventory, getByStoreInventoryCraftItem, getInventory } from '../../application/selectors/inventory'
-import { InventoryByStore, InventoryState, TreeLineData } from '../../application/state/inventory'
-import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
-import { ItemData } from '../../../common/state'
+import { getByStoreInventory, getByStoreInventoryCraftItem } from '../../application/selectors/inventory'
+import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
+import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 
 function SessionInfo(p: {
     name: string,
@@ -285,18 +283,28 @@ const tableData: TableData<TreeLineData> = {
     columns: [NAME, QUANTITY, VALUE],
     definition: sortColumnDefinition,
     sortRow: {
-        [NAME]: { justifyContent: 'center' },
+        [NAME]: { justifyContent: 'center', text: 'Name in Inventory' },
         [QUANTITY]: { justifyContent: 'end' },
         [VALUE]: { justifyContent: 'end' },
     },
     getRow: (item: TreeLineData) => ({
+        dispatch: item.expanded !== undefined ? () => setByStoreCraftItemExpanded(item.id)(!item.expanded) : undefined,
         columns: {
             [NAME]: {
                 style: { paddingLeft: item.indent * INDENT_SPACE },
-                sub: [{ itemText: item.n }]
+                sub: [
+                    { plusButton: { expanded: item.expanded, setExpanded: setByStoreCraftItemExpanded(item.id) } },
+                    { itemText: item.n }
+                ]
             },
-            [QUANTITY]: { sub: [{ itemText: item.q }] },
-            [VALUE]: { sub: [{ itemText: item.v }] }
+            [QUANTITY]: {
+                style: { justifyContent: 'center' },
+                sub: [{ itemText: item.q }]
+            },
+            [VALUE]: {
+                style: { justifyContent: 'center' },
+                sub: [{ itemText: item.v }]
+            }
         }
     })
 }
@@ -304,6 +312,7 @@ const tableData: TableData<TreeLineData> = {
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
     const mat: MaterialsMap = useSelector(getMaterialsMap)
+    const inv: InventoryByStore = useSelector(getByStoreInventory)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
     const d = s.blueprints.find(b => b.name === s.activePage)
@@ -326,12 +335,6 @@ function CraftExpandedList() {
         }
         chain = nextBp?.chain
     }
-
-    if (afterChain && !mat[afterChain]?.web) {
-        dispatch(loadMaterialRawMaterials(afterChain))
-    }
-
-    const inv: InventoryByStore = useSelector(getByStoreInventory)
 
     return (
         <section>
@@ -399,28 +402,16 @@ function CraftExpandedList() {
                                     </p>
                                 )
                             )}
-                            { inv.craft.visible &&
-                                <SortableFixedSizeTable
-                                    data={{
-                                        allItems: inv.flat.craft,
-                                        showItems: inv.flat.craft,
-                                        sortType: inv.craft.list.sortType,
-                                        sortBy: sortByStoreCraftBy,
-                                        itemSelector: getByStoreInventoryCraftItem,
-                                        tableData
-                                    }}
-                                />
-                            }
-                            <p className='item-row pointer' onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch(setByStoreStaredInventoryExpanded(false));
-                                    dispatch(setByStoreInventoryFilter(afterChain.split(' ')[0]));
-                                    dispatch(setByStoreCraftVisible(true))
-                                    dispatch(setByStoreCraftFilter(afterChain.split(' ')[0]));
-                                }}>
-                                Search {afterChain.split(' ')[0]}
-                                <img src='img/find.png' title='Search it in inventory' data-show />
-                            </p>
+                            <SortableFixedSizeTable
+                                data={{
+                                    allItems: inv.flat.craft,
+                                    showItems: inv.flat.craft,
+                                    sortType: inv.craft.list.sortType,
+                                    sortBy: sortByStoreCraftBy,
+                                    itemSelector: getByStoreInventoryCraftItem,
+                                    tableData
+                                }}
+                            />
                         </div>
                     </div>
                 }

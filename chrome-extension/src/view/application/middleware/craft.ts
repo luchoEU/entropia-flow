@@ -1,15 +1,13 @@
-import { ItemData } from '../../../common/state'
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED, setBlueprintActivePage, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
-import { SET_CURRENT_INVENTORY, setByStoreCraftVisible } from '../actions/inventory'
+import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
 import { bpNameFromItemName, budgetInfoFromBp, cleanForSave, initialState, itemName, itemNameFromString, itemStringFromName } from '../helpers/craft'
-import { joinDuplicates, joinList } from '../helpers/inventory'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
@@ -21,6 +19,10 @@ import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
 import { Dispatch } from 'react'
+import { MaterialsMap } from '../state/materials'
+import { getMaterialsMap } from '../selectors/materials'
+import { loadMaterialRawMaterials } from '../actions/materials'
+import { filterExact, filterOr } from '../../../common/string'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -92,13 +94,31 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SHOW_BLUEPRINT_MATERIAL_DATA: {
             const inv: InventoryState = getInventory(getState())
             const state: CraftState = getCraft(getState())
-            if (!state.blueprints.find(bp => bp.itemName == action.payload.materialName)) {
-                const addBpName = bpNameFromItemName(inv, action.payload.materialName)
+            const materialName = action.payload.materialName
+
+            let isBlueprint = false
+            if (state.blueprints.find(bp => bp.itemName == materialName)) {
+                isBlueprint = true
+            } else {
+                const addBpName = bpNameFromItemName(inv, materialName)
                 if (addBpName) {
                     dispatch(addBlueprintLoading(addBpName))
+                    isBlueprint = true
                 }
             }
-            dispatch(setByStoreCraftVisible(false))
+            
+            if (!isBlueprint) {
+                const mat: MaterialsMap = getMaterialsMap(getState())
+                const web = mat[materialName]?.web
+                if (!web) {
+                    dispatch(loadMaterialRawMaterials(materialName))
+                } else {
+                    dispatch(setByStoreCraftFilter(filterExact(
+                        web?.rawMaterials ?
+                            filterOr([ materialName, ...web.rawMaterials.map(m => m.name) ]) :
+                            materialName)))
+                }
+            }
             break
         }
         case ADD_BLUEPRINT_LOADING:

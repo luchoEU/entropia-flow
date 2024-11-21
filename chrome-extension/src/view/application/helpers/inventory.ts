@@ -505,5 +505,6 @@ export {
   joinDuplicates,
   removeAvailable,
   cleanForSave,
+  cleanForSaveInventoryList,
   cleanForSaveInventoryListWithFilter
 };

@@ -37,8 +37,8 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
     list: InventoryList<InventoryTree<ItemData>>
   }
   craft: {
-    visible: boolean
     filter?: string
+    expanded: Array<string>
     list: InventoryList<InventoryTree<ItemData>>
   }
   flat: {

@@ -10,7 +10,7 @@ import {
   BasicItemData,
   TreeLineData,
 } from "../state/inventory";
-import { cleanForSaveInventoryListWithFilter, initialList, initialListWithFilter } from "./inventory";
+import { cleanForSaveInventoryList, cleanForSaveInventoryListWithFilter, initialList, initialListWithFilter } from "./inventory";
 import {
   cloneSortListSelect,
   nextSortType,
@@ -22,7 +22,7 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
   ...initialListWithFilter(expanded, sortType),
   containers: { },
   stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
-  craft: { visible: false, filter: undefined, list: initialList(true, sortType) },
+  craft: { filter: undefined, expanded: [], list: initialList(true, sortType) },
   flat: { original: [], show: [], stared: [], craft: [] },
   c: { validPlanets: [] },
 });
@@ -591,6 +591,16 @@ const reduceSetByStoreStaredItemExpanded = (
   return newState
 }
 
+const reduceSetByStoreCraftItemExpanded = (
+  state: InventoryState,
+  id: string,
+  expanded: boolean
+): InventoryState => {
+  const newState = _applyByStoreStateChange(state, id, _craftListSelector, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }))
+  newState.byStore.craft.expanded = expanded ? [ ...newState.byStore.craft.expanded, id ] : newState.byStore.craft.expanded.filter(i => i !== id)
+  return newState
+}
+
 const reduceSetByStoreStaredAllItemsExpanded = (
   state: InventoryState,
   expanded: boolean
@@ -611,17 +621,6 @@ const reduceSetByStoreCraftFilter = (
     ...state.byStore,
     craft: { ...state.byStore.craft, filter }
   })
-})
-
-const reduceSetByStoreCraftVisible = (
-  state: InventoryState,
-  visible: boolean
-): InventoryState => ({
-  ...state,
-  byStore: {
-    ...state.byStore,
-    craft: { ...state.byStore.craft, visible }
-  }
 })
 
 const reduceStartByStoreStaredItemNameEditing = (
@@ -879,12 +878,12 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
   containers: _cleanForSaveContainers(state.containers),
   stared: {
     ...state.stared,
-    list: {
-      ...state.stared.list,
-      items: undefined
-    }
+    list: cleanForSaveInventoryList(state.stared.list)
   },
-  craft: undefined,
+  craft: {
+    ...state.craft,
+    list: cleanForSaveInventoryList(state.craft.list)
+  },
   flat: undefined,
   c: undefined
 })
@@ -903,6 +902,7 @@ export {
   reduceSetByStoreItemStared,
   reduceSetByStoreStaredInventoryExpanded,
   reduceSetByStoreStaredItemExpanded,
+  reduceSetByStoreCraftItemExpanded,
   reduceSetByStoreStaredAllItemsExpanded,
   reduceSetByStoreStaredInventoryFilter,
   reduceStartByStoreStaredItemNameEditing,
@@ -911,7 +911,6 @@ export {
   reduceSetByStoreStaredItemName,
   reduceSetByStoreStaredItemStared,
   reduceSetByStoreCraftFilter,
-  reduceSetByStoreCraftVisible,
   reduceSortByStoreBy,
   reduceSortByStoreStaredBy,
   reduceSortByStoreCraftBy,
