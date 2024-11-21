@@ -94,7 +94,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SHOW_BLUEPRINT_MATERIAL_DATA: {
             const inv: InventoryState = getInventory(getState())
             const state: CraftState = getCraft(getState())
-            const materialName = action.payload.materialName
+            let materialName = action.payload.materialName
 
             let isBlueprint = false
             if (state.blueprints.find(bp => bp.itemName == materialName)) {
@@ -108,16 +108,22 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             
             if (!isBlueprint) {
-                const mat: MaterialsMap = getMaterialsMap(getState())
-                const web = mat[materialName]?.web
-                if (!web) {
-                    dispatch(loadMaterialRawMaterials(materialName))
-                } else {
-                    dispatch(setByStoreCraftFilter(filterExact(
-                        web?.rawMaterials ?
-                            filterOr([ materialName, ...web.rawMaterials.map(m => m.name) ]) :
-                            materialName)))
+                // restore material name of 'Item' and 'Blueprint'
+                let bpName = action.payload.name
+                const bp = state.blueprints.find(bp => bp.name == bpName)
+                if (bp) {
+                    materialName = itemNameFromString(bp, materialName)
                 }
+
+                const mat: MaterialsMap = getMaterialsMap(getState())
+                const raw = mat[materialName]?.web?.rawMaterials
+                if (!raw) {
+                    dispatch(loadMaterialRawMaterials(materialName))
+                }
+                dispatch(setByStoreCraftFilter(filterExact(
+                    raw?.data ?
+                        filterOr([ materialName, ...raw.data.map(m => m.name) ]) :
+                        materialName)))
             }
             break
         }
@@ -349,6 +355,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 }
 
+const BP_ITEM_NAME = 'Item'
+const BP_BLUEPRINT_NAME = 'Blueprint'
+
 const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promise<void> => {
     const urlName = name.replace(/ /g, '%20')
     let url = `https://apps5.genexus.com/entropia-flow-helper-1/rest/BlueprintInfo?name=${urlName}` // use server to get from entropiawiki to avoid CORS error
@@ -369,14 +378,14 @@ const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promis
     if (data.StatusCode === 0) {
         if (data.Name.endsWith('(L)')) {
             data.Material.unshift({
-                Name: 'Blueprint',
+                Name: BP_BLUEPRINT_NAME,
                 Quantity: 1,
                 Type: 'Blueprint',
                 Value: '0.01'
             })
         }
         data.Material.unshift({
-            Name: 'Item',
+            Name: BP_ITEM_NAME,
             Quantity: 0,
             Type: 'Crafted item',
             Value: data.ItemValue
@@ -407,3 +416,7 @@ const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promis
 export default [
     requests
 ]
+export {
+    BP_ITEM_NAME,
+    BP_BLUEPRINT_NAME,
+}

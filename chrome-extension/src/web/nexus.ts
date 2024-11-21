@@ -1,10 +1,12 @@
 import { fetchJson } from "./fetch";
-import { IWebSource, LoadResponse, mapResponse, RawMaterialWebData } from "./sources";
+import { mapResponse } from "./loader";
+import { IWebSource, SourceLoadResponse } from "./sources";
+import { RawMaterialWebData } from "./state";
 
 export class EntropiaNexus implements IWebSource {
     public name: string = "Entropia Nexus";
 
-    public async loadRawMaterials(materialName: string): Promise<LoadResponse<RawMaterialWebData[]>> {
+    public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         const url = `https://api.entropianexus.com/acquisition/${encodeURIComponent(materialName)}`
         return mapResponse(await fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials)
     }

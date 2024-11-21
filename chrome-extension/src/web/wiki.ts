@@ -1,10 +1,12 @@
 import { fetchText } from "./fetch";
-import { IWebSource, LoadResponse, mapResponse, RawMaterialWebData } from "./sources";
+import { mapResponse } from "./loader";
+import { IWebSource, SourceLoadResponse } from "./sources";
+import { RawMaterialWebData } from "./state";
 
 export class EntropiaWiki implements IWebSource {
     public name: string = "Entropia Wiki"
 
-    public async loadRawMaterials(materialName: string): Promise<LoadResponse<RawMaterialWebData[]>> {
+    public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         const url = `http://www.entropiawiki.com/Search.aspx?searchtext=${encodeURIComponent(materialName)}&type=go`
         return mapResponse(await fetchText(url), _extractRawMaterials)
     }

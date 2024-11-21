@@ -2,7 +2,7 @@ import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, setBlueprintExpanded, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
-import { itemName } from '../../application/helpers/craft'
+import { itemName, itemNameFromString } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status'
@@ -335,6 +335,7 @@ function CraftExpandedList() {
         }
         chain = nextBp?.chain
     }
+    const afterChainRaw = mat[afterChain]?.web?.rawMaterials
 
     return (
         <section>
@@ -370,18 +371,18 @@ function CraftExpandedList() {
                 { afterChain &&
                     <div className='craft-chain'>
                         <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(afterBpChain.name, undefined)) }}>
-                            { afterChain }<img src='img/left.png' />
+                            { itemNameFromString(afterBpChain, afterChain) }<img src='img/left.png' />
                         </h2>
                         <div>
                             <p>
                                 Type: {afterBpChain.info.materials.find(m => m.name === afterChain).type}
                             </p>
-                            { mat[afterChain]?.web && (
-                                mat[afterChain].web.loading ?
-                                    <><img data-show className='img-loading' src='img/loading.gif' /> Loading from {mat[afterChain].web.loading.source}...</> :
-                                (mat[afterChain].web.errors ?
-                                    mat[afterChain].web.errors.map(e => <p>{e.message}</p>) :
-                                    mat[afterChain].web.rawMaterials.length > 0 &&
+                            { afterChainRaw && (
+                                afterChainRaw.loading ?
+                                    <><img data-show className='img-loading' src='img/loading.gif' /> Loading from {afterChainRaw.loading.source}...</> :
+                                (afterChainRaw.errors ?
+                                    afterChainRaw.errors.map(e => <p>{e.message}</p>) :
+                                    afterChainRaw.data.length > 0 &&
                                     <p>
                                         <table>
                                             <thead>
@@ -391,7 +392,7 @@ function CraftExpandedList() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                { mat[afterChain].web.rawMaterials.map(rm => (
+                                                { afterChainRaw.data.map(rm => (
                                                     <tr>
                                                         <td>{rm.name}</td>
                                                         <td align='center'>{rm.quantity}</td>
@@ -402,16 +403,19 @@ function CraftExpandedList() {
                                     </p>
                                 )
                             )}
-                            <SortableFixedSizeTable
-                                data={{
-                                    allItems: inv.flat.craft,
-                                    showItems: inv.flat.craft,
-                                    sortType: inv.craft.list.sortType,
-                                    sortBy: sortByStoreCraftBy,
-                                    itemSelector: getByStoreInventoryCraftItem,
-                                    tableData
-                                }}
-                            />
+                            { inv.flat.craft.length === 0 ?
+                                <p><strong>None on Inventory</strong></p> :
+                                <SortableFixedSizeTable
+                                    data={{
+                                        allItems: inv.flat.craft,
+                                        showItems: inv.flat.craft,
+                                        sortType: inv.craft.list.sortType,
+                                        sortBy: sortByStoreCraftBy,
+                                        itemSelector: getByStoreInventoryCraftItem,
+                                        tableData
+                                    }}
+                                />
+                            }
                         </div>
                     </div>
                 }

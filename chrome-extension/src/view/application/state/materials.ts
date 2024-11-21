@@ -1,4 +1,5 @@
-import { RawMaterialWebData } from "../../../web/sources"
+import { WebLoadResponse } from "../../../web/loader"
+import { RawMaterialWebData } from "../../../web/state"
 
 interface MaterialsState {
     map: MaterialsMap
@@ -7,13 +8,7 @@ interface MaterialsState {
 type MaterialsMap = { [name: string] : MaterialState }
 
 interface MaterialStateWebData {
-    loading?: {
-        source: string
-    }
-    errors?: {
-        message: string
-    }[]
-    rawMaterials?: RawMaterialWebData[]
+    rawMaterials?: WebLoadResponse<RawMaterialWebData[]>
 }
 
 interface MaterialState {

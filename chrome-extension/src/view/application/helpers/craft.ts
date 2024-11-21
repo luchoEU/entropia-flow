@@ -1,6 +1,7 @@
 import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
+import { BP_BLUEPRINT_NAME, BP_ITEM_NAME } from '../middleware/craft';
 import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BlueprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
 import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
@@ -123,10 +124,10 @@ const reduceAddBlueprintData = (state: CraftState, data: BlueprintWebData): Craf
 })
 
 const itemNameFromString = (bp: BlueprintData, name: string): string =>
-    name === 'Blueprint' ? bp.name : name === 'Item' ? bp.itemName : name
+    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.itemName : name
 
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
-    name === bp.name ? 'Blueprint' : name === bp.itemName ? 'Item' : name
+    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.itemName ? BP_ITEM_NAME : name
 
 const itemName = (bp: BlueprintData, m: BlueprintMaterial): string =>
     itemNameFromString(bp, m.name)
@@ -158,8 +159,8 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
                 clickTTCost += m.quantity * m.value
             }
 
-            const itemMaterial = materials.find(m => m.name === 'Item')
-            const isLimited = materials.find(m => m.name === 'Blueprint')
+            const itemMaterial = materials.find(m => m.name === BP_ITEM_NAME)
+            const isLimited = materials.find(m => m.name === BP_BLUEPRINT_NAME)
             let residueNeeded = 0
             if (itemMaterial) {
                 residueNeeded = Math.max(0, itemMaterial.value - clickTTCost)
