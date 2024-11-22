@@ -7,7 +7,7 @@ const MATERIAL_USE_AMOUNT_CHANGED = '[material] use amount changed'
 const MATERIAL_REFINE_AMOUNT_CHANGED = '[material] refine amount changed'
 const MATERIAL_BUY_AMOUNT_CHANGED = '[material] buy amount changed'
 const MATERIAL_ORDER_VALUE_CHANGED = '[material] order value changed'
-const MATERIAL_SET_PARTIAL_WEB_DATA = '[material] set partial web data'
+const SET_MATERIAL_PARTIAL_WEB_DATA = '[material] set partial web data'
 const LOAD_MATERIAL_RAW_MATERIALS = '[material] load raw materials'
 
 const setMaterialsState = (state: MaterialsState) => ({
@@ -65,8 +65,8 @@ const materialOrderValueChanged = (material: string, value: string) => ({
     }
 })
 
-const materialSetPartialWebData = (material: string, change: Partial<MaterialStateWebData>) => ({
-    type: MATERIAL_SET_PARTIAL_WEB_DATA,
+const setMaterialPartialWebData = (material: string, change: Partial<MaterialStateWebData>) => ({
+    type: SET_MATERIAL_PARTIAL_WEB_DATA,
     payload: {
         material,
         change
@@ -88,7 +88,7 @@ export {
     MATERIAL_REFINE_AMOUNT_CHANGED,
     MATERIAL_BUY_AMOUNT_CHANGED,
     MATERIAL_ORDER_VALUE_CHANGED,
-    MATERIAL_SET_PARTIAL_WEB_DATA,
+    SET_MATERIAL_PARTIAL_WEB_DATA,
     LOAD_MATERIAL_RAW_MATERIALS,
     setMaterialsState,
     materialBuyMarkupChanged,
@@ -97,6 +97,6 @@ export {
     materialRefineAmountChanged,
     materialBuyAmountChanged,
     materialOrderValueChanged,
-    materialSetPartialWebData,
+    setMaterialPartialWebData,
     loadMaterialRawMaterials,
 }

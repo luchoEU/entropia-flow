@@ -2,12 +2,12 @@ import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BP_BLUEPRINT_NAME, BP_ITEM_NAME } from '../middleware/craft';
-import { BlueprintData, BlueprintMaterial, BlueprintSession, BlueprintSessionDiff, BlueprintWebData, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../state/craft';
+import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintInventoryMaterials, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial } from '../state/craft';
 import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
 
 const initialState: CraftState = {
-    blueprints: [],
+    blueprints: { },
     stared: {
         expanded: true,
         sortType: Sort.SORT_NAME_ASCENDING,
@@ -21,9 +21,11 @@ const initialState: CraftState = {
 
 const reduceSetState = (state: CraftState, inState: CraftState) => inState
 
-const itemNameFromBpName = (bpName: string) => bpName.split('Blueprint')[0].trim()
-const bpNameFromItemName = (inv: InventoryState, itemName: string) =>
+const itemNameFromBpName = (bpName: string): string => bpName.split('Blueprint')[0].trim()
+const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
     inv.blueprints.originalList.items.find(bp => itemNameFromBpName(bp.n) == itemName)?.n
+const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
+    Object.values(state.blueprints).find(bp => bp.c.itemName == itemName)
 
 const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
     const sortType = Sort.nextSortType(part, state.stared.sortType)
@@ -57,19 +59,12 @@ const reduceSetStaredBlueprintsFilter = (state: CraftState, filter: string): Cra
     }
 })
 
-const reduceAddBlueprintLoading = (state: CraftState, name: string): CraftState => _applyFilter({
+const reduceAddBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
     ...state,
-    blueprints: [
+    blueprints: {
         ...state.blueprints,
-        {
+        [name]: {
             name,
-            itemName: itemNameFromBpName(name),
-            info: {
-                loading: true,
-                url: undefined,
-                bpClicks: undefined,
-                materials: [],
-            },
             budget: {
                 loading: true,
                 stage: STAGE_INITIALIZING,
@@ -77,142 +72,93 @@ const reduceAddBlueprintLoading = (state: CraftState, name: string): CraftState 
             },
             session: {
                 step: STEP_INACTIVE
+            },
+            c: {
+                itemName: itemNameFromBpName(name),
             }
         }
-    ]
+    }
 })
 
 const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _applyFilter({
     ...state,
-    blueprints: state.blueprints.filter(bp => bp.name !== name)
+    blueprints: Object.keys(state.blueprints).reduce((result, key) => {
+        if (key !== name) {
+            result[key] = state.blueprints[key]
+        }
+        return result;
+    }, {})
 })
 
-const reduceAddBlueprintData = (state: CraftState, data: BlueprintWebData): CraftState => _applyFilter({
+const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, change: Partial<BlueprintStateWebData>): CraftState => ({
     ...state,
-    blueprints: state.blueprints.map(bp => {
-        if (bp.name === data.Name) {
-            if (data.StatusCode === 0) {
-               return {
-                    ...bp,
-                    info: {
-                        ...bp.info,
-                        loading: false,
-                        url: data.Url,
-                        materials: data.Material.map(m => ({
-                            name: m.Name,
-                            quantity: Number(m.Quantity),
-                            type: m.Type,
-                            value: Number(m.Value),
-                        }))
-                    }
-                }
-            } else {
-                return {
-                    ...bp,
-                    info: {
-                        ...bp.info,
-                        loading: false,
-                        url: data.Url,
-                        errorText: `Loading Error, Code ${data.StatusCode}: ${data.Text}`
-                    }
-                }
+    blueprints: {
+        ...state.blueprints,
+        [bpName]: {
+            ...state.blueprints[bpName],
+            web: {
+                ...state.blueprints[bpName].web,
+                ...change
             }
-        } else {
-            return bp
         }
-    })
+    }
 })
 
 const itemNameFromString = (bp: BlueprintData, name: string): string =>
-    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.itemName : name
+    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.c.itemName : name
 
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
-    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.itemName ? BP_ITEM_NAME : name
-
-const itemName = (bp: BlueprintData, m: BlueprintMaterial): string =>
-    itemNameFromString(bp, m.name)
+    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c.itemName ? BP_ITEM_NAME : name
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
-    itemName: bp.itemName,
-    materials: bp.info.materials.map(m => ({
+    itemName: bp.c.itemName,
+    materials: bp.web?.blueprint.data?.materials.map(m => ({
         name: m.name,
         unitValue: m.value
     }))
 })
 
-const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => {
-    let blueprints: BlueprintData[] = []
-    for (let bp of state.blueprints) {
-        if (bp.info.loading) {
-            blueprints.push(bp)
-        } else {
-            let clickTTCost = 0
-            const materials: BlueprintMaterial[] = []
-            for (const m of bp.info.materials) {
-                const name = itemName(bp, m)
-                const available = dictionary[name] ?? 0
-                materials.push({
-                    ...m,
-                    available,
-                    clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
-                })
-                clickTTCost += m.quantity * m.value
-            }
-
-            const itemMaterial = materials.find(m => m.name === BP_ITEM_NAME)
-            const isLimited = materials.find(m => m.name === BP_BLUEPRINT_NAME)
-            let residueNeeded = 0
-            if (itemMaterial) {
-                residueNeeded = Math.max(0, itemMaterial.value - clickTTCost)
-                if (residueNeeded > 0 && isLimited) {
-                    const residueMaterial = materials.find(m => m.type === 'Residue')
-                    residueMaterial.clicks = Math.floor((residueMaterial.value * residueMaterial.available) / residueNeeded)
-                }
-            }
-
-            const clicksAvailable = Math.min(...materials.map(m => m.clicks ?? Infinity))
-            const limitClickItems = materials.filter(m => m.clicks === clicksAvailable).map(m => m.name)
-
-            blueprints.push({
-                ...bp,
-                info: {
-                    ...bp.info,
-                    bpClicks: isLimited ? (isLimited.clicks == 0 ? undefined : isLimited.clicks) : Infinity,
-                    materials,
-                },
-                inventory: {
-                    clicksAvailable,
-                    limitClickItems,
-                    clickTTCost,
-                    residueNeeded: isLimited ? residueNeeded : undefined
-                }
-            })
-        }
-    }
-
-    return _applyFilter({
-        ...state,
-        blueprints
-    })
-}
-
-const reduceSetBlueprintExpanded = (state: CraftState, name: string, expanded: boolean): CraftState => _applyFilter({
+const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter({
     ...state,
-    blueprints: state.blueprints.map(
-        bp => bp.name === name ?
-        {
-            ...bp,
-            budget: {
-                ...bp.budget,
-                ...(expanded ? { // reload budget
-                    loading: true,
-                    stage: STAGE_INITIALIZING,
-                    hasPage: false,
-                } : {})
-            },
-            expanded
+    blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
+        const webMaterials = bp.web?.blueprint.data?.materials
+        if (!webMaterials) return [n, bp];
+
+        let clickTTCost = 0
+        const materials: BlueprintInventoryMaterials = { }
+        for (const m of webMaterials) {
+            const name = itemNameFromString(bp, m.name)
+            const available = dictionary[name] ?? 0
+            materials[m.name] = {
+                available,
+                clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
+            }
+            clickTTCost += m.quantity * m.value
         }
-        : bp)
+
+        const webItemMaterial = webMaterials.find(m => m.name == BP_ITEM_NAME)
+        const isLimited = materials[BP_BLUEPRINT_NAME]
+        let residueNeeded = 0
+        if (webItemMaterial) {
+            residueNeeded = Math.max(0, webItemMaterial.value - clickTTCost)
+            if (residueNeeded > 0 && isLimited) {
+                const webResidueMaterial = webMaterials.find(m => m.type === 'Residue')
+                const residueMaterial = materials[webResidueMaterial.name]
+                residueMaterial.clicks = Math.floor((webResidueMaterial.value * residueMaterial.available) / residueNeeded)
+            }
+        }
+
+        const clicksAvailable = Math.min(...Object.values(materials).map(m => m.clicks ?? Infinity))
+        bp.c.inventory = {
+            bpClicks: isLimited ? (isLimited.clicks == 0 ? undefined : isLimited.clicks) : Infinity,
+            clicksAvailable,
+            limitClickItems: Object.entries(materials).filter(([,m]) => m.clicks === clicksAvailable).map(([n,]) => n),
+            clickTTCost,
+            residueNeeded: isLimited ? residueNeeded : undefined,
+            materials,
+        }
+        return [n, bp];
+    }))
 })
 
 const reduceSetBlueprintStared = (state: CraftState, name: string, stared: boolean): CraftState => _applyFilter({
@@ -221,15 +167,10 @@ const reduceSetBlueprintStared = (state: CraftState, name: string, stared: boole
         ...state.stared,
         list: stared ? (state.stared.list.includes(name) ? state.stared.list : [...state.stared.list, name]) : state.stared.list.filter(n => n !== name)
     },
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, expanded: stared } : bp)
 })
 
-const reduceShowBlueprintMaterialData = (state: CraftState, name: string, materialName: string): CraftState => _applyFilter({
-    ...state,
-    blueprints: state.blueprints.map(bp =>
-        bp.name === name ? { ...bp, chain: materialName } :
-        (bp.itemName == materialName ? { ...bp, chain: undefined } : bp))
-})
+const reduceShowBlueprintMaterialData = (state: CraftState, name: string, materialName: string): CraftState =>
+    _changeBlueprint(state, name, bp => ({ ...bp, chain: materialName }))
 
 const _applyFilter = (state: CraftState): CraftState => {
     if (state.stared.filter?.length === 0)
@@ -237,14 +178,42 @@ const _applyFilter = (state: CraftState): CraftState => {
     const filter = state.stared.filter
     state.c.filteredStaredBlueprints = Sort.sortList(state.stared.sortType, (filter ? state.stared.list
         .filter(name => multiIncludes(filter, name)) : state.stared.list)
-        .map(name => state.blueprints.find(bp => bp.name === name)))
+        .map(name => state.blueprints[name])
+        .filter(bp => bp)) // remove undefined
     return state
 }
 
-const _changeBudget = (state: CraftState, name: string, data: object): CraftState => _applyFilter({
+const _changeBlueprint = (state: CraftState, name: string, f: (bp: BlueprintData) => BlueprintData): CraftState => _applyFilter({
     ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, budget: { ...bp.budget, ...data } } : bp)
+    blueprints: {
+        ...state.blueprints,
+        [name]: f(state.blueprints[name])
+    }
 })
+
+const _changeBudget = (state: CraftState, name: string, change: Partial<BlueprintBudget>): CraftState => 
+    _changeBlueprint(state, name, bp => ({ ...bp, budget: { ...bp.budget, change }}))
+
+const _changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: Partial<BlueprintBudgetMaterial>): CraftState =>
+    _changeBlueprint(state, name, bp => ({
+        ...bp,
+        budget: {
+            ...bp.budget,
+            sheet: {
+                ...bp.budget.sheet,
+                materials: {
+                    ...bp.budget.sheet.materials,
+                    [materialName]: {
+                        ...bp.budget.sheet.materials[materialName],
+                        ...change
+                    }
+                }
+            }
+        }
+    }))
+
+const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState =>
+    _changeBlueprint(state, name, bp => ({ ...bp, session: newSession(bp) }))    
 
 const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState => 
     _changeBudget(state, name, { loading: true })
@@ -252,114 +221,75 @@ const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState =
 const reduceSetBudgetState = (state: CraftState, name: string, stage: number): CraftState =>
     _changeBudget(state, name, { stage } )
 
-const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => {
-    let blueprints: BlueprintData[] = []
-    for (let bp of state.blueprints) {
-        if (bp.name !== name) {
-            blueprints.push(bp)
-            continue
-        }
+const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => _changeBlueprint(state, name, bp => {
 
-        let clickMUCost = 0
-        const materials: BlueprintMaterial[] = []
-        for (const m of bp.info.materials) {
-            const materialInfo = info.materials[m.name]
-            if (materialInfo === undefined) {
-                materials.push(m)
-            } else {
-                materials.push({
-                    ...m,
-                    markup: materialInfo.markup,
-                    budgetCount: materialInfo.current
-                })
-                clickMUCost += m.quantity * m.value * materialInfo.markup
+    let clickMUCost = 0
+    const materials: BlueprintBudgetMaterials = { }
+    for (const m of bp.web.blueprint.data.materials) {
+        const materialInfo = info.materials[m.name]
+        if (materialInfo) {
+            materials[m.name] = {
+                markup: materialInfo.markup,
+                count: materialInfo.current
             }
+            clickMUCost += m.quantity * m.value * materialInfo.markup
         }
-
-        blueprints.push({
-            ...bp,
-            info: {
-                ...bp.info,
-                materials,
-            },
-            budget: {
-                ...bp.budget,
-                hasPage: true,
-                clickMUCost,
-                total: info.total,
-                peds: info.peds
-            }
-        })
     }
 
-    return _applyFilter({
-        ...state,
-        blueprints
-    })
-}
+    const budget: BlueprintBudget = {
+        ...bp.budget,
+        hasPage: true,
+        sheet: {
+            clickMUCost,
+            total: info.total,
+            peds: info.peds,
+            materials,
+        }
+    }
+    return { ...bp, budget }
+})
 
 const reduceEndBudgetLoading = (state: CraftState, name: string): CraftState =>
     _changeBudget(state, name, { loading: false } )
 
 const reduceErrorBudgetLoading = (state: CraftState, name: string, text: string): CraftState => 
-    _changeBudget(state, name, { error: text } )
+    _changeBudget(state, name, { errorText: text } )
 
-const reduceBuyBudgetMaterial = (state: CraftState, name: string): CraftState => _applyFilter({ 
-    ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? {
-        ...bp,
-        budget: {
-            ...bp.budget,
-            loading: true,
-            stage: STAGE_INITIALIZING
-        }}
-        : bp)
-})
+const reduceBuyBudgetMaterial = (state: CraftState, name: string): CraftState =>
+    _changeBudget(state, name, { loading: true, stage: STAGE_INITIALIZING })
 
-const reduceBuyBudgetMaterialDone = (state: CraftState, name: string, materialName: string, quantity: number): CraftState => _applyFilter({
-    ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? {
-        ...bp,
-        info: {
-            ...bp.info,
-            materials: bp.info.materials.map(m => m.name === materialName ? {
-                ...m,
-                budgetCount: m.budgetCount + quantity,
-                buyDone: true
-            } : m)
-        },
-        budget: {
-            ...bp.budget,
-            loading: false
-        }}
-        : bp)
+const reduceBuyBudgetMaterialDone = (state: CraftState, name: string, materialName: string, quantity: number): CraftState => _changeBlueprint(state, name, bp => {
+    const m = bp.budget.sheet?.materials[materialName]
+    const budget: BlueprintBudget = {
+        ...bp.budget,
+        loading: false,
+        sheet: {
+            ...bp.budget.sheet,
+            materials: {
+                ...bp.budget.sheet.materials,
+                [materialName]: {
+                    ...m,
+                    count: m.count + quantity,
+                    buyDone: true
+                }
+            }
+        }
+    }
+    return { ...bp, budget }
 })
 
 const reduceBuyBudgetMaterialClear = (state: CraftState): CraftState => _applyFilter({
     ...state,
-    blueprints: state.blueprints.map(bp => ({
+    blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n,bp]) => [n,{
         ...bp,
-        info: {
-            ...bp.info,
-            materials: bp.info.materials.map(m => ({
+        budget: {
+            ...bp.budget,
+            materials: bp.budget.sheet ? Object.fromEntries(Object.entries(bp.budget.sheet.materials).map(([x,m]) => [x,{
                 ...m,
                 buyDone: undefined
-            }))
+            }])) : []
         }
-    }))
-})
-
-const _changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: any): CraftState => _applyFilter({
-    ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? {
-        ...bp,
-        info: {
-            ...bp.info,
-            materials: bp.info.materials.map(m => m.name === materialName ? {
-                ...m, ...change
-            } : m)
-        }}
-        : bp)
+    }]))
 })
 
 const reduceChangeBudgetBuyCost = (state: CraftState, name: string, materialName: string, cost: string): CraftState =>
@@ -368,13 +298,7 @@ const reduceChangeBudgetBuyCost = (state: CraftState, name: string, materialName
 const reduceChangeBudgetBuyFee = (state: CraftState, name: string, materialName: string, withFee: boolean): CraftState =>
     _changeBudgetMaterial(state, name, materialName, { withFee })
 
-const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState => _applyFilter({
-    ...state,
-    blueprints: state.blueprints.map(bp => bp.name === name ? { ...bp, session: newSession(bp) } : bp)
-})
-
 const reduceStartCraftSession = (state: CraftState, name: string): CraftState => ({
-    ...state,
     ..._changeSession(state, name, () => ({ step: STEP_REFRESH_TO_START })),
     activeSession: name
 })
@@ -418,29 +342,21 @@ const reduceSetCraftActivePlanet = (state: CraftState, name: string): CraftState
 })
 
 const cleanForSave = (state: CraftState): CraftState => {
-    const cState = JSON.parse(JSON.stringify(state));
+    const cState: CraftState = JSON.parse(JSON.stringify(state));
     delete cState.activeSession;
     delete cState.c;
 
-    // remove duplicates
-    const blueprintsByName = {};
-    cState.blueprints = cState.blueprints.reduce((list: BlueprintData[], bp: BlueprintData) => {
-        if (!blueprintsByName[bp.name]) {
-            blueprintsByName[bp.name] = true;
-            list.push(bp);
-        }
-        return list
-    }, []);
     cState.stared.list = cState.stared.list.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
-
-    cState.blueprints.forEach((bp: BlueprintData) => {
-        bp.info.materials.forEach((m: BlueprintMaterial) => {
-            delete m.buyDone
-        })
+    Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
         bp.budget = {
             ...bp.budget,
             loading: true,
             stage: STAGE_INITIALIZING
+        }
+        if (bp.budget.sheet) {
+            Object.values(bp.budget.sheet.materials).forEach((m: BlueprintBudgetMaterial) => {
+                delete m.buyDone
+            })
         }
         if (bp.session.step !== STEP_INACTIVE) {
             bp.session.step = STEP_DONE
@@ -452,19 +368,14 @@ const cleanForSave = (state: CraftState): CraftState => {
 export {
     initialState,
     reduceSetState,
-    itemName,
-    itemNameFromString,
-    itemStringFromName,
-    budgetInfoFromBp,
     reduceRemoveBlueprint,
     reduceSortBlueprintsByPart,
     reduceSetBlueprintActivePage,
     reduceSetStaredBlueprintsExpanded,
     reduceSetStaredBlueprintsFilter,
-    reduceAddBlueprintLoading,
-    reduceAddBlueprintData,
+    reduceAddBlueprint,
+    reduceSetBlueprintPartialWebData,
     reduceSetBlueprintQuantity,
-    reduceSetBlueprintExpanded,
     reduceSetBlueprintStared,
     reduceShowBlueprintMaterialData,
     reduceStartBudgetLoading,
@@ -489,4 +400,8 @@ export {
     reduceClearCraftSession,
     cleanForSave,
     bpNameFromItemName,
+    bpDataFromItemName,
+    itemNameFromString,
+    itemStringFromName,
+    budgetInfoFromBp,
 }

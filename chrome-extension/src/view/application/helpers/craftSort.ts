@@ -1,3 +1,4 @@
+import { BP_ITEM_NAME } from "../middleware/craft"
 import { BlueprintData } from "../state/craft"
 
 const NAME = 0
@@ -72,12 +73,12 @@ const sortColumnDefinition = {
 }
 
 const getLimitText = (d: BlueprintData): string =>
-    d.inventory?.limitClickItems.length > 2 ? 
-        `${d.inventory.limitClickItems.slice(0, 2).join(', ')}, ${d.inventory.limitClickItems.length - 2} more` : 
-        d.inventory?.limitClickItems.join(', ') ?? '';
+    d.c.inventory?.limitClickItems.length > 2 ? 
+        `${d.c.inventory.limitClickItems.slice(0, 2).join(', ')}, ${d.c.inventory.limitClickItems.length - 2} more` : 
+        d.c.inventory?.limitClickItems.join(', ') ?? '';
 
 const getItemAvailable = (d: BlueprintData): number =>
-    d.info.materials.find(m => m.name === "Item")?.available ?? 0;
+    d.web?.blueprint.data?.materials[BP_ITEM_NAME]?.available ?? 0;
 
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
@@ -90,14 +91,14 @@ const comparer = [
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_ASCENDING
-        const c = Math.abs(Number(a.inventory?.clicksAvailable ?? '0')) - Math.abs(Number(a.inventory?.clicksAvailable ?? '0'))
+        const c = Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0')) - Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_DESCENDING
-        const c = - Math.abs(Number(a.inventory?.clicksAvailable ?? '0')) + Math.abs(Number(b.inventory?.clicksAvailable ?? '0'))
+        const c = - Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0')) + Math.abs(Number(b.c.inventory?.clicksAvailable ?? '0'))
         if (c != 0)
             return c
         return -a.name.localeCompare(b.name)
@@ -112,28 +113,28 @@ const comparer = [
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_BUDGET_ASCENDING
-        const c = Math.abs(Number(a.budget.total ?? '0')) - Math.abs(Number(b.budget.total ?? '0'))
+        const c = Math.abs(Number(a.budget.sheet.total ?? '0')) - Math.abs(Number(b.budget.sheet.total ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_BUDGET_DESCENDING
-        const c = - Math.abs(Number(a.budget.total ?? '0')) + Math.abs(Number(b.budget.total ?? '0'))
+        const c = - Math.abs(Number(a.budget.sheet.total ?? '0')) + Math.abs(Number(b.budget.sheet.total ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CASH_ASCENDING
-        const c = Math.abs(Number(a.budget.peds ?? '0')) - Math.abs(Number(b.budget.peds ?? '0'))
+        const c = Math.abs(Number(a.budget.sheet.peds ?? '0')) - Math.abs(Number(b.budget.sheet.peds ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CASH_DESCENDING
-        const c = - Math.abs(Number(a.budget.peds ?? '0')) + Math.abs(Number(b.budget.peds ?? '0'))
+        const c = - Math.abs(Number(a.budget.sheet.peds ?? '0')) + Math.abs(Number(b.budget.sheet.peds ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)

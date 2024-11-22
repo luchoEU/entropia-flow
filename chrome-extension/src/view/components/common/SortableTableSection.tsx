@@ -54,8 +54,8 @@ interface ItemRowSubColumnData {
     flex?: number
     visible?: boolean
     class?: string
+    title?: string
     imgButton?: {
-        title: string
         src: string
         text?: string
         show?: boolean
@@ -66,7 +66,6 @@ interface ItemRowSubColumnData {
         setExpanded: (expanded: boolean) => any
     }
     textButton?: {
-        title: string
         text: string
         dispatch: () => any
     }
@@ -77,7 +76,6 @@ interface ItemRowSubColumnData {
         onChange: (value: string) => any
     }
     img?: {
-        title?: string
         src: string
         show?: boolean
     }
@@ -118,14 +116,14 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
     { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
         sc.visible === false ?
             <span key={j} style={{ flex: sc.flex, width: p.width[j] }} /> :
-            <span key={j} className={sc.class} style={{ flex: sc.flex }}>
-                { sc.imgButton && <ImgButton title={sc.imgButton.title} text={sc.imgButton.text} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
+            <span key={j} className={sc.class} title={sc.title} style={{ flex: sc.flex }}>
+                { sc.imgButton && <ImgButton text={sc.imgButton.text} title={undefined} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
                 { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
-                { sc.textButton && <TextButton title={sc.textButton.title} text={sc.textButton.text} dispatch={sc.textButton.dispatch} /> }
+                { sc.textButton && <TextButton text={sc.textButton.text} title={undefined} dispatch={sc.textButton.dispatch} /> }
                 { sc.itemText && <ItemText text={sc.itemText} /> }
                 { sc.strong && <strong>{sc.strong}</strong> }
                 { sc.input && <Input value={sc.input.value} onChange={sc.input.onChange} /> }
-                { sc.img && <img src={sc.img.src} {...sc.img.show ? { 'data-show': true } : {}} {...sc.img.title ? { title: sc.img.title } : {}} /> }
+                { sc.img && <img src={sc.img.src} {...sc.img.show && { 'data-show': true }} /> }
                 { sc.compose && <ItemSubRowRender sub={sc.compose} width={Array(sc.compose.length).fill(0)} /> }
             </span>
     )}
@@ -289,6 +287,7 @@ export {
     SortableFixedSizeTable,
     TableData,
     ItemRowColumnData,
+    ItemRowSubColumnData,
     ItemRowData,
     SortRowData,
 }

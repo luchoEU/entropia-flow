@@ -1,6 +1,6 @@
 import { FetchResponse } from "./fetch";
 import { EntropiaNexus } from "./nexus";
-import { IWebSource, SourceLoadResponse } from "./sources";
+import { isSourceLoadFailure, IWebSource, SourceLoadResponse } from "./sources";
 import { EntropiaWiki } from "./wiki";
 
 const WebSources: IWebSource[]  = [ new EntropiaNexus(), new EntropiaWiki() ]
@@ -9,17 +9,24 @@ interface WebLoadResponse<T> {
     loading?: {
         source: string
     }
-    errors?: {
-        message: string
-    }[]
+    errors?: string[] // error messages
+    url?: {
+        href: string
+        text: string
+    }
     data?: T
 }
 
-function mapResponse<TF,TR>(response: FetchResponse<TF>, mapper: (data: TF) => TR): SourceLoadResponse<TR> {
+interface SourceMapperOut<T> {
+    url: string,
+    data: T
+}
+
+function mapResponse<TF,TR>(response: FetchResponse<TF>, mapper: (data: TF) => SourceMapperOut<TR>): SourceLoadResponse<TR> {
     return {
         ok: response.ok,
         errorText: response.errorText ?? `Status code: ${response.status}`,
-        data: response.result && mapper(response.result)
+        ...response.result && mapper(response.result)
     }
 }
 
@@ -32,17 +39,18 @@ async function* loadFromWeb<T>(loadFrom: (source: IWebSource) => Promise<SourceL
             errors = undefined
             yield { data: response.data }
             break
-        } else {
-            errors.push(`Error loading from ${source.name}. ${response.errorText}.`)
+        } else if (isSourceLoadFailure(response)) {
+            errors.push(`Error loading from ${source.name}: ${response.errorText}.`)
         }
     }
     if (errors) {
-        yield { errors: errors.map(message => ({ message })) }
+        yield { errors }
     }
 }
 
 export {
     mapResponse,
+    SourceMapperOut,
     WebLoadResponse,
-    loadFromWeb
+    loadFromWeb,
 }

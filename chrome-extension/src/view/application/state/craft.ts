@@ -1,8 +1,11 @@
+import { WebLoadResponse } from "../../../web/loader"
+import { BlueprintWebData } from "../../../web/state"
+
 interface CraftState {
     activeSession?: string
     activePage?: string // blueprint name
     activePlanet?: string
-    blueprints: Array<BlueprintData>
+    blueprints: { [ name: string ]: BlueprintData }
     stared: {
         expanded: boolean
         sortType: number
@@ -14,32 +17,59 @@ interface CraftState {
     }
 }
 
-interface BlueprintData {
-    name: string
-    itemName: string
-    info: BlueprintInfo
-    budget: BlueprintBudget
-    session: BlueprintSession
-    inventory?: BlueprintInventory
-    chain?: string
+interface BlueprintStateWebData {
+    blueprint: WebLoadResponse<BlueprintWebData>
 }
 
-interface BlueprintInfo {
-    loading: boolean
-    url: string
-    bpClicks: number
-    materials: BlueprintMaterial[]
-    errorText?: string
+interface BlueprintData {
+    name: string
+    budget: BlueprintBudget
+    session: BlueprintSession
+    chain?: string
+
+    web?: BlueprintStateWebData
+
+    c: { // calculated
+        itemName: string
+        inventory?: BlueprintInventory
+    }
 }
+
+interface BlueprintInventory {
+    bpClicks: number
+    clicksAvailable: number
+    limitClickItems: Array<string>
+    clickTTCost: number
+    residueNeeded: number
+    materials: BlueprintInventoryMaterials
+}
+
+type BlueprintInventoryMaterials = { [ name: string ]: {
+    available: number
+    clicks: number
+}}
 
 interface BlueprintBudget {
     loading: boolean
     stage: number
     hasPage: boolean
-    clickMUCost?: number
-    total?: number
-    peds?: number
     errorText?: string
+    sheet?: {
+        clickMUCost: number
+        total: number
+        peds: number
+        materials: BlueprintBudgetMaterials
+    }
+}
+
+type BlueprintBudgetMaterials = { [ name: string ]: BlueprintBudgetMaterial}
+
+interface BlueprintBudgetMaterial {
+    markup: number
+    count: number
+    buyCost?: string
+    buyDone?: boolean
+    withFee?: boolean
 }
 
 const STEP_INACTIVE = 0
@@ -63,51 +93,16 @@ interface BlueprintSessionDiff {
     v: number
 }
 
-interface BlueprintInventory {
-    clicksAvailable: number
-    limitClickItems?: Array<string>
-    clickTTCost: number
-    residueNeeded: number
-}
-
-interface BlueprintMaterial {
-    name: string
-    quantity: number
-    type: string,
-    value: number,
-    available?: number // inventory
-    clicks?: number // inventory
-    markup?: number // budget
-    budgetCount?: number // budget
-    buyCost?: string // budget
-    buyDone?: boolean // budget
-    withFee?: boolean // budget
-}
-
-interface BlueprintWebData {
-    Name: string
-    ItemValue: string
-    StatusCode: number
-    Url: string
-    Text?: string
-    Material: BlueprintWebMaterial[]
-}
-
-interface BlueprintWebMaterial {
-    Name: string
-    Quantity: number
-    Type: string
-    Value: string
-}
-
 export {
     CraftState,
     BlueprintData,
-    BlueprintMaterial,
     BlueprintSession,
     BlueprintSessionDiff,
-    BlueprintWebData,
-    BlueprintWebMaterial,
+    BlueprintStateWebData,
+    BlueprintInventoryMaterials,
+    BlueprintBudget,
+    BlueprintBudgetMaterial,
+    BlueprintBudgetMaterials,
     STEP_INACTIVE,
     STEP_REFRESH_TO_START,
     STEP_REFRESH_ERROR,

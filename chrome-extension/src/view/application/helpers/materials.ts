@@ -31,7 +31,7 @@ const refinedInitialMap: MaterialsMap = {
         useAmount: '10000',
         refineAmount: '100000',
         c: {
-            name: MATERIAL_ME,        
+            name: MATERIAL_ME,
             unit: UNIT_PERCENTAGE,
             kValue: 0.1,
         }
@@ -144,14 +144,14 @@ const reduceMaterialBuyAmountChanged = (state: MaterialsState, material: string,
 const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
     _materialChanged(state, material, { orderValue })
 
-const reduceMaterialSetPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState => ({
+const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState => ({
     ...state,
     map: {
         ...state.map,
         [material]: {
             ...state.map[material],
             web: {
-                ...state.map[material].web,
+                ...state.map[material]?.web,
                 ...change
             }
         }
@@ -162,8 +162,8 @@ const cleanForSave = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
     Object.values(cState.map).forEach(v => {
         if (v.web) {
-            for (const k in Object.keys(v.web)) {
-                if ('loading' in v.web[k])
+            for (const k of Object.keys(v.web)) {
+                if (v.web[k].loading)
                     delete v.web[k]
             }
         }
@@ -183,7 +183,7 @@ export {
     reduceMaterialRefineAmountChanged,
     reduceMaterialBuyAmountChanged,
     reduceMaterialOrderValueChanged,
-    reduceMaterialSetPartialWebData,
+    reduceSetMaterialPartialWebData,
     cleanForSave,
     MATERIAL_PED,
     MATERIAL_ME,

@@ -54,8 +54,8 @@ const tableData: TableData<ItemHidden> = {
 const searchRowAfterTotalColumnData: ItemRowColumnData = {
     sub: [{
         class: 'show-all',
+        title: 'Clear all hide filters',
         imgButton: {
-            title: 'Clear all hide filters',
             text: 'Unhide All',
             src: 'img/tick.png',
             dispatch: showAll

@@ -1,7 +1,7 @@
 import { fetchJson } from "./fetch";
-import { mapResponse } from "./loader";
+import { mapResponse, SourceMapperOut } from "./loader";
 import { IWebSource, SourceLoadResponse } from "./sources";
-import { RawMaterialWebData } from "./state";
+import { BlueprintWebData, RawMaterialWebData } from "./state";
 
 export class EntropiaNexus implements IWebSource {
     public name: string = "Entropia Nexus";
@@ -10,38 +10,45 @@ export class EntropiaNexus implements IWebSource {
         const url = `https://api.entropianexus.com/acquisition/${encodeURIComponent(materialName)}`
         return mapResponse(await fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials)
     }
+
+    public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
+        return { ok: false, errorText: 'not implemented' }
+    }
 }
 
-function _extractRawMaterials(data: EntropiaNexusAcquisition): RawMaterialWebData[] {
-    return data.RefiningRecipes.length === 0 ? [] :
-        data.RefiningRecipes[0].Ingredients.map((ingredient) => ({
-            name: ingredient.Item.Name,
-            quantity: ingredient.Amount,
-        }));
+function _extractRawMaterials(acq: EntropiaNexusAcquisition): SourceMapperOut<RawMaterialWebData[]> {
+    return {
+        data: acq.RefiningRecipes.length === 0 ? [] :
+            acq.RefiningRecipes[0].Ingredients.map((ingredient) => ({
+                name: ingredient.Item.Name,
+                quantity: ingredient.Amount,
+            })),
+        url: acq.RefiningRecipes.length > 0 && acq.RefiningRecipes[0].Links.$Url
+    }
 }
 
 interface EntropiaNexusAcquisition {
-    "RefiningRecipes": {
-        "Id": number,
-        "Ingredients": {
-            "Amount": number,
-            "Item": EntropiaNexusMaterial
+    RefiningRecipes: {
+        Id: number,
+        Ingredients: {
+            Amount: number,
+            Item: EntropiaNexusMaterial
         }[]
-        "Amount": number,
-        "Product": EntropiaNexusMaterial,
-        "Links": EntropiaNexusLinks
+        Amount: number,
+        Product: EntropiaNexusMaterial,
+        Links: EntropiaNexusLinks
     }[]
 }
 
 interface EntropiaNexusMaterial {
-    "Name": string,
-    "Properties": {
-        "Type": string,
-        "Economy": {
-            "MaxTT": number
+    Name: string,
+    Properties: {
+        Type: string,
+        Economy: {
+            MaxTT: number
         }
     },
-    "Links": EntropiaNexusLinks
+    Links: EntropiaNexusLinks
 }
 
 interface EntropiaNexusLinks {

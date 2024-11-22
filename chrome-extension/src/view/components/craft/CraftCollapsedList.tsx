@@ -1,29 +1,35 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { reloadBlueprint, setBlueprintActivePage, setBlueprintExpanded, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { reloadBlueprint, setBlueprintActivePage, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
-import SortableTableSection, { ItemRowData, SortRowData } from '../common/SortableTableSection'
+import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
 
 const sortRowData: SortRowData = {
     [CLICKS]: { justifyContent: 'center' },
     [ITEMS]: { justifyContent: 'center' },
+    [LIMIT]: { justifyContent: 'start' },
     [CASH]: { justifyContent: 'end' },
     [BUDGET]: { justifyContent: 'end' },
 }
+const reloadSub = (errors: string[]): ItemRowSubColumnData[] => [{
+    class: 'clicks-error',
+    title: `${errors.length === 0 ? '' : errors.join(' ')+' '}Click to try to load blueprint again`,
+    compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
+}]
 const getRowData = (d: BlueprintData): ItemRowData => ({
     dispatch: () => setBlueprintActivePage(d.name),
     columns: {
         [NAME]: {
             sub: [{
-                itemText: d.itemName
+                itemText: d.c.itemName
             }, {
                 flex: 1,
                 img: { src: 'img/right.png' }
             }, {
+                title: 'Remove this blueprint from Favorites',
                 imgButton: {
-                    title: 'Remove this blueprint from Favorites',
                     src: 'img/staron.png',
                     dispatch: () => setBlueprintStared(d.name, false)
                 }
@@ -31,12 +37,13 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
         },
         [CLICKS]: {
             style: { justifyContent: 'center' },
-            dispatch: d.info.loading || d.info.materials.length > 0 ? undefined : () => reloadBlueprint(d.name),
-            sub: d.info.loading ?
-                [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
-                (d.info.materials.length === 0 ?
-                    [{ class: 'clicks-error', compose: [{ itemText: 'Error' }, { img: { title: `${d.info.errorText}. Click to try to load blueprint again`, src:'img/reload.png', show: true }}] }] :
-                    [{ itemText: d.inventory?.clicksAvailable?.toString() }])
+            dispatch: !d.web?.blueprint.loading && (() => reloadBlueprint(d.name)),
+            sub: !d.web ? reloadSub([]) :
+                    (d.web.blueprint.loading ?
+                        [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
+                        (d.web.blueprint.errors ?
+                            reloadSub(d.web.blueprint.errors) :
+                            [{ itemText: d.c.inventory?.clicksAvailable?.toString() }]))
         },
         [LIMIT]: {
             sub: [{ itemText: getLimitText(d) }]
@@ -51,13 +58,13 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
         [CASH]: {
             style: { justifyContent: 'end' },
             sub: [{
-                itemText: d.budget.peds?.toFixed(2) + ' PED'
+                itemText: d.budget.sheet?.peds.toFixed(2) + ' PED'
             }]
         },
         [BUDGET]: {
             style: { justifyContent: 'end' },
             sub: [{
-                itemText: d.budget.total?.toFixed(2) + ' PED'
+                itemText: d.budget.sheet?.total.toFixed(2) + ' PED'
             }]
         }
     }
@@ -66,14 +73,15 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
 function CraftCollapsedList() {
     const s: CraftState = useSelector(getCraft)
 
-    if (s.blueprints.length == 0)
+    const blueprints = Object.values(s.blueprints)
+    if (blueprints.length == 0)
         return <></>
     
-    var clicks = s.blueprints.some(d => d.inventory)
-    var limit = s.blueprints.some(d => d.inventory?.limitClickItems?.length > 0)
-    var items = s.blueprints.some(d => getItemAvailable(d) > 0)
-    var budget = s.blueprints.some(d => d.budget.total !== undefined)
-    var cash = s.blueprints.some(d => d.budget.peds !== undefined)
+    var clicks = blueprints.some(d => d.c.inventory)
+    var limit = blueprints.some(d => d.c.inventory?.limitClickItems?.length > 0)
+    var items = blueprints.some(d => getItemAvailable(d) > 0)
+    var budget = blueprints.some(d => d.budget.sheet?.total !== undefined)
+    var cash = blueprints.some(d => d.budget.sheet?.peds !== undefined)
 
     const columns: number[] = [NAME]
     if (clicks) columns.push(CLICKS)
@@ -91,7 +99,7 @@ function CraftCollapsedList() {
             setExpanded={setStaredBlueprintsExpanded}
             setFilter={setStaredBlueprintsFilter}
             table={{
-                allItems: s.blueprints,
+                allItems: blueprints,
                 showItems: s.c.filteredStaredBlueprints,
                 sortType: s.stared.sortType,
                 sortBy: sortBlueprintsBy,

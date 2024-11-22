@@ -1,5 +1,5 @@
 import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BlueprintSessionDiff, BlueprintWebData, CraftState } from '../state/craft'
+import { BlueprintSessionDiff, BlueprintStateWebData, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
@@ -8,10 +8,9 @@ const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_BLUEPRINT_ACTIVE_PAGE = '[craft] set blueprint active page'
 const SET_STARED_BLUEPRINTS_EXPANDED = '[craft] set stared blueprints expanded'
 const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
-const ADD_BLUEPRINT_LOADING = '[craft] add blueprint loading'
-const ADD_BLUEPRINT_DATA = '[craft] add blueprint data'
+const ADD_BLUEPRINT = '[craft] add blueprint'
+const SET_BLUEPRINT_PARTIAL_WEB_DATA = '[craft] set blueprint partial web data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
-const SET_BLUEPRINT_EXPANDED = '[craft] set blueprint expanded'
 const SET_BLUEPRINT_STARED = '[craft] set blueprint stared'
 const SHOW_BLUEPRINT_MATERIAL_DATA = '[craft] show blueprint material data'
 const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
@@ -89,17 +88,18 @@ const setStaredBlueprintsFilter = (filter: string) => ({
     }
 })
 
-const addBlueprintLoading = (name: string) => ({
-    type: ADD_BLUEPRINT_LOADING,
+const addBlueprint = (name: string) => ({
+    type: ADD_BLUEPRINT,
     payload: {
         name
     }
 })
 
-const addBlueprintData = (data: BlueprintWebData) => ({
-    type: ADD_BLUEPRINT_DATA,
+const setBlueprintPartialWebData = (name: string, change: Partial<BlueprintStateWebData>) => ({
+    type: SET_BLUEPRINT_PARTIAL_WEB_DATA,
     payload: {
-        data
+        name,
+        change
     }
 })
 
@@ -107,14 +107,6 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     type: SET_BLUEPRINT_QUANTITY,
     payload: {
         dictionary
-    }
-})
-
-const setBlueprintExpanded = (name: string) => (expanded: boolean) => ({
-    type: SET_BLUEPRINT_EXPANDED,
-    payload: {
-        name,
-        expanded
     }
 })
 
@@ -302,10 +294,9 @@ export {
     SET_BLUEPRINT_ACTIVE_PAGE,
     SET_STARED_BLUEPRINTS_EXPANDED,
     SET_STARED_BLUEPRINTS_FILTER,
-    ADD_BLUEPRINT_LOADING,
-    ADD_BLUEPRINT_DATA,
+    ADD_BLUEPRINT,
+    SET_BLUEPRINT_PARTIAL_WEB_DATA,
     SET_BLUEPRINT_QUANTITY,
-    SET_BLUEPRINT_EXPANDED,
     SET_BLUEPRINT_STARED,
     SHOW_BLUEPRINT_MATERIAL_DATA,
     START_BUDGET_PAGE_LOADING,
@@ -339,10 +330,9 @@ export {
     setBlueprintActivePage,
     setStaredBlueprintsExpanded,
     setStaredBlueprintsFilter,
-    addBlueprintLoading,
-    addBlueprintData,
+    addBlueprint,
+    setBlueprintPartialWebData,
     setBlueprintQuantity,
-    setBlueprintExpanded,
     setBlueprintStared,
     showBlueprintMaterialData,
     startBudgetPageLoading,

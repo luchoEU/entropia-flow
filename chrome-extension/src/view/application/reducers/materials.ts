@@ -1,5 +1,5 @@
-import { MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, MATERIAL_REFINE_AMOUNT_CHANGED, MATERIAL_SET_PARTIAL_WEB_DATA, MATERIAL_USE_AMOUNT_CHANGED, SET_MATERIALS_STATE } from "../actions/materials"
-import { initialState, reduceMaterialBuyAmountChanged, reduceMaterialBuyMarkupChanged, reduceMaterialOrderMarkupChanged, reduceMaterialOrderValueChanged, reduceMaterialRefineAmountChanged, reduceMaterialSetPartialWebData, reduceMaterialUseAmountChanged, reduceSetState } from "../helpers/materials"
+import { MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, MATERIAL_REFINE_AMOUNT_CHANGED, MATERIAL_USE_AMOUNT_CHANGED, SET_MATERIAL_PARTIAL_WEB_DATA, SET_MATERIALS_STATE } from "../actions/materials"
+import { initialState, reduceMaterialBuyAmountChanged, reduceMaterialBuyMarkupChanged, reduceMaterialOrderMarkupChanged, reduceMaterialOrderValueChanged, reduceMaterialRefineAmountChanged, reduceMaterialUseAmountChanged, reduceSetMaterialPartialWebData, reduceSetState } from "../helpers/materials"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -10,7 +10,7 @@ export default (state = initialState, action) => {
         case MATERIAL_REFINE_AMOUNT_CHANGED: return reduceMaterialRefineAmountChanged(state, action.payload.material, action.payload.value)
         case MATERIAL_BUY_AMOUNT_CHANGED: return reduceMaterialBuyAmountChanged(state, action.payload.material, action.payload.value)
         case MATERIAL_ORDER_VALUE_CHANGED: return reduceMaterialOrderValueChanged(state, action.payload.material, action.payload.value)
-        case MATERIAL_SET_PARTIAL_WEB_DATA: return reduceMaterialSetPartialWebData(state, action.payload.material, action.payload.change)
+        case SET_MATERIAL_PARTIAL_WEB_DATA: return reduceSetMaterialPartialWebData(state, action.payload.material, action.payload.change)
         default: return state
     }
 }

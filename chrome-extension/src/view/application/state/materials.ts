@@ -8,12 +8,12 @@ interface MaterialsState {
 type MaterialsMap = { [name: string] : MaterialState }
 
 interface MaterialStateWebData {
-    rawMaterials?: WebLoadResponse<RawMaterialWebData[]>
+    rawMaterials: WebLoadResponse<RawMaterialWebData[]>
 }
 
 interface MaterialState {
-    buyMarkup: string,
-    buyAmount: string,
+    buyMarkup?: string,
+    buyAmount?: string,
     orderMarkup?: string,
     orderValue?: string,
     useAmount?: string,

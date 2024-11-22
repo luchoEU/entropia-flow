@@ -1,28 +1,30 @@
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { addBlueprintData, ADD_BLUEPRINT_DATA, BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, addBlueprintLoading, ADD_BLUEPRINT_LOADING, SET_BLUEPRINT_STARED, setBlueprintActivePage, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET } from '../actions/craft'
+import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { bpNameFromItemName, budgetInfoFromBp, cleanForSave, initialState, itemName, itemNameFromString, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, initialState, itemNameFromString, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintMaterial, BlueprintSessionDiff, BlueprintWebMaterial, BlueprintWebData, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
+import { BlueprintSessionDiff, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
 import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
-import { Dispatch } from 'react'
 import { MaterialsMap } from '../state/materials'
 import { getMaterialsMap } from '../selectors/materials'
 import { loadMaterialRawMaterials } from '../actions/materials'
 import { filterExact, filterOr } from '../../../common/string'
+import { loadFromWeb } from '../../../web/loader'
+import { Dispatch } from 'react'
+import { BlueprintWebMaterial } from '../../../web/state'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -31,8 +33,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const state: CraftState = await api.storage.loadCraft()
             if (state) {
                 dispatch(setCraftState(mergeDeep(initialState, state)))
-                Promise.all(state.blueprints.filter(bp => bp.info.loading).map(bp =>
-                    fetchBlueprintData(bp.name, dispatch))
+                Promise.all(Object.values(state.blueprints)
+                    .filter(bp => bp.web?.blueprint.loading ?? false)
+                    .map(bp => loadBlueprint(bp.name, dispatch))
                 )
             }
             break
@@ -42,10 +45,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_BLUEPRINT_ACTIVE_PAGE:
         case SET_STARED_BLUEPRINTS_EXPANDED:
         case SET_STARED_BLUEPRINTS_FILTER:
-        case ADD_BLUEPRINT_LOADING:
-        case ADD_BLUEPRINT_DATA:
+        case ADD_BLUEPRINT:
+        case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case SET_BLUEPRINT_QUANTITY:
-        case SET_BLUEPRINT_EXPANDED:
         case SET_BLUEPRINT_STARED:
         case SHOW_BLUEPRINT_MATERIAL_DATA:
         case START_BUDGET_PAGE_LOADING:
@@ -73,21 +75,21 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
     }
-    if (action.type === ADD_BLUEPRINT_LOADING) {
-        await fetchBlueprintData(action.payload.name, dispatch)
+    if (action.type === ADD_BLUEPRINT) {
+        await loadBlueprint(action.payload.name, dispatch)
     }
     switch (action.type) {
         case SET_BLUEPRINT_STARED: {
             const state: CraftState = getCraft(getState())
-            if (action.payload.stared && !state.blueprints.find(bp => bp.name == action.payload.name)) {
-                dispatch(addBlueprintLoading(action.payload.name))
+            if (action.payload.stared && !state.blueprints[action.payload.name]) {
+                dispatch(addBlueprint(action.payload.name))
             }
             break
         }
         case SET_BLUEPRINT_ACTIVE_PAGE: {
             const state: CraftState = getCraft(getState())
-            if (action.payload.name && !state.blueprints.find(bp => bp.name == action.payload.name)) {
-                dispatch(addBlueprintLoading(action.payload.name))
+            if (action.payload.name && !state.blueprints[action.payload.name]) {
+                dispatch(addBlueprint(action.payload.name))
             }
             break
         }
@@ -97,12 +99,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             let materialName = action.payload.materialName
 
             let isBlueprint = false
-            if (state.blueprints.find(bp => bp.itemName == materialName)) {
+            if (bpDataFromItemName(state, materialName)) {
                 isBlueprint = true
             } else {
                 const addBpName = bpNameFromItemName(inv, materialName)
                 if (addBpName) {
-                    dispatch(addBlueprintLoading(addBpName))
+                    dispatch(addBlueprint(addBpName))
                     isBlueprint = true
                 }
             }
@@ -110,7 +112,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             if (!isBlueprint) {
                 // restore material name of 'Item' and 'Blueprint'
                 let bpName = action.payload.name
-                const bp = state.blueprints.find(bp => bp.name == bpName)
+                const bp = state.blueprints[bpName]
                 if (bp) {
                     materialName = itemNameFromString(bp, materialName)
                 }
@@ -127,7 +129,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             break
         }
-        case ADD_BLUEPRINT_LOADING:
+        case ADD_BLUEPRINT:
         case SET_CRAFT_ACTIVE_PLANET:
         case SET_CURRENT_INVENTORY: {
             const s: CraftState = getCraft(getState())
@@ -150,19 +152,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             dispatch(setBlueprintQuantity(itemMap))
             break
         }
-        case ADD_BLUEPRINT_DATA:
-        case SET_BLUEPRINT_EXPANDED:
+        case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case START_BUDGET_PAGE_LOADING:
         case PAGE_LOADED: {
-            if (action.type == SET_BLUEPRINT_EXPANDED && !action.payload.expanded)
-                break // only load when expanding
-
             const state: CraftState = getCraft(getState())
             const settings: SettingsState = getSettings(getState())
 
-            const load = async (bpName: string): Promise<void> => {
+            const loadBudget = async (bpName: string): Promise<void> => {
                 try {
-                    const bpInfo = state.blueprints.find(bp => bp.name == bpName)
+                    const bpInfo = state.blueprints[bpName]
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
     
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
@@ -182,14 +180,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
             switch (action.type) {
                 case PAGE_LOADED: {
-                    state.blueprints.filter(bp => bp.info.loading).forEach(bp => load(bp.name))
+                    Object.values(state.blueprints)
+                        .filter(bp => bp.budget.loading)
+                        .forEach(bp => loadBudget(bp.name))
                     break
                 }
-                case ADD_BLUEPRINT_DATA:
-                    load(action.payload.data.Name)
+                case ADD_BLUEPRINT:
+                    loadBudget(action.payload.data.Name)
                     break
                 default:
-                    load(action.payload.name)
+                    loadBudget(action.payload.name)
                     break
             }
             break
@@ -197,7 +197,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case RELOAD_BLUEPRINT: {
             const state: CraftState = getCraft(getState())
             dispatch(removeBlueprint(action.payload.name))
-            dispatch(addBlueprintLoading(action.payload.name))
+            dispatch(addBlueprint(action.payload.name))
             break
         }
         case START_CRAFT_SESSION:
@@ -216,7 +216,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         dispatch(clearBuyBudget)
                     
                     if (state.activeSession !== undefined) {
-                        const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                        const activeSessionBp = state.blueprints[state.activeSession]
                         switch (activeSessionBp.session.step) {
                             case STEP_REFRESH_TO_START:
                             case STEP_REFRESH_ERROR: {
@@ -237,7 +237,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case EXCLUDE_WARNINGS: {
             const state: CraftState = getCraft(getState())
             if (state.activeSession) {
-                const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                const activeSessionBp = state.blueprints[state.activeSession]
                 const map: { [n: string]: { q: number, v: number } } = { }
                 const { diff }: LastRequiredState  = getLast(getState())
                 if (diff) {
@@ -253,8 +253,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         }
                     })
                 }
-                const newDiff: BlueprintSessionDiff[] = activeSessionBp.info.materials.map((m: BlueprintMaterial) => {
-                    const name = itemName(activeSessionBp, m)
+                const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web.blueprint.data.materials).map((m: BlueprintWebMaterial) => {
+                    const name = itemNameFromString(activeSessionBp, m.name)
                     return { n: name, q: map[name]?.q ?? 0, v: map[name]?.v ?? 0 }
                 })
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
@@ -272,7 +272,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const activeSessionBp = state.blueprints.find(bp => bp.name === state.activeSession)
+                const activeSessionBp = state.blueprints[state.activeSession]
                 if (activeSessionBp.session.diffMaterials !== undefined) {
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(activeSessionBp))
@@ -305,7 +305,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const activeSessionBp = state.blueprints.find(bp => bp.name === bpName)
+                const activeSessionBp = state.blueprints[bpName]
                 const materialName = action.payload.materialName
 
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
@@ -314,15 +314,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 let quantity = action.payload.quantity
                 let value = action.payload.value
                 if (action.payload.text === BUDGET_MOVE) {
-                    for (var bp of state.blueprints) {
+                    for (var bp of Object.values(state.blueprints)) {
                         if (bp.name !== bpName) {
-                            const m = bp.info.materials.find(m => m.name === materialName)
-                            if (m?.budgetCount && m.budgetCount > m.available) {
-                                const q = Math.min(m.budgetCount - m.available, quantity)
+                            const m = bp.web.blueprint.data.materials[materialName]
+                            const budgetM = bp.budget.sheet.materials[materialName]
+                            const invM = bp.c.inventory.materials[materialName]
+                            if (budgetM?.count && budgetM.count > invM.available) {
+                                const q = Math.min(budgetM.count - invM.available, quantity)
                                 const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bp))
-                                const v = q * m.value * m.markup
-                                await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.itemName}`)
-                                await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.itemName}`)
+                                const v = q * m.value * budgetM.markup
+                                await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.c.itemName}`)
+                                await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.c.itemName}`)
 
                                 await sheetFrom.save()
                                 const infoFrom: BudgetSheetGetInfo = await sheetFrom.getInfo()
@@ -358,59 +360,46 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'
 
-const fetchBlueprintData = async (name: string, dispatch: Dispatch<any>): Promise<void> => {
-    const urlName = name.replace(/ /g, '%20')
-    let url = `https://apps5.genexus.com/entropia-flow-helper-1/rest/BlueprintInfo?name=${urlName}` // use server to get from entropiawiki to avoid CORS error
-    let data: BlueprintWebData
-    try {
-        let response = await fetch(url)
-        data = await response.json()
-    } catch (e) {
-        data = {
-            Name: name,
-            ItemValue: '',
-            StatusCode: 1,
-            Url: undefined,
-            Text: e.toString(),
-            Material: []
-        }
-    }
-    if (data.StatusCode === 0) {
-        if (data.Name.endsWith('(L)')) {
-            data.Material.unshift({
-                Name: BP_BLUEPRINT_NAME,
-                Quantity: 1,
-                Type: 'Blueprint',
-                Value: '0.01'
-            })
-        }
-        data.Material.unshift({
-            Name: BP_ITEM_NAME,
-            Quantity: 0,
-            Type: 'Crafted item',
-            Value: data.ItemValue
-        })
-        const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
-            if (data.Material.some(condition)) {
-                data.Material.push({
-                    Name: name,
-                    Quantity: 0,
-                    Type: 'Residue',
-                    Value: '0.01'
+async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
+    for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
+        if (r.data) {
+            const d = r.data
+            if (bpName.endsWith('(L)')) {
+                d.materials.unshift({
+                    name: BP_BLUEPRINT_NAME,
+                    type: 'Blueprint',
+                    quantity: 1,
+                    value: 0.01
                 })
             }
+            d.materials.unshift({
+                name: BP_ITEM_NAME,
+                type: 'Crafted item',
+                quantity: 0,
+                value: d.itemValue
+            })
+            const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
+                if (d.materials.some(condition)) {
+                    d.materials.push({
+                        name: name,
+                        type: 'Residue',
+                        quantity: 0,
+                        value: 0.01
+                    })
+                }
+            }
+            addResidue('Metal Residue', m => true)
+            addResidue('Energy Matter Residue', m => m.type === 'Refined Enmatter')
+            addResidue('Tailoring Remnants', m => m.name.includes('Leather'))
+            d.materials.push({
+                name: 'Shrapnel',
+                type: 'Fragment',
+                quantity: 0,
+                value: 0.0001
+            })
         }
-        addResidue('Metal Residue', m => true)
-        addResidue('Energy Matter Residue', m => m.Type === 'Refined Enmatter')
-        addResidue('Tailoring Remnants', m => m.Name.includes('Leather'))
-        data.Material.push({
-            Name: 'Shrapnel',
-            Quantity: 0,
-            Type: 'Fragment',
-            Value: '0.0001'
-        })
+        dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
     }
-    dispatch(addBlueprintData(data))
 }
 
 export default [

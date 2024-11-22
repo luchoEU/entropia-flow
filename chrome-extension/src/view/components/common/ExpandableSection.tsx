@@ -21,7 +21,7 @@ const ExpandableSection = (p: {
             </h1>
             <div className={p.className}>
             {
-                p.expanded ? p.children : ''
+                p.expanded && p.children
             }
             </div>
         </section>

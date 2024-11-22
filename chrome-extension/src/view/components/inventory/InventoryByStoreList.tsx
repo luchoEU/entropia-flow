@@ -35,18 +35,21 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
                 { plusButton: { expanded: item.expanded, setExpanded: v.setItemExpanded(item.id) } },
                 ...item.isEditing ? [
                     { input: { value: item.n, onChange: (value: string) => v.setItemName(item.id, value) } },
-                    { imgButton: { src: 'img/cross.png', title: 'Cancel', show: true, dispatch: () => v.cancelItemNameEditing(item.id) } },
-                    { imgButton: { src: 'img/tick.png', title: 'Confirm', show: true, dispatch: () => v.confirmItemNameEditing(item.id) }, flex: 1 }
+                    { title: 'Cancel', imgButton: { src: 'img/cross.png', show: true, dispatch: () => v.cancelItemNameEditing(item.id) } },
+                    { title: 'Confirm', imgButton: { src: 'img/tick.png', show: true, dispatch: () => v.confirmItemNameEditing(item.id) }, flex: 1 }
                 ] : [
                     { itemText: item.n },
-                    { visible: !!item.canEditName, flex: 1, imgButton: { src: 'img/edit.png', title: 'Edit this item name', dispatch: () => v.startItemNameEditing(item.id) } }
+                    { visible: !!item.canEditName, flex: 1, title: 'Edit this item name', imgButton: { src: 'img/edit.png', dispatch: () => v.startItemNameEditing(item.id) } }
                 ],
-                { visible: !!item.isContainer, imgButton: {
-                    src: item.stared ? 'img/staron.png' : 'img/staroff.png',
+                {
+                    visible: !!item.isContainer,
                     title: item.stared ? 'Remove from Favorites' : 'Add to Favorites',
-                    dispatch: () => v.setItemStared(item.id, !item.stared)
-                } },
-                { imgButton: { src: 'img/find.png', title: 'Search by this item name', dispatch: () => v.setFilter(`!${item.n}`) } }
+                    imgButton: {
+                        src: item.stared ? 'img/staron.png' : 'img/staroff.png',
+                        dispatch: () => v.setItemStared(item.id, !item.stared)
+                    }
+                },
+                { title: 'Search by this item name', imgButton: { src: 'img/find.png', dispatch: () => v.setFilter(`!${item.n}`) } }
             ]
         },
         [QUANTITY]: {
@@ -66,9 +69,9 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
             sub: [{
                 itemText: item.c
             }, {
+                title: 'Search in this container by this item name',
                 imgButton: {
                     src: 'img/find.png',
-                    title: 'Search in this container by this item name',
                     dispatch: () => setByStoreInventoryFilter(`!${item.n}`)
                 }
             }]
@@ -78,14 +81,14 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
 
 const searchRowAfterSearchColumnData = (setAllItemsExpanded: (expanded: boolean) => any): ItemRowColumnData => ({
     sub: [{
+        title: 'Expand All',
         textButton: {
-            title: 'Expand All',
             text: '+',
             dispatch: () => setAllItemsExpanded(true)
         },
     }, {
+        title: 'Collapse All',
         textButton: {
-            title: 'Collapse All',
             text: '-',
             dispatch: () => setAllItemsExpanded(false)
         }
