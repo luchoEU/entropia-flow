@@ -75,12 +75,15 @@ function WebDataControl<T>(p: {
                 <p><img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...</p> :
             (w.errors ?
                 <>
-                    { w.errors.map((e, index) => <p key={index}>{e}</p>) }
+                    { w.errors.map((e, index) =>
+                        <p key={index}>
+                            {e.message} { e.href && <a href={e.href} target='_blank'>link</a> }
+                        </p>) }
                     { reload() }
                 </> :
                 <>
-                    <p>{ w.url && <a href={w.url.href} target='_blank'>{w.url.text}</a> }{ reload() }</p>
-                    { p.content(w.data) }
+                    <p>{ w.data.link && <a href={w.data.link.href} target='_blank'>{w.data.link.text}</a> }{ reload() }</p>
+                    { p.content(w.data.value) }
                 </>)
         )}
     </>
@@ -137,7 +140,7 @@ function CraftSingle(p: {
         sessionTTprofit = 0
         if (markupLoaded)
             sessionMUprofit = 0
-        d.web.blueprint.data.materials.forEach((m: BlueprintWebMaterial) => {
+        d.web.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
             const name = itemNameFromString(d, m.name)
             const diff = d.session.diffMaterials.find(x => x.n == name)
             if (diff !== undefined) {
@@ -155,7 +158,7 @@ function CraftSingle(p: {
                     bought = {}
                 }
                 const quantity = -budgetMap[k]
-                const value = d.web.blueprint.data.materials[k].value
+                const value = d.web.blueprint.data.value.materials[k].value
                 const finalValue = quantity * value * (m.markup ?? 1)
                 bought[k] = {
                     quantity,
@@ -170,7 +173,7 @@ function CraftSingle(p: {
 
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
-            d.web.blueprint.data.materials.forEach((m: BlueprintWebMaterial) => {
+            d.web.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
                 const name = itemNameFromString(d, m.name)
                 const item = diff.find(x => x.n == name && Number(x.q) !== 0)
                 const budgetM = d.budget.sheet?.materials[m.name]
@@ -360,7 +363,8 @@ function CraftExpandedList() {
         }
         chain = nextBp?.chain
     }
-    const afterChainRaw = mat[afterChain]?.web?.rawMaterials
+    const afterChainRaw = afterChain && mat[afterChain]?.web?.rawMaterials
+    const afterChainName = afterChain && itemNameFromString(afterBpChain, afterChain)
 
     return (
         <section>
@@ -393,13 +397,13 @@ function CraftExpandedList() {
                 { afterChain &&
                     <div className='craft-chain'>
                         <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(afterBpChain.name, undefined)) }}>
-                            { itemNameFromString(afterBpChain, afterChain) }<img src='img/left.png' />
+                            { afterChainName }<img src='img/left.png' />
                         </h2>
                         <div>
                             <p>
-                                Type: {afterBpChain.web.blueprint.data.materials.find(m => m.name === afterChain).type}
+                                Type: { afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain).type }
                             </p>
-                            <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChain)} content={d => d.length > 0 &&
+                            <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChainName)} content={d => d.length > 0 &&
                                 <p>
                                     <table>
                                         <thead>

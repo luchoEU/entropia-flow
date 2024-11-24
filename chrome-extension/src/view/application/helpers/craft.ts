@@ -112,7 +112,7 @@ const itemStringFromName = (bp: BlueprintData, name: string): string =>
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     itemName: bp.c.itemName,
-    materials: bp.web?.blueprint.data?.materials.map(m => ({
+    materials: bp.web?.blueprint.data?.value.materials.map(m => ({
         name: m.name,
         unitValue: m.value
     }))
@@ -121,7 +121,7 @@ const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
 const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter({
     ...state,
     blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
-        const webMaterials = bp.web?.blueprint.data?.materials
+        const webMaterials = bp.web?.blueprint.data?.value.materials
         if (!webMaterials) return [n, bp];
 
         let clickTTCost = 0
@@ -225,7 +225,7 @@ const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetG
 
     let clickMUCost = 0
     const materials: BlueprintBudgetMaterials = { }
-    for (const m of bp.web.blueprint.data.materials) {
+    for (const m of bp.web.blueprint.data.value.materials) {
         const materialInfo = info.materials[m.name]
         if (materialInfo) {
             materials[m.name] = {
@@ -341,6 +341,15 @@ const reduceSetCraftActivePlanet = (state: CraftState, name: string): CraftState
     activePlanet: name
 })
 
+const cleanWeb = (state: CraftState): CraftState => {
+    const cState: CraftState = JSON.parse(JSON.stringify(state));
+    Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
+        delete bp.web
+        delete bp.chain // no bp recepie so chain is invalid
+    })
+    return cState;
+}
+
 const cleanForSave = (state: CraftState): CraftState => {
     const cState: CraftState = JSON.parse(JSON.stringify(state));
     delete cState.activeSession;
@@ -398,6 +407,7 @@ export {
     reduceDoneCraftSession,
     reduceSetCraftActivePlanet,
     reduceClearCraftSession,
+    cleanWeb,
     cleanForSave,
     bpNameFromItemName,
     bpDataFromItemName,

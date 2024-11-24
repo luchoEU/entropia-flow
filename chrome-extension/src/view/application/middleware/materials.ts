@@ -1,11 +1,12 @@
 import { mergeDeep } from "../../../common/merge"
 import { filterExact, filterOr } from "../../../common/string"
+import { CLEAR_WEB_ON_LOAD } from "../../../config"
 import { loadFromWeb, WebLoadResponse } from "../../../web/loader"
 import { RawMaterialWebData } from "../../../web/state"
 import { setByStoreCraftFilter } from "../actions/inventory"
 import { LOAD_MATERIAL_RAW_MATERIALS, MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, MATERIAL_REFINE_AMOUNT_CHANGED, MATERIAL_USE_AMOUNT_CHANGED, SET_MATERIAL_PARTIAL_WEB_DATA, setMaterialPartialWebData, setMaterialsState } from "../actions/materials"
 import { PAGE_LOADED } from "../actions/ui"
-import { cleanForSave, initialState } from "../helpers/materials"
+import { cleanForSave, cleanWeb, initialState } from "../helpers/materials"
 import { getMaterials } from "../selectors/materials"
 import { MaterialsState } from "../state/materials"
 
@@ -13,9 +14,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state: MaterialsState = await api.storage.loadMaterials()
-            if (state)
+            let state: MaterialsState = await api.storage.loadMaterials()
+            if (state) {
+                if (CLEAR_WEB_ON_LOAD) {
+                    state = cleanWeb(state)
+                }
                 dispatch(setMaterialsState(mergeDeep(initialState, state)))
+            }
             break
         }
         case MATERIAL_BUY_MARKUP_CHANGED:
@@ -38,7 +43,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             if (rawMaterials) {
                 dispatch(setByStoreCraftFilter(filterExact(
                     rawMaterials.data ?
-                        filterOr([ materialName, ...rawMaterials.data.map(m => m.name) ]) :
+                        filterOr([ materialName, ...rawMaterials.data.value.map(m => m.name) ]) :
                         materialName)))
             }
             break;

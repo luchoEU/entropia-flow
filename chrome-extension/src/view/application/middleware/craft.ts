@@ -7,7 +7,7 @@ import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/invento
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, initialState, itemNameFromString, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, itemNameFromString, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
@@ -25,13 +25,17 @@ import { filterExact, filterOr } from '../../../common/string'
 import { loadFromWeb } from '../../../web/loader'
 import { Dispatch } from 'react'
 import { BlueprintWebMaterial } from '../../../web/state'
+import { CLEAR_WEB_ON_LOAD } from '../../../config'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            const state: CraftState = await api.storage.loadCraft()
+            let state: CraftState = await api.storage.loadCraft()
             if (state) {
+                if (CLEAR_WEB_ON_LOAD) {
+                    state = cleanWeb(state)
+                }
                 dispatch(setCraftState(mergeDeep(initialState, state)))
                 Promise.all(Object.values(state.blueprints)
                     .filter(bp => bp.web?.blueprint.loading ?? false)
@@ -124,7 +128,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
                 dispatch(setByStoreCraftFilter(filterExact(
                     raw?.data ?
-                        filterOr([ materialName, ...raw.data.map(m => m.name) ]) :
+                        filterOr([ materialName, ...raw.data.value.map(m => m.name) ]) :
                         materialName)))
             }
             break
@@ -253,7 +257,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                         }
                     })
                 }
-                const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web.blueprint.data.materials).map((m: BlueprintWebMaterial) => {
+                const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web.blueprint.data.value.materials).map((m: BlueprintWebMaterial) => {
                     const name = itemNameFromString(activeSessionBp, m.name)
                     return { n: name, q: map[name]?.q ?? 0, v: map[name]?.v ?? 0 }
                 })
@@ -316,7 +320,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (action.payload.text === BUDGET_MOVE) {
                     for (var bp of Object.values(state.blueprints)) {
                         if (bp.name !== bpName) {
-                            const m = bp.web.blueprint.data.materials[materialName]
+                            const m = bp.web.blueprint.data.value.materials[materialName]
                             const budgetM = bp.budget.sheet.materials[materialName]
                             const invM = bp.c.inventory.materials[materialName]
                             if (budgetM?.count && budgetM.count > invM.available) {
@@ -363,7 +367,7 @@ const BP_BLUEPRINT_NAME = 'Blueprint'
 async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
         if (r.data) {
-            const d = r.data
+            const d = r.data.value
             if (bpName.endsWith('(L)')) {
                 d.materials.unshift({
                     name: BP_BLUEPRINT_NAME,

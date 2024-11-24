@@ -158,6 +158,14 @@ const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string
     }
 })
 
+const cleanWeb = (state: MaterialsState): MaterialsState => {
+    const cState: MaterialsState = JSON.parse(JSON.stringify(state))
+    Object.values(cState.map).forEach(v => {
+        delete v.web
+    })
+    return cState
+}
+
 const cleanForSave = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
     Object.values(cState.map).forEach(v => {
@@ -184,6 +192,7 @@ export {
     reduceMaterialBuyAmountChanged,
     reduceMaterialOrderValueChanged,
     reduceSetMaterialPartialWebData,
+    cleanWeb,
     cleanForSave,
     MATERIAL_PED,
     MATERIAL_ME,

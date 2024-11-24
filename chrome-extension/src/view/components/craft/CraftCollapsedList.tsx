@@ -13,9 +13,9 @@ const sortRowData: SortRowData = {
     [CASH]: { justifyContent: 'end' },
     [BUDGET]: { justifyContent: 'end' },
 }
-const reloadSub = (errors: string[]): ItemRowSubColumnData[] => [{
+const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
     class: 'clicks-error',
-    title: `${errors.length === 0 ? '' : errors.join(' ')+' '}Click to try to load blueprint again`,
+    title: `${errors.length === 0 ? '' : errors.map(e => e.message).join(' ')+' '}Click to try to load blueprint again`,
     compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
 }]
 const getRowData = (d: BlueprintData): ItemRowData => ({

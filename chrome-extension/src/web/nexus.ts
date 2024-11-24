@@ -1,5 +1,5 @@
 import { fetchJson } from "./fetch";
-import { mapResponse, SourceMapperOut } from "./loader";
+import { mapResponse } from "./loader";
 import { IWebSource, SourceLoadResponse } from "./sources";
 import { BlueprintWebData, RawMaterialWebData } from "./state";
 
@@ -8,7 +8,7 @@ export class EntropiaNexus implements IWebSource {
 
     public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         const url = _apiUrl(`acquisition/${encodeURIComponent(materialName)}`)
-        return mapResponse(await fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials(materialName))
+        return await mapResponse(fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials(materialName))
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
@@ -19,7 +19,8 @@ export class EntropiaNexus implements IWebSource {
 const _apiUrl = (href: string) => href && new URL(href, 'https://api.entropianexus.com').href;
 const _wwwUrl = (href: string) => href && new URL(href.replace(' ', '~'), 'https://entropianexus.com').href;
 
-const _extractRawMaterials = (materialName: string) => (acq: EntropiaNexusAcquisition): SourceMapperOut<RawMaterialWebData[]> => ({
+const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexusAcquisition): Promise<SourceLoadResponse<RawMaterialWebData[]>> => ({
+    ok: true,
     data: acq.RefiningRecipes.length === 0 ? [] :
         acq.RefiningRecipes[0].Ingredients.map((ingredient) => ({
             name: ingredient.Item.Name,

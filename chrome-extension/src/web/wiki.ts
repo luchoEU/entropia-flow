@@ -1,5 +1,5 @@
 import { fetchText } from "./fetch";
-import { mapResponse, SourceMapperOut } from "./loader";
+import { mapResponse } from "./loader";
 import { IWebSource, SourceLoadResponse } from "./sources";
 import { BlueprintWebData, BlueprintWebMaterial, RawMaterialWebData } from "./state";
 
@@ -15,28 +15,32 @@ export class EntropiaWiki implements IWebSource {
     }
 }
 
-async function _loadFromSearch<T>(text: string, mapper: (html: string) => SourceMapperOut<T>): Promise<SourceLoadResponse<T>> {
+async function _loadFromSearch<T>(text: string, mapper: (html: string) => Promise<SourceLoadResponse<T>>): Promise<SourceLoadResponse<T>> {
     const url = _url(`Search.aspx?searchtext=${encodeURIComponent(text)}&type=go`)
-    return mapResponse(await fetchText(url), mapper)
+    return mapResponse(fetchText(url), mapper)
 }
 
 const _url = (href: string) => href && new URL(href, 'http://www.entropiawiki.com').href;
 
-function _extractBlueprint(html: string): SourceMapperOut<BlueprintWebData> {
+async function _extractBlueprint(html: string): Promise<SourceLoadResponse<BlueprintWebData>> {
     const parser = new DOMParser();
     const document = parser.parseFromString(html, 'text/html');
-    const url = _url(document.querySelector('form')?.getAttribute('action'));
 
     const table = document.querySelector('#ctl00_ContentPlaceHolder1_InfoList');
     if (!table) {
-        return { errorText: 'Content table not found', url }
+        const link = document.querySelector("a[href^='Info.aspx?chart=Blueprint']") as HTMLAnchorElement;
+        if (link) {
+            const url = _url(link.getAttribute('href'))
+            return await mapResponse(fetchText(url), _extractBlueprint)
+        }
+        return { ok: false, errorText: 'Content table not found' }
     }
 
     const itemValueText = Array.from(table.querySelectorAll("td.IH span"))
         .find(span => span.textContent?.trim() === "Item value:")
         ?.closest("td")?.nextElementSibling?.textContent?.trim();
     if (!itemValueText) {
-        return { errorText: 'Item value not found', url }
+        return { ok: false, errorText: 'Item value not found' }
     }
 
     const itemValue = Number(itemValueText.match(/\d+/)?.[0]);
@@ -54,12 +58,13 @@ function _extractBlueprint(html: string): SourceMapperOut<BlueprintWebData> {
     }).filter(item => item !== null)
 
     if (materials.length == 0) {
-        return { errorText: 'No materials found', url }
+        return { ok: false, errorText: 'No materials found' }
     }
 
     return {
+        ok: true,
         data: { itemValue, materials },
-        url
+        url: _url(document.querySelector('form')?.getAttribute('action'))
     };
 
 /* TODO get type from material
@@ -81,7 +86,7 @@ function _extractBlueprint(html: string): SourceMapperOut<BlueprintWebData> {
     */
 }
 
-function _extractRawMaterials(html: string): SourceMapperOut<RawMaterialWebData[]> {
+async function _extractRawMaterials(html: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
     const materials: RawMaterialWebData[] = [];
 
     const parser = new DOMParser();
@@ -108,30 +113,7 @@ function _extractRawMaterials(html: string): SourceMapperOut<RawMaterialWebData[
     }
 
     return {
-        data: materials,
-        url: undefined
+        ok: true,
+        data: materials
     };
 }
-
-/* TODO: handle cases where there is no match for search
-    if &text.Contains("Search for items named")
-        &regex = "Info\.aspx\?chart=Blueprint&amp;id=\d+"
-        &matches = &text.Matches(&regex)
-        if &matches.Count = 0
-            &info.StatusCode = 500
-            &info.Text = "No Blueprints matches in " + &text
-            &info.Url = &url
-            &info.Date = Now()
-        else
-            &url = "http://www.entropiawiki.com/" + &matches.Item(1).Value.Replace('&amp;', '&')
-            &httpclient.Execute("GET", &url)
-            if &httpclient.StatusCode = 200
-                &text = &httpclient.ToString()
-            else
-                &info.StatusCode = &httpclient.StatusCode
-                &info.Text = &httpclient.ToString()
-                &info.Url = &url
-                &info.Date = Now()
-            endif
-        endif
-    endif*/

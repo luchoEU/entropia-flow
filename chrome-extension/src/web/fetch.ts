@@ -2,6 +2,7 @@ interface FetchResponse<T> {
     ok: boolean
     status?: number
     errorText?: string
+    url?: string
     result?: T
 }
 
@@ -11,7 +12,8 @@ async function _fetch<T>(url: string, getResult: (response: Response) => Promise
         const response = await fetch(url);
         data = {
             ok: response.ok,
-            status: response.status
+            status: response.status,
+            url: response.url
         }
         if (response.ok) {
             data.result = await getResult(response);

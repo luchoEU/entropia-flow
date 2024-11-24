@@ -78,7 +78,7 @@ const getLimitText = (d: BlueprintData): string =>
         d.c.inventory?.limitClickItems.join(', ') ?? '';
 
 const getItemAvailable = (d: BlueprintData): number =>
-    d.web?.blueprint.data?.materials[BP_ITEM_NAME]?.available ?? 0;
+    d.web?.blueprint.data?.value.materials[BP_ITEM_NAME]?.available ?? 0;
 
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
