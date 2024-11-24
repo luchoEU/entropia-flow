@@ -9,7 +9,7 @@ interface SourceLoadResponse<T> {
 
 interface IWebSource {
     name: string
-    loadMaterial(materialName: string): Promise<SourceLoadResponse<MaterialWebData>>
+    loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>>
     loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>>
     loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>>
 }

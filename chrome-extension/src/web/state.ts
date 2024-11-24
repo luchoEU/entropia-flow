@@ -14,8 +14,7 @@ interface BlueprintWebData {
     type: string
     level: number
     profession: string
-    itemName: string
-    itemValue: number
+    item: BlueprintWebMaterial
     materials: BlueprintWebMaterial[]
 }
 

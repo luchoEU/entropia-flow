@@ -11,15 +11,21 @@ const ImgButton = (p: {
     show?: boolean
 }) => {
     const dispatch = useDispatch()
+    const onClick = (e) => {
+        e.stopPropagation()
+        const action = p.dispatch()
+        if (Array.isArray(action)) {
+            action.forEach((a) => dispatch(a))
+        } else {
+            dispatch(action)
+        }
+    }
 
     return p.text ?
         <span
             title={p.title}
             className={'pointer ' + (p.className ?? '')}
-            onClick={(e) => {
-                e.stopPropagation()
-                dispatch(p.dispatch())
-            }}
+            onClick={onClick}
             {...p.style ? { style: p.style } : {}}
             {...p.show ? { 'data-show': true } : {}}>
             <img src={p.src} />
@@ -29,10 +35,7 @@ const ImgButton = (p: {
             title={p.title}
             src={p.src}
             className={'pointer ' + (p.className ?? '')}
-            onClick={(e) => {
-                e.stopPropagation()
-                dispatch(p.dispatch())
-            }}
+            onClick={onClick}
             {...p.className ? { className: p.className } : {}}
             {...p.style ? { style: p.style } : {}}
             {...p.show ? { 'data-show': true } : {}} />

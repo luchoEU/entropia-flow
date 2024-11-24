@@ -81,10 +81,11 @@ const loadMaterialRawMaterials = (material: string) => ({
     }
 })
 
-const loadMaterialData = (material: string) => ({
+const loadMaterialData = (material: string, url?: string) => ({
     type: LOAD_MATERIAL_DATA,
     payload: {
-        material
+        material,
+        url
     }
 })
 

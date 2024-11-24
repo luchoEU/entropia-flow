@@ -20,7 +20,7 @@ import { InventoryByStore, TreeLineData } from '../../application/state/inventor
 import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 import { BlueprintWebMaterial } from '../../../web/state'
 import { WebLoadResponse } from '../../../web/loader'
-import { loadMaterialRawMaterials } from '../../application/actions/materials'
+import { loadMaterialData, loadMaterialRawMaterials } from '../../application/actions/materials'
 
 function SessionInfo(p: {
     name: string,
@@ -89,6 +89,12 @@ function WebDataControl<T>(p: {
     </>
 }
 
+function addZeroes(n: number) {
+    const dec = n.toString().split('.')[1]
+    const len = dec && dec.length > 2 ? dec.length : 2
+    return Number(n).toFixed(len)
+}
+
 function CraftSingle(p: {
     d: BlueprintData
     activeSession?: string,
@@ -97,12 +103,6 @@ function CraftSingle(p: {
     const { d } = p
     const dispatch = useDispatch()
     const mat: MaterialsMap = useSelector(getMaterialsMap)
-
-    function addZeroes(n: number) {
-        const dec = n.toString().split('.')[1]
-        const len = dec && dec.length > 2 ? dec.length : 2
-        return Number(n).toFixed(len)
-    }
 
     let markupLoaded = d.budget.sheet?.clickMUCost !== undefined
     let markupMap = undefined
@@ -219,6 +219,7 @@ function CraftSingle(p: {
                 }</p>
             </> }
             <p>Item: {d.c.itemName}</p>
+            { d.web?.blueprint && <p>Type: {d.web.blueprint.data.value.type}</p> }
             <table>
                 <thead>
                     <tr>
@@ -370,6 +371,8 @@ function CraftExpandedList() {
         chain = nextBp?.chain
     }
     const afterChainRaw = afterChain && mat[afterChain]?.web?.rawMaterials
+    const afterChainBpMat = afterChain && afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain)
+    const afterChainMat = afterChain && (mat[afterChain]?.web?.material?.data?.value ?? afterChainBpMat)
 
     return (
         <section>
@@ -405,13 +408,11 @@ function CraftExpandedList() {
                             { afterChain }<img src='img/left.png' />
                         </h2>
                         <div>
-                            <p>
-                                Type: {
-                                    mat[afterChain]?.web?.material?.data?.value.type ??
-                                    afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain).type
-                                }
-                            </p>
-                            <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChain)} content={d => d.length > 0 &&
+                            <p>Type: { afterChainMat.type }</p>
+                            <p>Value: { addZeroes(afterChainMat.value) }</p>
+                            <WebDataControl w={afterChainRaw}
+                                dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}
+                                content={d => d.length > 0 &&
                                 <table style={{ marginBottom: '10px' }}>
                                     <thead>
                                         <tr>

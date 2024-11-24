@@ -121,12 +121,12 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
 const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter({
     ...state,
     blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
-        const webMaterials = bp.web?.blueprint.data?.value.materials
-        if (!webMaterials) return [n, bp];
+        const webBp = bp.web?.blueprint.data?.value
+        if (!webBp) return [n, bp];
 
         let clickTTCost = 0
         const materials: BlueprintInventoryMaterials = { }
-        for (const m of webMaterials) {
+        for (const m of webBp.materials) {
             const available = dictionary[m.name] ?? 0
             materials[m.name] = {
                 available,
@@ -135,13 +135,13 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
             clickTTCost += m.quantity * m.value
         }
 
-        const webItemMaterial = webMaterials.find(m => m.name == BP_ITEM_NAME)
-        const isLimited = materials[BP_BLUEPRINT_NAME]
+        const webItemMaterial = webBp.materials.find(m => m.name == webBp.item.name)
+        const isLimited = materials[webBp.name]
         let residueNeeded = 0
         if (webItemMaterial) {
             residueNeeded = Math.max(0, webItemMaterial.value - clickTTCost)
             if (residueNeeded > 0 && isLimited) {
-                const webResidueMaterial = webMaterials.find(m => m.type === 'Residue')
+                const webResidueMaterial = webBp.materials.find(m => m.type === 'Residue')
                 const residueMaterial = materials[webResidueMaterial.name]
                 residueMaterial.clicks = Math.floor((webResidueMaterial.value * residueMaterial.available) / residueNeeded)
             }
@@ -345,6 +345,7 @@ const cleanWeb = (state: CraftState): CraftState => {
     Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
         delete bp.web
         delete bp.chain // no bp recepie so chain is invalid
+        delete bp.c.inventory // was it saved?
     })
     return cState;
 }

@@ -10,7 +10,7 @@ export class EntropiaWiki implements IWebSource {
         return _loadFromSearch(materialName, _extractRawMaterials)
     }
 
-    public async loadMaterial(materialName: string): Promise<SourceLoadResponse<MaterialWebData>> {
+    public async loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>> {
         return NOT_IMPLEMENTED
     }
 
@@ -69,8 +69,12 @@ async function _extractBlueprint(html: string): Promise<SourceLoadResponse<Bluep
             type: infoMap['Type:'],
             level: Number(infoMap['Level:']),
             profession: infoMap['Profession:'],
-            itemName: infoMap['Item:'],
-            itemValue: Number(infoMap['Item value:']?.match(/\d+/)?.[0]),
+            item: {
+                name: infoMap['Item:'],
+                value: Number(infoMap['Item value:']?.match(/\d+/)?.[0]),
+                type: undefined,
+                quantity: undefined
+            },
             materials
         },
         url: _url(document.querySelector('form')?.getAttribute('action'))

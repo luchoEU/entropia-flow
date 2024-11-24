@@ -57,7 +57,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case LOAD_MATERIAL_DATA: {
             const materialName: string = action.payload.material
-            for await (const r of loadFromWeb(s => s.loadMaterial(materialName))) {
+            const materialUrl: string = action.payload.url
+            for await (const r of loadFromWeb(s => s.loadMaterial(materialName, materialUrl))) {
                 dispatch(setMaterialPartialWebData(materialName, { material: r }))
             }
             break
