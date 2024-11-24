@@ -13,6 +13,7 @@ interface BlueprintWebMaterial {
     type: string
     quantity: number
     value: number
+    url?: string
 }
 
 export {

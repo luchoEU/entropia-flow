@@ -72,14 +72,14 @@ function WebDataControl<T>(p: {
     return <>
         { !w ? reload() : (
             w.loading ?
-                <><img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...</> :
+                <p><img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...</p> :
             (w.errors ?
                 <>
-                    { w.errors.map(e => <p>{e}</p>) }
+                    { w.errors.map((e, index) => <p key={index}>{e}</p>) }
                     { reload() }
                 </> :
                 <>
-                    { w.url && <p><a href={w.url.href} target='_blank'>{w.url.text}</a></p> }
+                    <p>{ w.url && <a href={w.url.href} target='_blank'>{w.url.text}</a> }{ reload() }</p>
                     { p.content(w.data) }
                 </>)
         )}
