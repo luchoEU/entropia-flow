@@ -12,6 +12,7 @@ function StreamViewLayout(p: {
     single: StreamRenderSingle,
     scale?: number
 }) {
+    return <></> // Can't use shadow dom with StrictMode
     const { id, layoutId, single, scale } = p;
     const shadowRootRef = useRef(null);
 
