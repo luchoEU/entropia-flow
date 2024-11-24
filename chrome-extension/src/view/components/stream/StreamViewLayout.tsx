@@ -12,6 +12,8 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
     single: StreamRenderSingle,
     scale?: number
 }) => {
+    return <></> // Can't use shadow dom with StrictMode
+
     const shadowRootRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
 

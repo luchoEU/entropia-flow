@@ -29,5 +29,9 @@
     "host_permissions": [
         "https://api.entropianexus.com/*",
         "http://www.entropiawiki.com/*"
-    ]
+    ],
+    "content_security_policy": {
+        "_comment": "Reload chrome extension for this change to take effect",
+        "extension_pages": "script-src 'self' http://localhost:8097; object-src 'self';"
+    }
 }
