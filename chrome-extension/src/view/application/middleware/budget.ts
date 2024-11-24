@@ -13,7 +13,6 @@ import { getSettings } from "../selectors/settings"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { MaterialsState } from "../state/materials"
 import { SettingsState } from "../state/settings"
-import { BP_BLUEPRINT_NAME, BP_ITEM_NAME } from "./craft"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -144,29 +143,28 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
 
     for (const name of Object.keys(info.materials)) {
         var m = info.materials[name]
-        if (name !== BP_BLUEPRINT_NAME && name !== BP_ITEM_NAME) {
-            const matInfo = materials.map[name]
 
-            if (map[name] === undefined) {
-                map[name] = {
-                    expanded: false,
-                    selected: false,
-                    markup: m.markup,
-                    unitValue: matInfo ? matInfo.c.kValue / 1000 : 0,
-                    budgetList: [],
-                    realList: [],
-                    c: undefined
-                }
+        const matInfo = materials.map[name]
+
+        if (map[name] === undefined) {
+            map[name] = {
+                expanded: false,
+                selected: false,
+                markup: m.markup,
+                unitValue: matInfo ? matInfo.c.kValue / 1000 : 0,
+                budgetList: [],
+                realList: [],
+                c: undefined
             }
-
-            const budgetElement = {
-                itemName,
-                disabled: disabledMaterials?.includes(name) || false,
-                quantity: m.current
-            }
-
-            map[name].budgetList.push(budgetElement)
         }
+
+        const budgetElement = {
+            itemName,
+            disabled: disabledMaterials?.includes(name) || false,
+            quantity: m.current
+        }
+
+        map[name].budgetList.push(budgetElement)
     }
 
     items.push({

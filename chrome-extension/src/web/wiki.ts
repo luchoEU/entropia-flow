@@ -40,14 +40,11 @@ async function _extractBlueprint(html: string): Promise<SourceLoadResponse<Bluep
         return { ok: false, errorText: 'Content table not found' }
     }
 
-    const itemValueText = Array.from(table.querySelectorAll("td.IH span"))
-        .find(span => span.textContent?.trim() === "Item value:")
-        ?.closest("td")?.nextElementSibling?.textContent?.trim();
-    if (!itemValueText) {
-        return { ok: false, errorText: 'Item value not found' }
-    }
+    const bpName = document.querySelector('#ctl00_ContentPlaceHolder1_PageContents_PageTitle')?.textContent?.trim();
 
-    const itemValue = Number(itemValueText.match(/\d+/)?.[0]);
+    const infoMap = Object.fromEntries(
+        Array.from(table.querySelectorAll("td.IH"))
+            .map(td => [td.textContent?.trim(), td.nextElementSibling?.textContent?.trim()]));
 
     const rows = document.querySelectorAll("table.Grid tr");
     const materials: BlueprintWebMaterial[] = Array.from(rows).map((row) => {
@@ -67,7 +64,15 @@ async function _extractBlueprint(html: string): Promise<SourceLoadResponse<Bluep
 
     return {
         ok: true,
-        data: { itemValue, materials },
+        data: {
+            name: bpName?.replace(/^Blueprint:\s*/, ''),
+            type: infoMap['Type:'],
+            level: Number(infoMap['Level:']),
+            profession: infoMap['Profession:'],
+            itemName: infoMap['Item:'],
+            itemValue: Number(infoMap['Item value:']?.match(/\d+/)?.[0]),
+            materials
+        },
         url: _url(document.querySelector('form')?.getAttribute('action'))
     };
 

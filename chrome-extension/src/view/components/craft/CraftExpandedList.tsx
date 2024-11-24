@@ -2,7 +2,7 @@ import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
-import { bpDataFromItemName, itemNameFromString } from '../../application/helpers/craft'
+import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status'
@@ -142,8 +142,7 @@ function CraftSingle(p: {
         if (markupLoaded)
             sessionMUprofit = 0
         d.web.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
-            const name = itemNameFromString(d, m.name)
-            const diff = d.session.diffMaterials.find(x => x.n == name)
+            const diff = d.session.diffMaterials.find(x => x.n == m.name)
             if (diff !== undefined) {
                 session[m.name] = diff.q
                 sessionTTprofit += diff.v
@@ -175,8 +174,7 @@ function CraftSingle(p: {
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
             d.web.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
-                const name = itemNameFromString(d, m.name)
-                const item = diff.find(x => x.n == name && Number(x.q) !== 0)
+                const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
                 const budgetM = d.budget.sheet?.materials[m.name]
                 if (item !== undefined && !budgetM.buyDone) {
                     if (bought === undefined) {
@@ -240,6 +238,7 @@ function CraftSingle(p: {
                     {
                         bp.materials.map((m: BlueprintWebMaterial) => {
                             const invM = d.c.inventory?.materials[m.name]
+                            const name = itemStringFromName(d, m.name)
                             const type = mat[m.name]?.web?.material?.data?.value.type ?? m.type
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
@@ -247,8 +246,8 @@ function CraftSingle(p: {
                             }}>
                                 <td align='right'>{m.quantity === 0 ? '-' : m.quantity}</td>
                                 <td align='right'>{addZeroes(m.value)}</td>
-                                <td data-text={m.name}>
-                                    {m.name}
+                                <td data-text={name}>
+                                    {name}
                                     <img src={d.chain === m.name ? 'img/left.png' : 'img/right.png'}/>
                                 </td>
                                 <td data-text={type}>{type}</td>
@@ -354,6 +353,12 @@ function CraftExpandedList() {
     let lastBpChain: BlueprintData = undefined
     let chain = d.chain
     while (chain) {
+        afterBpChain = lastBpChain ?? d
+        if (chain == afterBpChain.c.itemName) {
+            afterChain = chain
+            break
+        }
+
         const nextBp = bpDataFromItemName(s, chain)
         if (nextBp) {
             if (lastBpChain)
@@ -361,12 +366,10 @@ function CraftExpandedList() {
             lastBpChain = nextBp
         } else {
             afterChain = chain
-            afterBpChain = lastBpChain ?? d
         }
         chain = nextBp?.chain
     }
     const afterChainRaw = afterChain && mat[afterChain]?.web?.rawMaterials
-    const afterChainName = afterChain && itemNameFromString(afterBpChain, afterChain)
 
     return (
         <section>
@@ -399,34 +402,32 @@ function CraftExpandedList() {
                 { afterChain &&
                     <div className='craft-chain'>
                         <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(afterBpChain.name, undefined)) }}>
-                            { afterChainName }<img src='img/left.png' />
+                            { afterChain }<img src='img/left.png' />
                         </h2>
                         <div>
                             <p>
                                 Type: {
-                                    mat[afterChainName]?.web?.material?.data?.value.type ??
+                                    mat[afterChain]?.web?.material?.data?.value.type ??
                                     afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain).type
                                 }
                             </p>
-                            <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChainName)} content={d => d.length > 0 &&
-                                <p>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Raw Material</th>
-                                                <th>Quantity</th>
+                            <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChain)} content={d => d.length > 0 &&
+                                <table style={{ marginBottom: '10px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Raw Material</th>
+                                            <th>Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        { d.map(rm => (
+                                            <tr key={rm.name}>
+                                                <td>{rm.name}</td>
+                                                <td align='center'>{rm.quantity}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            { d.map(rm => (
-                                                <tr>
-                                                    <td>{rm.name}</td>
-                                                    <td align='center'>{rm.quantity}</td>
-                                                </tr>
-                                            )) }
-                                        </tbody>
-                                    </table>
-                                </p>
+                                        )) }
+                                    </tbody>
+                                </table>
                             }/>
                             { inv.flat.craft.length === 0 ?
                                 <p><strong>None on Inventory</strong></p> :

@@ -7,7 +7,7 @@ import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/invento
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, itemNameFromString, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimitedBp, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
@@ -100,27 +100,24 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SHOW_BLUEPRINT_MATERIAL_DATA: {
             const inv: InventoryState = getInventory(getState())
             const state: CraftState = getCraft(getState())
+            let bp = state.blueprints[action.payload.name]
             let materialName = action.payload.materialName
 
-            let isBlueprint = false
-            if (bpDataFromItemName(state, materialName)) {
-                isBlueprint = true
-            } else {
-                const addBpName = bpNameFromItemName(inv, materialName)
-                if (addBpName) {
-                    dispatch(addBlueprint(addBpName))
-                    isBlueprint = true
+            while (materialName && materialName !== bp.c.itemName) {
+                bp = bpDataFromItemName(state, materialName)
+                if (bp) {
+                    materialName = bp.chain
+                } else {
+                    const addBpName = bpNameFromItemName(inv, materialName)
+                    if (addBpName) {
+                        dispatch(addBlueprint(addBpName))
+                        materialName = undefined
+                    }
+                    break
                 }
             }
             
-            if (!isBlueprint) {
-                // restore material name of 'Item' and 'Blueprint'
-                let bpName = action.payload.name
-                const bp = state.blueprints[bpName]
-                if (bp) {
-                    materialName = itemNameFromString(bp, materialName)
-                }
-
+            if (materialName) {
                 const mat: MaterialsMap = getMaterialsMap(getState())
                 const raw = mat[materialName]?.web?.rawMaterials
                 if (!raw) {
@@ -198,12 +195,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
 
             if (action.type === SET_BLUEPRINT_PARTIAL_WEB_DATA) {
-                const wbp: BlueprintWebData = action.payload.change.blueprint?.data?.value
-                if (wbp) {
+                const bp: BlueprintWebData = action.payload.change.blueprint?.data?.value
+                if (bp) {
                     // load missing materials types
                     const mat = getMaterialsMap(getState())
-                    const bp = state.blueprints[action.payload.name]
-                    wbp.materials.forEach(m => m.name !in mat && dispatch(loadMaterialData(itemNameFromString(bp, m.name))))
+                    bp.materials.forEach(m => m.name !in mat && dispatch(loadMaterialData(m.name)))
                 }
             }
 
@@ -269,8 +265,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     })
                 }
                 const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web.blueprint.data.value.materials).map((m: BlueprintWebMaterial) => {
-                    const name = itemNameFromString(activeSessionBp, m.name)
-                    return { n: name, q: map[name]?.q ?? 0, v: map[name]?.v ?? 0 }
+                    return { n: m.name, q: map[m.name]?.q ?? 0, v: map[m.name]?.v ?? 0 }
                 })
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
@@ -372,23 +367,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 }
 
-const BP_ITEM_NAME = 'Item'
-const BP_BLUEPRINT_NAME = 'Blueprint'
-
 async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
         if (r.data) {
             const d = r.data.value
-            if (bpName.endsWith('(L)')) {
+            if (isLimitedBp(d.name)) {
                 d.materials.unshift({
-                    name: BP_BLUEPRINT_NAME,
+                    name: d.name,
                     type: 'Blueprint',
                     quantity: 1,
                     value: 0.01
                 })
             }
             d.materials.unshift({
-                name: BP_ITEM_NAME,
+                name: d.itemName,
                 type: 'Crafted item',
                 quantity: 0,
                 value: d.itemValue
@@ -420,7 +412,3 @@ async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
 export default [
     requests
 ]
-export {
-    BP_ITEM_NAME,
-    BP_BLUEPRINT_NAME,
-}

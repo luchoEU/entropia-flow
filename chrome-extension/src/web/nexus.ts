@@ -37,6 +37,7 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
 const _extractMaterial = (materialName: string) => async (m: EntropiaNexusMaterial): Promise<SourceLoadResponse<MaterialWebData>> => ({
     ok: true,
     data: {
+        name: m.Name,
         type: m.Properties.Type,
         value: m.Properties.Economy.MaxTT
     },

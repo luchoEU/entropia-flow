@@ -1,7 +1,6 @@
 import { multiIncludes } from '../../../common/string';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BP_BLUEPRINT_NAME, BP_ITEM_NAME } from '../middleware/craft';
 import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintInventoryMaterials, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial } from '../state/craft';
 import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
@@ -27,10 +26,12 @@ const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
 const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
     Object.values(state.blueprints).find(bp => bp.c.itemName == itemName)
 
-const itemNameFromString = (bp: BlueprintData, name: string): string =>
-    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.c.itemName : name
+const BP_ITEM_NAME = 'Item'
+const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
     name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c.itemName ? BP_ITEM_NAME : name
+
+const isLimitedBp = (name: string): boolean => name.endsWith('(L)')
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     itemName: bp.c.itemName,
@@ -126,8 +127,7 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
         let clickTTCost = 0
         const materials: BlueprintInventoryMaterials = { }
         for (const m of webMaterials) {
-            const name = itemNameFromString(bp, m.name)
-            const available = dictionary[name] ?? 0
+            const available = dictionary[m.name] ?? 0
             materials[m.name] = {
                 available,
                 clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
@@ -410,7 +410,7 @@ export {
     cleanForSave,
     bpNameFromItemName,
     bpDataFromItemName,
-    itemNameFromString,
     itemStringFromName,
     budgetInfoFromBp,
+    isLimitedBp,
 }
