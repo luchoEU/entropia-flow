@@ -96,6 +96,7 @@ function CraftSingle(p: {
 }) {
     const { d } = p
     const dispatch = useDispatch()
+    const mat: MaterialsMap = useSelector(getMaterialsMap)
 
     function addZeroes(n: number) {
         const dec = n.toString().split('.')[1]
@@ -239,6 +240,7 @@ function CraftSingle(p: {
                     {
                         bp.materials.map((m: BlueprintWebMaterial) => {
                             const invM = d.c.inventory?.materials[m.name]
+                            const type = mat[m.name]?.web?.material?.data?.value.type ?? m.type
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(d.name, d.chain === m.name ? undefined : m.name))
@@ -249,7 +251,7 @@ function CraftSingle(p: {
                                     {m.name}
                                     <img src={d.chain === m.name ? 'img/left.png' : 'img/right.png'}/>
                                 </td>
-                                <td data-text={m.type}>{m.type}</td>
+                                <td data-text={type}>{type}</td>
                                 { invM ? <td data-text-right={invM.available}>{invM.available}</td> : <td/> }
                                 { invM ? <td data-text-right={invM.clicks}>{invM.clicks}</td> : <td/> }
                                 { markupMap && <td align='right'>{markupMap[m.name]}</td> }
@@ -401,7 +403,10 @@ function CraftExpandedList() {
                         </h2>
                         <div>
                             <p>
-                                Type: { afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain).type }
+                                Type: {
+                                    mat[afterChainName]?.web?.material?.data?.value.type ??
+                                    afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain).type
+                                }
                             </p>
                             <WebDataControl w={afterChainRaw} dispatchReload={() => loadMaterialRawMaterials(afterChainName)} content={d => d.length > 0 &&
                                 <p>

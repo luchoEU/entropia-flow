@@ -27,6 +27,19 @@ const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
 const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
     Object.values(state.blueprints).find(bp => bp.c.itemName == itemName)
 
+const itemNameFromString = (bp: BlueprintData, name: string): string =>
+    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.c.itemName : name
+const itemStringFromName = (bp: BlueprintData, name: string): string =>
+    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c.itemName ? BP_ITEM_NAME : name
+
+const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
+    itemName: bp.c.itemName,
+    materials: bp.web?.blueprint.data?.value.materials.map(m => ({
+        name: m.name,
+        unitValue: m.value
+    }))
+})
+
 const reduceSortBlueprintsByPart = (state: CraftState, part: number): CraftState => {
     const sortType = Sort.nextSortType(part, state.stared.sortType)
     return _applyFilter({
@@ -102,20 +115,6 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
             }
         }
     }
-})
-
-const itemNameFromString = (bp: BlueprintData, name: string): string =>
-    name === BP_BLUEPRINT_NAME ? bp.name : name === BP_ITEM_NAME ? bp.c.itemName : name
-
-const itemStringFromName = (bp: BlueprintData, name: string): string =>
-    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c.itemName ? BP_ITEM_NAME : name
-
-const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
-    itemName: bp.c.itemName,
-    materials: bp.web?.blueprint.data?.value.materials.map(m => ({
-        name: m.name,
-        unitValue: m.value
-    }))
 })
 
 const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter({

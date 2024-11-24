@@ -1,13 +1,17 @@
 import { fetchText } from "./fetch";
 import { mapResponse } from "./loader";
-import { IWebSource, SourceLoadResponse } from "./sources";
-import { BlueprintWebData, BlueprintWebMaterial, RawMaterialWebData } from "./state";
+import { IWebSource, NOT_IMPLEMENTED, SourceLoadResponse } from "./sources";
+import { BlueprintWebData, BlueprintWebMaterial, MaterialWebData, RawMaterialWebData } from "./state";
 
 export class EntropiaWiki implements IWebSource {
     public name: string = "Entropia Wiki"
 
     public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         return _loadFromSearch(materialName, _extractRawMaterials)
+    }
+
+    public async loadMaterial(materialName: string): Promise<SourceLoadResponse<MaterialWebData>> {
+        return NOT_IMPLEMENTED
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
@@ -52,7 +56,7 @@ async function _extractBlueprint(html: string): Promise<SourceLoadResponse<Bluep
             const data = Array.from(row.querySelectorAll("td")).map(td => td.textContent?.trim() || ""); // Extract the data from all <td> elements in this <tr>
             const quantity = Number(data[2])
             const value = Math.round(10000 * Number(data[3]) / quantity) / 10000
-            return { name: data[1], type: '_', quantity, value, url: _url(link.getAttribute('href')) };
+            return { name: data[1], type: 'Material', quantity, value, url: _url(link.getAttribute('href')) };
         }
         return null;
     }).filter(item => item !== null)

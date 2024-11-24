@@ -9,6 +9,7 @@ const MATERIAL_BUY_AMOUNT_CHANGED = '[material] buy amount changed'
 const MATERIAL_ORDER_VALUE_CHANGED = '[material] order value changed'
 const SET_MATERIAL_PARTIAL_WEB_DATA = '[material] set partial web data'
 const LOAD_MATERIAL_RAW_MATERIALS = '[material] load raw materials'
+const LOAD_MATERIAL_DATA = '[material] load data'
 
 const setMaterialsState = (state: MaterialsState) => ({
     type: SET_MATERIALS_STATE,
@@ -80,6 +81,13 @@ const loadMaterialRawMaterials = (material: string) => ({
     }
 })
 
+const loadMaterialData = (material: string) => ({
+    type: LOAD_MATERIAL_DATA,
+    payload: {
+        material
+    }
+})
+
 export {
     SET_MATERIALS_STATE,
     MATERIAL_BUY_MARKUP_CHANGED,
@@ -90,6 +98,7 @@ export {
     MATERIAL_ORDER_VALUE_CHANGED,
     SET_MATERIAL_PARTIAL_WEB_DATA,
     LOAD_MATERIAL_RAW_MATERIALS,
+    LOAD_MATERIAL_DATA,
     setMaterialsState,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
@@ -99,4 +108,5 @@ export {
     materialOrderValueChanged,
     setMaterialPartialWebData,
     loadMaterialRawMaterials,
+    loadMaterialData,
 }

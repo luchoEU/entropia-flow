@@ -1,7 +1,7 @@
 import { fetchJson } from "./fetch";
 import { mapResponse } from "./loader";
-import { IWebSource, SourceLoadResponse } from "./sources";
-import { BlueprintWebData, RawMaterialWebData } from "./state";
+import { IWebSource, NOT_IMPLEMENTED, SourceLoadResponse } from "./sources";
+import { BlueprintWebData, MaterialWebData, RawMaterialWebData } from "./state";
 
 export class EntropiaNexus implements IWebSource {
     public name: string = "Entropia Nexus";
@@ -11,8 +11,13 @@ export class EntropiaNexus implements IWebSource {
         return await mapResponse(fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials(materialName))
     }
 
+    public async loadMaterial(materialName: string): Promise<SourceLoadResponse<MaterialWebData>> {
+        const url = _apiUrl(`materials/${encodeURIComponent(materialName)}`)
+        return await mapResponse(fetchJson<EntropiaNexusMaterial>(url), _extractMaterial(materialName))
+    }
+
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
-        return { ok: false, errorText: 'not implemented' }
+        return NOT_IMPLEMENTED
     }
 }
 
@@ -26,6 +31,15 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
             name: ingredient.Item.Name,
             quantity: ingredient.Amount,
         })),
+    url: _wwwUrl(`items/materials/${materialName}`)
+})
+
+const _extractMaterial = (materialName: string) => async (m: EntropiaNexusMaterial): Promise<SourceLoadResponse<MaterialWebData>> => ({
+    ok: true,
+    data: {
+        type: m.Properties.Type,
+        value: m.Properties.Economy.MaxTT
+    },
     url: _wwwUrl(`items/materials/${materialName}`)
 })
 

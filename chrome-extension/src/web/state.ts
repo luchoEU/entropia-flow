@@ -3,6 +3,11 @@ interface RawMaterialWebData {
     quantity: number;
 }
 
+interface MaterialWebData {
+    type: string;
+    value: number;
+}
+
 interface BlueprintWebData {
     itemValue: number
     materials: BlueprintWebMaterial[]
@@ -18,6 +23,7 @@ interface BlueprintWebMaterial {
 
 export {
     RawMaterialWebData,
+    MaterialWebData,
     BlueprintWebData,
     BlueprintWebMaterial,
 }

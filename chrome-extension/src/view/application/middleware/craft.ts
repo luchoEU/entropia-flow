@@ -20,11 +20,11 @@ import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
 import { MaterialsMap } from '../state/materials'
 import { getMaterialsMap } from '../selectors/materials'
-import { loadMaterialRawMaterials } from '../actions/materials'
+import { loadMaterialData, loadMaterialRawMaterials } from '../actions/materials'
 import { filterExact, filterOr } from '../../../common/string'
 import { loadFromWeb } from '../../../web/loader'
 import { Dispatch } from 'react'
-import { BlueprintWebMaterial } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -196,6 +196,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     loadBudget(action.payload.name)
                     break
             }
+
+            if (action.type === SET_BLUEPRINT_PARTIAL_WEB_DATA) {
+                const wbp: BlueprintWebData = action.payload.change.blueprint?.data?.value
+                if (wbp) {
+                    // load missing materials types
+                    const mat = getMaterialsMap(getState())
+                    const bp = state.blueprints[action.payload.name]
+                    wbp.materials.forEach(m => m.name !in mat && dispatch(loadMaterialData(itemNameFromString(bp, m.name))))
+                }
+            }
+
             break
         }
         case RELOAD_BLUEPRINT: {
