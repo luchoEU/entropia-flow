@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react'
+import React, { CSSProperties, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
@@ -7,6 +7,7 @@ import SearchInput from './SearchInput';
 import ExpandableSection from './ExpandableSection';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
+import isEqual from 'lodash.isequal';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -111,11 +112,10 @@ const getRowColumnWidth = (c: ItemRowColumnData, imgWidth: number = IMG_WIDTH): 
     _getPadding(c)
 ];
 
-
 const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JSX.Element => <>
     { p.sub.map((sc: ItemRowSubColumnData, j: number) =>
         sc.visible === false ?
-            <span key={j} style={{ flex: sc.flex, width: p.width[j] }} /> :
+            <span key={j} style={{ flex: sc.flex, width: p.width ? p.width[j] : 0 }} /> :
             <span key={j} className={sc.class} title={sc.title} style={{ flex: sc.flex }}>
                 { sc.imgButton && <ImgButton text={sc.imgButton.text} title={undefined} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
                 { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
@@ -132,7 +132,7 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
 const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Element => {
     const dispatch = useDispatch()
     return <input
-        style={{ width: INPUT_WIDTH }}
+        style={{ width: INPUT_WIDTH, font: FONT }}
         value={p.value}
         onClick={(e) => { e.stopPropagation() }}
         onChange={(e) => {
@@ -143,27 +143,32 @@ const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Elem
 }
 
 const ItemRow = <T extends any>(
-    getData: (item: T) => ItemRowData,
-    itemSelector: (index: number) => (state: any) => T,
-    columns: ColumnWidthData[]) =>
-    ({ index, style }) => {
-    const item: T = useSelector(itemSelector(index))
-    if (!item)
-        return <p>{`Item ${index} not found`}</p>
+    { index, style, getData, itemSelector, columns } : {
+    index: number;
+    style: React.CSSProperties;
+    getData: (item: T) => ItemRowData;
+    itemSelector: (index: number) => (state: any) => T;
+    columns: ColumnWidthData[];
+}) => {
+    const item: T = useSelector(itemSelector(index));
+    if (!item) return <p>{`Item ${index} not found`}</p>;
 
-    const dispatch = useDispatch()
-    const data = getData(item)
-    const className = 'item-row' + (data.dispatch ? ' pointer' : '')
+    const dispatch = useDispatch();
+    const data = getData(item);
+    const className = 'item-row' + (data.dispatch ? ' pointer' : '');
 
     return (
-        <div className={className} style={style}
-            {...data.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch()) } } : {}}>
-            <ItemRowRender
-                data={data}
-                columns={columns} />
-        </div>
-    )
-}
+    <div
+        className={className}
+        style={style}
+        {...(data.dispatch
+        ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch()); } }
+        : {})}
+    >
+        <ItemRowRender data={data} columns={columns} />
+    </div>
+    );
+};
 
 function _getPadding(c: ItemRowColumnData): number {
     const paddingLeft = c.style?.paddingLeft ? parseInt(c.style.paddingLeft.toString()) : 0;
@@ -195,6 +200,17 @@ interface TableParameters<T> {
     sortBy: (part: number) => any,
     itemSelector: (index: number) => (state: any) => T,
     tableData: TableData<T>
+}
+
+// A custom hook to memoize deep comparisons
+export function useDeepCompareMemoize(value: any) {
+    const ref = useRef<any>();
+
+    if (!isEqual(value, ref.current)) {
+        ref.current = value;
+    }
+
+    return ref.current;
 }
 
 const SortableFixedSizeTable = <T extends any>(p: {
@@ -237,6 +253,19 @@ const SortableFixedSizeTable = <T extends any>(p: {
     const itemCount = d.showItems.length
     const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
 
+    const stableItemsSubColumnsWidth = useDeepCompareMemoize(itemsSubColumnsWidth);
+    const renderRow = useCallback(
+        ({ index, style }: { index: number; style: React.CSSProperties }) => {
+            return (
+            <ItemRow
+                index={index}
+                style={style}
+                getData={t.getRow}
+                itemSelector={d.itemSelector}
+                columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
+            />
+        )}, [stableItemsSubColumnsWidth]);
+
     return (
         <div className='sort-table'>
             <div className='sort-row'>
@@ -249,7 +278,7 @@ const SortableFixedSizeTable = <T extends any>(p: {
                 itemCount={itemCount}
                 itemSize={ITEM_HEIGHT}
                 width={totalWidth}>
-                {ItemRow(t.getRow, d.itemSelector, getColumnsWidthData(itemsSubColumnsWidth))}
+                {renderRow}
             </FixedSizeList>
         </div>
     )

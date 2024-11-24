@@ -143,7 +143,7 @@ const InventoryByStoreList = () => {
                 }}
             />
             <SortableTableSection
-                title='Containers'
+                title='List by Containers'
                 expanded={inv.originalList.expanded}
                 filter={inv.filter}
                 stats={inv.showList.stats}

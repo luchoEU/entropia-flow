@@ -291,7 +291,7 @@ function CraftSingle(p: {
                     <p>Click TT cost: {d.c.inventory.clickTTCost.toFixed(2)} PED</p>
                     { d.budget.sheet?.clickMUCost &&
                         <p>Click MU cost: {d.budget.sheet.clickMUCost.toFixed(2)} PED</p> }
-                    { d.c.inventory.residueNeeded &&
+                    { d.c.inventory.residueNeeded > 0 &&
                         <p>Residue needed per click: {d.c.inventory.residueNeeded.toFixed(2)} PED</p> }
                     { sessionTTprofit &&
                         <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
