@@ -34,7 +34,7 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
             name: ingredient.Item.Name,
             quantity: ingredient.Amount,
         })),
-    url: _wwwUrl(`items/materials/${materialName}`)
+    url: acq.RefiningRecipes.length > 0 && _wwwUrl(`items/materials/${materialName}`) // maybe it is not a material if no RefiningRecipes
 })
 
 const _extractMaterial = (materialName: string) => async (m: EntropiaNexusMaterial): Promise<SourceLoadResponse<MaterialWebData>> => ({
