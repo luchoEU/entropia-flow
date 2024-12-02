@@ -38,7 +38,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
                 dispatch(setCraftState(mergeDeep(initialState, state)))
                 await Promise.all(Object.values(state.blueprints)
-                    .filter(bp => bp.web?.blueprint?.loading ?? true)
+                    .filter(bp => !bp.web?.blueprint || bp.web.blueprint.loading)
                     .map(bp => loadBlueprint(bp.name, dispatch))
                 )
             }
