@@ -3,7 +3,7 @@
 
     "name": "Entropia Flow",
     "description": "This extension help you see your returns in Entropia Universe",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "icons": {
         "128": "img/flow128.png"
     },

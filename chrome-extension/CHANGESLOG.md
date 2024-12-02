@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.4.6 - 2024-12-02
+### Fixes
+- Fix sorted list, increase scroll space so the values are shown correctly
+
 ## Version 0.4.5 - 2024-12-02
 ### Added
 - Allow to select the planet for items in crafting

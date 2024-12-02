@@ -6,7 +6,7 @@ import { DONATIONS, FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../..
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
-const VERSION = '0.4.5'
+const VERSION = '0.4.6'
 
 const ExpandableQuestion = (p: { q: Question }) => {
     const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
