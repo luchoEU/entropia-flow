@@ -166,7 +166,21 @@ const cleanWeb = (state: MaterialsState): MaterialsState => {
     return cState
 }
 
-const cleanForSave = (state: MaterialsState): MaterialsState => {
+const cleanForSaveMain = (state: MaterialsState): MaterialsState => {
+    const cState: MaterialsState = JSON.parse(JSON.stringify(state))
+    Object.values(cState.map).forEach(v => {
+        delete v.web
+        delete v.c
+    })
+    for (const k of Object.keys(cState.map)) {
+        // delete empty objects
+        if (Object.keys(cState.map[k]).length === 0)
+            delete cState.map[k]
+    }
+    return cState
+}
+
+const cleanForSaveCache = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
     Object.values(cState.map).forEach(v => {
         if (v.web) {
@@ -175,7 +189,10 @@ const cleanForSave = (state: MaterialsState): MaterialsState => {
                     delete v.web[k]
             }
         }
-        delete v.c
+        for (const k of Object.keys(v)) {
+            if (k !== 'web')
+                delete v[k]
+        }
     })
     return cState
 }
@@ -193,7 +210,8 @@ export {
     reduceMaterialOrderValueChanged,
     reduceSetMaterialPartialWebData,
     cleanWeb,
-    cleanForSave,
+    cleanForSaveMain,
+    cleanForSaveCache,
     MATERIAL_PED,
     MATERIAL_ME,
     MATERIAL_LME,

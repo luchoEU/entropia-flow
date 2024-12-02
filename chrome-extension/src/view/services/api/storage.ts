@@ -213,6 +213,14 @@ async function loadMaterials(): Promise<MaterialsState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
 }
 
+async function saveMaterialsCache(state: MaterialsState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_MATERIALS, state)
+}
+
+async function loadMaterialsCache(): Promise<MaterialsState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_MATERIALS)
+}
+
 async function saveBudget(state: BudgetState) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_BUDGET, state)
 }
@@ -291,6 +299,8 @@ export default {
     loadCraft,
     saveMaterials,
     loadMaterials,
+    saveMaterialsCache,
+    loadMaterialsCache,
     saveBudget,
     loadBudget,
     saveSettings,
