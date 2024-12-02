@@ -371,7 +371,7 @@ function CraftExpandedList() {
         chain = nextBp?.chain
     }
     const afterChainRaw = afterChain && mat[afterChain]?.web?.rawMaterials
-    const afterChainBpMat = afterChain && afterBpChain.web?.blueprint.data.value.materials.find(m => m.name === afterChain)
+    const afterChainBpMat = afterChain && afterBpChain.web?.blueprint?.data?.value.materials.find(m => m.name === afterChain)
     const afterChainMat = afterChain && (mat[afterChain]?.web?.material?.data?.value ?? afterChainBpMat)
 
     return (
@@ -408,8 +408,10 @@ function CraftExpandedList() {
                             { afterChain }<img src='img/left.png' />
                         </h2>
                         <div>
-                            <p>Type: { afterChainMat.type }</p>
-                            <p>Value: { addZeroes(afterChainMat.value) }</p>
+                            { afterChainMat && <>
+                                <p>Type: { afterChainMat.type }</p>
+                                <p>Value: { addZeroes(afterChainMat.value) }</p>
+                            </>}
                             <WebDataControl w={afterChainRaw}
                                 dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}
                                 content={d => d.length > 0 &&
