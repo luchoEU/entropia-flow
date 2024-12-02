@@ -221,6 +221,7 @@ const reduceSetBudgetState = (state: CraftState, name: string, stage: number): C
     _changeBudget(state, name, { stage } )
 
 const reduceSetBudgetInfo = (state: CraftState, name: string, info: BudgetSheetGetInfo): CraftState => _changeBlueprint(state, name, bp => {
+    if (!bp?.web?.blueprint?.data?.value) return bp
 
     let clickMUCost = 0
     const materials: BlueprintBudgetMaterials = { }

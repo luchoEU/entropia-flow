@@ -17,6 +17,7 @@ export class EntropiaNexus implements IWebSource {
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
+        bpName = bpName.replace('(C) ', '')
         const url = _apiUrl(`blueprints/${bpName}`)
         return await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpName))
     }

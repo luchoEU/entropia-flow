@@ -71,7 +71,7 @@ async function _extractBlueprint(html: string): Promise<SourceLoadResponse<Bluep
             profession: infoMap['Profession:'],
             item: {
                 name: infoMap['Item:'],
-                value: Number(infoMap['Item value:']?.match(/\d+/)?.[0]),
+                value: Number(infoMap['Item value:']?.match(/\d+/)?.[0] || 0),
                 type: undefined,
                 quantity: undefined
             },

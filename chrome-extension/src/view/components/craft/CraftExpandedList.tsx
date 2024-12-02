@@ -158,7 +158,7 @@ function CraftSingle(p: {
                     bought = {}
                 }
                 const quantity = -budgetMap[k]
-                const value = d.web.blueprint.data.value.materials[k].value
+                const value = d.web?.blueprint?.data?.value.materials[k]?.value ?? 0
                 const finalValue = quantity * value * (m.markup ?? 1)
                 bought[k] = {
                     quantity,
@@ -173,10 +173,10 @@ function CraftSingle(p: {
 
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
-            d.web.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
+            d.web?.blueprint?.data?.value.materials.forEach((m: BlueprintWebMaterial) => {
                 const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
                 const budgetM = d.budget.sheet?.materials[m.name]
-                if (item !== undefined && !budgetM.buyDone) {
+                if (item !== undefined && budgetM && !budgetM.buyDone) {
                     if (bought === undefined) {
                         bought = {}
                     }
