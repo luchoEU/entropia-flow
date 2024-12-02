@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.4.5 - 2024-12-02
+### Added
+- Allow to select the planet for items in crafting
+- Read materials and blueprints from entropianexus.com and entropiawiki.com
+- Show inventory with needed material in crafting
+
+### Fixes
+- Fix no to lose focus when editing a container name
+
 ## Version 0.4.4 - 2024-11-05
 ### Added
 - Show related blueprints in Crafting tab

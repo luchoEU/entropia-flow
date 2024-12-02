@@ -7,10 +7,10 @@ module.exports = merge(common, {
   plugins: [
     new WebpackShellPluginNext({
       onBuildEnd: {
-        scripts: ['rm dist.zip; cd dist; zip -r ../dist.zip *'],
+        scripts: ['node scripts/post-build.mjs'],
         blocking: false,
         parallel: false,
       },
     }),
-  ]
+  ],
 });

@@ -2,7 +2,7 @@
 
 ## Building
 
-1. `nvm use 21.7.1`
+1. `nvm use 22.11.0`
 
 1. `npm i` to install dependencies
 
