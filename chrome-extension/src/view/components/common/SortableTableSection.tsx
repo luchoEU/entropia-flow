@@ -16,7 +16,7 @@ const IMG_SORT_WIDTH = 18
 const PLUS_WIDTH = 11 // ExpandablePlusButton
 const ITEM_TEXT_PADDING = 5
 const INPUT_WIDTH = 200
-const SCROLL_BAR_WIDTH = 15
+const SCROLL_BAR_WIDTH = 17
 const LIST_TOTAL_HEIGHT = 610 // not multiple of ITEM_SIZE so it is visible there are more
 const ITEM_HEIGHT = 20
 
