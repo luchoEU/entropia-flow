@@ -1,6 +1,7 @@
 const REFRESH = "[msg] refresh"
 const SET_LAST = "[msg] set last"
 const SET_AS_LAST = "[msg] set as last"
+const COPY_LAST = "[msg] copy last"
 const TIMER_ON = "[msg] timer on"
 const TIMER_OFF = "[msg] timer off"
 const SEND_WEB_SOCKET_MESSAGE = "[msg] send websocket message"
@@ -12,6 +13,10 @@ const refresh = {
 
 const setLast = {
     type: SET_LAST
+}
+
+const copyLast = {
+    type: COPY_LAST
 }
 
 const setAsLast = (last: number) => ({
@@ -48,6 +53,7 @@ export {
     REFRESH,
     SET_LAST,
     SET_AS_LAST,
+    COPY_LAST,
     TIMER_ON,
     TIMER_OFF,
     SEND_WEB_SOCKET_MESSAGE,
@@ -55,6 +61,7 @@ export {
     refresh,
     setLast,
     setAsLast,
+    copyLast,
     timerOn,
     timerOff,
     sendWebSocketMessage,

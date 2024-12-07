@@ -5,12 +5,14 @@ import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
-import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE, SET_WEB_SOCKET_URL } from '../actions/messages'
+import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE, SET_WEB_SOCKET_URL, COPY_LAST } from '../actions/messages'
 import { setStatus } from '../actions/status'
 import { PAGE_LOADED } from '../actions/ui'
 import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
+import { getLast } from '../selectors/last'
 import { HistoryState } from '../state/history'
+import { LastRequiredState } from '../state/last'
 
 const refreshViewHandler = dispatch => async (m: ViewState) => {
     if (m.list) {
@@ -52,6 +54,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }
+        case COPY_LAST: {
+            const { diff }: LastRequiredState = getLast(getState())
+            if (diff) {
+                const text = diff.map(d => `${d.n}\t${d.q}\t${d.v}`).join('\n')
+                navigator.clipboard.writeText(text).catch(err => console.error('Failed to copy text: ', err));
+            }
+            break
+        }
         case TIMER_ON: { api.messages.requestTimerOn(); break }
         case TIMER_OFF: { api.messages.requestTimerOff(); break }
         case SEND_WEB_SOCKET_MESSAGE: { api.messages.sendWebSocketMessage(action.payload.type, action.payload.data); break }

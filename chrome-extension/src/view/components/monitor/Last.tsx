@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
-import { setLast } from '../../application/actions/messages'
+import { copyLast, setLast } from '../../application/actions/messages'
 import { LastRequiredState } from '../../application/helpers/last'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
@@ -76,6 +76,13 @@ const Last = () => {
                             src='img/tick.png'
                             className='img-delta-zero'
                             dispatch={() => setLast} />
+                    }
+                    { diff !== null &&
+                        <ImgButton
+                            title='Copy to clipboard'
+                            src='img/copy.png'
+                            className='img-copy'
+                            dispatch={() => copyLast} />
                     }
                 </p>
                 { expanded &&
