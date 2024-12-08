@@ -43,6 +43,9 @@ type SortRowData = { [part: number]: SortRowColumnData }
 interface SortRowColumnData {
     justifyContent?: CSSProperties['justifyContent']
     text?: string
+    show?: boolean
+    sortable?: boolean
+    sub?: ItemRowSubColumnData[]
 }
 
 interface ItemRowColumnData {
@@ -228,15 +231,18 @@ const SortableFixedSizeTable = <T extends any>(p: {
     const itemsColumnsWidth = sumSubWidth(itemsSubColumnsWidth)
 
     const sortItemRowData: ItemRowData = {
-        columns: Object.fromEntries(t.columns.map(c => [c, {
-            dispatch: () => d.sortBy(c),
-            style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
-            sub: [
-                { strong: t.sortRow[c]?.text ?? t.definition[c].text },
-                { visible: d.sortType === t.definition[c].up || d.sortType === t.definition[c].down,
-                    img: { src: d.sortType === t.definition[c].up ? 'img/up.png' : 'img/down.png' } }
-            ]
-        }]))
+        columns: Object.fromEntries(t.columns
+            .filter(c => t.sortRow[c]?.show !== false)
+            .map(c => [c, {
+                dispatch: () => t.sortRow[c].sortable !== false && d.sortBy(c),
+                style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
+                sub: [
+                    { strong: t.sortRow[c]?.text ?? t.definition[c].text },
+                    { visible: t.sortRow[c]?.sortable !== false && (d.sortType === t.definition[c].up || d.sortType === t.definition[c].down),
+                        img: { src: d.sortType === t.definition[c].up ? 'img/up.png' : 'img/down.png' },
+                    ...t.sortRow[c]?.sub }
+                ]
+            }]))
     }
     const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData, IMG_SORT_WIDTH)
     const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)

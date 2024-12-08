@@ -5,7 +5,6 @@ const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
 const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
 const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
-const SET_TT_SERVICE_EXPANDED = "[inv] set tt service expanded"
 const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
 const SET_VISIBLE_FILTER = "[inv] set visible filter"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
@@ -40,8 +39,6 @@ const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
 const SORT_BY_STORE_CRAFT_BY = "[inv] sort by store craft by"
 const SORT_AVAILABLE_BY = "[inv] sort available by"
-const SORT_TT_SERVICE_BY = "[inv] sort tt service by"
-const RELOAD_TT_SERVICE = "[inv] reload tt service"
 const HIDE_BY_NAME = "[inv] hide by name"
 const SHOW_BY_NAME = "[inv] show by name"
 const HIDE_BY_CONTAINER = "[inv] hide by container"
@@ -75,13 +72,6 @@ const setAuctionInventoryExpanded = (expanded: boolean) => ({
 
 const setAvailableInventoryExpanded = (expanded: boolean) => ({
     type: SET_AVAILABLE_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setTTServiceInventoryExpanded = (expanded: boolean) => ({
-    type: SET_TT_SERVICE_EXPANDED,
     payload: {
         expanded
     }
@@ -333,17 +323,6 @@ const sortAvailableBy = (part: number) => ({
     }
 })
 
-const sortTTServiceBy = (part: number) => ({
-    type: SORT_TT_SERVICE_BY,
-    payload: {
-        part
-    }
-})
-
-const reloadTTService = () => ({
-    type: RELOAD_TT_SERVICE
-})
-
 const hideByName = (name: string) => ({
     type: HIDE_BY_NAME,
     payload: {
@@ -409,7 +388,6 @@ export {
     SET_CURRENT_INVENTORY,
     SET_AUCTION_EXPANDED,
     SET_AVAILABLE_EXPANDED,
-    SET_TT_SERVICE_EXPANDED,
     SET_VISIBLE_EXPANDED,
     SET_VISIBLE_FILTER,
     SET_HIDDEN_EXPANDED,
@@ -444,8 +422,6 @@ export {
     SORT_BY_STORE_STARED_BY,
     SORT_BY_STORE_CRAFT_BY,
     SORT_AVAILABLE_BY,
-    SORT_TT_SERVICE_BY,
-    RELOAD_TT_SERVICE,
     HIDE_BY_NAME,
     SHOW_BY_NAME,
     HIDE_BY_CONTAINER,
@@ -459,7 +435,6 @@ export {
     setCurrentInventory,
     setAuctionInventoryExpanded,
     setAvailableInventoryExpanded,
-    setTTServiceInventoryExpanded,
     setVisibleInventoryExpanded,
     setVisibleInventoryFilter,
     setHiddenInventoryExpanded,
@@ -494,8 +469,6 @@ export {
     sortByStoreStaredBy,
     sortByStoreCraftBy,
     sortAvailableBy,
-    sortTTServiceBy,
-    reloadTTService,
     hideByName,
     showByName,
     hideByContainer,

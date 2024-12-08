@@ -107,7 +107,6 @@ interface InventoryState {
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
-  ttService: InventoryList<ItemData>;
 }
 
 export {

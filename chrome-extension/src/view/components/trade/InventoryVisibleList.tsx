@@ -1,11 +1,14 @@
 import React from 'react'
 import { ItemData } from '../../../common/state'
 import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, sortVisibleBy } from '../../application/actions/inventory'
-import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
+import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, TT_SERVICE_COLUMN, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryListWithFilter } from '../../application/state/inventory'
 import SortableTableSection, { TableData } from '../common/SortableTableSection'
 import { getVisibleInventory, getVisibleInventoryItem } from '../../application/selectors/inventory';
 import { useSelector } from 'react-redux'
+import { SHOW_TT_SERVICE } from '../../../config'
+import { getTTServiceItemValue } from '../../application/selectors/ttService'
+import { reloadTTService } from '../../application/actions/ttService'
 
 const tableData: TableData<ItemData> = {
     columns: [NAME, QUANTITY, VALUE, CONTAINER],
@@ -14,39 +17,56 @@ const tableData: TableData<ItemData> = {
         [NAME]: { justifyContent: 'center' },
         [QUANTITY]: { justifyContent: 'end' },
         [VALUE]: { justifyContent: 'end' },
+        [TT_SERVICE_COLUMN]: { justifyContent: 'end', show: SHOW_TT_SERVICE, sortable: false, sub: [
+            { title: 'Reload TT Service from sheet', imgButton: { src: 'img/reload.png', dispatch: () => reloadTTService }}
+        ] },
     },
-    getRow: (item: ItemData) => ({
-        columns: {
-            [NAME]: {
-                sub: [{
-                    imgButton: { title: 'Hide this item name', src: 'img/cross.png', dispatch: () => hideByName(item.n) }
-                }, {
-                    flex: 1, itemText: item.n
-                }, {
-                    imgButton: { title: 'Search by this item name', src: 'img/find.png', dispatch: () => setVisibleInventoryFilter(`!${item.n}`) }
-                }]
-            },
-            [QUANTITY]: {
-                style: { justifyContent: 'center' },
-                sub: [{ itemText: item.q }]
-            },
-            [VALUE]: {
-                style: { justifyContent: 'end' },
-                sub: [{
-                    imgButton: { title: 'Hide this value or lower', src: 'img/cross.png', dispatch: () => hideByValue(item.v) }
-                }, {
-                    itemText: item.v + ' PED'
-                }]
-            },
-            [CONTAINER]: {
-                sub: [{
-                    imgButton: { title: 'Hide this container', src: 'img/cross.png', dispatch: () => hideByContainer(item.c) }
-                }, {
-                    itemText: item.c
-                }]
+    getRow: (item: ItemData) => {
+        let ttServiceValue = ''
+        if (SHOW_TT_SERVICE) {
+            /*const v = useSelector(getTTServiceItemValue(item.n)) // useSelector does not work here
+            if (v) {
+                ttServiceValue = v.toFixed(2) + ' PED'
+            }*/
+        }
+        return {
+            columns: {
+                [NAME]: {
+                    sub: [{
+                        title: 'Hide this item name', imgButton: { src: 'img/cross.png', dispatch: () => hideByName(item.n) }
+                    }, {
+                        flex: 1, itemText: item.n
+                    }, {
+                        title: 'Search by this item name', imgButton: { src: 'img/find.png', dispatch: () => setVisibleInventoryFilter(`!${item.n}`) }
+                    }]
+                },
+                [QUANTITY]: {
+                    style: { justifyContent: 'center' },
+                    sub: [{ itemText: item.q }]
+                },
+                [VALUE]: {
+                    style: { justifyContent: 'end' },
+                    sub: [{
+                        title: 'Hide this value or lower', imgButton: { src: 'img/cross.png', dispatch: () => hideByValue(item.v) }
+                    }, {
+                        itemText: item.v + ' PED'
+                    }]
+                },
+                [CONTAINER]: {
+                    sub: [{
+                        title: 'Hide this container', imgButton: { src: 'img/cross.png', dispatch: () => hideByContainer(item.c) }
+                    }, {
+                        itemText: item.c
+                    }]
+                },
+                [TT_SERVICE_COLUMN]: {
+                    sub: [{
+                        itemText: ttServiceValue
+                    }]
+                }
             }
         }
-    })
+    }
 };
 
 const InventoryVisibleList = () => {

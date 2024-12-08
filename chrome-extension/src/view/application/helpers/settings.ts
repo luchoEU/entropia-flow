@@ -4,6 +4,7 @@ const initialState: SettingsState = {
     sheet: {
         expanded: true,
         documentId: undefined,
+        ttServiceDocumentId: undefined,
         googleServiceAccountEmail: undefined,
         googlePrivateKey: undefined
     }
@@ -24,6 +25,14 @@ const setSheetDocumentId = (state: SettingsState, documentId: string) => ({
     sheet: {
         ...state.sheet,
         documentId
+    }
+})
+
+const setSheetTTServiceDocumentId = (state: SettingsState, documentId: string) => ({
+    ...state,
+    sheet: {
+        ...state.sheet,
+        ttServiceDocumentId: documentId
     }
 })
 
@@ -48,6 +57,7 @@ export {
     setState,
     setSheetExpanded,
     setSheetDocumentId,
+    setSheetTTServiceDocumentId,
     setSheetGoogleServiceAccountEmail,
     setSheetGooglePrivateKey,
 }

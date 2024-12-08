@@ -47,8 +47,7 @@ const initialState: InventoryState = {
   hiddenCriteria: emptyCriteria,
   byStore: initialListByStore(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
-  availableCriteria: { name: [] },
-  ttService: initialList(true, SORT_NAME_ASCENDING),
+  availableCriteria: { name: [] }
 };
 
 const _visibleSelect = (x: ItemData): ItemData => x;
@@ -183,18 +182,7 @@ const reduceSetAvailableExpanded = (
   available: {
     ...state.available,
     expanded,
-  },
-});
-
-const reduceSetTTServiceExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  ttService: {
-    ...state.ttService,
-    expanded,
-  },
+  }
 });
 
 const reduceSetVisibleExpanded = (
@@ -470,7 +458,6 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   byStore: undefined, // saved independently because it is too big
   available: cleanForSaveInventoryList(state.available),
   availableCriteria: state.availableCriteria,
-  ttService: cleanForSaveInventoryList(state.ttService),
 });
 
 export {
@@ -481,7 +468,6 @@ export {
   reduceSetCurrentInventory,
   reduceSetAuctionExpanded,
   reduceSetAvailableExpanded,
-  reduceSetTTServiceExpanded,
   reduceSetVisibleExpanded,
   reduceSetVisibleFilter,
   reduceSetHiddenExpanded,
