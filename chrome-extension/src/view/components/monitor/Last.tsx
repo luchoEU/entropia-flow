@@ -82,6 +82,7 @@ const Last = () => {
                             title='Copy to clipboard'
                             src='img/copy.png'
                             className='img-copy'
+                            clickPopup='Copied!'
                             dispatch={() => copyLast} />
                     }
                 </p>

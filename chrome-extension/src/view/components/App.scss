@@ -399,6 +399,20 @@ h3:hover .hide {
     display: inline;
 }
 
+.popup {
+    position: absolute;
+    left: 28px;
+    z-index: 1;
+    top: -8px;
+    background-color: lavender;
+    padding: 10px;
+    border-radius: 13px;
+}
+
+.popup-container {
+    position: relative;
+}
+
 // buttons
 button {
     border: none;

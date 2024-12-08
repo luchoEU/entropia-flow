@@ -1,4 +1,4 @@
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, MouseEventHandler } from "react"
 import { useDispatch } from "react-redux"
 
 const ImgButton = (p: {
@@ -6,13 +6,21 @@ const ImgButton = (p: {
     text?: string,
     src: string,
     dispatch: () => any,
+    clickPopup?: string
     className?: string
     style?: CSSProperties
     show?: boolean
 }) => {
     const dispatch = useDispatch()
-    const onClick = (e) => {
+    const onClick: MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation()
+        
+        if (p.clickPopup) {
+            const popup = e.currentTarget.querySelector('.popup') as HTMLElement
+            popup.style.display = 'block'
+            setTimeout(() => { popup.style.display = 'none' }, 1000)
+        }
+
         const action = p.dispatch()
         if (Array.isArray(action)) {
             action.forEach((a) => dispatch(a))
@@ -21,24 +29,18 @@ const ImgButton = (p: {
         }
     }
 
-    return p.text ?
+    return <>
         <span
             title={p.title}
-            className={'pointer ' + (p.className ?? '')}
+            className={'pointer popup-container ' + (p.className ?? '')}
             onClick={onClick}
             {...p.style ? { style: p.style } : {}}
             {...p.show ? { 'data-show': true } : {}}>
-            <img src={p.src} />
+            <img src={p.src} {...p.className ? { className: p.className } : {}} />
+            {p.clickPopup && <span style={{ display: 'none' }} className='popup'>{p.clickPopup}</span>}
             {p.text}
-        </span> :
-        <img
-            title={p.title}
-            src={p.src}
-            className={'pointer ' + (p.className ?? '')}
-            onClick={onClick}
-            {...p.className ? { className: p.className } : {}}
-            {...p.style ? { style: p.style } : {}}
-            {...p.show ? { 'data-show': true } : {}} />
+        </span>
+    </>;
 }
 
 export default ImgButton
