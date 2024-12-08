@@ -282,7 +282,7 @@ const reduceBuyBudgetMaterialClear = (state: CraftState): CraftState => _applyFi
     ...state,
     blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n,bp]) => [n,{
         ...bp,
-        budget: {
+        budget: bp.budget && {
             ...bp.budget,
             materials: bp.budget.sheet ? Object.fromEntries(Object.entries(bp.budget.sheet.materials).map(([x,m]) => [x,{
                 ...m,

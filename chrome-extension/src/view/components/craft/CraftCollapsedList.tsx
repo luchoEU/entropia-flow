@@ -23,7 +23,7 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
     columns: {
         [NAME]: {
             sub: [{
-                itemText: d.c.itemName
+                itemText: d.c?.itemName ?? d.name
             }, {
                 flex: 1,
                 img: { src: 'img/right.png' }
