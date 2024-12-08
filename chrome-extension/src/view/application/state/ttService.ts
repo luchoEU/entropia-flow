@@ -15,5 +15,6 @@ interface TTServiceItem {
 }
 
 export {
-    TTServiceState
+    TTServiceState,
+    TTServiceItem
 }

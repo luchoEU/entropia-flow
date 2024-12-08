@@ -69,6 +69,11 @@ async function listBudgetSheet(doc: any): Promise<string[]> {
         .map(s => s.title.slice(0, -TITLE_SUFFIX.length));
 }
 
+
+async function getTTServiceInventorySheet(doc: any, setStage: SetStage): Promise<any> {
+    return await getSheet(doc, 'Inventory', setStage, STATE_LOADING_BUDGET_SHEET)
+}
+
 async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
     setStage(STAGE_SAVING)
     await sheet.saveUpdatedCells()
@@ -121,6 +126,7 @@ export {
     getBudgetSheet,
     createBudgetSheet,
     listBudgetSheet,
+    getTTServiceInventorySheet,
     saveUpdatedCells,
     getLastRow,
     setDayDate,
