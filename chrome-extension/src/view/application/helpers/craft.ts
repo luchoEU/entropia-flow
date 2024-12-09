@@ -24,12 +24,12 @@ const itemNameFromBpName = (bpName: string): string => bpName.split('Blueprint')
 const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
     inv.blueprints.originalList.items.find(bp => itemNameFromBpName(bp.n) == itemName)?.n
 const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
-    Object.values(state.blueprints).find(bp => bp.c.itemName == itemName)
+    Object.values(state.blueprints).find(bp => bp.c?.itemName == itemName)
 
 const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
-    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c.itemName ? BP_ITEM_NAME : name
+    name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c?.itemName ? BP_ITEM_NAME : name
 
 const isLimitedBp = (name: string): boolean => name.endsWith('(L)')
 
