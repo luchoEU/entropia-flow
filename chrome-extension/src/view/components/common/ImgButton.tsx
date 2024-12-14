@@ -36,7 +36,10 @@ const ImgButton = (p: {
             onClick={onClick}
             {...p.style ? { style: p.style } : {}}
             {...p.show ? { 'data-show': true } : {}}>
-            <img src={p.src} {...p.className ? { className: p.className } : {}} />
+            <img src={p.src}
+                {...p.className ? { className: p.className } : {}}
+                {...p.show ? { 'data-show': true } : {}}
+            />
             {p.clickPopup && <span style={{ display: 'none' }} className='popup'>{p.clickPopup}</span>}
             {p.text}
         </span>
