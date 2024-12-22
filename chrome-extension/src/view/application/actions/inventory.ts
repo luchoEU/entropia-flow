@@ -1,4 +1,5 @@
 import { Inventory } from "../../../common/state"
+import { CraftState } from "../state/craft"
 import { InventoryState } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
@@ -46,6 +47,9 @@ const SHOW_BY_CONTAINER = "[inv] show by container"
 const HIDE_BY_VALUE = "[inv] hide by value"
 const SHOW_BY_VALUE = "[inv] show by value"
 const SHOW_ALL = "[inv] show all"
+const SHOW_TRADING_ITEM_DATA = "[inv] show trading item data"
+const LOAD_TRADING_ITEM_DATA = "[inv] load trading item data"
+const SORT_TRADE_BLUEPRINTS_BY = "[inv] sort trade blueprints by"
 const ADD_AVAILABLE = "[inv] add available"
 const REMOVE_AVAILABLE = "[inv] remove available"
 
@@ -383,6 +387,27 @@ const showAll = () => ({
     type: SHOW_ALL
 })
 
+const showTradingItemData = (name: string) => ({
+    type: SHOW_TRADING_ITEM_DATA,
+    payload: {
+        name
+    }
+})
+
+const loadTradingItemData = (craftState: CraftState) => ({
+    type: LOAD_TRADING_ITEM_DATA,
+    payload: {
+        craftState
+    }
+})
+
+const sortTradeBlueprintsBy = (part: number) => ({
+    type: SORT_TRADE_BLUEPRINTS_BY,
+    payload: {
+        part
+    }
+})
+
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
@@ -429,6 +454,9 @@ export {
     HIDE_BY_VALUE,
     SHOW_BY_VALUE,
     SHOW_ALL,
+    SHOW_TRADING_ITEM_DATA,
+    LOAD_TRADING_ITEM_DATA,
+    SORT_TRADE_BLUEPRINTS_BY,
     ADD_AVAILABLE,
     REMOVE_AVAILABLE,
     loadInventoryState,
@@ -476,6 +504,9 @@ export {
     hideByValue,
     showByValue,
     showAll,
+    showTradingItemData,
+    loadTradingItemData,
+    sortTradeBlueprintsBy,
     addAvailable,
     removeAvailable,
 }

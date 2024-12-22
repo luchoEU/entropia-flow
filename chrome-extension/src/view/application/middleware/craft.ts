@@ -7,7 +7,7 @@ import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/invento
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
-import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimitedBp, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
@@ -416,7 +416,7 @@ async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
         if (r.data) {
             const d = r.data.value
-            if (isLimitedBp(d.name)) {
+            if (isLimited(d.name)) {
                 d.materials.unshift({
                     name: d.name,
                     type: 'Blueprint',

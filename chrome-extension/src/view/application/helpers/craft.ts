@@ -31,7 +31,7 @@ const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
     name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c?.itemName ? BP_ITEM_NAME : name
 
-const isLimitedBp = (name: string): boolean => name.endsWith('(L)')
+const isLimited = (name: string): boolean => name.endsWith('(L)')
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     itemName: bp.c.itemName,
@@ -136,11 +136,13 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
         }
 
         const webItemMaterial = webBp.materials.find(m => m.name == webBp.item.name)
-        const isLimited = materials[webBp.name]
+        const materialBp = materials[webBp.name]
+        const isBlueprintLimited = materialBp && isLimited(webBp.name)
+        const isItemLimited = isLimited(webBp.item.name)
         let residueNeeded = 0
         if (webItemMaterial) {
             residueNeeded = Math.max(0, webItemMaterial.value - clickTTCost)
-            if (residueNeeded > 0 && isLimited) {
+            if (residueNeeded > 0 && isItemLimited) {
                 const webResidueMaterial = webBp.materials.find(m => m.type === 'Residue')
                 const residueMaterial = materials[webResidueMaterial.name]
                 residueMaterial.clicks = Math.floor((webResidueMaterial.value * residueMaterial.available) / residueNeeded)
@@ -149,11 +151,11 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
 
         const clicksAvailable = Math.min(...Object.values(materials).map(m => m.clicks ?? Infinity))
         bp.c.inventory = {
-            bpClicks: isLimited ? (isLimited.clicks == 0 ? undefined : isLimited.clicks) : Infinity,
+            bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
             clicksAvailable,
             limitClickItems: Object.entries(materials).filter(([,m]) => m.clicks === clicksAvailable).map(([n,]) => n),
             clickTTCost,
-            residueNeeded: isLimited ? residueNeeded : undefined,
+            residueNeeded: isItemLimited ? residueNeeded : undefined,
             materials,
         }
         return [n, bp];
@@ -414,5 +416,5 @@ export {
     bpDataFromItemName,
     itemStringFromName,
     budgetInfoFromBp,
-    isLimitedBp,
+    isLimited,
 }

@@ -1,4 +1,5 @@
 import { ItemData } from "../../../common/state";
+import { SortSecuence } from "./sort";
 
 interface InventoryList<T> {
   expanded: boolean;
@@ -89,6 +90,14 @@ interface AvailableCriteria {
   name: Array<string>;
 }
 
+interface ItemVisible {
+  data: ItemData;
+  c?: {
+    showingTradeItem: boolean
+    ttServiceValue?: number
+  }
+}
+
 interface ItemHidden {
   data: ItemData;
   criteria: {
@@ -98,25 +107,44 @@ interface ItemHidden {
   };
 }
 
+interface TradeItemData {
+  name: string;
+  sortInfo: {
+    blueprints: SortSecuence
+  }
+  c?: {
+    blueprints: Array<TradeBlueprintLineData>;
+  }
+}
+
+interface TradeBlueprintLineData {
+  bpName: string;
+  quantity: number;
+}
+
 interface InventoryState {
   blueprints: InventoryListWithFilter<ItemData>;
   auction: InventoryList<ItemData>;
-  visible: InventoryListWithFilter<ItemData>;
+  visible: InventoryListWithFilter<ItemVisible>;
   hidden: InventoryListWithFilter<ItemHidden>;
   hiddenCriteria: HideCriteria;
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
+  tradeItemData: TradeItemData;
 }
 
 export {
   HideCriteria,
   AvailableCriteria,
+  ItemVisible,
   ItemHidden,
   ContainerMapData,
   ContainerMapDataItem,
   BasicItemData,
   TreeLineData,
+  TradeItemData,
+  TradeBlueprintLineData,
   InventoryList,
   InventoryTree,
   InventoryListWithFilter,

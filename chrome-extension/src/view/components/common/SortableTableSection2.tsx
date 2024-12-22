@@ -8,6 +8,7 @@ import ExpandableSection from './ExpandableSection';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
+import { SortSecuence } from '../../application/state/sort';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -42,7 +43,7 @@ type SortRowData = { [part: number]: SortRowColumnData }
 
 interface SortRowColumnData {
     justifyContent?: CSSProperties['justifyContent']
-    text?: string
+    text: string
     show?: boolean
     sortable?: boolean
     sub?: ItemRowSubColumnData[]
@@ -94,7 +95,6 @@ interface ColumnWidthData {
 
 interface TableData<TItem, TExtra = void> {
     columns: number[]
-    definition: { [part: number]: { text: string, up: number, down: number} }
     sortRow: SortRowData,
     getRow: (item: TItem, extra: TExtra) => ItemRowData
 }
@@ -199,7 +199,7 @@ const ItemRowRender = (p: {
 interface TableParameters<TItem> {
     allItems: TItem[],
     showItems: TItem[],
-    sortType: number,
+    sortType: SortSecuence,
     sortBy: (part: number) => any,
     itemSelector: (index: number) => (state: any) => TItem,
     tableData: TableData<TItem>
@@ -237,9 +237,9 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
                 dispatch: () => t.sortRow[c].sortable !== false && d.sortBy(c),
                 style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
                 sub: [
-                    { strong: t.sortRow[c]?.text ?? t.definition[c].text },
-                    { visible: t.sortRow[c]?.sortable !== false && (d.sortType === t.definition[c].up || d.sortType === t.definition[c].down),
-                        img: { src: (d.sortType === t.definition[c].up) ? 'img/up.png' : 'img/down.png' },
+                    { strong: t.sortRow[c]?.text },
+                    { visible: t.sortRow[c]?.sortable !== false && d.sortType[0].column === c,
+                        img: { src: d.sortType[0].ascending ? 'img/up.png' : 'img/down.png' },
                     ...t.sortRow[c]?.sub }
                 ]
             }]))

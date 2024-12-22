@@ -1,5 +1,5 @@
-import { initialState, reduceSetCurrentInventory, reduceLoadInventoryState, hideByName, showByName, hideByContainer, showByContainer, hideByValue, showByValue, showAll, addAvailable, removeAvailable, reduceSortAuctionBy, reduceSortVisibleBy, reduceSortHiddenBy, reduceSortAvailableBy, reduceSetAuctionExpanded, reduceSetAvailableExpanded, reduceSetVisibleExpanded, reduceSetVisibleFilter, reduceSetHiddenExpanded, reduceSetHiddenFilter, reduceSetBlueprintsExpanded, reduceSetBlueprintsFilter, reduceSortOwnedBlueprintsBy } from "../helpers/inventory"
-import { SET_CURRENT_INVENTORY, SET_HIDDEN_EXPANDED, LOAD_INVENTORY_STATE, SET_VISIBLE_EXPANDED, SORT_HIDDEN_BY, SORT_VISIBLE_BY, HIDE_BY_NAME, SHOW_BY_VALUE, HIDE_BY_CONTAINER, SHOW_BY_CONTAINER, SHOW_BY_NAME, HIDE_BY_VALUE, SHOW_ALL, SET_AUCTION_EXPANDED, SORT_AUCTION_BY, SET_AVAILABLE_EXPANDED, ADD_AVAILABLE, REMOVE_AVAILABLE, SORT_AVAILABLE_BY, SET_BLUEPRINTS_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_FILTER, SET_HIDDEN_FILTER, SET_VISIBLE_FILTER, SET_BY_STORE_ITEM_NAME, START_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_ITEM_NAME_EDITING, SORT_BY_STORE_BY, SET_BY_STORE_ITEM_STARED, SET_BY_STORE_STARED_EXPANDED, SET_BY_STORE_STARED_ITEM_EXPANDED, SET_BY_STORE_STARED_FILTER, SORT_BY_STORE_STARED_BY, START_BY_STORE_STARED_ITEM_NAME_EDITING, CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING, CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING, SET_BY_STORE_STARED_ITEM_NAME, SET_BY_STORE_STARED_ITEM_STARED, SET_BLUEPRINTS_FILTER, SORT_OWNED_BLUEPRINTS_BY, SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED, SET_BY_STORE_ALL_ITEMS_EXPANDED, SET_BY_STORE_CRAFT_FILTER, SORT_BY_STORE_CRAFT_BY, SET_BY_STORE_CRAFT_ITEM_EXPANDED } from "../actions/inventory"
+import { initialState, reduceSetCurrentInventory, reduceLoadInventoryState, reduceSortAuctionBy, reduceSortVisibleBy, reduceSortHiddenBy, reduceSortAvailableBy, reduceSetAuctionExpanded, reduceSetAvailableExpanded, reduceSetVisibleExpanded, reduceSetVisibleFilter, reduceSetHiddenExpanded, reduceSetHiddenFilter, reduceSetBlueprintsExpanded, reduceSetBlueprintsFilter, reduceSortOwnedBlueprintsBy, reduceHideByName, reduceShowByName, reduceHideByContainer, reduceShowByContainer, reduceHideByValue, reduceShowByValue, reduceShowAll, reduceShowTradingItemData, reduceAddAvailable, reduceRemoveAvailable, reduceSortTradeBlueprintsBy, reduceLoadTradingItemData } from "../helpers/inventory"
+import { SET_CURRENT_INVENTORY, SET_HIDDEN_EXPANDED, LOAD_INVENTORY_STATE, SET_VISIBLE_EXPANDED, SORT_HIDDEN_BY, SORT_VISIBLE_BY, HIDE_BY_NAME, SHOW_BY_VALUE, HIDE_BY_CONTAINER, SHOW_BY_CONTAINER, SHOW_BY_NAME, HIDE_BY_VALUE, SHOW_ALL, SET_AUCTION_EXPANDED, SORT_AUCTION_BY, SET_AVAILABLE_EXPANDED, ADD_AVAILABLE, REMOVE_AVAILABLE, SORT_AVAILABLE_BY, SET_BLUEPRINTS_EXPANDED, SET_BY_STORE_EXPANDED, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_FILTER, SET_HIDDEN_FILTER, SET_VISIBLE_FILTER, SET_BY_STORE_ITEM_NAME, START_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_ITEM_NAME_EDITING, SORT_BY_STORE_BY, SET_BY_STORE_ITEM_STARED, SET_BY_STORE_STARED_EXPANDED, SET_BY_STORE_STARED_ITEM_EXPANDED, SET_BY_STORE_STARED_FILTER, SORT_BY_STORE_STARED_BY, START_BY_STORE_STARED_ITEM_NAME_EDITING, CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING, CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING, SET_BY_STORE_STARED_ITEM_NAME, SET_BY_STORE_STARED_ITEM_STARED, SET_BLUEPRINTS_FILTER, SORT_OWNED_BLUEPRINTS_BY, SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED, SET_BY_STORE_ALL_ITEMS_EXPANDED, SET_BY_STORE_CRAFT_FILTER, SORT_BY_STORE_CRAFT_BY, SET_BY_STORE_CRAFT_ITEM_EXPANDED, SHOW_TRADING_ITEM_DATA, SORT_TRADE_BLUEPRINTS_BY, LOAD_TRADING_ITEM_DATA } from "../actions/inventory"
 import { reduceCancelByStoreItemNameEditing, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreAllItemsExpanded, reduceSetByStoreCraftFilter, reduceSetByStoreCraftItemExpanded, reduceSetByStoreInventoryExpanded, reduceSetByStoreInventoryFilter, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredAllItemsExpanded, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreCraftBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "../helpers/inventory.byStore"
 
 export default (state = initialState, action) => {
@@ -42,15 +42,18 @@ export default (state = initialState, action) => {
         case SORT_BY_STORE_STARED_BY: return reduceSortByStoreStaredBy(state, action.payload.part)
         case SORT_BY_STORE_CRAFT_BY: return reduceSortByStoreCraftBy(state, action.payload.part)
         case SORT_AVAILABLE_BY: return reduceSortAvailableBy(state, action.payload.part)
-        case HIDE_BY_NAME: return hideByName(state, action.payload.name)
-        case SHOW_BY_NAME: return showByName(state, action.payload.name)
-        case HIDE_BY_CONTAINER: return hideByContainer(state, action.payload.container)
-        case SHOW_BY_CONTAINER: return showByContainer(state, action.payload.container)
-        case HIDE_BY_VALUE: return hideByValue(state, action.payload.value)
-        case SHOW_BY_VALUE: return showByValue(state, action.payload.value)
-        case SHOW_ALL: return showAll(state)
-        case ADD_AVAILABLE: return addAvailable(state, action.payload.name)
-        case REMOVE_AVAILABLE: return removeAvailable(state, action.payload.name)
+        case HIDE_BY_NAME: return reduceHideByName(state, action.payload.name)
+        case SHOW_BY_NAME: return reduceShowByName(state, action.payload.name)
+        case HIDE_BY_CONTAINER: return reduceHideByContainer(state, action.payload.container)
+        case SHOW_BY_CONTAINER: return reduceShowByContainer(state, action.payload.container)
+        case HIDE_BY_VALUE: return reduceHideByValue(state, action.payload.value)
+        case SHOW_BY_VALUE: return reduceShowByValue(state, action.payload.value)
+        case SHOW_ALL: return reduceShowAll(state)
+        case SHOW_TRADING_ITEM_DATA: return reduceShowTradingItemData(state, action.payload.name)
+        case LOAD_TRADING_ITEM_DATA: return reduceLoadTradingItemData(state, action.payload.craftState)
+        case SORT_TRADE_BLUEPRINTS_BY: return reduceSortTradeBlueprintsBy(state, action.payload.part)
+        case ADD_AVAILABLE: return reduceAddAvailable(state, action.payload.name)
+        case REMOVE_AVAILABLE: return reduceRemoveAvailable(state, action.payload.name)
         default: return state
     }
 }

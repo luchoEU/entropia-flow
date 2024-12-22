@@ -640,12 +640,18 @@ button:active {
     margin-left: 85px;
 }
 
-.craft-chain {
+.craft-chain, .trade-item-data {
     background-color: floralwhite;
     padding: 1px 10px;
     margin-left: 10px;
     margin-bottom: 10px;
     border-radius: 15px;
+}
+
+.trade-item-data {
+    margin-top: 10px;
+    height: fit-content;
+    padding-bottom: 10px;
 }
 
 .clicks-error .item-text {
