@@ -1,15 +1,14 @@
 import React from 'react'
-import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, showTradingItemData, sortTradeBlueprintsBy, sortVisibleBy } from '../../application/actions/inventory'
+import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOwnedBlueprintsBy, sortVisibleBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, TT_SERVICE_COLUMN, VALUE } from '../../application/helpers/inventory.sort'
 import SortableTableSection, { TableData } from '../common/SortableTableSection'
-import { SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
-import { getTradeBlueprintItem, getTradeItemData, getVisibleInventory, getVisibleInventoryItem } from '../../application/selectors/inventory';
+import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
+import { getTradeFavoriteBlueprintItem, getTradeItemData, getTradeOwnedBlueprintItem, getVisibleInventory, getVisibleInventoryItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
 import { SHOW_TT_SERVICE } from '../../../config'
 import { getTTServiceItemValues } from '../../application/selectors/ttService'
 import { reloadTTService } from '../../application/actions/ttService'
 import { ItemVisible, TradeBlueprintLineData } from '../../application/state/inventory'
-import { CLICKS } from '../../application/helpers/craftSort'
 
 const tableData: TableData<ItemVisible> = {
     columns: [NAME, QUANTITY, VALUE, CONTAINER],
@@ -64,11 +63,11 @@ const tableData: TableData<ItemVisible> = {
     })
 };
 
-const blueprintsTableData: TableData2<TradeBlueprintLineData> = {
+const getBlueprintsTableData = (type: string): TableData2<TradeBlueprintLineData> => ({
     columns: 2,
     sortRow: [
-        { justifyContent: 'center', text: 'Favorite Blueprint' }, // BP_NAME
-        { justifyContent: 'end', text: 'Quantity per Click' },
+        { justifyContent: 'center', text: type + ' Blueprint' }, // BP_NAME
+        { justifyContent: 'end', text: 'Quantity per Click' }, // QUANTITY
     ],
     getRow: (item: TradeBlueprintLineData) => ({
         columns: [
@@ -82,13 +81,38 @@ const blueprintsTableData: TableData2<TradeBlueprintLineData> = {
             }
         ]
     })
-}
+})
 
 const InventoryVisibleList = () => {
     const inv = useSelector(getVisibleInventory)
     const tradeItemData = useSelector(getTradeItemData)
     const ttServiceItemValues = useSelector(getTTServiceItemValues)
     const dispatch = useDispatch()
+
+    const favoriteTableData = tradeItemData?.c?.favoriteBlueprints?.length > 0 && calculate({
+        allItems: tradeItemData.c.favoriteBlueprints,
+        showItems: tradeItemData.c.favoriteBlueprints,
+        sortType: tradeItemData.sortInfo.favoriteBlueprints,
+        sortBy: sortTradeFavoriteBlueprintsBy,
+        itemSelector: getTradeFavoriteBlueprintItem,
+        tableData: getBlueprintsTableData('Favorite')
+    })
+
+    const ownedTableData = tradeItemData?.c?.ownedBlueprints?.length > 0 && calculate({
+        allItems: tradeItemData.c.ownedBlueprints,
+        showItems: tradeItemData.c.ownedBlueprints,
+        sortType: tradeItemData.sortInfo.ownedBlueprints,
+        sortBy: sortTradeOwnedBlueprintsBy,
+        itemSelector: getTradeOwnedBlueprintItem,
+        tableData: getBlueprintsTableData('Owned')
+    })
+
+    if (favoriteTableData && ownedTableData)
+    {
+        const columnsWidth: number[] = favoriteTableData.columnsWidth.map((w, i) => Math.max(w, ownedTableData.columnsWidth[i]))
+        favoriteTableData.columnsWidth = columnsWidth
+        ownedTableData.columnsWidth = columnsWidth
+    }
 
     return <>
         <SortableTableSection
@@ -112,20 +136,11 @@ const InventoryVisibleList = () => {
                 <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(undefined)) }}>
                     { tradeItemData.name }<img src='img/left.png' />
                 </h2>
-                { tradeItemData.c?.blueprints &&
-                    (tradeItemData.c.blueprints.length === 0 ?
-                        <p><strong>Not used on Favorite Blueprints</strong></p> :
-                        <SortableFixedSizeTable
-                            data={{
-                                allItems: tradeItemData.c.blueprints,
-                                showItems: tradeItemData.c.blueprints,
-                                sortType: tradeItemData.sortInfo.blueprints,
-                                sortBy: sortTradeBlueprintsBy,
-                                itemSelector: getTradeBlueprintItem,
-                                tableData: blueprintsTableData
-                            }}
-                        />)
+                { favoriteTableData ?
+                    <SortableFixedSizeTable data={favoriteTableData} /> :
+                    <p><strong>Not used on any Favorite Blueprint</strong></p>
                 }
+                { ownedTableData && <SortableFixedSizeTable data={ownedTableData} /> }
             </div>
         }
     </>

@@ -1,6 +1,6 @@
 import { Inventory, ItemData } from "../../../common/state";
 import { multiIncludes } from "../../../common/string";
-import { CraftState } from "../state/craft";
+import { BlueprintData, CraftState } from "../state/craft";
 import {
   InventoryState,
   InventoryList,
@@ -436,7 +436,10 @@ const reduceShowTradingItemData = (state: InventoryState, name: string): Invento
     ...state,
     tradeItemData: name === undefined ? undefined : {
       name,
-      sortInfo: { blueprints: defaultSortSecuence }
+      sortInfo: {
+        favoriteBlueprints: defaultSortSecuence,
+        ownedBlueprints: defaultSortSecuence,
+      }
     }
   });
 
@@ -444,17 +447,20 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
   if (!state.tradeItemData) {
     return state
   }
-  const bps = craftState.stared.list
-    .map(name => craftState.blueprints[name]).filter(bp => bp)
-    .map(bp => ({ name: bp.name, quantity: bp.web?.blueprint.data?.value.materials.find(m => m.name === state.tradeItemData.name)?.quantity }))
-    .filter(bp => bp.quantity)
+  const fav = craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp)
+  const own = Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name))
+  const m = (list: BlueprintData[]): TradeBlueprintLineData[] => list
+    .map(bp => ({ bpName: bp.name, quantity: bp.web?.blueprint.data?.value.materials.find(m => m.name === state.tradeItemData.name)?.quantity }))
+    .filter(bp => bp.quantity);
+
   return {
     ...state,
     tradeItemData: {
       ...state.tradeItemData,
       c: {
         ...state.tradeItemData.c,
-        blueprints: cloneAndSort(bps.map(bp => ({ bpName: bp.name, quantity: bp.quantity })), state.tradeItemData.sortInfo?.blueprints, _tradeSortColumnDefinition)
+        favoriteBlueprints: cloneAndSort(m(fav), state.tradeItemData.sortInfo?.favoriteBlueprints, _tradeSortColumnDefinition),
+        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortInfo?.favoriteBlueprints, _tradeSortColumnDefinition),
       }
     }
   }
@@ -471,26 +477,33 @@ const _tradeSortColumnDefinition = [
     },
 ]
 
-const reduceSortTradeBlueprintsBy = (
+const _reduceSortTradeBlueprintsBy = (
+  fieldName: string,
   state: InventoryState,
   column: number,
 ): InventoryState => {
-  const sortInfo = nextSortSecuence(column, state.tradeItemData.sortInfo.blueprints);
+  const sortInfo = nextSortSecuence(column, state.tradeItemData.sortInfo[fieldName]);
   return {
     ...state,
     tradeItemData: {
       ...state.tradeItemData,
       sortInfo: {
         ...state.tradeItemData.sortInfo,
-        blueprints: sortInfo
+        [fieldName]: sortInfo
       },
       c: {
         ...state.tradeItemData.c,
-        blueprints: cloneAndSort(state.tradeItemData.c.blueprints, sortInfo, _tradeSortColumnDefinition),
+        [fieldName]: cloneAndSort(state.tradeItemData.c[fieldName], sortInfo, _tradeSortColumnDefinition),
       }
     }
   }
 };
+
+const reduceSortTradeFavoriteBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('favoriteBlueprints', state, column);
+
+const reduceSortTradeOwnedBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('ownedBlueprints', state, column);
 
 const reduceAddAvailable = (state: InventoryState, name: string): InventoryState =>
   loadInventory(
@@ -565,7 +578,8 @@ export {
   reduceShowAll,
   reduceShowTradingItemData,
   reduceLoadTradingItemData,
-  reduceSortTradeBlueprintsBy,
+  reduceSortTradeFavoriteBlueprintsBy,
+  reduceSortTradeOwnedBlueprintsBy,
   reduceAddAvailable,
   reduceRemoveAvailable,
   joinList,

@@ -110,10 +110,12 @@ interface ItemHidden {
 interface TradeItemData {
   name: string;
   sortInfo: {
-    blueprints: SortSecuence
+    favoriteBlueprints: SortSecuence
+    ownedBlueprints: SortSecuence
   }
   c?: {
-    blueprints: Array<TradeBlueprintLineData>;
+    favoriteBlueprints: Array<TradeBlueprintLineData>;
+    ownedBlueprints: Array<TradeBlueprintLineData>;
   }
 }
 

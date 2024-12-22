@@ -49,7 +49,8 @@ const SHOW_BY_VALUE = "[inv] show by value"
 const SHOW_ALL = "[inv] show all"
 const SHOW_TRADING_ITEM_DATA = "[inv] show trading item data"
 const LOAD_TRADING_ITEM_DATA = "[inv] load trading item data"
-const SORT_TRADE_BLUEPRINTS_BY = "[inv] sort trade blueprints by"
+const SORT_TRADE_FAVORITE_BLUEPRINTS_BY = "[inv] sort trade favorite blueprints by"
+const SORT_TRADE_OWNED_BLUEPRINTS_BY = "[inv] sort trade owned blueprints by"
 const ADD_AVAILABLE = "[inv] add available"
 const REMOVE_AVAILABLE = "[inv] remove available"
 
@@ -145,7 +146,6 @@ const setByStoreItemName = (id: string, name: string) => ({
         name
     }
 })
-
 
 const setByStoreItemStared = (id: string, stared: boolean) => ({
     type: SET_BY_STORE_ITEM_STARED,
@@ -401,8 +401,15 @@ const loadTradingItemData = (craftState: CraftState) => ({
     }
 })
 
-const sortTradeBlueprintsBy = (part: number) => ({
-    type: SORT_TRADE_BLUEPRINTS_BY,
+const sortTradeFavoriteBlueprintsBy = (part: number) => ({
+    type: SORT_TRADE_FAVORITE_BLUEPRINTS_BY,
+    payload: {
+        part
+    }
+})
+
+const sortTradeOwnedBlueprintsBy = (part: number) => ({
+    type: SORT_TRADE_OWNED_BLUEPRINTS_BY,
     payload: {
         part
     }
@@ -456,7 +463,8 @@ export {
     SHOW_ALL,
     SHOW_TRADING_ITEM_DATA,
     LOAD_TRADING_ITEM_DATA,
-    SORT_TRADE_BLUEPRINTS_BY,
+    SORT_TRADE_FAVORITE_BLUEPRINTS_BY,
+    SORT_TRADE_OWNED_BLUEPRINTS_BY,
     ADD_AVAILABLE,
     REMOVE_AVAILABLE,
     loadInventoryState,
@@ -506,7 +514,8 @@ export {
     showAll,
     showTradingItemData,
     loadTradingItemData,
-    sortTradeBlueprintsBy,
+    sortTradeFavoriteBlueprintsBy,
+    sortTradeOwnedBlueprintsBy,
     addAvailable,
     removeAvailable,
 }

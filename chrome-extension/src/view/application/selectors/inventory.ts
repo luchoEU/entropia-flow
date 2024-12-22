@@ -10,4 +10,5 @@ export const getHiddenInventoryItem = (index: number) => (state: any) => getHidd
 export const getByStoreInventoryItem = (index: number) => (state: any) => getByStoreInventory(state).flat.show[index]
 export const getByStoreInventoryStaredItem = (index: number) => (state: any) => getByStoreInventory(state).flat.stared[index]
 export const getByStoreInventoryCraftItem = (index: number) => (state: any) => getByStoreInventory(state).flat.craft[index]
-export const getTradeBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.blueprints[index]
+export const getTradeFavoriteBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.favoriteBlueprints[index]
+export const getTradeOwnedBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.ownedBlueprints[index]

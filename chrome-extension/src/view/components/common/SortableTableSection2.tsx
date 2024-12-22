@@ -195,15 +195,6 @@ const ItemRowRender = (p: {
     </>
 }
 
-interface TableParameters<TItem> {
-    allItems: TItem[],
-    showItems: TItem[],
-    sortType: SortSecuence,
-    sortBy: (part: number) => any,
-    itemSelector: (index: number) => (state: any) => TItem,
-    tableData: TableData<TItem>
-}
-
 // A custom hook to memoize deep comparisons
 export function useDeepCompareMemoize(value: any) {
     const ref = useRef<any>();
@@ -215,10 +206,9 @@ export function useDeepCompareMemoize(value: any) {
     return ref.current;
 }
 
-const SortableFixedSizeTable = <TItem extends any>(p: {
-    data: TableParameters<TItem>
-}) => {
-    const d = p.data
+const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
+
+const calculate = <TItem extends any>(d: TableParametersInput<TItem>): TableParameters<TItem> => {
     const t = d.tableData
 
     const filterVisible = <T extends any>(d: T[]): T[] => d.filter((_, c) => t.sortRow[c]?.show !== false)
@@ -243,26 +233,59 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     }
     const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData, IMG_SORT_WIDTH)
 
-    const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
     const columnsWidth: number[] = itemsSubColumnsWidth.map((w, i) => Math.max(_sum(w), _sum(sortSubColumnsWidth[i])))
-    const totalWidth = SCROLL_BAR_WIDTH + _sum(columnsWidth)
+    
+    return {
+        itemCount: d.showItems.length,
+        sortItemRowData,
+        itemsSubColumnsWidth,
+        sortSubColumnsWidth,
+        columnsWidth,
+        getRowData: i => { const x = t.getRow(i); return { ...x, columns: filterVisible(x.columns) } },
+        itemSelector: d.itemSelector
+    }
+}
+
+interface TableParametersInput<TItem> {
+    allItems: TItem[],
+    showItems: TItem[],
+    sortType: SortSecuence,
+    sortBy: (part: number) => any,
+    itemSelector: (index: number) => (state: any) => TItem,
+    tableData: TableData<TItem>
+}
+
+interface TableParameters<TItem> {
+    itemCount: number,
+    sortItemRowData: ItemRowData,
+    itemsSubColumnsWidth: number[][],
+    sortSubColumnsWidth: number[][],
+    columnsWidth: number[],
+    getRowData: (item: TItem) => ItemRowData,
+    itemSelector: (index: number) => (state: any) => TItem,
+}
+
+const SortableFixedSizeTable = <TItem extends any>(p: {
+    data: TableParameters<TItem>
+}) => {
+    const d = p.data
+    const height = Math.min(d.itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
+
+    const totalWidth = SCROLL_BAR_WIDTH + _sum(d.columnsWidth)
 
     const getColumnsWidthData = (subWidths: number[][]): ColumnWidthData[] => subWidths.map((sw, i) => ({
-        width: columnsWidth[i],
+        width: d.columnsWidth[i],
         subWidth: sw,
     }))
 
-    const itemCount = d.showItems.length
-    const height = Math.min(itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
-
-    const stableItemsSubColumnsWidth = useDeepCompareMemoize(itemsSubColumnsWidth);
+    const stableItemsSubColumnsWidth = useDeepCompareMemoize(d.itemsSubColumnsWidth);
     const renderRow = useCallback(
         ({ index, style }: { index: number; style: React.CSSProperties }) => {
             return (
             <ItemRow
                 index={index}
                 style={style}
-                getData={i => { const x = t.getRow(i); return { ...x, columns: filterVisible(x.columns) } }}
+                getData={d.getRowData}
                 itemSelector={d.itemSelector}
                 columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
             />
@@ -272,12 +295,12 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
         <div className='sort-table'>
             <div className='sort-row'>
                 <ItemRowRender
-                    data={sortItemRowData}
-                    columns={getColumnsWidthData(sortSubColumnsWidth)} />
+                    data={d.sortItemRowData}
+                    columns={getColumnsWidthData(d.sortSubColumnsWidth)} />
             </div>
             <FixedSizeList
                 height={height}
-                itemCount={itemCount}
+                itemCount={d.itemCount}
                 itemSize={ITEM_HEIGHT}
                 width={totalWidth}>
                 {renderRow}
@@ -295,7 +318,7 @@ const SortableTableSection = <TItem extends any>(p: {
     searchRowAfterSearchColumnData?: ItemRowColumnData,
     setExpanded: (expanded: boolean) => any,
     setFilter: (v: string) => any,
-    table: TableParameters<TItem>
+    table: TableParametersInput<TItem>
 }) => {
     const stats = p.stats
     return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
@@ -309,7 +332,7 @@ const SortableTableSection = <TItem extends any>(p: {
                 { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(p.searchRowAfterSearchColumnData)} /> }
             </p>
         </div>
-        <SortableFixedSizeTable data={p.table} />
+        <SortableFixedSizeTable data={calculate(p.table)} />
     </ExpandableSection>
 }
 
@@ -321,4 +344,5 @@ export {
     ItemRowSubColumnData,
     ItemRowData,
     SortRowData,
+    calculate,
 }
