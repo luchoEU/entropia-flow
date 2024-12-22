@@ -35,11 +35,11 @@ function getTextWidth(text: string, font: string): number {
 }
 
 interface ItemRowData {
-    columns: { [part: number]: ItemRowColumnData }
+    columns: ItemRowColumnData[]
     dispatch?: () => any
 }
 
-type SortRowData = { [part: number]: SortRowColumnData }
+type SortRowData = Array<SortRowColumnData>
 
 interface SortRowColumnData {
     justifyContent?: CSSProperties['justifyContent']
@@ -88,19 +88,18 @@ interface ItemRowSubColumnData {
 }
 
 interface ColumnWidthData {
-    part: number
     width: number
     subWidth: number[]
 }
 
-interface TableData<TItem, TExtra = void> {
-    columns: number[]
+interface TableData<TItem> {
+    columns: number // column count
     sortRow: SortRowData,
-    getRow: (item: TItem, extra: TExtra) => ItemRowData
+    getRow: (item: TItem) => ItemRowData
 }
 
-const getSubColumnsWidth = (d: ItemRowData, imgWidth: number = IMG_WIDTH): { [part: number]: number[] } =>
-    Object.fromEntries(Object.entries(d.columns).map(([k, c]) => [k, getRowColumnWidth(c, imgWidth)]));
+const getSubColumnsWidth = (d: ItemRowData, imgWidth: number = IMG_WIDTH): number[][] =>
+    d.columns.map(c => getRowColumnWidth(c, imgWidth));
 
 const getRowColumnWidth = (c: ItemRowColumnData, imgWidth: number = IMG_WIDTH): number[] => [
     ...c.sub.map(sc =>
@@ -185,9 +184,9 @@ const ItemRowRender = (p: {
 }): JSX.Element => {
     const dispatch = useDispatch()
     return <>
-        { p.columns.map((c: ColumnWidthData) => {
-            const d = p.data.columns[c.part]
-            return d && <div key={c.part} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
+        { p.columns.map((c: ColumnWidthData, i: number) => {
+            const d = p.data.columns[i]
+            return d && <div key={i} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
                 {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
@@ -221,19 +220,17 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
 }) => {
     const d = p.data
     const t = d.tableData
-    const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
-    const itemsSubColumnsWidth = d.allItems.reduce((acc, item) => {
+
+    const filterVisible = <T extends any>(d: T[]): T[] => d.filter((_, c) => t.sortRow[c]?.show !== false)
+
+    const itemsSubColumnsWidth = filterVisible(d.allItems.reduce((acc, item) => {
         const cw = getSubColumnsWidth(t.getRow(item))
-        return Object.fromEntries(Object.entries(cw).map(([k, w]) => [k,
-            acc[k] ? w.map((sw, j) => Math.max(sw, acc[k][j])) : w
-        ]))
-    }, { } as { [part: number]: number[] })
-    const itemsColumnsWidth = sumSubWidth(itemsSubColumnsWidth)
+        return acc ? acc.map((w, i) => w.map((sw, j) => Math.max(sw, cw[i][j]))) : cw
+    }, undefined as number[][]))
 
     const sortItemRowData: ItemRowData = {
-        columns: Object.fromEntries(t.columns
-            .filter(c => t.sortRow[c]?.show !== false)
-            .map(c => [c, {
+        columns: filterVisible(Array.from({ length: t.columns }, (_, i) => i))
+            .map(c => ({
                 dispatch: () => t.sortRow[c].sortable !== false && d.sortBy(c),
                 style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
                 sub: [
@@ -242,18 +239,17 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
                         img: { src: d.sortType[0].ascending ? 'img/up.png' : 'img/down.png' },
                     ...t.sortRow[c]?.sub }
                 ]
-            }]))
+            }))
     }
     const sortSubColumnsWidth = getSubColumnsWidth(sortItemRowData, IMG_SORT_WIDTH)
-    const sortColumnsWidth = sumSubWidth(sortSubColumnsWidth)
 
-    const columnsWidth = t.columns.map(k => Math.max(itemsColumnsWidth[k] ?? 0, sortColumnsWidth[k] ?? 0))
-    const totalWidth = SCROLL_BAR_WIDTH + Object.values(columnsWidth).reduce((acc, w) => acc + w, 0)
+    const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
+    const columnsWidth: number[] = itemsSubColumnsWidth.map((w, i) => Math.max(_sum(w), _sum(sortSubColumnsWidth[i])))
+    const totalWidth = SCROLL_BAR_WIDTH + _sum(columnsWidth)
 
-    const getColumnsWidthData = (subWidths: { [part: number]: number[] }): ColumnWidthData[] => t.columns.map((c,i) => ({
-        part: c,
+    const getColumnsWidthData = (subWidths: number[][]): ColumnWidthData[] => subWidths.map((sw, i) => ({
         width: columnsWidth[i],
-        subWidth: subWidths[c],
+        subWidth: sw,
     }))
 
     const itemCount = d.showItems.length
@@ -266,7 +262,7 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
             <ItemRow
                 index={index}
                 style={style}
-                getData={t.getRow}
+                getData={i => { const x = t.getRow(i); return { ...x, columns: filterVisible(x.columns) } }}
                 itemSelector={d.itemSelector}
                 columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
             />

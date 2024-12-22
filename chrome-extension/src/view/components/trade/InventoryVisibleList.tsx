@@ -64,26 +64,23 @@ const tableData: TableData<ItemVisible> = {
     })
 };
 
-const NAME_COLUMN = 0
-const QUANTITY_COLUMN = 1
-
 const blueprintsTableData: TableData2<TradeBlueprintLineData> = {
-    columns: [NAME_COLUMN, QUANTITY_COLUMN],
-    sortRow: {
-        [NAME_COLUMN]: { justifyContent: 'center', text: 'Favorite Blueprint' },
-        [QUANTITY_COLUMN]: { justifyContent: 'end', text: 'Quantity per Click' },
-    },
+    columns: 2,
+    sortRow: [
+        { justifyContent: 'center', text: 'Favorite Blueprint' }, // BP_NAME
+        { justifyContent: 'end', text: 'Quantity per Click' },
+    ],
     getRow: (item: TradeBlueprintLineData) => ({
-        columns: {
-            [NAME_COLUMN]: {
+        columns: [
+            { // BP_NAME
                 style: { justifyContent: 'start' },
                 sub: [{ itemText: item.bpName }]
             },
-            [QUANTITY_COLUMN]: {
+            { // QUANTITY
                 style: { justifyContent: 'center' },
                 sub: [{ itemText: item.quantity?.toString() }]
             }
-        }
+        ]
     })
 }
 
@@ -116,16 +113,18 @@ const InventoryVisibleList = () => {
                     { tradeItemData.name }<img src='img/left.png' />
                 </h2>
                 { tradeItemData.c?.blueprints &&
-                    <SortableFixedSizeTable
-                        data={{
-                            allItems: tradeItemData.c.blueprints,
-                            showItems: tradeItemData.c.blueprints,
-                            sortType: tradeItemData.sortInfo.blueprints,
-                            sortBy: sortTradeBlueprintsBy,
-                            itemSelector: getTradeBlueprintItem,
-                            tableData: blueprintsTableData
-                        }}
-                    />
+                    (tradeItemData.c.blueprints.length === 0 ?
+                        <p><strong>Not used on Favorite Blueprints</strong></p> :
+                        <SortableFixedSizeTable
+                            data={{
+                                allItems: tradeItemData.c.blueprints,
+                                showItems: tradeItemData.c.blueprints,
+                                sortType: tradeItemData.sortInfo.blueprints,
+                                sortBy: sortTradeBlueprintsBy,
+                                itemSelector: getTradeBlueprintItem,
+                                tableData: blueprintsTableData
+                            }}
+                        />)
                 }
             </div>
         }

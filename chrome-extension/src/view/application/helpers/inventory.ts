@@ -11,7 +11,6 @@ import {
   ItemVisible,
   TradeBlueprintLineData
 } from "../state/inventory";
-import { SortSecuence } from "../state/sort";
 import { initialListByStore, loadInventoryByStore } from "./inventory.byStore";
 import {
   cloneSortListSelect,
@@ -433,7 +432,13 @@ const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
 })
 
 const reduceShowTradingItemData = (state: InventoryState, name: string): InventoryState =>
-  _propagateTradeItemName({ ...state, tradeItemData: { name, sortInfo: { blueprints: defaultSortSecuence } } });
+  _propagateTradeItemName({
+    ...state,
+    tradeItemData: name === undefined ? undefined : {
+      name,
+      sortInfo: { blueprints: defaultSortSecuence }
+    }
+  });
 
 const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState): InventoryState => {
   if (!state.tradeItemData) {
@@ -456,11 +461,11 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
 }
 
 const _tradeSortColumnDefinition = [
-    { // NAME_COLUMN
+    { // BP_NAME
         selector: (d: TradeBlueprintLineData) => d.bpName,
         comparer: stringComparer
     },
-    { // QUANTITY_COLUMN
+    { // QUANTITY
         selector: (d: TradeBlueprintLineData) => d.quantity,
         comparer: numberComparer
     },
