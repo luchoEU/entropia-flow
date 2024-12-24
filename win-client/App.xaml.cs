@@ -12,8 +12,8 @@ namespace EntropiaFlowClient
     public partial class App : Application
     {
         private readonly NotifyIcon _notifyIcon;
-        private readonly WebSocketChat _webSocketServer;
         private readonly LogWatcher _watcher;
+        private WebSocketChat _webSocketServer;
         private SettingsWindow? _settingsWindow;
 
         public App()
@@ -84,13 +84,21 @@ namespace EntropiaFlowClient
 
         private void InitializeWebSocket()
         {
-            _webSocketServer.Start();
             _webSocketServer.StreamMessageReceived += _webSocketServer_StreamMessageReceived;
+            _webSocketServer.SocketClosed += _webSocketServer_SocketClosed;
+            _webSocketServer.Start();
         }
 
         private void _webSocketServer_StreamMessageReceived(object? sender, StreamMessageEventArgs e)
         {
             StreamMessageReceived?.Invoke(this, e);
+        }
+
+        private void _webSocketServer_SocketClosed(object? sender, EventArgs e)
+        {
+            _webSocketServer.Stop();
+            _webSocketServer = new();
+            InitializeWebSocket();
         }
 
         public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;

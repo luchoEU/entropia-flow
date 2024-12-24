@@ -88,9 +88,12 @@ namespace EntropiaFlowClient
         protected override void OnClose(CloseEventArgs e)
         {
             base.OnClose(e);
+            Console.WriteLine($"WebSocket closed: {e.Code} {e.Reason}");
+            SocketClosed?.Invoke(this, e);
         }
 
         public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;
+        public event EventHandler<EventArgs>? SocketClosed;
 
         public class StreamMessageEventArgs(string data) : EventArgs
         {
