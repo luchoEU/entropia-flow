@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, BUDGET_PAGE, CONNECTION_PAGE, CRAFT_PAGE, GAME_LOG_PAGE, GAME_SPLIT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
+import { ABOUT_PAGE, BUDGET_PAGE, CRAFT_PAGE, GAME_LOG_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
 import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
@@ -12,8 +12,6 @@ import StreamPage from './stream/StreamPage'
 import StreamView from './stream/StreamView'
 import TradePage from './trade/TradePage'
 import GameLogPage from './log/GameLogPage'
-import ConnectionPage from './connection/ConnectionPage'
-import GameSplitPage from './split/GameSplitPage'
 import BudgetPage from './budget/BudgetPage'
 
 function ContentPage() {
@@ -39,10 +37,6 @@ function ContentPage() {
             return <SettingsPage />
         case GAME_LOG_PAGE:
             return <GameLogPage />
-        case CONNECTION_PAGE:
-            return <ConnectionPage />
-        case GAME_SPLIT_PAGE:
-            return <GameSplitPage />
         default:
             return <></>
     }

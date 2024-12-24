@@ -2,9 +2,8 @@ import {
     Inventory,
     Status,
     ViewState,
-    StatusType
 } from '../../common/state'
-import { LootLogData } from '../client/logData'
+import { GameLogData } from '../client/gameLogData'
 import RefreshManager from '../content/refreshManager'
 import InventoryManager from '../inventory/inventory'
 import ViewSettings from '../settings/viewSettings'
@@ -49,7 +48,7 @@ class ViewStateManager {
         }
     }
 
-    public async setGameLog(gameLog: Array<LootLogData>) {
+    public async setGameLog(gameLog: GameLogData) {
         if (this.onChange) {
             await this.onChange({ gameLog })
         }

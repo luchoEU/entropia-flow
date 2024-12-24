@@ -1,6 +1,6 @@
 //// STATE ////
 
-import { LootLogData } from "../background/client/logData"
+import { GameLogData } from "../background/client/gameLogData"
 
 interface ItemData {
     id: string // identifier, number
@@ -56,7 +56,7 @@ interface ViewState {
     list?: Array<Inventory>
     last?: number
     status?: Status
-    gameLog?: Array<LootLogData>
+    gameLog?: GameLogData
     clientState?: ClientState
 }
 

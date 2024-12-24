@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { SET_CONNECTION_CLIENT_EXPANDED, WEB_SOCKET_CHANGED, setConnectionState } from "../actions/connection"
+import { SET_CONNECTION_CLIENT_EXPANDED, WEB_SOCKET_CHANGED, WEB_SOCKET_RETRY, setConnectionState } from "../actions/connection"
 import { setWebSocketUrl } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/connection"
@@ -11,8 +11,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     switch (action.type) {
         case PAGE_LOADED: {
             const state: ConnectionState = await api.storage.loadConnection()
-            if (state)
+            if (state) {
                 dispatch(setConnectionState(mergeDeep(initialState, state)))
+                dispatch(setWebSocketUrl(state.client.webSocket)) // recover the connection
+            }
             break
         }
         case SET_CONNECTION_CLIENT_EXPANDED:
@@ -22,6 +24,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
             if (action.type === WEB_SOCKET_CHANGED)
                 dispatch(setWebSocketUrl(state.client.webSocket))
+            break
+        }
+        case WEB_SOCKET_RETRY: {
+            const state: ConnectionState = getConnection(getState())
+            dispatch(setWebSocketUrl(state.client.webSocket)) // this retriggers the connection
             break
         }
     }

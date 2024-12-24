@@ -36,23 +36,25 @@ class WebSocketClient implements IWebSocketClient {
         }
         this.socket.onopen = async event => {
             console.log('WebSocket connection opened:', event)
+
+            this.socket.onmessage = async event => {
+                console.log('WebSocket message received:', event.data)
+                await this.onMessage(JSON.parse(event.data))
+            };
+            this.socket.onclose = async event => {
+                console.log('WebSocket connection closed:', event)
+                await this.onStateChanged('disconnected', '')
+            };
+
             await this.onStateChanged(`connected to ${url}`, '')
             this.send('version', '0.2.0')
             for (const json in this.pendingJson)
                 this.socket.send(json)
             this.pendingJson = []
         };
-        this.socket.onmessage = async event => {
-            console.log('WebSocket message received:', event.data)
-            await this.onMessage(event.data)
-        };
         this.socket.onerror = async event => {
             console.error('WebSocket error:', event)
             await this.onStateChanged('error', '')
-        };
-        this.socket.onclose = async event => {
-            console.log('WebSocket connection closed:', event)
-            await this.onStateChanged('disconnected', '')
         };
     }
 

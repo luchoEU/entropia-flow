@@ -19,6 +19,7 @@ import {
     STORAGE_TAB_CONTENTS,
     STORAGE_TAB_VIEWS,
     MSG_NAME_SET_WEB_SOCKET_URL,
+    MSG_NAME_RETRY_WEB_SOCKET,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -28,10 +29,10 @@ import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
-import GameLogManager from './client/gameLogManager'
-import LootHistory from './client/lootHistory'
 import IWebSocketClient from './client/webSocketInterface'
 import RefreshManager from './content/refreshManager'
+import GameLogHistory from './client/gameLogHistory'
+import GameLogParser from './client/gameLogParser'
 
 async function wiring(
     messages: IMessagesHub,
@@ -68,8 +69,8 @@ async function wiring(
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
 
     // game log
-    const gameLogManager = new GameLogManager()
-    const lootHistory = new LootHistory()
+    const gameLogParser = new GameLogParser()
+    const gameLogHistory = new GameLogHistory()
 
     // links
     contentPortManager.onConnect = (port) => contentTabManager.onConnect(port)
@@ -87,13 +88,13 @@ async function wiring(
     webSocketClient.onMessage = async msg => {
         switch (msg.type) {
             case "log":
-                await gameLogManager.onMessage(msg.data)
+                await gameLogParser.onMessage(msg.data)
                 break;
         }
     }
     webSocketClient.onStateChanged = (state, message) => viewStateManager.setClientState(state, message)
-    gameLogManager.onLoot = (d) => lootHistory.onLoot(d)
-    lootHistory.onChange = (gameLog) => viewStateManager.setGameLog(gameLog)
+    gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
+    gameLogHistory.onChange = (gameLog) => viewStateManager.setGameLog(gameLog)
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })
@@ -132,7 +133,7 @@ async function wiring(
         },
         [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => {
             await webSocketClient.start(m.url)
-        }
+        },
     }
 }
 

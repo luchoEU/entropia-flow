@@ -6,6 +6,7 @@ const TIMER_ON = "[msg] timer on"
 const TIMER_OFF = "[msg] timer off"
 const SEND_WEB_SOCKET_MESSAGE = "[msg] send websocket message"
 const SET_WEB_SOCKET_URL = "[msg] set websocket url"
+const RETRY_WEB_SOCKET = "[msg] retry connect websocket"
 
 const refresh = {
     type: REFRESH
@@ -58,6 +59,7 @@ export {
     TIMER_OFF,
     SEND_WEB_SOCKET_MESSAGE,
     SET_WEB_SOCKET_URL,
+    RETRY_WEB_SOCKET,
     refresh,
     setLast,
     setAsLast,
