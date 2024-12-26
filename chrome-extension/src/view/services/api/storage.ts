@@ -23,7 +23,8 @@ import {
     STORAGE_VIEW_GAME_LOG,
     STORAGE_VIEW_CONNECTION,
     STORAGE_VIEW_BUDGET,
-    STORAGE_VIEW_INVENTORY_BY_STORE
+    STORAGE_VIEW_INVENTORY_BY_STORE,
+    STORAGE_VIEW_TABULAR
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -43,6 +44,7 @@ import { SettingsState } from "../../application/state/settings";
 import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
+import { TabularState } from "../../application/state/tabular";
 import { UseState } from "../../application/state/use";
 
 import pako from 'pako';
@@ -205,6 +207,14 @@ async function loadCraft(): Promise<CraftState> {
     return await LOCAL_STORAGE.get(STORAGE_VIEW_CRAFT)
 }
 
+async function saveTabular(state: TabularState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_TABULAR, state)
+}
+
+async function loadTabular(): Promise<TabularState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_TABULAR)
+}
+
 async function saveMaterials(state: MaterialsState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_MATERIALS, state)
 }
@@ -297,6 +307,8 @@ export default {
     loadInventoryByStoreState,
     saveCraft,
     loadCraft,
+    saveTabular,
+    loadTabular,
     saveMaterials,
     loadMaterials,
     saveMaterialsCache,

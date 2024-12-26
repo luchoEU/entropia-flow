@@ -25,6 +25,7 @@ import log from './log'
 import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
+import tabular from './tabular'
 
 export default [
     ...messages,
@@ -54,4 +55,5 @@ export default [
     ...connection,
     ...budget,
     ...ttService,
+    ...tabular,
 ]

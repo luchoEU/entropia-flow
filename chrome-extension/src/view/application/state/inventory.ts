@@ -109,7 +109,7 @@ interface ItemHidden {
 
 interface TradeItemData {
   name: string;
-  sortInfo: {
+  sortSecuence: {
     favoriteBlueprints: SortSecuence
     ownedBlueprints: SortSecuence
   }

@@ -37,8 +37,18 @@ const reduceSetConnectionStatus = (state: ConnectionState, status: string, messa
     }
 })
 
+const cleanForSave = (state: ConnectionState): ConnectionState => ({
+    ...state,
+    client: {
+        ...state.client,
+        status: undefined,
+        message: undefined
+    }
+})
+
 export {
     initialState,
+    cleanForSave,
     reduceSetState,
     reduceSetConnectionClientExpanded,
     reduceSetConnectionWebSocket,

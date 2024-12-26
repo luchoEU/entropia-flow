@@ -9,6 +9,10 @@ import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
 import { SortSecuence } from '../../application/state/sort';
+import { getTabularData, getTabularDataItem } from '../../application/selectors/tabular';
+import { TabularStateData } from '../../application/state/tabular';
+import { setTabularExpanded, setTabularFilter, setTabularSortColumnDefinition, sortTabularBy } from '../../application/actions/tabular';
+import { stringComparer } from '../../application/helpers/sort';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -93,7 +97,6 @@ interface ColumnWidthData {
 }
 
 interface TableData<TItem> {
-    columns: number // column count
     sortRow: SortRowData,
     getRow: (item: TItem) => ItemRowData
 }
@@ -211,7 +214,7 @@ const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
 const calculate = <TItem extends any>(d: TableParametersInput<TItem>): TableParameters<TItem> => {
     const t = d.tableData
 
-    const filterVisible = <T extends any>(d: T[]): T[] => d.filter((_, c) => t.sortRow[c]?.show !== false)
+    const filterVisible = <T extends any>(l: T[]): T[] => l?.filter((_, c) => t.sortRow[c]?.show !== false) ?? []
 
     const itemsSubColumnsWidth = filterVisible(d.allItems.reduce((acc, item) => {
         const cw = getSubColumnsWidth(t.getRow(item))
@@ -219,14 +222,14 @@ const calculate = <TItem extends any>(d: TableParametersInput<TItem>): TablePara
     }, undefined as number[][]))
 
     const sortItemRowData: ItemRowData = {
-        columns: filterVisible(Array.from({ length: t.columns }, (_, i) => i))
+        columns: filterVisible(Array.from({ length: t.sortRow.length }, (_, i) => i))
             .map(c => ({
                 dispatch: () => t.sortRow[c].sortable !== false && d.sortBy(c),
                 style: { justifyContent: t.sortRow[c]?.justifyContent ?? 'center' },
                 sub: [
                     { strong: t.sortRow[c]?.text },
-                    { visible: t.sortRow[c]?.sortable !== false && d.sortType[0].column === c,
-                        img: { src: d.sortType[0].ascending ? 'img/up.png' : 'img/down.png' },
+                    { visible: t.sortRow[c]?.sortable !== false && d.sortSecuence?.[0].column === c,
+                        img: { src: d.sortSecuence?.[0].ascending ? 'img/up.png' : 'img/down.png' },
                     ...t.sortRow[c]?.sub }
                 ]
             }))
@@ -249,7 +252,7 @@ const calculate = <TItem extends any>(d: TableParametersInput<TItem>): TablePara
 interface TableParametersInput<TItem> {
     allItems: TItem[],
     showItems: TItem[],
-    sortType: SortSecuence,
+    sortSecuence: SortSecuence,
     sortBy: (part: number) => any,
     itemSelector: (index: number) => (state: any) => TItem,
     tableData: TableData<TItem>
@@ -269,9 +272,12 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     data: TableParameters<TItem>
 }) => {
     const d = p.data
-    const height = Math.min(d.itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
-
-    const totalWidth = SCROLL_BAR_WIDTH + _sum(d.columnsWidth)
+    let totalWidth = SCROLL_BAR_WIDTH + _sum(d.columnsWidth)
+    if (totalWidth > window.innerWidth) {
+        const extra = totalWidth - window.innerWidth
+        //totalWidth = window.innerWidth
+    }
+    const totalHeight = Math.min(d.itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
 
     const getColumnsWidthData = (subWidths: number[][]): ColumnWidthData[] => subWidths.map((sw, i) => ({
         width: d.columnsWidth[i],
@@ -299,7 +305,7 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
                     columns={getColumnsWidthData(d.sortSubColumnsWidth)} />
             </div>
             <FixedSizeList
-                height={height}
+                height={totalHeight}
                 itemCount={d.itemCount}
                 itemSize={ITEM_HEIGHT}
                 width={totalWidth}>
@@ -311,33 +317,88 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
 
 const SortableTableSection = <TItem extends any>(p: {
     title: string,
-    expanded: boolean,
-    filter: string,
-    stats: { count: number, ped?: string, itemTypeName?: string },
-    searchRowAfterTotalColumnData?: ItemRowColumnData,
-    searchRowAfterSearchColumnData?: ItemRowColumnData,
-    setExpanded: (expanded: boolean) => any,
-    setFilter: (v: string) => any,
-    table: TableParametersInput<TItem>
+    selector: string,
+    columns: string[],
+    getRow: (item: TItem) => string[]
 }) => {
-    const stats = p.stats
-    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
+    const { selector, columns, getRow } = p
+    const s: TabularStateData = useSelector(getTabularData(selector))
+    const dispatch = useDispatch()
+    if (!s?.items) return <></>
+
+    const stats = s.items.stats
+
+    const searchRowAfterTotalColumnData: ItemRowColumnData = undefined
+    const searchRowAfterSearchColumnData: ItemRowColumnData = undefined
+
+    if (!s.definition?.sort) {
+        const sortColumnDefinition = columns.map((_, i) => ({
+            selector: (item: TItem) => getRow(item)[i],
+            comparer: stringComparer
+        }))
+        dispatch(setTabularSortColumnDefinition(selector, sortColumnDefinition))
+    }
+
+    const table: TableParametersInput<TItem> = {
+        allItems: s.items.all,
+        showItems: s.items.show,
+        sortSecuence: s.sortSecuence,
+        sortBy: sortTabularBy(selector),
+        itemSelector: getTabularDataItem(selector),
+        tableData: {
+            sortRow: columns.map(s => ({ text: s })),
+            getRow: r => ({
+                columns: getRow(r).map(s => ({
+                    sub: [{ itemText: s }]
+                }))
+            })
+        }
+    }
+
+    return <ExpandableSection title={p.title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
         <div className='search-container'>
             <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
                 <span> {stats.count} </span>
                 <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
-                { p.searchRowAfterTotalColumnData && <ItemSubRowRender sub={p.searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(p.searchRowAfterTotalColumnData)} /> }
+                { searchRowAfterTotalColumnData && <ItemSubRowRender sub={searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(searchRowAfterTotalColumnData)} /> }
             </p>
-            <p className='search-input-container'><SearchInput filter={p.filter} setFilter={p.setFilter} />
-                { p.searchRowAfterSearchColumnData && <ItemSubRowRender sub={p.searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(p.searchRowAfterSearchColumnData)} /> }
+            <p className='search-input-container'><SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
+                { searchRowAfterSearchColumnData && <ItemSubRowRender sub={searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(searchRowAfterSearchColumnData)} /> }
             </p>
         </div>
-        <SortableFixedSizeTable data={calculate(p.table)} />
+        <SortableFixedSizeTable data={calculate(table)} />
+    </ExpandableSection>
+}
+
+const SimpleTableSection = <TItem extends any>(p: {
+    title: string,
+    selector: string,
+    columns: string[],
+    getRow: (item: TItem) => string[]
+}) => {
+    const { selector, columns, getRow } = p
+    const s: TabularStateData = useSelector(getTabularData(selector))
+    if (!s?.items) return <></>
+
+    return <ExpandableSection title={p.title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
+        <table>
+            <thead>
+                <tr>
+                    {columns.map(s => <th>{s}</th>)}
+                </tr>
+            </thead>
+            <tbody>
+                {s.items.show.map(r => <tr>
+                    {getRow(r).map(s => <td>{s}</td>)}
+                </tr>)}
+            </tbody>
+        </table>
     </ExpandableSection>
 }
 
 export default SortableTableSection
 export {
+    SimpleTableSection,
     SortableFixedSizeTable,
     TableData,
     ItemRowColumnData,

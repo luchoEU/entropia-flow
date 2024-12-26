@@ -16,13 +16,16 @@ const hofSufix = ' A record has been added to the Hall of Fame!'
 const globalRegex = {
     hunt: /(.*) killed a creature \((.*)\) with a value of (.*)!/,
     craft: /(.*) constructed an item \((.*)\) worth (.*)!/,
-    found: /(.*) has found a rare item \((.*)\) with a value of (.*)!/
+    found: /(.*) has found a rare item \((.*)\) with a value of (.*)!/,
+    mine: /(.*) found a deposit \((.*)\) with a value of (.*)/
 }
 const skillRegex = /You have gained (.*) experience in your (.*) skill/
 const dodgeRegex = /The target Dodged your attack/
 const evageRegex = /You Evaded the attack/
 const critical = /Critical hit - Additional damage! You inflicted 222.8 points of damage/
-const logout = /Ugnius DraKill Timinskas has logged out/
+const logoutRegex = /(.*) has logged out/
+const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
+const braketRegex = new RegExp(/\[(.*?)]/, 'g')
 
 class GameLogParser {
     public onLine: (s: GameLogLine) => void
@@ -65,6 +68,10 @@ class GameLogParser {
                         value: parseFloat(skillMatch[1])
                     }
                 }
+                const logoutMatch = logoutRegex.exec(line.message);
+                if (logoutMatch !== null) {
+                    line.data.logout = logoutMatch[1]
+                }
                 break
             case "Globals":
                 const isHoF = line.message.endsWith(hofSufix);
@@ -102,6 +109,29 @@ class GameLogParser {
                     }
                 }
                 break;
+        }
+
+        const positions = [];
+        const items = [];
+        for (const match of Array.from(line.message.matchAll(braketRegex))) {
+            const positionMatch = positionRegex.exec(match[1]);
+            if (positionMatch) {
+                positions.push({
+                    planet: positionMatch[1],
+                    x: parseInt(positionMatch[2]),
+                    y: parseInt(positionMatch[3]),
+                    z: parseInt(positionMatch[4]),
+                    name: positionMatch[5]
+                });
+            } else {
+                items.push(match[1]);
+            }
+        }
+        if (items.length > 0) {
+            line.data.items = items;
+        }
+        if (positions.length > 0) {
+            line.data.positions = positions
         }
 
         this.onLine?.(line)

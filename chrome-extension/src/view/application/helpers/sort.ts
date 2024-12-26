@@ -8,12 +8,12 @@ interface SortColumnDefinition<I, T = any> {
     comparer: (a: T, b: T) => number,
 }
 
-function cloneAndSort<I extends any>(list: Array<I>, sortInfo: SortSecuence, sortColumnDefinition: Array<SortColumnDefinition<I>>): Array<I> {
-    if (!sortInfo) return list
+function cloneAndSort<I extends any>(list: Array<I>, sortSecuence: SortSecuence, sortColumnDefinition: Array<SortColumnDefinition<I>>): Array<I> {
+    if (!sortSecuence || !sortColumnDefinition) return list
 
     const newList = [...list]
     newList.sort((a: I, b: I) => {
-      for (const s of sortInfo)
+      for (const s of sortSecuence)
       {
         const def = sortColumnDefinition[s.column]
         const res = def.comparer(def.selector(a), def.selector(b))
@@ -25,23 +25,24 @@ function cloneAndSort<I extends any>(list: Array<I>, sortInfo: SortSecuence, sor
     return newList
 }
 
-function nextSortSecuence(column: number, sortInfo: SortSecuence): SortSecuence {
-  if (!sortInfo)
+function nextSortSecuence(sortSecuence: SortSecuence, column: number): SortSecuence {
+  if (!sortSecuence)
     return [ { column, ascending: true } ]
 
-  let ascending = sortInfo.find(x => x.column === column)?.ascending;
+  let ascending = sortSecuence.find(x => x.column === column)?.ascending;
   if (ascending === undefined)
-    return [ { column, ascending: true }, ...sortInfo ]
+    return [ { column, ascending: true }, ...sortSecuence ]
 
-  if (sortInfo[0].column === column)
+  if (sortSecuence[0].column === column)
     ascending = !ascending
 
-  return [ { column, ascending }, ...sortInfo.filter(x => x.column !== column) ]
+  return [ { column, ascending }, ...sortSecuence.filter(x => x.column !== column) ]
 }
 
 const defaultSortSecuence = [ { column: 0, ascending: true } ]
 
 export {
+    SortColumnDefinition,
     stringComparer,
     numberComparer,
     cloneAndSort,

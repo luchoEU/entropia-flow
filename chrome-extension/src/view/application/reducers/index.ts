@@ -23,9 +23,10 @@ import log from './log'
 import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
+import tabular from './tabular'
 
 export default combineReducers({
     menu, status, materials, history, last, calculator, actives, order, sweat, stackable,
     refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
-    connection, budget, ttService
+    connection, budget, ttService, tabular
 })

@@ -4,6 +4,8 @@ import {
     ViewState,
 } from '../../common/state'
 import { GameLogData } from '../client/gameLogData'
+import { IGameLogHistory } from '../client/gameLogHistory'
+import IWebSocketClient from '../client/webSocketInterface'
 import RefreshManager from '../content/refreshManager'
 import InventoryManager from '../inventory/inventory'
 import ViewSettings from '../settings/viewSettings'
@@ -12,19 +14,25 @@ class ViewStateManager {
     private refreshManager: RefreshManager
     private viewSettings: ViewSettings
     private inventory: InventoryManager
+    private gameLogHistory: IGameLogHistory
+    private webSocketClient: IWebSocketClient
     public onChange: (state: ViewState) => Promise<void>
 
-    constructor(refreshManager: RefreshManager, viewSettings: ViewSettings, inventory: InventoryManager) {
+    constructor(refreshManager: RefreshManager, viewSettings: ViewSettings, inventory: InventoryManager, gameLogHistory: IGameLogHistory, webSocketClient: IWebSocketClient) {
         this.refreshManager = refreshManager
         this.viewSettings = viewSettings
         this.inventory = inventory
+        this.gameLogHistory = gameLogHistory
+        this.webSocketClient = webSocketClient
     }
 
     public async get(): Promise<ViewState> {
         const list = await this.inventory.getList()
         const last = await this.viewSettings.getLast()
         const status = await this.refreshManager.getAlarmStatus()
-        return { list, last, status }
+        const gameLog = await this.gameLogHistory.getGameLog()
+        const clientState = await this.webSocketClient.getState()
+        return { list, last, status, gameLog, clientState }
     }
 
     public async reload(): Promise<void> {

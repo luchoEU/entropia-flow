@@ -436,7 +436,7 @@ const reduceShowTradingItemData = (state: InventoryState, name: string): Invento
     ...state,
     tradeItemData: name === undefined ? undefined : {
       name,
-      sortInfo: {
+      sortSecuence: {
         favoriteBlueprints: defaultSortSecuence,
         ownedBlueprints: defaultSortSecuence,
       }
@@ -459,8 +459,8 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
       ...state.tradeItemData,
       c: {
         ...state.tradeItemData.c,
-        favoriteBlueprints: cloneAndSort(m(fav), state.tradeItemData.sortInfo?.favoriteBlueprints, _tradeSortColumnDefinition),
-        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortInfo?.favoriteBlueprints, _tradeSortColumnDefinition),
+        favoriteBlueprints: cloneAndSort(m(fav), state.tradeItemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
+        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
       }
     }
   }
@@ -482,18 +482,18 @@ const _reduceSortTradeBlueprintsBy = (
   state: InventoryState,
   column: number,
 ): InventoryState => {
-  const sortInfo = nextSortSecuence(column, state.tradeItemData.sortInfo[fieldName]);
+  const sortSecuence = nextSortSecuence(state.tradeItemData.sortSecuence[fieldName], column);
   return {
     ...state,
     tradeItemData: {
       ...state.tradeItemData,
-      sortInfo: {
-        ...state.tradeItemData.sortInfo,
-        [fieldName]: sortInfo
+      sortSecuence: {
+        ...state.tradeItemData.sortSecuence,
+        [fieldName]: sortSecuence
       },
       c: {
         ...state.tradeItemData.c,
-        [fieldName]: cloneAndSort(state.tradeItemData.c[fieldName], sortInfo, _tradeSortColumnDefinition),
+        [fieldName]: cloneAndSort(state.tradeItemData.c[fieldName], sortSecuence, _tradeSortColumnDefinition),
       }
     }
   }

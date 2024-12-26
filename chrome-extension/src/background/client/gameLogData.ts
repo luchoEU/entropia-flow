@@ -32,6 +32,9 @@ interface GameLogLine {
         global?: GameLogGlobal
         skill?: GameLogSkill
         stats?: GameLogStats
+        positions?: GameLogPosition[]
+        items?: string[]
+        logout?: string
     }
 }
 
@@ -47,8 +50,17 @@ interface GameLogSkill {
     value: number
 }
 
+interface GameLogPosition {
+    planet: string
+    x: number
+    y: number
+    z: number
+    name: string
+}
+
 export {
     GameLogData,
+    GameLogLoot,
     GameLogGlobal,
     GameLogSkill,
     GameLogLine

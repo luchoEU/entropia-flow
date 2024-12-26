@@ -1,30 +1,18 @@
-import { GameLogGlobal, GameLogLine, GameLogSkill } from "../../../background/client/gameLogData";
-import { SortItemData } from "../helpers/inventory.sort";
-import { InventoryList } from "./inventory";
+const GAME_LOG_TABULAR_LOOT = 'loot'
+const GAME_LOG_TABULAR_SKILL = 'skill'
+const GAME_LOG_TABULAR_GLOBAL = 'global'
+const GAME_LOG_TABULAR_STATISTICS = 'statistics'
+const GAME_LOG_TABULAR_MISSING = 'missing'
+const GAME_LOG_TABULAR_RAW = 'raw'
 
-type GameLogItemData = SortItemData;
-
-interface GameLogState {
-    loot: InventoryList<GameLogItemData>
-    skill: {
-        expanded: boolean
-        list: Array<GameLogSkill>
-    }
-    global: {
-        expanded: boolean
-        list: Array<GameLogGlobal>
-    }
-    stats: {
-        expanded: boolean
-        list: Array<string>
-    }
-    log: {
-        expanded: boolean
-        list: Array<GameLogLine>
-    }
-}
+interface GameLogState { }
 
 export {
     GameLogState,
-    GameLogItemData
+    GAME_LOG_TABULAR_LOOT,
+    GAME_LOG_TABULAR_SKILL,
+    GAME_LOG_TABULAR_GLOBAL,
+    GAME_LOG_TABULAR_STATISTICS,
+    GAME_LOG_TABULAR_MISSING,
+    GAME_LOG_TABULAR_RAW
 }

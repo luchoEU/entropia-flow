@@ -78,6 +78,7 @@ const STORAGE_VIEW_SETTINGS = 'settings'
 const STORAGE_VIEW_CONNECTION = 'connection'
 const STORAGE_VIEW_ABOUT = 'about'
 const STORAGE_VIEW_GAME_LOG = 'log'
+const STORAGE_VIEW_TABULAR = 'tabular'
 
 // Html
 const HTML_VIEW = 'view.html'
@@ -164,6 +165,7 @@ export {
     STORAGE_VIEW_CONNECTION,
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_GAME_LOG,
+    STORAGE_VIEW_TABULAR,
     HTML_VIEW,
     ERROR_425,
     ERROR_429,

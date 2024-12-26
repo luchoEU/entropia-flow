@@ -1,7 +1,7 @@
 //// WEB SOCKET ////
 // Communication with Entropia Flow Client in Windows
 
-import IWebSocketClient from "./webSocketInterface"
+import IWebSocketClient, { WebSocketState } from "./webSocketInterface"
 
 const DEFAULT_WEB_SOCKET_URL = 'ws://localhost:6521'
 
@@ -9,6 +9,7 @@ class WebSocketClient implements IWebSocketClient {
     private socket: WebSocket
     private pendingJson: Array<string>
     private url: string
+    private state: WebSocketState
     public onMessage: (msg: any) => Promise<void>
     public onStateChanged: (state: string, message: string) => Promise<void>
 
@@ -17,21 +18,24 @@ class WebSocketClient implements IWebSocketClient {
     }
 
     public async start(url: string): Promise<void> {
+        if (this.url === url && this.socket.readyState == WebSocket.OPEN)
+            return // don't reconnect to the same place since it will fail because the client needs a few seconds to be available again
+
         if (this.socket)
             this.socket.close()
 
         if (!url || !url.startsWith('ws:')) {
-            await this.onStateChanged('error', `invalid url ${url}`)
+            await this._setState('error', `invalid url ${url}`)
             return // invalid url
         }
 
         this.url = url
-        await this.onStateChanged(`connecting to ${url} ...`, '')
+        await this._setState(`connecting to ${url} ...`, '')
         try {
             this.socket = new WebSocket(url)
         } catch (error) {
             console.error('WebSocket connection failed:', error)
-            await this.onStateChanged('error', 'connection failed')
+            await this._setState('error', 'connection failed')
             return
         }
         this.socket.onopen = async event => {
@@ -43,10 +47,10 @@ class WebSocketClient implements IWebSocketClient {
             };
             this.socket.onclose = async event => {
                 console.log('WebSocket connection closed:', event)
-                await this.onStateChanged('disconnected', '')
+                await this._setState('disconnected', '')
             };
 
-            await this.onStateChanged(`connected to ${url}`, '')
+            await this._setState(`connected to ${url}`, '')
             this.send('version', '0.2.0')
             for (const json in this.pendingJson)
                 this.socket.send(json)
@@ -54,7 +58,7 @@ class WebSocketClient implements IWebSocketClient {
         };
         this.socket.onerror = async event => {
             console.error('WebSocket error:', event)
-            await this.onStateChanged('error', '')
+            await this._setState('error', '')
         };
     }
 
@@ -69,6 +73,13 @@ class WebSocketClient implements IWebSocketClient {
             //await this.start(this.url) // reconnect for the next message
         }
     }
+
+    private _setState(state: string, message: string): void {
+        this.state = { state, message }
+        this.onStateChanged?.(state, message)
+    }
+
+    public getState(): WebSocketState { return this.state }
 
     public async close(): Promise<void> {
         if (this.socket)

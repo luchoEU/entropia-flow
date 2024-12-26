@@ -64,7 +64,6 @@ const tableData: TableData<ItemVisible> = {
 };
 
 const getBlueprintsTableData = (type: string): TableData2<TradeBlueprintLineData> => ({
-    columns: 2,
     sortRow: [
         { justifyContent: 'center', text: type + ' Blueprint' }, // BP_NAME
         { justifyContent: 'end', text: 'Quantity per Click' }, // QUANTITY
@@ -92,7 +91,7 @@ const InventoryVisibleList = () => {
     const favoriteTableData = tradeItemData?.c?.favoriteBlueprints?.length > 0 && calculate({
         allItems: tradeItemData.c.favoriteBlueprints,
         showItems: tradeItemData.c.favoriteBlueprints,
-        sortType: tradeItemData.sortInfo.favoriteBlueprints,
+        sortSecuence: tradeItemData.sortSecuence.favoriteBlueprints,
         sortBy: sortTradeFavoriteBlueprintsBy,
         itemSelector: getTradeFavoriteBlueprintItem,
         tableData: getBlueprintsTableData('Favorite')
@@ -101,7 +100,7 @@ const InventoryVisibleList = () => {
     const ownedTableData = tradeItemData?.c?.ownedBlueprints?.length > 0 && calculate({
         allItems: tradeItemData.c.ownedBlueprints,
         showItems: tradeItemData.c.ownedBlueprints,
-        sortType: tradeItemData.sortInfo.ownedBlueprints,
+        sortSecuence: tradeItemData.sortSecuence.ownedBlueprints,
         sortBy: sortTradeOwnedBlueprintsBy,
         itemSelector: getTradeOwnedBlueprintItem,
         tableData: getBlueprintsTableData('Owned')

@@ -329,7 +329,7 @@ describe('full', () => {
 describe('partial', () => {
     test('when request items expect on change', async () => {
         const onChange = jest.fn()
-        const viewState = new ViewStateManager(undefined, undefined, undefined)
+        const viewState = new ViewStateManager(undefined, undefined, undefined, undefined, undefined)
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager())

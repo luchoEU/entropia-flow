@@ -5,9 +5,17 @@ import { GameLogData, GameLogLine } from "./gameLogData"
 
 const MAX_LOG_LINES = 100
 
-class GameLogHistory {
-    public gameLog: GameLogData = { raw: [], loot: [], skill: [], global: [], stats: {} }
+interface IGameLogHistory {
+    onLine(line: GameLogLine)
+    getGameLog(): GameLogData
+    onChange: (gameLog: GameLogData) => void
+}
+
+class GameLogHistory implements IGameLogHistory {
+    private gameLog: GameLogData = { raw: [], loot: [], skill: [], global: [], stats: {} }
     public onChange: (gameLog: GameLogData) => void
+
+    public getGameLog(): GameLogData { return this.gameLog }
 
     public onLine(line: GameLogLine) {
         const lastTime: string = this.gameLog.raw.length > 0 ? this.gameLog.raw[0].time : ''
@@ -58,3 +66,6 @@ class GameLogHistory {
 }
 
 export default GameLogHistory
+export {
+    IGameLogHistory
+}

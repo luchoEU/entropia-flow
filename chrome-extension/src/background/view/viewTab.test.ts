@@ -19,7 +19,7 @@ describe('view tab', () => {
 
         const alarmStorage = new MockStorageArea()
         const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(undefined, undefined, undefined)
+        const viewState = new ViewStateManager(undefined, undefined, undefined, undefined, undefined)
         const viewTab = new ViewTabManager(portManager, viewState, undefined)
         await viewState.setStatus(STATE_LOADING_ITEMS.status)
 

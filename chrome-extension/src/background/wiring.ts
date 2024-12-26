@@ -59,18 +59,18 @@ async function wiring(
     const contentPortManager = portManagerFactory(contentListStorage, messages, tabs, PORT_NAME_BACK_CONTENT)
     const viewPortManager = portManagerFactory(viewListStorage, messages, tabs, PORT_NAME_BACK_VIEW)
 
+    // game log
+    const gameLogParser = new GameLogParser()
+    const gameLogHistory = new GameLogHistory()
+    
     // state
     const refreshManager = new RefreshManager(refreshItemHtmlAlarm, refreshItemAjaxAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
-    const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager)
+    const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
     
     // tabs
     const contentTabManager = new ContentTabManager(contentPortManager)
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
-
-    // game log
-    const gameLogParser = new GameLogParser()
-    const gameLogHistory = new GameLogHistory()
 
     // links
     contentPortManager.onConnect = (port) => contentTabManager.onConnect(port)
