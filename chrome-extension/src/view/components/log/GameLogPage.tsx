@@ -21,7 +21,7 @@ function GameLogPage() {
                 selector={GAME_LOG_TABULAR_SKILL}
                 columns={['Name', 'Value']}
                 getRow={(g: GameLogSkill) => [g.name, g.value.toFixed(4)]}
-            />            
+            />
             <SortableTableSection
                 title='Global'
                 selector={GAME_LOG_TABULAR_GLOBAL}
@@ -31,8 +31,8 @@ function GameLogPage() {
             <SortableTableSection
                 title='Statistics'
                 selector={GAME_LOG_TABULAR_STATISTICS}
-                columns={['Value']}
-                getRow={(g: string) => [g]}
+                columns={['Name', 'Value']}
+                getRow={(g: string[]) => g}
             />
             <SortableTableSection
                 title='Missing'

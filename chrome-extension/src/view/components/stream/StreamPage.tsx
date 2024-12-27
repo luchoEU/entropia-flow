@@ -5,7 +5,9 @@ import { getStreamIn } from '../../application/selectors/stream';
 import { StreamStateIn } from '../../application/state/stream';
 import ExpandableSection from '../common/ExpandableSection';
 import useBackground from '../hooks/UseBackground';
-import { BackgroundSpec, backgroundList } from '../../../stream/background';
+import { BackgroundSpec, backgroundList, getLogoUrl } from '../../../stream/background';
+import { SHOW_STREAM_EDITOR } from '../../../config';
+import StreamEditor from './StreamEditor';
 
 const StreamBackground = (p: {
     background: BackgroundSpec,
@@ -21,7 +23,7 @@ const StreamBackground = (p: {
             onClick={() => dispatch(setStreamBackgroundSelected(p.background.type))}>
             <div id={id} className='stream-view demo'>
                 <div className='stream-frame demo'>
-                    <img className='stream-logo' src={p.background.icon}></img>
+                    <img className='stream-logo' src={getLogoUrl(p.background.type).v} alt='Logo'></img>
                     <div className='stream-title'>Entropia Flow</div>
                     <div className='stream-subtitle'>{p.background.title}</div>
                 </div>
@@ -52,6 +54,7 @@ function StreamPage() {
                         { backgroundList.map((b: BackgroundSpec) =>
                             <StreamBackground key={b.type} background={b} isSelected={b.type === background.selected} />) }
                     </ExpandableSection>
+                    { SHOW_STREAM_EDITOR && <StreamEditor /> }
                     <section>
                         <h1>
                             Note

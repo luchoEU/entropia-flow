@@ -34,6 +34,7 @@ interface GameLogLine {
         stats?: GameLogStats
         positions?: GameLogPosition[]
         items?: string[]
+        login?: string
         logout?: string
     }
 }
@@ -63,5 +64,6 @@ export {
     GameLogLoot,
     GameLogGlobal,
     GameLogSkill,
+    GameLogStats,
     GameLogLine
 }

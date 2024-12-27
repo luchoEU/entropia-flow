@@ -6,6 +6,7 @@ import ColorOrbsBackground from './effects/color-orbs/main';
 import { SHOW_FEATURES_IN_DEVELOPMENT } from '../config';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
+import { HtmlTemplateIndirectData } from './htmlTemplate';
 
 enum BackgroundType {
   Light,
@@ -19,8 +20,8 @@ enum BackgroundType {
 interface BackgroundSpec {
   type: BackgroundType,
   title: string,
-  icon: string,
-  style: Record<string, string>
+  dark: boolean,
+  transparent: boolean
 }
 
 const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBackground)>([
@@ -64,7 +65,11 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
   if (type === undefined || container.querySelector('canvas'))
     return
 
-  const style = backgroundList[type].style
+  const { dark, transparent } = backgroundList[type]
+  const style = {
+    'color': dark ? 'white' : 'black',
+    'background-color': transparent ? 'transparent' : dark ? 'black' : 'white'
+  }
   Object.keys(style).forEach(key => container.style[key] = style[key]);
 
   if (oldContainer) {
@@ -92,47 +97,32 @@ const backgroundList: BackgroundSpec[] = [
   {
     type: BackgroundType.Light,
     title: 'Light',
-    icon: flow128_png,
-    style: {
-      'color': 'black',
-      'background-color': 'white'
-    }
+    dark: false,
+    transparent: false
   },
   {
     type: BackgroundType.Dark,
     title: 'Dark',
-    icon: flow128w_png,
-    style: {
-      'color': 'white',
-      'background-color': 'black'
-    }
+    dark: true,
+    transparent: false
   },
   {
     type: BackgroundType.Ashfall,
     title: 'Ashfall',
-    icon: flow128w_png,
-    style: {
-      'color': 'white',
-      'background-color': 'transparent'
-    }
+    dark: true,
+    transparent: true
   },
   {
     type: BackgroundType.Matrix,
     title: 'Matrix',
-    icon: flow128w_png,
-    style: {
-      'color': 'white',
-      'background-color': 'transparent'
-    }
+    dark: true,
+    transparent: true
   },
   {
     type: BackgroundType.Fireflies,
     title: 'Fireflies',
-    icon: flow128w_png,
-    style: {
-      'color': 'white',
-      'background-color': 'transparent'
-    }
+    dark: true,
+    transparent: true
   },
 ]
 
@@ -140,25 +130,19 @@ if (SHOW_FEATURES_IN_DEVELOPMENT) {
   backgroundList.push({
     type: BackgroundType.ColorOrbs,
     title: 'Color Orbs (WIP)',
-    icon: flow128w_png,
-    style: {
-      'color': 'white',
-      'background-color': 'transparent'
-    }
+    dark: true,
+    transparent: true
   })
 }
 
-const getIconUrl = (type: BackgroundType): string => {
-  if (type)
-    return backgroundList[type].icon
-  else
-    return flow128_png
+const getLogoUrl = (type: BackgroundType): HtmlTemplateIndirectData => {
+  return type && backgroundList[type].dark ? {n: 'img:logo-white', v: flow128w_png} : {n: 'img:logo-black', v: flow128_png}
 }
 
+export default loadBackground
 export {
   BackgroundType,
   BackgroundSpec,
   backgroundList,
-  getIconUrl,
-  loadBackground
+  getLogoUrl
 }

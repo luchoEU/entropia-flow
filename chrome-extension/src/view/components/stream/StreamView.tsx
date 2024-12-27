@@ -10,12 +10,12 @@ function StreamView() {
     const { enabled } = s.in
     const d = s.out?.data
 
-    useBackground(d?.background, 'stream', [ enabled ])
+    useBackground(d?.backgroundType, 'stream', [ enabled ])
 
     if (enabled && d)
         return (
             <section>
-                <StreamViewDiv background={d.background} delta={d.delta} message={d.message}/>
+                <StreamViewDiv data={d}/>
             </section>
         )
     else

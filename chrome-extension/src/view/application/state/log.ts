@@ -1,9 +1,9 @@
-const GAME_LOG_TABULAR_LOOT = 'loot'
-const GAME_LOG_TABULAR_SKILL = 'skill'
-const GAME_LOG_TABULAR_GLOBAL = 'global'
-const GAME_LOG_TABULAR_STATISTICS = 'statistics'
-const GAME_LOG_TABULAR_MISSING = 'missing'
-const GAME_LOG_TABULAR_RAW = 'raw'
+const GAME_LOG_TABULAR_LOOT = '[log] loot'
+const GAME_LOG_TABULAR_SKILL = '[log] skill'
+const GAME_LOG_TABULAR_GLOBAL = '[log] global'
+const GAME_LOG_TABULAR_STATISTICS = '[log] statistics'
+const GAME_LOG_TABULAR_MISSING = '[log] missing'
+const GAME_LOG_TABULAR_RAW = '[log] raw'
 
 interface GameLogState { }
 

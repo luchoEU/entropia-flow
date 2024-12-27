@@ -1,5 +1,5 @@
 import { DependencyList, useEffect, useRef } from 'react';
-import { BackgroundType, loadBackground } from '../../../stream/background'
+import loadBackground, { BackgroundType } from '../../../stream/background'
 
 const useBackground = (type: BackgroundType, containerId: string, deps: DependencyList = []) => {
   const observerRef = useRef<IntersectionObserver | null>(null);

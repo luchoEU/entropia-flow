@@ -24,8 +24,9 @@ const dodgeRegex = /The target Dodged your attack/
 const evageRegex = /You Evaded the attack/
 const critical = /Critical hit - Additional damage! You inflicted 222.8 points of damage/
 const logoutRegex = /(.*) has logged out/
+const loginRegex = /(.*) has logged in/
 const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
-const braketRegex = new RegExp(/\[(.*?)]/, 'g')
+const braketRegex = /\[(.*?)]/g
 
 class GameLogParser {
     public onLine: (s: GameLogLine) => void
@@ -71,6 +72,10 @@ class GameLogParser {
                 const logoutMatch = logoutRegex.exec(line.message);
                 if (logoutMatch !== null) {
                     line.data.logout = logoutMatch[1]
+                }
+                const loginMatch = loginRegex.exec(line.message);
+                if (loginMatch !== null) {
+                    line.data.login = loginMatch[1]
                 }
                 break
             case "Globals":

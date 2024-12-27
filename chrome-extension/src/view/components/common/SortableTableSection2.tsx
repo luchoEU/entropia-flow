@@ -324,7 +324,7 @@ const SortableTableSection = <TItem extends any>(p: {
     const { selector, columns, getRow } = p
     const s: TabularStateData = useSelector(getTabularData(selector))
     const dispatch = useDispatch()
-    if (!s?.items) return <></>
+    if (!s?.items) return <p>{selector}</p>
 
     const stats = s.items.stats
 

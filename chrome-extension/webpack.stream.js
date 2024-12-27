@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "src/stream/stream.ts"),
+  entry: path.join(__dirname, "src/stream/clientRender.ts"),
   output: {
     path: path.join(__dirname, "dist.win"),
     filename: "EntropiaFlowStream.js",

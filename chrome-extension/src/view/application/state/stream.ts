@@ -1,4 +1,8 @@
 import { BackgroundType } from '../../../stream/background'
+import StreamRenderData from '../../../stream/data'
+import { HtmlTemplateData } from '../../../stream/htmlTemplate'
+
+const STREAM_TABULAR_VARIABLES = '[stream] variables'
 
 interface StreamStateIn {
     enabled: boolean,
@@ -6,26 +10,31 @@ interface StreamStateIn {
         expanded: boolean,
         selected: BackgroundType
     }
+    template: HtmlTemplateData
 }
 
 interface StreamStateOut {
-    data: StreamData
-}
-
-interface StreamData {
-    background: number,
-    delta: number,
-    message: string
+    data: StreamRenderData
 }
 
 interface StreamState {
     in: StreamStateIn,
+    variables: Record<string, StreamVariable[]>,
     out: StreamStateOut
+}
+
+interface StreamVariable {
+    source?: string,
+    name: string,
+    value: string,
+    description?: string,
+    isIndirect?: boolean
 }
 
 export {
     StreamState,
     StreamStateIn,
     StreamStateOut,
-    StreamData
+    STREAM_TABULAR_VARIABLES,
+    StreamVariable
 }
