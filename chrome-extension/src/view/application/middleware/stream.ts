@@ -1,7 +1,10 @@
+import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { backgroundList, getLogoUrl } from "../../../stream/background"
 import StreamRenderData from "../../../stream/data"
+import { applyDelta, getDelta } from "../../../stream/delta"
 import { computeFormulas } from "../../../stream/htmlTemplate"
+import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
@@ -108,17 +111,28 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_DATA: {
             const { data }: StreamStateOut = getStreamOut(getState())
-            dispatch(sendWebSocketMessage('stream', _delta(data)))
+
+            // TODO: send used variables
+            const delta = getDelta(_dataInClient, data)
+            _dataInClient = applyDelta(_dataInClient, delta)
+
+            dispatch(sendWebSocketMessage('stream', delta))
+            break
+        }
+        case WEB_SOCKET_STATE_CHANGED: {
+            const code: WebSocketStateCode = action.payload.code
+            if (_lastWebSocketCode !== code) {
+                if (code === WebSocketStateCode.connected)
+                    _dataInClient = undefined // it is a new client
+                _lastWebSocketCode = code
+            }
             break
         }
     }
 }
 
-function _delta(data: StreamRenderData): StreamRenderData {
-    // only send used variables
-    // only send difference from last time
-    return data;
-}
+let _dataInClient: StreamRenderData = undefined
+let _lastWebSocketCode: WebSocketStateCode = undefined
 
 export default [
     requests

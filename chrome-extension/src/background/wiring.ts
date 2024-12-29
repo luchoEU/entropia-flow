@@ -87,12 +87,15 @@ async function wiring(
     refreshManager.setContentTab(contentTabManager)
     webSocketClient.onMessage = async msg => {
         switch (msg.type) {
+            case "version":
+                viewStateManager.setClientVersion(msg.data)
+                break;
             case "log":
                 await gameLogParser.onMessage(msg.data)
                 break;
         }
     }
-    webSocketClient.onStateChanged = (state, message) => viewStateManager.setClientState(state, message)
+    webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)
     gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
     gameLogHistory.onChange = (gameLog) => viewStateManager.setGameLog(gameLog)
     actions.clickListen(() => {

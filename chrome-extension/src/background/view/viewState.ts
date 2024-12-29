@@ -5,7 +5,7 @@ import {
 } from '../../common/state'
 import { GameLogData } from '../client/gameLogData'
 import { IGameLogHistory } from '../client/gameLogHistory'
-import IWebSocketClient from '../client/webSocketInterface'
+import IWebSocketClient, { WebSocketState } from '../client/webSocketInterface'
 import RefreshManager from '../content/refreshManager'
 import InventoryManager from '../inventory/inventory'
 import ViewSettings from '../settings/viewSettings'
@@ -62,9 +62,15 @@ class ViewStateManager {
         }
     }
 
-    public async setClientState(state: string, message: string): Promise<void> {
+    public async setClientState(state: WebSocketState): Promise<void> {
         if (this.onChange) {
-            await this.onChange({ clientState: { state, message } })
+            await this.onChange({ clientState: state })
+        }
+    }
+
+    public async setClientVersion(version: string) {
+        if (this.onChange) {
+            await this.onChange({ clientState: await this.webSocketClient.getState(), clientVersion: version })
         }
     }
 }

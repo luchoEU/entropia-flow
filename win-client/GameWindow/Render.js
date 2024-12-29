@@ -2,7 +2,7 @@
 let lastData = undefined
 
 function render(data) {
-    lastData = data
+    lastData = entropiaFlowStream.applyDelta(lastData, data)
     if (!renderEnabled)
         return;
 

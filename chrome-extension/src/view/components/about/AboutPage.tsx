@@ -102,3 +102,6 @@ function AboutPage() {
 }
 
 export default AboutPage
+export {
+    VERSION
+}

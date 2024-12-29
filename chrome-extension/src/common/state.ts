@@ -1,6 +1,7 @@
 //// STATE ////
 
 import { GameLogData } from "../background/client/gameLogData"
+import { WebSocketState } from "../background/client/webSocketInterface"
 
 interface ItemData {
     id: string // identifier, number
@@ -47,17 +48,13 @@ interface Status {
     isMonitoring: boolean
 }
 
-interface ClientState {
-    state: string
-    message: string
-}
-
 interface ViewState {
     list?: Array<Inventory>
     last?: number
     status?: Status
     gameLog?: GameLogData
-    clientState?: ClientState
+    clientState?: WebSocketState
+    clientVersion?: string
 }
 
 let mockDate = undefined

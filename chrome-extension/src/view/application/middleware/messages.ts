@@ -1,6 +1,6 @@
 import { STRING_WAIT_3_MINUTES } from '../../../common/const'
 import { ViewState } from '../../../common/state'
-import { setConnectionStatus } from '../actions/connection'
+import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
@@ -30,8 +30,10 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
         dispatch(setStatus(m.status))
     if (m.gameLog)
         dispatch(setCurrentGameLog(m.gameLog))
-    if (m.clientState)
-        dispatch(setConnectionStatus(m.clientState.state, m.clientState.message))
+    if (m.clientState) {
+        dispatch(webSocketStateChanged(m.clientState.code))
+        dispatch(setConnectionStatus(m.clientState.message + m.clientVersion ? ` (version ${m.clientVersion})` : ''))
+    }
 }
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {

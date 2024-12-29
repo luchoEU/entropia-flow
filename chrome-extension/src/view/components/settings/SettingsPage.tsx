@@ -24,7 +24,7 @@ function EntropiaFlowClient() {
                         getChangeAction={webSocketConnectionChanged} />
                 </div>
                 <p>
-                    Status: {s.client.status} {s.client.message}
+                    Status: {s.client.status}
                     <ImgButton
                         title='Try to connect again'
                         src='img/reload.png'

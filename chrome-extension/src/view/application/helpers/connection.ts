@@ -5,8 +5,7 @@ const initialState: ConnectionState = {
     client: {
         expanded: true,
         webSocket: DEFAULT_WEB_SOCKET_URL,
-        status: 'initializing',
-        message: ''
+        status: 'initializing'
     }
 }
 
@@ -28,12 +27,11 @@ const reduceSetConnectionWebSocket = (state: ConnectionState, webSocket: string)
     }
 })
 
-const reduceSetConnectionStatus = (state: ConnectionState, status: string, message: string) => ({
+const reduceSetConnectionStatus = (state: ConnectionState, status: string) => ({
     ...state,
     client: {
         ...state.client,
-        status,
-        message
+        status
     }
 })
 
@@ -41,8 +39,7 @@ const cleanForSave = (state: ConnectionState): ConnectionState => ({
     ...state,
     client: {
         ...state.client,
-        status: undefined,
-        message: undefined
+        status: undefined
     }
 })
 

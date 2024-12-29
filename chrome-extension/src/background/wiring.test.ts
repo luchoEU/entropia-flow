@@ -21,6 +21,7 @@ import {
 } from "../common/const"
 import { Inventory, setMockDate } from "../common/state"
 import { traceOff } from "../common/trace"
+import { WebSocketStateCode } from "./client/webSocketInterface"
 import MockWebSocketClient from "./client/webSocketMock"
 import ContentTabManager from "./content/contentTab"
 import RefreshManager from "./content/refreshManager"
@@ -316,12 +317,13 @@ describe('full', () => {
         })
 
         test('when websocket state changes, send it to content', async () => {
-            await webSocketClient.onStateChanged('state', 'message')
+            const state = { code: WebSocketStateCode.connected, message: 'test' }
+            await webSocketClient.onStateChanged(state)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: { state: 'state', message: 'message' }})
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: state })
         })
     })
 })

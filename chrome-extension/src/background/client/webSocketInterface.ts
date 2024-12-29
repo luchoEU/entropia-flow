@@ -4,15 +4,23 @@ interface IWebSocketClient {
     close(): Promise<void>
     onMessage: (msg: any) => Promise<void>
     getState(): WebSocketState
-    onStateChanged: (state: string, message: string) => Promise<void>
+    onStateChanged: (state: WebSocketState) => Promise<void>
+}
+
+enum WebSocketStateCode {
+    connecting,
+    connected,
+    disconnected,
+    error
 }
 
 interface WebSocketState {
-    state: string
+    code: WebSocketStateCode
     message: string
 }
 
 export default IWebSocketClient
 export {
+    WebSocketStateCode,
     WebSocketState
 }

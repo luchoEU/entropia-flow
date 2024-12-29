@@ -22,7 +22,7 @@ class MockWebSocketClient implements IWebSocketClient {
     }
 
     public onMessage: (msg: any) => Promise<void>;
-    public onStateChanged: (state: string, message: string) => Promise<void>;
+    public onStateChanged: (state: WebSocketState) => Promise<void>;
 }
 
 export default MockWebSocketClient
