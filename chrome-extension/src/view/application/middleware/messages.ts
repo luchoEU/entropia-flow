@@ -32,7 +32,7 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
         dispatch(setCurrentGameLog(m.gameLog))
     if (m.clientState) {
         dispatch(webSocketStateChanged(m.clientState.code))
-        dispatch(setConnectionStatus(m.clientState.message + m.clientVersion ? ` (version ${m.clientVersion})` : ''))
+        dispatch(setConnectionStatus(m.clientState.message + (m.clientVersion ? ` (version ${m.clientVersion})` : '')))
     }
 }
 
