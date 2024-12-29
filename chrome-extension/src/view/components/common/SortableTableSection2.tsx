@@ -315,11 +315,13 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     )
 }
 
+type RowValue = string | { img: string }
+
 const SortableTableSection = <TItem extends any>(p: {
     title: string,
     selector: string,
     columns: string[],
-    getRow: (item: TItem) => string[]
+    getRow: (item: TItem) => RowValue[]
 }) => {
     const { selector, columns, getRow } = p
     const s: TabularStateData = useSelector(getTabularData(selector))
@@ -348,8 +350,8 @@ const SortableTableSection = <TItem extends any>(p: {
         tableData: {
             sortRow: columns.map(s => ({ text: s })),
             getRow: r => ({
-                columns: getRow(r).map(s => ({
-                    sub: [{ itemText: s }]
+                columns: getRow(r).map((s: RowValue): ItemRowColumnData => ({
+                    sub: s === undefined ? [] : [(typeof s === 'string') ? { itemText: s } : { img: { src: s.img, show: true }}]
                 }))
             })
         }

@@ -10,7 +10,7 @@ function StreamView() {
     const { enabled } = s.in
     const d = s.out?.data
 
-    useBackground(d?.backgroundType, 'stream', [ enabled ])
+    useBackground(d?.def.backgroundType, 'stream', [ enabled ])
 
     if (enabled && d)
         return (

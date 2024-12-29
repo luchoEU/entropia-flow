@@ -1,16 +1,14 @@
-import { BackgroundType } from '../../../stream/background'
-import StreamRenderData from '../../../stream/data'
-import { HtmlTemplateData } from '../../../stream/htmlTemplate'
+import StreamRenderData, { StreamRenderDefinition, StreamRenderValue } from '../../../stream/data'
 
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
+const STREAM_TABULAR_IMAGES = '[stream] images'
 
 interface StreamStateIn {
-    enabled: boolean,
-    background: {
-        expanded: boolean,
-        selected: BackgroundType
+    enabled: boolean
+    expanded: {
+        background: boolean
     }
-    template: HtmlTemplateData
+    definition: StreamRenderDefinition
 }
 
 interface StreamStateOut {
@@ -18,17 +16,18 @@ interface StreamStateOut {
 }
 
 interface StreamState {
-    in: StreamStateIn,
-    variables: Record<string, StreamVariable[]>,
+    in: StreamStateIn
+    variables: Record<string, StreamVariable[]>
     out: StreamStateOut
 }
 
 interface StreamVariable {
-    source?: string,
-    name: string,
-    value: string,
-    description?: string,
-    isIndirect?: boolean
+    source?: string
+    name: string
+    value: StreamRenderValue
+    computed?: StreamRenderValue
+    description?: string
+    isImage?: boolean
 }
 
 export {
@@ -36,5 +35,6 @@ export {
     StreamStateIn,
     StreamStateOut,
     STREAM_TABULAR_VARIABLES,
+    STREAM_TABULAR_IMAGES,
     StreamVariable
 }

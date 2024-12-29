@@ -3,7 +3,6 @@ import StreamRenderData, { StreamRenderSize } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./reactToSnabb"
 import loadBackground from "./background"
-import { templateManager } from './htmlTemplate'
 
 const patch = init([
     propsModule, // for setting properties on DOM elements
@@ -21,15 +20,6 @@ export function render(data: StreamRenderData): StreamRenderSize | null {
         const streamElement = document.getElementById('stream')
 
         // update template definition
-        if (data.templateDefinition?.data) {
-            templateManager.add(data.templateDefinition.data)
-        }
-        data.templateDefinition?.indirect?.forEach(indirect => {
-            templateManager.addIndirect(indirect)
-        });
-        if (data.templateDefinition?.indirectNames) {
-            templateManager.setIndirectNames(data.templateDefinition.indirectNames)
-        }
 
         // render
         const vNode = reactElementToVNode(StreamViewDiv({ data }))
@@ -37,12 +27,9 @@ export function render(data: StreamRenderData): StreamRenderSize | null {
 
         // load background
         const newStreamElement = document.getElementById('stream') // get it again after patch
-        loadBackground(data.backgroundType, newStreamElement, streamElement)
+        loadBackground(data.def.backgroundType, newStreamElement, streamElement)
 
-        return {
-            width: parseInt(streamElement.style.width),
-            height: parseInt(streamElement.style.height)
-        }
+        return data.def.size
     } finally {
         isRendering = false;
     }

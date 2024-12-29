@@ -45,10 +45,10 @@ const setStreamData = (data: StreamRenderData) => ({
     }
 })
 
-const setStreamTemplate = (html: string) => ({
+const setStreamTemplate = (template: string) => ({
     type: SET_STREAM_TEMPLATE,
     payload: {
-        html
+        template
     }
 })
 

@@ -8,7 +8,7 @@ export default (state = initialState, action) => {
         case SET_STREAM_BACKGROUND_EXPANDED: return reduceSetStreamBackgroundExpanded(state, action.payload.expanded)
         case SET_STREAM_BACKGROUND_SELECTED: return reduceSetStreamBackgroundSelected(state, action.payload.selected)
         case SET_STREAM_VARIABLES: return reduceSetStreamVariables(state, action.payload.source, action.payload.variables)
-        case SET_STREAM_TEMPLATE: return reduceSetStreamTemplate(state, action.payload.html)
+        case SET_STREAM_TEMPLATE: return reduceSetStreamTemplate(state, action.payload.template)
         case SET_STREAM_DATA: return reduceSetStreamData(state, action.payload.data)
         default: return state
     }

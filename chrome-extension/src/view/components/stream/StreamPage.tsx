@@ -23,7 +23,7 @@ const StreamBackground = (p: {
             onClick={() => dispatch(setStreamBackgroundSelected(p.background.type))}>
             <div id={id} className='stream-view demo'>
                 <div className='stream-frame demo'>
-                    <img className='stream-logo' src={getLogoUrl(p.background.type).v} alt='Logo'></img>
+                    <img className='stream-logo' src={getLogoUrl(p.background.dark)} alt='Logo'></img>
                     <div className='stream-title'>Entropia Flow</div>
                     <div className='stream-subtitle'>{p.background.title}</div>
                 </div>
@@ -34,7 +34,7 @@ const StreamBackground = (p: {
 
 function StreamPage() {
     const dispatch = useDispatch()
-    const { enabled, background }: StreamStateIn = useSelector(getStreamIn);
+    const { enabled, expanded, definition }: StreamStateIn = useSelector(getStreamIn);
 
     return (
         <>
@@ -50,9 +50,9 @@ function StreamPage() {
             </section>
             { enabled &&
                 <>
-                    <ExpandableSection className='flex' title='Background' expanded={background.expanded} setExpanded={setStreamBackgroundExpanded}>
+                    <ExpandableSection className='flex' title='Background' expanded={expanded.background} setExpanded={setStreamBackgroundExpanded}>
                         { backgroundList.map((b: BackgroundSpec) =>
-                            <StreamBackground key={b.type} background={b} isSelected={b.type === background.selected} />) }
+                            <StreamBackground key={b.type} background={b} isSelected={b.type === definition.backgroundType} />) }
                     </ExpandableSection>
                     { SHOW_STREAM_EDITOR && <StreamEditor /> }
                     <section>

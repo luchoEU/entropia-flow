@@ -1,24 +1,23 @@
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData from '../../../stream/data';
-import { HtmlTemplateData } from '../../../stream/htmlTemplate';
+import StreamRenderData, { StreamRenderDefinition } from '../../../stream/data';
 import { StreamState, StreamStateIn, StreamVariable } from "../state/stream";
 
-const _defaultTemplate: HtmlTemplateData = {
-    name: 'default',
+const _defaultDefinition: StreamRenderDefinition = {
+    backgroundType: BackgroundType.Light,
     size: { width: 494, height: 150 },
-    html: `
-      <div style='margin: 50px; position: absolute'>
-        <img style='width: 50px; position: absolute; top: 0px; left: 0px;' src='{logoUrl}' alt='Logo'></img>
+    template: `
+      <div style='font-size: 14px; position: absolute; top: 50px; left: 50px;'>
+        <img style='width: 50px' src='{logoUrl}' alt='Logo'></img>
         <div style='font-size: 20px; font-weight: bold; position: absolute; top: 0px; left: 60px; width: 200px;'>
           Entropia Flow
         </div>
-        <div style='font-size: 14px; position: absolute; top: 26px; left: 69px; width: 200px;'>
+        <div style='position: absolute; top: 26px; left: 69px; width: 200px;'>
           Chrome Extension
         </div>
-        <div style='font-size: 14px; width: 170px; padding: 8px; border-radius: 8px; text-align: center; position: absolute; top: 0px; left: 208px; background-color: {deltaBackColor}; color: white;'>
-          {deltaText} PED {deltaWord}
+        <div style='position: absolute; top: 0px; left: 208px; width: 170px; background-color: {deltaBackColor}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
+          {delta} PED {deltaWord}
         </div>
-        <div style='font-size: 12px; width: 170px; text-align: center; position: absolute; top: 36px; left: 208px;'>
+        <div style='position: absolute; top: 36px; left: 208px; width: 170px; font-size: 12px; text-align: center;'>
           {message}
         </div>
       </div>`
@@ -26,11 +25,10 @@ const _defaultTemplate: HtmlTemplateData = {
 
 const initialStateIn: StreamStateIn = {
     enabled: false,
-    background: {
-        expanded: true,
-        selected: BackgroundType.Light,
+    expanded: {
+        background: true,
     },
-    template: _defaultTemplate
+    definition: _defaultDefinition
 }
 
 const initialState: StreamState = {
@@ -57,9 +55,9 @@ const reduceSetStreamBackgroundExpanded = (state: StreamState, expanded: boolean
     ...state,
     in: {
         ...state.in,
-        background: {
-            ...state.in.background,
-            expanded
+        expanded: {
+            ...state.in.expanded,
+            background: expanded
         }
     }
 })
@@ -68,9 +66,9 @@ const reduceSetStreamBackgroundSelected = (state: StreamState, selected: Backgro
     ...state,
     in: {
         ...state.in,
-        background: {
-            ...state.in.background,
-            selected
+        definition: {
+            ...state.in.definition,
+            backgroundType: selected
         }
     }
 })
@@ -83,13 +81,13 @@ const reduceSetStreamVariables = (state: StreamState, source: string, variables:
     }
 })
 
-const reduceSetStreamTemplate = (state: StreamState, html: string): StreamState => ({
+const reduceSetStreamTemplate = (state: StreamState, template: string): StreamState => ({
     ...state,
     in: {
         ...state.in,
-        template: {
-            ...state.in.template,
-            html
+        definition: {
+            ...state.in.definition,
+            template
         }
     }
 })

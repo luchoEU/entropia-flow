@@ -1,25 +1,26 @@
-import { HtmlTemplateData, HtmlTemplateIndirectData } from "./htmlTemplate"
-
-interface StreamRenderData {
+interface StreamRenderDefinition {
     backgroundType: number // BackgroundType
-    templateName: string,
-    variables: StreamRenderVariables
-    templateDefinition?: {
-        data?: HtmlTemplateData
-        indirect?: HtmlTemplateIndirectData[]
-        indirectNames?: string[]
-    }
+    template: string
+    size: StreamRenderSize
 }
 
-type StreamRenderVariables = Record<string, string>
-
 interface StreamRenderSize {
-    width: number,
+    width: number
     height: number
 }
 
+interface StreamRenderData {
+    obj: StreamRenderObject
+    def: StreamRenderDefinition
+}
+
+type StreamRenderObject = { [name: string]: StreamRenderValue }
+type StreamRenderValue = string | number | boolean | StreamRenderObject | StreamRenderValue[]
+
 export default StreamRenderData
 export {
-    StreamRenderVariables,
+    StreamRenderDefinition,
+    StreamRenderObject,
+    StreamRenderValue,
     StreamRenderSize
 }

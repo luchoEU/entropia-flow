@@ -63,6 +63,14 @@ const STATE_MONITORING_OFF: ViewState = {
 }
 
 const STATE_NO_DATA: ViewState = {
+    clientState: undefined,
+    gameLog: {
+        global: [],
+        loot: [],
+        raw: [],
+        skill: [],
+        stats: {},
+    },
     last: null,
     list: [{
         log: {

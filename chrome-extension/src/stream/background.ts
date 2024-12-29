@@ -6,7 +6,6 @@ import ColorOrbsBackground from './effects/color-orbs/main';
 import { SHOW_FEATURES_IN_DEVELOPMENT } from '../config';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
-import { HtmlTemplateIndirectData } from './htmlTemplate';
 
 enum BackgroundType {
   Light,
@@ -135,8 +134,8 @@ if (SHOW_FEATURES_IN_DEVELOPMENT) {
   })
 }
 
-const getLogoUrl = (type: BackgroundType): HtmlTemplateIndirectData => {
-  return type && backgroundList[type].dark ? {n: 'img:logo-white', v: flow128w_png} : {n: 'img:logo-black', v: flow128_png}
+function getLogoUrl(darkBackground: boolean) {
+  return darkBackground ? flow128w_png : flow128_png
 }
 
 export default loadBackground

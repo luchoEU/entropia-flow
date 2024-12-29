@@ -1,16 +1,15 @@
 import React from 'react';
 import StreamRenderData from './data';
-import { templateManager } from './htmlTemplate';
+import renderHtmlTemplate from './htmlTemplate';
 
 const StreamViewDiv = (p: {
     data: StreamRenderData
 }) => {
-    const { templateName, variables } = p.data
-    const template = templateManager.get(templateName)
-    const html = template.render(variables)
+    const { obj, def } = p.data
+    const html = renderHtmlTemplate(def.template, obj)
 
-    return <div id='stream' style={template.getContainerStyle()}>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+    return <div id='stream' style={def.size}>
+        <div style={{ ...def.size, position: 'absolute', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
 };
 
