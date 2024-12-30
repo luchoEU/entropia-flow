@@ -6,21 +6,19 @@ const _defaultDefinition: StreamRenderDefinition = {
     backgroundType: BackgroundType.Light,
     size: { width: 494, height: 150 },
     template: `
-      <div style='font-size: 14px; position: absolute; top: 50px; left: 50px;'>
-        <img style='width: 50px' src='{logoUrl}' alt='Logo'></img>
-        <div style='font-size: 20px; font-weight: bold; position: absolute; top: 0px; left: 60px; width: 200px;'>
-          Entropia Flow
-        </div>
-        <div style='position: absolute; top: 26px; left: 69px; width: 200px;'>
-          Chrome Extension
-        </div>
-        <div style='position: absolute; top: 0px; left: 208px; width: 170px; background-color: {deltaBackColor}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
-          {delta} PED {deltaWord}
-        </div>
-        <div style='position: absolute; top: 36px; left: 208px; width: 170px; font-size: 12px; text-align: center;'>
-          {message}
-        </div>
-      </div>`
+<div style='display: flex; align-items: start; font-size: 14px; margin: 50px;'>
+  <img style='width: 50px;' src='{logoUrl}' alt='Logo'></img>
+  <div style='display: flex; flex-direction: column; margin: 0px 10px;'>
+    <div style='font-size: 20px; font-weight: bold;'>Entropia Flow</div>
+    <div style='margin-left: 10px'>Chrome Extension</div>
+  </div>
+  <div style='display: flex; flex-direction: column; margin-left: 5px; width: 180px;'>
+    <div style='background-color: {deltaBackColor}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
+      {delta} PED {deltaWord}
+    </div>
+    <div style='margin-top: 5px; font-size: 12px; text-align: center;'>{message}</div>
+  </div>
+</div>`
 }
 
 const initialStateIn: StreamStateIn = {

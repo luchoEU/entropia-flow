@@ -67,15 +67,15 @@ function computeFormulas(obj: StreamRenderObject) {
 
 const getUsedVariables = (template: string) => Array.from(template.matchAll(/\{(.*?)\}/g)).map(m => m[1])
 
-function renderHtmlTemplate(template: string, obj: StreamRenderObject): string {
+function renderHtmlTemplate(template: string, obj: StreamRenderObject, safeCheck = true): string {
     var variables = computeFormulas(obj)
-    const html = Object.keys(variables).reduce((acc, key) => {
-        return acc.replace(`{${key}}`, variables[key])
-      }, template)
-    return _checkSafeHtml(html)
+    const html = Array.from(template.matchAll(/\{(.*?)\}|[^{]+/g)).map(t => t[1] ?
+        t[1].split('.').reduce((acc, key) => acc[key], variables) : t[0]).join('')
+    return safeCheck ? _checkSafeHtml(html) : html
 }
 
 export default renderHtmlTemplate
 export {
+    getUsedVariables,
     computeFormulas
 }

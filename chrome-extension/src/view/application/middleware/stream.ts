@@ -1,5 +1,6 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
+import { DISABLE_TEMPLATE_SAFE_CHECK } from "../../../config"
 import { backgroundList, getLogoUrl } from "../../../stream/background"
 import StreamRenderData from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
@@ -102,10 +103,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const vars = Object.values(s.variables).flat()
             const obj = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]))
             obj.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]))
-            const data: StreamRenderData = {
-                obj,
-                def: s.in.definition
-            }
+            const def = DISABLE_TEMPLATE_SAFE_CHECK ? { ...s.in.definition, disableSafeCheck: true } : s.in.definition
+            const data: StreamRenderData = { obj, def }
             dispatch(setStreamData(data))
             break;
         }

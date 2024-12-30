@@ -2,6 +2,7 @@ interface StreamRenderDefinition {
     backgroundType: number // BackgroundType
     template: string
     size: StreamRenderSize
+    disableSafeCheck?: boolean
 }
 
 interface StreamRenderSize {

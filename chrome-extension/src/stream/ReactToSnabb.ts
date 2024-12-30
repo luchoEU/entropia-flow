@@ -14,12 +14,20 @@ function reactElementToVNode(reactElement: ReactElement): VNode {
     // TODO: If it's a functional component, render it and recursively convert the result
     return h('func')
   }
-
+  
   // Convert props from React to Snabbdom format
   const snabbdomProps: VNodeData = {
-    props: { ...props, children: undefined, style: undefined },
+    props: { ...props },
     style: props.style
   };
+  delete snabbdomProps.props.children;
+  delete snabbdomProps.props.style;
+
+  // Convert inner HTML
+  if (props.dangerouslySetInnerHTML) {
+    snabbdomProps.props.innerHTML = props.dangerouslySetInnerHTML.__html;
+    delete snabbdomProps.props.dangerouslySetInnerHTML;
+  }
 
   // Convert children recursively
   const snabbdomChildren = Array.isArray(children)

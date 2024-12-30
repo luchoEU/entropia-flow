@@ -1,4 +1,4 @@
-import { init, propsModule, styleModule } from 'snabbdom'
+import { init, propsModule, styleModule, VNode } from 'snabbdom'
 import StreamRenderData, { StreamRenderSize } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./reactToSnabb"
@@ -19,11 +19,15 @@ export function render(data: StreamRenderData): StreamRenderSize | null {
     try {
         const streamElement = document.getElementById('stream')
 
-        // update template definition
-
         // render
         const vNode = reactElementToVNode(StreamViewDiv({ data }))
-        patch(streamElement, vNode)
+        if (streamElement.firstChild) {
+            // patch only first child to avoid flickering in background
+            patch(streamElement.firstChild as HTMLElement, vNode.children[0] as VNode)
+            Object.entries(vNode.data.style).forEach(([key, value]) => { streamElement.style[key] = value })
+        } else {
+            patch(streamElement, vNode)
+        }
 
         // load background
         const newStreamElement = document.getElementById('stream') // get it again after patch
