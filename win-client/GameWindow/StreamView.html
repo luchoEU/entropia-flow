@@ -10,9 +10,9 @@
             #hoverImage {
                 display: none;
                 position: absolute;
-                top: 5px;
-                right: 5px;
-                padding: 5px;
+                top: 4px;
+                left: 4px;
+                padding: 1px;
                 width: 20px;
                 z-index: 9999;
                 background-color: rgba(255, 255, 255, 0.5);
@@ -22,15 +22,6 @@
                 display: block;
             }
             .minimized #hoverImage {
-                top: 4px;
-                right: 4px;
-                padding: 1px;
-                display: block;
-            }
-            .minimized #stream > * {
-                display: none;
-            }
-            .minimized #stream canvas {
                 display: block;
             }
         </style>
@@ -40,11 +31,7 @@
     </head>
     <body>
         <div id="hoverArea">
-            <div id="stream">
-                <img src="flow128.png" alt="Logo" style="width: 50px; position: absolute; top: 10px; left: 10px;">
-                <div style="font-size: 20px; font-weight: bold; position: absolute; top: 10px; left: 62px;">Entropia Flow</div>
-                <div style="font-size: 14px; position: absolute; top: 36px; left: 71px;">Waiting for connection...</div>
-            </div>
+            <div id="stream"></div>
             <img id="hoverImage" src="flow128.png">
         </div>
     </body>

@@ -25,10 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\chrome-extension\dist\img\copy.png" Link="Resources\copy.png" />
     <EmbeddedResource Include="..\chrome-extension\dist\img\flow128.png" Link="Resources\flow128.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\flow128w.ico" />
   </ItemGroup>
 

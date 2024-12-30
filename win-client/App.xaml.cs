@@ -15,6 +15,7 @@ namespace EntropiaFlowClient
         private readonly LogWatcher _watcher;
         private WebSocketChat _webSocketServer;
         private SettingsWindow? _settingsWindow;
+        private ToolStripItem? _overlayItem;
 
         public App()
         {
@@ -40,13 +41,28 @@ namespace EntropiaFlowClient
                 if (iconStream != null)
                     _notifyIcon.Icon = new Icon(iconStream);
             }
-            _notifyIcon.Text = "Entropia Flow Log Reader";
+            _notifyIcon.Text = "Entropia Flow Client";
             _notifyIcon.Click += NotifyIcon_Click;
 
             _notifyIcon.ContextMenuStrip = new ContextMenuStrip();
+            _overlayItem = _notifyIcon.ContextMenuStrip.Items.Add("Hide Overlay", null, OnOverlayClicked);
             _notifyIcon.ContextMenuStrip.Items.Add("Settings", null, OnSettingsClicked);
             _notifyIcon.ContextMenuStrip.Items.Add("Exit", null, OnExitClicked);
             _notifyIcon.Visible = true;
+        }
+
+        private void OnOverlayClicked(object? sender, EventArgs e)
+        {
+            if (MainWindow.IsVisible)
+            {
+                MainWindow.Hide();
+                _overlayItem!.Text = "Show Overlay";
+            }
+            else
+            {
+                MainWindow.Show();
+                _overlayItem!.Text = "Hide Overlay";
+            }
         }
 
         private void OnExitClicked(object? sender, EventArgs e)
@@ -87,7 +103,10 @@ namespace EntropiaFlowClient
             _webSocketServer.StreamMessageReceived += _webSocketServer_StreamMessageReceived;
             _webSocketServer.SocketClosed += _webSocketServer_SocketClosed;
             _webSocketServer.Start();
+            WaitingForConnnection?.Invoke(this, EventArgs.Empty);
         }
+
+        public string ListeningUri => _webSocketServer.ListeningUri;
 
         private void _webSocketServer_StreamMessageReceived(object? sender, StreamMessageEventArgs e)
         {
@@ -102,6 +121,7 @@ namespace EntropiaFlowClient
         }
 
         public event EventHandler<StreamMessageEventArgs>? StreamMessageReceived;
+        public event EventHandler<EventArgs>? WaitingForConnnection;
 
         #endregion
 

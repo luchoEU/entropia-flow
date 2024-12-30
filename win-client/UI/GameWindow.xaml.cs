@@ -3,8 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Windows;
-using System.Xml.Linq;
 using Point = System.Drawing.Point;
 
 namespace EntropiaFlowClient
@@ -13,7 +13,7 @@ namespace EntropiaFlowClient
     /// Interaction logic for GameWindow.xaml
     /// </summary>
     public partial class GameWindow : Window
-    {        
+    {
         public GameWindow()
         {
             InitializeComponent();
@@ -22,12 +22,38 @@ namespace EntropiaFlowClient
             webView2.CoreWebView2InitializationCompleted += WebBrowser_CoreWebView2InitializationCompleted;
             webView2.EnsureCoreWebView2Async();
 
-            ((App)System.Windows.Application.Current).StreamMessageReceived += GameWindow_StreamMessageReceived;
+            App.StreamMessageReceived += GameWindow_StreamMessageReceived;
+            App.WaitingForConnnection += GameWindow_WaitingForConnnection;
         }
+
+        private App App => (App)System.Windows.Application.Current;
 
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
-            Dispatcher.Invoke(() => webView2.CoreWebView2?.ExecuteScriptAsync($"render({e.Data})"));
+            ExecuteScriptAsync($"receive({e.Data})");
+        }
+
+        private static readonly object Images = new
+        {
+            logo = ReadResourceToUrl("flow128.png"),
+            copy = ReadResourceToUrl("copy.png")
+        };
+
+        private void RenderWaiting()
+        {
+            var obj = JsonSerializer.Serialize(new { uri = App.ListeningUri, img = Images });
+            ExecuteScriptAsync($"renderWaiting({obj})");
+        }
+
+        private void ExecuteScriptAsync(string script)
+        {
+            Dispatcher.Invoke(() => webView2.CoreWebView2?.ExecuteScriptAsync(script));
+
+        }
+
+        private void GameWindow_WaitingForConnnection(object? sender, EventArgs e)
+        {
+            RenderWaiting();
         }
 
         private static string ReadResourceToString(string name)
@@ -63,6 +89,7 @@ namespace EntropiaFlowClient
             {
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
+                webView2.CoreWebView2.AddHostObjectToScript("lifecycle", new LifecycleInterface(this));
 
 #if DEBUG
                 // Save to files to be able to debug in browser
@@ -112,60 +139,113 @@ namespace EntropiaFlowClient
             config.Save(ConfigurationSaveMode.Modified);
         }
 
+        private void SetLocation(int left, int top)
+        {
+            var windowBounds = new Rectangle(left, top, (int)Width, (int)Height);
+
+            // Find the screen with the largest intersection area
+            var bestScreen = Screen.AllScreens
+                .Select(screen => {
+                    var intersection = Rectangle.Intersect(windowBounds, screen.WorkingArea);
+                    return new
+                    {
+                        Screen = screen,
+                        Intersection = intersection,
+                        IntersectionArea = intersection.Width * intersection.Height
+                    };
+                })
+                .OrderByDescending(x => x.IntersectionArea)
+                .FirstOrDefault(x => x.IntersectionArea > 0);
+
+            if (bestScreen != null)
+            {
+                // If a screen with intersection exists, adjust window position to fit within that screen
+                Rectangle r = bestScreen.Screen.WorkingArea;
+                Left = Math.Max(r.X, Math.Min(windowBounds.X, r.Right - windowBounds.Width));
+                Top = Math.Max(r.Y, Math.Min(windowBounds.Y, r.Bottom - windowBounds.Height));
+            }
+            else if (Screen.PrimaryScreen != null)
+            {
+                // No intersection found, center the window on the primary screen
+                var r = Screen.PrimaryScreen.WorkingArea;
+                Left = r.X + Math.Max(0, (r.Width - windowBounds.Width) / 2);
+                Top = r.Y + Math.Max(0, (r.Height - windowBounds.Height) / 2);
+            }
+        }
+
         [ClassInterface(ClassInterfaceType.AutoDual)]
         [ComVisible(true)]
         public class MouseScriptInterface
         {
-            private bool isDragging;
-            private Point startPoint;
-            private Window window;
-            public MouseScriptInterface(Window w)
+            private bool _isDragging;
+            private bool _clickDisabled;
+            private Point _relativePoint;
+            private GameWindow _window;
+            public MouseScriptInterface(GameWindow w)
             {
-                window = w;
+                _window = w;
             }
 
             public void OnMouseDown()
             {
-                isDragging = true;
-                startPoint = System.Windows.Forms.Cursor.Position;
+                _isDragging = true;
+                _clickDisabled = false;
+                var pt = System.Windows.Forms.Cursor.Position;
+                _relativePoint = new Point(pt.X - (int)_window.Left, pt.Y - (int)_window.Top);
             }
 
             public void OnMouseMove()
             {
-                if (isDragging)
+                if (_isDragging)
                 {
-                    Point currentPoint = System.Windows.Forms.Cursor.Position;
-                    double offsetX = currentPoint.X - startPoint.X;
-                    double offsetY = currentPoint.Y - startPoint.Y;
+                    Point pt = System.Windows.Forms.Cursor.Position;
+                    _window.SetLocation(pt.X - _relativePoint.X, pt.Y - _relativePoint.Y);
 
-                    window.Left += offsetX;
-                    window.Top += offsetY;
-
-                    startPoint = currentPoint;
+                    if (!_clickDisabled)
+                    {
+                        _window.ExecuteScriptAsync("clickDisabled = true");
+                        _clickDisabled = true;
+                    }
                 }
             }
 
             public void OnMouseUp()
             {
-                isDragging = false;
+                _isDragging = false;
             }
         }
-    }
 
-    [ClassInterface(ClassInterfaceType.AutoDual)]
-    [ComVisible(true)]
-    public class ResizeScriptInterface
-    {
-        private Window window;
-        public ResizeScriptInterface(Window w)
+        [ClassInterface(ClassInterfaceType.AutoDual)]
+        [ComVisible(true)]
+        public class ResizeScriptInterface
         {
-            window = w;
+            private Window _window;
+            public ResizeScriptInterface(Window w)
+            {
+                _window = w;
+            }
+
+            public void OnRendered(int width, int height)
+            {
+                _window.Width = Math.Max(20, width);
+                _window.Height = Math.Max(20, height);
+            }
         }
 
-        public void OnRendered(int width, int height)
+        [ClassInterface(ClassInterfaceType.AutoDual)]
+        [ComVisible(true)]
+        public class LifecycleInterface
         {
-            window.Width = Math.Max(20, width);
-            window.Height = Math.Max(20, height);
+            private GameWindow _window;
+            public LifecycleInterface(GameWindow w)
+            {
+                _window = w;
+            }
+
+            public void OnLoaded()
+            {
+                _window.RenderWaiting();
+            }
         }
     }
 }
