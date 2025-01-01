@@ -1,4 +1,4 @@
-import StreamRenderData, { StreamRenderDefinition, StreamRenderValue } from '../../../stream/data'
+import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue } from '../../../stream/data'
 
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
 const STREAM_TABULAR_IMAGES = '[stream] images'
@@ -8,7 +8,9 @@ interface StreamStateIn {
     expanded: {
         background: boolean
     }
-    definition: StreamRenderDefinition
+    editing?: string
+    windows: string[]
+    layouts: StreamRenderLayoutSet
 }
 
 interface StreamStateOut {

@@ -1,18 +1,21 @@
-interface StreamRenderDefinition {
+interface StreamRenderLayout {
     backgroundType: number // BackgroundType
     template: string
-    size: StreamRenderSize
+    containerStyle: string
     disableSafeCheck?: boolean
 }
 
-interface StreamRenderSize {
-    width: number
-    height: number
-}
+type StreamRenderLayoutSet = Record<string, StreamRenderLayout>
 
 interface StreamRenderData {
-    obj: StreamRenderObject
-    def: StreamRenderDefinition
+    data: StreamRenderObject
+    windows: string[]
+    layouts: StreamRenderLayoutSet
+}
+
+interface StreamRenderSingle {
+    data: StreamRenderObject
+    layout: StreamRenderLayout
 }
 
 type StreamRenderObject = { [name: string]: StreamRenderValue }
@@ -20,8 +23,9 @@ type StreamRenderValue = string | number | boolean | StreamRenderObject | Stream
 
 export default StreamRenderData
 export {
-    StreamRenderDefinition,
-    StreamRenderObject,
     StreamRenderValue,
-    StreamRenderSize
+    StreamRenderObject,
+    StreamRenderSingle,
+    StreamRenderLayout,
+    StreamRenderLayoutSet
 }

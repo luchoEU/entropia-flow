@@ -14,6 +14,7 @@ enum BackgroundType {
     Matrix,
     Fireflies,
     ColorOrbs,
+    Transparent,
 }
 
 interface BackgroundSpec {
@@ -30,6 +31,7 @@ const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBack
     [BackgroundType.Matrix, MatrixBackground],
     [BackgroundType.Fireflies, FirefliesBackground],
     [BackgroundType.ColorOrbs, ColorOrbsBackground],
+    [BackgroundType.Transparent, SimpleBackground],
 ]);
 
 let instances: { [id: string]: IBackground } = { }
@@ -69,7 +71,7 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
     if (type === undefined || container.querySelector('canvas'))
         return
     
-    const { dark, transparent } = backgroundList[type]
+    const { dark, transparent } = getBackgroundSpec(type)
     const style = {
         'color': dark ? 'white' : 'black',
         'background-color': transparent ? 'transparent' : dark ? 'black' : 'white'
@@ -128,6 +130,12 @@ const backgroundList: BackgroundSpec[] = [
         dark: true,
         transparent: true
     },
+    {
+        type: BackgroundType.Transparent,
+        title: 'Transparent',
+        dark: false,
+        transparent: true
+    },
 ]
 
 if (SHOW_FEATURES_IN_DEVELOPMENT) {
@@ -143,10 +151,15 @@ function getLogoUrl(darkBackground: boolean) {
     return darkBackground ? flow128w_png : flow128_png
 }
 
+function getBackgroundSpec(type: BackgroundType): BackgroundSpec {
+    return backgroundList.find(i => i.type == type)
+}
+
 export default loadBackground
 export {
     BackgroundType,
     BackgroundSpec,
     backgroundList,
-    getLogoUrl
+    getLogoUrl,
+    getBackgroundSpec,
 }

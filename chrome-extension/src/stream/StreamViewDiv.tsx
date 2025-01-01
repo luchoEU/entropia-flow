@@ -1,15 +1,40 @@
 import React from 'react';
-import StreamRenderData from './data';
 import renderHtmlTemplate from './htmlTemplate';
+import { StreamRenderSingle } from './data';
 
 const StreamViewDiv = (p: {
-    data: StreamRenderData
+    id: string,
+    data: StreamRenderSingle,
+    scale?: number
 }) => {
-    const { obj, def } = p.data
-    const html = renderHtmlTemplate(def.template, obj, !def.disableSafeCheck)
+    const { data, layout } = p.data
+    const html = renderHtmlTemplate(layout.template, data, !layout.disableSafeCheck)
 
-    return <div id='stream' style={def.size}>
-        <div style={{ ...def.size, position: 'absolute', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: html }} />
+    function parseStyle(styleString: string): React.CSSProperties {
+        return styleString.split(";").reduce((styles, style) => {
+          if (!style.trim()) return styles;
+          const [key, value] = style.split(":");
+          const formattedKey = key.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+          styles[formattedKey] = value.trim();
+          return styles;
+        }, {} as React.CSSProperties);
+    }
+
+    const containerStyle: React.CSSProperties = parseStyle(layout.containerStyle)
+    const contentStyle: React.CSSProperties = { position: 'absolute', overflow: 'hidden' }
+    if (p.scale) {
+        if (containerStyle.width) {
+            containerStyle.width = `calc(${containerStyle.width} * ${p.scale})`
+        }
+        if (containerStyle.height) {
+            containerStyle.height = `calc(${containerStyle.height} * ${p.scale})`
+        }
+        contentStyle.transform = `scale(${p.scale})`
+        contentStyle.transformOrigin = 'top left'
+    }
+
+    return <div id={p.id} style={containerStyle}>
+        <div style={contentStyle} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
 };
 

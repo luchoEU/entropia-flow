@@ -1,15 +1,15 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { DISABLE_TEMPLATE_SAFE_CHECK } from "../../../config"
-import { backgroundList, getLogoUrl } from "../../../stream/background"
-import StreamRenderData from "../../../stream/data"
+import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
+import StreamRenderData, { StreamRenderLayout } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { computeFormulas } from "../../../stream/htmlTemplate"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_EXPANDED, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_EXPANDED, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
@@ -30,7 +30,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_ENABLED:
         case SET_STREAM_BACKGROUND_EXPANDED:
         case SET_STREAM_BACKGROUND_SELECTED:
-        case SET_STREAM_TEMPLATE: {
+        case SET_STREAM_TEMPLATE:
+        case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_EDITING: {
             const state: StreamStateIn = getStreamIn(getState())
             await api.storage.saveStream(state)
             break
@@ -84,9 +86,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_BACKGROUND_SELECTED:
         {
             const s: StreamState = getStream(getState())
-            const t = s.in.definition.backgroundType
+            const t = s.in.editing && s.in.layouts[s.in.editing].backgroundType
             dispatch(setStreamVariables('background', [
-                { name: 'backDark', value: t ? backgroundList[t].dark : false, description: 'background is dark' },
+                { name: 'backDark', value: t ? getBackgroundSpec(t).dark : false, description: 'background is dark' },
                 { name: 'logoUrl', value: '=IF(backDark, img.logoWhite, img.logoBlack)', description: 'logo url' },
                 { name: 'logoWhite', value: getLogoUrl(true), isImage: true },
                 { name: 'logoBlack', value: getLogoUrl(false), isImage: true }
@@ -97,15 +99,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
     switch (action.type) {
         case SET_STREAM_TEMPLATE:
+        case SET_STREAM_CONTAINER_STYLE:
         case SET_STREAM_VARIABLES:
         {
             const s: StreamState = getStream(getState())
             const vars = Object.values(s.variables).flat()
-            const obj = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]))
-            obj.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]))
-            const def = DISABLE_TEMPLATE_SAFE_CHECK ? { ...s.in.definition, disableSafeCheck: true } : s.in.definition
-            const data: StreamRenderData = { obj, def }
-            dispatch(setStreamData(data))
+            const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]))
+            data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]))
+            const f = (layout: StreamRenderLayout) => DISABLE_TEMPLATE_SAFE_CHECK ? { ...layout, disableSafeCheck: true } : layout;
+            const layouts = Object.fromEntries(s.in.windows.map(w => [w, f(s.in.layouts[w])]))
+            const renderData: StreamRenderData = { data, windows: s.in.windows, layouts }
+            dispatch(setStreamData(renderData))
             break;
         }
         case SET_STREAM_DATA: {

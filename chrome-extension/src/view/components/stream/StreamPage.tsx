@@ -1,40 +1,15 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setStreamBackgroundExpanded, setStreamBackgroundSelected, setStreamEnabled } from '../../application/actions/stream';
+import { setStreamEditing, setStreamEnabled } from '../../application/actions/stream';
 import { getStreamIn } from '../../application/selectors/stream';
 import { StreamStateIn } from '../../application/state/stream';
-import ExpandableSection from '../common/ExpandableSection';
-import useBackground from '../hooks/UseBackground';
-import { BackgroundSpec, backgroundList, getLogoUrl } from '../../../stream/background';
-import { SHOW_STREAM_EDITOR } from '../../../config';
 import StreamEditor from './StreamEditor';
-
-const StreamBackground = (p: {
-    background: BackgroundSpec,
-    isSelected: boolean,
-}): JSX.Element => {
-    const dispatch = useDispatch()
-    const id = 'stream' + p.background.title
-
-    useBackground(p.background.type, id)
-
-    return (
-        <div {...(p.isSelected ? { className: 'stream-selected' } : {})}
-            onClick={() => dispatch(setStreamBackgroundSelected(p.background.type))}>
-            <div id={id} className='stream-view demo'>
-                <div className='stream-frame demo'>
-                    <img className='stream-logo' src={getLogoUrl(p.background.dark)} alt='Logo'></img>
-                    <div className='stream-title'>Entropia Flow</div>
-                    <div className='stream-subtitle'>{p.background.title}</div>
-                </div>
-            </div>
-        </div>
-    )
-}
+import StreamChooser from './StreamChooser';
+import Back from '../common/Back';
 
 function StreamPage() {
     const dispatch = useDispatch()
-    const { enabled, expanded, definition }: StreamStateIn = useSelector(getStreamIn);
+    const { enabled, editing }: StreamStateIn = useSelector(getStreamIn);
 
     return (
         <>
@@ -48,21 +23,10 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { enabled &&
-                <>
-                    <ExpandableSection className='flex' title='Background' expanded={expanded.background} setExpanded={setStreamBackgroundExpanded}>
-                        { backgroundList.map((b: BackgroundSpec) =>
-                            <StreamBackground key={b.type} background={b} isSelected={b.type === definition.backgroundType} />) }
-                    </ExpandableSection>
-                    { SHOW_STREAM_EDITOR && <StreamEditor /> }
-                    <section>
-                        <h1>
-                            Note
-                        </h1>
-                        <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>
-                        <p>Also I can change the layout if you think on one better for you, contact me too.</p>
-                    </section>
-                </> }
+            { enabled && (editing ? <>
+                    <Back text="Back" dispatch={() => setStreamEditing(undefined)} />
+                    <StreamEditor />
+                </> : <StreamChooser />) }
         </>
     )
 }

@@ -8,7 +8,9 @@ const SET_STREAM_BACKGROUND_EXPANDED = "[stream] set background expanded"
 const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
 const SET_STREAM_TEMPLATE = "[stream] set template"
+const SET_STREAM_CONTAINER_STYLE = "[stream] set container style"
 const SET_STREAM_DATA = "[stream] set data"
+const SET_STREAM_EDITING = "[stream] set editing"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -45,10 +47,24 @@ const setStreamData = (data: StreamRenderData) => ({
     }
 })
 
+const setStreamEditing = (editing: boolean) => ({
+    type: SET_STREAM_EDITING,
+    payload: {
+        editing
+    }
+})
+
 const setStreamTemplate = (template: string) => ({
     type: SET_STREAM_TEMPLATE,
     payload: {
         template
+    }
+})
+
+const setStreamContainerStyle = (style: string) => ({
+    type: SET_STREAM_CONTAINER_STYLE,
+    payload: {
+        style
     }
 })
 
@@ -66,13 +82,17 @@ export {
     SET_STREAM_BACKGROUND_EXPANDED,
     SET_STREAM_BACKGROUND_SELECTED,
     SET_STREAM_VARIABLES,
+    SET_STREAM_CONTAINER_STYLE,
     SET_STREAM_TEMPLATE,
     SET_STREAM_DATA,
+    SET_STREAM_EDITING,
     setStreamState,
     setStreamEnabled,
     setStreamBackgroundExpanded,
     setStreamBackgroundSelected,
     setStreamVariables,
     setStreamTemplate,
-    setStreamData
+    setStreamContainerStyle,
+    setStreamData,
+    setStreamEditing
 }

@@ -7,20 +7,7 @@ import { getCraft } from '../../application/selectors/craft'
 import { CraftState } from '../../application/state/craft'
 import { setBlueprintActivePage, setCraftActivePlanet } from '../../application/actions/craft'
 import { getInventory } from '../../application/selectors/inventory'
-
-const CraftBackToList = () => {
-    const dispatch = useDispatch()
-
-    return <section className='pointer' onClick={(e) => {
-        e.stopPropagation();
-        dispatch(setBlueprintActivePage(undefined))
-    }}>
-        <h1>
-            <span>List</span>
-            <img src='img/left.png' />
-        </h1>
-    </section>
-}
+import Back from '../common/Back'
 
 const CraftPlanet = () => {
     const { activePlanet } = useSelector(getCraft)
@@ -41,7 +28,7 @@ function CraftPage() {
     return state.activePage ?
         <>
             <div className='flex'>
-                <CraftBackToList />
+                <Back text='List' dispatch={() => setBlueprintActivePage(undefined)} />
                 <CraftPlanet />
             </div>
             <CraftExpandedList />

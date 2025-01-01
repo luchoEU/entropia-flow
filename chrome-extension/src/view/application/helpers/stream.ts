@@ -1,10 +1,10 @@
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamRenderDefinition } from '../../../stream/data';
+import StreamRenderData, { StreamRenderLayout } from '../../../stream/data';
 import { StreamState, StreamStateIn, StreamVariable } from "../state/stream";
 
-const _defaultDefinition: StreamRenderDefinition = {
+const _defaultDefinition: StreamRenderLayout = {
     backgroundType: BackgroundType.Light,
-    size: { width: 494, height: 150 },
+    containerStyle: 'width: 494px; height: 150px;',
     template: `
 <div style='display: flex; align-items: start; font-size: 14px; margin: 50px;'>
   <img style='width: 50px;' src='{logoUrl}' alt='Logo'></img>
@@ -21,12 +21,17 @@ const _defaultDefinition: StreamRenderDefinition = {
 </div>`
 }
 
+const DEFAULT_LAYOUT_NAME = 'default'
+
 const initialStateIn: StreamStateIn = {
     enabled: false,
     expanded: {
         background: true,
     },
-    definition: _defaultDefinition
+    windows: [ DEFAULT_LAYOUT_NAME ],
+    layouts: {
+        [DEFAULT_LAYOUT_NAME]: _defaultDefinition
+    }
 }
 
 const initialState: StreamState = {
@@ -60,15 +65,22 @@ const reduceSetStreamBackgroundExpanded = (state: StreamState, expanded: boolean
     }
 })
 
-const reduceSetStreamBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => ({
+const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLayout>): StreamState => ({
     ...state,
     in: {
         ...state.in,
-        definition: {
-            ...state.in.definition,
-            backgroundType: selected
+        layouts: {
+            ...state.in.layouts,
+            [state.in.editing]: {
+                ...state.in.layouts[state.in.editing],
+                ...partial
+            }
         }
     }
+})
+
+const reduceSetStreamBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => _changeStreamLayout(state, {
+    backgroundType: selected
 })
 
 const reduceSetStreamVariables = (state: StreamState, source: string, variables: StreamVariable[]): StreamState => ({
@@ -79,14 +91,19 @@ const reduceSetStreamVariables = (state: StreamState, source: string, variables:
     }
 })
 
-const reduceSetStreamTemplate = (state: StreamState, template: string): StreamState => ({
+const reduceSetStreamTemplate = (state: StreamState, template: string): StreamState => _changeStreamLayout(state, {
+    template
+})
+
+const reduceSetStreamContainerStyle = (state: StreamState, style: string): StreamState => _changeStreamLayout(state, {
+    containerStyle: style
+})
+
+const reduceSetStreamEditing = (state: StreamState, editing: string): StreamState => ({
     ...state,
     in: {
         ...state.in,
-        definition: {
-            ...state.in.definition,
-            template
-        }
+        editing
     }
 })
 
@@ -107,5 +124,7 @@ export {
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
     reduceSetStreamTemplate,
+    reduceSetStreamContainerStyle,
+    reduceSetStreamEditing,
     reduceSetStreamData
 }

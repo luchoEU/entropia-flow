@@ -1,5 +1,5 @@
 import { init, propsModule, styleModule, VNode } from 'snabbdom'
-import StreamRenderData, { StreamRenderSize } from "./data"
+import { StreamRenderSingle } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./reactToSnabb"
 import loadBackground from "./background"
@@ -9,8 +9,13 @@ const patch = init([
     styleModule, // handles styling on elements with support for animations
 ])
 
+interface StreamRenderSize {
+    width: number,
+    height: number
+}
+
 let isRendering = false;
-export function render(data: StreamRenderData): StreamRenderSize | null {
+export function render(data: StreamRenderSingle): StreamRenderSize | null {
     if (isRendering) {
         return null
     }
@@ -20,7 +25,7 @@ export function render(data: StreamRenderData): StreamRenderSize | null {
         const streamElement = document.getElementById('stream')
 
         // render
-        const vNode = reactElementToVNode(StreamViewDiv({ data }))
+        const vNode = reactElementToVNode(StreamViewDiv({ id: 'stream', data }))
         if (streamElement.firstChild) {
             // patch only first child to avoid flickering in background
             patch(streamElement.firstChild as HTMLElement, vNode.children[0] as VNode)
@@ -31,9 +36,12 @@ export function render(data: StreamRenderData): StreamRenderSize | null {
 
         // load background
         const newStreamElement = document.getElementById('stream') // get it again after patch
-        loadBackground(data.def.backgroundType, newStreamElement, streamElement)
+        loadBackground(data.layout.backgroundType, newStreamElement, streamElement)
 
-        return data.def.size
+        return {
+            width: newStreamElement.offsetWidth,
+            height: newStreamElement.offsetHeight
+        }
     } finally {
         isRendering = false;
     }
