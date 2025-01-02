@@ -2,8 +2,11 @@ import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamRenderLayout } from '../../../stream/data';
 import { StreamState, StreamStateIn, StreamVariable } from "../state/stream";
 
+const DEFAULT_LAYOUT_NAME = 'Entropia Flow'
+
 const _defaultDefinition: StreamRenderLayout = {
-    backgroundType: BackgroundType.Light,
+    name: DEFAULT_LAYOUT_NAME,
+    backgroundType: BackgroundType.Ashfall,
     containerStyle: 'width: 494px; height: 150px;',
     template: `
 <div style='display: flex; align-items: start; font-size: 14px; margin: 50px;'>
@@ -21,13 +24,8 @@ const _defaultDefinition: StreamRenderLayout = {
 </div>`
 }
 
-const DEFAULT_LAYOUT_NAME = 'default'
-
 const initialStateIn: StreamStateIn = {
     enabled: false,
-    expanded: {
-        background: true,
-    },
     windows: [ DEFAULT_LAYOUT_NAME ],
     layouts: {
         [DEFAULT_LAYOUT_NAME]: _defaultDefinition
@@ -40,6 +38,8 @@ const initialState: StreamState = {
     out: undefined
 }
 
+const isLayoutReadonly = (name: string): boolean => name === DEFAULT_LAYOUT_NAME
+
 const reduceSetStreamState = (state: StreamState, newState: StreamStateIn): StreamState => ({
     in: newState,
     variables: state.variables,
@@ -51,17 +51,6 @@ const reduceSetStreamEnabled = (state: StreamState, enabled: boolean) => ({
     in: {
         ...state.in,
         enabled
-    }
-})
-
-const reduceSetStreamBackgroundExpanded = (state: StreamState, expanded: boolean): StreamState => ({
-    ...state,
-    in: {
-        ...state.in,
-        expanded: {
-            ...state.in.expanded,
-            background: expanded
-        }
     }
 })
 
@@ -107,6 +96,26 @@ const reduceSetStreamEditing = (state: StreamState, editing: string): StreamStat
     }
 })
 
+const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
+    const layouts = { ...state.in.layouts }
+    delete layouts[state.in.editing]
+    let id = name
+    let i = 1
+    while (layouts[id]) {
+        id = `${name}_${i}`
+        i++
+    }
+    layouts[id] = { ...state.in.layouts[state.in.editing], name }
+    return {
+        ...state,
+        in: {
+            ...state.in,
+            editing: id,
+            layouts
+        }
+    }
+}
+
 const reduceSetStreamData = (state: StreamState, data: StreamRenderData): StreamState => ({
     ...state,
     out: {
@@ -118,13 +127,14 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
 export {
     initialState,
     initialStateIn,
+    isLayoutReadonly,
     reduceSetStreamState,
     reduceSetStreamEnabled,
-    reduceSetStreamBackgroundExpanded,
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
     reduceSetStreamTemplate,
     reduceSetStreamContainerStyle,
     reduceSetStreamEditing,
-    reduceSetStreamData
+    reduceSetStreamData,
+    reduceSetStreamName,
 }

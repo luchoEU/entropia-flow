@@ -24,7 +24,7 @@ function StreamPage() {
                 </label>
             </section>
             { enabled && (editing ? <>
-                    <Back text="Back" dispatch={() => setStreamEditing(undefined)} />
+                    <Back text="Back to list" dispatch={() => setStreamEditing(undefined)} />
                     <StreamEditor />
                 </> : <StreamChooser />) }
         </>

@@ -24,7 +24,8 @@ import {
     STORAGE_VIEW_CONNECTION,
     STORAGE_VIEW_BUDGET,
     STORAGE_VIEW_INVENTORY_BY_STORE,
-    STORAGE_VIEW_TABULAR
+    STORAGE_VIEW_TABULAR,
+    STORAGE_VIEW_EXPANDABLE
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -32,6 +33,7 @@ import { BudgetState } from "../../application/state/budget";
 import { CalculatorStateIn } from "../../application/state/calculator";
 import { ConnectionState } from "../../application/state/connection";
 import { CraftState } from "../../application/state/craft";
+import ExpandableState from "../../application/state/expandable";
 import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
@@ -148,6 +150,14 @@ async function savePeds(state: Array<ViewPedData>) {
 
 async function loadPeds(): Promise<Array<ViewPedData>> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_PEDS)
+}
+
+async function saveExpandable(expandable: ExpandableState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_EXPANDABLE,expandable)
+}
+
+async function loadExpandable(): Promise<ExpandableState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_EXPANDABLE)
 }
 
 async function saveBlacklist(list: Array<string>) {
@@ -293,6 +303,8 @@ export default {
     loadUse,
     savePeds,
     loadPeds,
+    saveExpandable,
+    loadExpandable,
     saveBlacklist,
     loadBlacklist,
     savePermanentBlacklist,

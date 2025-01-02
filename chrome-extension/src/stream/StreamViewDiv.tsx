@@ -8,12 +8,17 @@ const StreamViewDiv = (p: {
     scale?: number
 }) => {
     const { data, layout } = p.data
+    if (!layout.template) {
+        return <>Template undefined!</>
+    }
+
     const html = renderHtmlTemplate(layout.template, data, !layout.disableSafeCheck)
 
     function parseStyle(styleString: string): React.CSSProperties {
         return styleString.split(";").reduce((styles, style) => {
           if (!style.trim()) return styles;
           const [key, value] = style.split(":");
+          if (!key || !value) return styles;
           const formattedKey = key.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
           styles[formattedKey] = value.trim();
           return styles;

@@ -9,7 +9,7 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_EXPANDED, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING, SET_STREAM_NAME } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
@@ -28,10 +28,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_STREAM_ENABLED:
-        case SET_STREAM_BACKGROUND_EXPANDED:
         case SET_STREAM_BACKGROUND_SELECTED:
         case SET_STREAM_TEMPLATE:
         case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_NAME:
         case SET_STREAM_EDITING: {
             const state: StreamStateIn = getStreamIn(getState())
             await api.storage.saveStream(state)

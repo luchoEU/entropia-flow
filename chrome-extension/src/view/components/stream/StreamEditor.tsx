@@ -3,12 +3,14 @@ import React from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamVariable } from "../../application/state/stream"
 import SortableTableSection from "../common/SortableTableSection2"
-import { getStreamIn } from "../../application/selectors/stream"
-import { setStreamBackgroundExpanded, setStreamBackgroundSelected, setStreamContainerStyle, setStreamTemplate } from "../../application/actions/stream"
+import { getStream, getStreamIn } from "../../application/selectors/stream"
+import { setStreamBackgroundSelected, setStreamContainerStyle, setStreamName, setStreamTemplate } from "../../application/actions/stream"
 import { StreamRenderValue } from "../../../stream/data"
-import ExpandableSection from "../common/ExpandableSection"
+import ExpandableSection from "../common/ExpandableSection2"
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background"
 import useBackground from "../hooks/UseBackground"
+import StreamViewLayout from "./StreamViewLayout"
+import { isLayoutReadonly } from "../../application/helpers/stream"
 
 const StreamBackground = (p: {
     background: BackgroundSpec,
@@ -37,41 +39,61 @@ function StreamLayoutEditor() {
     const { editing, layouts } = useSelector(getStreamIn)
     const dispatch = useDispatch()
     const c = layouts[editing]
+    const readonly = isLayoutReadonly(c.name)
 
-    return <section>
-        <h1>Layout</h1>
-        <label>Container Style</label>
-        <input
-            style={{ width: 1200 }}
-            value={c.containerStyle}
-            onClick={(e) => { e.stopPropagation() }}
-            onChange={(e) => {
-                e.stopPropagation();
-                dispatch(setStreamContainerStyle(e.target.value))
-            }}
-        />
-        <label>Template</label>
-        <textarea
-            style={{ width: 1200, height: 300 }}
-            value={c.template}
-            onClick={(e) => { e.stopPropagation() }}
-            onChange={(e) => {
-                e.stopPropagation();
-                dispatch(setStreamTemplate(e.target.value))
-            }}
-        />
-    </section>
+    return <ExpandableSection id='StreamEditor.layout' title='Layout'>
+            <h1>Layout</h1>
+            <label htmlFor='stream-container-style'>Container Style</label>
+            <input
+                id='stream-container-style'
+                type='text'
+                readOnly={readonly}
+                style={{ width: 1200 }}
+                value={c.containerStyle}
+                onClick={(e) => { e.stopPropagation() }}
+                onChange={(e) => {
+                    e.stopPropagation();
+                    dispatch(setStreamContainerStyle(e.target.value))
+                }}
+            />
+            <label htmlFor='stream-template'>Template</label>
+            <textarea
+                id='stream-template'
+                readOnly={readonly}
+                style={{ width: 1200, height: 300 }}
+                value={c.template}
+                onClick={(e) => { e.stopPropagation() }}
+                onChange={(e) => {
+                    e.stopPropagation();
+                    dispatch(setStreamTemplate(e.target.value))
+                }}
+            />
+        </ExpandableSection>
     }
 
 function StreamEditor() {
-    const { expanded, editing, layouts } = useSelector(getStreamIn)
+    const { in: { editing, layouts }, out: { data } } = useSelector(getStream)
     const c = layouts[editing]
+    const dispatch = useDispatch()
 
     const str = (v: StreamRenderValue): string => typeof v === 'string' ? v : JSON.stringify(v)
     return <section>
         <h1>Editing {editing} Layout</h1>
+        <label htmlFor='stream-layout-name'>Name</label>
+        <input
+            id='stream-layout-name'
+            type='text'
+            value={c.name}
+            readOnly={isLayoutReadonly(c.name)}
+            style={{ marginLeft: 10 }}
+            onClick={(e) => { e.stopPropagation() }}
+            onChange={(e) => {
+                e.stopPropagation();
+                dispatch(setStreamName(e.target.value))
+            }}
+        />
         <div className='flex'>
-            <ExpandableSection title='Background' expanded={expanded.background} setExpanded={setStreamBackgroundExpanded}>
+            <ExpandableSection id='StreamEditor.background' title='Background' >
                 <div className='flex'>
                     { backgroundList.map((b: BackgroundSpec) =>
                         <StreamBackground key={b.type} background={b} isSelected={b.type === c.backgroundType} />) }
@@ -90,6 +112,9 @@ function StreamEditor() {
                 columns={['Source', 'Name', 'Image', 'Description']}
                 getRow={(g: StreamVariable) => [g.source, g.name, { img: g.value as string }, g.description]}
             />
+            <ExpandableSection id='StreamEditor-preview' title='Preview'>
+                <StreamViewLayout id={`stream-StreamEditor-preview`} data={{ data: data.data, layout: c}} />
+            </ExpandableSection>
             <StreamLayoutEditor />
         </div>
     </section>

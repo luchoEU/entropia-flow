@@ -1,11 +1,12 @@
 interface StreamRenderLayout {
+    name: string,
     backgroundType: number // BackgroundType
     template: string
     containerStyle: string
     disableSafeCheck?: boolean
 }
 
-type StreamRenderLayoutSet = Record<string, StreamRenderLayout>
+type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
 
 interface StreamRenderData {
     data: StreamRenderObject

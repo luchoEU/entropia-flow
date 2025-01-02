@@ -413,6 +413,10 @@ h3:hover .hide {
     position: relative;
 }
 
+input:read-only, textarea:read-only {
+    background-color: transparent;
+}
+
 // buttons
 button {
     border: none;

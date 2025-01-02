@@ -26,6 +26,7 @@ import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
 import tabular from './tabular'
+import expandable from './expandable'
 
 export default [
     ...messages,
@@ -56,4 +57,5 @@ export default [
     ...budget,
     ...ttService,
     ...tabular,
+    ...expandable,
 ]

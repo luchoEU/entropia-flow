@@ -11,7 +11,7 @@ function StreamViewLayout(p: {
 }) {
     const backgroundType = p.data.layout.backgroundType
     useBackground(backgroundType, p.id)
-    const backDark = getBackgroundSpec(backgroundType).dark
+    const backDark = getBackgroundSpec(backgroundType)?.dark ?? false
     const data = { data: { ...p.data.data, backDark}, layout: p.data.layout }
 
     return (
