@@ -5,21 +5,21 @@ import { getExpanded } from "../../application/selectors/expandable"
 import { setExpanded } from "../../application/actions/expandable"
 
 const ExpandableSection = (p: {
-    id: string,
+    selector: string,
     title: string,
     className?: string,
     children: any
 }) => {
-    const expanded: boolean = useSelector(getExpanded(p.id))
+    const expanded: boolean = useSelector(getExpanded(p.selector))
     const dispatch = useDispatch()
     return (
         <section>
             <h1 onClick={(e) => {
                     e.stopPropagation()
-                    dispatch(setExpanded(p.id)(!expanded))}
+                    dispatch(setExpanded(p.selector)(!expanded))}
                 }>
                 {p.title}
-                <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(p.id)} />
+                <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(p.selector)} />
             </h1>
             <div className={p.className}>
             {

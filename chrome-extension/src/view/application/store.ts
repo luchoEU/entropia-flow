@@ -1,8 +1,15 @@
-import { compose, applyMiddleware, createStore } from "redux";
 import middleware from "./middleware";
 import reducers from "./reducers";
+import { configureStore } from '@reduxjs/toolkit';
 
-export const configureStore = (services) => createStore(
-    reducers,
-    compose(applyMiddleware(...middleware.map(f => f(services))))
-)
+export const setupStore = (services) => {
+    return configureStore({
+        reducer: reducers, // Pass your reducers here
+        middleware: (getDefaultMiddleware) =>
+            getDefaultMiddleware({
+                serializableCheck: {
+                    ignoredPaths: ['tabular'],
+                }
+            }).concat(middleware.map((f) => f(services))),
+    });
+};

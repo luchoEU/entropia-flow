@@ -16,7 +16,7 @@ import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
-import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
+import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -93,6 +93,19 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 { name: 'logoWhite', value: getLogoUrl(true), isImage: true },
                 { name: 'logoBlack', value: getLogoUrl(false), isImage: true }
             ]))
+            break
+        }
+    }
+
+    switch (action.type) {
+        case PAGE_LOADED:
+        case SET_STREAM_BACKGROUND_SELECTED:
+        case SET_STREAM_TEMPLATE:
+        case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_NAME:
+        {
+            const { layouts }: StreamStateIn = getStreamIn(getState())
+            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.values(layouts).map(l => ({ name: l.name, layout: l }))))
             break
         }
     }

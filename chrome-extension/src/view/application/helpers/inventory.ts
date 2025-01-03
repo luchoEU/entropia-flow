@@ -341,15 +341,20 @@ function _sortAndStats<D>(
   return list;
 }
 
-function _sortAndStatsWithFilter<D>(
+const _sortAndStatsWithFilter = <D extends any>(
   inv: InventoryListWithFilter<D>,
   items: Array<D>,
   select: (d: D) => ItemData,
-): InventoryListWithFilter<D> {
-  sortListSelect(items, inv.originalList.sortType, select);
-  inv.originalList.items = items;
-  inv.showList = applyListFilter(inv.originalList, inv.filter, select);
-  return inv;
+): InventoryListWithFilter<D> => {
+  const originalList = {
+    ...inv.originalList,
+    items: cloneSortListSelect(items, inv.originalList.sortType, select)
+  }
+  return {
+    ...inv,
+    originalList,
+    showList: applyListFilter(originalList, inv.filter, select)
+  }
 }
 
 const reduceSortAuctionBy = (

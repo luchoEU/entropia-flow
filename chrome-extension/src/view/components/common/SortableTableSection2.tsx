@@ -1,18 +1,12 @@
-import React, { CSSProperties, useCallback, useRef } from 'react'
+import React, { CSSProperties, JSX, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
 import ImgButton from './ImgButton';
-import SearchInput from './SearchInput';
-import ExpandableSection from './ExpandableSection';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
 import { SortSecuence } from '../../application/state/sort';
-import { getTabularData, getTabularDataItem } from '../../application/selectors/tabular';
-import { TabularStateData } from '../../application/state/tabular';
-import { setTabularExpanded, setTabularFilter, setTabularSortColumnDefinition, sortTabularBy } from '../../application/actions/tabular';
-import { stringComparer } from '../../application/helpers/sort';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -200,7 +194,7 @@ const ItemRowRender = (p: {
 
 // A custom hook to memoize deep comparisons
 export function useDeepCompareMemoize(value: any) {
-    const ref = useRef<any>();
+    const ref = useRef<any>([]);
 
     if (!isEqual(value, ref.current)) {
         ref.current = value;
@@ -268,6 +262,8 @@ interface TableParameters<TItem> {
     itemSelector: (index: number) => (state: any) => TItem,
 }
 
+// Deprecated control
+// TODO: migrate to SortableTabularSection
 const SortableFixedSizeTable = <TItem extends any>(p: {
     data: TableParameters<TItem>
 }) => {
@@ -315,92 +311,7 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     )
 }
 
-type RowValue = string | { img: string }
-
-const SortableTableSection = <TItem extends any>(p: {
-    title: string,
-    selector: string,
-    columns: string[],
-    getRow: (item: TItem) => RowValue[]
-}) => {
-    const { selector, columns, getRow } = p
-    const s: TabularStateData = useSelector(getTabularData(selector))
-    const dispatch = useDispatch()
-    if (!s?.items) return <p>{selector}</p>
-
-    const stats = s.items.stats
-
-    const searchRowAfterTotalColumnData: ItemRowColumnData = undefined
-    const searchRowAfterSearchColumnData: ItemRowColumnData = undefined
-
-    if (!s.definition?.sort) {
-        const sortColumnDefinition = columns.map((_, i) => ({
-            selector: (item: TItem) => getRow(item)[i],
-            comparer: stringComparer
-        }))
-        dispatch(setTabularSortColumnDefinition(selector, sortColumnDefinition))
-    }
-
-    const table: TableParametersInput<TItem> = {
-        allItems: s.items.all,
-        showItems: s.items.show,
-        sortSecuence: s.sortSecuence,
-        sortBy: sortTabularBy(selector),
-        itemSelector: getTabularDataItem(selector),
-        tableData: {
-            sortRow: columns.map(s => ({ text: s })),
-            getRow: r => ({
-                columns: getRow(r).map((s: RowValue): ItemRowColumnData => ({
-                    sub: s === undefined ? [] : [(typeof s === 'string') ? { itemText: s } : { img: { src: s.img, show: true }}]
-                }))
-            })
-        }
-    }
-
-    return <ExpandableSection title={p.title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
-        <div className='search-container'>
-            <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
-                <span> {stats.count} </span>
-                <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
-                { searchRowAfterTotalColumnData && <ItemSubRowRender sub={searchRowAfterTotalColumnData.sub} width={getRowColumnWidth(searchRowAfterTotalColumnData)} /> }
-            </p>
-            <p className='search-input-container'><SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
-                { searchRowAfterSearchColumnData && <ItemSubRowRender sub={searchRowAfterSearchColumnData.sub} width={getRowColumnWidth(searchRowAfterSearchColumnData)} /> }
-            </p>
-        </div>
-        <SortableFixedSizeTable data={calculate(table)} />
-    </ExpandableSection>
-}
-
-const SimpleTableSection = <TItem extends any>(p: {
-    title: string,
-    selector: string,
-    columns: string[],
-    getRow: (item: TItem) => string[]
-}) => {
-    const { selector, columns, getRow } = p
-    const s: TabularStateData = useSelector(getTabularData(selector))
-    if (!s?.items) return <></>
-
-    return <ExpandableSection title={p.title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
-        <table>
-            <thead>
-                <tr>
-                    {columns.map(s => <th>{s}</th>)}
-                </tr>
-            </thead>
-            <tbody>
-                {s.items.show.map(r => <tr>
-                    {getRow(r).map(s => <td>{s}</td>)}
-                </tr>)}
-            </tbody>
-        </table>
-    </ExpandableSection>
-}
-
-export default SortableTableSection
 export {
-    SimpleTableSection,
     SortableFixedSizeTable,
     TableData,
     ItemRowColumnData,

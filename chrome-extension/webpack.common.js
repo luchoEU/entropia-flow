@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require('webpack');
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 
 module.exports = {
@@ -50,10 +51,12 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"],
     fallback: {
       fs: false,
-      child_process: false
+      child_process: false,
+      process: require.resolve('process/browser'),
     }
   },
   plugins: [
-    new NodePolyfillPlugin()
+    new NodePolyfillPlugin(),
+    new webpack.ProvidePlugin({ process: 'process/browser' })
   ]
 };

@@ -150,13 +150,19 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
         }
 
         const clicksAvailable = Math.min(...Object.values(materials).map(m => m.clicks ?? Infinity))
-        bp.c.inventory = {
-            bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
-            clicksAvailable,
-            limitClickItems: Object.entries(materials).filter(([,m]) => m.clicks === clicksAvailable).map(([n,]) => n),
-            clickTTCost,
-            residueNeeded: isItemLimited ? residueNeeded : undefined,
-            materials,
+        bp = {
+            ...bp,
+            c: {
+                ...bp.c,
+                inventory: {
+                    bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
+                    clicksAvailable,
+                    limitClickItems: Object.entries(materials).filter(([,m]) => m.clicks === clicksAvailable).map(([n,]) => n),
+                    clickTTCost,
+                    residueNeeded: isItemLimited ? residueNeeded : undefined,
+                    materials,
+                }
+            }
         }
         return [n, bp];
     }))
@@ -174,14 +180,23 @@ const reduceShowBlueprintMaterialData = (state: CraftState, name: string, materi
     _changeBlueprint(state, name, bp => ({ ...bp, chain: materialName }))
 
 const _applyFilter = (state: CraftState): CraftState => {
-    if (state.stared.filter?.length === 0)
-        state.stared.filter = undefined
-    const filter = state.stared.filter
-    state.c.filteredStaredBlueprints = Sort.sortList(state.stared.sortType, (filter ? state.stared.list
-        .filter(name => multiIncludes(filter, name)) : state.stared.list)
-        .map(name => state.blueprints[name])
-        .filter(bp => bp)) // remove undefined
-    return state
+    let filter = state.stared.filter
+    if (filter?.length === 0)
+        filter = undefined
+    return {
+        ...state,
+        stared: {
+            ...state.stared,
+            filter
+        },
+        c: {
+            ...state.c,
+            filteredStaredBlueprints: Sort.sortList(state.stared.sortType, (filter ? state.stared.list
+                .filter(name => multiIncludes(filter, name)) : state.stared.list)
+                .map(name => state.blueprints[name])
+                .filter(bp => bp)) // remove undefined
+        }
+    }
 }
 
 const _changeBlueprint = (state: CraftState, name: string, f: (bp: BlueprintData) => BlueprintData): CraftState => _applyFilter({
@@ -214,7 +229,7 @@ const _changeBudgetMaterial = (state: CraftState, name: string, materialName: st
     }))
 
 const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState =>
-    _changeBlueprint(state, name, bp => ({ ...bp, session: newSession(bp) }))    
+    _changeBlueprint(state, name, bp => ({ ...bp, session: newSession(bp) }))
 
 const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState => 
     _changeBudget(state, name, { loading: true })

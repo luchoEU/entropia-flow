@@ -1,5 +1,6 @@
 import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue } from '../../../stream/data'
 
+const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
 const STREAM_TABULAR_IMAGES = '[stream] images'
 
@@ -33,6 +34,7 @@ export {
     StreamState,
     StreamStateIn,
     StreamStateOut,
+    STREAM_TABULAR_CHOOSER,
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
     StreamVariable

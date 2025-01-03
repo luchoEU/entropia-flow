@@ -1,4 +1,4 @@
-import React, { Dispatch } from 'react'
+import React, { Dispatch, JSX } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'

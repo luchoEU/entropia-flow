@@ -1,8 +1,8 @@
-import { ReactElement } from 'react';
+import { JSX } from 'react';
 import { VNode, VNodeData, h } from 'snabbdom';
 
 // Function to recursively convert a React element to a Snabbdom VNode
-function reactElementToVNode(reactElement: ReactElement): VNode {
+function reactElementToVNode(reactElement: JSX.Element): VNode {
   if (typeof reactElement === 'string' || typeof reactElement === 'number') {
     return reactElement;
   }

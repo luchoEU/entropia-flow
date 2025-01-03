@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import renderHtmlTemplate from './htmlTemplate';
 import { StreamRenderSingle } from './data';
 
@@ -6,7 +6,7 @@ const StreamViewDiv = (p: {
     id: string,
     data: StreamRenderSingle,
     scale?: number
-}) => {
+}): JSX.Element => {
     const { data, layout } = p.data
     if (!layout.template) {
         return <>Template undefined!</>

@@ -1,6 +1,8 @@
 import React from 'react'
 import { useDispatch } from "react-redux"
 
+// Deprecated control
+// TODO: migrate to SortableTabularSection
 const SortableTable = (p: {
     sortType: number,
     sortBy: (part: number) => any,

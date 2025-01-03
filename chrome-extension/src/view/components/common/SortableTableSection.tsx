@@ -1,4 +1,4 @@
-import React, { CSSProperties, useCallback, useRef } from 'react'
+import React, { CSSProperties, JSX, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
@@ -207,7 +207,7 @@ interface TableParameters<TItem> {
 
 // A custom hook to memoize deep comparisons
 export function useDeepCompareMemoize(value: any) {
-    const ref = useRef<any>();
+    const ref = useRef<any>([]);
 
     if (!isEqual(value, ref.current)) {
         ref.current = value;
@@ -290,6 +290,8 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     )
 }
 
+// Deprecated control
+// TODO: migrate to SortableTabularSection
 const SortableTableSection = <TItem extends any>(p: {
     title: string,
     expanded: boolean,

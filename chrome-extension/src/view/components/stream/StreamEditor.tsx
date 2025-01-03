@@ -1,8 +1,8 @@
 
-import React from "react"
+import React, { JSX } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamVariable } from "../../application/state/stream"
-import SortableTableSection from "../common/SortableTableSection2"
+import SortableTabularSection from "../common/SortableTabularSection"
 import { getStream, getStreamIn } from "../../application/selectors/stream"
 import { setStreamBackgroundSelected, setStreamContainerStyle, setStreamName, setStreamTemplate } from "../../application/actions/stream"
 import { StreamRenderValue } from "../../../stream/data"
@@ -41,7 +41,7 @@ function StreamLayoutEditor() {
     const c = layouts[editing]
     const readonly = isLayoutReadonly(c.name)
 
-    return <ExpandableSection id='StreamEditor.layout' title='Layout'>
+    return <ExpandableSection selector='StreamEditor-layout' title='Layout'>
             <h1>Layout</h1>
             <label htmlFor='stream-container-style'>Container Style</label>
             <input
@@ -93,26 +93,26 @@ function StreamEditor() {
             }}
         />
         <div className='flex'>
-            <ExpandableSection id='StreamEditor.background' title='Background' >
+            <ExpandableSection selector='StreamEditor.background' title='Background' >
                 <div className='flex'>
                     { backgroundList.map((b: BackgroundSpec) =>
                         <StreamBackground key={b.type} background={b} isSelected={b.type === c.backgroundType} />) }
                 </div>
                 <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>
             </ExpandableSection>
-            <SortableTableSection
+            <SortableTabularSection
                 title='Variables'
                 selector={STREAM_TABULAR_VARIABLES}
                 columns={['Source', 'Name', 'Value', 'Computed', 'Description']}
-                getRow={(g: StreamVariable) => [g.source, g.name, str(g.value), str(g.computed), g.description]}
+                getRow={(g: StreamVariable) => [ g.source, g.name, str(g.value), str(g.computed), g.description ]}
             />
-            <SortableTableSection
+            <SortableTabularSection
                 title='Images'
                 selector={STREAM_TABULAR_IMAGES}
                 columns={['Source', 'Name', 'Image', 'Description']}
-                getRow={(g: StreamVariable) => [g.source, g.name, { img: g.value as string }, g.description]}
+                getRow={(g: StreamVariable) => [ g.source, g.name, { img: g.value as string, title: `${g.name} image` }, g.description ]}
             />
-            <ExpandableSection id='StreamEditor-preview' title='Preview'>
+            <ExpandableSection selector='StreamEditor-preview' title='Preview'>
                 <StreamViewLayout id={`stream-StreamEditor-preview`} data={{ data: data.data, layout: c}} />
             </ExpandableSection>
             <StreamLayoutEditor />

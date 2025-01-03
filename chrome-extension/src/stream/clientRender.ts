@@ -1,7 +1,7 @@
 import { init, propsModule, styleModule, VNode } from 'snabbdom'
 import { StreamRenderSingle } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
-import reactElementToVNode from "./reactToSnabb"
+import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
 
 const patch = init([

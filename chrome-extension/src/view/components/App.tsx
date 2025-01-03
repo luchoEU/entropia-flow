@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Provider, useDispatch } from 'react-redux';
 import { pageLoaded } from '../application/actions/ui';
 import './App.scss'
-import { configureStore } from '../application/store';
+import { setupStore } from '../application/store';
 import services from '../services';
 import Navigation from './Navigation';
 import Content from './Content';
@@ -22,7 +22,7 @@ function _AppWithPageLoaded() {
 
 function App() {
   return (
-    <Provider store={configureStore(services)}>
+    <Provider store={setupStore(services)}>
       <_AppWithPageLoaded />
     </Provider>
   )

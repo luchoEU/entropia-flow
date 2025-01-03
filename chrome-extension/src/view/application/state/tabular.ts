@@ -1,7 +1,7 @@
 import { SortColumnDefinition } from "../helpers/sort"
 import { SortSecuence } from "./sort"
 
-// To be used with SortableTableSection
+// To be used with SortableTabularSection
 type TabularState = { [selector: string]: TabularStateData }
 
 interface TabularStateData {
