@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:EntropiaFlowClient"
         xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d" WindowStyle="None"
-        AllowsTransparency="True"
+        AllowsTransparency="True" Background="Transparent"
         Loaded="Window_Loaded" Closing="Window_Closing"
         ResizeMode="NoResize" Height="70" Width="250"
         Icon="/UI/flow128w.ico">
@@ -15,8 +15,9 @@
                   ResizeBorderThickness="12"
                   CornerRadius="20"/>
     </WindowChrome.WindowChrome>
-    <Grid>
+    <Grid Background="#01FFFFFF">
+        <!-- #01FFFFFF to receive mouse events -->
         <TextBlock Text="Loading..." VerticalAlignment="Center" HorizontalAlignment="Center" />
-        <wpf:WebView2 x:Name="webView2" />
+        <wpf:WebView2 x:Name="webView2" DefaultBackgroundColor="Transparent" />
     </Grid>
 </Window>
