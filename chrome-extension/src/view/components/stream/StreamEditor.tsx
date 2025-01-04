@@ -38,7 +38,7 @@ const StreamBackground = (p: {
 function StreamLayoutEditor() {
     const { editing, layouts } = useSelector(getStreamIn)
     const dispatch = useDispatch()
-    const c = layouts[editing]
+    const c = layouts[editing.layout]
     const readonly = isLayoutReadonly(c.name)
 
     return <ExpandableSection selector='StreamEditor-layout' title='Layout'>
@@ -73,12 +73,12 @@ function StreamLayoutEditor() {
 
 function StreamEditor() {
     const { in: { editing, layouts }, out: { data } } = useSelector(getStream)
-    const c = layouts[editing]
+    const c = layouts[editing.layout]
     const dispatch = useDispatch()
 
     const str = (v: StreamRenderValue): string => typeof v === 'string' ? v : JSON.stringify(v)
     return <section>
-        <h1>Editing {editing} Layout</h1>
+        <h1>Editing {editing.layout} Layout</h1>
         <label htmlFor='stream-layout-name'>Name</label>
         <input
             id='stream-layout-name'

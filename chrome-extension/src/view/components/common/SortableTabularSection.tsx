@@ -25,6 +25,7 @@ const ITEM_HEIGHT = 20
 type RowValue =
     string |
     RowValue[] |
+    { flex: number } |
     { img: string, title: string, show?: boolean, dispatch?: () => any } |
     { tsx: JSX.Element, width: number } |
     { strong: string } |
@@ -32,25 +33,29 @@ type RowValue =
 
 const _getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =>
     v === undefined ? [] :
-    (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD)] :
+    (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD) + ITEM_TEXT_PADDING] :
     (Array.isArray(v) ? v.map(sc => _getRowValueWidth(sc, imgWidth).reduce((acc, w) => acc + w, 0)) :
-    ('tsx' in v ? [v.width] :
+    ('flex' in v ? [0] :
     ('img' in v ? [imgWidth] :
-    ('strong' in v ? [_getTextWidth(v.strong, FONT_BOLD)] :
+    ('tsx' in v ? [v.width] :
+    ('strong' in v ? [_getTextWidth(v.strong, FONT_BOLD) + ITEM_TEXT_PADDING] :
     ('sub' in v ? _getRowValueWidth(v.sub, imgWidth) :
     []
-))))));
+)))))));
 
 const _RowValueRender = (p: {v: RowValue}): JSX.Element => { const { v } = p; const dispatch = useDispatch();
     return v === undefined ? <></> :
     (typeof v === 'string' ? <ItemText text={v} /> :
     (Array.isArray(v) ? <>{ v.map((w, i) => <_RowValueRender key={i} v={w} />) }</> :
+    ('flex' in v ? <div style={{ flex: v.flex }} /> :
+    ('img' in v ? <img src={v.img} title={v.title}
+        {...v.show && { 'data-show': true }}
+        {...v.dispatch && { onClick: (e) => { e.stopPropagation(); dispatch(v.dispatch()) } }} /> :
     ('tsx' in v ? v.tsx :
-    ('img' in v ? <img src={v.img} title={v.title} {...v.show && { 'data-show': true }} /> :
     ('strong' in v ? <strong>{v.strong}</strong> :
     ('sub' in v ? <span style={v.style} onClick={(e) => { e.stopPropagation(); dispatch(v.dispatch()) }}><_RowValueRender v={v.sub} /></span> :
     <></>
-))))))}
+)))))))}
 
 
 function _getTextWidth(text: string, font: string): number {
@@ -88,7 +93,9 @@ const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[]
 
     const sortSubColumnsWidth = getSubColumnsWidth(sortRow, IMG_SORT_WIDTH)
 
-    const columnsWidth: number[] = itemsSubColumnsWidth.map((w, i) => Math.max(_sum(w), _sum(sortSubColumnsWidth[i])))
+    const columnsWidth: number[] = itemsSubColumnsWidth ?
+        itemsSubColumnsWidth.map((w, i) => Math.max(_sum(w), _sum(sortSubColumnsWidth[i]))) :
+        sortSubColumnsWidth.map(w => _sum(w))
     
     return {
         itemsSubColumns: itemsSubColumnsWidth,
@@ -109,6 +116,7 @@ interface TableParameters<TItem> {
     sortRow: RowValue[],
     getItemRow: (item: TItem) => RowValue[],
     itemSelector: (index: number) => (state: any) => TItem,
+    itemHeight?: number
 }
 
 interface ColumnWidthData {
@@ -185,7 +193,8 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
         const extra = totalWidth - window.innerWidth
         //totalWidth = window.innerWidth
     }
-    const totalHeight = Math.min(d.itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
+    const itemSize = d.itemHeight || ITEM_HEIGHT
+    const totalHeight = Math.min(d.itemCount * itemSize, LIST_TOTAL_HEIGHT)
 
     const getColumnsWidthData = (subWidths: number[][]): ColumnWidthData[] => subWidths.map((sw, i) => ({
         width: d.width.columns[i],
@@ -215,7 +224,7 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
             <FixedSizeList
                 height={totalHeight}
                 itemCount={d.itemCount}
-                itemSize={ITEM_HEIGHT}
+                itemSize={itemSize}
                 width={totalWidth}>
                 {renderRow}
             </FixedSizeList>
@@ -226,19 +235,21 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
 const SortableFixedTable = <TItem extends any>(p: {
     selector: string,
     columns: string[],
-    getRow: (item: TItem) => RowValue[]
+    getRow: (item: TItem) => RowValue[],
+    itemHeight?: number
 }) => {
     const s: TabularStateData = useSelector(getTabularData(p.selector))
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
-    const { selector, columns, getRow } = p
+    const { selector, columns, getRow: getItemRow, itemHeight } = p
     const sortRow = _getSortRow(selector, columns, s.sortSecuence)
     const table: TableParameters<TItem> = {
-        width: _calculateWidths(s.items.all, sortRow, getRow),
+        width: _calculateWidths(s.items.all, sortRow, getItemRow),
         itemCount: s.items.show.length,
         sortRow,
-        getItemRow: getRow,
+        getItemRow,
         itemSelector: getTabularDataItem(selector),
+        itemHeight
     }
 
     return <_SortableFixedSizeTable data={table} />
@@ -252,18 +263,25 @@ const SortableTable = <TItem extends any>(p: {
     const s: TabularStateData = useSelector(getTabularData(p.selector))
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
-    const { selector, columns, getRow } = p
+    const { selector, columns, getRow: getItemRow } = p
     const sortRow = _getSortRow(selector, columns, s.sortSecuence)
+    const width = _calculateWidths(s.items.all, sortRow, getItemRow)
 
-    return <table>
+    return <table className='sort-table'>
         <thead>
             <tr>
-                {sortRow.map(v => <th><_RowValueRender v={v} /></th>)}
+                {sortRow.map((v, i) =>
+                    <th className='sort-row' style={{ width: width.columns[i] }}>
+                        <_RowValueRender v={v} />
+                    </th>)}
             </tr>
         </thead>
         <tbody>
-            {s.items.show.map(r => <tr>
-                {getRow(r).map(v => <td><_RowValueRender v={v} /></td>)}
+            {s.items.show.map(r => <tr className='item-row'>
+                {getItemRow(r).map(v =>
+                    <td>
+                        <div><_RowValueRender v={v} /></div>
+                    </td>)}
             </tr>)}
         </tbody>
     </table>
@@ -274,6 +292,7 @@ const SortableTabularSection = <TItem extends any>(p: {
     selector: string,
     columns: string[],
     getRow: (item: TItem) => RowValue[],
+    itemHeight?: number,
     useTable?: boolean
 }) => {
     const { selector, columns, getRow } = p
@@ -304,7 +323,7 @@ const SortableTabularSection = <TItem extends any>(p: {
         {
             p.useTable ?
                 <SortableTable selector={selector} columns={columns} getRow={getRow} /> :
-                <SortableFixedTable selector={selector} columns={columns} getRow={getRow} />
+                <SortableFixedTable selector={selector} columns={columns} getRow={getRow} itemHeight={p.itemHeight} />
                 
         }
     </ExpandableSection>

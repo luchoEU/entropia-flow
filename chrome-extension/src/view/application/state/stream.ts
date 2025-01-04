@@ -6,7 +6,9 @@ const STREAM_TABULAR_IMAGES = '[stream] images'
 
 interface StreamStateIn {
     enabled: boolean
-    editing?: string // layout id
+    editing?: {
+        layout: string // id
+    }
     windows: string[]
     layouts: StreamRenderLayoutSet
 }

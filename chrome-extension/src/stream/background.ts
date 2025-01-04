@@ -38,7 +38,7 @@ let instances: { [id: string]: IBackground } = { }
 let animating: boolean
 
 function animate(delta: number) {
-    instances = Object.fromEntries(Object.entries(instances).filter(([,v]) => v.container.parentElement))
+    instances = Object.fromEntries(Object.entries(instances).filter(([,v]) => v.container.isConnected))
     const animated = Object.values(instances).filter(i => i.isAnimated)
     const toRender = animated.filter(i => i.container.querySelector('canvas'))
     toRender.forEach(i => i.render(delta));

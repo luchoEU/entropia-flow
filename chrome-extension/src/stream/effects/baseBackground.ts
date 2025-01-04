@@ -84,8 +84,9 @@ class CssBackground extends BaseBackground {
     }
 
     private addStyle(name: string) {
+        const root = this.container.getRootNode() as Document | ShadowRoot;
         const styleId = `${name}-style`
-        if (document.getElementById(styleId)) return
+        if (root.getElementById(styleId)) return
         
         const style: HTMLStyleElement = document.createElement('style');
         style.id = styleId;
@@ -101,7 +102,10 @@ class CssBackground extends BaseBackground {
                 position: absolute;
             }
             ` + this.getStyle(this.containerClassName, name);
-        document.head.appendChild(style);
+        if ('head' in root)
+            root.head.appendChild(style);
+        else
+            root.appendChild(style);
     }
 
     protected getStyle(containerClassName: string, itemClassName: string): string {

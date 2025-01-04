@@ -1,5 +1,5 @@
-import { SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CONTAINER_STYLE, SET_STREAM_DATA, SET_STREAM_EDITING, SET_STREAM_ENABLED, SET_STREAM_NAME, SET_STREAM_STATE, SET_STREAM_TEMPLATE, SET_STREAM_VARIABLES } from "../actions/stream"
-import { initialState, reduceSetStreamBackgroundSelected, reduceSetStreamContainerStyle, reduceSetStreamData, reduceSetStreamEditing, reduceSetStreamEnabled, reduceSetStreamName, reduceSetStreamState, reduceSetStreamTemplate, reduceSetStreamVariables } from "../helpers/stream"
+import { SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CONTAINER_STYLE, SET_STREAM_DATA, SET_STREAM_DEFAULT, SET_STREAM_EDITING, SET_STREAM_ENABLED, SET_STREAM_NAME, SET_STREAM_STATE, SET_STREAM_TEMPLATE, SET_STREAM_VARIABLES } from "../actions/stream"
+import { initialState, reduceSetStreamBackgroundSelected, reduceSetStreamContainerStyle, reduceSetStreamData, reduceSetStreamDefault, reduceSetStreamEditing, reduceSetStreamEnabled, reduceSetStreamName, reduceSetStreamState, reduceSetStreamTemplate, reduceSetStreamVariables } from "../helpers/stream"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -11,6 +11,7 @@ export default (state = initialState, action) => {
         case SET_STREAM_CONTAINER_STYLE: return reduceSetStreamContainerStyle(state, action.payload.style)
         case SET_STREAM_DATA: return reduceSetStreamData(state, action.payload.data)
         case SET_STREAM_EDITING: return reduceSetStreamEditing(state, action.payload.editing)
+        case SET_STREAM_DEFAULT: return reduceSetStreamDefault(state, action.payload.name)
         case SET_STREAM_NAME: return reduceSetStreamName(state, action.payload.name)
         default: return state
     }

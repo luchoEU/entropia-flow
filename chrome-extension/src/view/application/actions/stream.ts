@@ -10,6 +10,7 @@ const SET_STREAM_TEMPLATE = "[stream] set template"
 const SET_STREAM_CONTAINER_STYLE = "[stream] set container style"
 const SET_STREAM_DATA = "[stream] set data"
 const SET_STREAM_EDITING = "[stream] set editing"
+const SET_STREAM_DEFAULT = "[stream] set default"
 const SET_STREAM_NAME = "[stream] set name"
 
 const setStreamState = (state: StreamState) => ({
@@ -44,6 +45,13 @@ const setStreamEditing = (editing: string) => ({
     type: SET_STREAM_EDITING,
     payload: {
         editing
+    }
+})
+
+const setStreamDefault = (name: string) => ({
+    type: SET_STREAM_DEFAULT,
+    payload: {
+        name
     }
 })
 
@@ -85,6 +93,7 @@ export {
     SET_STREAM_TEMPLATE,
     SET_STREAM_DATA,
     SET_STREAM_EDITING,
+    SET_STREAM_DEFAULT,
     SET_STREAM_NAME,
     setStreamState,
     setStreamEnabled,
@@ -94,5 +103,6 @@ export {
     setStreamContainerStyle,
     setStreamData,
     setStreamEditing,
+    setStreamDefault,
     setStreamName,
 }

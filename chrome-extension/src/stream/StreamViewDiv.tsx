@@ -9,7 +9,7 @@ const StreamViewDiv = (p: {
 }): JSX.Element => {
     const { data, layout } = p.data
     if (!layout.template) {
-        return <>Template undefined!</>
+        return <p>Template undefined!</p>
     }
 
     const html = renderHtmlTemplate(layout.template, data, !layout.disableSafeCheck)
@@ -22,7 +22,7 @@ const StreamViewDiv = (p: {
           const formattedKey = key.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
           styles[formattedKey] = value.trim();
           return styles;
-        }, {} as React.CSSProperties);
+        }, { } as React.CSSProperties);
     }
 
     const containerStyle: React.CSSProperties = parseStyle(layout.containerStyle)

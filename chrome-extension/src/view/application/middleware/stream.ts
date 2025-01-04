@@ -9,7 +9,7 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING, SET_STREAM_NAME } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING, SET_STREAM_NAME, SET_STREAM_DEFAULT } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
@@ -32,7 +32,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_TEMPLATE:
         case SET_STREAM_CONTAINER_STYLE:
         case SET_STREAM_NAME:
-        case SET_STREAM_EDITING: {
+        case SET_STREAM_EDITING:
+        case SET_STREAM_DEFAULT: {
             const state: StreamStateIn = getStreamIn(getState())
             await api.storage.saveStream(state)
             break
@@ -86,7 +87,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_BACKGROUND_SELECTED:
         {
             const s: StreamState = getStream(getState())
-            const t = s.in.editing && s.in.layouts[s.in.editing].backgroundType
+            const t = s.in.editing && s.in.layouts[s.in.editing.layout].backgroundType
             dispatch(setStreamVariables('background', [
                 { name: 'backDark', value: t ? getBackgroundSpec(t).dark : false, description: 'background is dark' },
                 { name: 'logoUrl', value: '=IF(backDark, img.logoWhite, img.logoBlack)', description: 'logo url' },
@@ -102,10 +103,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_BACKGROUND_SELECTED:
         case SET_STREAM_TEMPLATE:
         case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_DEFAULT:
         case SET_STREAM_NAME:
         {
-            const { layouts }: StreamStateIn = getStreamIn(getState())
-            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.values(layouts).map(l => ({ name: l.name, layout: l }))))
+            const { layouts, windows }: StreamStateIn = getStreamIn(getState())
+            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.values(layouts).map(l => ({ name: l.name, favorite: windows.includes(l.name), layout: l }))))
             break
         }
     }

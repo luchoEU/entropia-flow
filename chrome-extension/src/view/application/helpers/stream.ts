@@ -60,8 +60,8 @@ const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLa
         ...state.in,
         layouts: {
             ...state.in.layouts,
-            [state.in.editing]: {
-                ...state.in.layouts[state.in.editing],
+            [state.in.editing.layout]: {
+                ...state.in.layouts[state.in.editing.layout],
                 ...partial
             }
         }
@@ -92,25 +92,35 @@ const reduceSetStreamEditing = (state: StreamState, editing: string): StreamStat
     ...state,
     in: {
         ...state.in,
-        editing
+        editing: editing === undefined ? undefined : { layout: editing }
+    }
+})
+
+const reduceSetStreamDefault = (state: StreamState, name: string): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        windows: [ name ]
     }
 })
 
 const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
     const layouts = { ...state.in.layouts }
-    delete layouts[state.in.editing]
+    delete layouts[state.in.editing.layout]
     let id = name
     let i = 1
     while (layouts[id]) {
         id = `${name}_${i}`
         i++
     }
-    layouts[id] = { ...state.in.layouts[state.in.editing], name }
+    layouts[id] = { ...state.in.layouts[state.in.editing.layout], name }
     return {
         ...state,
         in: {
             ...state.in,
-            editing: id,
+            editing: {
+                layout: id
+            },
             layouts
         }
     }
@@ -135,6 +145,7 @@ export {
     reduceSetStreamTemplate,
     reduceSetStreamContainerStyle,
     reduceSetStreamEditing,
+    reduceSetStreamDefault,
     reduceSetStreamData,
     reduceSetStreamName,
 }
