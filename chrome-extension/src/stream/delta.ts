@@ -5,15 +5,17 @@ function getDelta<T extends object>(source: T, final: T): Partial<T> {
     function f(src: object, end: object): object {
         const res = { }
         Object.entries(src).forEach(([k, v]) => {
-            if (end[k] === undefined)
+            if (end[k] === undefined) {
                 res[k] = v
-            else if (typeof v !== 'object')
+            } else if (typeof v === 'object') {
+                const obj = f(v, end[k])
+                if (obj !== undefined)
+                    res[k] = obj
+            } else if (end[k] !== v) {
                 res[k] = end[k]
-            else if (end[k] !== v) {
-                res[k] = f(v, end[k])
             }
         })
-        return res
+        return Object.keys(res).length === 0 ? undefined : res
     }
     return f(source, final) as Partial<T>
 }

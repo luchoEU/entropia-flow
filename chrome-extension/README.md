@@ -31,6 +31,10 @@
     1. `Debug: Javascript Debug Terminal` from Command Pallete
     1. `npm test -- --watch`
 
+## Debug with React DevTools
+
+- Use branch `debug/react`
+
 ## Publication
 
 1. Increase version in [package.json](package.json), [manifest.json](dist/manifest.json) and [AboutPage.tsx](src/view/components/about/AboutPage.tsx)

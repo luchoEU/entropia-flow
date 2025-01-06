@@ -38,25 +38,27 @@ type RowValue =
         { sub: RowValue[] } )
 
 const _getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] => {
-    const padding: number = typeof v === 'object' ?
-        ('text' in v || 'strong' in v ? ITEM_TEXT_PADDING :
-        ('input' in v ? INPUT_PADDING :
-        0)) : 0;
+    const padding: number =
+        typeof v === 'string' ? ITEM_TEXT_PADDING :
+        (typeof v === 'object' ?
+            ('text' in v || 'strong' in v ? ITEM_TEXT_PADDING :
+            ('input' in v ? INPUT_PADDING :
+            0)) : 0);
 
     let valueWidth: number[]
     if (typeof v === 'object' && 'width' in v) {
         valueWidth = [v.width]
     } else {
         valueWidth = v === undefined ? [] :
-            (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD) + ITEM_TEXT_PADDING] :
+            (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD)] :
             (Array.isArray(v) ? v.map(sc => _getRowValueWidth(sc, imgWidth).reduce((acc, w) => acc + w, 0)) :
             ('flex' in v ? [0] :
             ('img' in v ? [imgWidth] :
             ('button' in v ? [_getTextWidth(v.button, FONT_BOLD)] :
             ('tsx' in v ? [v.width] :
-            ('text' in v ? [_getTextWidth(v.text, FONT_BOLD) + ITEM_TEXT_PADDING] :
-            ('strong' in v ? [_getTextWidth(v.strong, FONT_BOLD) + ITEM_TEXT_PADDING] :
-            ('input' in v ? [INPUT_WIDTH + INPUT_PADDING] :
+            ('text' in v ? [_getTextWidth(v.text, FONT_BOLD)] :
+            ('strong' in v ? [_getTextWidth(v.strong, FONT_BOLD)] :
+            ('input' in v ? [INPUT_WIDTH] :
             ('sub' in v ? _getRowValueWidth(v.sub, imgWidth) :
             []
         ))))))))));
@@ -97,8 +99,9 @@ const _RowValueRender = (p: {v: RowValue}): JSX.Element => {
 const Input = (p: { value: string, width: number, onChange: (value: string) => any }): JSX.Element => {
     const dispatch = useDispatch()
     return <input
-        style={{ width: p.width, font: FONT }}
+        type='text'
         value={p.value}
+        style={{ width: p.width, font: FONT }}
         onClick={(e) => { e.stopPropagation() }}
         onChange={(e) => {
             e.stopPropagation();
@@ -136,7 +139,7 @@ const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[]
         d.map(c => _getRowValueWidth(c, imgWidth));
     
     const addPadding = (padding: number, d: number[][]): number[][] =>
-        d.map((w, i) => i < d.length - 1 ? w.map(v => v + padding) : w)
+        d?.map((w, i) => i < d.length - 1 ? w.map(v => v + padding) : w)
 
     const itemsSubColumnsWidth = addPadding(COLUMN_PADDING, items.reduce((acc, item) => {
         const cw = getSubColumnsWidth(getItemRow(item), IMG_WIDTH)

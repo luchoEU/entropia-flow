@@ -17,8 +17,10 @@ import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
 import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
+import isEqual from 'lodash.isequal';
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
+    const { variables: beforeVariables }: StreamState = getStream(getState())
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
@@ -45,6 +47,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_VARIABLES: {
             const { variables }: StreamState = getStream(getState())
+            if (isEqual(beforeVariables, variables))
+                break
+
             const d: StreamVariable[] =
                 Object.entries(variables).map(([source, data]) => data.map(v => ({ source, ...v }))).flat()
             const noImages = d.filter(v => !v.isImage)
@@ -154,10 +159,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_DATA: {
             const { data }: StreamStateOut = getStreamOut(getState())
 
-            // TODO: send used variables
             const delta = getDelta(_dataInClient, data)
-            _dataInClient = applyDelta(_dataInClient, delta)
+            if (!delta)
+                break
 
+            _dataInClient = applyDelta(_dataInClient, delta)
             dispatch(sendWebSocketMessage('stream', delta))
             break
         }

@@ -143,8 +143,8 @@ const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
     const layouts = { ...state.in.layouts }
     delete layouts[state.in.editing.layoutId]
     const baseId = name.startsWith('entropiaflow.') ? `user.${name}` : name;
-    const layoutId = getUniqueLayoutId(layouts, `${baseId}_`)
-    layouts[layoutId] = { ...state.in.layouts[state.in.editing.layoutId], name }
+    const layoutId = getUniqueLayoutId(layouts, `${baseId}_`, true);
+    layouts[layoutId] = { ...state.in.layouts[state.in.editing.layoutId], name };
     return {
         ...state,
         in: {
@@ -168,7 +168,7 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
 const getUniqueLayoutId = (layouts: StreamRenderLayoutSet, baseId: string, tryNoNumber: boolean = false): string => {
     let n = 1;
     let layoutId = tryNoNumber ? baseId : undefined
-    while (layouts[layoutId]) {
+    while (!layoutId || layouts[layoutId]) {
         layoutId = `${baseId}${n++}`;
     }
     return layoutId
