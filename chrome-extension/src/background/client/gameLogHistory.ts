@@ -1,7 +1,7 @@
 //// GAME LOG HISTORY ////
 // Keep the log history and summary from game log
 
-import { GameLogData, GameLogLine } from "./gameLogData"
+import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
 const MAX_LOG_LINES = 100
 
@@ -12,7 +12,7 @@ interface IGameLogHistory {
 }
 
 class GameLogHistory implements IGameLogHistory {
-    private gameLog: GameLogData = { raw: [], loot: [], skill: [], global: [], stats: {} }
+    private gameLog: GameLogData = emptyGameLogData
     public onChange: (gameLog: GameLogData) => void
 
     public getGameLog(): GameLogData { return this.gameLog }
@@ -25,7 +25,7 @@ class GameLogHistory implements IGameLogHistory {
             this.gameLog.raw.splice(MAX_LOG_LINES)
 
         if (line.data.loot) {
-            const existing = this.gameLog.loot.find(l => l.player === line.data.loot.player && l.name === line.data.loot.name)
+            const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name)
             if (existing) {
                 existing.value += line.data.loot.value
                 existing.quantity += line.data.loot.quantity
@@ -36,6 +36,14 @@ class GameLogHistory implements IGameLogHistory {
                 if (!this.gameLog.stats.kills)
                     this.gameLog.stats.kills = 0
                 this.gameLog.stats.kills++
+            }
+        }
+        if (line.data.team) {
+            const existing = this.gameLog.team.find(l => l.player === line.data.team.player && l.name === line.data.team.name)
+            if (existing) {
+                existing.quantity += line.data.team.quantity
+            } else {
+                this.gameLog.team.unshift(line.data.team)
             }
         }
 

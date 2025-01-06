@@ -23,10 +23,10 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { enabled && (editing ? <>
+            { editing?.layoutId ? <>
                     <Back text="Back to list" dispatch={() => setStreamEditing(undefined)} />
                     <StreamEditor />
-                </> : <StreamChooser />) }
+                </> : <StreamChooser /> }
         </>
     )
 }

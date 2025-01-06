@@ -40,7 +40,7 @@ const useBackground = (
             
             // Cleanup on component unmount
             return () => {
-                const container = document.getElementById(containerId);
+                const container = root?.getElementById(containerId);
                 if (container && observerRef.current) {
                     observerRef.current.unobserve(container);
                     observerRef.current.disconnect();

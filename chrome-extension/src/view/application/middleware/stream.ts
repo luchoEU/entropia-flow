@@ -4,12 +4,12 @@ import { DISABLE_TEMPLATE_SAFE_CHECK } from "../../../config"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamRenderData, { StreamRenderLayout } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
-import { computeFormulas } from "../../../stream/htmlTemplate"
+import { computeFormulas } from "../../../stream/template"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_TEMPLATE, SET_STREAM_CONTAINER_STYLE, SET_STREAM_EDITING, SET_STREAM_NAME, SET_STREAM_DEFAULT } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
@@ -29,11 +29,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_ENABLED:
         case SET_STREAM_BACKGROUND_SELECTED:
-        case SET_STREAM_TEMPLATE:
-        case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_HTML_TEMPLATE:
+        case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_NAME:
         case SET_STREAM_EDITING:
-        case SET_STREAM_DEFAULT: {
+        case SET_STREAM_STARED:
+        case ADD_STREAM_LAYOUT:
+        case REMOVE_STREAM_LAYOUT:
+        case ADD_STREAM_USER_VARIABLE:
+        case REMOVE_STREAM_USER_VARIABLE:
+        case SET_STREAM_USER_VARIABLE_PARTIAL: {
             const state: StreamStateIn = getStreamIn(getState())
             await api.storage.saveStream(state)
             break
@@ -86,8 +91,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PAGE_LOADED:
         case SET_STREAM_BACKGROUND_SELECTED:
         {
-            const s: StreamState = getStream(getState())
-            const t = s.in.editing && s.in.layouts[s.in.editing.layout].backgroundType
+            const { layouts, editing } = getStreamIn(getState())
+            const t = layouts[editing?.layoutId]?.backgroundType
             dispatch(setStreamVariables('background', [
                 { name: 'backDark', value: t ? getBackgroundSpec(t).dark : false, description: 'background is dark' },
                 { name: 'logoUrl', value: '=IF(backDark, img.logoWhite, img.logoBlack)', description: 'logo url' },
@@ -100,21 +105,40 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
     switch (action.type) {
         case PAGE_LOADED:
+        case ADD_STREAM_USER_VARIABLE:
+        case REMOVE_STREAM_USER_VARIABLE:
+        case SET_STREAM_USER_VARIABLE_PARTIAL: {
+            const { userVariables } = getStreamIn(getState())
+            dispatch(setStreamVariables('user', userVariables));
+            break;
+        }
+    }
+
+    switch (action.type) {
+        case PAGE_LOADED:
         case SET_STREAM_BACKGROUND_SELECTED:
-        case SET_STREAM_TEMPLATE:
-        case SET_STREAM_CONTAINER_STYLE:
-        case SET_STREAM_DEFAULT:
+        case SET_STREAM_HTML_TEMPLATE:
+        case SET_STREAM_CSS_TEMPLATE:
+        case SET_STREAM_STARED:
         case SET_STREAM_NAME:
+        case ADD_STREAM_LAYOUT:
+        case REMOVE_STREAM_LAYOUT:
         {
-            const { layouts, windows }: StreamStateIn = getStreamIn(getState())
-            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.values(layouts).map(l => ({ name: l.name, favorite: windows.includes(l.name), layout: l }))))
+            const { layouts }: StreamStateIn = getStreamIn(getState())
+            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.entries(layouts).map(([id, layout]) => ({
+                id,
+                name: layout.name,
+                readonly: !!layout.readonly,
+                stared: !!layout.stared,
+                layout
+            }))))
             break
         }
     }
 
     switch (action.type) {
-        case SET_STREAM_TEMPLATE:
-        case SET_STREAM_CONTAINER_STYLE:
+        case SET_STREAM_HTML_TEMPLATE:
+        case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
             const s: StreamState = getStream(getState())

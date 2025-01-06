@@ -1,9 +1,19 @@
 interface GameLogData {
     raw: Array<GameLogLine>
     loot: Array<GameLogLoot>
+    team: Array<GameLogTeam>
     skill: Array<GameLogSkill>
     global: Array<GameLogGlobal>
     stats: GameLogStats
+}
+
+const emptyGameLogData: GameLogData = {
+    raw: [],
+    loot: [],
+    team: [],
+    skill: [],
+    global: [],
+    stats: {}
 }
 
 interface GameLogStats {
@@ -29,6 +39,7 @@ interface GameLogLine {
     message: string
     data: {
         loot?: GameLogLoot
+        team?: GameLogTeam
         global?: GameLogGlobal
         skill?: GameLogSkill
         stats?: GameLogStats
@@ -40,10 +51,15 @@ interface GameLogLine {
 }
 
 interface GameLogLoot {
-    player?: string
     name: string
     quantity: number
-    value?: number
+    value: number
+}
+
+interface GameLogTeam {
+    player: string
+    name: string
+    quantity: number
 }
 
 interface GameLogSkill {
@@ -65,5 +81,6 @@ export {
     GameLogGlobal,
     GameLogSkill,
     GameLogStats,
-    GameLogLine
+    GameLogLine,
+    emptyGameLogData,
 }

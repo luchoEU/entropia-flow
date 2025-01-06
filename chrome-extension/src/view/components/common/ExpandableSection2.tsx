@@ -13,7 +13,7 @@ const ExpandableSection = (p: {
     const expanded: boolean = useSelector(getExpanded(p.selector))
     const dispatch = useDispatch()
     return (
-        <section>
+        <section className={p.className}>
             <h1 onClick={(e) => {
                     e.stopPropagation()
                     dispatch(setExpanded(p.selector)(!expanded))}
@@ -21,11 +21,9 @@ const ExpandableSection = (p: {
                 {p.title}
                 <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(p.selector)} />
             </h1>
-            <div className={p.className}>
             {
                 expanded && p.children
             }
-            </div>
         </section>
     )
 }

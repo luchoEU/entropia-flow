@@ -1,35 +1,65 @@
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamRenderLayout } from '../../../stream/data';
+import StreamRenderData, { StreamRenderLayout, StreamRenderLayoutSet } from '../../../stream/data';
 import { StreamState, StreamStateIn, StreamVariable } from "../state/stream";
 
-const DEFAULT_LAYOUT_NAME = 'Entropia Flow'
-
-const _defaultDefinition: StreamRenderLayout = {
-    name: DEFAULT_LAYOUT_NAME,
+const _defaultLayout: StreamRenderLayout = {
+    name: 'Entropia Flow Default',
     backgroundType: BackgroundType.Ashfall,
-    containerStyle: 'width: 494px; height: 150px;',
-    template: `
+    readonly: true,
+    stared: true,
+    htmlTemplate: `
 <div style='display: flex; align-items: start; font-size: 14px; margin: 50px;'>
-  <img style='width: 50px;' src='{logoUrl}' alt='Logo'></img>
+  <img style='width: 50px;' src='{{logoUrl}}' alt='Logo'></img>
   <div style='display: flex; flex-direction: column; margin: 0px 10px;'>
     <div style='font-size: 20px; font-weight: bold;'>Entropia Flow</div>
     <div style='margin-left: 10px'>Chrome Extension</div>
   </div>
   <div style='display: flex; flex-direction: column; margin-left: 5px; width: 180px;'>
-    <div style='background-color: {deltaBackColor}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
-      {delta} PED {deltaWord}
+    <div style='background-color: {{deltaBackColor}}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
+      {{delta}} PED {{deltaWord}}
     </div>
-    <div style='margin-top: 5px; font-size: 12px; text-align: center;'>{message}</div>
+    <div style='margin-top: 5px; font-size: 12px; text-align: center;'>{{message}}</div>
   </div>
-</div>`
+</div>`.trimStart(),
+}
+
+const _teamLootLayout: StreamRenderLayout = {
+    name: 'Entropia Flow Team',
+    backgroundType: BackgroundType.Matrix,
+    readonly: true,
+    htmlTemplate: `
+<table>
+  <thead><tr>
+    <th></th>
+    {{#team.players}}<th>{{.}}</th>{{/team.players}}
+  </tr></thead>
+  <tbody>
+    {{#team.loot}}<tr>
+      <td>{{name}}</td>
+      {{#quantity}}<td>{{.}}</td>{{/quantity}}
+  </tr>{{/team.loot}}</tbody>
+</table>`.trimStart(),
+    cssTemplate: `
+table {
+  border-collapse: collapse;
+}
+td, th {
+  padding: 2px 5px;
+  text-align: end;
+}
+td:nth-child(even), th:nth-child(even) {
+  background-color: rgba(255,255,255,.15);
+}`.trimStart(),
 }
 
 const initialStateIn: StreamStateIn = {
-    enabled: false,
-    windows: [ DEFAULT_LAYOUT_NAME ],
+    enabled: true,
+    windows: [ 'entropiaflow.default' ],
     layouts: {
-        [DEFAULT_LAYOUT_NAME]: _defaultDefinition
-    }
+        ['entropiaflow.default']: _defaultLayout,
+        ['entropiaflow.team']: _teamLootLayout,
+    },
+    userVariables: []
 }
 
 const initialState: StreamState = {
@@ -38,10 +68,14 @@ const initialState: StreamState = {
     out: undefined
 }
 
-const isLayoutReadonly = (name: string): boolean => name === DEFAULT_LAYOUT_NAME
-
-const reduceSetStreamState = (state: StreamState, newState: StreamStateIn): StreamState => ({
-    in: newState,
+const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): StreamState => ({
+    in: {
+        ...newStateIn,
+        layouts: {
+            ...newStateIn.layouts,
+            ...initialStateIn.layouts
+        }
+    },
     variables: state.variables,
     out: undefined
 })
@@ -60,8 +94,8 @@ const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLa
         ...state.in,
         layouts: {
             ...state.in.layouts,
-            [state.in.editing.layout]: {
-                ...state.in.layouts[state.in.editing.layout],
+            [state.in.editing.layoutId]: {
+                ...state.in.layouts[state.in.editing.layoutId],
                 ...partial
             }
         }
@@ -80,46 +114,43 @@ const reduceSetStreamVariables = (state: StreamState, source: string, variables:
     }
 })
 
-const reduceSetStreamTemplate = (state: StreamState, template: string): StreamState => _changeStreamLayout(state, {
-    template
+const reduceSetStreamHtmlTemplate = (state: StreamState, htmlTemplate: string): StreamState => _changeStreamLayout(state, {
+    htmlTemplate
 })
 
-const reduceSetStreamContainerStyle = (state: StreamState, style: string): StreamState => _changeStreamLayout(state, {
-    containerStyle: style
+const reduceSetStreamCssTemplate = (state: StreamState, cssTemplate: string): StreamState => _changeStreamLayout(state, {
+    cssTemplate
 })
 
-const reduceSetStreamEditing = (state: StreamState, editing: string): StreamState => ({
+const reduceSetStreamEditing = (state: StreamState, layoutId: string): StreamState => ({
     ...state,
     in: {
         ...state.in,
-        editing: editing === undefined ? undefined : { layout: editing }
+        editing: layoutId === undefined ? undefined : { layoutId }
     }
 })
 
-const reduceSetStreamDefault = (state: StreamState, name: string): StreamState => ({
+const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boolean): StreamState => ({
     ...state,
     in: {
         ...state.in,
-        windows: [ name ]
+        layouts: Object.fromEntries(Object.entries(state.in.layouts).map(([id, layout]) => [id, id === layoutId ? { ...layout, stared } : layout])),
+        windows: stared ? [...state.in.windows, layoutId] : state.in.windows.filter(w => w !== layoutId)
     }
 })
 
 const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
     const layouts = { ...state.in.layouts }
-    delete layouts[state.in.editing.layout]
-    let id = name
-    let i = 1
-    while (layouts[id]) {
-        id = `${name}_${i}`
-        i++
-    }
-    layouts[id] = { ...state.in.layouts[state.in.editing.layout], name }
+    delete layouts[state.in.editing.layoutId]
+    const baseId = name.startsWith('entropiaflow.') ? `user.${name}` : name;
+    const layoutId = getUniqueLayoutId(layouts, `${baseId}_`)
+    layouts[layoutId] = { ...state.in.layouts[state.in.editing.layoutId], name }
     return {
         ...state,
         in: {
             ...state.in,
             editing: {
-                layout: id
+                layoutId
             },
             layouts
         }
@@ -134,18 +165,94 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
     }
 })
 
+const getUniqueLayoutId = (layouts: StreamRenderLayoutSet, baseId: string, tryNoNumber: boolean = false): string => {
+    let n = 1;
+    let layoutId = tryNoNumber ? baseId : undefined
+    while (layouts[layoutId]) {
+        layoutId = `${baseId}${n++}`;
+    }
+    return layoutId
+}
+
+const reduceAddStreamLayout = (state: StreamState): StreamState => {
+    const layoutId = getUniqueLayoutId(state.in.layouts, 'Layout ');
+    return {
+        ...state,
+        in: {
+            ...state.in,
+            editing: {
+                layoutId
+            },
+            layouts: {
+                ...state.in.layouts,
+                [layoutId]: {
+                    ..._defaultLayout,
+                    name: layoutId
+                }
+            }
+        }
+    };
+}
+
+const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamState => {
+    if (state.in.layouts[layoutId]?.readonly) {
+        return state;
+    }
+    return {
+        ...state,
+        in: {
+            ...state.in,
+            layouts: Object.fromEntries(Object.entries(state.in.layouts).filter(([k, v]) => k !== layoutId)),
+            windows: state.in.windows.filter(w => w !== layoutId)
+        }
+    }
+}
+
+const reduceAddStreamUserVariable = (state: StreamState): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        userVariables: [ ...state.in.userVariables, {
+            id: Math.max(...state.in.userVariables.map(v => v.id)) + 1,
+            name: '',
+            value: '',
+            description: '',
+        } ]
+    }
+})
+
+const reduceRemoveStreamUserVariable = (state: StreamState, id: number): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        userVariables: state.in.userVariables.filter(v => v.id !== id)
+    }
+})
+
+const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, partial: Partial<StreamVariable>): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        userVariables: state.in.userVariables.map(v => v.id === id ? { ...v, ...partial } : v)
+    }
+})
+
 export {
     initialState,
     initialStateIn,
-    isLayoutReadonly,
     reduceSetStreamState,
     reduceSetStreamEnabled,
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
-    reduceSetStreamTemplate,
-    reduceSetStreamContainerStyle,
+    reduceSetStreamHtmlTemplate,
+    reduceSetStreamCssTemplate,
     reduceSetStreamEditing,
-    reduceSetStreamDefault,
+    reduceSetStreamStared,
     reduceSetStreamData,
     reduceSetStreamName,
+    reduceAddStreamLayout,
+    reduceRemoveStreamLayout,
+    reduceAddStreamUserVariable,
+    reduceRemoveStreamUserVariable,
+    reduceSetStreamUserVariablePartial,
 }

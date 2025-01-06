@@ -45,6 +45,7 @@
         "@reduxjs/toolkit": "^2.5.0",
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.1.0",
+        "dompurify": "^3.2.3",
         "google-spreadsheet": "^3.3.0",
         "lodash.isequal": "^4.5.0",
         "lzutf8": "^0.6.3",

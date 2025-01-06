@@ -60,7 +60,7 @@ class FormulaParser {
             {regex: /\d+(\.\d+)?/, type: ExprType.number},
             {regex: /[A-Z]+\(/, type: ExprType.function},
             {regex: /[a-z][A-Za-z0-9]*/, type: ExprType.identifier},
-            {regex: /[(),.+><=]/, type: ExprType.symbol},
+            {regex: /[(),.+><={}:\[\]]/, type: ExprType.symbol},
             {regex: /'[^']+'/, type: ExprType.string},
             {regex: /"[^"]+"/, type: ExprType.string},
             {regex: /\s+/, type: ExprType.space},
@@ -75,10 +75,28 @@ class FormulaParser {
     private _parseExpression(tokens: Token[], returnParameters: boolean = false): StreamRenderValue {
         let stack: (Token | StreamRenderValue)[] = [];
         const parameters: StreamRenderValue[] = [];
-        
+        let jsonMode: { open: string, close: string, count: number, text: string } = undefined;
+
         while (tokens.length > 0) {
             const token = tokens.shift()!;
-            if (token.type === ExprType.function) {
+            if (jsonMode) {
+                jsonMode.text += token.text;
+                if (token.type === ExprType.symbol) {
+                    if (token.text === jsonMode.close) {
+                        jsonMode.count--;
+                        if (jsonMode.count === 0) {
+                            stack.push(JSON.parse(jsonMode.text));
+                            jsonMode = undefined;
+                        }
+                    } else if (token.text === jsonMode.open) {
+                        jsonMode.count++;
+                    }
+                }
+            } else if (token.type === ExprType.symbol && token.text === '{') {
+                jsonMode = { open: '{', close: '}', count: 1, text: '{' };
+            } else if (token.type === ExprType.symbol && token.text === '[') {
+                jsonMode = { open: '[', close: ']', count: 1, text: '[' };
+            } else if (token.type === ExprType.function) {
                 const value = this._parseExpression(tokens, true);
                 const fName = token.text.slice(0, -1); // remove trailing '('
                 const f = _formulas[fName];

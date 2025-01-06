@@ -715,233 +715,232 @@ const reduceSetByStoreInventoryFilter = (
         ),
         containers: filter ? state.byStore.containers : Object.fromEntries(
             Object.entries(state.byStore.containers).map(([k, v]) => [k, { ...v, expandedOnFilter: undefined }])),
-        })
-        
-        return {
-            ...state,
-            byStore: {
-                ...byStore,
-                flat: { ...state.byStore.flat, show: _flatTree(byStore.showList, 0) }
-            }
+    })
+    
+    return {
+        ...state,
+        byStore: {
+            ...byStore,
+            flat: { ...state.byStore.flat, show: _flatTree(byStore.showList, 0) }
         }
     }
+}
+
+const reduceSetByStoreStaredInventoryFilter = (
+    state: InventoryState,
+    filter: string
+): InventoryState => filter === undefined || filter.length === 0 ? {
+    ...state,
+    byStore: _loadByStoreStaredList({
+        ...state.byStore,
+        stared: {
+            ...state.byStore.stared,
+            filter: undefined
+        }
+    })
+} : {
+    ...state,
+    byStore: _loadByStoreStaredList({
+        ...state.byStore,
+        stared: {
+            ...state.byStore.stared,
+            filter
+        }
+    })
+}
+
+const _applyByStoreFilter = (
+    list: InventoryList<InventoryTree<ItemData>>,
+    containers: ContainerMapData,
+    filter?: string,
+): InventoryList<InventoryTree<ItemData>> =>
+    _applyByStoreFilter4('', list, filter, (id) => containers[id]?.expandedOnFilter ?? true);
+
+const _applyByStoreFilter4 = (
+    id: string,
+    list: InventoryList<InventoryTree<ItemData>>,
+    filter: string,
+    expandedOnFilter: (id: string) => boolean
+): InventoryList<InventoryTree<ItemData>> => {
+    let items = list.items
+    .map((tree) => ({
+        ...tree,
+        list : tree.list ? _applyByStoreFilter4(tree.data.id, tree.list, filter, expandedOnFilter) : undefined,
+        showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.displayName)
+    }))
+    .filter((tree) => multiIncludes(filter, tree.displayName) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
     
-    const reduceSetByStoreStaredInventoryFilter = (
-        state: InventoryState,
-        filter: string
-    ): InventoryState => filter === undefined || filter.length === 0 ? {
-        ...state,
-        byStore: _loadByStoreStaredList({
-            ...state.byStore,
-            stared: {
-                ...state.byStore.stared,
-                filter: undefined
-            }
-        })
-    } : {
-        ...state,
-        byStore: _loadByStoreStaredList({
-            ...state.byStore,
-            stared: {
-                ...state.byStore.stared,
-                filter
-            }
-        })
+    const expanded = filter ? expandedOnFilter(id) : list.expanded;
+    
+    return {
+        ...list,
+        expanded,
+        items
     }
-    
-    const _applyByStoreFilter = (
-        list: InventoryList<InventoryTree<ItemData>>,
-        containers: ContainerMapData,
-        filter?: string,
-    ): InventoryList<InventoryTree<ItemData>> =>
-        _applyByStoreFilter4('', list, filter, (id) => containers[id]?.expandedOnFilter ?? true);
-    
-    const _applyByStoreFilter4 = (
-        id: string,
-        list: InventoryList<InventoryTree<ItemData>>,
-        filter: string,
-        expandedOnFilter: (id: string) => boolean
-    ): InventoryList<InventoryTree<ItemData>> => {
-        let items = list.items
-        .map((tree) => ({
-            ...tree,
-            list : tree.list ? _applyByStoreFilter4(tree.data.id, tree.list, filter, expandedOnFilter) : undefined,
-            showItemValueRow: !filter ? tree.showItemValueRow : tree.list && multiIncludes(filter, tree.data.n) && !multiIncludes(filter, tree.displayName)
-        }))
-        .filter((tree) => multiIncludes(filter, tree.displayName) || multiIncludes(filter, tree.data.n) || tree.list && tree.list.items.length > 0);
+}
+
+const _addStats = (
+    allList: InventoryList<InventoryTree<ItemData>>,
+): InventoryList<InventoryTree<ItemData>> => {
+    function innerAddStats(dataV: number, list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> {
+        const items = list.items.map((tree) => {
+            const v = tree.showItemValueRow ? Number(tree.data.v) : 0
+            let list = tree.list ? innerAddStats(v, tree.list) : undefined
+            return {
+                ...tree,
+                list
+            }
+        })
         
-        const expanded = filter ? expandedOnFilter(id) : list.expanded;
-        
+        const sumCount = items.reduce(
+            (partialSum, tree) => partialSum +
+            (tree.list ? tree.list.stats.count +
+                (tree.list.items.length === 0 || tree.showItemValueRow ? 1 : 0) :
+                1), 0);
+
+        const sumPed = dataV + items.reduce(
+            (partialSum, tree) => partialSum + (tree.list ? Number(tree.list.stats.ped) : Number(tree.data.v)), 0);
+            
         return {
             ...list,
-            expanded,
-            items
+            items,
+            stats: {
+                count: sumCount,
+                ped: sumPed.toFixed(2)
+            }
         }
     }
-    
-    const _addStats = (
-        allList: InventoryList<InventoryTree<ItemData>>,
-    ): InventoryList<InventoryTree<ItemData>> => {
-        function innerAddStats(dataV: number, list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> {
-            const items = list.items.map((tree) => {
-                const v = tree.showItemValueRow ? Number(tree.data.v) : 0
-                let list = tree.list ? innerAddStats(v, tree.list) : undefined
-                return {
-                    ...tree,
-                    list
-                }
-            })
-            
-            const sumCount = items.reduce(
-                (partialSum, tree) => partialSum +
-                (tree.list ? tree.list.stats.count +
-                    (tree.list.items.length === 0 || tree.showItemValueRow ? 1 : 0) :
-                    1), 0);
-                    
-                    const sumPed = dataV + items.reduce(
-                        (partialSum, tree) => partialSum + (tree.list ? Number(tree.list.stats.ped) : Number(tree.data.v)), 0);
-                        
-                        return {
-                            ...list,
-                            items,
-                            stats: {
-                                count: sumCount,
-                                ped: sumPed.toFixed(2)
-                            }
-                        }
-                    }
-                    return innerAddStats(0, allList)
-                }
-                
-                const _byStoreSelectToSort = (x: InventoryTree<ItemData>): ItemData => x.list ? {
-                    ...x.data,
-                    n: x.stableName ?? x.displayName,
-                    q: x.list.stats.count.toString(),
-                    v: x.list.stats.ped
-                } : x.data;
-                
-                const _cloneSortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number): InventoryList<InventoryTree<ItemData>> => ({
-                    ...list,
-                    sortType,
-                    items: cloneSortListSelect(list.items, sortType, _byStoreSelectToSort).map(t => t.list ? {
-                        ...t,
-                        list: _cloneSortByStoreTreeList(t.list, sortType)
-                    } : t)
-                })
-                
-                const _sortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number) => {
-                    list.sortType = sortType;
-                    sortListSelect(list.items, sortType, _byStoreSelectToSort);
-                    list.items.forEach(t => t.list && _sortByStoreTreeList(t.list, sortType));
-                }
-                
-                const _nextSortByStore = (
-                    sl: ListSelector,
-                    byStore: InventoryByStore,
-                    part: number,
-                ): InventoryByStore => {
-                    const sortType = nextSortType(part, sl.get(byStore).sortType);
-                    const cleanStable = (i: InventoryTree<ItemData>) => ({ ...i, stableName: undefined })
-                    return sl.set({
-                        ...byStore,
-                        containers: Object.fromEntries(
-                            Object.entries(byStore.containers).map(([key, value]) => [key, { ...value, stableName: undefined }])
-                        ),
-                        originalList: {
-                            ..._applyToAllByStoreList(byStore.originalList, cleanStable),
-                            sortType: sl === _showListSelector ? sortType : byStore.originalList.sortType
-                        }
-                    }, _cloneSortByStoreTreeList(_applyToAllByStoreList(sl.get(byStore), cleanStable), sortType))
-                }
-                
-                const _sortByStore = (
-                    sl: ListSelector,
-                    byStore: InventoryByStore,
-                ): InventoryByStore => {
-                    _sortByStoreTreeList(sl.get(byStore), sl.get(byStore).sortType);
-                    return byStore;
-                };
-                
-                const reduceSortByStoreBy = (
-                    state: InventoryState,
-                    part: number,
-                ): InventoryState => ({
-                    ...state,
-                    byStore: _nextSortByStore(_showListSelector, state.byStore, part)
-                });
-                
-                const reduceSortByStoreStaredBy = (
-                    state: InventoryState,
-                    part: number,
-                ): InventoryState => ({
-                    ...state,
-                    byStore: _nextSortByStore(_staredListSelector, state.byStore, part)
-                });
-                
-                const reduceSortByStoreCraftBy = (
-                    state: InventoryState,
-                    part: number,
-                ): InventoryState => ({
-                    ...state,
-                    byStore: _nextSortByStore(_craftListSelector, state.byStore, part)
-                });
-                
-                const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
-                    const map = { }
-                    for (const [id, c] of Object.entries(containers)) {
-                        if (c.expanded &&
-                            c.expandedOnFilter !== false &&
-                            (!c.data || c.displayName === c.data.n) &&
-                            !c.stared
-                        ) {
-                            continue // default data
-                        }
-                        map[id] = { ...c, stableName: undefined }
-                    }
-                    return map;
-                }
-                
-                const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
-                    ...cleanForSaveInventoryListWithFilter(state),
-                    containers: _cleanForSaveContainers(state.containers),
-                    stared: {
-                        ...state.stared,
-                        list: cleanForSaveInventoryList(state.stared.list)
-                    },
-                    craft: {
-                        ...state.craft,
-                        list: cleanForSaveInventoryList(state.craft.list)
-                    },
-                    flat: undefined,
-                    c: undefined
-                })
-                
-                export {
-                    initialListByStore,
-                    loadInventoryByStore,
-                    reduceSetByStoreInventoryExpanded,
-                    reduceSetByStoreItemExpanded,
-                    reduceSetByStoreAllItemsExpanded,
-                    reduceSetByStoreInventoryFilter,
-                    reduceStartByStoreItemNameEditing,
-                    reduceConfirmByStoreItemNameEditing,
-                    reduceCancelByStoreItemNameEditing,
-                    reduceSetByStoreItemName,
-                    reduceSetByStoreItemStared,
-                    reduceSetByStoreStaredInventoryExpanded,
-                    reduceSetByStoreStaredItemExpanded,
-                    reduceSetByStoreCraftItemExpanded,
-                    reduceSetByStoreStaredAllItemsExpanded,
-                    reduceSetByStoreStaredInventoryFilter,
-                    reduceStartByStoreStaredItemNameEditing,
-                    reduceConfirmByStoreStaredItemNameEditing,
-                    reduceCancelByStoreStaredItemNameEditing,
-                    reduceSetByStoreStaredItemName,
-                    reduceSetByStoreStaredItemStared,
-                    reduceSetByStoreCraftFilter,
-                    reduceSortByStoreBy,
-                    reduceSortByStoreStaredBy,
-                    reduceSortByStoreCraftBy,
-                    cleanForSaveByStore,
-                };
-                
+    return innerAddStats(0, allList)
+}
+
+const _byStoreSelectToSort = (x: InventoryTree<ItemData>): ItemData => x.list ? {
+    ...x.data,
+    n: x.stableName ?? x.displayName,
+    q: x.list.stats.count.toString(),
+    v: x.list.stats.ped
+} : x.data;
+
+const _cloneSortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number): InventoryList<InventoryTree<ItemData>> => ({
+    ...list,
+    sortType,
+    items: cloneSortListSelect(list.items, sortType, _byStoreSelectToSort).map(t => t.list ? {
+        ...t,
+        list: _cloneSortByStoreTreeList(t.list, sortType)
+    } : t)
+})
+
+const _sortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sortType: number) => {
+    list.sortType = sortType;
+    sortListSelect(list.items, sortType, _byStoreSelectToSort);
+    list.items.forEach(t => t.list && _sortByStoreTreeList(t.list, sortType));
+}
+
+const _nextSortByStore = (
+    sl: ListSelector,
+    byStore: InventoryByStore,
+    part: number,
+): InventoryByStore => {
+    const sortType = nextSortType(part, sl.get(byStore).sortType);
+    const cleanStable = (i: InventoryTree<ItemData>) => ({ ...i, stableName: undefined })
+    return sl.set({
+        ...byStore,
+        containers: Object.fromEntries(
+            Object.entries(byStore.containers).map(([key, value]) => [key, { ...value, stableName: undefined }])
+        ),
+        originalList: {
+            ..._applyToAllByStoreList(byStore.originalList, cleanStable),
+            sortType: sl === _showListSelector ? sortType : byStore.originalList.sortType
+        }
+    }, _cloneSortByStoreTreeList(_applyToAllByStoreList(sl.get(byStore), cleanStable), sortType))
+}
+
+const _sortByStore = (
+    sl: ListSelector,
+    byStore: InventoryByStore,
+): InventoryByStore => {
+    _sortByStoreTreeList(sl.get(byStore), sl.get(byStore).sortType);
+    return byStore;
+};
+
+const reduceSortByStoreBy = (
+    state: InventoryState,
+    part: number,
+): InventoryState => ({
+    ...state,
+    byStore: _nextSortByStore(_showListSelector, state.byStore, part)
+});
+
+const reduceSortByStoreStaredBy = (
+    state: InventoryState,
+    part: number,
+): InventoryState => ({
+    ...state,
+    byStore: _nextSortByStore(_staredListSelector, state.byStore, part)
+});
+
+const reduceSortByStoreCraftBy = (
+    state: InventoryState,
+    part: number,
+): InventoryState => ({
+    ...state,
+    byStore: _nextSortByStore(_craftListSelector, state.byStore, part)
+});
+
+const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
+    const map = { }
+    for (const [id, c] of Object.entries(containers)) {
+        if (c.expanded &&
+            c.expandedOnFilter !== false &&
+            (!c.data || c.displayName === c.data.n) &&
+            !c.stared
+        ) {
+            continue // default data
+        }
+        map[id] = { ...c, stableName: undefined }
+    }
+    return map;
+}
+
+const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
+    ...cleanForSaveInventoryListWithFilter(state),
+    containers: _cleanForSaveContainers(state.containers),
+    stared: {
+        ...state.stared,
+        list: cleanForSaveInventoryList(state.stared.list)
+    },
+    craft: {
+        ...state.craft,
+        list: cleanForSaveInventoryList(state.craft.list)
+    },
+    flat: undefined,
+    c: undefined
+})
+
+export {
+    initialListByStore,
+    loadInventoryByStore,
+    reduceSetByStoreInventoryExpanded,
+    reduceSetByStoreItemExpanded,
+    reduceSetByStoreAllItemsExpanded,
+    reduceSetByStoreInventoryFilter,
+    reduceStartByStoreItemNameEditing,
+    reduceConfirmByStoreItemNameEditing,
+    reduceCancelByStoreItemNameEditing,
+    reduceSetByStoreItemName,
+    reduceSetByStoreItemStared,
+    reduceSetByStoreStaredInventoryExpanded,
+    reduceSetByStoreStaredItemExpanded,
+    reduceSetByStoreCraftItemExpanded,
+    reduceSetByStoreStaredAllItemsExpanded,
+    reduceSetByStoreStaredInventoryFilter,
+    reduceStartByStoreStaredItemNameEditing,
+    reduceConfirmByStoreStaredItemNameEditing,
+    reduceCancelByStoreStaredItemNameEditing,
+    reduceSetByStoreStaredItemName,
+    reduceSetByStoreStaredItemStared,
+    reduceSetByStoreCraftFilter,
+    reduceSortByStoreBy,
+    reduceSortByStoreStaredBy,
+    reduceSortByStoreCraftBy,
+    cleanForSaveByStore,
+};

@@ -1,4 +1,4 @@
-import { IBackground, SimpleBackground } from './effects/baseBackground';
+import { IBackground, SimpleBackground, SolidBackground } from './effects/baseBackground';
 import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
@@ -21,12 +21,12 @@ interface BackgroundSpec {
     type: BackgroundType,
     title: string,
     dark: boolean,
-    transparent: boolean
+    extra?: any
 }
 
-const factories = new Map<BackgroundType, (new (container: HTMLElement) => IBackground)>([
-    [BackgroundType.Light, SimpleBackground],
-    [BackgroundType.Dark, SimpleBackground],
+const factories = new Map<BackgroundType, (new (container: HTMLElement, extra?: any) => IBackground)>([
+    [BackgroundType.Light, SolidBackground],
+    [BackgroundType.Dark, SolidBackground],
     [BackgroundType.Ashfall, AshfallBackground],
     [BackgroundType.Matrix, MatrixBackground],
     [BackgroundType.Fireflies, FirefliesBackground],
@@ -48,6 +48,7 @@ function animate(delta: number) {
     animating = false
 }
 
+// each container must have an unique id
 function loadBackground(type: BackgroundType, container: HTMLElement, oldContainer: HTMLElement) {
     if (type < 0 || type > factories.size - 1)
         type = BackgroundType.Light
@@ -65,18 +66,13 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
     
     if (type === undefined) {
         container.style.color = ''
-        container.style.backgroundColor = ''
     }
     
     if (type === undefined || container.querySelector('canvas'))
         return
     
-    const { dark, transparent } = getBackgroundSpec(type)
-    const style = {
-        'color': dark ? 'white' : 'black',
-        'background-color': transparent ? 'transparent' : dark ? 'black' : 'white'
-    }
-    Object.keys(style).forEach(key => container.style[key] = style[key]);
+    const { dark, extra } = getBackgroundSpec(type)
+    container.style.color = dark ? 'white' : 'black'
     
     if (oldContainer) {
         if (i && i.container == oldContainer) {
@@ -89,7 +85,7 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
         }
     }
     
-    const newBackground: IBackground = new (factories.get(type))(container)
+    const newBackground: IBackground = new (factories.get(type))(container, extra)
     newBackground.type = type
     instances[id] = newBackground
     
@@ -104,37 +100,33 @@ const backgroundList: BackgroundSpec[] = [
         type: BackgroundType.Light,
         title: 'Light',
         dark: false,
-        transparent: false
+        extra: 'white'
     },
     {
         type: BackgroundType.Dark,
         title: 'Dark',
         dark: true,
-        transparent: false
+        extra: 'black'
     },
     {
         type: BackgroundType.Ashfall,
         title: 'Ashfall',
         dark: true,
-        transparent: true
     },
     {
         type: BackgroundType.Matrix,
         title: 'Matrix',
         dark: true,
-        transparent: true
     },
     {
         type: BackgroundType.Fireflies,
         title: 'Fireflies',
         dark: true,
-        transparent: true
     },
     {
         type: BackgroundType.Transparent,
         title: 'Transparent',
         dark: false,
-        transparent: true
     },
 ]
 
@@ -143,7 +135,6 @@ if (SHOW_FEATURES_IN_DEVELOPMENT) {
         type: BackgroundType.ColorOrbs,
         title: 'Color Orbs (WIP)',
         dark: true,
-        transparent: true
     })
 }
 

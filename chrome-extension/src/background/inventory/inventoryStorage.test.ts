@@ -1,4 +1,3 @@
-import LZUTF8 from 'lzutf8'
 import {
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,

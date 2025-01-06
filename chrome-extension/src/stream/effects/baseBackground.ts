@@ -18,19 +18,34 @@ class BaseBackground implements IBackground {
         this.isAnimated = isAnimated
     }
 
+    private resizeObserver: ResizeObserver
     protected setReady(): void {
         this.ready = true
 
-        this.onContainerResize();
+        this.callOnContainerResize();
         const that = this
-        this.container.addEventListener('resize', () => that.onContainerResize, false);
+        this.resizeObserver = new ResizeObserver(() => {
+            that.callOnContainerResize()
+        });
+        this.resizeObserver.observe(this.container);
     }
 
     public render(delta: number): void { }
 
-    protected onContainerResize() { }
+    private callOnContainerResize() {
+        const e = this.container as HTMLDivElement;
+        if (e?.isConnected && e.style.width && e.style.height) {
+            const scaleMatch = e.style.transform?.match(/scale\((.*?)\)/);
+            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+            this.onContainerResize(parseFloat(e.style.width) / scale, parseFloat(e.style.height) / scale);
+        }
+    }
 
-    public cleanUp() { }
+    protected onContainerResize(width: number, height: number) { }
+
+    public cleanUp() {
+        this.resizeObserver?.disconnect()
+    }
 }
 
 class SimpleBackground extends BaseBackground {
@@ -46,70 +61,124 @@ class AnimatedBackground extends BaseBackground {
     }
 
     public override cleanUp(): void {
-        const canvas = this.container.querySelector('canvas')
+        super.cleanUp();
+        const canvas = this.container.querySelector('canvas');
         if (canvas)
-          this.container.removeChild(canvas)
+            this.container.removeChild(canvas);
     }
 }
 
 class CssBackground extends BaseBackground {
     private containerClassName: string
+    private styleId: string
 
-    constructor(container: HTMLElement, quantity: number, name: string) {
+    constructor(container: HTMLElement, quantity?: number, name?: string) {
         super(container, false)
-        this.containerClassName = `${name}-container`
-        this.addContainer(quantity, name)
-        this.addStyle(name)
+        if (name)
+            this.init(quantity, name)
+    }
+
+    protected init(quantity: number, name: string) {
+        this.containerClassName = `${this.container.id}-${name}-container`
+        this.styleId = `${this.container.id}-${name}-style`
+        this.addContainer(quantity)
+        this.addStyle()
         this.setReady()
     }
 
-    private addContainer(quantity: number, name: string) {
+    private addContainer(quantity: number) {
         if (this.container.getElementsByClassName(this.containerClassName)[0]) return
 
         const animationContainer: HTMLDivElement = document.createElement('div');
         animationContainer.classList.add(this.containerClassName)
         this.container.appendChild(animationContainer);
 
+        const itemClassName = `${this.containerClassName}-item`
         for (let i = 1; i <= quantity; i++) {
             const div: HTMLDivElement = document.createElement('div');
-            div.classList.add(name);
+            div.classList.add(itemClassName);
             animationContainer.appendChild(div);
         }
     }
 
     public override cleanUp(): void {
+        super.cleanUp();
         const animationContainer = this.container.getElementsByClassName(this.containerClassName)[0]
         if (animationContainer)
-          this.container.removeChild(animationContainer)
+            this.container.removeChild(animationContainer)
+
+        this.removeStyleElement(this.styleId)
+        this.removeStyleElement(`${this.styleId}-resize`)
     }
 
-    private addStyle(name: string) {
+    private createStyleElement(styleId: string) {
         const root = this.container.getRootNode() as Document | ShadowRoot;
-        const styleId = `${name}-style`
-        if (root.getElementById(styleId)) return
-        
-        const style: HTMLStyleElement = document.createElement('style');
-        style.id = styleId;
+        let style = root.getElementById(styleId) as HTMLStyleElement
+        if (!style) {
+            style = document.createElement('style');
+            style.id = styleId;
+            if ('head' in root)
+                root.head.appendChild(style);
+            else
+                root.appendChild(style);
+        }
+        return style
+    }
+
+    private removeStyleElement(styleId: string) {
+        const root = this.container.getRootNode() as Document | ShadowRoot;
+        if (!root?.isConnected) return
+
+        let style = root.getElementById(styleId) as HTMLStyleElement
+        if (style) {
+            if ('head' in root)
+                root.head.removeChild(style);
+            else
+                root.removeChild(style);
+        }
+    }
+
+    protected onContainerResize(width: number, height: number) {
+        const style = this.createStyleElement(`${this.styleId}-resize`)
+        style.innerHTML = `
+            .${this.containerClassName} {
+                width: ${width}px;
+                height: ${height}px;
+            }`
+    }
+
+    private addStyle() {
+        const itemClassName = `${this.containerClassName}-item`
+        const style = this.createStyleElement(this.styleId);
         style.innerHTML = `
             .${this.containerClassName} {
                 position: relative;
-                width: 100%;
-                height: 100%;
                 overflow: hidden;
-                z-index: -1;
             }
-            .${name} {
+            .${itemClassName} {
                 position: absolute;
             }
-            ` + this.getStyle(this.containerClassName, name);
-        if ('head' in root)
-            root.head.appendChild(style);
-        else
-            root.appendChild(style);
+            ${this.getStyle(this.containerClassName, itemClassName)}`;
     }
 
     protected getStyle(containerClassName: string, itemClassName: string): string {
         return '';
+    }
+}
+
+class SolidBackground extends CssBackground {
+    private background: string
+    constructor(container: HTMLElement, background: string) {
+        super(container);
+        this.background = background;
+        this.init(0, 'solid');
+    }
+
+    protected override getStyle(containerClassName: string, itemClassName: string): string {
+        return `
+            .${containerClassName} {
+                background-color: ${this.background};
+            }`;
     }
 }
 
@@ -118,4 +187,5 @@ export {
     SimpleBackground,
     AnimatedBackground,
     CssBackground,
+    SolidBackground,
 }

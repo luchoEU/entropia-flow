@@ -1,5 +1,6 @@
 import { CLASS_ERROR, CLASS_INFO, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_PLEASE_LOG_IN } from "../common/const"
 import { Inventory, ViewState, Status, TimeLeft, StatusType } from "../common/state"
+import { emptyGameLogData } from "./client/gameLogData"
 
 const TIME_1_MIN: TimeLeft = {
     minutes: 1,
@@ -64,13 +65,7 @@ const STATE_MONITORING_OFF: ViewState = {
 
 const STATE_NO_DATA: ViewState = {
     clientState: undefined,
-    gameLog: {
-        global: [],
-        loot: [],
-        raw: [],
-        skill: [],
-        stats: {},
-    },
+    gameLog: emptyGameLogData,
     last: null,
     list: [{
         log: {

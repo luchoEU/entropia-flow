@@ -7,10 +7,11 @@ const STREAM_TABULAR_IMAGES = '[stream] images'
 interface StreamStateIn {
     enabled: boolean
     editing?: {
-        layout: string // id
+        layoutId: string
     }
     windows: string[]
     layouts: StreamRenderLayoutSet
+    userVariables: StreamVariable[]
 }
 
 interface StreamStateOut {
@@ -19,12 +20,13 @@ interface StreamStateOut {
 
 interface StreamState {
     in: StreamStateIn
-    variables: Record<string, StreamVariable[]>
+    variables: Record<string, StreamVariable[]> // source => variables
     out: StreamStateOut
 }
 
 interface StreamVariable {
     source?: string
+    id?: number
     name: string
     value: StreamRenderValue
     computed?: StreamRenderValue
@@ -39,5 +41,5 @@ export {
     STREAM_TABULAR_CHOOSER,
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
-    StreamVariable
+    StreamVariable,
 }

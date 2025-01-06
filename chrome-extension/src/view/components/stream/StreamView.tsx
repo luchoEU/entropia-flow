@@ -12,10 +12,10 @@ function StreamView() {
 
     if (enabled && d) {
         return (
-            <section>
+            <section className='stream-view-section'>
                 {
                     d.windows.map((w, i) =>
-                        <StreamViewLayout key={i} id={`stream-view-${i}`} data={{ data: d.data, layout: d.layouts[w] }} />
+                        <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: d.data, layout: d.layouts[w] }} />
                     )
                 }
             </section>

@@ -9,6 +9,7 @@ const ItemText = (p: {
         <span
             {...p.style ? { style: p.style } : {}}
             className={(p.className ?? '') + ' item-text'}
+            title={p.text}
         >
             { p.text }
         </span>

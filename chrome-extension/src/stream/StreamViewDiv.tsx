@@ -1,45 +1,38 @@
 import React, { JSX } from 'react';
-import renderHtmlTemplate from './htmlTemplate';
 import { StreamRenderSingle } from './data';
+import { getBackgroundSpec } from './background';
+import { computeFormulas, renderHtmlTemplate, renderCssTemplate } from './template';
+
+const MIN_SIZE = 30
 
 const StreamViewDiv = (p: {
     id: string,
-    data: StreamRenderSingle,
+    single: StreamRenderSingle,
+    size?: { width: number, height: number },
     scale?: number
 }): JSX.Element => {
-    const { data, layout } = p.data
-    if (!layout.template) {
+    const { data, layout } = p.single
+    const scale = p.scale ?? 1
+    if (layout.htmlTemplate === undefined) {
         return <p>Template undefined!</p>
     }
 
-    const html = renderHtmlTemplate(layout.template, data, !layout.disableSafeCheck)
+    const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
+    const variables = computeFormulas({ ...data, backDark });
+    const html = renderHtmlTemplate(layout.htmlTemplate, variables);
+    const css = layout.cssTemplate && renderCssTemplate(layout.cssTemplate, variables);
 
-    function parseStyle(styleString: string): React.CSSProperties {
-        return styleString.split(";").reduce((styles, style) => {
-          if (!style.trim()) return styles;
-          const [key, value] = style.split(":");
-          if (!key || !value) return styles;
-          const formattedKey = key.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-          styles[formattedKey] = value.trim();
-          return styles;
-        }, { } as React.CSSProperties);
-    }
-
-    const containerStyle: React.CSSProperties = parseStyle(layout.containerStyle)
-    const contentStyle: React.CSSProperties = { position: 'absolute', overflow: 'hidden' }
+    const px = (n: number): string => `${Math.max(n, MIN_SIZE)}px`;
+    const containerStyle: React.CSSProperties = p.size ? { width: px(p.size.width), height: px(p.size.height) } : { }
+    const contentStyle: React.CSSProperties = { position: 'absolute', overflow: 'hidden', zIndex: 1, width: 'max-content', height: 'max-content' }
     if (p.scale) {
-        if (containerStyle.width) {
-            containerStyle.width = `calc(${containerStyle.width} * ${p.scale})`
-        }
-        if (containerStyle.height) {
-            containerStyle.height = `calc(${containerStyle.height} * ${p.scale})`
-        }
-        contentStyle.transform = `scale(${p.scale})`
-        contentStyle.transformOrigin = 'top left'
+        containerStyle.transform = `scale(${p.scale})`
+        containerStyle.transformOrigin = 'top left'
     }
 
-    return <div id={p.id} style={containerStyle}>
-        <div style={contentStyle} dangerouslySetInnerHTML={{ __html: html }} />
+    return <div id={p.id} className='stream-root' style={containerStyle}>
+        <div className={`stream-content`} style={contentStyle} dangerouslySetInnerHTML={{ __html: html }} />
+        { css && <style dangerouslySetInnerHTML={{ __html: css }} /> }
     </div>
 };
 

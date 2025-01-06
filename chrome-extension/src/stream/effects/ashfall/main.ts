@@ -66,8 +66,8 @@ class AshfallBackground extends AnimatedBackground {
     this.container.appendChild( this.renderer.domElement );
   }
 
-  protected override onContainerResize() {
-    this.renderer.setSize( this.container.offsetWidth, this.container.offsetHeight );
+  protected override onContainerResize(width: number, height: number) {
+    this.renderer.setSize(width, height);
     this.uniforms.u_resolution.value.x = this.renderer.domElement.width;
     this.uniforms.u_resolution.value.y = this.renderer.domElement.height;
   }

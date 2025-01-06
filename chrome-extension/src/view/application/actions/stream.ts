@@ -6,12 +6,17 @@ const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"
 const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
-const SET_STREAM_TEMPLATE = "[stream] set template"
-const SET_STREAM_CONTAINER_STYLE = "[stream] set container style"
+const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
+const SET_STREAM_CSS_TEMPLATE = "[stream] set css template"
 const SET_STREAM_DATA = "[stream] set data"
 const SET_STREAM_EDITING = "[stream] set editing"
-const SET_STREAM_DEFAULT = "[stream] set default"
+const SET_STREAM_STARED = "[stream] set stared"
 const SET_STREAM_NAME = "[stream] set name"
+const ADD_STREAM_LAYOUT = "[stream] add layout"
+const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
+const ADD_STREAM_USER_VARIABLE = "[stream] add user variable"
+const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
+const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -41,22 +46,30 @@ const setStreamData = (data: StreamRenderData) => ({
     }
 })
 
-const setStreamEditing = (editing: string) => ({
+const setStreamEditing = (layoutId: string) => ({
     type: SET_STREAM_EDITING,
     payload: {
-        editing
+        layoutId
     }
 })
 
-const setStreamDefault = (name: string) => ({
-    type: SET_STREAM_DEFAULT,
+const setStreamStared = (layoutId: string, stared: boolean) => ({
+    type: SET_STREAM_STARED,
     payload: {
-        name
+        layoutId,
+        stared
     }
 })
 
-const setStreamTemplate = (template: string) => ({
-    type: SET_STREAM_TEMPLATE,
+const setStreamHtmlTemplate = (template: string) => ({
+    type: SET_STREAM_HTML_TEMPLATE,
+    payload: {
+        template
+    }
+})
+
+const setStreamCssTemplate = (template: string) => ({
+    type: SET_STREAM_CSS_TEMPLATE,
     payload: {
         template
     }
@@ -69,13 +82,6 @@ const setStreamName = (name: string) => ({
     }
 })
 
-const setStreamContainerStyle = (style: string) => ({
-    type: SET_STREAM_CONTAINER_STYLE,
-    payload: {
-        style
-    }
-})
-
 const setStreamVariables = (source: string, variables: StreamVariable[]) => ({
     type: SET_STREAM_VARIABLES,
     payload: {
@@ -84,25 +90,65 @@ const setStreamVariables = (source: string, variables: StreamVariable[]) => ({
     }
 })
 
+const addStreamLayout = {
+    type: ADD_STREAM_LAYOUT
+}
+
+const removeStreamLayout = (layoutId: string) => ({
+    type: REMOVE_STREAM_LAYOUT,
+    payload: {
+        layoutId
+    }
+})
+
+const addStreamUserVariable = {
+    type: ADD_STREAM_USER_VARIABLE
+}
+
+const removeStreamUserVariable = (id: number) => ({
+    type: REMOVE_STREAM_USER_VARIABLE,
+    payload: {
+        id
+    }
+})
+
+const setStreamUserVariablePartial = (id: number, partial: Partial<StreamVariable>) => ({
+    type: SET_STREAM_USER_VARIABLE_PARTIAL,
+    payload: {
+        id,
+        partial
+    }
+})
+
 export {
     SET_STREAM_STATE,
     SET_STREAM_ENABLED,
     SET_STREAM_BACKGROUND_SELECTED,
     SET_STREAM_VARIABLES,
-    SET_STREAM_CONTAINER_STYLE,
-    SET_STREAM_TEMPLATE,
+    SET_STREAM_HTML_TEMPLATE,
+    SET_STREAM_CSS_TEMPLATE,
     SET_STREAM_DATA,
     SET_STREAM_EDITING,
-    SET_STREAM_DEFAULT,
+    SET_STREAM_STARED,
     SET_STREAM_NAME,
+    ADD_STREAM_LAYOUT,
+    REMOVE_STREAM_LAYOUT,
+    ADD_STREAM_USER_VARIABLE,
+    REMOVE_STREAM_USER_VARIABLE,
+    SET_STREAM_USER_VARIABLE_PARTIAL,
     setStreamState,
     setStreamEnabled,
     setStreamBackgroundSelected,
     setStreamVariables,
-    setStreamTemplate,
-    setStreamContainerStyle,
+    setStreamHtmlTemplate,
+    setStreamCssTemplate,
     setStreamData,
     setStreamEditing,
-    setStreamDefault,
+    setStreamStared,
     setStreamName,
+    addStreamLayout,
+    removeStreamLayout,
+    addStreamUserVariable,
+    removeStreamUserVariable,
+    setStreamUserVariablePartial,
 }

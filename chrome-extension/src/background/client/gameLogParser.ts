@@ -98,7 +98,7 @@ class GameLogParser {
             case "Team":
                 const itemMatch = itemRegex.exec(line.message);
                 if (itemMatch !== null) {
-                    line.data.loot = {
+                    line.data.team = {
                         player: itemMatch[1],
                         name: itemMatch[2],
                         quantity: 1
@@ -106,7 +106,7 @@ class GameLogParser {
                 } else {
                     const sharedMatch = sharedRegex.exec(line.message);
                     if (sharedMatch !== null) {
-                        line.data.loot = {
+                        line.data.team = {
                             player: sharedMatch[1],
                             name: sharedMatch[2],
                             quantity: parseInt(sharedMatch[3])

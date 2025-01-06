@@ -1,9 +1,10 @@
 interface StreamRenderLayout {
     name: string,
     backgroundType: number // BackgroundType
-    template: string
-    containerStyle: string
-    disableSafeCheck?: boolean
+    htmlTemplate: string
+    cssTemplate?: string
+    readonly?: boolean
+    stared?: boolean
 }
 
 type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
@@ -12,6 +13,11 @@ interface StreamRenderData {
     data: StreamRenderObject
     windows: string[]
     layouts: StreamRenderLayoutSet
+}
+
+interface StreamRenderSize {
+    width: number,
+    height: number
 }
 
 interface StreamRenderSingle {
@@ -27,6 +33,7 @@ export {
     StreamRenderValue,
     StreamRenderObject,
     StreamRenderSingle,
+    StreamRenderSize,
     StreamRenderLayout,
     StreamRenderLayoutSet
 }

@@ -161,7 +161,7 @@ const joinList = (state: InventoryState): Array<ItemData> => [
 const reduceLoadInventoryState = (
   oldState: InventoryState,
   state: InventoryState,
-): InventoryState => loadInventory(state, joinList(oldState));
+): InventoryState => loadInventory(state, joinList(state));
 
 const reduceSetCurrentInventory = (
   state: InventoryState,
