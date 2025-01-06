@@ -54,7 +54,7 @@ td:nth-child(even), th:nth-child(even) {
 
 const initialStateIn: StreamStateIn = {
     enabled: true,
-    windows: [ 'entropiaflow.default' ],
+    view: [ 'entropiaflow.default' ],
     layouts: {
         ['entropiaflow.default']: _defaultLayout,
         ['entropiaflow.team']: _teamLootLayout,
@@ -135,7 +135,7 @@ const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boo
     in: {
         ...state.in,
         layouts: Object.fromEntries(Object.entries(state.in.layouts).map(([id, layout]) => [id, id === layoutId ? { ...layout, stared } : layout])),
-        windows: stared ? [...state.in.windows, layoutId] : state.in.windows.filter(w => w !== layoutId)
+        view: stared ? [...state.in.view, layoutId] : state.in.view.filter(w => w !== layoutId)
     }
 })
 
@@ -203,7 +203,7 @@ const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamS
         in: {
             ...state.in,
             layouts: Object.fromEntries(Object.entries(state.in.layouts).filter(([k, v]) => k !== layoutId)),
-            windows: state.in.windows.filter(w => w !== layoutId)
+            view: state.in.view.filter(w => w !== layoutId)
         }
     }
 }

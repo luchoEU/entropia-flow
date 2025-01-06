@@ -1,6 +1,5 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
-import { DISABLE_TEMPLATE_SAFE_CHECK } from "../../../config"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamRenderData, { StreamRenderLayout } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
@@ -146,14 +145,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
-            const s: StreamState = getStream(getState())
-            const vars = Object.values(s.variables).flat()
-            const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]))
-            data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]))
-            const f = (layout: StreamRenderLayout) => DISABLE_TEMPLATE_SAFE_CHECK ? { ...layout, disableSafeCheck: true } : layout;
-            const layouts = Object.fromEntries(s.in.windows.map(w => [w, f(s.in.layouts[w])]))
-            const renderData: StreamRenderData = { data, windows: s.in.windows, layouts }
-            dispatch(setStreamData(renderData))
+            const { in: { layouts }, variables } = getStream(getState());
+            const vars = Object.values(variables).flat();
+            const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
+            data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
+            const renderData: StreamRenderData = { data, layouts };
+            dispatch(setStreamData(renderData));
             break;
         }
         case SET_STREAM_DATA: {

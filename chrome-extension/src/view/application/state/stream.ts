@@ -9,7 +9,7 @@ interface StreamStateIn {
     editing?: {
         layoutId: string
     }
-    windows: string[]
+    view: string[]
     layouts: StreamRenderLayoutSet
     userVariables: StreamVariable[]
 }

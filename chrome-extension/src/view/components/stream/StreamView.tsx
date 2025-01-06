@@ -7,14 +7,14 @@ import StreamRenderData, { StreamRenderSingle } from '../../../stream/data';
 
 function StreamView() {
     const s: StreamState = useSelector(getStream)
-    const { enabled } = s.in
+    const { enabled, view } = s.in
     const d: StreamRenderData = s.out?.data
 
     if (enabled && d) {
         return (
             <section className='stream-view-section'>
                 {
-                    d.windows.map((w, i) =>
+                    view.map((w, i) =>
                         <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: d.data, layout: d.layouts[w] }} />
                     )
                 }

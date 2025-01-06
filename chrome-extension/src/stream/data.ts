@@ -11,7 +11,6 @@ type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
 
 interface StreamRenderData {
     data: StreamRenderObject
-    windows: string[]
     layouts: StreamRenderLayoutSet
 }
 
