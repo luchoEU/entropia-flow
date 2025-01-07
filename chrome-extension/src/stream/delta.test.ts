@@ -10,4 +10,7 @@ describe('formula parser', () => {
     test('equal with objects', async () => {
         expect(getDelta({t: {x: 1}}, {t: {x: 1}})).toEqual(undefined)
     })
+    test('delete', async () => {
+        expect(applyDelta({t: 1}, getDelta({t: 2}, { }))).toEqual({ })
+    })
 })

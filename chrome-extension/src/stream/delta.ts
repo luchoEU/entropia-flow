@@ -6,13 +6,13 @@ function getDelta<T extends object>(source: T, final: T): Partial<T> {
         const res = { }
         Object.entries(src).forEach(([k, v]) => {
             if (end[k] === undefined) {
-                res[k] = v
+                res[k] = null;
             } else if (typeof v === 'object') {
-                const obj = f(v, end[k])
+                const obj = f(v, end[k]);
                 if (obj !== undefined)
-                    res[k] = obj
+                    res[k] = obj;
             } else if (end[k] !== v) {
-                res[k] = end[k]
+                res[k] = end[k];
             }
         })
         return Object.keys(res).length === 0 ? undefined : res
@@ -27,7 +27,9 @@ function applyDelta<T extends object>(source: T, delta: Partial<T>): T {
     function f(src: object, dif: object): object {
         const res = JSON.parse(JSON.stringify(src))
         Object.entries(dif).forEach(([k, v]) => {
-            if (res[k] === undefined || typeof v !== 'object')
+            if (v === null)
+                delete res[k]
+            else if (res[k] === undefined || typeof v !== 'object')
                 res[k] = v
             else if (src[k] !== v) {
                 res[k] = f(src[k], v)
