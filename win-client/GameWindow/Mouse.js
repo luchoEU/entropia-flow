@@ -3,10 +3,10 @@
 });
 
 document.addEventListener('mousedown', function (e) {
-    clickDisabled = false;
+    _clickDisabled = false;
     e.preventDefault();
     if (e.button === 0) // left
-        chrome.webview?.hostObjects.mouse.OnMouseDown();
+        chrome.webview?.hostObjects.mouse.OnMouseDown(e.target.id, _scale ?? 1);
 });
 
 document.addEventListener('mousemove', function(e) {

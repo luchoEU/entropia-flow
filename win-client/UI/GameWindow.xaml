@@ -9,15 +9,15 @@
         AllowsTransparency="True" Background="Transparent"
         Loaded="Window_Loaded" Closing="Window_Closing"
         ResizeMode="NoResize" Height="70" Width="250"
+        Title="Entropia Flow Client"
         Icon="/UI/flow128w.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                   ResizeBorderThickness="12"
                   CornerRadius="20"/>
     </WindowChrome.WindowChrome>
-    <Grid Background="#01FFFFFF">
-        <!-- #01FFFFFF to receive mouse events -->
-        <TextBlock Text="Loading..." VerticalAlignment="Center" HorizontalAlignment="Center" />
+    <Grid x:Name="mainGrid" Background="LightBlue">
+        <TextBlock x:Name="loadingTextBlock" Text="Loading..." VerticalAlignment="Center" HorizontalAlignment="Center" />
         <wpf:WebView2 x:Name="webView2" DefaultBackgroundColor="Transparent" />
     </Grid>
 </Window>

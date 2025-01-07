@@ -1,11 +1,13 @@
 ﻿using System.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Media;
 using Point = System.Drawing.Point;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
 
 namespace EntropiaFlowClient
 {
@@ -14,23 +16,25 @@ namespace EntropiaFlowClient
     /// </summary>
     public partial class GameWindow : Window
     {
-        public GameWindow()
+        private readonly string _layoutId;
+
+        public GameWindow(): this("entropiaflow.default") { }
+        public GameWindow(string layoutId)
         {
             InitializeComponent();
             Topmost = true;
+            _layoutId = layoutId;
 
             webView2.CoreWebView2InitializationCompleted += WebBrowser_CoreWebView2InitializationCompleted;
             webView2.EnsureCoreWebView2Async();
 
-            App.StreamMessageReceived += GameWindow_StreamMessageReceived;
-            App.WaitingForConnnection += GameWindow_WaitingForConnnection;
+            App.Current.StreamMessageReceived += GameWindow_StreamMessageReceived;
+            App.Current.WaitingForConnnection += GameWindow_WaitingForConnnection;
         }
-
-        private App App => (App)System.Windows.Application.Current;
 
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
-            ExecuteScriptAsync($"receive({e.Data})");
+            ExecuteScriptAsync($"receive({e.Data}, '{_layoutId}')");
         }
 
         private static readonly object Images = new
@@ -41,7 +45,7 @@ namespace EntropiaFlowClient
 
         private void RenderWaiting()
         {
-            var obj = JsonSerializer.Serialize(new { uri = App.ListeningUri, img = Images });
+            var obj = JsonSerializer.Serialize(new { uri = App.Current.ListeningUri, img = Images });
             ExecuteScriptAsync($"renderWaiting({obj})");
         }
 
@@ -89,18 +93,22 @@ namespace EntropiaFlowClient
             {
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
-                webView2.CoreWebView2.AddHostObjectToScript("lifecycle", new LifecycleInterface(this));
+                webView2.CoreWebView2.AddHostObjectToScript("lifecycle", new LifecycleScriptInterface(this));
+                webView2.CoreWebView2.AddHostObjectToScript("layout", new LayoutScriptInterface());
 
+                var images = new string[] { "flow128.png", "resize.png", "right.png" };
 #if DEBUG
                 // Save to files to be able to debug in browser
                 string htmlPath = SaveResourceToFile("StreamView.html", false);
                 foreach (var jsName in new string[] { "Mouse.js", "Render.js", "EntropiaFlowStream.js" })
                     SaveResourceToFile(jsName, false);
-                SaveResourceToFile("flow128.png", true);
+                foreach (var imgName in images)
+                    SaveResourceToFile(imgName, true);
                 webView2.CoreWebView2.Navigate(htmlPath);
 #else
                 string contentHtml = ReadResourceToString("StreamView.html");
-                contentHtml = contentHtml.Replace("src=\"flow128.png\"", $"src=\"{ReadResourceToUrl("flow128.png")}\"");
+                foreach (var imgName in images)
+                    contentHtml = contentHtml.Replace($"src=\"{imgName}\"", $"src=\"{ReadResourceToUrl(imgName)}\"");
 
                 foreach (var jsName in new string[] { "Mouse.js", "Render.js" })
                     contentHtml = contentHtml.Replace($"<script src=\"{jsName}\"></script>", $"<script>//{jsName}\n{ReadResourceToString(jsName)}</script>");
@@ -175,35 +183,47 @@ namespace EntropiaFlowClient
 
         [ClassInterface(ClassInterfaceType.AutoDual)]
         [ComVisible(true)]
-        public class MouseScriptInterface
+        public class MouseScriptInterface(GameWindow w)
         {
             private bool _isDragging;
             private bool _clickDisabled;
+            private bool _isResize;
             private Point _relativePoint;
-            private GameWindow _window;
-            public MouseScriptInterface(GameWindow w)
-            {
-                _window = w;
-            }
 
-            public void OnMouseDown()
+            public void OnMouseDown(string id, double scale)
             {
                 _isDragging = true;
                 _clickDisabled = false;
                 var pt = System.Windows.Forms.Cursor.Position;
-                _relativePoint = new Point(pt.X - (int)_window.Left, pt.Y - (int)_window.Top);
+                _isResize = id == "entropia-flow-client-resize";
+                _relativePoint = new Point(pt.X - (int)w.Left, pt.Y - (int)w.Top);
+                if (_isResize) {
+                    _relativePoint = new Point((int)(_relativePoint.X / scale), (int)(_relativePoint.Y / scale));
+                }
             }
 
+            private const int MIN_SIZE = 30;
             public void OnMouseMove()
             {
                 if (_isDragging)
                 {
                     Point pt = System.Windows.Forms.Cursor.Position;
-                    _window.SetLocation(pt.X - _relativePoint.X, pt.Y - _relativePoint.Y);
+                    if (_isResize)
+                    {
+                        Point newRelativePoint = new(pt.X - (int)w.Left, pt.Y - (int)w.Top);
+                        double scaleX = (double)Math.Max(MIN_SIZE, newRelativePoint.X) / _relativePoint.X;
+                        double scaleY = (double)Math.Max(MIN_SIZE, newRelativePoint.Y) / _relativePoint.Y;
+                        double scale = Math.Max(scaleX, scaleY);
+                        w.ExecuteScriptAsync($"setScale({scale})");
+                    }
+                    else
+                    {
+                        w.SetLocation(pt.X - _relativePoint.X, pt.Y - _relativePoint.Y);
+                    }
 
                     if (!_clickDisabled)
                     {
-                        _window.ExecuteScriptAsync("clickDisabled = true");
+                        w.ExecuteScriptAsync("_clickDisabled = true");
                         _clickDisabled = true;
                     }
                 }
@@ -217,34 +237,36 @@ namespace EntropiaFlowClient
 
         [ClassInterface(ClassInterfaceType.AutoDual)]
         [ComVisible(true)]
-        public class ResizeScriptInterface
+        public class ResizeScriptInterface(Window w)
         {
-            private Window _window;
-            public ResizeScriptInterface(Window w)
-            {
-                _window = w;
-            }
-
             public void OnRendered(int width, int height)
             {
-                _window.Width = Math.Max(20, width);
-                _window.Height = Math.Max(20, height);
+                w.Width = Math.Max(20, width);
+                w.Height = Math.Max(20, height);
             }
         }
 
         [ClassInterface(ClassInterfaceType.AutoDual)]
         [ComVisible(true)]
-        public class LifecycleInterface
+        public class LifecycleScriptInterface(GameWindow w)
         {
-            private GameWindow _window;
-            public LifecycleInterface(GameWindow w)
-            {
-                _window = w;
-            }
-
             public void OnLoaded()
             {
-                _window.RenderWaiting();
+                w.RenderWaiting();
+                w.loadingTextBlock.Visibility = Visibility.Collapsed;
+
+                // 01 alpha so it is transparent but receives mouse events
+                w.mainGrid.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#01FFFFFF"));
+            }
+        }
+
+        [ClassInterface(ClassInterfaceType.AutoDual)]
+        [ComVisible(true)]
+        public class LayoutScriptInterface
+        {
+            public void ShowMenu()
+            {
+                new GameWindow("entropiaflow.menu").Show();
             }
         }
     }

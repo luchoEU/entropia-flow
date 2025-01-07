@@ -24,6 +24,8 @@ namespace EntropiaFlowClient
             _watcher = new();
         }
 
+        public static new App Current => (App)Application.Current;
+
         protected override void OnStartup(System.Windows.StartupEventArgs e)
         {
             InitializeNotifyIcon();

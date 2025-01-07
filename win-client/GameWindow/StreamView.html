@@ -7,27 +7,49 @@
                 margin: 0px;
                 overflow: hidden;
             }
-            #hoverArea {
-                background-color: rgba(173, 216, 230, 0.8); /* light blue */
+            #entropia-flow-client-hover-area {
                 border-radius: 5px;
                 overflow: hidden;
             }
-            #hoverImage {
+            #entropia-flow-client-hover-area > img, #entropia-flow-client-hover-area > span {
                 display: none;
                 position: absolute;
-                top: 4px;
-                left: 4px;
                 padding: 1px;
-                width: 20px;
                 z-index: 9999;
                 background-color: rgba(255, 255, 255, 0.5);
                 border-radius: 5px;
             }
-            #hoverArea:hover #hoverImage {
+            #entropia-flow-client-minimize {
+                width: 20px;
+                top: 4px;
+                left: 4px;
+            }
+            #entropia-flow-client-menu {
+                width: 20px;
+                top: 4px;
+                left: 28px;
+            }
+            #entropia-flow-client-resize {
+                width: 10px;
+                bottom: 4px;
+                right: 4px;
+            }
+            #entropia-flow-client-layout {
+                bottom: 4px;
+                left: 4px;
+                font-size: 10px;
+                text-overflow: ellipsis;
+                max-width: 90%;
+            }
+            #entropia-flow-client-hover-area:hover > * {
                 display: block;
             }
-            .minimized #hoverImage {
-                display: block;
+            #entropia-flow-client-hover-area.entropia-flow-client-minimized:hover > img,
+            #entropia-flow-client-hover-area.entropia-flow-client-minimized:hover > span {
+                display: none;
+            }
+            #entropia-flow-client-hover-area.entropia-flow-client-minimized > #entropia-flow-client-minimize {
+                display: block !important;
             }
         </style>
         <script src="Mouse.js"></script>
@@ -35,9 +57,12 @@
         <script src="EntropiaFlowStream.js"></script>
     </head>
     <body>
-        <div id="hoverArea">
+        <div id="entropia-flow-client-hover-area">
             <div id="stream"></div>
-            <img id="hoverImage" src="flow128.png">
+            <img id="entropia-flow-client-minimize" src="flow128.png">
+            <img id="entropia-flow-client-menu" src="right.png">
+            <img id="entropia-flow-client-resize" src="resize.png">
+            <span id="entropia-flow-client-layout"></span>
         </div>
     </body>
 </html>
