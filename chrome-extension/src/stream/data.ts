@@ -1,7 +1,7 @@
 interface StreamRenderLayout {
     name: string,
     backgroundType: number // BackgroundType
-    htmlTemplate: string
+    htmlTemplate?: string
     cssTemplate?: string
     readonly?: boolean
     stared?: boolean

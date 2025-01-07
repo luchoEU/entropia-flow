@@ -73,19 +73,23 @@ class MatrixBackground extends AnimatedBackground {
         }
     }
 
-    public override render(delta: number) {
+    public override render(delta?: number) {
         if (!this.positions) return // onContainerResize not called yet
-
-        if (this.elapsed === 0)
-            this.elapsed = delta - 1
 
         const canvas = this.container.querySelector("canvas") as HTMLCanvasElement;
         const ctx = canvas.getContext("2d");
 
-        const fps = this.heightInCharacters / state.fullFallTime
-        while (this.elapsed < delta) {
-            this.elapsed += 1000 / fps
+        if (delta === undefined) {
             this.draw(ctx)
+        } else {
+            if (this.elapsed === 0)
+                this.elapsed = delta - 1
+
+            const fps = this.heightInCharacters / state.fullFallTime
+            while (this.elapsed < delta) {
+                this.elapsed += 1000 / fps
+                this.draw(ctx)
+            }
         }
     }
 }

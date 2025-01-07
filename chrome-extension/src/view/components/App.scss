@@ -588,12 +588,26 @@ button:active {
 
 .stream-layout {
     width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
 }
 
-.stream-layout input,
+.stream-layout > * {
+    margin-bottom: 10px;
+    margin-right: 5px;
+}
+  
+.stream-layout > *:last-child {
+    margin-bottom: 0;
+}
+
+.stream-layout label {
+    display: block;
+}
+
 .stream-layout textarea {
     width: 100%;
-    max-width: 1200px;
 }
 
 .stream-layout textarea {

@@ -2,8 +2,10 @@ import { JSX } from 'react';
 import { VNode, VNodeData, h } from 'snabbdom';
 
 // Function to recursively convert a React element to a Snabbdom VNode
-function reactElementToVNode(reactElement: JSX.Element): VNode {
-  if (typeof reactElement === 'string' || typeof reactElement === 'number') {
+function reactElementToVNode(reactElement: JSX.Element): VNode | null {
+  if (!reactElement) {
+    return null;
+  } else if (typeof reactElement === 'string' || typeof reactElement === 'number') {
     return reactElement;
   }
 
@@ -30,9 +32,10 @@ function reactElementToVNode(reactElement: JSX.Element): VNode {
   }
 
   // Convert children recursively
-  const snabbdomChildren = Array.isArray(children)
+  const snabbdomChildren = (Array.isArray(children)
     ? children.map(reactElementToVNode)
-    : [reactElementToVNode(children)];
+    : [reactElementToVNode(children)])
+      .filter(c => c !== null);
 
   // Create Snabbdom VNode
   return h(type, snabbdomProps, snabbdomChildren);

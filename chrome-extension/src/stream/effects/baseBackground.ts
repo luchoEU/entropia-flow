@@ -30,7 +30,7 @@ class BaseBackground implements IBackground {
         this.resizeObserver.observe(this.container);
     }
 
-    public render(delta: number): void { }
+    public render(delta?: number): void { }
 
     private callOnContainerResize() {
         const e = this.container as HTMLDivElement;
@@ -38,6 +38,7 @@ class BaseBackground implements IBackground {
             const scaleMatch = e.style.transform?.match(/scale\((.*?)\)/);
             const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
             this.onContainerResize(parseFloat(e.style.width) / scale, parseFloat(e.style.height) / scale);
+            this.render();
         }
     }
 
@@ -117,10 +118,7 @@ class CssBackground extends BaseBackground {
         if (!style) {
             style = document.createElement('style');
             style.id = styleId;
-            if ('head' in root)
-                root.head.appendChild(style);
-            else
-                root.appendChild(style);
+            this.container.appendChild(style);
         }
         return style
     }
@@ -131,10 +129,7 @@ class CssBackground extends BaseBackground {
 
         let style = root.getElementById(styleId) as HTMLStyleElement
         if (style) {
-            if ('head' in root)
-                root.head.removeChild(style);
-            else
-                root.removeChild(style);
+            this.container.removeChild(style);
         }
     }
 

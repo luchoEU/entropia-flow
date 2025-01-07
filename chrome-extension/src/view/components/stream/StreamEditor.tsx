@@ -69,7 +69,7 @@ function StreamLayoutEditor() {
         }
     };
 
-    return <ExpandableSection selector='StreamEditor-layout' title='Layout' className='stream-layout'>        
+    return <ExpandableSection selector='StreamEditor-layout' title='Layout' className='stream-layout'>
         <div>
             <label htmlFor='stream-html-template'>HTML Template</label>
             <textarea

@@ -5,7 +5,7 @@ import { getSettings } from '../../application/selectors/settings';
 import { SettingsState } from '../../application/state/settings';
 import ExpandableSection from '../common/ExpandableSection';
 import { Field, FieldArea } from '../common/Field';
-import { SHOW_TT_SERVICE } from '../../../config';
+import { SHOW_SHEET_SETTINGS, SHOW_TT_SERVICE } from '../../../config';
 import { ConnectionState } from '../../application/state/connection';
 import { getConnection } from '../../application/selectors/connection';
 import { setConnectionClientExpanded, webSocketConnectionChanged, webSocketRetry } from '../../application/actions/connection';
@@ -72,7 +72,7 @@ function SheetAccess() {
 function SettingsPage() {
     return <>
         <EntropiaFlowClient />
-        <SheetAccess />
+        { SHOW_SHEET_SETTINGS && <SheetAccess /> }
     </>
 }
 

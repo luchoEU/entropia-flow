@@ -12,14 +12,10 @@ const StreamViewDiv = (p: {
     scale?: number
 }): JSX.Element => {
     const { data, layout } = p.single
-    const scale = p.scale ?? 1
-    if (layout.htmlTemplate === undefined) {
-        return <p>Template undefined!</p>
-    }
 
     const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
     const variables = computeFormulas({ ...data, backDark });
-    const html = renderHtmlTemplate(layout.htmlTemplate, variables);
+    const html = layout.htmlTemplate && renderHtmlTemplate(layout.htmlTemplate, variables);
     const css = layout.cssTemplate && renderCssTemplate(layout.cssTemplate, variables);
 
     const px = (n: number): string => `${Math.max(n, MIN_SIZE)}px`;
@@ -31,7 +27,7 @@ const StreamViewDiv = (p: {
     }
 
     return <div id={p.id} className='stream-root' style={containerStyle}>
-        <div className={`stream-content`} style={contentStyle} dangerouslySetInnerHTML={{ __html: html }} />
+        <div className={`stream-content`} style={contentStyle} {...html && { dangerouslySetInnerHTML: { __html: html } }}/>
         { css && <style dangerouslySetInnerHTML={{ __html: css }} /> }
     </div>
 };

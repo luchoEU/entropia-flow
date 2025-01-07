@@ -72,9 +72,11 @@ class AshfallBackground extends AnimatedBackground {
     this.uniforms.u_resolution.value.y = this.renderer.domElement.height;
   }
 
-  public override render(delta: number) {
+  public override render(delta?: number) {
     if (this.uniforms) {
-      this.uniforms.u_time.value = -10000 + delta * 0.0005;
+      if (delta !== undefined) {
+          this.uniforms.u_time.value = -10000 + delta * 0.0005;
+      }
       this.renderer.render(this.scene, this.camera);
     }
   }

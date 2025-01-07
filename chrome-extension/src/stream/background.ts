@@ -45,7 +45,7 @@ function animate(delta: number) {
     if (animated.length > 0)
         window.requestAnimationFrame(animate);
     else
-    animating = false
+        animating = false
 }
 
 // each container must have an unique id

@@ -9,40 +9,70 @@ const patch = init([
     styleModule, // handles styling on elements with support for animations
 ])
 
+const STREAM_ID = 'stream'
+
 let isRendering = false;
-export function render(single: StreamRenderSingle, scale?: number): StreamRenderSize | null {
+export function render(single: StreamRenderSingle, scale?: number, minSize?: StreamRenderSize): StreamRenderSize | null {
     if (isRendering) {
-        return null
+        return null;
     }
 
     isRendering = true;
     try {
-        const id = 'stream'
-        let size: StreamRenderSize = undefined
-        const streamElement = document.getElementById(id)
-        const firstElement = streamElement.firstChild as HTMLElement
-        if (firstElement) {
-            size = {
-                width: firstElement.offsetWidth,
-                height: firstElement.offsetHeight
-            }
+        if (!single.layout) {
+            throw new Error('Undefined layout!');
         }
 
         // render
-        const vNode = reactElementToVNode(StreamViewDiv({ id, size, single, scale }))
-        if (firstElement) {
+        let streamElement: HTMLElement = document.getElementById(STREAM_ID);
+        const vNode: VNode = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
+        let contentElement: HTMLElement = streamElement.querySelector('.stream-content');
+        if (contentElement && vNode.children.length > 0 && contentElement.localName === (vNode.children[0] as VNode).sel) {
             // patch only first child to avoid flickering in background
-            patch(firstElement, vNode.children[0] as VNode)
-            Object.entries(vNode.data.style).forEach(([key, value]) => { streamElement.style[key] = value })
+            patch(contentElement, vNode.children[0] as VNode)
+            if (vNode.data.style) {
+                Object.entries(vNode.data.style).forEach(([key, value]) => streamElement.style[key] = value)
+                let keys = [
+                    ...Object.keys(vNode.data.style),
+                    'color' // color is handled separately by background
+                ]
+                if (streamElement.style.length > keys.length) {
+                    keys = keys.map(key => key.replace(/[A-Z]/g, '-$&').toLowerCase()); // transformOrigin to transform-origin and similar
+                    Array.from(streamElement.style).filter(k => !keys.includes(k)).forEach(k => streamElement.style.removeProperty(k));
+                }
+            } else {
+                streamElement.removeAttribute('style');
+            }
         } else {
             patch(streamElement, vNode)
+            streamElement = document.getElementById(STREAM_ID); // get it again after patch
         }
 
         // load background
-        const newStreamElement = document.getElementById(id) // get it again after patch
-        loadBackground(single.layout.backgroundType, newStreamElement, streamElement)
+        loadBackground(single.layout.backgroundType, streamElement, streamElement)
 
-        return size
+        // calculate and set size
+        let size: StreamRenderSize = null;
+        contentElement = streamElement.querySelector('.stream-content');
+        if (contentElement) {
+            const calc = (v: number, min?: number): number => Math.max(min ?? 0, scale ? v * scale : v);
+            size = {
+                width: calc(contentElement.offsetWidth, minSize?.width),
+                height: calc(contentElement.offsetHeight, minSize?.height)
+            }
+            streamElement.style.width = `${size.width}px`;
+            streamElement.style.height = `${size.height}px`;
+        }
+        return size;
+    } catch (e) {
+        console.error(e);
+        const streamElement = document.getElementById(STREAM_ID);
+        if (streamElement) {
+            streamElement.style.backgroundColor = 'white';
+            streamElement.style.color = 'red';
+            streamElement.innerHTML = `<p>${e.message}</p>`;
+        }
+        return null;
     } finally {
         isRendering = false;
     }
