@@ -25,7 +25,7 @@ function applyDelta<T extends object>(source: T, delta: Partial<T>): T {
         return delta as T
 
     function f(src: object, dif: object): object {
-        const res = JSON.parse(JSON.stringify(src))
+        const res = { ...src }
         Object.entries(dif).forEach(([k, v]) => {
             if (v === null)
                 delete res[k]

@@ -26,34 +26,19 @@ export function render(single: StreamRenderSingle, scale?: number, minSize?: Str
         // render
         let streamElement: HTMLElement = document.getElementById(STREAM_ID);
         const vNode: VNode = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
-        let contentElement: HTMLElement = streamElement.querySelector('.stream-content');
-        if (contentElement && vNode.children.length > 0 && contentElement.localName === (vNode.children[0] as VNode).sel) {
-            // patch only first child to avoid flickering in background
-            patch(contentElement, vNode.children[0] as VNode)
-            if (vNode.data.style) {
-                Object.entries(vNode.data.style).forEach(([key, value]) => streamElement.style[key] = value)
-                let keys = [
-                    ...Object.keys(vNode.data.style),
-                    'color' // color is handled separately by background
-                ]
-                if (streamElement.style.length > keys.length) {
-                    keys = keys.map(key => key.replace(/[A-Z]/g, '-$&').toLowerCase()); // transformOrigin to transform-origin and similar
-                    Array.from(streamElement.style).filter(k => !keys.includes(k)).forEach(k => streamElement.style.removeProperty(k));
-                }
-            } else {
-                streamElement.removeAttribute('style');
-            }
-        } else {
-            patch(streamElement, vNode)
-            streamElement = document.getElementById(STREAM_ID); // get it again after patch
+        const canvasElement = streamElement.querySelector('canvas'); // Preserve it to avoid flickering in background
+        patch(streamElement, vNode)
+        if (canvasElement && !streamElement.contains(canvasElement)) {
+            streamElement.appendChild(canvasElement);
         }
+        streamElement = document.getElementById(STREAM_ID); // get it again after patch
 
         // load background
         loadBackground(single.layout.backgroundType, streamElement, streamElement)
 
         // calculate and set size
         let size: StreamRenderSize = null;
-        contentElement = streamElement.querySelector('.stream-content');
+        const contentElement: HTMLElement  = streamElement.querySelector('.stream-content');
         if (contentElement) {
             const calc = (v: number, min?: number): number => Math.max(min ?? 0, scale ? v * scale : v);
             size = {
@@ -68,8 +53,8 @@ export function render(single: StreamRenderSingle, scale?: number, minSize?: Str
         console.error(e);
         const streamElement = document.getElementById(STREAM_ID);
         if (streamElement) {
-            streamElement.style.backgroundColor = 'white';
-            streamElement.style.color = 'red';
+            streamElement.removeAttribute('style');
+            streamElement.className = 'entropia-flow-client-error';
             streamElement.innerHTML = `<p>${e.message}</p>`;
         }
         return null;

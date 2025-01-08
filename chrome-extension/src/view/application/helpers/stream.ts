@@ -72,7 +72,7 @@ const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): St
     in: {
         ...newStateIn,
         layouts: {
-            ...newStateIn.layouts,
+            ...Object.fromEntries(Object.entries(newStateIn.layouts).map(([k, v]) => [k, { ...v, readonly: false }])),
             ...initialStateIn.layouts
         }
     },
@@ -186,8 +186,9 @@ const reduceAddStreamLayout = (state: StreamState): StreamState => {
             layouts: {
                 ...state.in.layouts,
                 [layoutId]: {
-                    ..._defaultLayout,
-                    name: layoutId
+                    name: layoutId,
+                    backgroundType: _defaultLayout.backgroundType,
+                    htmlTemplate: _defaultLayout.htmlTemplate,
                 }
             }
         }

@@ -13,4 +13,8 @@ describe('formula parser', () => {
     test('delete', async () => {
         expect(applyDelta({t: 1}, getDelta({t: 2}, { }))).toEqual({ })
     })
+    test('action', async () => {
+        const action = () => {};
+        expect(applyDelta({action}, { })).toEqual({action})
+    })
 })
