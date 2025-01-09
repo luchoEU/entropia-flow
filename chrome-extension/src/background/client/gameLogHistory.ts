@@ -38,6 +38,7 @@ class GameLogHistory implements IGameLogHistory {
                 this.gameLog.stats.kills++
             }
         }
+
         if (line.data.team) {
             const existing = this.gameLog.team.find(l => l.player === line.data.team.player && l.name === line.data.team.name)
             if (existing) {
@@ -49,6 +50,19 @@ class GameLogHistory implements IGameLogHistory {
 
         if (line.data.global) {
             this.gameLog.global.unshift(line.data.global)
+        }
+
+        if (line.data.event) {
+            this.gameLog.event.unshift(line.data.event)
+        }
+
+        if (line.data.tier) {
+            const existing = this.gameLog.tier.find(t => t.name === line.data.tier.name)
+            if (existing) {
+                existing.tier = line.data.tier.tier
+            } else {
+                this.gameLog.tier.unshift(line.data.tier)
+            }
         }
 
         if (line.data.skill) {

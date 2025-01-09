@@ -5,10 +5,20 @@ import configureMockStore from "redux-mock-store";
 import SortableTabularSection from "./SortableTabularSection";
 import { TabularState } from "../../application/state/tabular";
 import 'canvas';
+import { setTabularDefinitions } from "../../application/helpers/tabular";
 
 const mockStore = configureMockStore();
 
 describe("SortableTabularSection", () => {
+    beforeAll(() => {
+        setTabularDefinitions({
+            t: {
+                title: 'Test',
+                columns: ['Test'],
+                getRow: (g) => [g.toString()]
+            }
+        })
+    })
     it("renders a value", () => {
         const tabular: TabularState = {
             t: {
@@ -25,7 +35,7 @@ describe("SortableTabularSection", () => {
         
         const { container } = render(
             <Provider store={store}>
-                <SortableTabularSection title="Test" selector="t" columns={['Test']} getRow={(g) => [g.toString()]} />
+                <SortableTabularSection selector="t" />
             </Provider>
         );
         
@@ -47,7 +57,7 @@ describe("SortableTabularSection", () => {
         
         const { container } = render(
             <Provider store={store}>
-                <SortableTabularSection title="Test" selector="t" columns={['Test']} getRow={(g) => [g.toString()]} />
+                <SortableTabularSection selector="t" />
             </Provider>
         );
         
@@ -69,7 +79,7 @@ describe("SortableTabularSection", () => {
         
         const { container } = render(
             <Provider store={store}>
-                <SortableTabularSection title="Test" selector="t" columns={['Test']} getRow={(g) => [g.toString()]} useTable={true} />
+                <SortableTabularSection selector="t" useTable={true} />
             </Provider>
         );
         

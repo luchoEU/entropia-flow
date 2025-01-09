@@ -5,7 +5,6 @@ const SET_TABULAR_STATE = '[tabular] set state'
 const SET_TABULAR_EXPANDED = '[tabular] set expanded'
 const SET_TABULAR_FILTER = '[tabular] set filter'
 const SET_TABULAR_DATA = '[tabular] set data'
-const SET_TABULAR_SORT_COLUMN_DEFINITION = '[tabular] set sort column definition'
 const SORT_TABULAR_BY = '[tabular] sort by'
 
 const setTabularState = (state: TabularState) => ({
@@ -39,15 +38,7 @@ const setTabularData = (selector: string, data: any[]) => ({
     }
 })
 
-const setTabularSortColumnDefinition = (selector: string, sortColumnDefinition: Array<SortColumnDefinition<any>>) => ({
-    type: SET_TABULAR_SORT_COLUMN_DEFINITION,
-    payload: {
-        selector,
-        sortColumnDefinition
-    }
-})
-
-const sortTabularBy = (selector: string) => (column: number) => ({
+const sortTabularBy = (selector: string, column: number) => ({
     type: SORT_TABULAR_BY,
     payload: {
         selector,
@@ -60,12 +51,10 @@ export {
     SET_TABULAR_EXPANDED,
     SET_TABULAR_FILTER,
     SET_TABULAR_DATA,
-    SET_TABULAR_SORT_COLUMN_DEFINITION,
     SORT_TABULAR_BY,
     setTabularState,
     setTabularExpanded,
     setTabularFilter,
     setTabularData,
-    setTabularSortColumnDefinition,
     sortTabularBy,
 }

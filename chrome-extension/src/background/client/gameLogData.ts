@@ -2,8 +2,10 @@ interface GameLogData {
     raw: Array<GameLogLine>
     loot: Array<GameLogLoot>
     team: Array<GameLogTeam>
+    tier: Array<GameLogTier>
     skill: Array<GameLogSkill>
     global: Array<GameLogGlobal>
+    event: Array<GameLogEvent>
     stats: GameLogStats
 }
 
@@ -11,8 +13,10 @@ const emptyGameLogData: GameLogData = {
     raw: [],
     loot: [],
     team: [],
+    tier: [],
     skill: [],
     global: [],
+    event: [],
     stats: {}
 }
 
@@ -21,6 +25,11 @@ interface GameLogStats {
     selfHeal?: number
     damageInflicted?: number
     damageTaken?: number
+    targetEvadedAttack?: number
+    targetDodgedAttack?: number
+    youEvadedAttack?: number
+    youDodgedAttack?: number
+    attackMissesYou?: number
 }
 
 interface GameLogGlobal {
@@ -41,12 +50,12 @@ interface GameLogLine {
         loot?: GameLogLoot
         team?: GameLogTeam
         global?: GameLogGlobal
+        tier?: GameLogTier
         skill?: GameLogSkill
         stats?: GameLogStats
         positions?: GameLogPosition[]
+        event?: GameLogEvent
         items?: string[]
-        login?: string
-        logout?: string
     }
 }
 
@@ -62,6 +71,12 @@ interface GameLogTeam {
     quantity: number
 }
 
+
+interface GameLogTier {
+    name: string
+    tier: number
+}
+
 interface GameLogSkill {
     name: string
     value: number
@@ -75,12 +90,20 @@ interface GameLogPosition {
     name: string
 }
 
+interface GameLogEvent {
+    time: string
+    name: string
+    action: string
+}
+
 export {
     GameLogData,
     GameLogLoot,
+    GameLogTier,
     GameLogGlobal,
     GameLogSkill,
     GameLogStats,
     GameLogLine,
+    GameLogEvent,
     emptyGameLogData,
 }

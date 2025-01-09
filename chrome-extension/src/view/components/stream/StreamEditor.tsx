@@ -2,10 +2,10 @@
 import React, { JSX } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamVariable } from "../../application/state/stream"
-import SortableTabularSection, { RowValue } from "../common/SortableTabularSection"
+import SortableTabularSection from "../common/SortableTabularSection"
 import { getStream, getStreamIn } from "../../application/selectors/stream"
-import { addStreamUserVariable, removeStreamUserVariable, setStreamBackgroundSelected, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName, setStreamUserVariablePartial } from "../../application/actions/stream"
-import { StreamRenderSingle, StreamRenderValue } from "../../../stream/data"
+import { addStreamUserVariable, setStreamBackgroundSelected, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName, setStreamUserVariablePartial } from "../../application/actions/stream"
+import { StreamRenderSingle } from "../../../stream/data"
 import ExpandableSection from "../common/ExpandableSection2"
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamViewLayout from "./StreamViewLayout"
@@ -106,18 +106,6 @@ function StreamEditor() {
     const c = layouts[editing.layoutId];
     const dispatch = useDispatch();
 
-    const field = (g: StreamVariable, selector: string, maxWidth?: number, readonly?: boolean, addRemove?: boolean): RowValue => {
-        if (!readonly && g.source === 'user') {
-            const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserVariablePartial(g.id, { [selector]: v }) }
-            return addRemove ? { sub: [ w, { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserVariable(g.id) } ] } : w;
-        } else if (maxWidth) {
-            const v = g[selector];
-            return { text: typeof v === 'string' ? v : JSON.stringify(v), maxWidth };
-        } else {
-            return g[selector];
-        }
-    }
-
     return <section>
         <h1>Editing {c.name} Layout</h1>
         <label htmlFor='stream-layout-name'>Name</label>
@@ -142,23 +130,11 @@ function StreamEditor() {
                 <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>
             </ExpandableSection>
             <SortableTabularSection
-                title='Variables'
                 selector={STREAM_TABULAR_VARIABLES}
-                columns={['Source', 'Name', 'Value', 'Computed', 'Description']}
-                getRow={(g: StreamVariable) => [
-                    g.source,
-                    field(g, 'name', 100, false, true),
-                    field(g, 'value', 300),
-                    field(g, 'computed', 120, true),
-                    field(g, 'description', 300),
-                ]}
                 afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable } ]}
             />
             <SortableTabularSection
-                title='Images'
                 selector={STREAM_TABULAR_IMAGES}
-                columns={['Source', 'Name', 'Image', 'Description']}
-                getRow={(g: StreamVariable) => [ g.source, g.name, { img: g.value as string, title: `${g.name} image`, show: true, style: { height: '90%' } }, { text: g.description, maxWidth: 300 } ]}
                 itemHeight={50}
             />
             <ExpandableSection selector='StreamEditor-preview' title='Preview'>

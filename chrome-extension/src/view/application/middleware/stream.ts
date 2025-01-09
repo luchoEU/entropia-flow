@@ -8,7 +8,7 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, setStreamUserVariablePartial, removeStreamUserVariable, setStreamEditing, removeStreamLayout, setStreamStared } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
@@ -17,12 +17,16 @@ import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
 import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
+import { TabularDefinitions } from "../state/tabular"
+import { setTabularDefinitions } from "../helpers/tabular"
+import { RowValue } from "../../components/common/SortableTabularSection"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     const { variables: beforeVariables }: StreamState = getStream(getState())
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
+            setTabularDefinitions(_tabularDefinitions)
             const state: StreamStateIn = await api.storage.loadStream()
             if (state)
                 dispatch(setStreamState(mergeDeep(initialStateIn, state)))
@@ -129,14 +133,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REMOVE_STREAM_LAYOUT:
         {
             const { layouts }: StreamStateIn = getStreamIn(getState())
-            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, Object.entries(layouts).map(([id, layout]) => ({
+            const chooser: StreamChooserLine[] = Object.entries(layouts).map(([id, layout]) => ({
                 id,
                 name: layout.name,
                 readonly: !!layout.readonly,
                 stared: !!layout.stared,
                 layout
-            }))))
-            break
+            }));
+            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, chooser));
+            break;
         }
     }
 
@@ -178,6 +183,58 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
 let _dataInClient: StreamRenderData = undefined
 let _lastWebSocketCode: WebSocketStateCode = undefined
+
+interface StreamChooserLine {
+    id: string,
+    name: string,
+    readonly: boolean,
+    stared: boolean,
+    layout: StreamRenderLayout
+}
+
+const _field = (g: StreamVariable, selector: string, maxWidth?: number, readonly?: boolean, addRemove?: boolean): RowValue => {
+    if (!readonly && g.source === 'user') {
+        const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserVariablePartial(g.id, { [selector]: v }) }
+        return addRemove ? { sub: [ w, { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserVariable(g.id) } ] } : w;
+    } else if (maxWidth) {
+        const v = g[selector];
+        return { text: typeof v === 'string' ? v : JSON.stringify(v), maxWidth };
+    } else {
+        return g[selector];
+    }
+}
+
+const _tabularDefinitions: TabularDefinitions = {
+    [STREAM_TABULAR_IMAGES]: {
+        title: 'Images',
+        columns: ['Source', 'Name', 'Image', 'Description'],
+        getRow: (g: StreamVariable) => [ g.source, g.name, { img: g.value as string, title: `${g.name} image`, show: true, style: { height: '90%' } }, { text: g.description, maxWidth: 300 } ],
+    },
+    [STREAM_TABULAR_VARIABLES]: {
+        title: 'Variables',
+        columns: ['Source', 'Name', 'Value', 'Computed', 'Description'],
+        getRow: (g: StreamVariable) => [
+            g.source,
+            _field(g, 'name', 100, false, true),
+            _field(g, 'value', 300),
+            _field(g, 'computed', 120, true),
+            _field(g, 'description', 300),
+        ],
+    },
+    [STREAM_TABULAR_CHOOSER]: {
+        title: 'Layouts',
+        columns: [ 'Name', 'Preview' ],
+        getRow: (g: StreamChooserLine, i: number) => [
+            [ g.name,
+                { flex: 1 },
+                { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => setStreamStared(g.id, !g.stared) },
+                { img: 'img/edit.png', title: 'Edit', dispatch: () => setStreamEditing(g.id) },
+                { img: 'img/cross.png', title: 'Remove', dispatch: () => removeStreamLayout(g.id), visible: !g.readonly },
+            ], {
+                layout: g.layout, layoutId: g.id, id: `stream-chooser-${i}`, scale: 0.4, width: 200
+            }],
+    }
+}
 
 export default [
     requests

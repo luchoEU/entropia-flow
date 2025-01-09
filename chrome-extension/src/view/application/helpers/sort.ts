@@ -2,6 +2,8 @@ import { SortSecuence } from "../state/sort"
 
 const stringComparer = (a: string, b: string) => a.localeCompare(b)
 const numberComparer = (a: number, b: number) => a - b
+const byTypeComparer = (a: any, b: any) => 
+    (typeof a === 'number' && typeof b === 'number') ? numberComparer(a, b) : stringComparer(a, b)
 
 interface SortColumnDefinition<I, T = any> {
     selector: (item: I) => T,
@@ -45,6 +47,7 @@ export {
     SortColumnDefinition,
     stringComparer,
     numberComparer,
+    byTypeComparer,
     cloneAndSort,
     nextSortSecuence,
     defaultSortSecuence

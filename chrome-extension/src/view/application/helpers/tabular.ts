@@ -1,6 +1,6 @@
 import { multiIncludes } from "../../../common/string";
-import { TabularState, TabularStateData } from "../state/tabular";
-import { cloneAndSort, nextSortSecuence, SortColumnDefinition } from "./sort";
+import { TabularDefinition, TabularDefinitions, TabularState, TabularStateData } from "../state/tabular";
+import { byTypeComparer, cloneAndSort, nextSortSecuence, SortColumnDefinition } from "./sort";
 
 const initialState: TabularState = { }
 
@@ -16,15 +16,15 @@ const reduceSetTabularExpanded = (state: TabularState, selector: string, expande
 
 const reduceSetTabularFilter = (state: TabularState, selector: string, filter: string): TabularState => ({
     ...state,
-    [selector]: _applyFilterAndSort({
+    [selector]: _applyFilterAndSort(selector, {
         ...state[selector],
         filter
     })
 })
 
-const _applyFilterAndSort = (data: TabularStateData): TabularStateData => {
+const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
     const filtered = data.items.all.filter(d => multiIncludes(data.filter, JSON.stringify(d)));
-    const show = cloneAndSort(filtered, data.sortSecuence, data.definition?.sort);
+    const show = cloneAndSort(filtered, data.sortSecuence, _getTabularSortDefinition(selector));
     return {
         ...data,
         items: {
@@ -39,27 +39,13 @@ const _applyFilterAndSort = (data: TabularStateData): TabularStateData => {
 
 const reduceSetTabularData = (state: TabularState, selector: string, data: any[]): TabularState => ({
     ...state,
-    [selector]: _applyFilterAndSort({
+    [selector]: _applyFilterAndSort(selector, {
         ...state[selector],
         items: {
             ...state[selector]?.items,
             all: data
         }
     })
-})
-
-const reduceSetTabularSortColumnDefinition = (state: TabularState, selector: string, sortColumnDefinition: Array<SortColumnDefinition<any>>): TabularState => ({
-    ...state,
-    [selector]: {
-        ...state[selector],
-        items: {
-            ...state[selector].items,
-            show: cloneAndSort(state[selector].items.show, state[selector].sortSecuence, sortColumnDefinition)
-        },
-        definition: {
-            sort: sortColumnDefinition
-        }
-    }
 })
 
 const reduceSortTabularBy = (state: TabularState, selector: string, column: number): TabularState => {
@@ -71,16 +57,42 @@ const reduceSortTabularBy = (state: TabularState, selector: string, column: numb
             sortSecuence,
             items: {
                 ...state[selector].items,
-                show: cloneAndSort(state[selector].items.show, sortSecuence, state[selector].definition.sort)
+                show: cloneAndSort(state[selector].items.show, sortSecuence, _getTabularSortDefinition(selector))
             }
         }
     }
 }
 
+const _tabularDefinitions: TabularDefinitions = { }
+const getTabularDefinition = (selector: string): TabularDefinition => _tabularDefinitions[selector]
+const setTabularDefinitions = (tabularDefinitions: TabularDefinitions) => {
+    Object.entries(tabularDefinitions).forEach(([selector, definition]) => {
+        _tabularDefinitions[selector] = definition.getRowForSort ? {
+            ...definition,
+            getRow: (d, i) => definition.getRow(d, i).map((v, j) => {
+                if (typeof v === 'string') {
+                    const sv = definition.getRowForSort(d, i)[j];
+                    if (typeof sv === 'number')
+                        return { text: v, style: { justifyContent: 'end' } }
+                }
+                return v
+            })
+        } : definition;
+    })
+}
+
+const _getTabularSortDefinition = <TItem extends any>(selector: string): Array<SortColumnDefinition<TItem>> => {
+    const definition = _tabularDefinitions[selector]
+    if (!definition) throw new Error(`Tabular definition for ${selector} not found`)
+    return Array.from({ length: definition.columns.length }, (_, i) => ({
+        selector: d => definition.getRowForSort?.(d, i)[i] ?? definition.getRow(d, i)[i],
+        comparer: definition.columnComparer?.[i] ?? byTypeComparer
+    }))
+}
+
 const _cleanForSaveData = (d: TabularStateData): TabularStateData => ({
     ...d,
     items: undefined,
-    definition: undefined
 })
 
 const cleanForSave = (state: TabularState): TabularState =>
@@ -89,10 +101,11 @@ const cleanForSave = (state: TabularState): TabularState =>
 export {
     initialState,
     cleanForSave,
+    getTabularDefinition,
+    setTabularDefinitions,
     reduceSetTabularState,
     reduceSetTabularExpanded,
     reduceSetTabularFilter,
     reduceSetTabularData,
-    reduceSetTabularSortColumnDefinition,
     reduceSortTabularBy,
 }
