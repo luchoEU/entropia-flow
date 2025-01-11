@@ -66,4 +66,22 @@ describe('formula parser', () => {
         }
         expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual(expected)
     })
+
+    test('global', async () => {
+        const line = '2025-01-11 12:38:08 [Globals] [] Lucho MUCHO Ireton killed a creature (Merry Annihilation Daikiba 08) with a value of 57 PED!'
+        await gameLogParser.onMessage(line)
+
+        const expected: GameLogData = {
+            ...emptyGameLogData(),
+            global: [{
+                time: '2025-01-11 12:38:08',
+                player: 'Lucho MUCHO Ireton',
+                name: 'Merry Annihilation Daikiba 08',
+                type: 'hunt',
+                value: 57,
+                isHoF: false
+            }]
+        }
+        expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual(expected)
+    })
 })

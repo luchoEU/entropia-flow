@@ -24,12 +24,13 @@ const statsCountRegex = {
     revived: /You have been revived/,
     killed: /You were killed by/,
 }
-const hofSufix = ' A record has been added to the Hall of Fame!'
+const hofSuffix = ' A record has been added to the Hall of Fame!'
+const valueLocationRegex = /(\d+) (PED|PEC)(?: at (.*))?/
 const globalRegex = {
     hunt: /(.*) killed a creature \((.*)\) with a value of (.*)!/,
     craft: /(.*) constructed an item \((.*)\) worth (.*)!/,
     found: /(.*) has found a rare item \((.*)\) with a value of (.*)!/,
-    mine: /(.*) found a deposit \((.*)\) with a value of (.*)/,
+    mine: /(.*) found a deposit \((.*)\) with a value of (.*)!/,
 }
 const skillRegex = /You have gained (.*?) (experience in your )?(.*?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
@@ -47,9 +48,11 @@ const eventRegex = {
     killed: /You were killed by the \w+ (.+)/,
     youNoLongerAway: /You are no longer away from keyboard/,
     savedDivine: /You have been saved from certain death by divine intervention/,
-    itemEffectsRemoved: /Item Set Effects removed (.+)/,
+    healingDiminished: /Healing is diminished while moving/,
+    itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
     itemEffectAdded: /Item Set Effect: (.+)/,
 }
+const enhancerBrake = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
 class GameLogParser {
     public onLine: (s: GameLogLine) => void
@@ -124,20 +127,34 @@ class GameLogParser {
                         value: parseFloat(attributeMatch[2])
                     }
                 }
+                const enhancerBrakeMatch = enhancerBrake.exec(line.message);
+                if (enhancerBrakeMatch !== null) {
+                    line.data.enhancerBrake = {
+                        time: line.time,
+                        enhancer: enhancerBrakeMatch[1],
+                        item: enhancerBrakeMatch[2],
+                        remaining: parseInt(enhancerBrakeMatch[3]),
+                        received: parseFloat(enhancerBrakeMatch[4])
+                    }
+                }
                 break
             case "Globals":
-                const isHoF = line.message.endsWith(hofSufix);
-                const msg = isHoF ? line.message.substring(0, line.message.length - hofSufix.length) : line.message
+                const isHoF = line.message.endsWith(hofSuffix);
+                const msg = isHoF ? line.message.substring(0, line.message.length - hofSuffix.length) : line.message
                 Object.entries(globalRegex).forEach(([key, regex]) => {
                     const match = regex.exec(msg);
                     if (match !== null) {
-                        line.data.global = {
-                            time: line.time,
-                            player: match[1],
-                            name: match[2],
-                            type: key,
-                            value: match[3],
-                            isHoF
+                        const valueMatch = valueLocationRegex.exec(match[3]);
+                        if (valueMatch !== null) {
+                            line.data.global = {
+                                time: line.time,
+                                player: match[1],
+                                name: match[2],
+                                type: key,
+                                value: parseInt(valueMatch[1]) * (valueMatch[2] === 'PEC' ? 0.01 : 1),
+                                location: valueMatch[3],
+                                isHoF
+                            }
                         }
                     }
                 })

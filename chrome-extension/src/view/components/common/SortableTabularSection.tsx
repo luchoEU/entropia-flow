@@ -17,7 +17,11 @@ const _getSortRow = (selector: string, columns: string[], sortSecuence?: SortSec
     style: { justifyContent: 'center' },
     sub: [
         { strong: text },
-        { img: sortSecuence?.[0].ascending ? 'img/up.png' : 'img/down.png', title: sortSecuence?.[0].ascending ? 'Sorted Ascending' : 'Sorted Descending' },
+        {
+            img: sortSecuence?.[0].ascending ? 'img/up.png' : 'img/down.png',
+            title: sortSecuence?.[0].ascending ? 'Sorted Ascending' : 'Sorted Descending',
+            visible: sortSecuence?.[0].column === i
+        },
     ]
 }))
 

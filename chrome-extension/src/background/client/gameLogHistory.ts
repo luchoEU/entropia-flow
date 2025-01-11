@@ -66,6 +66,10 @@ class GameLogHistory implements IGameLogHistory {
             this.gameLog.event.unshift(line.data.event)
         }
 
+        if (line.data.enhancerBrake) {
+            this.gameLog.enhancerBrake.unshift(line.data.enhancerBrake)
+        }
+
         if (line.data.tier) {
             const existing = this.gameLog.tier.find(t => t.name === line.data.tier.name)
             if (existing) {

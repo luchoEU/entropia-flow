@@ -39,7 +39,7 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
 
 const reduceSetTabularData = (state: TabularState, selector: string, data: any[]): TabularState => ({
     ...state,
-    [selector]: _applyFilterAndSort(selector, {
+    [selector]: data && _applyFilterAndSort(selector, {
         ...state[selector],
         items: {
             ...state[selector]?.items,
