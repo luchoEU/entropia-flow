@@ -31,7 +31,7 @@ describe('formula parser', () => {
         }
 
         const expected: GameLogData = {
-            ...emptyGameLogData,
+            ...emptyGameLogData(),
             loot: [{
                 name: 'Animal Adrenal Oil',
                 quantity: 9,
@@ -64,6 +64,6 @@ describe('formula parser', () => {
                 quantity: 19484
             }]
         }
-        expect(gameLogHistory.getGameLog()).toEqual(expected)
+        expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual(expected)
     })
 })

@@ -11,6 +11,7 @@ const statsPointsRegex = {
     selfHeal: /You healed yourself (.*) points/,
     damageInflicted: /You inflicted (.*) points of damage/,
     damageTaken: /You took (.*) points of damage/,
+    reducedCritical: /Reduced (.*) points of critical damage/
 }
 const statsCountRegex = {
     targetEvadedAttack: /The target Evaded your attack/,
@@ -18,6 +19,10 @@ const statsCountRegex = {
     youEvadedAttack: /You Evaded the attack/,
     youDodgedAttack: /You Dodged the attack/,
     attackMissesYou: /The attack missed you/,
+    criticalInflicted: /^Critical hit - Additional damage! You inflicted/,
+    criticalTaken: /^Critical hit - Additional damage! You took/,
+    revived: /You have been revived/,
+    killed: /You were killed by/,
 }
 const hofSufix = ' A record has been added to the Hall of Fame!'
 const globalRegex = {
@@ -28,7 +33,6 @@ const globalRegex = {
 }
 const skillRegex = /You have gained (.*?) (experience in your )?(.*?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
-const critical = /Critical hit - Additional damage! You inflicted 222.8 points of damage/
 const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
 const braketRegex = /\[(.*?)]/g
 const tierRegex = /Your (.*) has reached tier (.*)/
@@ -40,7 +44,11 @@ const eventRegex = {
     missionCompleted: /Mission completed \((.*)\)/,
     missionUpdated: /Mission updated \((.*)\)/,
     limitedMinimumCondition: /Your (.*?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
+    killed: /You were killed by the \w+ (.+)/,
     youNoLongerAway: /You are no longer away from keyboard/,
+    savedDivine: /You have been saved from certain death by divine intervention/,
+    itemEffectsRemoved: /Item Set Effects removed (.+)/,
+    itemEffectAdded: /Item Set Effect: (.+)/,
 }
 
 class GameLogParser {
@@ -97,7 +105,7 @@ class GameLogParser {
                     if (match !== null) {
                         line.data.event = {
                             time: line.time,
-                            name: match[1],
+                            name: match.length > 1 ? match[1] : '',
                             action: key
                         }
                     }

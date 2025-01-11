@@ -3,28 +3,38 @@
 
 import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
-const MAX_LOG_LINES = 100
+const MAX_LOG_LINES = 200
 
 interface IGameLogHistory {
-    onLine(line: GameLogLine)
+    onLine(line: GameLogLine): Promise<void>
+    clear(): Promise<void>
     getGameLog(): GameLogData
-    onChange: (gameLog: GameLogData) => void
+    onChange: (gameLog: GameLogData) => Promise<void>
 }
 
 class GameLogHistory implements IGameLogHistory {
-    private gameLog: GameLogData = emptyGameLogData
-    public onChange: (gameLog: GameLogData) => void
+    private gameLog: GameLogData = emptyGameLogData()
+    public onChange: (gameLog: GameLogData) => Promise<void>
 
     public getGameLog(): GameLogData { return this.gameLog }
+    public async setGameLog(gameLog: GameLogData): Promise<void> {
+        this.gameLog = gameLog
+        if (this.onChange)
+            await this.onChange(this.gameLog)
+    }
 
-    public onLine(line: GameLogLine) {
+    public async clear(): Promise<void> {
+        await this.setGameLog(emptyGameLogData())
+    }
+
+    public async onLine(line: GameLogLine): Promise<void> {
         const lastTime: string = this.gameLog.raw.length > 0 ? this.gameLog.raw[0].time : ''
 
         this.gameLog.raw.unshift(line)
         if (this.gameLog.raw.length > MAX_LOG_LINES)
             this.gameLog.raw.splice(MAX_LOG_LINES)
 
-        if (line.data.loot) {
+        if (line.data.loot && line.data.loot.name !== 'Universal Ammo') {
             const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name)
             if (existing) {
                 existing.value += line.data.loot.value
@@ -83,7 +93,7 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (this.onChange)
-            this.onChange(this.gameLog)
+            await this.onChange(this.gameLog)
     }
 }
 

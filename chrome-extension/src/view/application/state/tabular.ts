@@ -1,5 +1,4 @@
-import { RowValue } from "../../components/common/SortableTabularSection"
-import { SortColumnDefinition } from "../helpers/sort"
+import { RowValue } from "../../components/common/SortableTabularSection.data"
 import { SortSecuence } from "./sort"
 
 // To be used with SortableTabularSection

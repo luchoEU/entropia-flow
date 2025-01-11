@@ -53,6 +53,7 @@ const STORAGE_INVENTORY_STRINGS_ = 'inventoryListStrings'
 const STORAGE_TAB_VIEWS = 'tabViews'
 const STORAGE_TAB_CONTENTS = 'tabContents'
 const STORAGE_ALARM = 'alarm'
+const STORAGE_GAME_LOG = 'gameLog'
 const STORAGE_VIEW = 'view'
 const STORAGE_VIEW_MENU = 'menu'
 const STORAGE_VIEW_CALCULATOR = 'calculator'
@@ -141,6 +142,7 @@ export {
     STORAGE_TAB_VIEWS,
     STORAGE_TAB_CONTENTS,
     STORAGE_ALARM,
+    STORAGE_GAME_LOG,
     STORAGE_VIEW,
     STORAGE_VIEW_MENU,
     STORAGE_VIEW_CALCULATOR,

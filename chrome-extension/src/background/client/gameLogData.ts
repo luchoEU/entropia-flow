@@ -9,7 +9,7 @@ interface GameLogData {
     stats: GameLogStats
 }
 
-const emptyGameLogData: GameLogData = {
+const emptyGameLogData = (): GameLogData => ({
     raw: [],
     loot: [],
     team: [],
@@ -18,7 +18,7 @@ const emptyGameLogData: GameLogData = {
     global: [],
     event: [],
     stats: {}
-}
+})
 
 interface GameLogStats {
     kills?: number

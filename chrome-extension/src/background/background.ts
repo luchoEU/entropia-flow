@@ -30,7 +30,7 @@ class BackgroundInitializer {
 
         // wiring
         await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient,
-            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
+            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
 
         async function test() {
             traceOff()

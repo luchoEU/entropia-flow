@@ -1,5 +1,4 @@
 import {
-    CLASS_INFO,
     CLASS_NEW_DATE,
     INVENTORY_LIMIT,
     STORAGE_INVENTORY_,

@@ -1,3 +1,4 @@
+import MemoryStorageArea from "../chrome/memoryStorageArea"
 import MockActionManager from "../chrome/mockActionManager"
 import MockAlarmManager from "../chrome/mockAlarmManager"
 import MockMessagesHub from "../chrome/mockMessages"
@@ -21,6 +22,7 @@ import {
 } from "../common/const"
 import { Inventory, setMockDate } from "../common/state"
 import { traceOff } from "../common/trace"
+import { emptyGameLogData } from "./client/gameLogData"
 import { WebSocketStateCode } from "./client/webSocketInterface"
 import MockWebSocketClient from "./client/webSocketMock"
 import ContentTabManager from "./content/contentTab"
@@ -55,14 +57,11 @@ describe('full', () => {
     let contentPort: MockPort
     let viewPort: MockPort
     let inventoryStorage: MockStorageArea
+    let gameLogStorage: MemoryStorageArea
     let tabStorage: MockStorageArea
     let settingsStorage: MockStorageArea
 
-    beforeEach(async () => {
-        messages = new MockMessagesHub()
-        htmlAlarm = new MockAlarmManager()
-        ajaxAlarm = new MockAlarmManager()
-        tabs = new MockTabManager()
+    async function doWiring() {
         actions = new MockActionManager()
         contentPortManager = new MockPortManager()
         viewPortManager = new MockPortManager()
@@ -80,11 +79,20 @@ describe('full', () => {
         viewPortManager.allMock.mockReturnValue([viewPort])
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
+        await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
+    }
 
+    beforeEach(async () => {
+        setMockDate(DATE_CONST)
+        messages = new MockMessagesHub()
+        htmlAlarm = new MockAlarmManager()
+        ajaxAlarm = new MockAlarmManager()
+        tabs = new MockTabManager()
         inventoryStorage = new MockStorageArea()
+        gameLogStorage = new MemoryStorageArea()
         tabStorage = new MockStorageArea()
         settingsStorage = new MockStorageArea()
-        await wiring(messages, htmlAlarm, ajaxAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, tabStorage, settingsStorage)
+        await doWiring()
     })
 
     test('init', () => {
@@ -108,7 +116,6 @@ describe('full', () => {
     describe("when view started", () => {
         test('without monitoring expect monitor off message', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            setMockDate(DATE_CONST)
 
             await viewPortManager.onConnect(viewPort)
 
@@ -122,7 +129,6 @@ describe('full', () => {
             settingsStorage.getMock.mockReturnValueOnce({ lastRefresh: 1 })
             settingsStorage.getMock.mockReturnValueOnce({ isMonitoring: true })
             ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
-            setMockDate(DATE_CONST)
 
             await viewPortManager.onConnect(viewPort)
 
@@ -134,7 +140,6 @@ describe('full', () => {
 
         test('with monitoring no time expect please log in', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
-            setMockDate(DATE_CONST)
 
             await viewPortManager.onConnect(viewPort)
 
@@ -324,6 +329,20 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: state })
+        })
+    })
+
+    describe('storage', () => {
+        test('when log is read expect the value on next run', async () => {
+            await webSocketClient.onMessage({ type: 'log', data: '2024-12-23 17:08:58 [System] [] test' })
+            await doWiring()
+            await viewPortManager.onConnect(viewPort)
+
+            const objData = { time: '2024-12-23 17:08:58', channel: 'System', player: '', message: 'test', data: {} }
+            expect(viewPort.sendMock.mock.calls.length).toBe(1)
+            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ ...STATE_NO_DATA_PLEASE_LOG_IN, gameLog: { ...emptyGameLogData(), raw: [ objData ] } })
         })
     })
 })

@@ -19,7 +19,6 @@ import {
     STORAGE_TAB_CONTENTS,
     STORAGE_TAB_VIEWS,
     MSG_NAME_SET_WEB_SOCKET_URL,
-    MSG_NAME_RETRY_WEB_SOCKET,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -33,6 +32,7 @@ import IWebSocketClient from './client/webSocketInterface'
 import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
 import GameLogParser from './client/gameLogParser'
+import GameLogStorage from './client/gameLogStorage'
 
 async function wiring(
     messages: IMessagesHub,
@@ -43,11 +43,13 @@ async function wiring(
     webSocketClient: IWebSocketClient,
     portManagerFactory: PortManagerFactory,
     inventoryStorageArea: IStorageArea,
+    gameLogStorageArea: IStorageArea,
     tabStorageArea: IStorageArea,
     settingsStorageArea: IStorageArea) {
 
     // storage
     const inventoryStorage = new InventoryStorage(inventoryStorageArea)
+    const gameLogStorage = new GameLogStorage(gameLogStorageArea)
     const contentListStorage = new TabStorage(tabStorageArea, STORAGE_TAB_CONTENTS)
     const viewListStorage = new TabStorage(tabStorageArea, STORAGE_TAB_VIEWS)
 
@@ -97,7 +99,13 @@ async function wiring(
     }
     webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)
     gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
-    gameLogHistory.onChange = (gameLog) => viewStateManager.setGameLog(gameLog)
+    const gameLog = await gameLogStorage.get()
+    if (gameLog)
+        await gameLogHistory.setGameLog(gameLog)
+    gameLogHistory.onChange = async (gameLog) => {
+        await gameLogStorage.set(gameLog)
+        await viewStateManager.setGameLog(gameLog)
+    }
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })
@@ -128,6 +136,8 @@ async function wiring(
             if (m.tag)
                 await inventoryStorage.tag(m.last, m.tag)
             viewStateManager.reload()
+            if (m.tag?.last)
+                gameLogHistory.clear()
         },
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff(),

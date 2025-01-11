@@ -19,7 +19,7 @@ import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES
 import isEqual from 'lodash.isequal';
 import { TabularDefinitions } from "../state/tabular"
 import { setTabularDefinitions } from "../helpers/tabular"
-import { RowValue } from "../../components/common/SortableTabularSection"
+import { RowValue } from "../../components/common/SortableTabularSection.data"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     const { variables: beforeVariables }: StreamState = getStream(getState())
