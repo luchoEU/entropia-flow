@@ -84,4 +84,23 @@ describe('formula parser', () => {
         }
         expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual(expected)
     })
+
+    test('hof', async () => {
+        const line = '2025-01-11 12:38:08 [Globals] [] High Looter Elite killed a creature (Maffoid Warlord) with a value of 808 PED! A record has been added to the Hall of Fame!'
+        await gameLogParser.onMessage(line)
+
+        const expected: GameLogData = {
+            ...emptyGameLogData(),
+            global: [{
+                time: '2025-01-11 12:38:08',
+                player: 'High Looter Elite',
+                name: 'Maffoid Warlord',
+                type: 'hunt',
+                value: 808,
+                isHoF: true
+            }]
+        }
+
+        expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual(expected)
+    })
 })

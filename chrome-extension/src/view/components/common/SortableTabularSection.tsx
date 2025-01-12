@@ -106,7 +106,7 @@ const _ItemRowRender = (p: {
         const height = p.height && { height: p.height };
         const justify = typeof d === 'object' && 'style' in d && d.style.justifyContent &&
             { justifyContent: d.style.justifyContent }
-        return d && <div key={i} style={{ width: c.width - _getPadding(d), ...height, ...justify }}>
+        return <div key={i} style={{ width: c.width - _getPadding(d), ...height, ...justify }}>
             { p.rowValueRender({v: d}) }
         </div>
     })}

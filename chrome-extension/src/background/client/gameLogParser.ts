@@ -46,11 +46,12 @@ const eventRegex = {
     missionUpdated: /Mission updated \((.*)\)/,
     limitedMinimumCondition: /Your (.*?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
     killed: /You were killed by the \w+ (.+)/,
+    itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
+    itemEffectAdded: /Item Set Effect: (.+)/,
     youNoLongerAway: /You are no longer away from keyboard/,
     savedDivine: /You have been saved from certain death by divine intervention/,
     healingDiminished: /Healing is diminished while moving/,
-    itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
-    itemEffectAdded: /Item Set Effect: (.+)/,
+    itemRepaired: /Item\(s\) repaired successfully/,
 }
 const enhancerBrake = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
