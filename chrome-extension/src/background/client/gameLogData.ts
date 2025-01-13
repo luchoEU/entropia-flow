@@ -1,3 +1,5 @@
+import { keys } from "ts-transformer-keys"
+
 interface GameLogData {
     raw: Array<GameLogLine>
     loot: Array<GameLogLoot>
@@ -37,6 +39,22 @@ interface GameLogStats {
     youDodgedAttack?: number
     attackMissesYou?: number
 }
+
+const gameLogStatsKeys = [
+    'kills',
+    'selfHeal',
+    'damageInflicted',
+    'damageTaken',
+    'reducedCritical',
+    'reducedPiercingDamage',
+    'hitsInflicted',
+    'hitsTaken',
+    'targetEvadedAttack',
+    'targetDodgedAttack',
+    'youEvadedAttack',
+    'youDodgedAttack',
+    'attackMissesYou',
+];
 
 interface GameLogGlobal {
     time: string
@@ -120,6 +138,7 @@ export {
     GameLogSkill,
     GameLogEnhancerBroken,
     GameLogStats,
+    gameLogStatsKeys,
     GameLogLine,
     GameLogEvent,
     emptyGameLogData,

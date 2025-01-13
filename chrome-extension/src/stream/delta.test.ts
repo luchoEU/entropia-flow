@@ -10,6 +10,9 @@ describe('formula parser', () => {
     test('equal with objects', async () => {
         expect(getDelta({t: {x: 1}}, {t: {x: 1}})).toEqual(undefined)
     })
+    test('new property', async () => {
+        expect(getDelta({t: {}}, {t: {x: 1}})).toEqual({t: {x: 1}})
+    })
     test('delete', async () => {
         expect(applyDelta({t: 1}, getDelta({t: 2}, { }))).toEqual({ })
     })

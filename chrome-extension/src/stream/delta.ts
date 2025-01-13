@@ -1,9 +1,9 @@
 function getDelta<T extends object>(source: T, final: T): Partial<T> {
     if (source === undefined)
-        return final
+        return final;
 
     function f(src: object, end: object): object {
-        const res = { }
+        const res = { };
         Object.entries(src).forEach(([k, v]) => {
             if (end[k] === undefined) {
                 res[k] = null;
@@ -14,10 +14,13 @@ function getDelta<T extends object>(source: T, final: T): Partial<T> {
             } else if (end[k] !== v) {
                 res[k] = end[k];
             }
-        })
-        return Object.keys(res).length === 0 ? undefined : res
+        });
+        Object.entries(end)
+            .filter(([k,]) => !(k in src))
+            .forEach(([k, v]) =>res[k] = v);
+        return Object.keys(res).length === 0 ? undefined : res;
     }
-    return f(source, final) as Partial<T>
+    return f(source, final) as Partial<T>;
 }
 
 function applyDelta<T extends object>(source: T, delta: Partial<T>): T {

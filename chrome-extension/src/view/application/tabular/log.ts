@@ -1,6 +1,7 @@
-import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, GameLogTier } from "../../../background/client/gameLogData";
+import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
 import { TabularDefinitions } from "../state/tabular";
+import { StreamVariable } from "../state/stream";
 
 const _statsDecimals: GameLogStats = {
     selfHeal: 1,
@@ -68,7 +69,7 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     },
 }
 
-const gameLogVariables = (gameLog: GameLogData) => {
+const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
     gameLog.team = [{
         player: 'Lucho',
         name: 'Animal Adrenal Oil',
@@ -100,8 +101,8 @@ const gameLogVariables = (gameLog: GameLogData) => {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => ({ name: k, quantity: v }))
 
-    const variables = Object.entries(gameLog.stats)
-        .map(([k, v]) => ({ name: k, value: (v ?? 0).toFixed(_statsDecimals[k] ?? 0)}))
+    const variables: StreamVariable[] = gameLogStatsKeys
+        .map(k => ({ name: k.toString(), value: (gameLog.stats?.[k] ?? 0).toFixed(_statsDecimals[k] ?? 0)}));
     variables.push({ name: 'team', value: { players: teamPlayers, loot: teamLoot } })
     return variables
 }

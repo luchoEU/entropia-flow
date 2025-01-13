@@ -413,6 +413,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 }
 
 async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
+    if (!bpName) return; // TODO, why is it not defined?
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
         if (r.data) {
             const d = r.data.value
