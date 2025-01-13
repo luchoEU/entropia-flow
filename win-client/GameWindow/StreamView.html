@@ -1,4 +1,5 @@
-﻿<html>
+﻿<!DOCTYPE html>
+<html>
     <head>
         <style>
             body {
@@ -11,45 +12,71 @@
                 border-radius: 5px;
                 overflow: hidden;
             }
-            #entropia-flow-client-hover-area > img, #entropia-flow-client-hover-area > span {
-                display: none;
+            #entropia-flow-client-nav {
                 position: absolute;
-                padding: 1px;
+                top: 0px;
+                left: 0px;
+                width: 100%;
+                height: 100%;
                 z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                pointer-events: none;
+            }
+            #entropia-flow-client-nav > div {
+                display: flex;
+                margin: 4px;
+            }
+            #entropia-flow-client-nav > div:nth-child(1) {
+                gap: 3px;
+            }
+            #entropia-flow-client-nav > div:nth-child(2) {
+                justify-content: space-between;
+                align-items: end;
+            }
+            #entropia-flow-client-nav .entropia-flow-client-control {
                 background-color: rgba(255, 255, 255, 0.5);
                 border-radius: 5px;
+                padding: 1px;
+                pointer-events: auto;
             }
-            #entropia-flow-client-minimize {
-                width: 20px;
-                top: 4px;
-                left: 4px;
-            }
+            #entropia-flow-client-minimize,
             #entropia-flow-client-menu {
                 width: 20px;
-                top: 4px;
-                left: 28px;
+                height: 20px;
             }
             #entropia-flow-client-resize {
                 width: 10px;
-                bottom: 4px;
-                right: 4px;
+                height: 10px;
             }
             #entropia-flow-client-layout {
-                bottom: 4px;
-                left: 4px;
                 font-size: 10px;
+                white-space: nowrap;
+                overflow: hidden;
                 text-overflow: ellipsis;
-                max-width: 90%;
             }
-            #entropia-flow-client-hover-area:hover > * {
-                display: block;
-            }
-            #entropia-flow-client-hover-area.entropia-flow-client-minimized:hover > img,
-            #entropia-flow-client-hover-area.entropia-flow-client-minimized:hover > span {
+            #entropia-flow-client-nav .entropia-flow-client-control {
                 display: none;
             }
-            #entropia-flow-client-hover-area.entropia-flow-client-minimized > #entropia-flow-client-minimize {
+            #entropia-flow-client-hover-area:hover > #entropia-flow-client-nav .entropia-flow-client-control {
+                display: block;
+            }
+            #entropia-flow-client-hover-area.entropia-flow-client-minimized:hover #entropia-flow-client-nav .entropia-flow-client-control {
+                display: none;
+            }
+            #entropia-flow-client-hover-area.entropia-flow-client-minimized #entropia-flow-client-minimize {
                 display: block !important;
+            }
+            .entropia-flow-client-error {
+                display: flex !important;
+                background-color: white;
+                color: red;
+                width: 100%;
+                height: 100%;
+            }
+            .entropia-flow-client-error > p {
+                margin: auto;
             }
         </style>
         <script src="Mouse.js"></script>
@@ -59,10 +86,16 @@
     <body>
         <div id="entropia-flow-client-hover-area">
             <div id="stream"></div>
-            <img id="entropia-flow-client-minimize" src="flow128.png">
-            <img id="entropia-flow-client-menu" src="right.png">
-            <img id="entropia-flow-client-resize" src="resize.png">
-            <span id="entropia-flow-client-layout"></span>
+            <div id="entropia-flow-client-nav">
+                <div>
+                    <img id="entropia-flow-client-minimize" class="entropia-flow-client-control" src="flow128.png">
+                    <img id="entropia-flow-client-menu" class="entropia-flow-client-control" src="right.png">
+                </div>
+                <div>
+                    <span id="entropia-flow-client-layout" class="entropia-flow-client-control"></span>
+                    <img id="entropia-flow-client-resize" class="entropia-flow-client-control" src="resize.png">
+                </div>
+            </div>
         </div>
     </body>
 </html>
