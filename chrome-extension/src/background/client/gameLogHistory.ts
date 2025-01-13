@@ -3,7 +3,7 @@
 
 import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
-const MAX_LOG_LINES = 200
+const MAX_LOG_LINES = 500
 
 interface IGameLogHistory {
     onLine(line: GameLogLine): Promise<void>
@@ -14,6 +14,7 @@ interface IGameLogHistory {
 
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
+    private lastLootTime: string
     public onChange: (gameLog: GameLogData) => Promise<void>
 
     public getGameLog(): GameLogData { return this.gameLog }
@@ -28,13 +29,11 @@ class GameLogHistory implements IGameLogHistory {
     }
 
     public async onLine(line: GameLogLine): Promise<void> {
-        const lastTime: string = this.gameLog.raw.length > 0 ? this.gameLog.raw[0].time : ''
-
         this.gameLog.raw.unshift(line)
         if (this.gameLog.raw.length > MAX_LOG_LINES)
             this.gameLog.raw.splice(MAX_LOG_LINES)
 
-        if (line.data.loot && line.data.loot.name !== 'Universal Ammo') {
+        if (line.data.loot) {
             const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name)
             if (existing) {
                 existing.value += line.data.loot.value
@@ -42,11 +41,12 @@ class GameLogHistory implements IGameLogHistory {
             } else {
                 this.gameLog.loot.unshift(line.data.loot)
             }
-            if (lastTime !== line.time) {
+            if (this.lastLootTime !== line.time) {
                 if (!this.gameLog.stats.kills)
                     this.gameLog.stats.kills = 0
                 this.gameLog.stats.kills++
             }
+            this.lastLootTime = line.time
         }
 
         if (line.data.team) {
@@ -66,8 +66,8 @@ class GameLogHistory implements IGameLogHistory {
             this.gameLog.event.unshift(line.data.event)
         }
 
-        if (line.data.enhancerBrake) {
-            this.gameLog.enhancerBrake.unshift(line.data.enhancerBrake)
+        if (line.data.enhancerBroken) {
+            this.gameLog.enhancerBroken.unshift(line.data.enhancerBroken)
         }
 
         if (line.data.tier) {

@@ -6,7 +6,7 @@ interface GameLogData {
     skill: Array<GameLogSkill>
     global: Array<GameLogGlobal>
     event: Array<GameLogEvent>
-    enhancerBrake: Array<GameLogEnhancerBrake>
+    enhancerBroken: Array<GameLogEnhancerBroken>
     stats: GameLogStats
 }
 
@@ -18,7 +18,7 @@ const emptyGameLogData = (): GameLogData => ({
     skill: [],
     global: [],
     event: [],
-    enhancerBrake: [],
+    enhancerBroken: [],
     stats: {}
 })
 
@@ -27,6 +27,8 @@ interface GameLogStats {
     selfHeal?: number
     damageInflicted?: number
     damageTaken?: number
+    reducedCritical?: number
+    reducedPiercingDamage?: number
     hitsInflicted?: number
     hitsTaken?: number
     targetEvadedAttack?: number
@@ -60,7 +62,7 @@ interface GameLogLine {
         stats?: GameLogStats
         positions?: GameLogPosition[]
         event?: GameLogEvent
-        enhancerBrake?: GameLogEnhancerBrake
+        enhancerBroken?: GameLogEnhancerBroken
         items?: string[]
     }
 }
@@ -88,7 +90,7 @@ interface GameLogSkill {
     value: number
 }
 
-interface GameLogEnhancerBrake {
+interface GameLogEnhancerBroken {
     time: string
     enhancer: string
     item: string
@@ -116,7 +118,7 @@ export {
     GameLogTier,
     GameLogGlobal,
     GameLogSkill,
-    GameLogEnhancerBrake,
+    GameLogEnhancerBroken,
     GameLogStats,
     GameLogLine,
     GameLogEvent,

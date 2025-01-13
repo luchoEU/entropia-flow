@@ -7,7 +7,7 @@ import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/log"
 import { setTabularDefinitions } from "../helpers/tabular"
 import { getGameLog } from "../selectors/log"
-import { GAME_LOG_TABULAR_ENHANCER_BRAKE, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
+import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
 import { gameLogTabularDefinitions, gameLogVariables } from "../tabular/log"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -29,7 +29,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             dispatch(setTabularData(GAME_LOG_TABULAR_LOOT, gameLog.loot))
             dispatch(setTabularData(GAME_LOG_TABULAR_TIER, gameLog.tier))
             dispatch(setTabularData(GAME_LOG_TABULAR_SKILL, gameLog.skill))
-            dispatch(setTabularData(GAME_LOG_TABULAR_ENHANCER_BRAKE, gameLog.enhancerBrake))
+            dispatch(setTabularData(GAME_LOG_TABULAR_ENHANCER_BROKEN, gameLog.enhancerBroken))
             dispatch(setTabularData(GAME_LOG_TABULAR_GLOBAL, gameLog.global))
             dispatch(setTabularData(GAME_LOG_TABULAR_EVENT, gameLog.event))
             dispatch(setTabularData(GAME_LOG_TABULAR_STATISTICS, Object.entries(gameLog.stats)))

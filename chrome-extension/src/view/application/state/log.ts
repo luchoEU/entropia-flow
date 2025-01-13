@@ -1,7 +1,7 @@
 const GAME_LOG_TABULAR_LOOT = '[log] loot'
 const GAME_LOG_TABULAR_TIER = '[log] tier'
 const GAME_LOG_TABULAR_SKILL = '[log] skill'
-const GAME_LOG_TABULAR_ENHANCER_BRAKE = '[log] enhancer brake'
+const GAME_LOG_TABULAR_ENHANCER_BROKEN = '[log] enhancer broken'
 const GAME_LOG_TABULAR_GLOBAL = '[log] global'
 const GAME_LOG_TABULAR_EVENT = '[log] event'
 const GAME_LOG_TABULAR_STATISTICS = '[log] statistics'
@@ -15,7 +15,7 @@ export {
     GAME_LOG_TABULAR_LOOT,
     GAME_LOG_TABULAR_TIER,
     GAME_LOG_TABULAR_SKILL,
-    GAME_LOG_TABULAR_ENHANCER_BRAKE,
+    GAME_LOG_TABULAR_ENHANCER_BROKEN,
     GAME_LOG_TABULAR_GLOBAL,
     GAME_LOG_TABULAR_EVENT,
     GAME_LOG_TABULAR_STATISTICS,

@@ -27,6 +27,9 @@ export function render(single: StreamRenderSingle, scale?: number, minSize?: Str
         let streamElement: HTMLElement = document.getElementById(STREAM_ID);
         const vNode: VNode = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
         const canvasElement = streamElement.querySelector('canvas'); // Preserve it to avoid flickering in background
+        if (canvasElement) {
+            streamElement.removeChild(canvasElement);
+        }
         patch(streamElement, vNode)
         if (canvasElement && !streamElement.contains(canvasElement)) {
             streamElement.appendChild(canvasElement);
@@ -38,7 +41,7 @@ export function render(single: StreamRenderSingle, scale?: number, minSize?: Str
 
         // calculate and set size
         let size: StreamRenderSize = null;
-        const contentElement: HTMLElement  = streamElement.querySelector('.stream-content');
+        const contentElement: HTMLElement  = streamElement.querySelector('.layout-root');
         if (contentElement) {
             const calc = (v: number, min?: number): number => Math.max(min ?? 0, scale ? v * scale : v);
             size = {

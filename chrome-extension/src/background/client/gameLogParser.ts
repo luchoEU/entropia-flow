@@ -4,14 +4,19 @@
 import { GameLogLine } from "./gameLogData"
 
 const lineRegex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(.*?)\] \[(.*?)\] (.*)/
-const youRegex = /You received (.*) x \((.*)\) Value: (.*) PED/
-const itemRegex = /(.*) received a (.*)/
-const sharedRegex = /(.*) received (.*) \((.*)\)/
+const youLootRegex = /You received (.*) x \((.*)\) Value: (.*) PED/
+const itemLootRegex = /(.*) received a (.*)/
+const sharedLootRegex = /(.*) received (.*) \((.*)\)/
+const excludeLoot = [
+    'Universal Ammo',
+    'Mineral Resource Deed',
+]
 const statsPointsRegex = {
     selfHeal: /You healed yourself (.*) points/,
     damageInflicted: /You inflicted (.*) points of damage/,
     damageTaken: /You took (.*) points of damage/,
-    reducedCritical: /Reduced (.*) points of critical damage/
+    reducedCritical: /Reduced (.*) points of critical damage/,
+    reducedPiercingDamage: /Reduced (.*) points of armor piercing damage/,
 }
 const statsCountRegex = {
     targetEvadedAttack: /The target Evaded your attack/,
@@ -48,12 +53,18 @@ const eventRegex = {
     killed: /You were killed by the \w+ (.+)/,
     itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
     itemEffectAdded: /Item Set Effect: (.+)/,
+    missionReceived: /New Mission received \((.*)\)/,
+    claimedResource: /You have claimed a resource! \((.*)\)/,
+    minimumCondition: /Your (.*) is close to reaching minimum condition, consider repairing it as soon as possible/,
     youNoLongerAway: /You are no longer away from keyboard/,
-    savedDivine: /You have been saved from certain death by divine intervention/,
+    savedByDivine: /You have been saved from certain death by divine intervention/,
     healingDiminished: /Healing is diminished while moving/,
     itemRepaired: /Item\(s\) repaired successfully/,
+    petReturned: /Your pet has been returned to your inventory/,
+    resourceDepleted: /This resource is depleted/,
+    blueprintImproved: /Your blueprint Quality Rating has improved/,
 }
-const enhancerBrake = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
+const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
 class GameLogParser {
     public onLine: (s: GameLogLine) => void
@@ -73,12 +84,12 @@ class GameLogParser {
 
         switch (line.channel) {
             case "System":
-                const youMatch = youRegex.exec(line.message);
-                if (youMatch !== null) {
+                const youLootMatch = youLootRegex.exec(line.message);
+                if (youLootMatch !== null && !excludeLoot.includes(youLootMatch[1])) {
                     line.data.loot = {
-                        name: youMatch[1],
-                        quantity: parseInt(youMatch[2]),
-                        value: parseFloat(youMatch[3])
+                        name: youLootMatch[1],
+                        quantity: parseInt(youLootMatch[2]),
+                        value: parseFloat(youLootMatch[3])
                     }
                 }
                 const tierMatch = tierRegex.exec(line.message);
@@ -128,14 +139,14 @@ class GameLogParser {
                         value: parseFloat(attributeMatch[2])
                     }
                 }
-                const enhancerBrakeMatch = enhancerBrake.exec(line.message);
-                if (enhancerBrakeMatch !== null) {
-                    line.data.enhancerBrake = {
+                const enhancerBrokenMatch = enhancerBroken.exec(line.message);
+                if (enhancerBrokenMatch !== null) {
+                    line.data.enhancerBroken = {
                         time: line.time,
-                        enhancer: enhancerBrakeMatch[1],
-                        item: enhancerBrakeMatch[2],
-                        remaining: parseInt(enhancerBrakeMatch[3]),
-                        received: parseFloat(enhancerBrakeMatch[4])
+                        enhancer: enhancerBrokenMatch[1],
+                        item: enhancerBrokenMatch[2],
+                        remaining: parseInt(enhancerBrokenMatch[3]),
+                        received: parseFloat(enhancerBrokenMatch[4])
                     }
                 }
                 break
@@ -161,20 +172,20 @@ class GameLogParser {
                 })
                 break;
             case "Team":
-                const itemMatch = itemRegex.exec(line.message);
-                if (itemMatch !== null) {
+                const itemLootMatch = itemLootRegex.exec(line.message);
+                if (itemLootMatch !== null) {
                     line.data.team = {
-                        player: itemMatch[1],
-                        name: itemMatch[2],
+                        player: itemLootMatch[1],
+                        name: itemLootMatch[2],
                         quantity: 1
                     }
                 } else {
-                    const sharedMatch = sharedRegex.exec(line.message);
-                    if (sharedMatch !== null) {
+                    const sharedLootMatch = sharedLootRegex.exec(line.message);
+                    if (sharedLootMatch !== null) {
                         line.data.team = {
-                            player: sharedMatch[1],
-                            name: sharedMatch[2],
-                            quantity: parseInt(sharedMatch[3])
+                            player: sharedLootMatch[1],
+                            name: sharedLootMatch[2],
+                            quantity: parseInt(sharedLootMatch[3])
                         };
                     }
                 }

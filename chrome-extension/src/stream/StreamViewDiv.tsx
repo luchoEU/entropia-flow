@@ -26,8 +26,8 @@ const StreamViewDiv = (p: {
         containerStyle.transformOrigin = 'top left'
     }
 
-    return <div id={p.id} className='stream-root' style={containerStyle}>
-        <div className={`stream-content`} style={contentStyle} {...html && { dangerouslySetInnerHTML: { __html: html } }}/>
+    return <div id={p.id} style={containerStyle}>
+        <div className={'layout-root'} style={contentStyle} {...html && { dangerouslySetInnerHTML: { __html: html } }}/>
         { css && <style dangerouslySetInnerHTML={{ __html: css }} /> }
     </div>
 };

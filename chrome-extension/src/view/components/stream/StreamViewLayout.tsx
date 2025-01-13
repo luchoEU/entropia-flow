@@ -21,7 +21,7 @@ function StreamViewLayout(p: {
         }
     }, []);
 
-    const contentRect = shadowRootRef.current?.shadowRoot.querySelector('.stream-content')?.getBoundingClientRect();
+    const contentRect = shadowRootRef.current?.shadowRoot.querySelector('.layout-root')?.getBoundingClientRect();
     let size: StreamRenderSize = contentRect && { width: contentRect.width, height: contentRect.height };
     if (size) {
         _cacheSize[layoutId] = scale ? { width: size.width / scale, height: size.height / scale } : size;

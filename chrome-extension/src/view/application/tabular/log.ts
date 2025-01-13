@@ -1,5 +1,5 @@
-import { GameLogData, GameLogEnhancerBrake, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, GameLogTier } from "../../../background/client/gameLogData";
-import { GAME_LOG_TABULAR_ENHANCER_BRAKE, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
+import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, GameLogTier } from "../../../background/client/gameLogData";
+import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
 import { TabularDefinitions } from "../state/tabular";
 
 const _statsDecimals: GameLogStats = {
@@ -33,11 +33,11 @@ const gameLogTabularDefinitions: TabularDefinitions = {
         getRow: (d: GameLogSkill) => [d.name, d.value.toFixed(4)],
         getRowForSort: (d: GameLogSkill) => [, d.value],
     },
-    [GAME_LOG_TABULAR_ENHANCER_BRAKE]: {
+    [GAME_LOG_TABULAR_ENHANCER_BROKEN]: {
         title: 'Enhancer Broken',
         columns: ['Name', 'Quantity'],
-        getRow: (d: GameLogEnhancerBrake) => [d.time, d.enhancer, d.item, d.remaining.toString(), d.received.toFixed(2)],
-        getRowForSort: (d: GameLogEnhancerBrake) => [,,, d.remaining, d.received],
+        getRow: (d: GameLogEnhancerBroken) => [d.time, d.enhancer, d.item, d.remaining.toString(), d.received.toFixed(2)],
+        getRowForSort: (d: GameLogEnhancerBroken) => [,,, d.remaining, d.received],
     },
     [GAME_LOG_TABULAR_GLOBAL]: {
         title: 'Global',
