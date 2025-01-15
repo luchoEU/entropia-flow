@@ -64,8 +64,8 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     },
     [GAME_LOG_TABULAR_RAW]: {
         title: 'Full log',
-        columns: ['Time', 'Channel', 'Player', 'Message', 'Data'],
-        getRow: (g: GameLogLine) => [g.time, g.channel, g.player, g.message, JSON.stringify(g.data)]
+        columns: ['Serial', 'Time', 'Channel', 'Player', 'Message', 'Data'],
+        getRow: (g: GameLogLine) => [g.serial.toString(), g.time, g.channel, g.player, g.message, JSON.stringify(g.data)]
     },
 }
 

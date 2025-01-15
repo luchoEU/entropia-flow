@@ -67,6 +67,7 @@ interface GameLogGlobal {
 }
 
 interface GameLogLine {
+    serial: number
     time: string
     channel: string
     player: string

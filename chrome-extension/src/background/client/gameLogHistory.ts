@@ -14,7 +14,7 @@ interface IGameLogHistory {
 
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
-    private lastLootTime: string
+    private lastLootDateTime: Date
     public onChange: (gameLog: GameLogData) => Promise<void>
 
     public getGameLog(): GameLogData { return this.gameLog }
@@ -41,12 +41,14 @@ class GameLogHistory implements IGameLogHistory {
             } else {
                 this.gameLog.loot.unshift(line.data.loot)
             }
-            if (this.lastLootTime !== line.time) {
+
+            const lineDateTime = new Date(line.time);
+            if (!this.lastLootDateTime || lineDateTime.getTime() - this.lastLootDateTime.getTime() > 1000) {
                 if (!this.gameLog.stats.kills)
                     this.gameLog.stats.kills = 0
                 this.gameLog.stats.kills++
             }
-            this.lastLootTime = line.time
+            this.lastLootDateTime = lineDateTime
         }
 
         if (line.data.team) {

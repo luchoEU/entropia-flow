@@ -56,6 +56,8 @@ const eventRegex = {
     missionReceived: /New Mission received \((.*)\)/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
     minimumCondition: /Your (.*) is close to reaching minimum condition, consider repairing it as soon as possible/,
+    transactionCompleted: /The transaction was completed successfully/,
+    youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
     savedByDivine: /You have been saved from certain death by divine intervention/,
     healingDiminished: /Healing is diminished while moving/,
@@ -67,6 +69,7 @@ const eventRegex = {
 const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
 class GameLogParser {
+    private _serial: number = 1
     public onLine: (s: GameLogLine) => void
 
     public async onMessage(msg: string): Promise<void> {
@@ -75,6 +78,7 @@ class GameLogParser {
             return
 
         const line: GameLogLine = {
+            serial: this._serial++,
             time: match[1],
             channel: match[2],
             player: match[3],

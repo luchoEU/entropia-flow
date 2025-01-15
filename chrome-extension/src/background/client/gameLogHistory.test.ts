@@ -114,4 +114,38 @@ describe('formula parser', () => {
                 value: 0
             }]
         })
+    logTest('kills seconds',
+`2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
+2025-01-15 09:41:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
+        {
+            stats: {
+                kills: 1,
+            },
+            loot: [{
+                name: 'Shrapnel',
+                quantity: 38231,
+                value: 3.82
+            }, {
+                name: 'Christmas Strongbox',
+                quantity: 1,
+                value: 0
+            }]
+        })
+    logTest('kills separate',
+`2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
+2025-01-15 09:42:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
+        {
+            stats: {
+                kills: 2,
+            },
+            loot: [{
+                name: 'Shrapnel',
+                quantity: 38231,
+                value: 3.82
+            }, {
+                name: 'Christmas Strongbox',
+                quantity: 1,
+                value: 0
+            }]
+        })
 })

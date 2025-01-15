@@ -338,7 +338,7 @@ describe('full', () => {
             await doWiring()
             await viewPortManager.onConnect(viewPort)
 
-            const objData = { time: '2024-12-23 17:08:58', channel: 'System', player: '', message: 'test', data: {} }
+            const objData = { serial: 1, time: '2024-12-23 17:08:58', channel: 'System', player: '', message: 'test', data: {} }
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
