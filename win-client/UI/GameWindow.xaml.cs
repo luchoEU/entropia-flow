@@ -17,17 +17,20 @@ namespace EntropiaFlowClient
     public partial class GameWindow : Window
     {
         private string _layoutId;
+        private string? _initialData;
         private double _scale = 1;
         private bool _minimized = false;
         private bool _waiting = false;
         internal bool ClicksDisabled = false;
 
         public GameWindow(): this("entropiaflow.default") { }
-        public GameWindow(string layoutId)
+        public GameWindow(string layoutId, double scale = 1, string? intialData = null)
         {
             InitializeComponent();
             Topmost = true;
             _layoutId = layoutId;
+            _scale = scale;
+            _initialData = intialData;
 
             webView2.CoreWebView2InitializationCompleted += WebBrowser_CoreWebView2InitializationCompleted;
             webView2.EnsureCoreWebView2Async();
@@ -36,7 +39,9 @@ namespace EntropiaFlowClient
             App.Current.WaitingForConnnection += GameWindow_WaitingForConnnection;
         }
 
-        private static string? WAITING_LAYOUT_ID;
+        internal static string? WAITING_LAYOUT_ID;
+        internal static string? MENU_LAYOUT_ID;
+
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
             // use dispatch to avoid System.InvalidOperationException: The calling thread cannot access this object because a different thread owns it.
@@ -85,8 +90,6 @@ namespace EntropiaFlowClient
             _minimized = false;
             _waiting = true;
 
-            WAITING_LAYOUT_ID ??= await ExecuteScriptAsync<string>("WAITING_LAYOUT_ID");
-
             var data = JsonSerializer.Serialize(new { uri = App.Current.ListeningUri, img = Images });
             await ExecuteScriptAsync($"receive({{ data: {data} }})");
             await Render();
@@ -97,19 +100,43 @@ namespace EntropiaFlowClient
             get { return _scale; }
             set
             {
-                var newScale = value;
-                var screen = Screen.FromPoint(new Point((int)Left, (int)Top));
-                if (screen != null)
-                {
-                    // make it fit in the screen
-                    Rectangle r = screen.WorkingArea;
-                    newScale = Math.Min(newScale, (r.Width - Left) / (Width / _scale));
-                    newScale = Math.Min(newScale, (r.Height - Top) / (Height / _scale));
-                }
-
-                _scale = newScale;
+                _scale = FitScreen(value);
                 Render();
             }
+        }
+
+        private double FitScreen(double scale)
+        {
+            var newScale = scale;
+            var screen = Screen.FromPoint(new Point((int)Left, (int)Top));
+            if (screen != null)
+            {
+                // make it fit in the screen
+                Rectangle r = screen.WorkingArea;
+                newScale = Math.Min(newScale, (r.Width - Left) / (Width / _scale));
+                newScale = Math.Min(newScale, (r.Height - Top) / (Height / _scale));
+            }
+            return newScale;
+        }
+
+        internal async Task OnDocumentLoaded()
+        {
+            WAITING_LAYOUT_ID ??= await ExecuteScriptAsync<string>("WAITING_LAYOUT_ID");
+            MENU_LAYOUT_ID ??= await ExecuteScriptAsync<string>("MENU_LAYOUT_ID");
+
+            if (_initialData != null)
+            {
+                await ExecuteScriptAsync($"receive({_initialData})");
+                await Render();
+            }
+            else
+            {
+                await RenderWaiting();
+            }
+            loadingTextBlock.Visibility = Visibility.Collapsed;
+
+            // 01 alpha so it is transparent but receives mouse events
+            mainGrid.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#01FFFFFF"));
         }
 
         internal async Task SwitchMinimized()
@@ -118,13 +145,28 @@ namespace EntropiaFlowClient
             await Render(true);
         }
 
+        internal async Task OpenMenu()
+        {
+            string? lastData = await ExecuteScriptAsync<string>("JSON.stringify(_lastData)");
+            new GameWindow(MENU_LAYOUT_ID!, _scale, lastData).Show();
+        }
+
         internal async Task NextLayout()
         {
             if (_waiting)
                 return;
             _layoutId = await ExecuteScriptAsync<string>($"nextLayout('{_layoutId}')") ?? _layoutId;
             await Render();
-            Scale = Scale;
+
+            var newScale = FitScreen(Scale);
+            if (newScale != Scale)
+                Scale = newScale;
+        }
+
+        internal async Task SetLayout(string layoutId)
+        {
+            _layoutId = layoutId;
+            await Render();
         }
 
         private async Task<T?> ExecuteScriptAsync<T>(string script)
@@ -179,7 +221,7 @@ namespace EntropiaFlowClient
                 webView2.CoreWebView2.AddHostObjectToScript("layout", new LayoutScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("clipboard", new ClipboardScriptInterface(this));
 
-                var images = new string[] { "flow128.png", "resize.png", "right.png" };
+                var images = new string[] { "flow128.png", "resize.png", "up.png", "right.png", "cross.png" };
 #if DEBUG
                 // Save to files to be able to debug in browser
                 string htmlPath = SaveResourceToFile("StreamView.html", false);
@@ -336,11 +378,7 @@ namespace EntropiaFlowClient
         {
             public void OnLoaded()
             {
-                w.RenderWaiting();
-                w.loadingTextBlock.Visibility = Visibility.Collapsed;
-
-                // 01 alpha so it is transparent but receives mouse events
-                w.mainGrid.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#01FFFFFF"));
+                w.OnDocumentLoaded();
             }
         }
 
@@ -355,8 +393,22 @@ namespace EntropiaFlowClient
 
             public void MenuClicked()
             {
+                w.OpenMenu();
+            }
+
+            public void NextClicked()
+            {
                 w.NextLayout();
-                //new GameWindow("entropiaflow.menu").Show();
+            }
+
+            public void SelectLayout(string layoutId)
+            {
+                w.SetLayout(layoutId);
+            }
+
+            public void CloseClicked()
+            {
+                w.Close();
             }
         }
 

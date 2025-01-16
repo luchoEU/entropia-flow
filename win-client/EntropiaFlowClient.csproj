@@ -28,7 +28,9 @@
   <ItemGroup>
     <EmbeddedResource Include="..\chrome-extension\dist\img\copy.png" Link="Resources\copy.png" />
     <EmbeddedResource Include="..\chrome-extension\dist\img\resize.png" Link="Resources\resize.png" />
-    <EmbeddedResource Include="..\chrome-extension\dist\img\right.png" Link="Resources\right.png" />
+    <EmbeddedResource Include="..\chrome-extension\dist\img\up.png" Link="Resources\up.png" />
+	<EmbeddedResource Include="..\chrome-extension\dist\img\right.png" Link="Resources\right.png" />
+	<EmbeddedResource Include="..\chrome-extension\dist\img\cross.png" Link="Resources\cross.png" />
     <EmbeddedResource Include="..\chrome-extension\dist\img\flow128.png" Link="Resources\flow128.png" />
     <EmbeddedResource Include="Resources\flow128w.ico" />
   </ItemGroup>
