@@ -1,5 +1,5 @@
 import { SortColumnDefinition } from "../helpers/sort"
-import { TabularState } from "../state/tabular"
+import { TabularRawData, TabularState } from "../state/tabular"
 
 const SET_TABULAR_STATE = '[tabular] set state'
 const SET_TABULAR_EXPANDED = '[tabular] set expanded'
@@ -30,10 +30,9 @@ const setTabularFilter = (selector: string) => (filter: string) => ({
     }
 })
 
-const setTabularData = (selector: string, data: any[]) => ({
+const setTabularData = (data: TabularRawData) => ({
     type: SET_TABULAR_DATA,
     payload: {
-        selector,
         data
     }
 })

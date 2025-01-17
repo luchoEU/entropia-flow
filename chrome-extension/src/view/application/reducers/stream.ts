@@ -14,8 +14,8 @@ export default (state = initialState, action) => {
         case SET_STREAM_STARED: return reduceSetStreamStared(state, action.payload.layoutId, action.payload.stared)
         case SET_STREAM_NAME: return reduceSetStreamName(state, action.payload.name)
         case ADD_STREAM_LAYOUT: return reduceAddStreamLayout(state)
+        case ADD_STREAM_USER_VARIABLE: return reduceAddStreamUserVariable(state, action.payload.isImage)
         case REMOVE_STREAM_LAYOUT: return reduceRemoveStreamLayout(state, action.payload.layoutId)
-        case ADD_STREAM_USER_VARIABLE: return reduceAddStreamUserVariable(state)
         case REMOVE_STREAM_USER_VARIABLE: return reduceRemoveStreamUserVariable(state, action.payload.id)
         case SET_STREAM_USER_VARIABLE_PARTIAL: return reduceSetStreamUserVariablePartial(state, action.payload.id, action.payload.partial)
         default: return state

@@ -3,7 +3,6 @@ import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamRenderData from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
-import { computeFormulas } from "../../../stream/template"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
@@ -15,10 +14,10 @@ import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
-import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
+import { StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
-import { streamTabularDefinitions, streamTabularGetChooser } from "../tabular/stream"
+import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     const { variables: beforeVariables }: StreamState = getStream(getState())
@@ -39,8 +38,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_EDITING:
         case SET_STREAM_STARED:
         case ADD_STREAM_LAYOUT:
-        case REMOVE_STREAM_LAYOUT:
         case ADD_STREAM_USER_VARIABLE:
+        case REMOVE_STREAM_LAYOUT:
         case REMOVE_STREAM_USER_VARIABLE:
         case SET_STREAM_USER_VARIABLE_PARTIAL: {
             const state: StreamStateIn = getStreamIn(getState())
@@ -52,18 +51,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             if (isEqual(beforeVariables, variables))
                 break
 
-            const d: StreamVariable[] =
-                Object.entries(variables).map(([source, data]) => data.map(v => ({ source, ...v }))).flat()
-            const noImages = d.filter(v => !v.isImage)
-            const images = d.filter(v => v.isImage)
-
-            const obj = Object.fromEntries(noImages.map(v => [v.name, v.value]))
-            obj.img = Object.fromEntries(images.map(v => [v.name, `img.${v.name}`]))
-            const computedObj = computeFormulas(obj)
-            const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }))
-
-            dispatch(setTabularData(STREAM_TABULAR_VARIABLES, tVariables))
-            dispatch(setTabularData(STREAM_TABULAR_IMAGES, images))
+            dispatch(setTabularData(streamTabularDataFromVariables(variables)))
             break
         }
     }
@@ -132,7 +120,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REMOVE_STREAM_LAYOUT:
         {
             const { layouts }: StreamStateIn = getStreamIn(getState())
-            dispatch(setTabularData(STREAM_TABULAR_CHOOSER, streamTabularGetChooser(layouts)));
+            dispatch(setTabularData(streamTabularDataFromLayouts(layouts)));
             break;
         }
     }

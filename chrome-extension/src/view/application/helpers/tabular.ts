@@ -1,5 +1,5 @@
 import { multiIncludes } from "../../../common/string";
-import { TabularDefinition, TabularDefinitions, TabularState, TabularStateData } from "../state/tabular";
+import { TabularDefinition, TabularDefinitions, TabularRawData, TabularState, TabularStateData } from "../state/tabular";
 import { byTypeComparer, cloneAndSort, nextSortSecuence, SortColumnDefinition } from "./sort";
 
 const initialState: TabularState = { }
@@ -37,15 +37,16 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
     }
 }
 
-const reduceSetTabularData = (state: TabularState, selector: string, data: any[]): TabularState => ({
+const reduceSetTabularData = (state: TabularState, data: TabularRawData): TabularState => ({
     ...state,
-    [selector]: data && _applyFilterAndSort(selector, {
-        ...state[selector],
-        items: {
-            ...state[selector]?.items,
-            all: data
-        }
-    })
+    ...Object.fromEntries(Object.entries(data).map(([selector, all]) => [selector,
+        all && _applyFilterAndSort(selector, {
+            ...state[selector],
+            items: {
+                ...state[selector]?.items,
+                all
+            }
+        })]))
 })
 
 const reduceSortTabularBy = (state: TabularState, selector: string, column: number): TabularState => {

@@ -131,11 +131,12 @@ function StreamEditor() {
             </ExpandableSection>
             <SortableTabularSection
                 selector={STREAM_TABULAR_VARIABLES}
-                afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable } ]}
+                afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
             />
             <SortableTabularSection
                 selector={STREAM_TABULAR_IMAGES}
                 itemHeight={50}
+                afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
             />
             <ExpandableSection selector='StreamEditor-preview' title='Preview'>
                 <StreamViewLayout id={'stream-preview'} layoutId={editing.layoutId} single={{ data: data.data, layout: c}} />

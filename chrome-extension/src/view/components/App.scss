@@ -663,9 +663,12 @@ button:active {
     overflow: hidden;
 }
 
-.item-row span {
+.item-row > div > span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.item-row > div > * {
     align-self: center;
 }

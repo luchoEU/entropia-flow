@@ -24,6 +24,7 @@ type RowValue =
         { text: string } |
         { strong: string } |
         { input: string, dispatchChange: (value: string) => any } |
+        { file: string, dispatchChange: (value: string) => any } |
         RowValueLayout |
         { sub: RowValue[] } )
 

@@ -142,8 +142,7 @@ const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boo
 const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
     const layouts = { ...state.in.layouts }
     delete layouts[state.in.editing.layoutId]
-    const baseId = name.startsWith('entropiaflow.') ? `user.${name}` : name;
-    const layoutId = getUniqueLayoutId(layouts, `${baseId}_`, true);
+    const layoutId = _getUniqueLayoutId(layouts, name);
     layouts[layoutId] = { ...state.in.layouts[state.in.editing.layoutId], name };
     return {
         ...state,
@@ -165,17 +164,26 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
     }
 })
 
-const getUniqueLayoutId = (layouts: StreamRenderLayoutSet, baseId: string, tryNoNumber: boolean = false): string => {
+const _getUnique = (used: string[], base: string, noNumberName: string = undefined): string => {
     let n = 1;
-    let layoutId = tryNoNumber ? baseId : undefined
-    while (!layoutId || layouts[layoutId]) {
-        layoutId = `${baseId}${n++}`;
+    let name = noNumberName;
+    while (!name || used.includes(name)) {
+        name = `${base}${n++}`;
     }
-    return layoutId
+    return name;
 }
 
+const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, name: string): string => {
+    const baseId = (name.startsWith('entropiaflow.') ? `user.${name}` : name).replace(' ', '_');
+    return _getUnique(Object.keys(layouts), `${baseId}_`, baseId);
+}
+
+const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet): string =>
+    _getUnique(Object.values(layouts).map(l => l.name), `Layout `);
+
 const reduceAddStreamLayout = (state: StreamState): StreamState => {
-    const layoutId = getUniqueLayoutId(state.in.layouts, 'Layout ');
+    const name = _getUniqueLayoutName(state.in.layouts);
+    const layoutId = _getUniqueLayoutId(state.in.layouts, name);
     return {
         ...state,
         in: {
@@ -186,7 +194,7 @@ const reduceAddStreamLayout = (state: StreamState): StreamState => {
             layouts: {
                 ...state.in.layouts,
                 [layoutId]: {
-                    name: layoutId,
+                    name,
                     backgroundType: _defaultLayout.backgroundType,
                     htmlTemplate: _defaultLayout.htmlTemplate,
                 }
@@ -209,15 +217,16 @@ const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamS
     }
 }
 
-const reduceAddStreamUserVariable = (state: StreamState): StreamState => ({
+const reduceAddStreamUserVariable = (state: StreamState, isImage: boolean): StreamState => ({
     ...state,
     in: {
         ...state.in,
         userVariables: [ ...state.in.userVariables, {
-            id: Math.max(...state.in.userVariables.map(v => v.id)) + 1,
+            id: state.in.userVariables?.length ? Math.max(...state.in.userVariables.map(v => v.id)) + 1 : 1,
             name: '',
             value: '',
             description: '',
+            isImage
         } ]
     }
 })
@@ -252,8 +261,8 @@ export {
     reduceSetStreamData,
     reduceSetStreamName,
     reduceAddStreamLayout,
-    reduceRemoveStreamLayout,
     reduceAddStreamUserVariable,
+    reduceRemoveStreamLayout,
     reduceRemoveStreamUserVariable,
     reduceSetStreamUserVariablePartial,
 }

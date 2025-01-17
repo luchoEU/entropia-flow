@@ -13,8 +13,8 @@ const SET_STREAM_EDITING = "[stream] set editing"
 const SET_STREAM_STARED = "[stream] set stared"
 const SET_STREAM_NAME = "[stream] set name"
 const ADD_STREAM_LAYOUT = "[stream] add layout"
-const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
 const ADD_STREAM_USER_VARIABLE = "[stream] add user variable"
+const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
 const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
 const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
 
@@ -101,9 +101,13 @@ const removeStreamLayout = (layoutId: string) => ({
     }
 })
 
-const addStreamUserVariable = {
-    type: ADD_STREAM_USER_VARIABLE
-}
+const addStreamUserVariable = (isImage: boolean) => ({
+    type: ADD_STREAM_USER_VARIABLE,
+    payload: {
+        isImage
+    }
+})
+
 
 const removeStreamUserVariable = (id: number) => ({
     type: REMOVE_STREAM_USER_VARIABLE,
@@ -132,8 +136,8 @@ export {
     SET_STREAM_STARED,
     SET_STREAM_NAME,
     ADD_STREAM_LAYOUT,
-    REMOVE_STREAM_LAYOUT,
     ADD_STREAM_USER_VARIABLE,
+    REMOVE_STREAM_LAYOUT,
     REMOVE_STREAM_USER_VARIABLE,
     SET_STREAM_USER_VARIABLE_PARTIAL,
     setStreamState,
@@ -147,8 +151,8 @@ export {
     setStreamStared,
     setStreamName,
     addStreamLayout,
-    removeStreamLayout,
     addStreamUserVariable,
+    removeStreamLayout,
     removeStreamUserVariable,
     setStreamUserVariablePartial,
 }

@@ -1,4 +1,4 @@
-import React, { JSX } from 'react'
+import React, { JSX, useRef } from 'react'
 import { FONT, FONT_BOLD, IMG_WIDTH, INPUT_PADDING, INPUT_WIDTH, ITEM_TEXT_PADDING, RowValue, RowValueRender } from './SortableTabularSection.data'
 import { useDispatch } from 'react-redux'
 import ItemText from './ItemText'
@@ -14,6 +14,8 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
     let valueWidth: number[]
     if (typeof v === 'object' && 'width' in v) {
         valueWidth = [v.width]
+    } else if (typeof v === 'object' && 'maxWidth' in v) {
+        valueWidth = [v.maxWidth]
     } else {
         valueWidth = v === undefined ? [] :
             (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD)] :
@@ -24,10 +26,11 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
             ('text' in v ? [_getTextWidth(v.text, FONT_BOLD)] :
             ('strong' in v ? [_getTextWidth(v.strong, FONT_BOLD)] :
             ('input' in v ? [INPUT_WIDTH] :
+            ('file' in v ? [IMG_WIDTH] :
             ('layout' in v ? [0] :
             ('sub' in v ? getRowValueWidth(v.sub, imgWidth) :
             []
-        ))))))))));
+        )))))))))));
         if (typeof v === 'object' && 'maxWidth' in v) {
             valueWidth = valueWidth.map(w => Math.min(w, v.maxWidth))
         }
@@ -40,7 +43,8 @@ const BaseRowValueRender: RowValueRender = (p) => {
     const dispatch = useDispatch();
     const style = typeof v === 'object' && {
         ...'style' in v && v.style,
-        ...'visible' in v && !v.visible && { visibility: 'hidden' }
+        ...'visible' in v && !v.visible && { visibility: 'hidden' },
+        ...'maxWidth' in v && v.maxWidth && { maxWidth: v.maxWidth }
     }
     if (style)
         delete style['justifyContent']
@@ -57,13 +61,14 @@ const BaseRowValueRender: RowValueRender = (p) => {
         ('button' in v ? <button {...extra}>{v.button}</button> :
         ('text' in v ? <ItemText text={v.text} extra={extra} /> :
         ('strong' in v ? <strong {...extra}>{v.strong}</strong> :
-        ('input' in v ? <_Input value={v.input} width={v.width ?? INPUT_WIDTH} onChange={v.dispatchChange} /> :
+        ('input' in v ? <_Input value={v.input} width={v.width ?? INPUT_WIDTH} dispatchChange={v.dispatchChange} /> :
+        ('file' in v ? <_File value={v.file} dispatchChange={v.dispatchChange} /> :
         ('sub' in v ? <span {...extra}><BaseRowValueRender v={v.sub} /></span> :
         <></>
-    )))))))));
+    ))))))))));
 }
 
-const _Input = (p: { value: string, width: number, onChange: (value: string) => any }): JSX.Element => {
+const _Input = (p: { value: string, width: number, dispatchChange: (value: string) => any }): JSX.Element => {
     const dispatch = useDispatch()
     return <input
         type='text'
@@ -72,9 +77,43 @@ const _Input = (p: { value: string, width: number, onChange: (value: string) => 
         onClick={(e) => { e.stopPropagation() }}
         onChange={(e) => {
             e.stopPropagation();
-            dispatch(p.onChange(e.target.value))
+            dispatch(p.dispatchChange(e.target.value))
         }}
     />
+}
+
+const _File = (p: { value: string, dispatchChange: (value: string) => any }): JSX.Element => {
+    const dispatch = useDispatch()
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleButtonClick = () => {
+      fileInputRef.current?.click(); // Programmatically trigger the file input click
+    };
+  
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]; // Get the selected file
+      if (file) {
+        const reader = new FileReader();
+  
+        reader.onload = (e) => {
+            dispatch(p.dispatchChange(e.target?.result as string))
+        };
+  
+        reader.onerror = (err) => {
+          console.error("Error reading file:", err);
+          dispatch(p.dispatchChange(null));
+        };
+  
+        reader.readAsDataURL(file);
+      }
+    };
+  
+    return (
+      <div>
+        <input type="file" accept="*" style={{ display: "none" }} ref={fileInputRef} onChange={handleFileChange} />
+        <img src={p.value} alt="Choose File" onClick={handleButtonClick} className='pointer' />
+      </div>
+    );
 }
 
 function _getTextWidth(text: string, font: string): number {

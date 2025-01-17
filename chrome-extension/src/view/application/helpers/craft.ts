@@ -34,7 +34,7 @@ const itemStringFromName = (bp: BlueprintData, name: string): string =>
 const isLimited = (name: string): boolean => name.endsWith('(L)')
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
-    itemName: bp.c.itemName,
+    itemName: bp.c?.itemName,
     materials: bp.web?.blueprint.data?.value.materials.map(m => ({
         name: m.name,
         unitValue: m.value

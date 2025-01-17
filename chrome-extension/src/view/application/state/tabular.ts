@@ -26,6 +26,8 @@ interface TabularDefinition<TItem = any, TValueForSort = any> {
 
 type TabularDefinitions = { [selector: string]: TabularDefinition }
 
+type TabularRawData<TItem = any> = { [selector: string]: TItem[] }
+
 interface TabularStats {
     count: number,
     ped?: string,
@@ -38,4 +40,5 @@ export {
     TabularStats,
     TabularDefinition,
     TabularDefinitions,
+    TabularRawData,
 }

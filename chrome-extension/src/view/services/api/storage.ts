@@ -185,11 +185,11 @@ async function loadHistoryExpanded(): Promise<boolean> {
 }
 
 async function saveStream(state: StreamState) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_STREAM, state)
+    await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, state) // TODO: save in SYNC_STORAGE with user images separatetly
 }
 
 async function loadStream(): Promise<StreamState> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_STREAM)
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
 }
 
 async function saveInventoryState(state: InventoryState) {

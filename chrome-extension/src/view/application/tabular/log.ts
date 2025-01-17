@@ -1,6 +1,6 @@
 import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
-import { TabularDefinitions } from "../state/tabular";
+import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { StreamVariable } from "../state/stream";
 
 const _statsDecimals: GameLogStats = {
@@ -69,6 +69,18 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     },
 }
 
+const gameLogTabularData = (gameLog: GameLogData): TabularRawData => ({
+    [GAME_LOG_TABULAR_LOOT]: gameLog.loot,
+    [GAME_LOG_TABULAR_TIER]: gameLog.tier,
+    [GAME_LOG_TABULAR_SKILL]: gameLog.skill,
+    [GAME_LOG_TABULAR_ENHANCER_BROKEN]: gameLog.enhancerBroken,
+    [GAME_LOG_TABULAR_GLOBAL]: gameLog.global,
+    [GAME_LOG_TABULAR_EVENT]: gameLog.event,
+    [GAME_LOG_TABULAR_STATISTICS]: Object.entries(gameLog.stats),
+    [GAME_LOG_TABULAR_MISSING]: gameLog.raw.filter(d => !d.player && Object.keys(d.data).length === 0),
+    [GAME_LOG_TABULAR_RAW]: gameLog.raw
+})
+
 const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
     gameLog.team = [{
         player: 'Lucho',
@@ -109,5 +121,6 @@ const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
 
 export {
     gameLogTabularDefinitions,
-    gameLogVariables
+    gameLogVariables,
+    gameLogTabularData,
 }
