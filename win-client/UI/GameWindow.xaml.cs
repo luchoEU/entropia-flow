@@ -53,7 +53,7 @@ namespace EntropiaFlowClient
             });
         }
 
-        private async void GameWindow_WaitingForConnnection(object? sender, EventArgs e)
+        private void GameWindow_WaitingForConnnection(object? sender, EventArgs e)
         {
             // use dispatch to avoid System.InvalidOperationException: The calling thread cannot access this object because a different thread owns it.
             Dispatcher.Invoke(async () =>
@@ -101,7 +101,7 @@ namespace EntropiaFlowClient
             set
             {
                 _scale = FitScreen(value);
-                Render();
+                _ = Render();
             }
         }
 
@@ -211,7 +211,7 @@ namespace EntropiaFlowClient
             return outputPath;
         }
 
-        private async void WebBrowser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+        private void WebBrowser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
             {
@@ -376,9 +376,9 @@ namespace EntropiaFlowClient
         [ComVisible(true)]
         public class LifecycleScriptInterface(GameWindow w)
         {
-            public void OnLoaded()
+            public async void OnLoaded()
             {
-                w.OnDocumentLoaded();
+                await w.OnDocumentLoaded();
             }
         }
 
@@ -386,28 +386,38 @@ namespace EntropiaFlowClient
         [ComVisible(true)]
         public class LayoutScriptInterface(GameWindow w)
         {
-            public void MinimizeCliked()
+            public async void MinimizeCliked()
             {
-                w.SwitchMinimized();
+                if (w.ClicksDisabled)
+                    return;
+                await w.SwitchMinimized();
             }
 
-            public void MenuClicked()
+            public async void MenuClicked()
             {
-                w.OpenMenu();
+                if (w.ClicksDisabled)
+                    return;
+                await w.OpenMenu();
             }
 
-            public void NextClicked()
+            public async void NextClicked()
             {
-                w.NextLayout();
+                if (w.ClicksDisabled)
+                    return;
+                await w.NextLayout();
             }
 
-            public void SelectLayout(string layoutId)
+            public async void SelectLayout(string layoutId)
             {
-                w.SetLayout(layoutId);
+                if (w.ClicksDisabled)
+                    return;
+                await w.SetLayout(layoutId);
             }
 
             public void CloseClicked()
             {
+                if (w.ClicksDisabled)
+                    return;
                 w.Close();
             }
         }

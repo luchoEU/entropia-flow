@@ -29,9 +29,9 @@ let _lastData = {
             `,
             action: () => {
                 const copyButton = document.getElementById("copyButton");
-                copyButton?.addEventListener("click", (e) => {
+                copyButton?.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    if (chrome.webview?.hostObjects.clipboard.Copy(_lastData.data.uri)) {
+                    if (await chrome.webview?.hostObjects.clipboard.Copy(_lastData.data.uri)) {
                         const popup = document.getElementById('copyPopup');
                         popup.style.display = 'block'
                         setTimeout(() => { popup.style.display = 'none' }, 1000)
