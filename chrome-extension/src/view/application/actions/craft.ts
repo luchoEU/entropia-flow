@@ -1,3 +1,4 @@
+import { MaterialWebData } from '../../../web/state'
 import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BlueprintSessionDiff, BlueprintStateWebData, CraftState } from '../state/craft'
 
@@ -11,6 +12,7 @@ const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
 const ADD_BLUEPRINT = '[craft] add blueprint'
 const SET_BLUEPRINT_PARTIAL_WEB_DATA = '[craft] set blueprint partial web data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
+const SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE = '[craft] set blueprint material type and value'
 const SET_BLUEPRINT_STARED = '[craft] set blueprint stared'
 const SHOW_BLUEPRINT_MATERIAL_DATA = '[craft] show blueprint material data'
 const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
@@ -107,6 +109,13 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     type: SET_BLUEPRINT_QUANTITY,
     payload: {
         dictionary
+    }
+})
+
+const setBlueprintMaterialTypeAndValue = (list: MaterialWebData[]) => ({
+    type: SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE,
+    payload: {
+        list
     }
 })
 
@@ -297,6 +306,7 @@ export {
     ADD_BLUEPRINT,
     SET_BLUEPRINT_PARTIAL_WEB_DATA,
     SET_BLUEPRINT_QUANTITY,
+    SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE,
     SET_BLUEPRINT_STARED,
     SHOW_BLUEPRINT_MATERIAL_DATA,
     START_BUDGET_PAGE_LOADING,
@@ -333,6 +343,7 @@ export {
     addBlueprint,
     setBlueprintPartialWebData,
     setBlueprintQuantity,
+    setBlueprintMaterialTypeAndValue,
     setBlueprintStared,
     showBlueprintMaterialData,
     startBudgetPageLoading,

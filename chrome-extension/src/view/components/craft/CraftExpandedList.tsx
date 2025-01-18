@@ -6,7 +6,7 @@ import { bpDataFromItemName, itemStringFromName } from '../../application/helper
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status'
-import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING } from '../../application/state/craft'
+import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
@@ -18,7 +18,7 @@ import { SortableFixedSizeTable, TableData } from '../common/SortableTableSectio
 import { getByStoreInventory, getByStoreInventoryCraftItem } from '../../application/selectors/inventory'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
 import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
-import { BlueprintWebMaterial } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial } from '../../../web/state'
 import { WebLoadResponse } from '../../../web/loader'
 import { loadMaterialData, loadMaterialRawMaterials } from '../../application/actions/materials'
 
@@ -173,7 +173,7 @@ function CraftSingle(p: {
 
         const { diff }: LastRequiredState = useSelector(getLast)
         if (diff) {
-            d.web?.blueprint?.data?.value.materials.forEach((m: BlueprintWebMaterial) => {
+            d.c.materials?.forEach((m: BlueprintWebMaterial) => {
                 const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
                 const budgetM = d.budget.sheet?.materials[m.name]
                 if (item !== undefined && budgetM && !budgetM.buyDone) {
@@ -237,10 +237,8 @@ function CraftSingle(p: {
                 </thead>
                 <tbody>
                     {
-                        bp.materials.map((m: BlueprintWebMaterial) => {
-                            const invM = d.c.inventory?.materials[m.name]
+                        d.c.materials?.map((m: BlueprintMaterial) => {
                             const name = itemStringFromName(d, m.name)
-                            const type = mat[m.name]?.web?.material?.data?.value.type ?? m.type
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(d.name, d.chain === m.name ? undefined : m.name))
@@ -251,9 +249,9 @@ function CraftSingle(p: {
                                     {name}
                                     <img src={d.chain === m.name ? 'img/left.png' : 'img/right.png'}/>
                                 </td>
-                                <td data-text={type}>{type}</td>
-                                { invM ? <td data-text-right={invM.available}>{invM.available}</td> : <td/> }
-                                { invM ? <td data-text-right={invM.clicks}>{invM.clicks}</td> : <td/> }
+                                <td data-text={m.type}>{m.type}</td>
+                                { m.available ? <td data-text-right={m.available}>{m.available}</td> : <td/> }
+                                { m.clicks ? <td data-text-right={m.clicks}>{m.clicks}</td> : <td/> }
                                 { markupMap && <td align='right'>{markupMap[m.name]}</td> }
                                 { budgetMap && <td align='right'>{budgetMap[m.name]}</td> }
                                 { session && <td align="right">{session[m.name]}</td> }

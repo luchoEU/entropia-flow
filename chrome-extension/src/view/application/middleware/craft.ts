@@ -1,7 +1,7 @@
 import { trace, traceData } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setCraftActivePlanet } from '../actions/craft'
+import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
@@ -20,7 +20,7 @@ import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
 import { MaterialsMap } from '../state/materials'
 import { getMaterialsMap } from '../selectors/materials'
-import { loadMaterialData, loadMaterialRawMaterials, SET_MATERIAL_PARTIAL_WEB_DATA } from '../actions/materials'
+import { loadMaterialData, loadMaterialRawMaterials, SET_MATERIAL_PARTIAL_WEB_DATA, SET_MATERIALS_STATE } from '../actions/materials'
 import { filterExact, filterOr } from '../../../common/string'
 import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
@@ -51,7 +51,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STARED_BLUEPRINTS_FILTER:
         case ADD_BLUEPRINT:
         case SET_BLUEPRINT_PARTIAL_WEB_DATA:
-        case SET_BLUEPRINT_QUANTITY:
         case SET_BLUEPRINT_STARED:
         case SHOW_BLUEPRINT_MATERIAL_DATA:
         case START_BUDGET_PAGE_LOADING:
@@ -201,54 +200,36 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const bp: WebLoadResponse<BlueprintWebData> = action.payload.change.blueprint
                 const bpValue = bp?.data?.value
                 if (bpValue) {
-                    let changed = false
                     const mat: MaterialsMap = getMaterialsMap(getState())
+                    const list: MaterialWebData[] = []
                     bpValue.materials.forEach(m => {
-                        const material = mat[m.name]?.web?.material
+                        const material = mat[m.name]?.web?.material;
                         if (!material) {
                             // load missing materials types
-                            dispatch(loadMaterialData(m.name, m.url))
-                        }
-                        else if (material?.data && m.value === 0) {
-                            m.value = material.data.value.value
-                            changed = true
+                            dispatch(loadMaterialData(m.name, m.url));
+                        } else if (material.data?.value) {
+                            list.push(material.data.value);
                         }
                     })
-                    if (changed) {
-                        dispatch(setBlueprintPartialWebData(bpValue.name, { blueprint: bp }))
-                    }
+                    dispatch(setBlueprintMaterialTypeAndValue(list));
                 }
             }
 
-            break
+            break;
+        }
+        case SET_MATERIALS_STATE: {
+            const mat: MaterialsMap = getMaterialsMap(getState());
+            const list: MaterialWebData[] = Object.values(mat)
+                .map(m => m.web?.material?.data?.value)
+                .filter(t => t);
+            dispatch(setBlueprintMaterialTypeAndValue(list));
+            break;
         }
         case SET_MATERIAL_PARTIAL_WEB_DATA: {
-            const material: WebLoadResponse<MaterialWebData> = action.payload.change.material
-            if (!material?.data) break
-
-            const state: CraftState = getCraft(getState())
-            let anyChange = false
-            Object.values(state.blueprints).forEach(bp => {
-                const webBp = bp.web?.blueprint
-                if (webBp?.data) {
-                    let changed = false
-                    webBp.data.value.materials.forEach(m => {
-                        if (m.value == 0 && m.name === material.data.value.name) {
-                            m.value = material.data.value.value
-                            changed = true
-                        }
-                    })
-                    if (changed) {
-                        dispatch(setBlueprintPartialWebData(bp.name, { blueprint: webBp }))
-                        anyChange = true
-                    }
-                }
-            })
-            
-            if (anyChange) {
-                dispatch(setCraftActivePlanet(state.activePlanet)) // to call setBlueprintQuantity
-            }
-            break
+            const change: WebLoadResponse<MaterialWebData> = action.payload.change.material
+            if (change?.data)
+                dispatch(setBlueprintMaterialTypeAndValue([change.data.value]));
+            break;
         }
         case RELOAD_BLUEPRINT: {
             const state: CraftState = getCraft(getState())
@@ -371,11 +352,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (action.payload.text === BUDGET_MOVE) {
                     for (var bp of Object.values(state.blueprints)) {
                         if (bp.name !== bpName) {
-                            const m = bp.web.blueprint.data.value.materials[materialName]
+                            const m = bp.c.materials[materialName]
                             const budgetM = bp.budget.sheet.materials[materialName]
-                            const invM = bp.c.inventory.materials[materialName]
-                            if (budgetM?.count && budgetM.count > invM.available) {
-                                const q = Math.min(budgetM.count - invM.available, quantity)
+                            if (budgetM?.count && budgetM.count > m.available) {
+                                const q = Math.min(budgetM.count - m.available, quantity)
                                 const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bp))
                                 const v = q * m.value * budgetM.markup
                                 await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.c.itemName}`)
@@ -415,41 +395,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
     if (!bpName) return; // TODO, why is it not defined?
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
-        if (r.data) {
-            const d = r.data.value
-            if (isLimited(d.name)) {
-                d.materials.unshift({
-                    name: d.name,
-                    type: 'Blueprint',
-                    quantity: 1,
-                    value: 0.01
-                })
-            }
-            d.materials.unshift({
-                ...d.item,
-                type: 'Crafted item',
-                quantity: 0
-            })
-            const addResidue = (name: string, condition: (m: BlueprintWebMaterial) => boolean): void => {
-                if (d.materials.some(condition)) {
-                    d.materials.push({
-                        name: name,
-                        type: 'Residue',
-                        quantity: 0,
-                        value: 0.01
-                    })
-                }
-            }
-            addResidue('Metal Residue', m => true)
-            addResidue('Energy Matter Residue', m => m.type === 'Refined Enmatter')
-            addResidue('Tailoring Remnants', m => m.name.includes('Leather'))
-            d.materials.push({
-                name: 'Shrapnel',
-                type: 'Fragment',
-                quantity: 0,
-                value: 0.0001
-            })
-        }
+        
         dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
     }
 }

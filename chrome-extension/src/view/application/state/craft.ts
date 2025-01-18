@@ -23,8 +23,8 @@ interface BlueprintStateWebData {
 
 interface BlueprintData {
     name: string
-    budget: BlueprintBudget
-    session: BlueprintSession
+    budget?: BlueprintBudget
+    session?: BlueprintSession
     chain?: string
 
     web?: BlueprintStateWebData
@@ -32,6 +32,7 @@ interface BlueprintData {
     c: { // calculated
         itemName: string
         inventory?: BlueprintInventory
+        materials?: BlueprintMaterial[]
     }
 }
 
@@ -41,13 +42,16 @@ interface BlueprintInventory {
     limitClickItems: Array<string>
     clickTTCost: number
     residueNeeded: number
-    materials: BlueprintInventoryMaterials
 }
 
-type BlueprintInventoryMaterials = { [ name: string ]: {
-    available: number
-    clicks: number
-}}
+interface BlueprintMaterial {
+    name: string
+    type: string
+    quantity: number
+    value: number
+    available?: number // Inventory
+    clicks?: number // Inventory, available / quantity
+}
 
 interface BlueprintBudget {
     loading: boolean
@@ -99,7 +103,7 @@ export {
     BlueprintSession,
     BlueprintSessionDiff,
     BlueprintStateWebData,
-    BlueprintInventoryMaterials,
+    BlueprintMaterial,
     BlueprintBudget,
     BlueprintBudgetMaterial,
     BlueprintBudgetMaterials,
