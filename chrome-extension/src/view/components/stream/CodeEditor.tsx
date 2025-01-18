@@ -6,6 +6,16 @@ import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-css';
 import { useDispatch } from 'react-redux';
 
+const mustache = {
+    pattern: /{{.*?}}/,
+    inside: {
+        punctuation: /{{|}}/, // Highlight the curly braces
+        variable: /[^{}]+/    // Highlight the inner content
+    }
+}
+Prism.languages.insertBefore('css', 'selector', { mustache });
+Prism.languages.insertBefore('markup', 'tag', { mustache });
+
 const CodeEditor = (p: { language: 'html'|'css', readOnly: boolean, value: string, dispatchChange: (value: string) => any }) => {
     const dispatch = useDispatch()
 
@@ -14,7 +24,13 @@ const CodeEditor = (p: { language: 'html'|'css', readOnly: boolean, value: strin
         (code: string) => Prism.highlight(code, Prism.languages.markup, 'markup');
 
     return (
-        <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '10px' }}>
+        <div style={{
+            border: '1px solid #ccc',
+            borderRadius: '5px',
+            padding: '10px',
+            maxHeight: '300px',
+            overflow: 'auto',
+        }}>
             <Editor
                 value={p.value}
                 onValueChange={(v) => { dispatch(p.dispatchChange(v)) }}
@@ -26,6 +42,7 @@ const CodeEditor = (p: { language: 'html'|'css', readOnly: boolean, value: strin
                     fontSize: 14,
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
+                    overflowWrap: 'break-word',
                     backgroundColor: p.readOnly ? 'transparent' : 'white',
                 }}
             />

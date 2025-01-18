@@ -8,19 +8,42 @@ const _defaultLayout: StreamRenderLayout = {
     readonly: true,
     stared: true,
     htmlTemplate: `
-<div style='display: flex; align-items: start; font-size: 14px; margin: 50px;'>
-  <img style='width: 50px;' src='{{logoUrl}}' alt='Logo'></img>
-  <div style='display: flex; flex-direction: column; margin: 0px 10px;'>
-    <div style='font-size: 20px; font-weight: bold;'>Entropia Flow</div>
-    <div style='margin-left: 10px'>Chrome Extension</div>
+<div class='root'>
+  <img src='{{logoUrl}}' alt='Logo'></img>
+  <div class='flexColumn column1'>
+    <div class='title'>Entropia Flow</div>
+    <div class='subtitle'>Chrome Extension</div>
   </div>
-  <div style='display: flex; flex-direction: column; margin-left: 5px; width: 180px;'>
-    <div style='background-color: {{deltaBackColor}}; color: white; padding: 8px; border-radius: 8px; text-align: center;'>
-      {{delta}} PED {{deltaWord}}
-    </div>
-    <div style='margin-top: 5px; font-size: 12px; text-align: center;'>{{message}}</div>
+  <div class='flexColumn column2'>
+    <div class='delta'>{{delta}} PED {{deltaWord}}</div>
+    <div class='message'>{{message}}</div>
   </div>
 </div>`.trimStart(),
+    cssTemplate: `
+.root {
+  display: flex;
+  align-items: start;
+  font-size: 14px;
+  margin: 30px;
+}
+.root > img { width: 50px; }
+.flexColumn { display: flex; flex-direction: column; }
+.column1 { margin: 0px 10px; }
+.column2 { margin-left: 5px; width: 180px; }
+.title { font-size: 20px; font-weight: bold; }
+.subtitle { margin-left: 10px; }
+.delta {
+  background-color: {{deltaBackColor}};
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+}
+.message {
+  margin-top: 5px;
+  font-size: 12px;
+  text-align: center;
+}`.trimStart(),
 }
 
 const _teamLootLayout: StreamRenderLayout = {
