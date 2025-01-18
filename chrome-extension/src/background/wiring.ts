@@ -95,6 +95,9 @@ async function wiring(
             case "log":
                 await gameLogParser.onMessage(msg.data)
                 break;
+            case "dispatch":
+                await viewTabManager.sendDispatch(msg.data)
+                break;
         }
     }
     webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)

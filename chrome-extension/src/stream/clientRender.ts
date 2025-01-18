@@ -12,7 +12,7 @@ const patch = init([
 const STREAM_ID = 'stream'
 
 let isRendering = false;
-export function render(single: StreamRenderSingle, scale?: number, minSize?: StreamRenderSize): StreamRenderSize | null {
+export function render(single: StreamRenderSingle, dispatch: (action: string) => void, scale?: number, minSize?: StreamRenderSize): StreamRenderSize | null {
     if (isRendering) {
         return null;
     }
@@ -35,6 +35,11 @@ export function render(single: StreamRenderSingle, scale?: number, minSize?: Str
             streamElement.appendChild(canvasElement);
         }
         streamElement = document.getElementById(STREAM_ID); // get it again after patch
+
+        // add click handlers
+        const handleClick = (e) => dispatch(e.target.dataset.click);
+        const clickableElements = streamElement.querySelectorAll('[data-click]');
+        clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
 
         // load background
         loadBackground(single.layout.backgroundType, streamElement, streamElement)

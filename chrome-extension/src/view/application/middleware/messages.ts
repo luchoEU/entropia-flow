@@ -1,5 +1,5 @@
 import { STRING_WAIT_3_MINUTES } from '../../../common/const'
-import { ViewState } from '../../../common/state'
+import { ViewDispatch, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
@@ -7,6 +7,7 @@ import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
 import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { setStatus } from '../actions/status'
+import { getStreamClickAction } from '../actions/stream.click'
 import { PAGE_LOADED } from '../actions/ui'
 import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
@@ -36,11 +37,15 @@ const refreshViewHandler = dispatch => async (m: ViewState) => {
     }
 }
 
+const actionViewHandler = dispatch => async (m: ViewDispatch) => {
+    dispatch(getStreamClickAction(m.action));
+}
+
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            api.messages.initMessageClient(refreshViewHandler(dispatch))
+            api.messages.initMessageClient(refreshViewHandler(dispatch), actionViewHandler(dispatch))
             break
         }
         case REFRESH: {

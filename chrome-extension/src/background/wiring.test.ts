@@ -6,6 +6,7 @@ import MockPortManager, { MockPort } from "../chrome/mockPort"
 import MockStorageArea from "../chrome/mockStorageArea"
 import MockTabManager from "../chrome/mockTab"
 import {
+    MSG_NAME_ACTION_VIEW,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
@@ -343,6 +344,17 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ ...STATE_NO_DATA_PLEASE_LOG_IN, gameLog: { ...emptyGameLogData(), raw: [ objData ] } })
+        })
+    })
+
+    describe('client', () => {
+        test('when dispatch is received it is dispatched', async () => {
+            await webSocketClient.onMessage({ type: 'dispatch', data: 'test' })
+
+            expect(viewPort.sendMock.mock.calls.length).toBe(1)
+            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
+            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_ACTION_VIEW)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ action: 'test' })
         })
     })
 })

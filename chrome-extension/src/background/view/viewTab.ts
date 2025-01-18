@@ -1,6 +1,7 @@
 import ITabManager from '../../chrome/ITab'
 import {
     HTML_VIEW,
+    MSG_NAME_ACTION_VIEW,
     MSG_NAME_REFRESH_VIEW
 } from '../../common/const'
 import IPortManager, { IPort } from '../../chrome/IPort'
@@ -42,9 +43,9 @@ class ViewTabManager {
         }
     }
 
-    private async sendRefresh(port: IPort, state: ViewState) {
+    private async _sendMessage(port: IPort, name: string, data?: object) {
         try {
-            port.send(MSG_NAME_REFRESH_VIEW, state);
+            port.send(name, data);
         } catch (e) {
             trace(`ViewTabManage.sendRefresh exception:`)
             traceData(e)
@@ -59,13 +60,19 @@ class ViewTabManager {
 
     private async _refreshOne(port: IPort): Promise<void> {
         const state = await this.stateManager.get()
-        await this.sendRefresh(port, state)
+        await this._sendMessage(port, MSG_NAME_REFRESH_VIEW, state)
     }
 
     private async _refreshAll(state: ViewState): Promise<void> {
         const portList = await this.portManager.all()
         const that = this
-        await Promise.all(portList.map(port => that.sendRefresh(port, state)))
+        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_REFRESH_VIEW, state)))
+    }
+
+    public async sendDispatch(action: string): Promise<void> {
+        const portList = await this.portManager.all()
+        const that = this
+        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_ACTION_VIEW, { action })))
     }
 }
 

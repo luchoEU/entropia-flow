@@ -4,7 +4,7 @@ import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
 import { useDispatch } from "react-redux"
-import { setLast } from "../../application/actions/messages"
+import { getStreamClickAction } from "../../application/actions/stream.click"
 
 const _cacheSize: Record<string, StreamRenderSize> = { }
 
@@ -24,19 +24,8 @@ function StreamViewLayout(p: {
         }
     }, []);
 
-    const handleClick = (e) => {
-        switch (e.target.dataset.click) {
-            case 'flowSetLast': {
-                dispatch(setLast);
-                break;
-            }
-            default: {
-                console.log(`Unknown click action: ${e.target.dataset.click}`);
-                break;
-            }
-        }
-    };
     useEffect(() => {
+        const handleClick = (e) => dispatch(getStreamClickAction(e.target.dataset.click));
         const clickableElements = shadowRootRef.current?.shadowRoot.querySelectorAll('[data-click]');
         clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
         return () => {

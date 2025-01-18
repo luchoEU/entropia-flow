@@ -17,6 +17,7 @@ const MSG_NAME_NEW_INVENTORY = 'NewInventory'
 const PORT_NAME_BACK_VIEW = 'EntropiaFlowBackgroundView'
 const MSG_NAME_REGISTER_VIEW = 'RegisterView'
 const MSG_NAME_REFRESH_VIEW = 'RefreshView'
+const MSG_NAME_ACTION_VIEW = 'ActionView'
 const MSG_NAME_REQUEST_NEW = 'RequestNewInventory'
 const MSG_NAME_REQUEST_TIMER_ON = 'RequestTimerOn'
 const MSG_NAME_REQUEST_TIMER_OFF = 'RequestTimerOff'
@@ -112,6 +113,7 @@ export {
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REFRESH_VIEW,
+    MSG_NAME_ACTION_VIEW,
     MSG_NAME_REQUEST_NEW,
     MSG_NAME_REQUEST_TIMER_ON,
     MSG_NAME_REQUEST_TIMER_OFF,

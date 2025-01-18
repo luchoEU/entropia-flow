@@ -57,6 +57,10 @@ interface ViewState {
     clientVersion?: string
 }
 
+interface ViewDispatch {
+    action: string
+}
+
 let mockDate = undefined
 
 function setMockDate(date: number) {
@@ -107,6 +111,7 @@ export {
     Status,
     StatusType,
     ViewState,
+    ViewDispatch,
     setMockDate,
     makeLogInventory,
     areEqualInventoryList
