@@ -17,11 +17,11 @@ const COLUMN_PADDING = 3
 type RowValue =
     string |
     RowValue[] |
-    { dispatch?: () => any, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
+    { dispatch?: () => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
         { flex: number } |
         { img: string, title: string, show?: boolean } |
         { button: string } |
-        { text: string } |
+        { text: string, title?: string } |
         { strong: string } |
         { input: string, dispatchChange: (value: string) => any } |
         { file: string, dispatchChange: (value: string) => any } |

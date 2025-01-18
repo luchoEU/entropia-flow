@@ -9,6 +9,7 @@ import { StreamRenderSingle } from "../../../stream/data"
 import ExpandableSection from "../common/ExpandableSection2"
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamViewLayout from "./StreamViewLayout"
+import CodeEditor from "./CodeEditor"
 
 const StreamBackground = (p: {
     background: BackgroundSpec,
@@ -45,60 +46,26 @@ const StreamBackground = (p: {
 
 function StreamLayoutEditor() {
     const { editing, layouts } = useSelector(getStreamIn)
-    const dispatch = useDispatch()
     const c = layouts[editing.layoutId]
 
-    const handleKeyDown = (setText: (text: string) => any) =>(event) => {
-        if (event.key === "Tab") {
-            event.preventDefault();
-
-            const textarea: HTMLTextAreaElement = event.target;
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-
-            // Insert indentation
-            const tab = "  ";
-            const text = event.target.value;
-            const updatedText = text.substring(0, start) + tab + text.substring(end);
-            dispatch(setText(updatedText));
-
-            requestAnimationFrame(() => {
-                // Set the cursor position after the tab
-                textarea.selectionStart = textarea.selectionEnd = start + tab.length;
-            });
-        }
-    };
-
-    return <ExpandableSection selector='StreamEditor-layout' title='Layout' className='stream-layout'>
-        <div>
-            <label htmlFor='stream-html-template'>HTML Template</label>
-            <textarea
-                id='stream-html-template'
+    return <>
+        <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' className='stream-layout'>
+            <CodeEditor
+                language='html'
                 readOnly={c.readonly}
                 value={c.htmlTemplate}
-                onClick={(e) => { e.stopPropagation() }}
-                onKeyDown={handleKeyDown(setStreamHtmlTemplate)}
-                onChange={(e) => {
-                    e.stopPropagation();
-                    dispatch(setStreamHtmlTemplate(e.target.value));
-                }}
+                dispatchChange={setStreamHtmlTemplate}
             />
-        </div>
-        <div>
-            <label htmlFor='stream-css-template'>CSS Template</label>
-            <textarea
-                id='stream-css-template'
+        </ExpandableSection>
+        <ExpandableSection selector='StreamEditor-layout-css' title='CSS Template' className='stream-layout'>
+            <CodeEditor
+                language='css'
                 readOnly={c.readonly}
                 value={c.cssTemplate}
-                onClick={(e) => { e.stopPropagation() }}
-                onKeyDown={handleKeyDown(setStreamCssTemplate)}
-                onChange={(e) => {
-                    e.stopPropagation();
-                    dispatch(setStreamCssTemplate(e.target.value));
-                }}
+                dispatchChange={setStreamCssTemplate}
             />
-        </div>
-    </ExpandableSection>
+        </ExpandableSection>
+    </>
 }
 
 function StreamEditor() {

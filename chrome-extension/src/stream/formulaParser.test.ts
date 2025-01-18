@@ -13,8 +13,12 @@ describe('formula parser', () => {
         const parser = new FormulaParser({backDark: true, img: {logoWhite: 'white', logoBlack: 'black'}})
         expect(parser.evaluate("IF(backDark, img.logoWhite, img.logoBlack)")).toEqual('white')
     })
-    test('error', async () => {
+    test('error invalid character', async () => {
         const parser = new FormulaParser({t: true})
         expect(parser.evaluate("IF(t; 1; 2)")).toEqual("ECHR: Invalid character ';'")
+    })
+    test('error extra parenthesis', async () => {
+        const parser = new FormulaParser({})
+        expect(parser.evaluate("IF(delta > 0, 'Profit', delta < 0, 'Loss'))")).toEqual("EPAR: Unmatched ')'")
     })
 })

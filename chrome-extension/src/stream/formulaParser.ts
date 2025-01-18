@@ -11,16 +11,25 @@ const _formulas: Record<string, (args: StreamRenderValue[]) => StreamRenderValue
     }
 }
 
-const _operatorPrecedence: { k: string, op: string }[] = [
-    { k: 'plus', op: '+' },
-    { k: 'comp', op: '=<>' },
-];
-const _operationFn: Record<string, (left: StreamRenderValue, right: StreamRenderValue) => StreamRenderValue> = {
-    '+': (left, right) => left + right.toString(),
-    '>': (left, right) => left > right,
-    '<': (left, right) => left < right,
-    '=': (left, right) => left === right
+interface OperatorPrecedenceData {
+    k: string, // precedence key
+    op: { [key: string]: (left: StreamRenderValue, right: StreamRenderValue) => StreamRenderValue }
 }
+
+const _operatorByPrecedence: OperatorPrecedenceData[] = [
+    { k: 'plus', op: {
+        '+': (left, right) => left + right.toString(),
+    }},
+    { k: 'comp', op: {
+        '>': (left, right) => left > right,
+        '>=': (left, right) => left >= right,
+        '<': (left, right) => left < right,
+        '<=': (left, right) => left <= right,
+        '=': (left, right) => left === right,
+        '!=': (left, right) => left !== right,
+    }},
+];
+
 
 enum ExprType {
     unknown,
@@ -37,6 +46,10 @@ interface Token {
     type: ExprType
 }
 
+const formulaHelp = `Formulas start with =
+Valid operators: ${_operatorByPrecedence.map(v => Object.keys(v.op)).flat().join(', ')}
+Valid functions: ${Object.keys(_formulas).join(', ')}`
+
 class FormulaParser {
     private data: StreamRenderObject;
     
@@ -49,7 +62,7 @@ class FormulaParser {
             let tokens = this._tokenize(formula);
             tokens.forEach(token => { if (token.type === ExprType.unknown) throw new Error(`ECHR: Invalid character '${token.text}'`) });
             tokens = tokens.filter(token => token.type !== ExprType.space);
-            return this._parseExpression(tokens);
+            return this._parseExpression(tokens, 0);
         } catch (e) {
             return e.message
         }
@@ -60,7 +73,8 @@ class FormulaParser {
             {regex: /\d+(\.\d+)?/, type: ExprType.number},
             {regex: /[A-Z]+\(/, type: ExprType.function},
             {regex: /[a-z][A-Za-z0-9]*/, type: ExprType.identifier},
-            {regex: /[(),.+><={}:\[\]]/, type: ExprType.symbol},
+            {regex: /[(),.{}:\[\]]/, type: ExprType.symbol}, // 1 char symbols
+            {regex: /[+><=!]+/, type: ExprType.symbol}, // 1 or more char symbols
             {regex: /'[^']+'/, type: ExprType.string},
             {regex: /"[^"]+"/, type: ExprType.string},
             {regex: /\s+/, type: ExprType.space},
@@ -72,7 +86,7 @@ class FormulaParser {
         return formula.match(regex).map((text) => ({text, type: getExprType(text)})) || [];
     }
     
-    private _parseExpression(tokens: Token[], returnParameters: boolean = false): StreamRenderValue {
+    private _parseExpression(tokens: Token[], level: number, returnParameters: boolean = false): StreamRenderValue {
         let stack: (Token | StreamRenderValue)[] = [];
         const parameters: StreamRenderValue[] = [];
         let jsonMode: { open: string, close: string, count: number, text: string } = undefined;
@@ -97,7 +111,7 @@ class FormulaParser {
             } else if (token.type === ExprType.symbol && token.text === '[') {
                 jsonMode = { open: '[', close: ']', count: 1, text: '[' };
             } else if (token.type === ExprType.function) {
-                const value = this._parseExpression(tokens, true);
+                const value = this._parseExpression(tokens, level + 1, true);
                 const fName = token.text.slice(0, -1); // remove trailing '('
                 const f = _formulas[fName];
                 if (!f) {
@@ -107,12 +121,15 @@ class FormulaParser {
             } else if (token.type === ExprType.symbol) {
                 if (token.text === '(') {
                     // Handle nested expressions recursively
-                    const value = this._parseExpression(tokens);
+                    const value = this._parseExpression(tokens, level + 1);
                     stack.push(value);
                 } else if (token.text === ',') {
                     parameters.push(this._evaluateStack(stack))
                     stack = [];
                 } else if (token.text === ')') {
+                    if (level === 0 && tokens.length === 0) {
+                        throw new Error("EPAR: Unmatched ')'");
+                    }
                     // End of the current sub-expression
                     break; // while
                 } else {
@@ -146,10 +163,10 @@ class FormulaParser {
     static Pending = class {
         private _pending: Record<string, { result: StreamRenderValue, operator: string }> = { };
         eval(result: StreamRenderValue, kIn: string = undefined): StreamRenderValue {
-            for (const p of _operatorPrecedence) {
+            for (const p of _operatorByPrecedence) {
                 const prev = this._pending[p.k];
                 if (prev) {
-                    result = _operationFn[prev.operator](prev.result, result);
+                    result = p.op[prev.operator](prev.result, result);
                     delete this._pending[p.k];
                 }
                 if (p.k === kIn) {
@@ -160,7 +177,7 @@ class FormulaParser {
         }
 
         precedence(operator: string): string | undefined {
-            return _operatorPrecedence.find(v => v.op.includes(operator))?.k;
+            return _operatorByPrecedence.find(v => v.op[operator])?.k;
         }
 
         set(k: string, result: StreamRenderValue, operator: string) {
@@ -199,3 +216,6 @@ class FormulaParser {
 }
 
 export default FormulaParser
+export {
+    formulaHelp
+}

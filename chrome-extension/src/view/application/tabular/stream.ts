@@ -1,4 +1,5 @@
 import { StreamRenderLayout, StreamRenderLayoutSet } from "../../../stream/data";
+import { formulaHelp } from "../../../stream/formulaParser";
 import { computeFormulas } from "../../../stream/template";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
 import { removeStreamLayout, removeStreamUserVariable, setStreamEditing, setStreamStared, setStreamUserVariablePartial } from "../actions/stream";
@@ -41,10 +42,13 @@ const streamTabularDataFromVariables = (variables: Record<string, StreamVariable
     }
 }
 
-const _field = (g: StreamVariable, selector: string, maxWidth?: number, readonly?: boolean, addRemove?: boolean): RowValue => {
-    if (!readonly && g.source === 'user') {
+const _field = (g: StreamVariable, selector: string, maxWidth: number, flag: Record<string, boolean> = {}): RowValue => {
+    if (!flag.readonly && g.source === 'user') {
         const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserVariablePartial(g.id, { [selector]: v }) }
-        return addRemove ? { sub: [ w, { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserVariable(g.id) } ] } : w;
+        const img: RowValue =
+            flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserVariable(g.id) } ||
+            flag.formulaHelp && { text: 'i', class: 'img-info', title: formulaHelp, width: 16 }
+        return img ? { sub: [ w, img ] } : w;
     } else if (maxWidth) {
         const v = g[selector];
         return { text: typeof v === 'string' ? v : JSON.stringify(v), maxWidth };
@@ -61,7 +65,7 @@ const streamTabularDefinitions: TabularDefinitions = {
             const img: RowValue = { img: g.value as string, title: `${g.name} image`, show: true, maxWidth: 100, style: { height: '90%', objectFit: 'contain', flex: 1 } }
             return [
                 g.source,
-                _field(g, 'name', 100, false, true),
+                _field(g, 'name', 100, { addRemove: true }),
                 g.source === 'user' ? [ img, {
                     file: 'img/edit.png', dispatchChange: (value: string) => setStreamUserVariablePartial(g.id, {value})
                 }] : img,
@@ -75,9 +79,9 @@ const streamTabularDefinitions: TabularDefinitions = {
         columns: ['Source', 'Name', 'Value', 'Computed', 'Description'],
         getRow: (g: StreamVariable) => [
             g.source,
-            _field(g, 'name', 100, false, true),
-            _field(g, 'value', 300),
-            _field(g, 'computed', 120, true),
+            _field(g, 'name', 100, { addRemove: true }),
+            _field(g, 'value', 300, { formulaHelp: true }),
+            _field(g, 'computed', 120, { readonly: true}),
             _field(g, 'description', 300),
         ],
         getRowForSort: (g: StreamVariable) => [, g.name, g.value, g.computed, g.description],

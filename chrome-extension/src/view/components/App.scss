@@ -614,6 +614,14 @@ button:active {
     height: 300px;
 }
 
+.item-row .img-info {
+    visibility: hidden;
+}
+
+.item-row:hover .img-info {
+    visibility: visible;
+}
+
 // Craft
 .input-budget-buy {
     margin: 0px 5px;

@@ -3,6 +3,8 @@ import ReactDOM from "react-dom"
 import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
+import { useDispatch } from "react-redux"
+import { setLast } from "../../application/actions/messages"
 
 const _cacheSize: Record<string, StreamRenderSize> = { }
 
@@ -14,12 +16,33 @@ function StreamViewLayout(p: {
 }) {
     const { id, layoutId, single, scale } = p;
     const shadowRootRef = useRef(null);
+    const dispatch = useDispatch()
 
     useEffect(() => {
-        if (shadowRootRef.current) {
+        if (shadowRootRef.current && !shadowRootRef.current.shadowRoot) {
             shadowRootRef.current.attachShadow({ mode: 'open' });
         }
     }, []);
+
+    const handleClick = (e) => {
+        switch (e.target.dataset.click) {
+            case 'flowSetLast': {
+                dispatch(setLast);
+                break;
+            }
+            default: {
+                console.log(`Unknown click action: ${e.target.dataset.click}`);
+                break;
+            }
+        }
+    };
+    useEffect(() => {
+        const clickableElements = shadowRootRef.current?.shadowRoot.querySelectorAll('[data-click]');
+        clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
+        return () => {
+            clickableElements?.forEach((el: HTMLElement) => el.removeEventListener('click', handleClick));
+        };
+    }, [id, layoutId, single, scale]);
 
     const contentRect = shadowRootRef.current?.shadowRoot.querySelector('.layout-root')?.getBoundingClientRect();
     let size: StreamRenderSize = contentRect && { width: contentRect.width, height: contentRect.height };
@@ -33,7 +56,7 @@ function StreamViewLayout(p: {
     }
 
     useBackground(single.layout.backgroundType, id, shadowRootRef.current?.shadowRoot);
-    const children = <StreamViewDiv id={id} size={size} single={p.single} scale={scale} />
+    const children = <StreamViewDiv id={id} size={size} single={single} scale={scale} />
 
     return (
         <div ref={shadowRootRef}>

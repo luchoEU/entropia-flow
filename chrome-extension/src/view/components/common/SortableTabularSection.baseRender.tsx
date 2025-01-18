@@ -49,6 +49,8 @@ const BaseRowValueRender: RowValueRender = (p) => {
     if (style)
         delete style['justifyContent']
     const extra = typeof v === 'object' && {
+        ...'class' in v && { className: v.class },
+        ...'title' in v && { title: v.title },
         ...style && { style },
         ...'dispatch' in v && { onClick: (e) => { e.stopPropagation(); dispatch(v.dispatch()) }, className: 'pointer' },
     }
@@ -57,7 +59,7 @@ const BaseRowValueRender: RowValueRender = (p) => {
         (typeof v === 'string' ? <ItemText text={v} extra={extra} /> :
         (Array.isArray(v) ? <>{ v.map((w, i) => <BaseRowValueRender key={i} v={w} />) }</> :
         ('flex' in v ? <div style={{ flex: v.flex }} /> :
-        ('img' in v ? <img src={v.img} title={v.title} {...v.show && { 'data-show': true }} {...extra} /> :
+        ('img' in v ? <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
         ('button' in v ? <button {...extra}>{v.button}</button> :
         ('text' in v ? <ItemText text={v.text} extra={extra} /> :
         ('strong' in v ? <strong {...extra}>{v.strong}</strong> :

@@ -64,7 +64,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             dispatch(setStreamVariables('last', [
                 { name: 'delta', value: (delta || 0).toFixed(2) },
                 { name: 'deltaBackColor', value: "=IF(delta > 0, 'green', delta < 0, 'red', 'black')", description: 'delta background color' },
-                { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss'))", description: 'delta word' }
+                { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss')", description: 'delta word' }
             ]))
             break
         }
