@@ -103,6 +103,10 @@ function receive(delta) {
     _lastData.layoutIdList = _lastData.data.layouts.map(l => l.id);
 }
 
+function dispatch(action) {
+    chrome.webview?.hostObjects.dispatcher.Send(action);
+}
+
 let _disableRender = false
 function render(s) {
     if (_disableRender) return; // for debugging
@@ -118,7 +122,7 @@ function render(s) {
         scale = 1;
     }
 
-    let size = entropiaFlowStream.render({ data: d.data, layout }, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    let size = entropiaFlowStream.render({ data: d.data, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
         chrome.webview?.hostObjects.resize.OnRendered(size.width, size.height);
 

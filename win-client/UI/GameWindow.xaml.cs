@@ -218,6 +218,7 @@ namespace EntropiaFlowClient
                 webView2.CoreWebView2.AddHostObjectToScript("mouse", new MouseScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("resize", new ResizeScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("lifecycle", new LifecycleScriptInterface(this));
+                webView2.CoreWebView2.AddHostObjectToScript("dispatcher", new DispatcherScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("layout", new LayoutScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("clipboard", new ClipboardScriptInterface(this));
 
@@ -379,6 +380,16 @@ namespace EntropiaFlowClient
             public async void OnLoaded()
             {
                 await w.OnDocumentLoaded();
+            }
+        }
+
+        [ClassInterface(ClassInterfaceType.AutoDual)]
+        [ComVisible(true)]
+        public class DispatcherScriptInterface(GameWindow w)
+        {
+            public void Send(string action)
+            {
+                App.Current.Dispatch(action);
             }
         }
 

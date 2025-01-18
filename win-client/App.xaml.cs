@@ -110,6 +110,11 @@ namespace EntropiaFlowClient
 
         public string ListeningUri => _webSocketServer.ListeningUri;
 
+        public void Dispatch(string action)
+        {
+            _webSocketServer.Send("dispatch", action);
+        }
+
         private void _webSocketServer_StreamMessageReceived(object? sender, StreamMessageEventArgs e)
         {
             StreamMessageReceived?.Invoke(this, e);
