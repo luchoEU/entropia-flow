@@ -220,6 +220,7 @@ const reduceAddStreamLayout = (state: StreamState): StreamState => {
                     name,
                     backgroundType: _defaultLayout.backgroundType,
                     htmlTemplate: _defaultLayout.htmlTemplate,
+                    cssTemplate: _defaultLayout.cssTemplate,
                 }
             }
         }

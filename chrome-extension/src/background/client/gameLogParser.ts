@@ -1,61 +1,64 @@
 //// GAME LOG PARSER ////
 // Receives and processes game chat log messages
 
-import { GameLogLine } from "./gameLogData"
+import { GameLogGlobal, GameLogLine, GameLogStats } from "./gameLogData"
 
 const lineRegex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(.*?)\] \[(.*?)\] (.*)/
-const youLootRegex = /You received (.*) x \((.*)\) Value: (.*) PED/
-const itemLootRegex = /(.*) received a (.*)/
-const sharedLootRegex = /(.*) received (.*) \((.*)\)/
+const youLootRegex = /You received (.+) x \((.+)\) Value: (.+) PED/
+const itemLootRegex = /(.+) received a (.+)/
+const sharedLootRegex = /(.+) received (.+) \((.+)\)/
 const excludeLoot = [
     'Universal Ammo',
     'Mineral Resource Deed',
 ]
-const statsPointsRegex = {
-    selfHeal: /You healed yourself (.*) points/,
-    damageInflicted: /You inflicted (.*) points of damage/,
-    damageTaken: /You took (.*) points of damage/,
-    reducedCritical: /Reduced (.*) points of critical damage/,
-    reducedPiercingDamage: /Reduced (.*) points of armor piercing damage/,
-}
-const statsCountRegex = {
-    targetEvadedAttack: /The target Evaded your attack/,
-    targetDodgedAttack: /The target Dodged your attack/,
-    youEvadedAttack: /You Evaded the attack/,
-    youDodgedAttack: /You Dodged the attack/,
+const statsRegex: GameLogStats<RegExp> = {
     attackMissesYou: /The attack missed you/,
     criticalInflicted: /^Critical hit - Additional damage! You inflicted/,
     criticalTaken: /^Critical hit - Additional damage! You took/,
-    revived: /You have been revived/,
-    killed: /You were killed by/,
+    damageDeflected: /Damage deflected!/,
+    damageInflicted: /You inflicted (.+) points of damage/,
+    damageTaken: /You took (.+) points of damage/,
+    reducedCritical: /Reduced (.+) points of critical damage/,
+    reducedPiercingDamage: /Reduced (.+) points of armor piercing damage/,
+    selfHeal: /You healed yourself (.+) points/,
+    targetDodgedAttack: /The target Dodged your attack/,
+    targetEvadedAttack: /The target Evaded your attack/,
+    universalAmmo: /You received Universal Ammo x \(\d+\) Value: (.+) PED/,
+    youDodgedAttack: /You Dodged the attack/,
+    youEvadedAttack: /You Evaded the attack/,
+    youRevived: /You have been revived/,
+    youWereKilled: /You were killed by/,
 }
 const hofSuffix = ' A record has been added to the Hall of Fame!'
 const valueLocationRegex = /(\d+) (PED|PEC)(?: at (.*))?/
 const globalRegex = {
-    hunt: /(.*) killed a creature \((.*)\) with a value of (.*)!/,
-    craft: /(.*) constructed an item \((.*)\) worth (.*)!/,
-    found: /(.*) has found a rare item \((.*)\) with a value of (.*)!/,
-    mine: /(.*) found a deposit \((.*)\) with a value of (.*)!/,
+    hunt: /(?<player>.+) killed a creature \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
+    craft: /(?<player>.+) constructed an item \((?<name>.+)\) worth (?<valueLocation>.+)!/,
+    found: /(?<player>.+) has found a rare item \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
+    mine: /(?<player>.+) found a deposit \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
+    tier: /(?<player>.+) is the first colonist to reach tier (?<value>\d+) for (?<name>.+)!/
 }
-const skillRegex = /You have gained (.*?) (experience in your )?(.*?)( skill)?$/
+const skillRegex = /You have gained (.+?) (experience in your )?(.+?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
 const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
-const braketRegex = /\[(.*?)]/g
-const tierRegex = /Your (.*) has reached tier (.*)/
+const braketRegex = /\[(.+?)]/g
+const tierRegex = /Your (.+) has reached tier (.+)/
 const eventRegex = {
-    logout: /(.*) has logged out/,
-    login: /(.*) has logged in/,
-    effectOverTime: /Received Effect Over Time: (.*)/ , 
-    effectEquip: /Equip Effect: (.*)/,
-    missionCompleted: /Mission completed \((.*)\)/,
-    missionUpdated: /Mission updated \((.*)\)/,
-    limitedMinimumCondition: /Your (.*?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
+    logout: /(.+) has logged out/,
+    login: /(.+) has logged in/,
+    effectOverTime: /Received Effect Over Time: (.+)/ , 
+    effectEquip: /Equip Effect: (.+)/,
+    missionCompleted: /Mission completed \((.+)\)/,
+    missionUpdated: /Mission updated \((.+)\)/,
+    limitedMinimumCondition: /Your (.+?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
     killed: /You were killed by the \w+ (.+)/,
     itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
     itemEffectAdded: /Item Set Effect: (.+)/,
-    missionReceived: /New Mission received \((.*)\)/,
+    missionReceived: /New Mission received \((.+)\)/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
-    minimumCondition: /Your (.*) is close to reaching minimum condition, consider repairing it as soon as possible/,
+    minimumCondition: /Your (.+) is close to reaching minimum condition, consider repairing it as soon as possible/,
+    sessionTime: /Session time: (.+)/,
+    entropiaTime: /Entropia Universe time: (.+)/,
     transactionCompleted: /The transaction was completed successfully/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
@@ -103,20 +106,12 @@ class GameLogParser {
                         tier: parseFloat(tierMatch[2])
                     }
                 }
-                Object.entries(statsPointsRegex).forEach(([key, regex]) => {
+                Object.entries(statsRegex).forEach(([key, regex]) => {
                     const match = regex.exec(line.message);
                     if (match !== null) {
                         if (!line.data.stats)
                             line.data.stats = {}
-                        line.data.stats[key] = parseFloat(match[1])
-                    }
-                })
-                Object.entries(statsCountRegex).forEach(([key, regex]) => {
-                    const match = regex.exec(line.message);
-                    if (match !== null) {
-                        if (!line.data.stats)
-                            line.data.stats = {}
-                        line.data.stats[key] = 1
+                        line.data.stats[key] = match.length > 1 ? parseInt(match[1]) : 1
                     }
                 })
                 Object.entries(eventRegex).forEach(([key, regex]) => {
@@ -160,17 +155,25 @@ class GameLogParser {
                 Object.entries(globalRegex).forEach(([key, regex]) => {
                     const match = regex.exec(msg);
                     if (match !== null) {
-                        const valueMatch = valueLocationRegex.exec(match[3]);
-                        if (valueMatch !== null) {
-                            line.data.global = {
-                                time: line.time,
-                                player: match[1],
-                                name: match[2],
-                                type: key,
-                                value: parseInt(valueMatch[1]) * (valueMatch[2] === 'PEC' ? 0.01 : 1),
-                                location: valueMatch[3],
-                                isHoF
+                        const { player, name, value, valueLocation } = match.groups;
+                        const global: GameLogGlobal = {
+                            time: line.time,
+                            player,
+                            name,
+                            value: undefined,
+                            type: key,
+                            isHoF
+                        }
+                        if (valueLocation) {
+                            const valueLocationMatch = valueLocationRegex.exec(valueLocation);
+                            if (valueLocationMatch !== null) {
+                                global.value = parseInt(valueLocationMatch[1]) * (valueLocationMatch[2] === 'PEC' ? 0.01 : 1);
+                                global.location = valueLocationMatch[3];
+                                line.data.global = global
                             }
+                        } else if (value) {
+                            global.value = parseInt(value);
+                            line.data.global = global
                         }
                     }
                 })

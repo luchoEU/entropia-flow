@@ -25,6 +25,9 @@ const reduceSetTabularFilter = (state: TabularState, selector: string, filter: s
 const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
     const filtered = data.items.all.filter(d => multiIncludes(data.filter, JSON.stringify(d)));
     const show = cloneAndSort(filtered, data.sortSecuence, _getTabularSortDefinition(selector));
+    const pedSelector: (d: any) => number = _getTabularPedSelector(selector);  
+    const sumPed = pedSelector && show.reduce((partialSum, item) => partialSum + pedSelector(item), 0);
+
     return {
         ...data,
         items: {
@@ -32,6 +35,7 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
             show,
             stats: {
                 count: show.length,
+                ped: sumPed?.toFixed(2),
             }
         }
     }
@@ -90,6 +94,9 @@ const _getTabularSortDefinition = <TItem extends any>(selector: string): Array<S
         comparer: definition.columnComparer?.[i] ?? byTypeComparer
     }))
 }
+
+const _getTabularPedSelector = (selector: string): (d: any) => number =>
+    _tabularDefinitions[selector]?.getPedValue
 
 const _cleanForSaveData = (d: TabularStateData): TabularStateData => ({
     ...d,

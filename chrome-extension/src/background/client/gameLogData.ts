@@ -7,7 +7,7 @@ interface GameLogData {
     global: Array<GameLogGlobal>
     event: Array<GameLogEvent>
     enhancerBroken: Array<GameLogEnhancerBroken>
-    stats: GameLogStats
+    stats: GameLogStats<number>
 }
 
 const emptyGameLogData = (): GameLogData => ({
@@ -22,37 +22,30 @@ const emptyGameLogData = (): GameLogData => ({
     stats: {}
 })
 
-interface GameLogStats {
-    kills?: number
-    selfHeal?: number
-    damageInflicted?: number
-    damageTaken?: number
-    reducedCritical?: number
-    reducedPiercingDamage?: number
-    hitsInflicted?: number
-    hitsTaken?: number
-    targetEvadedAttack?: number
-    targetDodgedAttack?: number
-    youEvadedAttack?: number
-    youDodgedAttack?: number
-    attackMissesYou?: number
-}
-
 const gameLogStatsKeys = [
-    'kills',
-    'selfHeal',
-    'damageInflicted',
-    'damageTaken',
-    'reducedCritical',
-    'reducedPiercingDamage',
-    'hitsInflicted',
-    'hitsTaken',
-    'targetEvadedAttack',
-    'targetDodgedAttack',
-    'youEvadedAttack',
-    'youDodgedAttack',
-    'attackMissesYou',
-];
+    "attackMissesYou",
+    "criticalInflicted",
+    "criticalTaken",
+    "damageDeflected",
+    "damageInflicted",
+    "damageTaken",
+    "hitsInflicted",
+    "hitsTaken",
+    "lootCount",
+    "reducedCritical",
+    "reducedPiercingDamage",
+    "selfHeal",
+    "targetDodgedAttack",
+    "targetEvadedAttack",
+    "universalAmmo",
+    "youDodgedAttack",
+    "youEvadedAttack",
+    "youRevived",
+    "youWereKilled",
+] as const;
+type GameLogStats<T> = {
+    [Key in typeof gameLogStatsKeys[number]]?: T
+}
 
 interface GameLogGlobal {
     time: string
@@ -76,7 +69,7 @@ interface GameLogLine {
         global?: GameLogGlobal
         tier?: GameLogTier
         skill?: GameLogSkill
-        stats?: GameLogStats
+        stats?: GameLogStats<number>
         positions?: GameLogPosition[]
         event?: GameLogEvent
         enhancerBroken?: GameLogEnhancerBroken
@@ -95,7 +88,6 @@ interface GameLogTeam {
     name: string
     quantity: number
 }
-
 
 interface GameLogTier {
     name: string

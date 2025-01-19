@@ -102,12 +102,13 @@ const _ItemRowRender = (p: {
     rowValueRender: RowValueRender
 }): JSX.Element => <>
     { p.columns.map((c: ColumnWidthData, i: number) => {
+        const { rowValueRender: RowValueRenderComponent } = p
         const d = p.row[i]
         const height = p.height && { height: p.height };
         const justify = typeof d === 'object' && 'style' in d && d.style.justifyContent &&
             { justifyContent: d.style.justifyContent }
         return <div key={i} style={{ width: c.width - _getPadding(d), ...height, ...justify }}>
-            { p.rowValueRender({v: d}) }
+            <RowValueRenderComponent v={d} />
         </div>
     })}
 </>
@@ -218,7 +219,7 @@ const SortableTable = (p: {
     const s: TabularStateData = useSelector(getTabularData(p.selector))
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
-    const { selector } = p
+    const { selector, rowValueRender: RowValueRenderComponent } = p
     const { columns, getRow: getItemRow } = getTabularDefinition(selector)
     const sortRow = _getSortRow(selector, columns, s.sortSecuence)
     const width = _calculateWidths(s.items.all, sortRow, getItemRow)
@@ -228,7 +229,7 @@ const SortableTable = (p: {
             <tr>
                 {sortRow.map((v, i) =>
                     <th key={i} className='sort-row' style={{ width: width.columns[i] }}>
-                        { p.rowValueRender({v}) }
+                        <RowValueRenderComponent v={v} />
                     </th>)}
             </tr>
         </thead>
@@ -237,7 +238,7 @@ const SortableTable = (p: {
                 <tr key={i} className='item-row'>
                     {getItemRow(r, i).map((v, j) =>
                         <td key={j}>
-                            <div>{ p.rowValueRender({v}) }</div>
+                            <div><RowValueRenderComponent v={v} /></div>
                         </td>)}
                 </tr>
             )}
@@ -253,7 +254,7 @@ const SortableTabularSection = (p: {
     rowValueRender?: RowValueRender
 }) => {
     const { selector } = p
-    const rowValueRender = p.rowValueRender ?? BaseRowValueRender
+    const RowValueRenderComponent = p.rowValueRender ?? BaseRowValueRender
     const { title }: TabularDefinition<any, any> = getTabularDefinition(selector)
     const s: TabularStateData = useSelector(getTabularData(selector))
     if (!s?.items) return <p>{selector} is not loaded with items</p>
@@ -268,13 +269,13 @@ const SortableTabularSection = (p: {
             </p>
             <p className='search-input-container'>
                 <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
-                { p.afterSearch && rowValueRender({ v: p.afterSearch }) }
+                { p.afterSearch && <RowValueRenderComponent v={p.afterSearch} /> }
             </p>
         </div>
         {
             p.useTable ?
-                <SortableTable selector={selector} rowValueRender={rowValueRender} /> :
-                <SortableFixedTable selector={selector} itemHeight={p.itemHeight} rowValueRender={rowValueRender} />
+                <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} /> :
+                <SortableFixedTable selector={selector} itemHeight={p.itemHeight} rowValueRender={RowValueRenderComponent} />
         }
     </ExpandableSection>
 }

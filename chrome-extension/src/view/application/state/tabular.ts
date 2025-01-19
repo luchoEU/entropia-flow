@@ -22,6 +22,7 @@ interface TabularDefinition<TItem = any, TValueForSort = any> {
     getRowForSort?: (item: TItem, index: number) => TValueForSort[], // if not defined it uses getRow
     columnComparer?: ((a: TValueForSort, b: TValueForSort) => number)[], // if not defined it uses byTypeComparer
     justifiyContent?: ('start' | 'end' | 'center')[], // if not defined it uses right for numbers and left for others
+    getPedValue?: (item: TItem) => number, // to calculate the ped total
 }
 
 type TabularDefinitions = { [selector: string]: TabularDefinition }

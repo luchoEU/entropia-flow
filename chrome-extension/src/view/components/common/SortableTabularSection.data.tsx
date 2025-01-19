@@ -1,4 +1,3 @@
-import { JSX } from "react";
 import { StreamRenderLayout } from "../../../stream/data";
 
 const FONT = '12px system-ui, sans-serif'
@@ -29,7 +28,7 @@ type RowValue =
         { sub: RowValue[] } )
 
 type RowValueLayout = { layout: StreamRenderLayout, layoutId: string, id: string, scale?: number }
-type RowValueRender = (p: {v: RowValue}) => JSX.Element
+type RowValueRender = React.ComponentType<{ v: RowValue }>;
 
 export {
     RowValue,

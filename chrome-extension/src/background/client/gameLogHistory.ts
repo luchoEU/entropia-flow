@@ -44,9 +44,9 @@ class GameLogHistory implements IGameLogHistory {
 
             const lineDateTime = new Date(line.time);
             if (!this.lastLootDateTime || lineDateTime.getTime() - this.lastLootDateTime.getTime() > 1000) {
-                if (!this.gameLog.stats.kills)
-                    this.gameLog.stats.kills = 0
-                this.gameLog.stats.kills++
+                if (!this.gameLog.stats.lootCount)
+                    this.gameLog.stats.lootCount = 0
+                this.gameLog.stats.lootCount++
             }
             this.lastLootDateTime = lineDateTime
         }

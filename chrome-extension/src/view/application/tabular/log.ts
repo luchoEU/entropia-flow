@@ -3,10 +3,11 @@ import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABU
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { StreamVariable } from "../state/stream";
 
-const _statsDecimals: GameLogStats = {
+const _statsDecimals: GameLogStats<number> = {
     selfHeal: 1,
     damageInflicted: 1,
     damageTaken: 1,
+    universalAmmo: 2,
 }
 
 function _separateCamelCase(s: string): string {
@@ -21,6 +22,7 @@ const gameLogTabularDefinitions: TabularDefinitions = {
         columns: ['Name', 'Quantity', 'Value'],
         getRow: (d: GameLogLoot) => [d.name, d.quantity.toString(), d.value.toFixed(2) + ' PED'],
         getRowForSort: (g: GameLogLoot) => [, g.quantity, g.value],
+        getPedValue: (g: GameLogLoot) => g.value
     },
     [GAME_LOG_TABULAR_TIER]: {
         title: 'Tier',
@@ -81,29 +83,7 @@ const gameLogTabularData = (gameLog: GameLogData): TabularRawData => ({
     [GAME_LOG_TABULAR_RAW]: gameLog.raw
 })
 
-const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
-    gameLog.team = [{
-        player: 'Lucho',
-        name: 'Animal Adrenal Oil',
-        quantity: 9
-    }, {
-        player: 'Xrated La Tina',
-        name: 'Animal Adrenal Oil',
-        quantity: 6
-    }, {
-        player: 'wackadoodle',
-        name: 'Shrapnel',
-        quantity: 1942
-    }, {
-        player: 'Lucho',
-        name: 'Shrapnel',
-        quantity: 27574
-    }, {
-        player: 'Xrated La Tina',
-        name: 'Shrapnel',
-        quantity: 19484
-    }]
-
+const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {    
     const teamPlayers = Array.from(new Set(gameLog.team.map(d => d.player))).sort()
     const teamLoot = Object.entries(gameLog.team.reduce((acc, t) => {
         acc[t.name] = acc[t.name] || new Array(teamPlayers.length).fill(0);

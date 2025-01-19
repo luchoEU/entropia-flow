@@ -20,4 +20,10 @@ describe('formula parser', () => {
         const action = () => {};
         expect(applyDelta({action}, { })).toEqual({action})
     })
+    test('no delta in list', async () => {
+        expect(getDelta({t: [3]}, {t: [1,2]})).toEqual({t: [1,2]})
+    })
+    test('apply delta in list', async () => {
+        expect(applyDelta({t: [1,3]}, getDelta({t: [3]}, {t: [1,2]}))).toEqual({t: [1,2]})
+    })
 })

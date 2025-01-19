@@ -19,9 +19,8 @@ Prism.languages.insertBefore('markup', 'tag', { mustache });
 const CodeEditor = (p: { language: 'html'|'css', readOnly: boolean, value: string, dispatchChange: (value: string) => any }) => {
     const dispatch = useDispatch()
 
-    const highlightCode = p.language === 'css' ?
-        (code: string) => Prism.highlight(code, Prism.languages.css, 'css') :
-        (code: string) => Prism.highlight(code, Prism.languages.markup, 'markup');
+    const prismLanguage = p.language === 'css' ? 'css' : 'markup';
+    const highlightCode = (code: string) => code && Prism.highlight(code, Prism.languages[prismLanguage], prismLanguage)
 
     return (
         <div style={{

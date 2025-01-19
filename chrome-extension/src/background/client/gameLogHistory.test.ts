@@ -12,16 +12,14 @@ describe('formula parser', () => {
         gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
     })
 
-    function logTest(name: string, lines: string, expected: Partial<GameLogData>) {
-        test(name, async () => {
-            for (const line of lines.split('\n')) {
-                await gameLogParser.onMessage(line)
-            }
-            expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual({ ...emptyGameLogData(), ...expected })
-        })
+    async function parseExpect(lines: string, expected: Partial<GameLogData>) {
+        for (const line of lines.split('\n')) {
+            await gameLogParser.onMessage(line)
+        }
+        expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual({ ...emptyGameLogData(), ...expected })
     }
 
-    logTest('team',
+    test('team', async () => await parseExpect(
 `2024-12-23 17:08:58 [Team] [] Xrated La Tina received Shrapnel (15611)
 2024-12-23 17:08:58 [System] [] You received Shrapnel x (23362) Value: 2.33 PED
 2024-12-23 17:08:58 [Team] [] Lucho received Shrapnel (23362)
@@ -66,11 +64,12 @@ describe('formula parser', () => {
                 quantity: 19484
             }],
             stats: {
-                kills: 2
+                lootCount: 2
             }
         })
+    )
 
-    logTest('global',
+    test('global', async () => await parseExpect(
 `2025-01-11 12:38:08 [Globals] [] Lucho MUCHO Ireton killed a creature (Merry Annihilation Daikiba 08) with a value of 57 PED!`,
         {
             global: [{
@@ -82,8 +81,9 @@ describe('formula parser', () => {
                 isHoF: false
             }]
         })
+    )
 
-    logTest('hof',
+    test('hof', async () => await parseExpect(
 `2025-01-11 12:38:08 [Globals] [] High Looter Elite killed a creature (Maffoid Warlord) with a value of 808 PED! A record has been added to the Hall of Fame!`,
         {
             global: [{
@@ -95,14 +95,15 @@ describe('formula parser', () => {
                 isHoF: true
             }]
         })
+    )
     
-    logTest('kills',
+    test('kills', async () => await parseExpect(
 `2025-01-12 07:47:37 [#cyrene_rangers] [Rattler Llama Simpsons] omw
 2025-01-12 07:47:37 [System] [] You received Mayhem Token x (1) Value: 0.0000 PED
 2025-01-12 07:47:37 [System] [] You received Shrapnel x (45745) Value: 4.57 PED`,
         {
             stats: {
-                kills: 1,
+                lootCount: 1,
             },
             loot: [{
                 name: 'Shrapnel',
@@ -114,12 +115,14 @@ describe('formula parser', () => {
                 value: 0
             }]
         })
-    logTest('kills seconds',
+    )
+
+    test('kills seconds', async () => await parseExpect(
 `2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
 2025-01-15 09:41:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                kills: 1,
+                lootCount: 1,
             },
             loot: [{
                 name: 'Shrapnel',
@@ -131,12 +134,14 @@ describe('formula parser', () => {
                 value: 0
             }]
         })
-    logTest('kills separate',
+    )
+
+    test('kills separate', async () => await parseExpect(
 `2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
 2025-01-15 09:42:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                kills: 2,
+                lootCount: 2,
             },
             loot: [{
                 name: 'Shrapnel',
@@ -148,4 +153,5 @@ describe('formula parser', () => {
                 value: 0
             }]
         })
+    )
 })

@@ -11,7 +11,8 @@ const _LayoutRowValueRender = (next: RowValueRender): RowValueRender => (p) => {
         const { out: { data: { data } } } = useSelector(getStream)
         return <StreamViewLayout single={{ data, layout: v.layout}} layoutId={v.layoutId} id={v.id} scale={v.scale} />
     }
-    return next(p);
+    const RowValueRenderComponent = next;
+    return <RowValueRenderComponent v={v} />;
 }
 
 const LayoutRowValueRender = _LayoutRowValueRender(BaseRowValueRender)

@@ -7,7 +7,7 @@ function getDelta<T extends object>(source: T, final: T): Partial<T> {
         Object.entries(src).forEach(([k, v]) => {
             if (end[k] === undefined) {
                 res[k] = null;
-            } else if (typeof v === 'object') {
+            } else if (!Array.isArray(v) && typeof v === 'object') {
                 const obj = f(v, end[k]);
                 if (obj !== undefined)
                     res[k] = obj;
@@ -32,7 +32,7 @@ function applyDelta<T extends object>(source: T, delta: Partial<T>): T {
         Object.entries(dif).forEach(([k, v]) => {
             if (v === null)
                 delete res[k]
-            else if (res[k] === undefined || typeof v !== 'object')
+            else if (res[k] === undefined || Array.isArray(v) || typeof v !== 'object')
                 res[k] = v
             else if (src[k] !== v) {
                 res[k] = f(src[k], v)
