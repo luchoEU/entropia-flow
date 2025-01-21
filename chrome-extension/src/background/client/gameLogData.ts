@@ -28,23 +28,41 @@ const gameLogStatsKeys = [
     "criticalTaken",
     "damageDeflected",
     "damageInflicted",
+    "damageInflictedCount",
     "damageTaken",
-    "hitsInflicted",
-    "hitsTaken",
+    "damageTakenCount",
     "lootCount",
     "reducedCritical",
     "reducedPiercingDamage",
     "selfHeal",
+    "selfHealCount",
     "targetDodgedAttack",
     "targetEvadedAttack",
     "universalAmmo",
+    "universalAmmoCount",
+    "vehicleDamage",
+    "vehicleDamageCount",
+    "vehicleRepaired",
+    "vehicleRepairedCount",
     "youDodgedAttack",
     "youEvadedAttack",
+    "youRepaired",
+    "youRepairedCount",
     "youRevived",
     "youWereKilled",
 ] as const;
 type GameLogStats<T> = {
     [Key in typeof gameLogStatsKeys[number]]?: T
+}
+
+const gameLogStatsDecimals: GameLogStats<number> = {
+    damageInflicted: 1,
+    damageTaken: 1,
+    selfHeal: 1,
+    universalAmmo: 2,
+    vehicleDamage: 1,
+    vehicleRepaired: 1,
+    youRepaired: 1,
 }
 
 interface GameLogGlobal {
@@ -130,6 +148,7 @@ export {
     GameLogEnhancerBroken,
     GameLogStats,
     gameLogStatsKeys,
+    gameLogStatsDecimals,
     GameLogLine,
     GameLogEvent,
     emptyGameLogData,

@@ -1,14 +1,7 @@
-import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
+import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsDecimals, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { StreamVariable } from "../state/stream";
-
-const _statsDecimals: GameLogStats<number> = {
-    selfHeal: 1,
-    damageInflicted: 1,
-    damageTaken: 1,
-    universalAmmo: 2,
-}
 
 function _separateCamelCase(s: string): string {
     return s
@@ -56,7 +49,7 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_STATISTICS]: {
         title: 'Statistics',
         columns: ['Name', 'Value'],
-        getRow: (g: [string, number]) => [_separateCamelCase(g[0]), g[1].toFixed(_statsDecimals[g[0]] ?? 0)],
+        getRow: (g: [string, number]) => [_separateCamelCase(g[0]), g[1].toFixed(gameLogStatsDecimals[g[0]] ?? 0)],
         getRowForSort: (g: [string, number]) => [, g[1]],
     },
     [GAME_LOG_TABULAR_MISSING]: {
@@ -67,7 +60,8 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_RAW]: {
         title: 'Full log',
         columns: ['Serial', 'Time', 'Channel', 'Player', 'Message', 'Data'],
-        getRow: (g: GameLogLine) => [g.serial.toString(), g.time, g.channel, g.player, g.message, JSON.stringify(g.data)]
+        getRow: (g: GameLogLine) => [g.serial.toString(), g.time, g.channel, g.player, g.message, JSON.stringify(g.data)],
+        getRowForSort: (g: GameLogLine) => [g.serial],
     },
 }
 
@@ -94,7 +88,7 @@ const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
         .map(([k, v]) => ({ name: k, quantity: v }))
 
     const variables: StreamVariable[] = gameLogStatsKeys
-        .map(k => ({ name: k.toString(), value: (gameLog.stats?.[k] ?? 0).toFixed(_statsDecimals[k] ?? 0)}));
+        .map(k => ({ name: k.toString(), value: (gameLog.stats?.[k] ?? 0).toFixed(gameLogStatsDecimals[k] ?? 0)}));
     variables.push({ name: 'team', value: { players: teamPlayers, loot: teamLoot } })
     return variables
 }

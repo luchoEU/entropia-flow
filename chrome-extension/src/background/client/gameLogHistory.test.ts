@@ -154,4 +154,64 @@ describe('formula parser', () => {
             }]
         })
     )
+
+    test('repairs', async () => await parseExpect(
+`2025-01-21 07:27:10 [System] [] The vehicle's Structural Integrity restored by 29.6
+2025-01-21 07:27:10 [System] [] Vehicle took 64.6 points of damage
+2025-01-21 07:27:12 [System] [] You restored the vehicle's Structural Integrity by 89.5`,
+        {
+            stats: {
+                youRepairedCount: 1,
+                youRepaired: 89.5,
+                vehicleDamage: 64.6,
+                vehicleDamageCount: 1,
+                vehicleRepaired: 29.6,
+                vehicleRepairedCount: 1,
+            }
+        }
+    ))
+
+    test('damage', async () => await parseExpect(
+`2025-01-16 07:21:41 [System] [] You inflicted 134.0 points of damage
+2025-01-16 07:22:08 [System] [] You took 40.9 points of damage`,
+        {
+            stats: {
+                damageInflicted: 134.0,
+                damageInflictedCount: 1,
+                damageTaken: 40.9,
+                damageTakenCount: 1,
+            }
+        }
+    ))
+
+    test('heal', async () => await parseExpect(
+`2025-01-16 07:21:38 [System] [] You healed yourself 41.4 points`,
+        {
+            stats: {
+                selfHeal: 41.4,
+                selfHealCount: 1,
+            }
+        }
+    ))
+
+    test('ammo', async () => await parseExpect(
+`2025-01-16 07:21:32 [System] [] You received Universal Ammo x (6995622) Value: 699.56 PED`,
+        {
+            stats: {
+                universalAmmo: 699.56,
+                universalAmmoCount: 1,
+            }
+        }
+    ))
+
+    test('enter vehicle', async () => await parseExpect(
+`2025-01-21 08:56:10 [System] [] Top Right Gunner entered the vehicle`,
+        {
+            event: [{
+                time: '2025-01-21 08:56:10',
+                action: 'enteredVehicle',
+                name: 'Top Right Gunner',
+            }],
+        }
+    ))
 })

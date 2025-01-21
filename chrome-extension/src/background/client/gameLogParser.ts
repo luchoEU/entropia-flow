@@ -24,8 +24,11 @@ const statsRegex: GameLogStats<RegExp> = {
     targetDodgedAttack: /The target Dodged your attack/,
     targetEvadedAttack: /The target Evaded your attack/,
     universalAmmo: /You received Universal Ammo x \(\d+\) Value: (.+) PED/,
+    vehicleDamage: /Vehicle took (.+) points of damage/,
+    vehicleRepaired: /The vehicle's Structural Integrity restored by (.+)/,
     youDodgedAttack: /You Dodged the attack/,
     youEvadedAttack: /You Evaded the attack/,
+    youRepaired: /You restored the vehicle's Structural Integrity by (.+)/,
     youRevived: /You have been revived/,
     youWereKilled: /You were killed by/,
 }
@@ -68,6 +71,7 @@ const eventRegex = {
     petReturned: /Your pet has been returned to your inventory/,
     resourceDepleted: /This resource is depleted/,
     blueprintImproved: /Your blueprint Quality Rating has improved/,
+    enteredVehicle: /(.+) entered the vehicle/,
 }
 const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
@@ -111,7 +115,12 @@ class GameLogParser {
                     if (match !== null) {
                         if (!line.data.stats)
                             line.data.stats = {}
-                        line.data.stats[key] = match.length > 1 ? parseInt(match[1]) : 1
+                        if (match.length > 1) {
+                            line.data.stats[key] = parseFloat(match[1]);
+                            line.data.stats[`${key}Count`] = 1;
+                        } else {
+                            line.data.stats[key] = 1;
+                        }
                     }
                 })
                 Object.entries(eventRegex).forEach(([key, regex]) => {
@@ -153,7 +162,7 @@ class GameLogParser {
                 const isHoF = line.message.endsWith(hofSuffix);
                 const msg = isHoF ? line.message.substring(0, line.message.length - hofSuffix.length) : line.message
                 Object.entries(globalRegex).forEach(([key, regex]) => {
-                    const match = regex.exec(msg);
+                    const match = regex. exec(msg);
                     if (match !== null) {
                         const { player, name, value, valueLocation } = match.groups;
                         const global: GameLogGlobal = {
