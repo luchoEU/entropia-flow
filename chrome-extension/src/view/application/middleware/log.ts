@@ -8,7 +8,7 @@ import { initialState } from "../helpers/log"
 import { setTabularDefinitions } from "../helpers/tabular"
 import { getGameLog } from "../selectors/log"
 import { GameLogState } from "../state/log"
-import { gameLogTabularData, gameLogTabularDefinitions, gameLogVariables } from "../tabular/log"
+import { gameLogStatsVariables, gameLogTabularData, gameLogTabularDefinitions, gameLogVariables } from "../tabular/log"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -27,6 +27,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const gameLog: GameLogData = action.payload.gameLog
             dispatch(setTabularData(gameLogTabularData(gameLog)))
             dispatch(setStreamVariables('gameLog', gameLogVariables(gameLog)))
+            dispatch(setStreamVariables('gameLogStats', gameLogStatsVariables(gameLog)))
             break
         }
     }

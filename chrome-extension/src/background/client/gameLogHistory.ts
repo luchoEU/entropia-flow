@@ -1,7 +1,7 @@
 //// GAME LOG HISTORY ////
 // Keep the log history and summary from game log
 
-import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
+import { emptyGameLogData, GameLogData, GameLogLine, gameLogStatsEmpty } from "./gameLogData"
 
 const MAX_LOG_LINES = 500
 
@@ -44,9 +44,11 @@ class GameLogHistory implements IGameLogHistory {
 
             const lineDateTime = new Date(line.time);
             if (!this.lastLootDateTime || lineDateTime.getTime() - this.lastLootDateTime.getTime() > 1000) {
-                if (!this.gameLog.stats.lootCount)
-                    this.gameLog.stats.lootCount = 0
-                this.gameLog.stats.lootCount++
+                if (!this.gameLog.stats.lootGroup)
+                    this.gameLog.stats.lootGroup = gameLogStatsEmpty()
+                this.gameLog.stats.lootGroup.count++
+                this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count
+                this.gameLog.stats.lootGroup.history.unshift({ time: lineDateTime, value: 1 })
             }
             this.lastLootDateTime = lineDateTime
         }
@@ -93,8 +95,10 @@ class GameLogHistory implements IGameLogHistory {
         if (line.data.stats) {
             Object.entries(line.data.stats).forEach(([key, value]) => {
                 if (this.gameLog.stats[key] === undefined)
-                    this.gameLog.stats[key] = 0
-                this.gameLog.stats[key] += value
+                    this.gameLog.stats[key] = gameLogStatsEmpty()
+                this.gameLog.stats[key].count++
+                this.gameLog.stats[key].total += value
+                this.gameLog.stats[key].history.unshift({ time: new Date(line.time), value })
             })
         }
 

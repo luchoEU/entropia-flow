@@ -62,6 +62,7 @@ const eventRegex = {
     minimumCondition: /Your (.+) is close to reaching minimum condition, consider repairing it as soon as possible/,
     sessionTime: /Session time: (.+)/,
     entropiaTime: /Entropia Universe time: (.+)/,
+    tradedWith: /You have successfully traded with (.+)/,
     transactionCompleted: /The transaction was completed successfully/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
@@ -115,12 +116,7 @@ class GameLogParser {
                     if (match !== null) {
                         if (!line.data.stats)
                             line.data.stats = {}
-                        if (match.length > 1) {
-                            line.data.stats[key] = parseFloat(match[1]);
-                            line.data.stats[`${key}Count`] = 1;
-                        } else {
-                            line.data.stats[key] = 1;
-                        }
+                        line.data.stats[key] = match.length > 1 ? parseFloat(match[1]) : 1;
                     }
                 })
                 Object.entries(eventRegex).forEach(([key, regex]) => {

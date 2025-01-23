@@ -7,7 +7,7 @@ interface GameLogData {
     global: Array<GameLogGlobal>
     event: Array<GameLogEvent>
     enhancerBroken: Array<GameLogEnhancerBroken>
-    stats: GameLogStats<number>
+    stats: GameLogStats<GameLogStatsDetail>
 }
 
 const emptyGameLogData = (): GameLogData => ({
@@ -22,32 +22,40 @@ const emptyGameLogData = (): GameLogData => ({
     stats: {}
 })
 
+interface GameLogStatsDetail {
+    history: {
+        time: Date,
+        value: number
+    }[]
+    total: number
+    count: number
+}
+
+const gameLogStatsEmpty = (): GameLogStatsDetail => ({
+    history: [],
+    total: 0,
+    count: 0
+})
+
 const gameLogStatsKeys = [
     "attackMissesYou",
     "criticalInflicted",
     "criticalTaken",
     "damageDeflected",
     "damageInflicted",
-    "damageInflictedCount",
     "damageTaken",
-    "damageTakenCount",
-    "lootCount",
+    "lootGroup",
     "reducedCritical",
     "reducedPiercingDamage",
     "selfHeal",
-    "selfHealCount",
     "targetDodgedAttack",
     "targetEvadedAttack",
     "universalAmmo",
-    "universalAmmoCount",
     "vehicleDamage",
-    "vehicleDamageCount",
     "vehicleRepaired",
-    "vehicleRepairedCount",
     "youDodgedAttack",
     "youEvadedAttack",
     "youRepaired",
-    "youRepairedCount",
     "youRevived",
     "youWereKilled",
 ] as const;
@@ -149,6 +157,8 @@ export {
     GameLogStats,
     gameLogStatsKeys,
     gameLogStatsDecimals,
+    GameLogStatsDetail,
+    gameLogStatsEmpty,
     GameLogLine,
     GameLogEvent,
     emptyGameLogData,
