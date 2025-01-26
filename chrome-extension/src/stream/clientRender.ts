@@ -1,8 +1,9 @@
-import { init, propsModule, styleModule, VNode } from 'snabbdom'
+import { attributesModule, init, propsModule, styleModule, VNode } from 'snabbdom'
 import { StreamRenderSingle, StreamRenderSize } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
+import htmlToVNode from './HtmlToSnabb'
 
 const patch = init([
     propsModule, // for setting properties on DOM elements
@@ -26,13 +27,22 @@ export function render(single: StreamRenderSingle, dispatch: (action: string) =>
         // render
         let streamElement: HTMLElement = document.getElementById(STREAM_ID);
         const vNode: VNode = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
-        const canvasElement = streamElement.querySelector('canvas'); // Preserve it to avoid flickering in background
-        if (canvasElement) {
-            streamElement.removeChild(canvasElement);
-        }
-        patch(streamElement, vNode)
-        if (canvasElement && !streamElement.contains(canvasElement)) {
-            streamElement.appendChild(canvasElement);
+        if (streamElement.children.length > 0) {
+            // patch root element manually to preserve canvas
+            if (vNode.data.style) {
+                Object.entries(vNode.data.style)
+                    .forEach(([k, v]) => streamElement.style[k] = v);
+                Array.from(streamElement.style)
+                    .filter(s => s !== 'color' && !vNode.data.style[s]) // color is handled by background
+                    .forEach(s => streamElement.style.removeProperty(s));
+            } else {
+                streamElement.removeAttribute('style');
+            }
+            for (let i = 0; i < streamElement.children.length && i < vNode.children.length; i++) {
+                patch(streamElement.children[i], vNode.children[i] as VNode);
+            }
+        } else {
+            patch(streamElement, vNode);
         }
         streamElement = document.getElementById(STREAM_ID); // get it again after patch
 
