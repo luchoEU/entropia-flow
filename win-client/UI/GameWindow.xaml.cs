@@ -8,6 +8,7 @@ using System.Windows.Media;
 using Point = System.Drawing.Point;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
+using EntropiaFlowClient.Engine;
 
 namespace EntropiaFlowClient
 {
@@ -39,8 +40,9 @@ namespace EntropiaFlowClient
             App.Current.WaitingForConnnection += GameWindow_WaitingForConnnection;
         }
 
-        internal static string? WAITING_LAYOUT_ID;
-        internal static string? MENU_LAYOUT_ID;
+        private static string? WAITING_LAYOUT_ID;
+        private static string? MENU_LAYOUT_ID;
+        private static string? OCR_LAYOUT_ID;
 
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
@@ -123,6 +125,7 @@ namespace EntropiaFlowClient
         {
             WAITING_LAYOUT_ID ??= await ExecuteScriptAsync<string>("WAITING_LAYOUT_ID");
             MENU_LAYOUT_ID ??= await ExecuteScriptAsync<string>("MENU_LAYOUT_ID");
+            OCR_LAYOUT_ID ??= await ExecuteScriptAsync<string>("OCR_LAYOUT_ID");
 
             if (_initialData != null)
             {
@@ -141,6 +144,8 @@ namespace EntropiaFlowClient
 
         internal async Task SwitchMinimized()
         {
+            _waiting = false;
+            //_layoutId = OCR_LAYOUT_ID!;
             _minimized = !_minimized;
             await Render(true);
         }
@@ -220,6 +225,7 @@ namespace EntropiaFlowClient
                 webView2.CoreWebView2.AddHostObjectToScript("lifecycle", new LifecycleScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("dispatcher", new DispatcherScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("layout", new LayoutScriptInterface(this));
+                webView2.CoreWebView2.AddHostObjectToScript("ocr", new OcrScriptInterface(this));
                 webView2.CoreWebView2.AddHostObjectToScript("clipboard", new ClipboardScriptInterface(this));
 
                 var images = new string[] { "flow128.png", "resize.png", "up.png", "right.png", "cross.png" };
@@ -389,6 +395,8 @@ namespace EntropiaFlowClient
         {
             public void Send(string action)
             {
+                if (w.ClicksDisabled)
+                    return;
                 App.Current.Dispatch(action);
             }
         }
@@ -430,6 +438,24 @@ namespace EntropiaFlowClient
                 if (w.ClicksDisabled)
                     return;
                 w.Close();
+            }
+        }
+
+        [ClassInterface(ClassInterfaceType.AutoDual)]
+        [ComVisible(true)]
+        public class OcrScriptInterface(GameWindow w)
+        {
+            public async Task<string> Scan(int left, int top, int width, int height)
+            {
+                if (width <= 2 || height <= 2)
+                    return string.Empty;
+
+                System.Windows.Point point = w.PointToScreen(new System.Windows.Point(left, top));
+                Rectangle screenBounds = new((int)point.X + 1, (int)point.Y + 1, width - 2, height - 2);
+                using Bitmap screenshot = new(screenBounds.Width, screenBounds.Height);
+                using var g = Graphics.FromImage(screenshot);
+                g.CopyFromScreen(screenBounds.Location, Point.Empty, screenBounds.Size);
+                return await TesseractOcr.Execute(screenshot);
             }
         }
 

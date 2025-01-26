@@ -1,11 +1,12 @@
 ﻿const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
 const MENU_LAYOUT_ID = PREFIX_LAYOUT_ID + 'menu';
+const OCR_LAYOUT_ID = PREFIX_LAYOUT_ID + 'ocr';
 
 let _lastData = {
     layouts: {
         [WAITING_LAYOUT_ID]: {
-            name: 'Entropia Flow Client Waiting',
+            name: 'Entropia Flow Waiting',
             htmlTemplate: `
                 <div style="display: flex; align-items: center; margin: 15px;">
                     <img src="{{img.logo}}" alt="Logo" style="width: 50px;">
@@ -40,7 +41,7 @@ let _lastData = {
             }
         },
         [MENU_LAYOUT_ID]: {
-            name: 'Entropia Flow Client Menu',
+            name: 'Entropia Flow Menu',
             htmlTemplate: `
                 {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
             `,
@@ -86,8 +87,62 @@ let _lastData = {
                     });
                 }
             }
-        }
+        },
+        [OCR_LAYOUT_ID]: {
+            name: 'Entropia Flow Scanner',
+            htmlTemplate: `
+                <div class='root'>
+                   <div></div><div class='title'>Scanner</div><div></div>
+                   <div></div><div class='area'></div><div></div>
+                   <div></div><div id='text'></div><div></div>
+                </div>
+            `,
+            cssTemplate: `
+                .root {
+                    display: grid;
+                    grid-template-columns: 20px 1fr 20px;
+                    grid-template-rows: 1fr 20px 20px;
+                }
+                .root > div {
+                    background-color: rgba(0,0,0,.7);
+                }
+                .root > div.area {
+                    background-color: transparent;
+                }
+                .title {
+                    padding: 0px 15px;
+                    margin: 0px;
+                    color: white;
+                    font-size: 20px;
+                }
+                .area {
+                    border: solid 1px red;
+                }
+                #text {
+                    color: white;
+                    font-size: 12px;
+                    font-weight: 100;
+                    text-align: center;
+                }
+                #entropia-flow-client-layout,
+                #entropia-flow-client-menu,
+                #entropia-flow-client-next {
+                    display: none !important;
+                }
+            `,
+            action: () => _setScannerTimeout()
+        },
     }
+}
+
+function _setScannerTimeout() {
+    setTimeout(async () => {
+        const area = document.querySelector('.area');
+        const textDiv = document.getElementById('text');
+        const text = await chrome.webview?.hostObjects.ocr.Scan(area.offsetLeft, area.offsetTop, area.offsetWidth, area.offsetHeight);
+        textDiv.innerText = text ?? '';
+        _setScannerTimeout(); // set 1 second again after it finishes
+    }, 1000);
 }
 
 const _emptyLayout = {
@@ -97,7 +152,7 @@ const _emptyLayout = {
 function receive(delta) {
     _lastData = entropiaFlowStream.applyDelta(_lastData, delta);
     _lastData.data.layouts = Object.entries(_lastData.layouts)
-        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID))
+        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
     _lastData.layoutIdList = _lastData.data.layouts.map(l => l.id);

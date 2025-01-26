@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+	<TargetFramework>net8.0-windows</TargetFramework>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
@@ -16,10 +16,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Resources\flow128w.ico</ApplicationIcon>
+    <ApplicationIcon>UI\flow128w.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Engine\eng.traineddata" />
     <None Remove="GameWindow\Mouse.js" />
     <None Remove="GameWindow\Render.js" />
     <None Remove="GameWindow\StreamView.html" />
@@ -32,7 +33,7 @@
 	<EmbeddedResource Include="..\chrome-extension\dist\img\right.png" Link="Resources\right.png" />
 	<EmbeddedResource Include="..\chrome-extension\dist\img\cross.png" Link="Resources\cross.png" />
     <EmbeddedResource Include="..\chrome-extension\dist\img\flow128.png" Link="Resources\flow128.png" />
-    <EmbeddedResource Include="Resources\flow128w.ico" />
+    <EmbeddedResource Include="Engine\eng.traineddata" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,21 +55,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2277.86" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="websocketsharp.core" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Page Include="App.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="UI\flow128w.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\flow128w.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
