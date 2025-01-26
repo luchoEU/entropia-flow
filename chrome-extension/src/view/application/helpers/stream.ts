@@ -1,6 +1,6 @@
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamRenderLayout, StreamRenderLayoutSet } from '../../../stream/data';
-import { StreamState, StreamStateIn, StreamVariable } from "../state/stream";
+import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream";
 
 const _defaultLayout: StreamRenderLayout = {
     name: 'Entropia Flow Default',
@@ -88,6 +88,7 @@ const initialStateIn: StreamStateIn = {
 const initialState: StreamState = {
     in: initialStateIn,
     variables: { },
+    temporalVariables: { },
     out: undefined
 }
 
@@ -100,6 +101,7 @@ const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): St
         }
     },
     variables: state.variables,
+    temporalVariables: state.temporalVariables,
     out: undefined
 })
 
@@ -129,10 +131,22 @@ const reduceSetStreamBackgroundSelected = (state: StreamState, selected: Backgro
     backgroundType: selected
 })
 
-const reduceSetStreamVariables = (state: StreamState, source: string, variables: StreamVariable[]): StreamState => ({
+const reduceSetStreamVariables = (state: StreamState, source: string, variables: StreamStateVariable[]): StreamState => ({
     ...state,
     variables: {
         ...state.variables,
+        [source]: variables
+    }
+})
+
+const reduceSetStreamTemporalVariables = (state: StreamState, source: string, variables: StreamTemporalVariable[]): StreamState => ({
+    ...state,
+    variables: {
+        ...state.variables,
+        [source]: variables.map(v => ({ name: v.name, value: { total: v.value.total.toFixed(v.decimals ?? 0), count: v.value.count }}))
+    },
+    temporalVariables: {
+        ...state.temporalVariables,
         [source]: variables
     }
 })
@@ -263,7 +277,7 @@ const reduceRemoveStreamUserVariable = (state: StreamState, id: number): StreamS
     }
 })
 
-const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, partial: Partial<StreamVariable>): StreamState => ({
+const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, partial: Partial<StreamUserVariable>): StreamState => ({
     ...state,
     in: {
         ...state.in,
@@ -278,6 +292,7 @@ export {
     reduceSetStreamEnabled,
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
+    reduceSetStreamTemporalVariables,
     reduceSetStreamHtmlTemplate,
     reduceSetStreamCssTemplate,
     reduceSetStreamEditing,

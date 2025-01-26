@@ -7,17 +7,18 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ON_LAST } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS, TICK_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
-import { StreamState, StreamStateIn, StreamStateOut, StreamVariable } from "../state/stream"
+import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
+import { computeServerFormulas } from "../../../stream/formulaCompute"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     const { variables: beforeVariables }: StreamState = getStream(getState())
@@ -46,12 +47,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             await api.storage.saveStream(state)
             break
         }
-        case SET_STREAM_VARIABLES: {
-            const { variables }: StreamState = getStream(getState())
+        case SET_STREAM_VARIABLES:
+        case SET_STREAM_TEMPORAL_VARIABLES:{
+            const { variables, temporalVariables }: StreamState = getStream(getState())
             if (isEqual(beforeVariables, variables))
                 break
 
-            dispatch(setTabularData(streamTabularDataFromVariables(variables)))
+            dispatch(setTabularData(streamTabularDataFromVariables(variables, temporalVariables)))
             break
         }
     }
@@ -130,11 +132,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
-            const { in: { layouts }, variables } = getStream(getState());
+            const { in: { layouts }, variables, temporalVariables } = getStream(getState());
             const vars = Object.values(variables).flat();
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
-            const renderData: StreamRenderData = { data, layouts };
+            const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
+            const renderData: StreamRenderData = { data: computeServerFormulas(data, tObj), layouts };
             dispatch(setStreamData(renderData));
             break;
         }

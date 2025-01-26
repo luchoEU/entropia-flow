@@ -1,7 +1,8 @@
 //// GAME LOG HISTORY ////
 // Keep the log history and summary from game log
 
-import { emptyGameLogData, GameLogData, GameLogLine, gameLogStatsEmpty } from "./gameLogData"
+import { emptyTemporalValue } from "../../common/state"
+import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
 const MAX_LOG_LINES = 500
 
@@ -12,9 +13,13 @@ interface IGameLogHistory {
     onChange: (gameLog: GameLogData) => Promise<void>
 }
 
+function gameTime(time: string): number {
+    return new Date(`${time}Z`).getTime()
+}
+
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
-    private lastLootDateTime: Date
+    private lastLootDateTime: number
     public onChange: (gameLog: GameLogData) => Promise<void>
 
     public getGameLog(): GameLogData { return this.gameLog }
@@ -34,21 +39,21 @@ class GameLogHistory implements IGameLogHistory {
             this.gameLog.raw.splice(MAX_LOG_LINES)
 
         if (line.data.loot) {
-            const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name)
+            const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name);
             if (existing) {
-                existing.value += line.data.loot.value
-                existing.quantity += line.data.loot.quantity
+                existing.value += line.data.loot.value;
+                existing.quantity += line.data.loot.quantity;
             } else {
-                this.gameLog.loot.unshift(line.data.loot)
+                this.gameLog.loot.unshift(line.data.loot);
             }
 
-            const lineDateTime = new Date(line.time);
-            if (!this.lastLootDateTime || lineDateTime.getTime() - this.lastLootDateTime.getTime() > 1000) {
+            const lineDateTime: number = gameTime(line.time);
+            if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime > 1000) {
                 if (!this.gameLog.stats.lootGroup)
-                    this.gameLog.stats.lootGroup = gameLogStatsEmpty()
-                this.gameLog.stats.lootGroup.count++
-                this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count
-                this.gameLog.stats.lootGroup.history.unshift({ time: lineDateTime, value: 1 })
+                    this.gameLog.stats.lootGroup = emptyTemporalValue();
+                this.gameLog.stats.lootGroup.count++;
+                this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count;
+                this.gameLog.stats.lootGroup.history.unshift({ time: lineDateTime, value: 1 });
             }
             this.lastLootDateTime = lineDateTime
         }
@@ -95,10 +100,10 @@ class GameLogHistory implements IGameLogHistory {
         if (line.data.stats) {
             Object.entries(line.data.stats).forEach(([key, value]) => {
                 if (this.gameLog.stats[key] === undefined)
-                    this.gameLog.stats[key] = gameLogStatsEmpty()
+                    this.gameLog.stats[key] = emptyTemporalValue()
                 this.gameLog.stats[key].count++
                 this.gameLog.stats[key].total += value
-                this.gameLog.stats[key].history.unshift({ time: new Date(line.time), value })
+                this.gameLog.stats[key].history.unshift({ time: gameTime(line.time), value })
             })
         }
 
@@ -109,5 +114,6 @@ class GameLogHistory implements IGameLogHistory {
 
 export default GameLogHistory
 export {
+    gameTime,
     IGameLogHistory
 }

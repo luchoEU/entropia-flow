@@ -1,7 +1,7 @@
 
 import React, { JSX } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamVariable } from "../../application/state/stream"
+import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
 import { getStream, getStreamIn } from "../../application/selectors/stream"
 import { addStreamUserVariable, setStreamBackgroundSelected, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName, setStreamUserVariablePartial } from "../../application/actions/stream"

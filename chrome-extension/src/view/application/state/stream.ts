@@ -1,3 +1,4 @@
+import { TemporalValue } from '../../../common/state'
 import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue } from '../../../stream/data'
 
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
@@ -11,7 +12,7 @@ interface StreamStateIn {
     }
     view: string[]
     layouts: StreamRenderLayoutSet
-    userVariables: StreamVariable[]
+    userVariables: StreamUserVariable[]
 }
 
 interface StreamStateOut {
@@ -20,18 +21,37 @@ interface StreamStateOut {
 
 interface StreamState {
     in: StreamStateIn
-    variables: Record<string, StreamVariable[]> // source => variables
+    variables: Record<string, StreamStateVariable[]> // source => variables
+    temporalVariables: Record<string, StreamTemporalVariable[]> // source => variables
     out: StreamStateOut
 }
 
-interface StreamVariable {
-    source?: string
-    id?: number
+interface StreamUserVariable {
+    id: number,
     name: string
-    value: StreamRenderValue
-    computed?: StreamRenderValue
+    value: string
     description?: string
     isImage?: boolean
+}
+
+interface StreamStateVariable {
+    name: string
+    value: StreamRenderValue
+    description?: string
+    isImage?: boolean
+}
+
+interface StreamTemporalVariable {
+    name: string
+    value: TemporalValue
+    decimals?: number
+    description?: string
+}
+
+type StreamComputedVariable = (StreamUserVariable | StreamStateVariable) & {
+    source: string
+    id?: number
+    computed?: StreamRenderValue
 }
 
 export {
@@ -41,5 +61,8 @@ export {
     STREAM_TABULAR_CHOOSER,
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
-    StreamVariable,
+    StreamStateVariable,
+    StreamUserVariable,
+    StreamComputedVariable,
+    StreamTemporalVariable,
 }

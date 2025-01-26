@@ -1,11 +1,12 @@
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData from '../../../stream/data'
-import { StreamState, StreamVariable } from "../state/stream"
+import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream"
 
 const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"
 const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
+const SET_STREAM_TEMPORAL_VARIABLES = "[stream] set temporal variables"
 const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
 const SET_STREAM_CSS_TEMPLATE = "[stream] set css template"
 const SET_STREAM_DATA = "[stream] set data"
@@ -82,8 +83,16 @@ const setStreamName = (name: string) => ({
     }
 })
 
-const setStreamVariables = (source: string, variables: StreamVariable[]) => ({
+const setStreamVariables = (source: string, variables: StreamStateVariable[]) => ({
     type: SET_STREAM_VARIABLES,
+    payload: {
+        source,
+        variables
+    }
+})
+
+const setStreamTemporalVariables = (source: string, variables: StreamTemporalVariable[]) => ({
+    type: SET_STREAM_TEMPORAL_VARIABLES,
     payload: {
         source,
         variables
@@ -116,7 +125,7 @@ const removeStreamUserVariable = (id: number) => ({
     }
 })
 
-const setStreamUserVariablePartial = (id: number, partial: Partial<StreamVariable>) => ({
+const setStreamUserVariablePartial = (id: number, partial: Partial<StreamUserVariable>) => ({
     type: SET_STREAM_USER_VARIABLE_PARTIAL,
     payload: {
         id,
@@ -129,6 +138,7 @@ export {
     SET_STREAM_ENABLED,
     SET_STREAM_BACKGROUND_SELECTED,
     SET_STREAM_VARIABLES,
+    SET_STREAM_TEMPORAL_VARIABLES,
     SET_STREAM_HTML_TEMPLATE,
     SET_STREAM_CSS_TEMPLATE,
     SET_STREAM_DATA,
@@ -144,6 +154,7 @@ export {
     setStreamEnabled,
     setStreamBackgroundSelected,
     setStreamVariables,
+    setStreamTemporalVariables,
     setStreamHtmlTemplate,
     setStreamCssTemplate,
     setStreamData,

@@ -1,3 +1,5 @@
+import { TemporalValue } from "../../common/state"
+
 interface GameLogData {
     raw: Array<GameLogLine>
     loot: Array<GameLogLoot>
@@ -7,7 +9,7 @@ interface GameLogData {
     global: Array<GameLogGlobal>
     event: Array<GameLogEvent>
     enhancerBroken: Array<GameLogEnhancerBroken>
-    stats: GameLogStats<GameLogStatsDetail>
+    stats: GameLogStats<TemporalValue>
 }
 
 const emptyGameLogData = (): GameLogData => ({
@@ -20,21 +22,6 @@ const emptyGameLogData = (): GameLogData => ({
     event: [],
     enhancerBroken: [],
     stats: {}
-})
-
-interface GameLogStatsDetail {
-    history: {
-        time: Date,
-        value: number
-    }[]
-    total: number
-    count: number
-}
-
-const gameLogStatsEmpty = (): GameLogStatsDetail => ({
-    history: [],
-    total: 0,
-    count: 0
 })
 
 const gameLogStatsKeys = [
@@ -157,8 +144,6 @@ export {
     GameLogStats,
     gameLogStatsKeys,
     gameLogStatsDecimals,
-    GameLogStatsDetail,
-    gameLogStatsEmpty,
     GameLogLine,
     GameLogEvent,
     emptyGameLogData,

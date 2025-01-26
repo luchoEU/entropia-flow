@@ -1,5 +1,3 @@
-import { StreamRenderObject } from "./data"
-import FormulaParser from "./formulaParser"
 import Mustache from "mustache";
 import DOMPurify from "dompurify";
 
@@ -49,23 +47,7 @@ function _checkSafeHtml(html: string): string {
     return html
 }
 
-function computeFormulas(obj: StreamRenderObject) {
-    let v = JSON.parse(JSON.stringify(obj))
-    let changed = true
-    while (changed) {
-        changed = false
-        const parser = new FormulaParser(obj)
-        v = Object.fromEntries(Object.entries(v).map(([key, value]) => {
-            if (typeof value === 'string' && value.startsWith('=')) {
-                const result = parser.evaluate(value.slice(1))
-                changed = changed || result !== value
-                return [key, result]
-            }
-            return [key, value]
-        }))
-    }
-    return v
-}
+
 
 const _getCustomUsedVariables = (template: string) => Array.from(template.matchAll(/\{(.*?)\}/g)).map(m => m[1])
 
@@ -146,5 +128,4 @@ function renderCssTemplate(template: string, variables: any): string {
 export {
     renderHtmlTemplate,
     renderCssTemplate,
-    computeFormulas
 }

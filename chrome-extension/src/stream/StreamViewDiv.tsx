@@ -1,7 +1,8 @@
 import React, { JSX } from 'react';
 import { StreamRenderSingle } from './data';
 import { getBackgroundSpec } from './background';
-import { computeFormulas, renderHtmlTemplate, renderCssTemplate } from './template';
+import { renderHtmlTemplate, renderCssTemplate } from './template';
+import { computeFormulas } from './formulaCompute';
 
 const MIN_SIZE = 30
 

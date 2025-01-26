@@ -67,11 +67,14 @@ function setMockDate(date: number) {
     mockDate = date
 }
 
+function getNowDate(): number {
+    return mockDate ? mockDate : new Date().getTime()
+}
+
 function makeLogInventory(_class: string, message: string): Inventory {
-    let date = mockDate ? mockDate : new Date().getTime()
     return {
         log: { class: _class, message },
-        meta: { date }
+        meta: { date: getNowDate() }
     }
 }
 
@@ -102,6 +105,21 @@ function areEqualInventoryList(inv1: Inventory, inv2: Inventory) {
     return true
 }
 
+interface TemporalValue {
+    history: {
+        time: number, // Date.getTime()
+        value: number
+    }[]
+    total: number
+    count: number
+}
+
+const emptyTemporalValue = (): TemporalValue => ({
+    history: [],
+    total: 0,
+    count: 0
+})
+
 export {
     Log,
     Meta,
@@ -113,6 +131,9 @@ export {
     ViewState,
     ViewDispatch,
     setMockDate,
+    getNowDate,
     makeLogInventory,
-    areEqualInventoryList
+    areEqualInventoryList,
+    TemporalValue,
+    emptyTemporalValue,
 }

@@ -155,8 +155,7 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
 
     const stableItemsSubColumnsWidth = _useDeepCompareMemoize(d.width.itemsSubColumns);
     const renderRow = useCallback(
-        ({ index, style }: { index: number; style: React.CSSProperties }) => {
-            return (
+        ({ index, style }: { index: number; style: React.CSSProperties }) => 
             <_ItemRow
                 index={index}
                 style={style}
@@ -165,8 +164,7 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
                 columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
                 height={itemHeight}
                 rowValueRender={d.rowValueRender}
-            />
-        )}, [stableItemsSubColumnsWidth]);
+            />, [stableItemsSubColumnsWidth]);
 
     return (
         <div className='sort-table' style={{ font: FONT }}>

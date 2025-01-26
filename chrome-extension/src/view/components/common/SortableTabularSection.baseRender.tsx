@@ -1,4 +1,4 @@
-import React, { JSX, useRef } from 'react'
+import React, { JSX, useRef, useState } from 'react'
 import { FONT, FONT_BOLD, IMG_WIDTH, INPUT_PADDING, INPUT_WIDTH, ITEM_TEXT_PADDING, RowValue, RowValueRender } from './SortableTabularSection.data'
 import { useDispatch } from 'react-redux'
 import ItemText from './ItemText'
@@ -72,13 +72,16 @@ const BaseRowValueRender: RowValueRender = (p) => {
 
 const _Input = (p: { value: string, width: number, dispatchChange: (value: string) => any }): JSX.Element => {
     const dispatch = useDispatch()
+    const [ text, setText ] = useState(p.value); // don't use p.value directly to avoid losing the cursor position
+
     return <input
         type='text'
-        value={p.value}
+        value={text}
         style={{ width: p.width, font: FONT }}
         onClick={(e) => { e.stopPropagation() }}
         onChange={(e) => {
             e.stopPropagation();
+            setText(e.target.value)
             dispatch(p.dispatchChange(e.target.value))
         }}
     />

@@ -1,7 +1,8 @@
-import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsDecimals, GameLogStatsDetail, gameLogStatsEmpty, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
+import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsDecimals, gameLogStatsKeys, GameLogTier } from "../../../background/client/gameLogData";
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from "../state/log"
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
-import { StreamVariable } from "../state/stream";
+import { StreamStateVariable, StreamTemporalVariable } from "../state/stream";
+import { emptyTemporalValue, TemporalValue } from "../../../common/state";
 
 function _separateCamelCase(s: string): string {
     return s
@@ -49,8 +50,8 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_STATISTICS]: {
         title: 'Statistics',
         columns: ['Name', 'Total', 'Count'],
-        getRow: (g: [string, GameLogStatsDetail]) => [_separateCamelCase(g[0]), g[1].total.toFixed(gameLogStatsDecimals[g[0]] ?? 0), g[1].count.toString()],
-        getRowForSort: (g: [string, GameLogStatsDetail]) => [, g[1]],
+        getRow: (g: [string, TemporalValue]) => [_separateCamelCase(g[0]), g[1].total.toFixed(gameLogStatsDecimals[g[0]] ?? 0), g[1].count.toString()],
+        getRowForSort: (g: [string, TemporalValue]) => [, g[1]],
     },
     [GAME_LOG_TABULAR_MISSING]: {
         title: 'Missing',
@@ -77,7 +78,7 @@ const gameLogTabularData = (gameLog: GameLogData): TabularRawData => ({
     [GAME_LOG_TABULAR_RAW]: gameLog.raw
 })
 
-const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
+const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {
     const teamPlayers = Array.from(new Set(gameLog.team.map(d => d.player))).sort()
     const teamLoot = Object.entries(gameLog.team.reduce((acc, t) => {
         acc[t.name] = acc[t.name] || new Array(teamPlayers.length).fill(0);
@@ -90,19 +91,16 @@ const gameLogVariables = (gameLog: GameLogData): StreamVariable[] => {
     return [{ name: 'team', value: { players: teamPlayers, loot: teamLoot } }]
 }
 
-const gameLogStatsVariables = (gameLog: GameLogData): StreamVariable[] =>
-    gameLogStatsKeys
-        .map(k => {
-            const stats = gameLog.stats?.[k] ?? gameLogStatsEmpty();
-            if (gameLogStatsDecimals[k] > 0)
-                return { name: k.toString(), value: { total: stats.total.toFixed(gameLogStatsDecimals[k]), count: stats.count } }
-            else
-                return { name: k.toString(), value: { count: stats.count } }
-        });
+const gameLogStatsTemporalVariables = (gameLog: GameLogData): StreamTemporalVariable[] =>
+    gameLogStatsKeys.map(k => ({
+        name: k.toString(),
+        value: gameLog.stats?.[k] ?? emptyTemporalValue(),
+        decimals: gameLogStatsDecimals[k]
+    }));
 
 export {
     gameLogTabularDefinitions,
     gameLogVariables,
-    gameLogStatsVariables,
+    gameLogStatsTemporalVariables,
     gameLogTabularData,
 }

@@ -1,5 +1,5 @@
 import { emptyGameLogData, GameLogData } from "./gameLogData"
-import GameLogHistory from "./gameLogHistory"
+import GameLogHistory, { gameTime } from "./gameLogHistory"
 import GameLogParser from "./gameLogParser"
 
 describe('formula parser', () => {
@@ -64,7 +64,7 @@ describe('formula parser', () => {
                 quantity: 19484
             }],
             stats: {
-                lootGroup: { total: 2, count: 2, history: [{ time: new Date('2024-12-23 17:09:18'), value: 1 }, { time: new Date('2024-12-23 17:08:58'), value: 1 }] }
+                lootGroup: { total: 2, count: 2, history: [{ time: gameTime('2024-12-23 17:09:18'), value: 1 }, { time: gameTime('2024-12-23 17:08:58'), value: 1 }] }
             }
         })
     )
@@ -107,7 +107,7 @@ describe('formula parser', () => {
                     total: 1,
                     count: 1,
                     history: [{
-                        time: new Date('2025-01-12 07:47:37'),
+                        time: gameTime('2025-01-12 07:47:37'),
                         value: 1
                     }]
                 }
@@ -133,7 +133,7 @@ describe('formula parser', () => {
                     total: 1,
                     count: 1,
                     history: [{
-                        time: new Date('2025-01-15 09:41:22'),
+                        time: gameTime('2025-01-15 09:41:22'),
                         value: 1
                     }]
                 }
@@ -159,10 +159,10 @@ describe('formula parser', () => {
                     total: 2,
                     count: 2,
                     history: [{
-                        time: new Date('2025-01-15 09:42:23'),
+                        time: gameTime('2025-01-15 09:42:23'),
                         value: 1
                     }, {
-                        time: new Date('2025-01-15 09:41:22'),
+                        time: gameTime('2025-01-15 09:41:22'),
                         value: 1
                     }]
                 },
@@ -185,9 +185,9 @@ describe('formula parser', () => {
 2025-01-21 07:27:12 [System] [] You restored the vehicle's Structural Integrity by 89.5`,
         {
             stats: {
-                youRepaired: { total: 89.5, count: 1, history: [{ time: new Date('2025-01-21 07:27:12'), value: 89.5 }] },
-                vehicleDamage: { total: 64.6, count: 1, history: [{ time: new Date('2025-01-21 07:27:10'), value: 64.6 }] },
-                vehicleRepaired: { total: 29.6, count: 1, history: [{ time: new Date('2025-01-21 07:27:10'), value: 29.6 }] }
+                youRepaired: { total: 89.5, count: 1, history: [{ time: gameTime('2025-01-21 07:27:12'), value: 89.5 }] },
+                vehicleDamage: { total: 64.6, count: 1, history: [{ time: gameTime('2025-01-21 07:27:10'), value: 64.6 }] },
+                vehicleRepaired: { total: 29.6, count: 1, history: [{ time: gameTime('2025-01-21 07:27:10'), value: 29.6 }] }
             }
         }
     ))
@@ -197,8 +197,8 @@ describe('formula parser', () => {
 2025-01-16 07:22:08 [System] [] You took 40.9 points of damage`,
         {
             stats: {
-                damageInflicted: { total: 134.0, count: 1, history: [{ time: new Date('2025-01-16 07:21:41'), value: 134.0 }] },
-                damageTaken: { total: 40.9, count: 1, history: [{ time: new Date('2025-01-16 07:22:08'), value: 40.9 }] }
+                damageInflicted: { total: 134.0, count: 1, history: [{ time: gameTime('2025-01-16 07:21:41'), value: 134.0 }] },
+                damageTaken: { total: 40.9, count: 1, history: [{ time: gameTime('2025-01-16 07:22:08'), value: 40.9 }] }
             }
         }
     ))
@@ -207,7 +207,7 @@ describe('formula parser', () => {
 `2025-01-16 07:21:38 [System] [] You healed yourself 41.4 points`,
         {
             stats: {
-                selfHeal: { total: 41.4, count: 1, history: [{ time: new Date('2025-01-16 07:21:38'), value: 41.4 }] }
+                selfHeal: { total: 41.4, count: 1, history: [{ time: gameTime('2025-01-16 07:21:38'), value: 41.4 }] }
             }
         }
     ))
@@ -216,7 +216,7 @@ describe('formula parser', () => {
 `2025-01-16 07:21:32 [System] [] You received Universal Ammo x (6995622) Value: 699.56 PED`,
         {
             stats: {
-                universalAmmo: { total: 699.56, count: 1, history: [{ time: new Date('2025-01-16 07:21:32'), value: 699.56 }] }
+                universalAmmo: { total: 699.56, count: 1, history: [{ time: gameTime('2025-01-16 07:21:32'), value: 699.56 }] }
             }
         }
     ))
