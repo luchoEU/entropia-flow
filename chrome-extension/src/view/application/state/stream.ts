@@ -26,26 +26,23 @@ interface StreamState {
     out: StreamStateOut
 }
 
-interface StreamUserVariable {
+interface StreamBaseVariable<T> {
+    name: string
+    value: T
+    description?: string
+}
+
+interface StreamUserVariable extends StreamBaseVariable<string> {
     id: number,
-    name: string
-    value: string
-    description?: string
     isImage?: boolean
 }
 
-interface StreamStateVariable {
-    name: string
-    value: StreamRenderValue
-    description?: string
+interface StreamStateVariable extends StreamBaseVariable<StreamRenderValue> {
     isImage?: boolean
 }
 
-interface StreamTemporalVariable {
-    name: string
-    value: TemporalValue
+interface StreamTemporalVariable extends StreamBaseVariable<TemporalValue> {
     decimals?: number
-    description?: string
 }
 
 type StreamComputedVariable = (StreamUserVariable | StreamStateVariable) & {

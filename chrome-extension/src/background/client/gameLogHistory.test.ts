@@ -231,4 +231,22 @@ describe('formula parser', () => {
             }],
         }
     ))
+
+    test('mineral resource', async () => await parseExpect(
+`2025-01-27 06:41:45 [System] [] You received Mineral Resource Deed x (1) Value: 0.0000 PED`,
+        {
+            stats: {
+                mineralResource: { total: 0, count: 1, history: [{ time: gameTime('2025-01-27 06:41:45'), value: 0 }] }
+            }
+        }
+    ))
+
+    test('energy matter resource', async () => await parseExpect(
+`2025-01-27 06:49:55 [System] [] You received Energy Matter Resource Deed x (1) Value: 0.0000 PED`,
+        {
+            stats: {
+                energyMatterResource: { total: 0, count: 1, history: [{ time: gameTime('2025-01-27 06:49:55'), value: 0 }] }
+            }
+        }
+    ))
 })

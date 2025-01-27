@@ -35,8 +35,7 @@ const streamTabularDataFromVariables = (variables: Record<string, StreamStateVar
     obj.img = Object.fromEntries(images.map(v => [v.name, `img.${v.name}`]))
     const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
     const computedObj = computeFormulas(obj, tObj)
-    const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }))
-
+    const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }));
     return {
         [STREAM_TABULAR_VARIABLES]: tVariables,
         [STREAM_TABULAR_IMAGES]: images

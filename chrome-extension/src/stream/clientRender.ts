@@ -1,9 +1,8 @@
-import { attributesModule, init, propsModule, styleModule, VNode } from 'snabbdom'
+import { init, propsModule, styleModule, VNode } from 'snabbdom'
 import { StreamRenderSingle, StreamRenderSize } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
-import htmlToVNode from './HtmlToSnabb'
 
 const patch = init([
     propsModule, // for setting properties on DOM elements

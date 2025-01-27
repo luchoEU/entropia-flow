@@ -8,8 +8,9 @@ const youLootRegex = /You received (.+) x \((.+)\) Value: (.+) PED/
 const itemLootRegex = /(.+) received a (.+)/
 const sharedLootRegex = /(.+) received (.+) \((.+)\)/
 const excludeLoot = [
-    'Universal Ammo',
+    'Energy Matter Resource Deed',
     'Mineral Resource Deed',
+    'Universal Ammo',
 ]
 const statsRegex: GameLogStats<RegExp> = {
     attackMissesYou: /The attack missed you/,
@@ -18,6 +19,8 @@ const statsRegex: GameLogStats<RegExp> = {
     damageDeflected: /Damage deflected!/,
     damageInflicted: /You inflicted (.+) points of damage/,
     damageTaken: /You took (.+) points of damage/,
+    energyMatterResource: /You received Energy Matter Resource Deed x \(\d+\) Value: (.+) PED/,
+    mineralResource: /You received Mineral Resource Deed x \(\d+\) Value: (.+) PED/,
     reducedCritical: /Reduced (.+) points of critical damage/,
     reducedPiercingDamage: /Reduced (.+) points of armor piercing damage/,
     selfHeal: /You healed yourself (.+) points/,
@@ -63,6 +66,7 @@ const eventRegex = {
     sessionTime: /Session time: (.+)/,
     entropiaTime: /Entropia Universe time: (.+)/,
     tradedWith: /You have successfully traded with (.+)/,
+    takenControl: /(.+?) has taken control of the land area (.+?)!/,
     transactionCompleted: /The transaction was completed successfully/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,

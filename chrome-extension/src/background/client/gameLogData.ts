@@ -31,6 +31,8 @@ const gameLogStatsKeys = [
     "damageDeflected",
     "damageInflicted",
     "damageTaken",
+    "energyMatterResource",
+    "mineralResource",
     "lootGroup",
     "reducedCritical",
     "reducedPiercingDamage",

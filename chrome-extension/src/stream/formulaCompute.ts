@@ -6,7 +6,7 @@ function _parseFormulas(obj: StreamRenderObject): [string, Formula][] {
     return Object.entries(obj)
     .filter(([, value]) => typeof value === 'string' && value.startsWith('='))
     .map(([key, value]: [string, string]): [string, Formula] => [key, parseFormula(value.slice(1))])
-    .sort(([ka, fa], [kb, fb]) => fa.usedVariables.has(kb) ? -1 : (fb.usedVariables.has(ka) ? 1 : 0))
+    .sort(([ka, fa], [kb, fb]) => fa.usedVariables.has(kb) ? 1 : (fb.usedVariables.has(ka) ? -1 : 0))
 }
 
 function _computeFormulas(formulas: [string, Formula][], obj: StreamRenderObject, temporalData: Record<string, TemporalValue>): StreamRenderObject {

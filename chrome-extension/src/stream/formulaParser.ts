@@ -1,45 +1,6 @@
 import { getNowDate, TemporalValue } from "../common/state";
 import { StreamRenderObject, StreamRenderValue } from "./data";
 
-type CheckFunction = (v: StreamRenderValue) => string | undefined;
-const _typeCheck = (type: string): CheckFunction => v => typeof v !== type ? type : undefined;
-const _numberCheck = _typeCheck('number');
-const _arrayCheck = (elementCheck?: CheckFunction): CheckFunction => v => {
-    if (!Array.isArray(v))
-        return 'list';
-
-    if (!elementCheck)
-        return;
-
-    for (const i of v) {
-        const result = elementCheck(i);
-        if (result)
-            return `list of ${result}`;
-    }
-}
-
-function _positionString(n: number): string {
-    switch (n) {
-        case 0: return 'first';
-        case 1: return 'second';
-        case 2: return 'third';
-        default: return `${n}th`;
-    }
-}
-
-function _parametersCheck(name: string, args: StreamRenderValue[], check: CheckFunction[]) {
-    if (args.length !== check.length)
-        throw new Error(`EARG: ${name} must have ${check.length} argument${check.length === 1 ? '' : 's'}`);
-
-    for (let i = 0; i < check.length; i++) {
-        const result = check[i](args[i])
-        if (result) {
-            const pos = check.length === 1 ? '' : `${_positionString(i)} `;
-            throw new Error(`EARG: ${name} invalid ${pos}argument, it must be a ${result}`);
-        }
-    }
-}
-
 const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRenderValue> = {
     IF: (args) => {
         let i = 1;
@@ -50,43 +11,45 @@ const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRende
         return i - 1 < args.length ? args[i - 1] : ''
     },
     SUM: (args) => {
-        _parametersCheck('SUM', args, [_arrayCheck(_numberCheck)])
-        return (args[0] as number[]).reduce((a, b) => a + b, 0);
+        const [list] = _parametersCheck('SUM', args, [_arrayCheck(_numberCheck)]) as [number[]]
+        return list.reduce((a, b) => a + b, 0);
     },
     AVERAGE: (args) => {
-        _parametersCheck('AVERAGE', args, [_arrayCheck(_numberCheck)])
-        const list = args[0] as number[]
+        const [list] = _parametersCheck('AVERAGE', args, [_arrayCheck(_numberCheck)]) as [number[]]
         return list.reduce((a, b) => a + b, 0) / list.length;
     },
     COUNT: (args) => {
-        _parametersCheck('COUNT', args, [_arrayCheck()])
-        return (args[0] as StreamRenderValue[]).length;
+        const [list] = _parametersCheck('COUNT', args, [_arrayCheck()]) as [any[]]
+        return list.length;
     },
     ROUND: (args) => {
-        _parametersCheck('ROUND', args, [_numberCheck, _numberCheck])
-        const p = Math.pow(10, (args[1] as number));
-        return Math.round((args[0] as number) / p) * p;
+        const [number, decimals] = _parametersCheck('ROUND', args, [_numberCheck, _numberCheck]) as [number, number]
+        const p = Math.pow(10, decimals);
+        return Math.round(number / p) * p;
     },
     DECIMALS: (args) => {
-        _parametersCheck('DECIMALS', args, [_numberCheck, _numberCheck])
-        if ((args[1] as number) < 0) throw new Error('EARG: DECIMALS second argument must be >= 0');
-        return (args[0] as number).toFixed(args[1] as number);
+        const [number, decimals] = _parametersCheck('DECIMALS', args, [_numberCheck, _positiveNumberCheck]) as [number, number]
+        return number.toFixed(decimals);
+    },
+    NUMBER: (args) => {
+        const [string] = _parametersCheck('NUMBER', args, [_stringCheck]) as [string]
+        return Number.parseFloat(string);
+    }
+}
+
+const _clientHighOrderFormulas: Record<string, (data: FormulaValue, args: IFormula[]) => FormulaValue> = {
+    SELECT: (data, args) => {
+        _parameterCountCheck('SELECT', args, 2);
+        const list =_parameterSingleCheck('SELECT', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
+        return { v: list.map(x => args[1].evaluate({v: x}).v) };
     }
 }
 
 const _serverFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> = {
     LAST: (args) => {
-        if (args.length !== 2)
-            return { v: 'EARG: LAST must have 2 arguments' };
+        const [{t:temporalValue}, {v:argSeconds}] = _parametersCheck('LAST', args, [_temporalCheck, _valueCheck(_numberCheck)]) as [{t:TemporalValue}, {v:number}]
 
-        const temporalValue = args[0].t as TemporalValue
-        if (!temporalValue)
-            return { v: "EARG: LAST invalid first argument, it must be a temporal variable" };
-
-        let seconds = args[1].v
-        if (typeof seconds !== 'number')
-            return { v: "EARG: LAST invalid second argument, it must be a number" };
-
+        let seconds = argSeconds
         let last: number = 0
         let from = getNowDate() - 1000
         const list = [ ]
@@ -109,6 +72,55 @@ const _serverFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> = 
         }
         return { v: list }
     }
+}
+
+type CheckFunction<T> = (v: T) => string | undefined;
+const _typeCheck = (type: string): CheckFunction<StreamRenderValue> => v => typeof v !== type ? `a ${type}` : undefined;
+const _numberCheck = _typeCheck('number');
+const _stringCheck = _typeCheck('string');
+const _positiveNumberCheck = (v: StreamRenderValue) => typeof v !== 'number' ? 'a number' : (v < 0 ? '>= 0' : undefined);
+const _arrayCheck = (elementCheck?: CheckFunction<StreamRenderValue>): CheckFunction<StreamRenderValue> => v => {
+    if (!Array.isArray(v))
+        return 'a list';
+
+    if (!elementCheck)
+        return;
+
+    for (const i of v) {
+        const result = elementCheck(i);
+        if (result)
+            return `a list of ${result.slice(2)}s`;
+    }
+}
+const _valueCheck = (check: CheckFunction<StreamRenderValue>) => (v: FormulaValue) => check(v.v)
+const _temporalCheck = (v: FormulaValue) => v.t ? undefined : 'a temporal variable';
+
+function _positionString(n: number): string {
+    switch (n) {
+        case 0: return 'first';
+        case 1: return 'second';
+        case 2: return 'third';
+        default: return `${n}th`;
+    }
+}
+
+function _parameterCountCheck(name: string, args: any[], count: number) {
+    if (args.length !== count)
+        throw new Error(`EARG: ${name} must have ${count} argument${count === 1 ? '' : 's'}`);
+}
+
+function _parameterSingleCheck(name: string, arg: any, index: number, check: CheckFunction<any>, addPosition: boolean = true): any {
+    const result = check(arg)
+    if (result) {
+        const pos = addPosition ? `${_positionString(index)} ` : '';
+        throw new Error(`EARG: ${name} invalid ${pos}argument, it must be ${result}`);
+    }
+    return arg
+}
+
+function _parametersCheck<T>(name: string, args: T[], check: CheckFunction<T>[]): any[] {
+    _parameterCountCheck(name, args, check.length);
+    return args.map((v, i) => _parameterSingleCheck(name, v, i, check[i], check.length > 1));
 }
 
 type OperatorFunction = (left: StreamRenderValue, right: StreamRenderValue) => StreamRenderValue
@@ -156,7 +168,7 @@ interface Token {
 
 const formulaHelp = `Formulas start with =
 Valid operators: ${_operatorByPrecedence.map(v => Object.keys(v.op)).flat().join(', ')}
-Valid functions: ${[ ...Object.keys(_clientFormulas), ...Object.keys(_serverFormulas) ].join(', ')}`
+Valid functions: ${[ ...Object.keys(_clientFormulas), ...Object.keys(_clientHighOrderFormulas), ...Object.keys(_serverFormulas) ].join(', ')}`
 
 type FormulaValue = { v: StreamRenderValue, t?: Record<string, TemporalValue> | TemporalValue }
 
@@ -205,38 +217,68 @@ const _errorFormula = (text: string): IFormula => ({
     evaluate: () => { throw new Error(text) }
 })
 
-const _baseFormula = (name: string, args: IFormula[]) => ({
-    text: `${name}(${args.map(v => v.text).join(', ')})`,
-    usedVariables: new Set(args.flatMap(v => Array.from(v.usedVariables)))
-})
+const _baseFormula = (name: string, args: IFormula[], hasTarget?: boolean) => {
+    const parameters = hasTarget ? args.slice(1) : args
+    const targetText = hasTarget ? `${args[0].text}.` : ''
+    return {
+        text: `${targetText}${name}(${parameters.map(v => v.text).join(', ')})`,
+        usedVariables: new Set(args.flatMap(v => Array.from(v.usedVariables)))
+    }
+}
+
+type FunctionFormulaFactory = (name: string, args: IFormula[], hasTarget?: boolean) => IFunctionFormula
 
 interface IFunctionFormula extends IFormula {
     function: (target: IFormula) => IFunctionFormula
 }
 
-const _clientFunctionFormula = (name: string, args: IFormula[]): IFunctionFormula => ({
-    ..._baseFormula(name, args),
+const _clientFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
+    ..._baseFormula(name, args, hasTarget),
     evaluate: (d) => ({ v: _clientFormulas[name](args.map(v => v.evaluate(d).v)) }),
     isServer: args.some(v => v.isServer),
-    function: (target: IFormula) => _clientFunctionFormula(name, [target, ...args])
+    function: (target: IFormula) => _clientFunctionFormula(name, [target, ...args], true)
 })
 
-const _serverFunctionFormula = (name: string, args: IFormula[]): IFunctionFormula => ({
-    ..._baseFormula(name, args),
+const _clientHighOrderFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
+    ..._baseFormula(name, args, hasTarget),
+    evaluate: (d) => _clientHighOrderFormulas[name](d, args),
+    isServer: args.some(v => v.isServer),
+    function: (target: IFormula) => _clientHighOrderFunctionFormula(name, [target, ...args], true)
+})
+
+const _serverFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
+    ..._baseFormula(name, args, hasTarget),
     evaluate: (d) => _serverFormulas[name](args.map(v => v.evaluate(d))),
     isServer: true,
-    function: (target: IFormula) => _serverFunctionFormula(name, [target, ...args])
+    function: (target: IFormula) => _serverFunctionFormula(name, [target, ...args], true)
 })
 
+function _evaluateOperand(op: string, d: FormulaValue, formula: IFormula): string | number {
+    const result = formula.evaluate(d).v
+    if (typeof result === 'string') {
+        if (op === '+')
+            return result
+
+        const n = parseFloat(result)
+        if (!Number.isNaN(n))
+            return n;
+    }
+    
+    if (typeof result !== 'number')
+        throw new Error(`EOPE: '${formula.text}' must be a number`)
+
+    return result
+}
+
 const _unaryOperatorFormula = (op: string, formula: IFormula): IFormula => ({
-    evaluate: (d) => ({ v: _unaryOperatorFunction[op](formula.evaluate(d).v) }),
+    evaluate: (d) => ({ v: _unaryOperatorFunction[op](_evaluateOperand(op, d, formula)) }),
     text: `${op}${formula.text}`,
     isServer: formula.isServer,
     usedVariables: formula.usedVariables
 })
 
 const _binaryOperatorFormula = (op: string, left: IFormula, right: IFormula): IFormula => ({
-    evaluate: (d) => ({ v: _binaryOperatorFunction[op](left.evaluate(d).v, right.evaluate(d).v) }),
+    evaluate: (d) => ({ v: _binaryOperatorFunction[op](_evaluateOperand(op, d, left), _evaluateOperand(op, d, right)) }),
     text: `${left.text} ${op} ${right.text}`,
     isServer: left.isServer || right.isServer,
     usedVariables: new Set([...left.usedVariables, ...right.usedVariables])
@@ -333,6 +375,8 @@ class FormulaParser {
                 const fName = token.text.slice(0, -1).toUpperCase(); // remove trailing '('
                 if (_clientFormulas[fName]) {
                     stack.push(_clientFunctionFormula(fName, value));
+                } else if (_clientHighOrderFormulas[fName]) {
+                    stack.push(_clientHighOrderFunctionFormula(fName, value));
                 } else if (_serverFormulas[fName]) {
                     stack.push(_serverFunctionFormula(fName, value));
                 } else {

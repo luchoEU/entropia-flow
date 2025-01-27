@@ -9,7 +9,7 @@ describe('formula parser', () => {
     })
     test('if', async () => {
         expect(parseFormula("IF(delta>0,'green',delta<0,'red','black')")
-            .evaluate({delta: '0.00'}))
+            .evaluate({delta: 0}))
             .toEqual('black')
     })
     test('dot', async () => {
@@ -45,6 +45,21 @@ describe('formula parser', () => {
         expect(parseFormula("sUM([1,3])")
             .evaluate({}))
             .toEqual(4)
+    })
+    test('select', async () => {
+        expect(parseFormula("a.select(c)")
+            .evaluate({ a: [{ b: 1, c: 2 }, { b: 3, c: 4 }] }))
+            .toEqual([2, 4])
+    })
+    test('coerse', async () => {
+        expect(parseFormula("3*t")
+            .evaluate({t:'2.5'}))
+            .toEqual(7.5)
+    })
+    test('concat', async () => {
+        expect(parseFormula("3+t")
+            .evaluate({t:'2.5'}))
+            .toEqual('32.5')
     })
 })
 
@@ -88,5 +103,10 @@ describe('formula errors', () => {
         expect(parseFormula("ROUND('a', 1)")
             .evaluate({}))
             .toEqual("EARG: ROUND invalid first argument, it must be a number")
+    })
+    test('error check operator type', async () => {
+        expect(parseFormula("x*y")
+            .evaluate({x:1, y:'a'}))
+            .toEqual("EOPE: 'y' must be a number")
     })
 })

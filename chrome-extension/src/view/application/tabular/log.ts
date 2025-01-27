@@ -3,6 +3,7 @@ import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABU
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { StreamStateVariable, StreamTemporalVariable } from "../state/stream";
 import { emptyTemporalValue, TemporalValue } from "../../../common/state";
+import { StreamRenderObject } from "../../../stream/data";
 
 function _separateCamelCase(s: string): string {
     return s
@@ -88,7 +89,15 @@ const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => ({ name: k, quantity: v }))
 
-    return [{ name: 'team', value: { players: teamPlayers, loot: teamLoot } }]
+    return [
+        { name: 'loot', value: gameLog.loot },
+        { name: 'tier', value: gameLog.tier },
+        { name: 'skill', value: gameLog.skill },
+        { name: 'enhancerBroken', value: gameLog.enhancerBroken },
+        { name: 'global', value: gameLog.global },
+        { name: 'event', value: gameLog.event as any },
+        { name: 'team', value: { players: teamPlayers, loot: teamLoot } }
+    ]
 }
 
 const gameLogStatsTemporalVariables = (gameLog: GameLogData): StreamTemporalVariable[] =>
