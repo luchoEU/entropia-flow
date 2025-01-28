@@ -155,7 +155,7 @@ function receive(delta) {
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
-    _lastData.layoutIdList = _lastData.data.layouts.map(l => l.id);
+    _lastData.layoutIdList = _lastData.data.layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
 }
 
 function dispatch(action) {
