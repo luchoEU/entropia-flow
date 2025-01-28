@@ -3,6 +3,7 @@ import { StreamRenderSingle, StreamRenderSize } from "./data"
 import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
+import { toCamelCase } from '../common/css'
 
 const patch = init([
     propsModule, // for setting properties on DOM elements
@@ -32,7 +33,7 @@ export function render(single: StreamRenderSingle, dispatch: (action: string) =>
                 Object.entries(vNode.data.style)
                     .forEach(([k, v]) => streamElement.style[k] = v);
                 Array.from(streamElement.style)
-                    .filter(s => s !== 'color' && !vNode.data.style[s]) // color is handled by background
+                    .filter(s => s !== 'color' && !vNode.data.style[toCamelCase(s)]) // color is handled by background
                     .forEach(s => streamElement.style.removeProperty(s));
             } else {
                 streamElement.removeAttribute('style');

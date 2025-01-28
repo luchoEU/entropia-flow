@@ -1,4 +1,4 @@
-import { multiIncludes } from "../../../common/string";
+import { multiIncludes } from "../../../common/filter";
 import { TabularDefinition, TabularDefinitions, TabularRawData, TabularState, TabularStateData } from "../state/tabular";
 import { byTypeComparer, cloneAndSort, nextSortSecuence, SortColumnDefinition } from "./sort";
 

@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { filterExact, filterOr } from "../../../common/string"
+import { filterExact, filterOr } from "../../../common/filter"
 import { CLEAR_WEB_ON_LOAD } from "../../../config"
 import { loadFromWeb, WebLoadResponse } from "../../../web/loader"
 import { RawMaterialWebData } from "../../../web/state"

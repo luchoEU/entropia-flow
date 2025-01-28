@@ -1,5 +1,5 @@
 import { Inventory, ItemData } from "../../../common/state";
-import { multiIncludes } from "../../../common/string";
+import { multiIncludes } from "../../../common/filter";
 import { BlueprintData, CraftState } from "../state/craft";
 import {
   InventoryState,
