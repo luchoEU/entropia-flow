@@ -23,10 +23,9 @@ class BaseBackground implements IBackground {
         this.ready = true
 
         this.callOnContainerResize();
-        const that = this
-        this.resizeObserver = new ResizeObserver(() => {
-            that.callOnContainerResize()
-        });
+        this.resizeObserver = new ResizeObserver(function() {
+            this.callOnContainerResize()
+        }.bind(this));
         this.resizeObserver.observe(this.container);
     }
 
