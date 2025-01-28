@@ -17,13 +17,13 @@ class MockAlarmManager implements IAlarmManager {
         return this.getTimeLeftMock()
     }
 
-    getStatusMock = jest.fn()
-    async getStatus(): Promise<string> {
-        return this.getStatusMock()
+    isActiveMock = jest.fn()
+    async isActive(): Promise<boolean> {
+        return this.isActiveMock()
     }
 
     listenMock = jest.fn()
-    listen(callback: () => Promise<void>): void {
+    listen(callback: () => Promise<boolean>): void {
         this.listenMock(callback)
     }
 }

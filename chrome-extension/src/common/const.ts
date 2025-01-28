@@ -35,6 +35,7 @@ const CLASS_REQUESTED = 'requested'
 const CLASS_LAST = 'last'
 
 // Strings
+const STRING_CONNECTING = 'connecting...'
 const STRING_LOADING_PAGE = 'loading page...'
 const STRING_LOADING_ITEMS = 'loading items...'
 const STRING_NOT_READY = 'not ready' // when items in html are not loaded yet
@@ -42,11 +43,11 @@ const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
 const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked'
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
-const STRING_ALARM_OFF = 'OFF'
 
 // Alarm
 const HTML_ALARM_NAME = 'refreshItemsHtmlAlarm'
 const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
+const TICK_ALARM_NAME = 'refreshItemsTickAlarm'
 
 // Storage
 const STORAGE_INVENTORY_ = 'inventoryList'
@@ -94,6 +95,7 @@ const ERROR_429 = 'Too many requests'
 const URL_MY_ITEMS = 'https://account.entropiauniverse.com/account/my-account/my-items/json.xml'
 
 // Waits
+const TICK_SECONDS = 1 // updates countdown
 const FIRST_HTML_CHECK_WAIT_SECONDS = 5 // read items from html after 5 seconds
 const NEXT_HTML_CHECK_WAIT_SECONDS = 2 // if they weren't ready check again every 2 seconds
 const NORMAL_WAIT_SECONDS = 3 * 60 // minimum wait to avoid ERROR_429
@@ -127,6 +129,7 @@ export {
     CLASS_ERROR,
     CLASS_REQUESTED,
     CLASS_LAST,
+    STRING_CONNECTING,
     STRING_LOADING_PAGE,
     STRING_LOADING_ITEMS,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
@@ -134,9 +137,9 @@ export {
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_WAIT_3_MINUTES,
-    STRING_ALARM_OFF,
     HTML_ALARM_NAME,
     AJAX_ALARM_NAME,
+    TICK_ALARM_NAME,
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,
     STORAGE_QUOTA_BYTES,
@@ -176,6 +179,7 @@ export {
     ERROR_425,
     ERROR_429,
     URL_MY_ITEMS,
+    TICK_SECONDS,
     FIRST_HTML_CHECK_WAIT_SECONDS,
     NEXT_HTML_CHECK_WAIT_SECONDS,
     NORMAL_WAIT_SECONDS,

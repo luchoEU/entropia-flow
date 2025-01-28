@@ -5,7 +5,7 @@ import {
     STORAGE_INVENTORY_STRINGS_,
     STORAGE_QUOTA_BYTES_PER_ITEM
 } from '../../common/const'
-import { areEqualInventoryList, Inventory, Log, makeLogInventory, Meta } from '../../common/state'
+import { areEqualInventoryList, Inventory, makeLogInventory } from '../../common/state'
 import { trace, traceData } from '../../common/trace'
 import StringTable from './stringTable'
 import IStorageArea from '../../chrome/IStorageArea'

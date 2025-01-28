@@ -36,15 +36,7 @@ interface TimeLeft {
     seconds: number
 }
 
-enum StatusType {
-    Log,
-    Time
-}
-
-interface Status {
-    type: StatusType
-    log?: Log
-    time?: TimeLeft
+interface Status extends Log {
     isMonitoring: boolean
 }
 
@@ -127,7 +119,6 @@ export {
     ItemData,
     TimeLeft,
     Status,
-    StatusType,
     ViewState,
     ViewDispatch,
     setMockDate,

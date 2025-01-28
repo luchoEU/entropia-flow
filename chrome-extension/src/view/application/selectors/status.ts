@@ -1,1 +1,3 @@
-export const getStatus = state => state.status;
+import StatusState from "../state/status";
+
+export const getStatus = (state: any): StatusState => state.status;

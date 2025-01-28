@@ -1,5 +1,5 @@
 import { CLASS_ERROR, CLASS_INFO, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_PLEASE_LOG_IN } from "../common/const"
-import { ViewState, Status, TimeLeft, StatusType } from "../common/state"
+import { ViewState, Status, TimeLeft } from "../common/state"
 import { emptyGameLogData } from "./client/gameLogData"
 
 const TIME_1_MIN: TimeLeft = {
@@ -11,29 +11,23 @@ const DATE_CONST = 1
 
 const STATE_LOADING_PAGE: ViewState = {
     status: {
-        type: StatusType.Log,
-        log: {
-            class: CLASS_INFO,
-            message: STRING_LOADING_PAGE
-        },
+        class: CLASS_INFO,
+        message: STRING_LOADING_PAGE,
         isMonitoring: false
     }
 }
 
 const STATE_LOADING_ITEMS: ViewState = {
     status: {
-        type: StatusType.Log,
-        log: {
-            class: CLASS_INFO,
-            message: STRING_LOADING_ITEMS
-        },
+        class: CLASS_INFO,
+        message: STRING_LOADING_ITEMS,
         isMonitoring: true
     }
 }
 
 const STATUS_1_MIN: Status = {
-    type: StatusType.Time,
-    time: TIME_1_MIN,
+    class: CLASS_INFO,
+    message: 'updates in 01:00',
     isMonitoring: true
 }
 
@@ -42,11 +36,8 @@ const STATE_1_MIN: ViewState = {
 }
 
 const STATUS_PLEASE_LOG_IN: Status = {
-    type: StatusType.Log,
-    log: {
-        class: CLASS_ERROR,
-        message: STRING_PLEASE_LOG_IN
-    },
+    class: CLASS_ERROR,
+    message: STRING_PLEASE_LOG_IN,
     isMonitoring: true
 }
 

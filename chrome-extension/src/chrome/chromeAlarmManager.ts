@@ -1,5 +1,4 @@
 /// <reference types="chrome"/>
-import { STRING_ALARM_OFF } from '../common/const'
 import { TimeLeft } from '../common/state'
 import IAlarmManager from './IAlarmManager'
 
@@ -13,12 +12,16 @@ class ChromeAlarmManager implements IAlarmManager {
         this.name = name
     }
 
-    public listen(callback: () => Promise<void>) {
-        chrome.alarms.onAlarm.addListener(async function(alarm) {
-            if (alarm.name == this.name)
-                await callback()
-            if (this.periodInSeconds)
-                chrome.alarms.create(this.name, { when: Date.now() + this.periodInSeconds * 1000 });
+    public listen(callback: () => Promise<boolean>) {
+        chrome.alarms.onAlarm.addListener(async function(alarm: chrome.alarms.Alarm) {
+            if (alarm.name === this.name) {
+                if (await callback()) {
+                    if (this.periodInSeconds)
+                        chrome.alarms.create(this.name, { when: Date.now() + this.periodInSeconds * 1000 });
+                } else {
+                    await this.end()
+                }
+            }
         }.bind(this))
     }
 
@@ -49,13 +52,8 @@ class ChromeAlarmManager implements IAlarmManager {
         }
     }
 
-    public async getStatus() {
-        const time = await this.getTimeLeft()
-        if (time !== undefined) {
-            return `${time.minutes}:${time.seconds.toString().padStart(2, '0')}`
-        } else {
-            return STRING_ALARM_OFF
-        }
+    public async isActive(): Promise<boolean> {
+        return this.periodInSeconds !== undefined
     }
 }
 

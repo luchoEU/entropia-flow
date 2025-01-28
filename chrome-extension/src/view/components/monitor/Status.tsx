@@ -12,7 +12,7 @@ import ImgButton from '../common/ImgButton';
 const Status = () => {
     const dispatch = useDispatch()
     const history: HistoryState = useSelector(getHistory)
-    const { className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
+    const { class: className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
 
     return (
         <section>

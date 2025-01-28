@@ -29,7 +29,7 @@ class ViewStateManager {
     public async get(): Promise<ViewState> {
         const list = await this.inventory.getList()
         const last = await this.viewSettings.getLast()
-        const status = await this.refreshManager.getAlarmStatus()
+        const status = await this.refreshManager.getStatus()
         const gameLog = await this.gameLogHistory.getGameLog()
         const clientState = await this.webSocketClient.getState()
         return { list, last, status, gameLog, clientState }
@@ -51,7 +51,7 @@ class ViewStateManager {
     public async setList(list: Array<Inventory>): Promise<void> {
         if (this.onChange) {
             const last = await this.viewSettings.getLast()
-            const status = await this.refreshManager.getAlarmStatus()
+            const status = await this.refreshManager.getStatus()
             await this.onChange({ list, last, status })
         }
     }

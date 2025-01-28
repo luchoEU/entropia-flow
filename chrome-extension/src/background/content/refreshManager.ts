@@ -1,6 +1,6 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
-import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_ALARM_OFF, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN } from "../../common/const";
-import { Inventory, Status, StatusType } from "../../common/state";
+import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
+import { Inventory, Status, TimeLeft } from "../../common/state";
 import { trace, traceData } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
@@ -15,42 +15,53 @@ interface IContentTab {
 class RefreshManager {
     private htmlAlarm: IAlarmManager
     private ajaxAlarm: IAlarmManager
+    private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
     private contentTab: IContentTab
+    private isContentConnected = false
     public onInventory: (inventory: Inventory) => Promise<void>
     public setViewStatus: (status: Status) => Promise<void>
 
-    constructor(htmlAlarm: IAlarmManager, ajaxAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
+    constructor(htmlAlarm: IAlarmManager, ajaxAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
         this.htmlAlarm = htmlAlarm
         this.ajaxAlarm = ajaxAlarm
+        this.tickAlarm = tickAlarm
         this.alarmSettings = alarmSettings
 
         // prepare alarms
         this.htmlAlarm?.listen(async () => {
-            await this.htmlAlarm.end()
-            await this.requestItemsHtml()
+            await this.requestItemsHtml();
+            return false;
         })
         this.ajaxAlarm?.listen(async () => {
-            await this.ajaxAlarm.end()
             if (await this.alarmSettings.isMonitoringOn())
-                await this.requestItemsAjax()
+                await this.requestItemsAjax();
+            return false;
+        })
+        this.tickAlarm?.listen(async () => {
+            this._setViewStatus();
+            return true;
         })
     }
 
     public setContentTab(contentTab: IContentTab) {
-        this.contentTab = contentTab
+        this.contentTab = contentTab;
 
         contentTab.onConnected = async () => {
-            await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE)
-            const on = await this.alarmSettings.isMonitoringOn()
-            await this.contentTab.setStatus(on)
-            await this.htmlAlarm.start(FIRST_HTML_CHECK_WAIT_SECONDS) // read the items loaded by the page when ready
+            this.isContentConnected = true;
+            await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
+            const on = await this.alarmSettings.isMonitoringOn();
+            await this.contentTab.setStatus(on);
+            await this.htmlAlarm?.start(FIRST_HTML_CHECK_WAIT_SECONDS); // read the items loaded by the page when ready
+            await this.tickAlarm?.start(TICK_SECONDS);
         }
 
         contentTab.onDisconnected = async () => {
-            await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN)
-            await this.htmlAlarm.end()
-            await this.ajaxAlarm.end()
+            this.isContentConnected = false;
+            await this._setViewStatus();
+            await this.htmlAlarm?.end();
+            await this.ajaxAlarm?.end();
+            await this.tickAlarm?.end();
         }
     }
 
@@ -59,8 +70,12 @@ class RefreshManager {
     }
 
     private async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean) {
-        const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
-        await this.handleRequestResult(message)
+        if (!this.isContentConnected) {
+            await this._setViewStatus()
+        } else {
+            const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
+            await this.handleRequestResult(message)
+        }
     }
 
     private async handleRequestResult(message?: string) {
@@ -76,10 +91,9 @@ class RefreshManager {
 
         if (message !== undefined) {
             const isMonitoring = await this.alarmSettings?.isMonitoringOn() ?? true
-            await this.setViewStatus({ type: StatusType.Log, log: { class: _class, message }, isMonitoring })
-        }
-        else {
-            await this.setViewStatus(await this.getAlarmStatus())
+            await this.setViewStatus({ class: _class, message, isMonitoring })
+        } else {
+            await this.setViewStatus(await this.getStatus())
         }
     }
 
@@ -114,10 +128,10 @@ class RefreshManager {
             await this._setViewStatus()
         } else {
             await this.alarmSettings.turnMonitoringOn(true)
-            if (await this.ajaxAlarm.getStatus() === STRING_ALARM_OFF) {
-                await this.requestItemsAjax()
-            } else {
+            if (await this.ajaxAlarm.isActive()) {
                 await this._setViewStatus()
+            } else {
+                await this.requestItemsAjax()
             }
         }
         await this.contentTab?.setStatus(true)
@@ -137,14 +151,23 @@ class RefreshManager {
         await this.requestItemsAjax(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
     }
 
-    public async getAlarmStatus(): Promise<Status> {
-        const isMonitoring = await this.alarmSettings.isMonitoringOn()
-        const time = await this.ajaxAlarm.getTimeLeft()
-        if (time !== undefined) {
-            return { type: StatusType.Time, time, isMonitoring }
-        } else {
-            return { type: StatusType.Log, log: { class: CLASS_ERROR, message: STRING_PLEASE_LOG_IN }, isMonitoring }
+    public async getStatus(): Promise<Status> {
+        const isMonitoring = await this.alarmSettings?.isMonitoringOn()
+        if (!this.isContentConnected) {
+            return { class: CLASS_ERROR, message: STRING_PLEASE_LOG_IN, isMonitoring }
         }
+
+        let when: string
+        const time = await this.ajaxAlarm?.getTimeLeft()
+        if (!time || time.minutes === 0 && time.seconds === 0) {
+            when = 'now';
+        } else {
+            const pad = (n: number) => n.toString().padStart(2, '0');
+            when = `in ${pad(time.minutes)}:${pad(time.seconds)}`;
+        }
+
+        const message = `${isMonitoring ? 'updates' : 'safe to refresh'} ${when}`;
+        return { class: CLASS_INFO, message, isMonitoring }
     }
 }
 

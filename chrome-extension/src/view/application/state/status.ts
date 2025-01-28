@@ -1,12 +1,6 @@
-interface STATUS_STATE {
-    className: string,
-    message: string,
-    showLoading: boolean,
-    showTimer: boolean,
-    time: Array<number>,
-    isMonitoring: boolean
-}
+import { Status } from "../../../common/state";
 
-export {
-    STATUS_STATE
+export default interface StatusState extends Status {
+    showLoading: boolean,
+    showTimer: boolean
 }
