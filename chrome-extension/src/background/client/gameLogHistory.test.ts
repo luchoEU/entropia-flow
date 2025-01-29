@@ -249,4 +249,34 @@ describe('formula parser', () => {
             }
         }
     ))
+
+    test('new rank', async () => await parseExpect(
+`2025-01-28 19:56:15 [System] [] You have gained 0.3984 experience in your Mining Laser Operator skill
+2025-01-28 19:56:15 [System] [] You have gained a new rank in Mining Laser Operator!`,
+        {
+            skill: [{
+                name: 'Mining Laser Operator',
+                value: 0.3984
+            }],
+            event: [{
+                action: 'newRank',
+                name: 'Mining Laser Operator',
+                time: '2025-01-28 19:56:15'
+            }]
+        }
+    ))
+
+    test('discovery', async () => await parseExpect(
+`2025-01-28 21:20:43 [Globals] [] Nanashana Nana Itsanai is the first colonist to discover Genesis Star Ivaldi III (L) Blueprint (L)! A record has been added to the Hall of Fame!`,
+        {
+            global: [{
+                time: '2025-01-28 21:20:43',
+                type: 'discover',
+                player: 'Nanashana Nana Itsanai',
+                name: 'Genesis Star Ivaldi III (L) Blueprint (L)',
+                value: undefined,
+                isHoF: true,
+            }]
+        }
+    ))
 })

@@ -31,6 +31,7 @@ const statsRegex: GameLogStats<RegExp> = {
     vehicleRepaired: /The vehicle's Structural Integrity restored by (.+)/,
     youDodgedAttack: /You Dodged the attack/,
     youEvadedAttack: /You Evaded the attack/,
+    youMissed: /You missed/,
     youRepaired: /You restored the vehicle's Structural Integrity by (.+)/,
     youRevived: /You have been revived/,
     youWereKilled: /You were killed by/,
@@ -42,41 +43,43 @@ const globalRegex = {
     craft: /(?<player>.+) constructed an item \((?<name>.+)\) worth (?<valueLocation>.+)!/,
     found: /(?<player>.+) has found a rare item \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
     mine: /(?<player>.+) found a deposit \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
-    tier: /(?<player>.+) is the first colonist to reach tier (?<value>\d+) for (?<name>.+)!/
+    tier: /(?<player>.+) is the first colonist to reach tier (?<value>\d+) for (?<name>.+)!/,
+    discover: /(?<player>.+) is the first colonist to discover (?<name>.+)!/,
 }
-const skillRegex = /You have gained (.+?) (experience in your )?(.+?)( skill)?$/
+const skillRegex = /You have gained (\d+(?:.\d+)) (experience in your )?(.+?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
 const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
 const braketRegex = /\[(.+?)]/g
 const tierRegex = /Your (.+) has reached tier (.+)/
 const eventRegex = {
-    logout: /(.+) has logged out/,
-    login: /(.+) has logged in/,
-    effectOverTime: /Received Effect Over Time: (.+)/ , 
-    effectEquip: /Equip Effect: (.+)/,
-    missionCompleted: /Mission completed \((.+)\)/,
-    missionUpdated: /Mission updated \((.+)\)/,
-    limitedMinimumCondition: /Your (.+?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
-    killed: /You were killed by the \w+ (.+)/,
-    itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
-    itemEffectAdded: /Item Set Effect: (.+)/,
-    missionReceived: /New Mission received \((.+)\)/,
+    blueprintImproved: /Your blueprint Quality Rating has improved/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
-    minimumCondition: /Your (.+) is close to reaching minimum condition, consider repairing it as soon as possible/,
-    sessionTime: /Session time: (.+)/,
+    effectEquip: /Equip Effect: (.+)/,
+    effectOverTime: /Received Effect Over Time: (.+)/ , 
+    enteredVehicle: /(.+) entered the vehicle/,
     entropiaTime: /Entropia Universe time: (.+)/,
-    tradedWith: /You have successfully traded with (.+)/,
+    healingDiminished: /Healing is diminished while moving/,
+    itemEffectAdded: /Item Set Effect: (.+)/,
+    itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
+    itemRepaired: /Item\(s\) repaired successfully/,
+    killed: /You were killed by the \w+ (.+)/,
+    limitedMinimumCondition: /Your (.+?) is close to reaching minimum condition, note that limited \(L\) items cannot be repaired/,
+    login: /(.+) has logged in/,
+    logout: /(.+) has logged out/,
+    minimumCondition: /Your (.+) is close to reaching minimum condition, consider repairing it as soon as possible/,
+    missionCompleted: /Mission completed \((.+)\)/,
+    missionReceived: /New Mission received \((.+)\)/,
+    missionUpdated: /Mission updated \((.+)\)/,
+    newRank: /You have gained a new rank in (.+)!/,
+    petReturned: /Your pet has been returned to your inventory/,
+    resourceDepleted: /This resource is depleted/,
+    savedByDivine: /You have been saved from certain death by divine intervention/,
+    sessionTime: /Session time: (.+)/,
     takenControl: /(.+?) has taken control of the land area (.+?)!/,
+    tradedWith: /You have successfully traded with (.+)/,
     transactionCompleted: /The transaction was completed successfully/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
-    savedByDivine: /You have been saved from certain death by divine intervention/,
-    healingDiminished: /Healing is diminished while moving/,
-    itemRepaired: /Item\(s\) repaired successfully/,
-    petReturned: /Your pet has been returned to your inventory/,
-    resourceDepleted: /This resource is depleted/,
-    blueprintImproved: /Your blueprint Quality Rating has improved/,
-    enteredVehicle: /(.+) entered the vehicle/,
 }
 const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
@@ -135,9 +138,12 @@ class GameLogParser {
                 })
                 const skillMatch = skillRegex.exec(line.message);
                 if (skillMatch !== null) {
-                    line.data.skill = {
-                        name: skillMatch[3],
-                        value: parseFloat(skillMatch[1])
+                    const value = parseFloat(skillMatch[1])
+                    if (!Number.isNaN(value)) {
+                        line.data.skill = {
+                            name: skillMatch[3],
+                            value
+                        }
                     }
                 }
                 const attributeMatch = attributeRegex.exec(line.message);
@@ -180,8 +186,8 @@ class GameLogParser {
                                 global.location = valueLocationMatch[3];
                                 line.data.global = global
                             }
-                        } else if (value) {
-                            global.value = parseInt(value);
+                        } else {
+                            global.value = value && parseInt(value);
                             line.data.global = global
                         }
                     }
