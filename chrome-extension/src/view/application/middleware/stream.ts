@@ -154,8 +154,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case WEB_SOCKET_STATE_CHANGED: {
             const code: WebSocketStateCode = action.payload.code
             if (_lastWebSocketCode !== code) {
-                if (code === WebSocketStateCode.connected)
-                    _dataInClient = undefined // it is a new client
+                if (code === WebSocketStateCode.connected) {
+                    // it is a new client, send all current data
+                    const { data }: StreamStateOut = getStreamOut(getState())
+                    dispatch(sendWebSocketMessage('stream', data))
+                    _dataInClient = data
+                }
                 _lastWebSocketCode = code
             }
             break
