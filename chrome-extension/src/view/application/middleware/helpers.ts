@@ -1,4 +1,4 @@
-import { trace, traceData } from "../../../common/trace"
+import { traceError } from "../../../common/trace"
 import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
 import { NEW_DAY } from "../actions/helpers"
 import { getCalculatorOutME } from "../selectors/calculator"
@@ -16,8 +16,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 break
             } catch (e) {
                 dispatch(setLoadingError(e.message))
-                trace('exception calculator ME:')
-                traceData(e)
+                traceError('HelpersMiddleware', 'exception calculator ME:', e)
             }
         }
     }

@@ -32,7 +32,7 @@ function getText(inventory: Inventory, onlyLastDate?: boolean) {
                 ld = ` ... ${s}`
         }
 
-        return `${d}${ld} - ${inventory.meta.total} PED (${inventory.itemlist.length} items)`;
+        return `${d}${ld} - ${inventory.meta.total} PED (${inventory.itemlist?.length} items)`;
     }
 }
 

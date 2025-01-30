@@ -1,6 +1,6 @@
 import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY } from '../common/const'
 import { Inventory, makeLogInventory } from '../common/state'
-import { trace, traceData } from '../common/trace'
+import { traceError } from '../common/trace'
 
 // Read items from local html or get them using ajax
 
@@ -94,8 +94,7 @@ class ItemsReader {
             json = await this._getJson(res)
             waitSeconds = this._getWaitSeconds(res, waitSeconds)
         } catch (e) {
-            trace('json exception:')
-            traceData(e)
+            traceError('ItemsReader', 'json exception:', e)
             json = makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
         json.waitSeconds = waitSeconds

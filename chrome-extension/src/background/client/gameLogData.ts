@@ -133,8 +133,9 @@ interface GameLogPosition {
 
 interface GameLogEvent {
     time: string
-    name: string
     action: string
+    data: string[]
+    message: string
 }
 
 export {

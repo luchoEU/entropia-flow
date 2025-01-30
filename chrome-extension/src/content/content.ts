@@ -64,10 +64,10 @@ class ContentInitializer {
                 }
 
                 ContentInitializer.itemsLoadingTime = new Date().getTime();
-                traceStart('Refresh item received')
+                traceStart('RefreshItem', 'received')
                 const inventory = await itemReader.requestItemsAjax(m.waitSeconds)
                 inventory.tag = m.tag
-                traceEnd('Refresh item completed')
+                traceEnd('RefreshItem', 'completed')
                 ContentInitializer.itemsLoadedTime = new Date().getTime();
                 ContentInitializer.itemsLoadingTime = undefined;
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }

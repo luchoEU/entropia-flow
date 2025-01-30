@@ -40,13 +40,14 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_GLOBAL]: {
         title: 'Global',
         columns: ['Time', 'Player', 'Name', 'Type', 'Value', 'Location', 'HOF'],
-        getRow: (g: GameLogGlobal) => [g.time, g.player, g.name, g.type, g.value.toFixed(0), g.location , g.isHoF ? '[HoF]' : ''],
-        getRowForSort: (g: GameLogGlobal) => [,,,,g.value,,],
+        getRow: (g: GameLogGlobal) => [g.time, g.player, g.name, g.type, g.value?.toFixed(0), g.location , g.isHoF ? '[HoF]' : ''],
+        getRowForSort: (g: GameLogGlobal) => [,,,,g.value ?? 0],
     },
     [GAME_LOG_TABULAR_EVENT]: {
         title: 'Events',
-        columns: ['Time', 'Name', 'Action'],
-        getRow: (g: GameLogEvent) => [g.time, g.name, _separateCamelCase(g.action)],
+        columns: ['Time', 'Action', 'Data'],
+        getRow: (g: GameLogEvent) => [g.time, { text: _separateCamelCase(g.action), title: g.message }, g.data.toString()],
+        getRowForSort: (g: GameLogEvent) => [,_separateCamelCase(g.action)],
     },
     [GAME_LOG_TABULAR_STATISTICS]: {
         title: 'Statistics',

@@ -61,52 +61,74 @@ describe('formula parser', () => {
             .evaluate({t:'2.5'}))
             .toEqual('32.5')
     })
+    test('number', async () => {
+        expect(parseFormula('number("2.5")')
+            .evaluate({}))
+            .toEqual(2.5)
+    })
+})
+
+describe('formula print', () => {
+    test('help', async () => {
+        expect(parseFormula('(a - b).sum()').text).toEqual('(a - b).SUM()')
+    })
+})
+
+describe('formula used variables', () => {
+    test('high order', async () => {
+        expect(parseFormula('loot.select(value).sum()').usedVariables.has('value')).toBe(false)
+    })
 })
 
 describe('formula errors', () => {
     test('error invalid character', async () => {
-        expect(parseFormula("IF(t; 1; 2)")
+        expect(() => parseFormula("IF(t; 1; 2)")
             .evaluate({}))
-            .toEqual("ECHR: Invalid character ';'")
+            .toThrow("ECHR: Invalid character ';'")
     })
     test('error extra parenthesis', async () => {
-        expect(parseFormula("SUM([1]")
+        expect(() => parseFormula("SUM([1]")
             .evaluate({}))
-            .toEqual("EPAR: Unmatched '('")
+            .toThrow("EPAR: Unmatched '('")
     })
     test('error missing parenthesis', async () => {
-        expect(parseFormula("IF(delta > 0, 'Profit', delta < 0, 'Loss'))")
+        expect(() => parseFormula("IF(delta > 0, 'Profit', delta < 0, 'Loss'))")
             .evaluate({}))
-            .toEqual("EPAR: Unmatched ')'")
+            .toThrow("EPAR: Unmatched ')'")
     })
     test('error start with =', async () => {
-        expect(parseFormula("=5")
+        expect(() => parseFormula("=5")
             .evaluate({}))
-            .toEqual("EOPS: Invalid first character '='")
+            .toThrow("EOPS: Invalid first character '='")
     })
-    test('error invalid variable', async () => {
-        expect(parseFormula("test")
+    test('when a variable is not found', async () => {
+        expect(() => parseFormula("test")
             .evaluate({}))
-            .toEqual("EVAR: Variable 'test' not found")
+            .toThrow("EVAR: Variable 'test' not found")
     })
-    test('error invalid property', async () => {
-        expect(parseFormula("test.prop")
+    test('when a property is not found', async () => {
+        expect(() => parseFormula("test.prop")
+            .evaluate({ test: { } }))
+            .toThrow("EPROP: Property 'prop' not found")
+    })
+    test('when the it has the incorrect number of parameters', async () => {
+        expect(() => parseFormula("ROUND(1)")
             .evaluate({}))
-            .toEqual("EPROP: Property 'prop' not found")
+            .toThrow("EARG: ROUND must have 2 arguments")
     })
-    test('error check parameter number', async () => {
-        expect(parseFormula("ROUND(1)")
+    test('when a parameter is not the correct type', async () => {
+        expect(() => parseFormula("ROUND('a', 1)")
             .evaluate({}))
-            .toEqual("EARG: ROUND must have 2 arguments")
+            .toThrow("EARG: ROUND invalid first argument, it must be a number")
     })
-    test('error check parameter type', async () => {
-        expect(parseFormula("ROUND('a', 1)")
-            .evaluate({}))
-            .toEqual("EARG: ROUND invalid first argument, it must be a number")
+    test('when the operator in not a number', async () => {
+        expect(() => parseFormula("x*y")
+            .evaluate({ x: 1, y: 'a' }))
+            .toThrow("EOPE: 'y' must be a number")
     })
-    test('error check operator type', async () => {
-        expect(parseFormula("x*y")
-            .evaluate({x:1, y:'a'}))
-            .toEqual("EOPE: 'y' must be a number")
+    test('when there are multiple errors show only the first', async () => {
+        expect(() => parseFormula("x.p + y.p")
+            .evaluate({ x: 1, y: 2 }))
+            .toThrow("EPROP: Property 'p' not found")
     })
 })

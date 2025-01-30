@@ -222,7 +222,7 @@ class InventoryReader {
 
         const second = this.read1()
         if ((second & 0xC0) !== 0x80) {
-            trace(`UTF-8 read failure 0x${second.toString(16).padStart(2, '0')}`)
+            trace('InventoryReader', `UTF-8 read failure 0x${second.toString(16).padStart(2, '0')}`)
             return 0
         }
 
@@ -231,7 +231,7 @@ class InventoryReader {
 
         const third = this.read1()
         if ((third & 0xC0) !== 0x80) {
-            trace(`UTF-8 read failure 0x${third.toString(16).padStart(2, '0')}`)
+            trace('InventoryReader', `UTF-8 read failure 0x${third.toString(16).padStart(2, '0')}`)
             return 0
         }
 
@@ -240,14 +240,14 @@ class InventoryReader {
 
         const forth = this.read1()
         if ((forth & 0xC0) !== 0x80) {
-            trace(`UTF-8 read failure 0x${forth.toString(16).padStart(2, '0')}`)
+            trace('InventoryReader', `UTF-8 read failure 0x${forth.toString(16).padStart(2, '0')}`)
             return 0
         }
 
         if ((first & 0xF8) === 0xF0)
             return (first & 0x07) * 0x40000 + (second & 0x3F) * 0x1000 + (third & 0x3F) * 0x40 + (forth & 0x3F)
 
-        trace(`UTF-8 read failure 0x${first.toString(16).padStart(2, '0')}`)
+        trace('InventoryReader', `UTF-8 read failure 0x${first.toString(16).padStart(2, '0')}`)
         return 0
     }
 

@@ -10,7 +10,7 @@ const CRAFT_PAGE = 5
 const BUDGET_PAGE = 6
 const SETTING_PAGE = 7
 const REFINED_PAGE = 8
-const GAME_LOG_PAGE = 9
+const CLIENT_PAGE = 9
 
 const selectMenu = (menu: number) => ({
     type: SELECT_MENU,
@@ -39,7 +39,7 @@ export {
     TRADE_PAGE,
     SETTING_PAGE,
     REFINED_PAGE,
-    GAME_LOG_PAGE,
+    CLIENT_PAGE,
     selectMenu,
     selectForAction,
 }

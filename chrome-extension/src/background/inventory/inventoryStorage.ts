@@ -6,7 +6,7 @@ import {
     STORAGE_QUOTA_BYTES_PER_ITEM
 } from '../../common/const'
 import { areEqualInventoryList, Inventory, makeLogInventory } from '../../common/state'
-import { trace, traceData } from '../../common/trace'
+import { traceError } from '../../common/trace'
 import StringTable from './stringTable'
 import IStorageArea from '../../chrome/IStorageArea'
 import LZUTF8 from 'lzutf8'
@@ -112,8 +112,7 @@ class InventoryStorage {
                 list = deserializeInventory(strings, Array.from(invData))
             }
         } catch (e) {
-            trace('InventoryStorage._readFromStorage exception:')
-            traceData(e)
+            traceError('InventoryStorage', 'readFromStorage exception:', e)
             this.area.clear()
         }
 

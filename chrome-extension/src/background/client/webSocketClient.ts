@@ -1,6 +1,7 @@
 //// WEB SOCKET ////
 // Communication with Entropia Flow Client in Windows
 
+import { traceData, traceError } from "../../common/trace"
 import { VERSION } from "../../view/components/about/AboutPage"
 import IWebSocketClient, { WebSocketState, WebSocketStateCode } from "./webSocketInterface"
 
@@ -20,7 +21,7 @@ class WebSocketClient implements IWebSocketClient {
     }
 
     public async start(url: string): Promise<void> {
-        if (this.url === url && this.socket.readyState == WebSocket.OPEN)
+        if (this.url === url && this.socket?.readyState == WebSocket.OPEN)
             return // don't reconnect to the same place since it will fail because the client needs a few seconds to be available again
 
         if (this.socket)
@@ -35,20 +36,20 @@ class WebSocketClient implements IWebSocketClient {
         await this._setState(WebSocketStateCode.connecting, `connecting to ${url} ...`)
         try {
             this.socket = new WebSocket(url)
-        } catch (error) {
-            console.error('WebSocket connection failed:', error)
+        } catch (e) {
+            traceError('WebSocketClient', 'connection failed:', e);
             await this._setState(WebSocketStateCode.error, 'connection failed')
             return
         }
         this.socket.onopen = async event => {
-            console.log('WebSocket connection opened:', event)
+            traceData('WebSocketClient', 'connection opened:', event)
 
             this.socket.onmessage = async event => {
-                console.log('WebSocket message received:', event.data)
+                traceData('WebSocketClient', 'message received:', event.data)
                 await this.onMessage(JSON.parse(event.data))
             };
             this.socket.onclose = async event => {
-                console.log('WebSocket connection closed:', event)
+                traceData('WebSocketClient', 'connection closed:', event)
                 await this._setState(WebSocketStateCode.disconnected, 'disconnected')
             };
 
@@ -59,7 +60,7 @@ class WebSocketClient implements IWebSocketClient {
             this.pendingJson = []
         };
         this.socket.onerror = async event => {
-            console.error('WebSocket error:', event)
+            traceError('WebSocketClient', 'error:', event)
             await this._setState(WebSocketStateCode.error, 'error')
         };
     }

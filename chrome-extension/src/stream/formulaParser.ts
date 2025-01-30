@@ -37,11 +37,14 @@ const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRende
     }
 }
 
-const _clientHighOrderFormulas: Record<string, (data: FormulaValue, args: IFormula[]) => FormulaValue> = {
-    SELECT: (data, args) => {
-        _parameterCountCheck('SELECT', args, 2);
-        const list =_parameterSingleCheck('SELECT', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
-        return { v: list.map(x => args[1].evaluate({v: x}).v) };
+const _clientHighOrderFormulas: Record<string, { p: number[], f: (data: FormulaValue, args: IFormula[]) => FormulaValue }> = {
+    SELECT: {
+        p: [1], // high order parameters
+        f: (data, args) => {
+            _parameterCountCheck('SELECT', args, 2);
+            const list =_parameterSingleCheck('SELECT', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
+            return { v: list.map(x => args[1].evaluate({v: x}).v) };
+        }
     }
 }
 
@@ -189,11 +192,7 @@ class Formula {
     }
 
     evaluate(data: StreamRenderObject, temporalData?: Record<string, TemporalValue>): StreamRenderValue {
-        try {
-            return this.formula.evaluate({ v: data, t: temporalData }).v
-        } catch (e) {
-            return e.message
-        }
+        return this.formula.evaluate({ v: data, t: temporalData }).v
     }
 
     text: string
@@ -217,9 +216,12 @@ const _errorFormula = (text: string): IFormula => ({
     evaluate: () => { throw new Error(text) }
 })
 
+const cycleErrorFormula = (variables: string[]) =>
+    _errorFormula(`ECYC: Cycle reference${variables.length !== 1 ? 's' : ''} ${variables.map(s => `'${s}'`).join(', ')}`)
+
 const _baseFormula = (name: string, args: IFormula[], hasTarget?: boolean) => {
     const parameters = hasTarget ? args.slice(1) : args
-    const targetText = hasTarget ? `${args[0].text}.` : ''
+    const targetText = hasTarget ? `(${args[0].text}).` : ''
     return {
         text: `${targetText}${name}(${parameters.map(v => v.text).join(', ')})`,
         usedVariables: new Set(args.flatMap(v => Array.from(v.usedVariables)))
@@ -239,12 +241,16 @@ const _clientFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) =
     function: (target: IFormula) => _clientFunctionFormula(name, [target, ...args], true)
 })
 
-const _clientHighOrderFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
-    ..._baseFormula(name, args, hasTarget),
-    evaluate: (d) => _clientHighOrderFormulas[name](d, args),
-    isServer: args.some(v => v.isServer),
-    function: (target: IFormula) => _clientHighOrderFunctionFormula(name, [target, ...args], true)
-})
+const _clientHighOrderFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => {
+    const definition = _clientHighOrderFormulas[name]
+    return {
+        ..._baseFormula(name, args, hasTarget),
+        evaluate: (d) => definition.f(d, args),
+        isServer: args.some(v => v.isServer),
+        usedVariables: new Set(args.filter((_,i) => !definition.p.includes(i)).flatMap(v => Array.from(v.usedVariables))),
+        function: (target: IFormula) => _clientHighOrderFunctionFormula(name, [target, ...args], true)
+    }
+}
 
 const _serverFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
     ..._baseFormula(name, args, hasTarget),
@@ -255,6 +261,7 @@ const _serverFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) =
 
 function _evaluateOperand(op: string, d: FormulaValue, formula: IFormula): string | number {
     const result = formula.evaluate(d).v
+    
     if (typeof result === 'string') {
         if (op === '+')
             return result
@@ -285,14 +292,27 @@ const _binaryOperatorFormula = (op: string, left: IFormula, right: IFormula): IF
 })
 
 const _propertyFormula = (f: IFormula, name: string): IFormula => ({
-    evaluate: (d) => { const x = f.evaluate(d).v; return typeof x === 'object' && name in x ? { v: x[name] } : { v: `EPROP: Property '${name}' not found` } },
+    evaluate: (d) => {
+        const target = f.evaluate(d).v;
+        if (typeof target === 'object' && name in target)
+            return { v: target[name] }
+        else
+            throw new Error(`EPROP: Property '${name}' not found`)
+    },
     text: `${f.text}.${name}`,
     isServer: f.isServer,
     usedVariables: f.usedVariables
 })
 
 const _variableFormula = (name: string): IFormula => ({
-    evaluate: (d) => ({ v: typeof d.v === 'object' && name in d.v ? d.v[name] : `EVAR: Variable '${name}' not found`, t: d.t?.[name] }),
+    evaluate: (d) => {
+        if (typeof d.v === 'object' && name in d.v)
+            return { v: d.v[name], t: d.t?.[name] }
+        else if (typeof d.t === 'object' && name in d.t)
+            return { v: undefined, t: d.t[name] }
+        else
+            throw new Error( `EVAR: Variable '${name}' not found`)        
+    },
     text: name,
     isServer: false,
     usedVariables: new Set([name])
@@ -495,6 +515,7 @@ class FormulaParser {
 
 export {
     parseFormula,
+    cycleErrorFormula,
     Formula,
     formulaHelp
 }

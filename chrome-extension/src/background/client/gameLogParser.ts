@@ -45,6 +45,7 @@ const globalRegex = {
     mine: /(?<player>.+) found a deposit \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
     tier: /(?<player>.+) is the first colonist to reach tier (?<value>\d+) for (?<name>.+)!/,
     discover: /(?<player>.+) is the first colonist to discover (?<name>.+)!/,
+    defeated: /(?<player>.+) defeated (?<value>\d+) others as a (?<name>.+?)\s*!/,
 }
 const skillRegex = /You have gained (\d+(?:.\d+)) (experience in your )?(.+?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
@@ -54,11 +55,13 @@ const tierRegex = /Your (.+) has reached tier (.+)/
 const eventRegex = {
     blueprintImproved: /Your blueprint Quality Rating has improved/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
+    destroyed: /(.+) was destroyed by the \w+ (.+)/,
     effectEquip: /Equip Effect: (.+)/,
     effectOverTime: /Received Effect Over Time: (.+)/ , 
     enteredVehicle: /(.+) entered the vehicle/,
     entropiaTime: /Entropia Universe time: (.+)/,
     healingDiminished: /Healing is diminished while moving/,
+    itemDamaged: /The item is damaged/,
     itemEffectAdded: /Item Set Effect: (.+)/,
     itemEffectsRemoved: /Item Set Effects removed \((.+)\)/,
     itemRepaired: /Item\(s\) repaired successfully/,
@@ -71,6 +74,7 @@ const eventRegex = {
     missionReceived: /New Mission received \((.+)\)/,
     missionUpdated: /Mission updated \((.+)\)/,
     newRank: /You have gained a new rank in (.+)!/,
+    notWounded: /That person isn't wounded/,
     petReturned: /Your pet has been returned to your inventory/,
     resourceDepleted: /This resource is depleted/,
     savedByDivine: /You have been saved from certain death by divine intervention/,
@@ -131,7 +135,8 @@ class GameLogParser {
                     if (match !== null) {
                         line.data.event = {
                             time: line.time,
-                            name: match.length > 1 ? match[1] : '',
+                            data: match.slice(1),
+                            message: line.message,
                             action: key
                         }
                     }

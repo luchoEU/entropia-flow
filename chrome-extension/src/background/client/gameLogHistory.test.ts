@@ -227,7 +227,8 @@ describe('formula parser', () => {
             event: [{
                 time: '2025-01-21 08:56:10',
                 action: 'enteredVehicle',
-                name: 'Top Right Gunner',
+                data: ['Top Right Gunner'],
+                message: 'Top Right Gunner entered the vehicle'
             }],
         }
     ))
@@ -260,8 +261,9 @@ describe('formula parser', () => {
             }],
             event: [{
                 action: 'newRank',
-                name: 'Mining Laser Operator',
-                time: '2025-01-28 19:56:15'
+                data: ['Mining Laser Operator'],
+                time: '2025-01-28 19:56:15',
+                message: 'You have gained a new rank in Mining Laser Operator!'
             }]
         }
     ))
@@ -276,6 +278,56 @@ describe('formula parser', () => {
                 name: 'Genesis Star Ivaldi III (L) Blueprint (L)',
                 value: undefined,
                 isHoF: true,
+            }]
+        }
+    ))
+
+    test('not wounded', async () => await parseExpect(
+`2025-01-29 06:55:35 [System] [] That person isn't wounded`,
+        {
+            event: [{
+                time: '2025-01-29 06:55:35',
+                action: 'notWounded',
+                data: [],
+                message: 'That person isn\'t wounded'
+            }]
+        }
+    ))
+
+    test('destroyed', async () => await parseExpect(
+`2025-01-29 07:56:23 [System] [] Quad-Wing Interceptor (L) was destroyed by the tough Pirate Shank Outcast`,
+        {
+            event: [{
+                time: '2025-01-29 07:56:23',
+                action: 'destroyed',
+                data: ['Quad-Wing Interceptor (L)', 'Pirate Shank Outcast'],
+                message: 'Quad-Wing Interceptor (L) was destroyed by the tough Pirate Shank Outcast'
+            }]
+        }
+    ))
+
+    test ('defeated', async () => await parseExpect(
+`2025-01-29 07:54:24 [Globals] [] Kathrynn Katy Simmons defeated 15 others as a Yule Daudaormur ! A record has been added to the Hall of Fame!`,
+        {
+            global: [{
+                time: '2025-01-29 07:54:24',
+                type: 'defeated',
+                player: 'Kathrynn Katy Simmons',
+                name: 'Yule Daudaormur',
+                value: 15,
+                isHoF: true,
+            }]
+        }
+    ))
+
+    test('item damaged', async () => await parseExpect(
+`2025-01-29 16:31:00 [System] [] The item is damaged`,
+        {
+            event: [{
+                time: '2025-01-29 16:31:00',
+                action: 'itemDamaged',
+                data: [],
+                message: 'The item is damaged'
             }]
         }
     ))

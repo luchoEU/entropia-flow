@@ -1,7 +1,7 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
 import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
 import { Inventory, Status, TimeLeft } from "../../common/state";
-import { trace, traceData } from "../../common/trace";
+import { traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
 interface IContentTab {
@@ -116,8 +116,7 @@ class RefreshManager {
                 }
             }
         } catch (e) {
-            trace('RefreshManager.handleNewInventory exception:')
-            traceData(e)
+            traceError('RefreshManager', 'handleNewInventory exception:', e)
             await this._setViewStatus(CLASS_ERROR, e.message)
         }
     }
