@@ -1,6 +1,6 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
 import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
-import { Inventory, Status, TimeLeft } from "../../common/state";
+import { Inventory, Log, Status, TimeLeft } from "../../common/state";
 import { traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
@@ -18,7 +18,7 @@ class RefreshManager {
     private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
     private contentTab: IContentTab
-    private isContentConnected = false
+    private stickyStatus: Log
     public onInventory: (inventory: Inventory) => Promise<void>
     public setViewStatus: (status: Status) => Promise<void>
 
@@ -48,7 +48,6 @@ class RefreshManager {
         this.contentTab = contentTab;
 
         contentTab.onConnected = async () => {
-            this.isContentConnected = true;
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
             const on = await this.alarmSettings.isMonitoringOn();
             await this.contentTab.setStatus(on);
@@ -57,8 +56,7 @@ class RefreshManager {
         }
 
         contentTab.onDisconnected = async () => {
-            this.isContentConnected = false;
-            await this._setViewStatus();
+            await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN);
             await this.htmlAlarm?.end();
             await this.ajaxAlarm?.end();
             await this.tickAlarm?.end();
@@ -70,12 +68,8 @@ class RefreshManager {
     }
 
     private async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean) {
-        if (!this.isContentConnected) {
-            await this._setViewStatus()
-        } else {
-            const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
-            await this.handleRequestResult(message)
-        }
+        const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
+        await this.handleRequestResult(message)
     }
 
     private async handleRequestResult(message?: string) {
@@ -92,6 +86,7 @@ class RefreshManager {
         if (message !== undefined) {
             const isMonitoring = await this.alarmSettings?.isMonitoringOn() ?? true
             await this.setViewStatus({ class: _class, message, isMonitoring })
+            this.stickyStatus = { class: _class, message }
         } else {
             await this.setViewStatus(await this.getStatus())
         }
@@ -110,6 +105,7 @@ class RefreshManager {
                 // Don't add no data to history since it is common in my items page reload
                 // Don't start the alarm either, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message
             } else {
+                this.stickyStatus = undefined
                 await this.ajaxAlarm.start(inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
                 if (this.onInventory) {
                     await this.onInventory(inventory)
@@ -152,8 +148,8 @@ class RefreshManager {
 
     public async getStatus(): Promise<Status> {
         const isMonitoring = await this.alarmSettings?.isMonitoringOn()
-        if (!this.isContentConnected) {
-            return { class: CLASS_ERROR, message: STRING_PLEASE_LOG_IN, isMonitoring }
+        if (this.stickyStatus) {
+            return { ...this.stickyStatus, isMonitoring }
         }
 
         let when: string
