@@ -4,7 +4,7 @@ import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamRenderData from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
-import { ON_LAST } from "../actions/last"
+import { ADD_PEDS, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
 import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES } from "../actions/stream"
@@ -61,6 +61,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     switch (action.type) {
         case PAGE_LOADED:
         case ON_LAST:
+        case ADD_PEDS:
+        case REMOVE_PEDS:
+        case INCLUDE:
+        case EXCLUDE:
+        case EXCLUDE_WARNINGS:
         {
             const { delta } = getLast(getState())
             dispatch(setStreamVariables('last', [

@@ -75,12 +75,12 @@ function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
     diff.forEach(item => item.w = !item.e && hasValue(item) && blacklist.includes(item.n))
 }
 
-const setExpanded = (state: LastRequiredState, expanded: boolean) => ({
+const reduceSetExpanded = (state: LastRequiredState, expanded: boolean) => ({
     ...state,
     expanded
 })
 
-function changeExclude(state: LastRequiredState, key: number, excluded: boolean, mult: number): LastRequiredState {
+function _changeExclude(state: LastRequiredState, key: number, excluded: boolean, mult: number): LastRequiredState {
     const item = state.diff.find(i => i.key === key)
     const diff = state.diff.map(
         i => i.key === key ? { ...i, e: excluded } : i)
@@ -101,13 +101,13 @@ function changeExclude(state: LastRequiredState, key: number, excluded: boolean,
     }
 }
 
-const include = (state: LastRequiredState, key: number) =>
-    changeExclude(state, key, false, 1)
+const reduceInclude = (state: LastRequiredState, key: number) =>
+    _changeExclude(state, key, false, 1)
 
-const exclude = (state: LastRequiredState, key: number) =>
-    changeExclude(state, key, true, -1)
+const reduceExclude = (state: LastRequiredState, key: number) =>
+    _changeExclude(state, key, true, -1)
 
-function excludeWarnings(state: LastRequiredState): LastRequiredState {
+function reduceExcludeWarnings(state: LastRequiredState): LastRequiredState {
     let delta = Number(state.delta)
     state.diff.forEach(item => {
         if (item.w && !item.e) {
@@ -122,7 +122,7 @@ function excludeWarnings(state: LastRequiredState): LastRequiredState {
     }
 }
 
-function permanentExclude(state: LastRequiredState, key: number, value: boolean): LastRequiredState {
+function reducePermanentExclude(state: LastRequiredState, key: number, value: boolean): LastRequiredState {
     const item = state.diff.find(i => i.key === key)
     const diff = state.diff.map(
         i => i.key === key ? { ...i, x: value } : i)
@@ -142,7 +142,7 @@ function permanentExclude(state: LastRequiredState, key: number, value: boolean)
     }
 }
 
-function findInventory(list: Array<Inventory>, lastRefresh: number) {
+function _findInventory(list: Array<Inventory>, lastRefresh: number) {
     if (lastRefresh === undefined)
         return null
 
@@ -153,18 +153,18 @@ function findInventory(list: Array<Inventory>, lastRefresh: number) {
     return null
 }
 
-const setBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
+const reduceSetBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
     ...state,
     blacklist: list
 })
 
-const setPermanentBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
+const reduceSetPermanentBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
     ...state,
     permanentBlacklist: list
 })
 
 function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
-    const inv = findInventory(list, last)
+    const inv = _findInventory(list, last)
     if (inv === null) {
         return {
             ...state,
@@ -205,7 +205,7 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
     }
 }
 
-const addActions = (state: LastRequiredState, availableCriteria: AvailableCriteria): LastRequiredState => ({
+const reduceAddActions = (state: LastRequiredState, availableCriteria: AvailableCriteria): LastRequiredState => ({
     ...state,
     diff: state.diff === null ? null : state.diff.map(d => ({
         ...d,
@@ -213,12 +213,12 @@ const addActions = (state: LastRequiredState, availableCriteria: AvailableCriter
     }))
 })
 
-const setPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
+const reduceSetPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
     ...state,
     peds: inState
 })
 
-const addPeds = (state: LastRequiredState, value: string): LastRequiredState => {
+const reduceAddPeds = (state: LastRequiredState, value: string): LastRequiredState => {
     const v = Number(value)
     const delta = Number(state.delta) + v
     return {
@@ -228,7 +228,7 @@ const addPeds = (state: LastRequiredState, value: string): LastRequiredState => 
     }
 }
 
-const removePeds = (state: LastRequiredState, key: number): LastRequiredState => {
+const reduceRemovePeds = (state: LastRequiredState, key: number): LastRequiredState => {
     const p = state.peds.find(s => s.key === key)
     const v = Number(p.value)
     const delta = Number(state.delta) - v
@@ -239,7 +239,7 @@ const removePeds = (state: LastRequiredState, key: number): LastRequiredState =>
     }
 }
 
-function sortByPart(state: LastRequiredState, part: number): LastRequiredState {
+function reduceSortByPart(state: LastRequiredState, part: number): LastRequiredState {
     const sortType = nextSortType(part, state.sortType)
     return {
         ...state,
@@ -251,17 +251,17 @@ function sortByPart(state: LastRequiredState, part: number): LastRequiredState {
 export {
     LastRequiredState,
     initialState,
-    setBlacklist,
-    setPermanentBlacklist,
+    reduceSetBlacklist,
+    reduceSetPermanentBlacklist,
     reduceOnLast,
-    addActions,
-    setExpanded,
-    include,
-    exclude,
-    excludeWarnings,
-    permanentExclude,
-    setPeds,
-    addPeds,
-    removePeds,
-    sortByPart,
+    reduceAddActions,
+    reduceSetExpanded,
+    reduceInclude,
+    reduceExclude,
+    reduceExcludeWarnings,
+    reducePermanentExclude,
+    reduceSetPeds,
+    reduceAddPeds,
+    reduceRemovePeds,
+    reduceSortByPart,
 }
