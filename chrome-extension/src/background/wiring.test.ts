@@ -374,7 +374,7 @@ describe('partial', () => {
 
         const contentTabManager = new ContentTabManager(new MockPortManager())
         const refreshManager = new RefreshManager(undefined, undefined, undefined, undefined)
-        refreshManager.setContentTab(contentTabManager)
+        await refreshManager.setContentTab(contentTabManager)
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         await refreshManager.manualRefresh()
 

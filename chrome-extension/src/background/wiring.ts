@@ -87,7 +87,7 @@ async function wiring(
         await viewSettings.setLastIfEqual(list)
         await viewStateManager.setList(list)
     }
-    refreshManager.setContentTab(contentTabManager)
+    await refreshManager.setContentTab(contentTabManager)
     webSocketClient.onMessage = async msg => {
         switch (msg.type) {
             case "version":

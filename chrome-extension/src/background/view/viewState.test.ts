@@ -36,7 +36,7 @@ describe('view state', () => {
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         alarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
-        refreshManager.setContentTab(contentTab)
+        await refreshManager.setContentTab(contentTab)
         contentTab.onConnect(undefined);
         await refreshManager.setTimerOn()
 

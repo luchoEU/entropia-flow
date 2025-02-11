@@ -9,6 +9,8 @@ import { HistoryState } from '../../application/state/history';
 import { STRING_PLEASE_LOG_IN } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
 
+const MY_ITEMS_URL = 'https://account.entropiauniverse.com/account/my-account/my-items/'
+
 const Status = () => {
     const dispatch = useDispatch()
     const history: HistoryState = useSelector(getHistory)
@@ -36,7 +38,7 @@ const Status = () => {
             }
             <span className={className}>
                 {message === STRING_PLEASE_LOG_IN ?
-                    <a href="https://account.entropiauniverse.com/account/my-account/my-items/" target="_blank">{message}</a>
+                    <a href={MY_ITEMS_URL} target="_blank">{message}</a>
                     : message
                 }
             </span>

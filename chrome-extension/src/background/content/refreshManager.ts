@@ -44,8 +44,9 @@ class RefreshManager {
         })
     }
 
-    public setContentTab(contentTab: IContentTab) {
+    public async setContentTab(contentTab: IContentTab) {
         this.contentTab = contentTab;
+        await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN);
 
         contentTab.onConnected = async () => {
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
