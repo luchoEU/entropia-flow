@@ -23,6 +23,7 @@ class ContentTabManager implements IContentTab {
     public async onConnect(port: IPort): Promise<void> {
         if (this.onConnected)
             await this.onConnected()
+        chrome.tabs.update(port.getTabId(), { autoDiscardable: false })
     }
 
     public async onDisconnect(port: IPort): Promise<void> {

@@ -1,9 +1,4 @@
-import TabStorage from '../background/tabStorage'
-import IPortManager, { IPort, PortHandlers } from './IPort'
-import ITabManager, { ITab } from './ITab'
-import IMessagesHub from './IMessagesHub'
-import { trace } from '../common/trace'
-import { TabData } from '../background/tabStorage'
+import { IPort } from './IPort'
 
 //// Ports ////
 
