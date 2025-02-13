@@ -73,6 +73,7 @@ const eventRegex = {
     missionCompleted: /Mission completed \((.+)\)/,
     missionReceived: /New Mission received \((.+)\)/,
     missionUpdated: /Mission updated \((.+)\)/,
+    newSkill: /Congratulations, you have acquired a new skill; (.+)/,
     newRank: /You have gained a new rank in (.+)!/,
     notWounded: /That person isn't wounded/,
     petReturned: /Your pet has been returned to your inventory/,

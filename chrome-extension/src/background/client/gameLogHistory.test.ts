@@ -331,4 +331,16 @@ describe('formula parser', () => {
             }]
         }
     ))
+
+    test('new skill', async () => await parseExpect(
+`2025-02-13 18:56:50 [System] [] Congratulations, you have acquired a new skill; Integrity Analysis`,
+        {
+            event: [{
+                time: '2025-02-13 18:56:50',
+                action: 'newSkill',
+                data: [ 'Integrity Analysis' ],
+                message: 'Congratulations, you have acquired a new skill; Integrity Analysis'
+            }]
+        }
+    ))
 })
