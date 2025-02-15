@@ -33,6 +33,7 @@
 	<EmbeddedResource Include="..\chrome-extension\dist\img\right.png" Link="Resources\right.png" />
 	<EmbeddedResource Include="..\chrome-extension\dist\img\cross.png" Link="Resources\cross.png" />
     <EmbeddedResource Include="..\chrome-extension\dist\img\flow128.png" Link="Resources\flow128.png" />
+	<EmbeddedResource Include="UI\flow128w.ico" Link="Resources\flow128w.ico" /> <!-- Notification Icon -->
     <EmbeddedResource Include="Engine\eng.traineddata" />
   </ItemGroup>
 
@@ -61,7 +62,7 @@
 
   <ItemGroup>
     <Page Include="App.xaml" />
-    <Resource Include="UI\flow128w.ico" />
+    <Resource Include="UI\flow128w.ico" /> <!-- Window Icon -->
   </ItemGroup>
 
 </Project>

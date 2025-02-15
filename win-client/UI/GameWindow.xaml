@@ -9,7 +9,7 @@
         AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" Height="70" Width="250"
         Title="Entropia Flow Client"
-        Icon="/UI/flow128w.ico">
+        Icon="flow128w.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                   ResizeBorderThickness="12"
