@@ -1,6 +1,11 @@
-﻿using EntropiaFlowClient.UI;
+﻿using EntropiaFlowClient.Data;
+using EntropiaFlowClient.UI;
+using Helpers;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
+using System.Windows;
+using static EntropiaFlowClient.Data.ClientData;
 using static EntropiaFlowClient.WebSocketChat;
 using Application = System.Windows.Application;
 
@@ -12,6 +17,7 @@ namespace EntropiaFlowClient
     public partial class App : Application
     {
         private readonly NotifyIcon _notifyIcon;
+        private readonly ClientData _clientData;
         private readonly LogWatcher _watcher;
         private WebSocketChat _webSocketServer;
         private SettingsWindow? _settingsWindow;
@@ -20,6 +26,7 @@ namespace EntropiaFlowClient
         public App()
         {
             _notifyIcon = new();
+            _clientData = new();
             _webSocketServer = new();
             _watcher = new();
         }
@@ -31,6 +38,7 @@ namespace EntropiaFlowClient
             InitializeNotifyIcon();
             InitializeWebSocket();
             InitializeLogReader();
+            RestoreWindows();
             base.OnStartup(e);
         }
 
@@ -143,6 +151,64 @@ namespace EntropiaFlowClient
         private void Watcher_NewLine(object? sender, LogWatcher.LogDataEventArgs e)
         {
             _webSocketServer.Send("log", e.Line);
+        }
+
+        #endregion
+
+        #region Client Data
+
+        private void RestoreWindows()
+        {
+            for (int n = _clientData.WindowsCount; n > 1; n--)
+                _ = new GameWindow();
+        }
+
+        public void OnGameWindowCreated(GameWindow gameWindow, int windowId, string layoutId, double scale)
+        {
+            if (_clientData.GetWindowData(windowId) == null)
+                _clientData.AddWindow(windowId, layoutId, scale);
+            gameWindow.Loaded += GameWindow_Loaded;
+        }
+
+        private void GameWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            GameWindow gameWindow = (GameWindow)sender!;
+            gameWindow.Loaded -= GameWindow_Loaded;
+
+            WindowData? windowData = _clientData.GetWindowData(gameWindow.WindowId);
+            if (windowData != null)
+            {
+                gameWindow.Scale = windowData.Scale;
+                gameWindow.SetLayout(windowData.Layout!).WaitForResult();
+                gameWindow.Left = windowData.Left;
+                gameWindow.Top = windowData.Top;
+            }
+
+            gameWindow.LayoutChanged += GameWindow_LayoutChanged;
+            gameWindow.ScaleChanged += GameWindow_ScaleChanged;
+            gameWindow.LocationChanged += GameWindow_LocationChanged;
+            gameWindow.Closing += GameWindow_Closing;
+        }
+
+        private void GameWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            GameWindow gameWindow = (GameWindow)sender!;
+            gameWindow.Closing -= GameWindow_Closing;
+
+            if (_clientData.WindowsCount > 1) // preserve the last window data
+                _clientData.RemoveWindow(gameWindow.WindowId);
+
+            gameWindow.LayoutChanged -= GameWindow_LayoutChanged;
+            gameWindow.ScaleChanged -= GameWindow_ScaleChanged;
+            gameWindow.LocationChanged -= GameWindow_LocationChanged;
+        }
+
+        private void GameWindow_LayoutChanged(object? sender, GameWindow.LayoutChangedEventArgs e) => _clientData.SetWindowLayout(e.WindowId, e.LayoutId);
+        private void GameWindow_ScaleChanged(object? sender, GameWindow.ScaleChangedEventArgs e) => _clientData.SetWindowScale(e.WindowId, e.Scale);
+        private void GameWindow_LocationChanged(object? sender, EventArgs e)
+        {
+            GameWindow gameWindow = (GameWindow)sender!;
+            _clientData.SetWindowLocation(gameWindow.WindowId, gameWindow.Left, gameWindow.Top);
         }
 
         #endregion

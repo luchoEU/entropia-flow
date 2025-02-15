@@ -17,32 +17,54 @@ namespace EntropiaFlowClient
     /// </summary>
     public partial class GameWindow : Window
     {
+        private static int _sLastWindowId;
+        private readonly int _windowId;
+        private readonly string? _initialData;
         private string _layoutId;
-        private string? _initialData;
         private double _scale = 1;
         private bool _minimized = false;
         private bool _waiting = false;
         internal bool ClicksDisabled = false;
 
+        public class LayoutChangedEventArgs(int windowId, string layoutId) : EventArgs
+        {
+            public int WindowId { get; } = windowId;
+            public string LayoutId { get; } = layoutId;
+        }
+
+        public event EventHandler<LayoutChangedEventArgs>? LayoutChanged;
+
+        public class ScaleChangedEventArgs(int windowId, double scale) : EventArgs
+        {
+            public int WindowId { get; } = windowId;
+            public double Scale { get; } = scale;
+        }
+
+        public event EventHandler<ScaleChangedEventArgs>? ScaleChanged;
+
         public GameWindow(): this("entropiaflow.default") { }
-        public GameWindow(string layoutId, double scale = 1, string? intialData = null)
+        public GameWindow(string layoutId, double scale = 1, string? initialData = null)
         {
             InitializeComponent();
             Topmost = true;
+            _windowId = ++_sLastWindowId;
             _layoutId = layoutId;
             _scale = scale;
-            _initialData = intialData;
+            _initialData = initialData;
 
             webView2.CoreWebView2InitializationCompleted += WebBrowser_CoreWebView2InitializationCompleted;
             webView2.EnsureCoreWebView2Async();
 
             App.Current.StreamMessageReceived += GameWindow_StreamMessageReceived;
             App.Current.WaitingForConnnection += GameWindow_WaitingForConnnection;
+            App.Current.OnGameWindowCreated(this, _windowId, _layoutId, _scale);
         }
 
         private static string? WAITING_LAYOUT_ID;
         private static string? MENU_LAYOUT_ID;
         private static string? OCR_LAYOUT_ID;
+
+        public int WindowId => _windowId;
 
         private void GameWindow_StreamMessageReceived(object? sender, WebSocketChat.StreamMessageEventArgs e)
         {
@@ -104,6 +126,7 @@ namespace EntropiaFlowClient
             {
                 _scale = FitScreen(value);
                 _ = Render();
+                ScaleChanged?.Invoke(this, new ScaleChangedEventArgs(_windowId, _scale));
             }
         }
 
@@ -160,8 +183,7 @@ namespace EntropiaFlowClient
         {
             if (_waiting)
                 return;
-            _layoutId = await ExecuteScriptAsync<string>($"nextLayout('{_layoutId}')") ?? _layoutId;
-            await Render();
+            await SetLayout(await ExecuteScriptAsync<string>($"nextLayout('{_layoutId}')") ?? _layoutId);
 
             var newScale = FitScreen(Scale);
             if (newScale != Scale)
@@ -172,6 +194,7 @@ namespace EntropiaFlowClient
         {
             _layoutId = layoutId;
             await Render();
+            LayoutChanged?.Invoke(this, new LayoutChangedEventArgs(_windowId, _layoutId));
         }
 
         private async Task<T?> ExecuteScriptAsync<T>(string script)
@@ -260,26 +283,6 @@ namespace EntropiaFlowClient
             {
                 throw e.InitializationException;
             }
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            string? left = ConfigurationManager.AppSettings["WindowLeft"];
-            string? top = ConfigurationManager.AppSettings["WindowTop"];
-
-            if (!string.IsNullOrEmpty(left) && !string.IsNullOrEmpty(top))
-            {
-                Left = Convert.ToDouble(left);
-                Top = Convert.ToDouble(top);
-            }
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["WindowLeft"].Value = Left.ToString();
-            config.AppSettings.Settings["WindowTop"].Value = Top.ToString();
-            config.Save(ConfigurationSaveMode.Modified);
         }
 
         private void SetLocation(int left, int top)

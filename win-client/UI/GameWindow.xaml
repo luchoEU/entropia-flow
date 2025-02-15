@@ -7,7 +7,6 @@
         xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d" WindowStyle="None"
         AllowsTransparency="True" Background="Transparent"
-        Loaded="Window_Loaded" Closing="Window_Closing"
         ResizeMode="NoResize" Height="70" Width="250"
         Title="Entropia Flow Client"
         Icon="/UI/flow128w.ico">
