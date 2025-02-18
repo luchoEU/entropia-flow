@@ -9,12 +9,16 @@ const TIME_1_MIN: TimeLeft = {
 
 const DATE_CONST = 1
 
-const STATE_LOADING_PAGE: ViewState = {
-    status: {
-        class: CLASS_INFO,
-        message: STRING_LOADING_PAGE,
-        isMonitoring: false
-    }
+const STATUS_PLEASE_LOG_IN: Status = {
+    class: CLASS_ERROR,
+    message: STRING_PLEASE_LOG_IN,
+    isMonitoring: true
+}
+
+const STATUS_LOADING_PAGE: Status = {
+    class: CLASS_INFO,
+    message: STRING_LOADING_PAGE,
+    isMonitoring: true
 }
 
 const STATE_LOADING_ITEMS: ViewState = {
@@ -25,33 +29,44 @@ const STATE_LOADING_ITEMS: ViewState = {
     }
 }
 
-const STATUS_1_MIN: Status = {
-    class: CLASS_INFO,
-    message: 'updates in 01:00',
-    isMonitoring: true
+const STATE_LOADING_PAGE_MONITORING_ON: ViewState = {
+    status: STATUS_LOADING_PAGE
 }
 
-const STATE_1_MIN: ViewState = {
-    status: STATUS_1_MIN
+const STATE_LOADING_PAGE_MONITORING_OFF: ViewState = {
+    status: { ...STATUS_LOADING_PAGE, isMonitoring: false }
 }
 
-const STATUS_PLEASE_LOG_IN: Status = {
-    class: CLASS_ERROR,
-    message: STRING_PLEASE_LOG_IN,
-    isMonitoring: true
+const STATE_UPDATES_NOW: ViewState = {
+    status: {
+        class: CLASS_INFO,
+        message: 'updates now',
+        isMonitoring: true
+    }
 }
 
-const STATUS_MONTORING_OFF: Status = {
-    ...STATUS_PLEASE_LOG_IN,
-    isMonitoring: false
+const STATE_UPDATES_1_MIN: ViewState = {
+    status: {
+        class: CLASS_INFO,
+        message: 'updates in 01:00',
+        isMonitoring: true
+    }
 }
 
-const STATE_PLEASE_LOG_IN: ViewState = {
+const STATE_SAFE_REFRESH_1_MIN: ViewState = {
+    status: {
+        class: CLASS_INFO,
+        message: 'safe to refresh in 01:00',
+        isMonitoring: false
+    }
+}
+
+const STATE_PLEASE_LOG_IN_MONITORING_ON: ViewState = {
     status: STATUS_PLEASE_LOG_IN
 }
 
-const STATE_MONITORING_OFF: ViewState = {
-    status: STATUS_MONTORING_OFF
+const STATE_PLEASE_LOG_IN_MONITORING_OFF: ViewState = {
+    status: { ...STATUS_PLEASE_LOG_IN, isMonitoring: false }
 }
 
 const STATE_NO_DATA: ViewState = {
@@ -69,30 +84,33 @@ const STATE_NO_DATA: ViewState = {
     }]
 }
 
-const STATE_NO_DATA_PLEASE_LOG_IN: ViewState = {
+const STATE_NO_DATA_MONITORING_ON: ViewState = {
     ...STATE_NO_DATA,
     status: STATUS_PLEASE_LOG_IN
 }
 
 const STATE_NO_DATA_MONITORING_OFF: ViewState = {
     ...STATE_NO_DATA,
-    status: STATUS_MONTORING_OFF
+    status: { ...STATUS_PLEASE_LOG_IN, isMonitoring: false }
 }
 
 const STATE_NO_DATA_1_MIN: ViewState = {
     ...STATE_NO_DATA,
-    status: STATUS_1_MIN
+    ...STATE_UPDATES_1_MIN
 }
 
 export {
     TIME_1_MIN,
     DATE_CONST,
-    STATE_LOADING_PAGE,
     STATE_LOADING_ITEMS,
-    STATE_1_MIN,
-    STATE_PLEASE_LOG_IN,
-    STATE_MONITORING_OFF,
-    STATE_NO_DATA_PLEASE_LOG_IN,
+    STATE_UPDATES_NOW,
+    STATE_UPDATES_1_MIN,
+    STATE_SAFE_REFRESH_1_MIN,
+    STATE_LOADING_PAGE_MONITORING_ON,
+    STATE_LOADING_PAGE_MONITORING_OFF,
+    STATE_PLEASE_LOG_IN_MONITORING_ON,
+    STATE_PLEASE_LOG_IN_MONITORING_OFF,
+    STATE_NO_DATA_MONITORING_ON,
     STATE_NO_DATA_MONITORING_OFF,
     STATE_NO_DATA_1_MIN
 }

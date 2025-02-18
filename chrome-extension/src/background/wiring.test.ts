@@ -29,15 +29,18 @@ import ContentTabManager from "./content/contentTab"
 import RefreshManager from "./content/refreshManager"
 import {
     DATE_CONST,
-    STATE_1_MIN,
-    STATE_MONITORING_OFF,
     STATE_LOADING_ITEMS,
+    STATE_LOADING_PAGE_MONITORING_OFF,
+    STATE_LOADING_PAGE_MONITORING_ON,
     STATE_NO_DATA_1_MIN,
     STATE_NO_DATA_MONITORING_OFF,
-    STATE_NO_DATA_PLEASE_LOG_IN,
-    STATE_PLEASE_LOG_IN,
+    STATE_NO_DATA_MONITORING_ON,
+    STATE_PLEASE_LOG_IN_MONITORING_OFF,
+    STATE_PLEASE_LOG_IN_MONITORING_ON,
+    STATE_SAFE_REFRESH_1_MIN,
+    STATE_UPDATES_1_MIN,
+    STATE_UPDATES_NOW,
     TIME_1_MIN,
-    STATE_LOADING_PAGE
 } from "./stateConst"
 import ViewStateManager from "./view/viewState"
 import wiring from "./wiring"
@@ -81,6 +84,9 @@ describe('full', () => {
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
         await wiring(messages, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
+
+        expect(viewPort.sendMock.mock.calls.length).toBe(1)
+        viewPort.sendMock = jest.fn() // clear RefreshManager.SetContentTab in wiring
     }
 
     beforeEach(async () => {
@@ -94,10 +100,11 @@ describe('full', () => {
         gameLogStorage = new MemoryStorageArea()
         tabStorage = new MockStorageArea()
         settingsStorage = new MockStorageArea()
-        await doWiring()
     })
 
-    test('init', () => {
+    test('init', async () => {
+        await doWiring()
+
         // alarm listen
         expect(ajaxAlarm.listenMock.mock.calls.length).toBe(1)
         expect(ajaxAlarm.listenMock.mock.calls[0].length).toBe(1)
@@ -115,9 +122,10 @@ describe('full', () => {
         expect(portManagerFactory.mock.calls[1][3]).toBe(PORT_NAME_BACK_VIEW)
     })
 
-    describe("when view started", () => {
+    describe('when view started', () => {
         test('without monitoring expect monitor off message', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: false, last: null })
+            await doWiring()
 
             await viewPortManager.onConnect(viewPort)
 
@@ -127,34 +135,22 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_MONITORING_OFF)
         })
 
-        test('with monitoring and some time expect please log in', async () => {
-            settingsStorage.getMock.mockReturnValueOnce({ isMonitoring: true })
-            ajaxAlarm.isActiveMock.mockReturnValue(true)
-            ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
-
-            await contentPortManager.onConnect(contentPort)
-            await viewPortManager.onConnect(viewPort)
-
-            expect(viewPort.sendMock.mock.calls.length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1].length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[1][1]).toEqual(STATE_NO_DATA_1_MIN)
-        })
-
         test('with monitoring no time expect please log in', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
+            settingsStorage.getMock.mockReturnValue({ isMonitoring: true, last: null })
+            await doWiring()
 
             await viewPortManager.onConnect(viewPort)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_PLEASE_LOG_IN)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_MONITORING_ON)
         })
     })
 
     describe('request items', () => {
         test('when time and no content expect please log in', async () => {
+            await doWiring()
             contentPortManager.firstMock.mockReturnValue(undefined)
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_NEW]({ tag: undefined })
@@ -162,11 +158,12 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN_MONITORING_ON)
         })
 
         test('when content connects start html request alarm', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
+            await doWiring()
 
             await contentPortManager.onConnect(contentPort)
 
@@ -179,18 +176,20 @@ describe('full', () => {
 
         test('when content connects expect loading message', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+            await doWiring()
 
             await contentPortManager.onConnect(contentPort)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_PAGE)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_PAGE_MONITORING_OFF)
         })
     })
 
     describe('refresh items', () => {
         test('on new inventory, send it to view', async() => {
+            await doWiring()
             const inv: Inventory = {
                 meta: { date: 111 }
             }
@@ -199,12 +198,13 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ last: null, list: [inv], ...STATE_PLEASE_LOG_IN })
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ last: null, list: [inv], ...STATE_UPDATES_NOW })
         })
     })
 
     describe('alarm', () => {
         test('when tick, send view request', async () => {
+            await doWiring()
             const alarmTick: () => Promise<void> = ajaxAlarm.listenMock.mock.calls[0][0]
             await alarmTick()
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
@@ -222,17 +222,19 @@ describe('full', () => {
 
         test("when turned off, change view state", async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
+            await doWiring()
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_MONITORING_OFF)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN_MONITORING_OFF)
         })
 
         test('when turned off, change alarm state', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
+            await doWiring()
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
 
@@ -246,43 +248,33 @@ describe('full', () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             ajaxAlarm.isActiveMock.mockReturnValue(true)
             ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
+            await doWiring()
 
-            await contentPortManager.onConnect(contentPort)
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
+            await contentPortManager.handlers[MSG_NAME_NEW_INVENTORY]({ inventory: [] }) // remove sticky from RefreshManager
+            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined) // test
 
             expect(viewPort.sendMock.mock.calls.length).toBe(2)
             expect(viewPort.sendMock.mock.calls[1].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[1][1]).toEqual(STATE_1_MIN)
+            expect(viewPort.sendMock.mock.calls[1][1]).toEqual(STATE_UPDATES_1_MIN)
         })
 
         test('when turned on, alarm is off and content is up, change view state', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             ajaxAlarm.isActiveMock.mockReturnValue(false)
-
-            await contentPortManager.onConnect(contentPort)
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
-
-            expect(viewPort.sendMock.mock.calls.length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1].length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[1][1]).toEqual(STATE_LOADING_ITEMS)
-        })
-
-        test('when turned on, alarm is off and content is down, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            ajaxAlarm.isActiveMock.mockReturnValue(false)
+            await doWiring()
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN)
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_ITEMS)
         })
 
         test('when turned on, change alarm state', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+            await doWiring()
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
 
@@ -294,6 +286,7 @@ describe('full', () => {
 
         test('when is off on alarm tick, dont send request for items', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+            await doWiring()
 
             const alarmTick: () => Promise<void> = ajaxAlarm.listenMock.mock.calls[0][0]
             await alarmTick()
@@ -303,7 +296,9 @@ describe('full', () => {
 
         test('when turned on and still time, dont request items', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
+            ajaxAlarm.isActiveMock.mockReturnValue(true)
             ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
+            await doWiring()
 
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
 
@@ -316,6 +311,7 @@ describe('full', () => {
         test('when turned on and alarm is off, send request item', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
             ajaxAlarm.isActiveMock.mockReturnValue(false)
+            await doWiring()
 
             await contentPortManager.onConnect(contentPort)
             await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
@@ -330,6 +326,8 @@ describe('full', () => {
         })
 
         test('when websocket state changes, send it to content', async () => {
+            await doWiring()
+
             const state = { code: WebSocketStateCode.connected, message: 'test' }
             await webSocketClient.onStateChanged(state)
 
@@ -342,6 +340,7 @@ describe('full', () => {
 
     describe('storage', () => {
         test('when log is read expect the value on next run', async () => {
+            await doWiring()
             await webSocketClient.onMessage({ type: 'log', data: '2024-12-23 17:08:58 [System] [] test' })
             await doWiring()
             await viewPortManager.onConnect(viewPort)
@@ -350,12 +349,13 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ ...STATE_NO_DATA_PLEASE_LOG_IN, gameLog: { ...emptyGameLogData(), raw: [ objData ] } })
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ ...STATE_NO_DATA_MONITORING_ON, gameLog: { ...emptyGameLogData(), raw: [ objData ] } })
         })
     })
 
     describe('client', () => {
         test('when dispatch is received it is dispatched', async () => {
+            await doWiring()
             await webSocketClient.onMessage({ type: 'dispatch', data: 'test' })
 
             expect(viewPort.sendMock.mock.calls.length).toBe(1)

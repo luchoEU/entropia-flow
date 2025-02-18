@@ -343,4 +343,28 @@ describe('formula parser', () => {
             }]
         }
     ))
+
+    test('auction created', async () => await parseExpect(
+`2025-02-15 16:13:30 [System] [] Auction successfully created`,
+        {
+            event: [{
+                time: '2025-02-15 16:13:30',
+                action: 'auctionCreated',
+                data: [ ],
+                message: 'Auction successfully created'
+            }]
+        }
+    ))
+
+    test('vehicle to storage', async () => await parseExpect(
+`2025-02-15 17:18:15 [System] [] The vehicle (Scavenged Skyripper (L)) is returned to planet storage, where you can recover it`,
+        {
+            event: [{
+                time: '2025-02-15 17:18:15',
+                action: 'vehicleRecovered',
+                data: [ 'Scavenged Skyripper (L)' ],
+                message: 'The vehicle (Scavenged Skyripper (L)) is returned to planet storage, where you can recover it'
+            }]
+        }
+    ))
 })

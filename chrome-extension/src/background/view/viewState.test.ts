@@ -1,11 +1,10 @@
 import MockAlarmManager from "../../chrome/mockAlarmManager"
 import MockStorageArea from "../../chrome/mockStorageArea"
-import { STATE_1_MIN, STATE_LOADING_ITEMS, TIME_1_MIN } from "../stateConst"
+import { STATE_LOADING_ITEMS, STATE_UPDATES_1_MIN, TIME_1_MIN } from "../stateConst"
 import AlarmSettings from "../settings/alarmSettings"
 import ViewStateManager from "./viewState"
 import RefreshManager from "../content/refreshManager"
 import MockPortManager from "../../chrome/mockPort"
-import ContentTabManager from "../content/contentTab"
 
 describe('view state', () => {
     test('when setStatus expect onChange', async () => {
@@ -30,18 +29,15 @@ describe('view state', () => {
         const refreshManager = new RefreshManager(undefined, alarm, undefined, alarmSettings)
         const contentPortManager = new MockPortManager()
         contentPortManager.allMock.mockReturnValue([])
-        const contentTab = new ContentTabManager(contentPortManager)
         const viewState = new ViewStateManager(refreshManager, undefined, undefined, undefined, undefined)
         viewState.onChange = onChange
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         alarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
-        await refreshManager.setContentTab(contentTab)
-        contentTab.onConnect(undefined);
         await refreshManager.setTimerOn()
 
-        expect(onChange.mock.calls.length).toBe(2)
-        expect(onChange.mock.calls[1].length).toBe(1)
-        expect(onChange.mock.calls[1][0]).toEqual(STATE_1_MIN)
+        expect(onChange.mock.calls.length).toBe(1)
+        expect(onChange.mock.calls[0].length).toBe(1)
+        expect(onChange.mock.calls[0][0]).toEqual(STATE_UPDATES_1_MIN)
     })
 })

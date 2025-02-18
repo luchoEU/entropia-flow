@@ -111,6 +111,7 @@ class ChromeMessagesHub {
         const port = chrome.tabs.connect(tabId, { name: portName })
         trace('ChromeMessagesHub', `connected: tab ${tabId} port '${portName}'`)
         _setListener(port, handlers, undefined, 'ChromeMessagesHub', `port '${portName}'`)
+        chrome.tabs.update(tabId, { autoDiscardable: false })
         return new ChromePort(tabId, port)
     }
 

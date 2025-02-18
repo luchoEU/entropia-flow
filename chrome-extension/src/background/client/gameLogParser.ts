@@ -53,6 +53,7 @@ const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
 const braketRegex = /\[(.+?)]/g
 const tierRegex = /Your (.+) has reached tier (.+)/
 const eventRegex = {
+    auctionCreated: /Auction successfully created/,
     blueprintImproved: /Your blueprint Quality Rating has improved/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
     destroyed: /(.+) was destroyed by the \w+ (.+)/,
@@ -83,6 +84,7 @@ const eventRegex = {
     takenControl: /(.+?) has taken control of the land area (.+?)!/,
     tradedWith: /You have successfully traded with (.+)/,
     transactionCompleted: /The transaction was completed successfully/,
+    vehicleRecovered: /The vehicle \((.+)\) is returned to planet storage, where you can recover it/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
 }
