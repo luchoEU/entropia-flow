@@ -72,6 +72,20 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.event) {
+            // remove loot group when the mission is completed and gives rewards
+            if (line.data.event.action == 'missionCompleted') {
+                const lineDateTime: number = gameTime(line.time);
+                if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) {
+                    if (this.gameLog.stats.lootGroup.count == 1) {
+                        this.gameLog.stats.lootGroup = undefined
+                    } else {
+                        this.gameLog.stats.lootGroup.history.shift();
+                        this.gameLog.stats.lootGroup.count--;
+                        this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count;
+                    }
+                }
+                this.lastLootDateTime = lineDateTime
+            }
             this.gameLog.event.unshift(line.data.event)
         }
 

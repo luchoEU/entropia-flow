@@ -367,4 +367,22 @@ describe('formula parser', () => {
             }]
         }
     ))
+
+    test('ignore complete as loot group', async () => await parseExpect(
+`2025-02-18 07:53:42 [System] [] You received Blazar Fragment x (200) Value: 0.0020 PED
+2025-02-18 07:53:42 [System] [] Mission completed (GenStar Mining Initiative - Asteroids)
+2025-02-18 07:53:42 [System] [] You received Recycling Scrip x (1) Value: 0.0100 PED`,
+        {
+            loot: [
+                {"name":"Recycling Scrip","quantity":1,"value":0.01},
+                {"name":"Blazar Fragment","quantity":200,"value":0.002}
+            ],
+            event: [{
+                time: '2025-02-18 07:53:42',
+                action: 'missionCompleted',
+                data: [ 'GenStar Mining Initiative - Asteroids' ],
+                message: 'Mission completed (GenStar Mining Initiative - Asteroids)'
+            }]
+        }
+    ))
 })
