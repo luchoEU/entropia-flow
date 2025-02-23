@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿using System.Configuration;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
+using EntropiaFlowClient.Data;
 
 namespace EntropiaFlowClient.UI
 {
@@ -24,6 +28,11 @@ namespace EntropiaFlowClient.UI
         {
             if (_uri != null)
                 System.Windows.Clipboard.SetText(_uri);
+        }
+
+        private void OpenConfigLocation_Click(object sender, RoutedEventArgs e)
+        {
+            ClientData.OpenConfigLocation();
         }
     }
 }

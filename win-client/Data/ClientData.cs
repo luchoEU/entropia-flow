@@ -1,4 +1,6 @@
 ﻿using System.Configuration;
+using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 
 namespace EntropiaFlowClient.Data
@@ -87,6 +89,22 @@ namespace EntropiaFlowClient.Data
             catch (Exception e)
             {
                 Console.WriteLine($"Error loading Client Data: {e.Message}");
+            }
+        }
+
+        internal static void OpenConfigLocation()
+        {
+            string configFilePath = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath;
+
+            Console.WriteLine("User config file path: " + configFilePath);
+            if (File.Exists(configFilePath))
+            {
+                // Open File Explorer at the config file location
+                Process.Start("explorer.exe", "/select,\"" + configFilePath + "\"");
+            }
+            else
+            {
+                Console.WriteLine("User config file not found.");
             }
         }
     }

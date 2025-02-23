@@ -9,5 +9,6 @@
     <Grid>
         <TextBlock x:Name="ListeningTextBlock" />
         <Button Content="Copy" Click="CopyButton_Click" Width="200" Height="100" />
+        <Button Content="Open Config Location" Margin="534,342,79,51" Click="OpenConfigLocation_Click" />
     </Grid>
 </Window>
