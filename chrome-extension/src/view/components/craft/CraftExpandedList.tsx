@@ -21,7 +21,7 @@ import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/h
 import { BlueprintWebMaterial } from '../../../web/state'
 import { WebLoadResponse } from '../../../web/loader'
 import { loadMaterialData, loadMaterialRawMaterials, materialBuyMarkupChanged, materialNotesValueChanged } from '../../application/actions/materials'
-import { FieldArea } from '../common/Field'
+import { Field, FieldArea } from '../common/Field'
 
 function SessionInfo(p: {
     name: string,
@@ -125,7 +125,7 @@ function CraftSingle(p: {
         })
     } else if (d.c.materials) {
         clickMUCost = 0;
-        markupMap = Object.fromEntries(d.c.materials.filter(m => m.quantity > 0).map((m: BlueprintMaterial) => {
+        markupMap = Object.fromEntries(d.c.materials.map((m: BlueprintMaterial) => {
             const strMarkup = mat[m.name]?.buyMarkup;
             const markup = strMarkup ? Number(strMarkup) / 100 : 1;
             clickMUCost += m.quantity * m.value * markup;
@@ -137,9 +137,9 @@ function CraftSingle(p: {
         }
     }
 
-    let session = undefined
-    let sessionTTprofit = undefined
-    let sessionMUprofit = undefined
+    let session: {[name: string]: number}
+    let sessionTTprofit: number
+    let sessionMUprofit: number
     let bought: {[name: string]: {
         quantity: number,
         value: string,
@@ -148,7 +148,7 @@ function CraftSingle(p: {
         showFee: boolean,
         withFee?: boolean,
         fee?: string
-    }} = undefined
+    }}
     let showMoveAll = false
 
     if (d.session.diffMaterials !== undefined) {
@@ -212,6 +212,27 @@ function CraftSingle(p: {
                 }
             })
         }
+    } else {
+        const { diff }: LastRequiredState = useSelector(getLast);
+
+        session = {};
+        sessionTTprofit = 0;
+        if (markupMap)
+            sessionMUprofit = 0;
+
+        if (diff) {
+            d.c.materials?.forEach((m: BlueprintWebMaterial) => {
+                const sum = diff.filter(x => x.n == m.name && !x.c.includes('⭢'))
+                    .reduce((p, c) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
+                if (sum.v !== 0) {
+                    session[m.name] = sum.q;
+                    sessionTTprofit += sum.v;
+                    if (markupMap?.[m.name]) {
+                        sessionMUprofit += sum.v * markupMap[m.name];
+                    }
+                }
+            })
+        }
     }
 
     // temporary hide this columns that I don't use
@@ -269,7 +290,7 @@ function CraftSingle(p: {
                                 <td data-text={m.type}>{m.type}</td>
                                 { m.available ? <td data-text-right={m.available}>{m.available}</td> : <td/> }
                                 { m.clicks ? <td data-text-right={m.clicks}>{m.clicks}</td> : <td/> }
-                                { markupMap && <td align='right'>{markupMap[m.name] ? `${(markupMap[m.name] * 100).toFixed(2)}%` : ''}</td> }
+                                { markupMap && <td align='right'>{markupMap[m.name] && markupMap[m.name] !== 1 ? `${(markupMap[m.name] * 100).toFixed(2)}%` : ''}</td> }
                                 { budgetMap && <td align='right'>{budgetMap[m.name]}</td> }
                                 { session && <td align="right">{session[m.name]}</td> }
                                 {
@@ -300,7 +321,7 @@ function CraftSingle(p: {
                                         </td>
                                 }
                                 <td align='right'>{m.quantity === 0 ? '' : (m.quantity * m.value).toFixed(2)}</td>
-                                { markupMap && <td align='right'>{markupMap[m.name] ? (m.quantity * m.value * markupMap[m.name]).toFixed(2) : ''}</td> }
+                                { markupMap && <td align='right'>{markupMap[m.name] && m.quantity !== 0 ? (m.quantity * m.value * markupMap[m.name]).toFixed(2) : ''}</td> }
                             </tr>
                         })
                     }
@@ -430,14 +451,12 @@ function CraftExpandedList() {
                                 <p>Value: { addZeroes(afterChainMat.value) }</p>
                             </>}
                             { mat[afterChain] &&
-                                <p>Markup:
-                                    <input type='text' value={mat[afterChain].buyMarkup}
-                                        onChange={(e) => dispatch(materialBuyMarkupChanged(afterChain)(e.target.value))}>
-                                    </input>
+                                <Field label='Markup:' value={mat[afterChain].buyMarkup ?? ''}
+                                        getChangeAction={materialBuyMarkupChanged(afterChain)}>
                                     <span>%</span>
                                     { mat[afterChain].buyMarkupModified ?
                                         <span> (Modified on { new Date(mat[afterChain].buyMarkupModified).toLocaleDateString() })</span> : '' }
-                                </p>
+                                </Field>
                             }
                             <WebDataControl w={afterChainRaw}
                                 dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}

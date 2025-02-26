@@ -4,7 +4,8 @@ import { useDispatch } from "react-redux"
 function Field(p: {
     label: string,
     value: string,
-    getChangeAction: (v: string) => any
+    getChangeAction: (v: string) => any,
+    children?: any
 }) {
     const dispatch = useDispatch()
 
@@ -15,6 +16,7 @@ function Field(p: {
                 type='text'
                 value={p.value}
                 onChange={(e) => dispatch(p.getChangeAction(e.target.value))} />
+            { p.children }
         </p>
     )
 }
