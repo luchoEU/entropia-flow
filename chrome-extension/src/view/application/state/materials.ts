@@ -14,11 +14,13 @@ interface MaterialStateWebData {
 
 interface MaterialState {
     buyMarkup?: string,
+    buyMarkupModified?: string,
     buyAmount?: string,
     orderMarkup?: string,
     orderValue?: string,
     useAmount?: string,
     refineAmount?: string,
+    notes?: string
 
     web?: MaterialStateWebData
 

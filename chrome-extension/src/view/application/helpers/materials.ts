@@ -127,7 +127,7 @@ const _materialChanged = (state: MaterialsState, material: string, change: Parti
 })
 
 const reduceMaterialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
-    _materialChanged(state, material, { buyMarkup })
+    _materialChanged(state, material, { buyMarkup, buyMarkupModified: new Date().toString() })
 
 const reduceMaterialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
     _materialChanged(state, material, { orderMarkup })
@@ -143,6 +143,9 @@ const reduceMaterialBuyAmountChanged = (state: MaterialsState, material: string,
 
 const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
     _materialChanged(state, material, { orderValue })
+
+const reduceMaterialNotesValueChanged = (state: MaterialsState, material: string, notes: string): MaterialsState =>
+    _materialChanged(state, material, { notes })
 
 const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState => ({
     ...state,
@@ -208,6 +211,7 @@ export {
     reduceMaterialRefineAmountChanged,
     reduceMaterialBuyAmountChanged,
     reduceMaterialOrderValueChanged,
+    reduceMaterialNotesValueChanged,
     reduceSetMaterialPartialWebData,
     cleanWeb,
     cleanForSaveMain,
