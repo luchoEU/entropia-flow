@@ -330,7 +330,7 @@ function CraftSingle(p: {
             {
                 d.c.inventory &&
                 <>
-                    <p>Clicks available: {d.c.inventory.clicksAvailable}</p>
+                    <p>Clicks available: {d.c.inventory.clicksAvailable} (limited by {d.c.inventory.limitClickItems})</p>
                     <p>Click TT cost: {d.c.inventory.clickTTCost.toFixed(2)} PED</p>
                     { clickMUCost &&
                         <p>Click with MU cost: {clickMUCost.toFixed(2)} PED</p> }

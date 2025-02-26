@@ -188,7 +188,7 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
                 inventory: {
                     bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
                     clicksAvailable,
-                    limitClickItems: Object.entries(materials).filter(([,m]) => m.clicks === clicksAvailable).map(([n,]) => n),
+                    limitClickItems: materials.filter(m => m.clicks === clicksAvailable).map(m => m.name),
                     clickTTCost,
                     residueNeeded: isItemLimited ? residueNeeded : undefined,
                 },

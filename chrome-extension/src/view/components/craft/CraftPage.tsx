@@ -16,9 +16,12 @@ const CraftPlanet = () => {
 
     return <section>
         <h1>Planet</h1>
-        <select value={activePlanet} onChange={(e) => dispatch(setCraftActivePlanet(e.target.value))}>
-            {inv.byStore.c.validPlanets.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
+        { inv.byStore.c.validPlanets.length > 0 ?
+            <select value={activePlanet} onChange={(e) => dispatch(setCraftActivePlanet(e.target.value))}>
+                {inv.byStore.c.validPlanets.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select> :
+            (activePlanet ? <p>{activePlanet}</p> : <p>No valid planets</p>) 
+        }
     </section>
 }
 
