@@ -1,5 +1,5 @@
 import { WebLoadResponse } from "../../../web/loader"
-import { MaterialWebData, RawMaterialWebData } from "../../../web/state"
+import { ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "../../../web/state"
 
 interface MaterialsState {
     map: MaterialsMap
@@ -10,6 +10,7 @@ type MaterialsMap = { [name: string] : MaterialState }
 interface MaterialStateWebData {
     material?: WebLoadResponse<MaterialWebData>
     rawMaterials?: WebLoadResponse<RawMaterialWebData[]>
+    usage?: WebLoadResponse<ItemUsageWebData>
 }
 
 interface MaterialState {

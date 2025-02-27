@@ -9,6 +9,10 @@ interface MaterialWebData {
     value: number;
 }
 
+interface ItemUsageWebData {
+    blueprints: Array<BlueprintWebData>
+}
+
 interface BlueprintWebData {
     name: string
     type: string
@@ -29,6 +33,7 @@ interface BlueprintWebMaterial {
 export {
     RawMaterialWebData,
     MaterialWebData,
+    ItemUsageWebData,
     BlueprintWebData,
     BlueprintWebMaterial,
 }

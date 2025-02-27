@@ -112,10 +112,13 @@ interface TradeItemData {
   sortSecuence: {
     favoriteBlueprints: SortSecuence
     ownedBlueprints: SortSecuence
+    otherBlueprints: SortSecuence
   }
   c?: {
     favoriteBlueprints: Array<TradeBlueprintLineData>;
     ownedBlueprints: Array<TradeBlueprintLineData>;
+    otherBlueprints: Array<TradeBlueprintLineData>;
+    loading: boolean
   }
 }
 

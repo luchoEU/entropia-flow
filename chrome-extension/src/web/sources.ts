@@ -1,4 +1,4 @@
-import { BlueprintWebData, MaterialWebData, RawMaterialWebData } from "./state"
+import { BlueprintWebData, ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "./state"
 
 interface SourceLoadResponse<T> {
     ok: boolean;
@@ -11,6 +11,7 @@ interface IWebSource {
     name: string
     loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>>
     loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>>
+    loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>>
     loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>>
 }
 

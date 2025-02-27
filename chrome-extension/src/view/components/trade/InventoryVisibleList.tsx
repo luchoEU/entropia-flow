@@ -1,14 +1,16 @@
 import React from 'react'
-import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOwnedBlueprintsBy, sortVisibleBy } from '../../application/actions/inventory'
+import { hideByContainer, hideByName, hideByValue, setVisibleInventoryExpanded, setVisibleInventoryFilter, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy, sortVisibleBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, TT_SERVICE_COLUMN, VALUE } from '../../application/helpers/inventory.sort'
-import SortableTableSection, { TableData } from '../common/SortableTableSection'
+import SortableTableSection, { SortableFixedSizeTable as SortableFixedSizeTable1, TableData } from '../common/SortableTableSection'
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
-import { getTradeFavoriteBlueprintItem, getTradeItemData, getTradeOwnedBlueprintItem, getVisibleInventory, getVisibleInventoryItem } from '../../application/selectors/inventory';
+import { getTradeFavoriteBlueprintItem, getTradeItemData, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem, getVisibleInventory, getVisibleInventoryItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
 import { SHOW_TT_SERVICE } from '../../../config'
 import { getTTServiceItemValues } from '../../application/selectors/ttService'
 import { reloadTTService } from '../../application/actions/ttService'
 import { ItemVisible, TradeBlueprintLineData } from '../../application/state/inventory'
+import ExpandableSection from '../common/ExpandableSection'
+import SearchInput from '../common/SearchInput'
 
 const tableData: TableData<ItemVisible> = {
     columns: [NAME, QUANTITY, VALUE, CONTAINER],
@@ -82,6 +84,36 @@ const getBlueprintsTableData = (type: string): TableData2<TradeBlueprintLineData
     })
 })
 
+const MySortableTableSection = <TItem extends any>(p: {
+    title: string,
+    expanded: boolean,
+    filter: string,
+    stats: { count: number, ped?: string, itemTypeName?: string },
+    setExpanded: (expanded: boolean) => any,
+    setFilter: (v: string) => any,
+    table: any,
+    children: any
+}) => {
+    const stats = p.stats
+    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
+        <div className='inline'>
+            <div className='search-container'>
+                <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
+                    <span> {stats.count} </span>
+                    <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
+                </p>
+                <p className='search-input-container'>
+                    <SearchInput filter={p.filter} setFilter={p.setFilter} />
+                </p>
+            </div>
+            <SortableFixedSizeTable1 data={p.table} />
+        </div>
+        <div className='inline'>
+            { p.children }
+        </div>
+    </ExpandableSection>
+}
+
 const InventoryVisibleList = () => {
     const inv = useSelector(getVisibleInventory)
     const tradeItemData = useSelector(getTradeItemData)
@@ -106,6 +138,15 @@ const InventoryVisibleList = () => {
         tableData: getBlueprintsTableData('Owned')
     })
 
+    const otherTableData = tradeItemData?.c?.otherBlueprints?.length > 0 && calculate({
+        allItems: tradeItemData.c.otherBlueprints,
+        showItems: tradeItemData.c.otherBlueprints,
+        sortSecuence: tradeItemData.sortSecuence.otherBlueprints,
+        sortBy: sortTradeOtherBlueprintsBy,
+        itemSelector: getTradeOtherBlueprintItem,
+        tableData: getBlueprintsTableData('Not Owned')
+    })
+
     if (favoriteTableData && ownedTableData)
     {
         const columnsWidth: number[] = favoriteTableData.columnsWidth.map((w, i) => Math.max(w, ownedTableData.columnsWidth[i]))
@@ -114,7 +155,7 @@ const InventoryVisibleList = () => {
     }
 
     return <>
-        <SortableTableSection
+        <MySortableTableSection
             title='Owned List'
             expanded={inv.originalList.expanded}
             filter={inv.filter}
@@ -129,19 +170,22 @@ const InventoryVisibleList = () => {
                 itemSelector: getVisibleInventoryItem,
                 tableData
             }}
-        />
-        { tradeItemData &&
-            <div className='trade-item-data'>
-                <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(undefined)) }}>
-                    { tradeItemData.name }<img src='img/left.png' />
-                </h2>
-                { favoriteTableData ?
-                    <SortableFixedSizeTable data={favoriteTableData} /> :
-                    <p><strong>Not used on any Favorite Blueprint</strong></p>
-                }
-                { ownedTableData && <SortableFixedSizeTable data={ownedTableData} /> }
-            </div>
-        }
+        >
+            { tradeItemData &&
+                <div className='trade-item-data'>
+                    <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(undefined)) }}>
+                        { tradeItemData.name }<img src='img/left.png' />
+                    </h2>
+                    { favoriteTableData ?
+                        <SortableFixedSizeTable data={favoriteTableData} /> :
+                        <p><strong>Not used on any Favorite Blueprint</strong></p>
+                    }
+                    { ownedTableData && <SortableFixedSizeTable data={ownedTableData} /> }
+                    { otherTableData && <SortableFixedSizeTable data={otherTableData} /> }
+                    { tradeItemData?.c?.loading && <p>Loading...</p> }
+                </div>
+            }
+        </MySortableTableSection>
     </>
 }
 

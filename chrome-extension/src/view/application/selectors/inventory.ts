@@ -12,3 +12,4 @@ export const getByStoreInventoryStaredItem = (index: number) => (state: any) => 
 export const getByStoreInventoryCraftItem = (index: number) => (state: any) => getByStoreInventory(state).flat.craft[index]
 export const getTradeFavoriteBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.favoriteBlueprints[index]
 export const getTradeOwnedBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.ownedBlueprints[index]
+export const getTradeOtherBlueprintItem = (index: number) => (state: any) => getTradeItemData(state).c.otherBlueprints[index]

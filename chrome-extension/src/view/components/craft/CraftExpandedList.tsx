@@ -214,22 +214,21 @@ function CraftSingle(p: {
         }
     } else {
         const { diff }: LastRequiredState = useSelector(getLast);
-
-        session = {};
-        sessionTTprofit = 0;
-        if (markupMap)
-            sessionMUprofit = 0;
-
         if (diff) {
             d.c.materials?.forEach((m: BlueprintWebMaterial) => {
                 const sum = diff.filter(x => x.n == m.name && !x.c.includes('⭢'))
                     .reduce((p, c) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
                 if (sum.v !== 0) {
+                    if (!session) {
+                        session = {};
+                        sessionTTprofit = 0;
+                        if (markupMap)
+                            sessionMUprofit = 0;
+                    }
+
                     session[m.name] = sum.q;
                     sessionTTprofit += sum.v;
-                    if (markupMap?.[m.name]) {
-                        sessionMUprofit += sum.v * markupMap[m.name];
-                    }
+                    sessionMUprofit += sum.v * (markupMap?.[m.name] ?? 1);
                 }
             })
         }
@@ -330,15 +329,15 @@ function CraftSingle(p: {
             {
                 d.c.inventory &&
                 <>
-                    <p>Clicks available: {d.c.inventory.clicksAvailable} (limited by {d.c.inventory.limitClickItems})</p>
+                    <p>Clicks available: {d.c.inventory.clicksAvailable} (limited by {d.c.inventory.limitClickItems.join(', ')})</p>
                     <p>Click TT cost: {d.c.inventory.clickTTCost.toFixed(2)} PED</p>
                     { clickMUCost &&
                         <p>Click with MU cost: {clickMUCost.toFixed(2)} PED</p> }
                     { d.c.inventory.residueNeeded > 0 &&
                         <p>Residue needed per click: {d.c.inventory.residueNeeded.toFixed(2)} PED</p> }
-                    { sessionTTprofit &&
+                    { sessionTTprofit !== undefined &&
                         <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
-                    { sessionMUprofit &&
+                    { sessionMUprofit !== undefined &&
                         <p>Session MU profit: {sessionMUprofit.toFixed(2)} PED</p>}
                 </>
             }

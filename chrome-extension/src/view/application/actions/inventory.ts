@@ -1,4 +1,6 @@
 import { Inventory } from "../../../common/state"
+import { WebLoadResponse } from "../../../web/loader"
+import { ItemUsageWebData } from "../../../web/state"
 import { CraftState } from "../state/craft"
 import { InventoryState } from "../state/inventory"
 
@@ -51,6 +53,7 @@ const SHOW_TRADING_ITEM_DATA = "[inv] show trading item data"
 const LOAD_TRADING_ITEM_DATA = "[inv] load trading item data"
 const SORT_TRADE_FAVORITE_BLUEPRINTS_BY = "[inv] sort trade favorite blueprints by"
 const SORT_TRADE_OWNED_BLUEPRINTS_BY = "[inv] sort trade owned blueprints by"
+const SORT_TRADE_OTHER_BLUEPRINTS_BY = "[inv] sort trade other blueprint by"
 const ADD_AVAILABLE = "[inv] add available"
 const REMOVE_AVAILABLE = "[inv] remove available"
 
@@ -394,10 +397,11 @@ const showTradingItemData = (name: string) => ({
     }
 })
 
-const loadTradingItemData = (craftState: CraftState) => ({
+const loadTradingItemData = (craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>) => ({
     type: LOAD_TRADING_ITEM_DATA,
     payload: {
-        craftState
+        craftState,
+        usage
     }
 })
 
@@ -410,6 +414,13 @@ const sortTradeFavoriteBlueprintsBy = (part: number) => ({
 
 const sortTradeOwnedBlueprintsBy = (part: number) => ({
     type: SORT_TRADE_OWNED_BLUEPRINTS_BY,
+    payload: {
+        part
+    }
+})
+
+const sortTradeOtherBlueprintsBy = (part: number) => ({
+    type: SORT_TRADE_OTHER_BLUEPRINTS_BY,
     payload: {
         part
     }
@@ -465,6 +476,7 @@ export {
     LOAD_TRADING_ITEM_DATA,
     SORT_TRADE_FAVORITE_BLUEPRINTS_BY,
     SORT_TRADE_OWNED_BLUEPRINTS_BY,
+    SORT_TRADE_OTHER_BLUEPRINTS_BY,
     ADD_AVAILABLE,
     REMOVE_AVAILABLE,
     loadInventoryState,
@@ -516,6 +528,7 @@ export {
     loadTradingItemData,
     sortTradeFavoriteBlueprintsBy,
     sortTradeOwnedBlueprintsBy,
+    sortTradeOtherBlueprintsBy,
     addAvailable,
     removeAvailable,
 }

@@ -11,6 +11,7 @@ const MATERIAL_NOTES_VALUE_CHANGED = '[material] notes value changed'
 const SET_MATERIAL_PARTIAL_WEB_DATA = '[material] set partial web data'
 const LOAD_MATERIAL_RAW_MATERIALS = '[material] load raw materials'
 const LOAD_MATERIAL_DATA = '[material] load data'
+const LOAD_ITEM_USAGE_DATA = '[material] load item usage data'
 
 const setMaterialsState = (state: MaterialsState) => ({
     type: SET_MATERIALS_STATE,
@@ -98,6 +99,13 @@ const loadMaterialData = (material: string, url?: string) => ({
     }
 })
 
+const loadItemUsageData = (item: string) => ({
+    type: LOAD_ITEM_USAGE_DATA,
+    payload: {
+        item
+    }
+})
+
 export {
     SET_MATERIALS_STATE,
     MATERIAL_BUY_MARKUP_CHANGED,
@@ -110,6 +118,7 @@ export {
     SET_MATERIAL_PARTIAL_WEB_DATA,
     LOAD_MATERIAL_RAW_MATERIALS,
     LOAD_MATERIAL_DATA,
+    LOAD_ITEM_USAGE_DATA,
     setMaterialsState,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
@@ -121,4 +130,5 @@ export {
     setMaterialPartialWebData,
     loadMaterialRawMaterials,
     loadMaterialData,
+    loadItemUsageData,
 }

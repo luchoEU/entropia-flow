@@ -1,7 +1,7 @@
 import { fetchText } from "./fetch";
 import { mapResponse } from "./loader";
 import { IWebSource, NOT_IMPLEMENTED, SourceLoadResponse } from "./sources";
-import { BlueprintWebData, BlueprintWebMaterial, MaterialWebData, RawMaterialWebData } from "./state";
+import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "./state";
 
 export class EntropiaWiki implements IWebSource {
     public name: string = "Entropia Wiki"
@@ -11,6 +11,10 @@ export class EntropiaWiki implements IWebSource {
     }
 
     public async loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>> {
+        return NOT_IMPLEMENTED
+    }
+
+    public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
         return NOT_IMPLEMENTED
     }
 

@@ -20,6 +20,8 @@ import {
   nextSortType,
 } from "./inventory.sort";
 import { cloneAndSort, defaultSortSecuence, nextSortSecuence, numberComparer, stringComparer } from "./sort";
+import { WebLoadResponse } from "../../../web/loader";
+import { BlueprintWebData, ItemUsageWebData } from "../../../web/state";
 
 const emptyCriteria: HideCriteria = {
   name: [],
@@ -161,7 +163,7 @@ const joinList = (state: InventoryState): Array<ItemData> => [
 const reduceLoadInventoryState = (
   oldState: InventoryState,
   state: InventoryState,
-): InventoryState => loadInventory(state, joinList(state));
+): InventoryState => loadInventory(state, joinList(oldState)); // use oldState in case reduceSetCurrentInventory was called first
 
 const reduceSetCurrentInventory = (
   state: InventoryState,
@@ -444,18 +446,24 @@ const reduceShowTradingItemData = (state: InventoryState, name: string): Invento
       sortSecuence: {
         favoriteBlueprints: defaultSortSecuence,
         ownedBlueprints: defaultSortSecuence,
+        otherBlueprints: defaultSortSecuence,
       }
     }
   });
 
-const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState): InventoryState => {
+const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>): InventoryState => {
   if (!state.tradeItemData) {
     return state
   }
-  const fav = craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp)
-  const own = Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name))
-  const m = (list: BlueprintData[]): TradeBlueprintLineData[] => list
-    .map(bp => ({ bpName: bp.name, quantity: bp.web?.blueprint.data?.value.materials.find(m => m.name === state.tradeItemData.name)?.quantity }))
+  const usageBPs = usage?.data?.value.blueprints
+  const w = (list: BlueprintData[]): BlueprintWebData[] => list
+    .map(bp => bp.web?.blueprint.data?.value ?? usageBPs?.find(b => b.name === bp.name))
+    .filter(bp => bp)
+  const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
+  const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
+  const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
+  const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
+    .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === state.tradeItemData.name)?.quantity }))
     .filter(bp => bp.quantity);
 
   return {
@@ -463,9 +471,10 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
     tradeItemData: {
       ...state.tradeItemData,
       c: {
-        ...state.tradeItemData.c,
         favoriteBlueprints: cloneAndSort(m(fav), state.tradeItemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
-        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
+        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
+        otherBlueprints: cloneAndSort(m(oth), state.tradeItemData.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
+        loading: !!usage?.loading
       }
     }
   }
@@ -509,6 +518,9 @@ const reduceSortTradeFavoriteBlueprintsBy = (state: InventoryState, column: numb
 
 const reduceSortTradeOwnedBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
   _reduceSortTradeBlueprintsBy('ownedBlueprints', state, column);
+
+const reduceSortTradeOtherBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('otherBlueprints', state, column);
 
 const reduceAddAvailable = (state: InventoryState, name: string): InventoryState =>
   loadInventory(
@@ -585,6 +597,7 @@ export {
   reduceLoadTradingItemData,
   reduceSortTradeFavoriteBlueprintsBy,
   reduceSortTradeOwnedBlueprintsBy,
+  reduceSortTradeOtherBlueprintsBy,
   reduceAddAvailable,
   reduceRemoveAvailable,
   joinList,
