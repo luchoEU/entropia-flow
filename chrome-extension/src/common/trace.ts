@@ -4,8 +4,10 @@ let _traceOn = true
 
 const silentComponents = new Set([
     'ChromeMessagesClient',
-    'PortManager',
     'ChromeMessagesHub',
+    'ContentTabManager',
+    'PortManager',
+    'WebSocketClient',
 ])
 
 function _trace(component: string, message: string) {
