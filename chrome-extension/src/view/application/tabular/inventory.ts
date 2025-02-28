@@ -5,13 +5,16 @@ import { INVENTORY_TABULAR_OWNED, InventoryState, ItemVisible } from "../state/i
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 
 const inventoryTabularData = (state: InventoryState): TabularRawData<ItemVisible> => ({
-    [INVENTORY_TABULAR_OWNED]: state.visible.originalList.items
+    [INVENTORY_TABULAR_OWNED]: state.visible
 })
 
 const inventoryTabularDefinitions: TabularDefinitions = {
     [INVENTORY_TABULAR_OWNED]: {
         title: 'Owned List',
         columns: ['Name', 'Quantity', 'Value', 'Container', 'TT Service'],
+        // TODO:
+        // [TT_SERVICE_COLUMN]: { justifyContent: 'end', show: SHOW_TT_SERVICE, sortable: false, sub: [
+        // { title: 'Reload TT Service from sheet', imgButton: { src: 'img/reload.png', dispatch: () => reloadTTService }}
         getRow: (g: ItemVisible): RowValue[] => {
             return [
                 { // Name

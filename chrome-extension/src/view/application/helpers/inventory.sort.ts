@@ -2,7 +2,6 @@ const NAME = 0
 const QUANTITY = 1
 const VALUE = 2
 const CONTAINER = 3
-const TT_SERVICE_COLUMN = 4
 
 const SORT_NAME_ASCENDING = 0
 const SORT_NAME_DESCENDING = 1
@@ -48,11 +47,6 @@ const sortColumnDefinition = {
         up: SORT_CONTAINER_ASCENDING,
         down: SORT_CONTAINER_DESCENDING
     },
-    [TT_SERVICE_COLUMN]: {
-        text: 'TT Service',
-        up: SORT_CONTAINER_ASCENDING, // dummy
-        down: SORT_CONTAINER_DESCENDING
-    }
 }
 
 interface SortItemData {
@@ -167,7 +161,6 @@ export {
     QUANTITY,
     VALUE,
     CONTAINER,
-    TT_SERVICE_COLUMN,
     SORT_NAME_ASCENDING,
     SORT_NAME_DESCENDING,
     SORT_QUANTITY_ASCENDING,

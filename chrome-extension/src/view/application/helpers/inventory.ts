@@ -48,7 +48,7 @@ const initialListWithFilter = <D>(expanded: boolean, sortType: number): Inventor
 const initialState: InventoryState = {
   blueprints: initialListWithFilter(true, SORT_NAME_ASCENDING),
   auction: initialList(true, SORT_NAME_ASCENDING),
-  visible: initialListWithFilter(true, SORT_VALUE_DESCENDING),
+  visible: [],
   hidden: initialListWithFilter(false, SORT_NAME_ASCENDING),
   hiddenCriteria: emptyCriteria,
   byStore: initialListByStore(true, SORT_NAME_ASCENDING),
@@ -146,7 +146,7 @@ const loadInventory = (
     ...state.auction,
     items: _getAuction(list),
   }, (x) => x),
-  visible: _sortAndStatsWithFilter(state.visible, _getVisible(list, state.hiddenCriteria), _visibleSelect),
+  visible: _getVisible(list, state.hiddenCriteria),
   hidden: _sortAndStatsWithFilter(state.hidden, _getHidden(list, state.hiddenCriteria), _hiddenSelect),
   available: _sortAndStats({
     ...state.available,
@@ -156,7 +156,7 @@ const loadInventory = (
 });
 
 const joinList = (state: InventoryState): Array<ItemData> => [
-  ...state.visible.originalList.items.map(_visibleSelect),
+  ...state.visible.map(_visibleSelect),
   ...state.hidden.originalList.items.map(_hiddenSelect),
 ];
 
@@ -189,20 +189,6 @@ const reduceSetAvailableExpanded = (
   available: {
     ...state.available,
     expanded,
-  }
-});
-
-const reduceSetVisibleExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  visible: {
-    ...state.visible,
-    originalList: {
-      ...state.visible.originalList,
-      expanded
-    }
   }
 });
 
@@ -253,18 +239,6 @@ const reduceSortOwnedBlueprintsBy = (
   ...state,
   blueprints: _nextSortByPartWithFilter(state.blueprints, part, _blueprintSelect),
 });
-
-const reduceSetVisibleFilter = (
-  state: InventoryState,
-  filter: string
-): InventoryState => ({
-  ...state,
-  visible: {
-    ...state.visible,
-    filter,
-    showList: applyListFilter(state.visible.originalList, filter, _visibleSelect)
-  }
-})
 
 const reduceSetHiddenFilter = (
   state: InventoryState,
@@ -367,14 +341,6 @@ const reduceSortAuctionBy = (
   auction: _nextSortByPart(state.auction, part, (x) => x),
 });
 
-const reduceSortVisibleBy = (
-  state: InventoryState,
-  part: number,
-): InventoryState => ({
-  ...state,
-  visible: _nextSortByPartWithFilter(state.visible, part, _visibleSelect),
-});
-
 const reduceSortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
   ...state,
   hidden: _nextSortByPartWithFilter(state.hidden, part, _hiddenSelect),
@@ -429,17 +395,7 @@ const reduceShowAll = (state: InventoryState): InventoryState =>
 
 const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
   ...state,
-  visible: {
-    ...state.visible,
-    originalList: { // for new view
-      ...state.visible.originalList,
-      items: state.visible.originalList.items.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
-    },
-    showList: { // for old view
-      ...state.visible.showList,
-      items: state.visible.showList.items.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
-    }
-  }
+  visible: state.visible.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
 })
 
 const reduceShowTradingItemData = (state: InventoryState, name: string): InventoryState =>
@@ -562,7 +518,7 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   // remove what will be reconstructed in loadInventory
   blueprints: cleanForSaveInventoryListWithFilter(state.blueprints),
   auction: cleanForSaveInventoryList(state.auction),
-  visible: cleanForSaveInventoryListWithFilter(state.visible),
+  visible: undefined,
   hidden: cleanForSaveInventoryListWithFilter(state.hidden),
   hiddenCriteria: state.hiddenCriteria,
   byStore: undefined, // saved independently because it is too big
@@ -579,15 +535,12 @@ export {
   reduceSetCurrentInventory,
   reduceSetAuctionExpanded,
   reduceSetAvailableExpanded,
-  reduceSetVisibleExpanded,
-  reduceSetVisibleFilter,
   reduceSetHiddenExpanded,
   reduceSetHiddenFilter,
   reduceSetBlueprintsExpanded,
   reduceSetBlueprintsFilter,
   reduceSortOwnedBlueprintsBy,
   reduceSortAuctionBy,
-  reduceSortVisibleBy,
   reduceSortHiddenBy,
   reduceSortAvailableBy,
   reduceHideByName,

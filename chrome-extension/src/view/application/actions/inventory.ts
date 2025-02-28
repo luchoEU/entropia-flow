@@ -8,8 +8,6 @@ const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
 const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
 const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
-const SET_VISIBLE_EXPANDED = "[inv] set visible expanded"
-const SET_VISIBLE_FILTER = "[inv] set visible filter"
 const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SET_HIDDEN_FILTER = "[inv] set hidden filter"
 const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
@@ -36,7 +34,6 @@ const SET_BY_STORE_STARED_ITEM_NAME = "[inv] set by store stared item name"
 const SET_BY_STORE_STARED_ITEM_STARED = "[inv] set by store stared item stared"
 const SET_BY_STORE_CRAFT_FILTER = "[inv] set by store craft filter"
 const SORT_AUCTION_BY = "[inv] sort auction by"
-const SORT_VISIBLE_BY = "[inv] sort visible by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
@@ -80,13 +77,6 @@ const setAuctionInventoryExpanded = (expanded: boolean) => ({
 
 const setAvailableInventoryExpanded = (expanded: boolean) => ({
     type: SET_AVAILABLE_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setVisibleInventoryExpanded = (expanded: boolean) => ({
-    type: SET_VISIBLE_EXPANDED,
     payload: {
         expanded
     }
@@ -232,13 +222,6 @@ const setByStoreCraftFilter = (filter: string) => ({
     }
 })
 
-const setVisibleInventoryFilter = (filter: string) => ({
-    type: SET_VISIBLE_FILTER,
-    payload: {
-        filter
-    }
-})
-
 const setHiddenInventoryFilter = (filter: string) => ({
     type: SET_HIDDEN_FILTER,
     payload: {
@@ -283,13 +266,6 @@ const sortOwnedBlueprintsBy = (part: number) => ({
 
 const sortAuctionBy = (part: number) => ({
     type: SORT_AUCTION_BY,
-    payload: {
-        part
-    }
-})
-
-const sortVisibleBy = (part: number) => ({
-    type: SORT_VISIBLE_BY,
     payload: {
         part
     }
@@ -431,8 +407,6 @@ export {
     SET_CURRENT_INVENTORY,
     SET_AUCTION_EXPANDED,
     SET_AVAILABLE_EXPANDED,
-    SET_VISIBLE_EXPANDED,
-    SET_VISIBLE_FILTER,
     SET_HIDDEN_EXPANDED,
     SET_HIDDEN_FILTER,
     SET_BLUEPRINTS_EXPANDED,
@@ -459,7 +433,6 @@ export {
     SET_BY_STORE_STARED_ITEM_STARED,
     SET_BY_STORE_CRAFT_FILTER,
     SORT_AUCTION_BY,
-    SORT_VISIBLE_BY,
     SORT_HIDDEN_BY,
     SORT_BY_STORE_BY,
     SORT_BY_STORE_STARED_BY,
@@ -483,8 +456,6 @@ export {
     setCurrentInventory,
     setAuctionInventoryExpanded,
     setAvailableInventoryExpanded,
-    setVisibleInventoryExpanded,
-    setVisibleInventoryFilter,
     setHiddenInventoryExpanded,
     setHiddenInventoryFilter,
     setOwnedBlueprintsExpanded,
@@ -511,7 +482,6 @@ export {
     setByStoreStaredItemStared,
     setByStoreCraftFilter,
     sortAuctionBy,
-    sortVisibleBy,
     sortHiddenBy,
     sortByStoreBy,
     sortByStoreStaredBy,

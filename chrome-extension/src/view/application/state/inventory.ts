@@ -132,7 +132,7 @@ interface TradeBlueprintLineData {
 interface InventoryState {
   blueprints: InventoryListWithFilter<ItemData>;
   auction: InventoryList<ItemData>;
-  visible: InventoryListWithFilter<ItemVisible>;
+  visible: Array<ItemVisible>;
   hidden: InventoryListWithFilter<ItemHidden>;
   hiddenCriteria: HideCriteria;
   byStore: InventoryByStore;
