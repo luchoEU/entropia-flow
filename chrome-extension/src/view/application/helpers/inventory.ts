@@ -431,7 +431,11 @@ const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
   ...state,
   visible: {
     ...state.visible,
-    showList: {
+    originalList: { // for new view
+      ...state.visible.originalList,
+      items: state.visible.originalList.items.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
+    },
+    showList: { // for old view
       ...state.visible.showList,
       items: state.visible.showList.items.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
     }

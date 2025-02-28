@@ -23,8 +23,9 @@ const reduceSetTabularFilter = (state: TabularState, selector: string, filter: s
 })
 
 const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
-    const filtered = data.items.all.filter(d => multiIncludes(data.filter, JSON.stringify(d)));
-    const show = cloneAndSort(filtered, data.sortSecuence, _getTabularSortDefinition(selector));
+    const sortDefinition = _getTabularSortDefinition(selector);
+    const filtered = data.items.all.filter(d => sortDefinition.map(s => s.selector(d)).some(t => t && multiIncludes(data.filter, t)));
+    const show = cloneAndSort<any>(filtered, data.sortSecuence, sortDefinition);
     const pedSelector: (d: any) => number = _getTabularPedSelector(selector);  
     const sumPed = pedSelector && show.reduce((partialSum, item) => partialSum + pedSelector(item), 0);
 
@@ -74,24 +75,32 @@ const setTabularDefinitions = (tabularDefinitions: TabularDefinitions) => {
     Object.entries(tabularDefinitions).forEach(([selector, definition]) => {
         _tabularDefinitions[selector] = definition.getRowForSort ? {
             ...definition,
-            getRow: (d, i) => definition.getRow(d, i).map((v, j) => {
+            getRow: (d, rowIndex) => definition.getRow(d, rowIndex).map((v, colIndex) => {
                 if (typeof v === 'string') {
-                    const sv = definition.getRowForSort(d, i)[j];
+                    const sv = definition.getRowForSort(d, rowIndex)[colIndex];
                     if (typeof sv === 'number')
                         return { text: v, style: { justifyContent: 'end' } }
                 }
                 return v
-            })
-        } : definition;
+            }),
+            getRowForSort: (d, rowIndex) => {
+                const base = definition.getRow(d, rowIndex);
+                const forSort = definition.getRowForSort(d, rowIndex);
+                return base.map((v, colIndex) => forSort[colIndex] ?? v)
+            }
+        } : {
+            ...definition,
+            getRowForSort: definition.getRow
+        }
     })
 }
 
 const _getTabularSortDefinition = <TItem extends any>(selector: string): Array<SortColumnDefinition<TItem>> => {
     const definition = _tabularDefinitions[selector]
     if (!definition) throw new Error(`Tabular definition for ${selector} not found`)
-    return Array.from({ length: definition.columns.length }, (_, i) => ({
-        selector: d => definition.getRowForSort?.(d, i)[i] ?? definition.getRow(d, i)[i],
-        comparer: definition.columnComparer?.[i] ?? byTypeComparer
+    return Array.from({ length: definition.columns.length }, (_, colIndex) => ({
+        selector: d => definition.getRowForSort(d, undefined)[colIndex],
+        comparer: definition.columnComparer?.[colIndex] ?? byTypeComparer
     }))
 }
 

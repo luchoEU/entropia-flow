@@ -1,6 +1,8 @@
 import { ItemData } from "../../../common/state";
 import { SortSecuence } from "./sort";
 
+const INVENTORY_TABULAR_OWNED = '[inventory] owned'
+
 interface InventoryList<T> {
   expanded: boolean;
   sortType: number;
@@ -140,6 +142,7 @@ interface InventoryState {
 }
 
 export {
+  INVENTORY_TABULAR_OWNED,
   HideCriteria,
   AvailableCriteria,
   ItemVisible,

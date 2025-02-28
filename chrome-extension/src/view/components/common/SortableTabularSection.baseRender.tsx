@@ -44,7 +44,8 @@ const BaseRowValueRender: RowValueRender = (p) => {
     const style = typeof v === 'object' && {
         ...'style' in v && v.style,
         ...'visible' in v && !v.visible && { visibility: 'hidden' },
-        ...'maxWidth' in v && v.maxWidth && { maxWidth: v.maxWidth }
+        ...'maxWidth' in v && v.maxWidth && { maxWidth: v.maxWidth },
+        ...'sub' in v && { display: 'flex', width: '100%' }, // so flex works
     }
     if (style)
         delete style['justifyContent']
@@ -65,7 +66,7 @@ const BaseRowValueRender: RowValueRender = (p) => {
         ('strong' in v ? <strong {...extra}>{v.strong}</strong> :
         ('input' in v ? <_Input value={v.input} width={v.width ?? INPUT_WIDTH} dispatchChange={v.dispatchChange} /> :
         ('file' in v ? <_File value={v.file} dispatchChange={v.dispatchChange} /> :
-        ('sub' in v ? <span {...extra}><BaseRowValueRender v={v.sub} /></span> :
+        ('sub' in v ? <div {...extra}><BaseRowValueRender v={v.sub} /></div> :
         <></>
     ))))))))));
 }

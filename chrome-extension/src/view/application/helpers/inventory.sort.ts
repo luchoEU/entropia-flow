@@ -47,6 +47,11 @@ const sortColumnDefinition = {
         text: 'Container',
         up: SORT_CONTAINER_ASCENDING,
         down: SORT_CONTAINER_DESCENDING
+    },
+    [TT_SERVICE_COLUMN]: {
+        text: 'TT Service',
+        up: SORT_CONTAINER_ASCENDING, // dummy
+        down: SORT_CONTAINER_DESCENDING
     }
 }
 
