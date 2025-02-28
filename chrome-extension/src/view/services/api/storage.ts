@@ -273,11 +273,11 @@ async function loadAbout(): Promise<AboutState> {
 }
 
 async function saveGameLog(state: GameLogState) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_GAME_LOG, state)
+    await LOCAL_STORAGE.set(STORAGE_VIEW_GAME_LOG, state)
 }
 
 async function loadGameLog(): Promise<GameLogState> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_GAME_LOG)
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_GAME_LOG)
 }
 
 export default {
