@@ -15,14 +15,15 @@ interface StreamChooserLine {
 }
 
 const streamTabularDataFromLayouts = (layouts: StreamRenderLayoutSet): TabularRawData<StreamChooserLine> => ({
-    [STREAM_TABULAR_CHOOSER]:
-        Object.entries(layouts).map(([id, layout]) => ({
+    [STREAM_TABULAR_CHOOSER]: {
+        items: Object.entries(layouts).map(([id, layout]) => ({
             id,
             name: layout.name,
             readonly: !!layout.readonly,
             stared: !!layout.stared,
             layout
         }))
+    }
 });
 
 const streamTabularDataFromVariables = (variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>): TabularRawData<StreamComputedVariable> => {
@@ -37,8 +38,8 @@ const streamTabularDataFromVariables = (variables: Record<string, StreamStateVar
     const computedObj = computeFormulas(obj, tObj)
     const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }));
     return {
-        [STREAM_TABULAR_VARIABLES]: tVariables,
-        [STREAM_TABULAR_IMAGES]: images
+        [STREAM_TABULAR_VARIABLES]: { items: tVariables },
+        [STREAM_TABULAR_IMAGES]: { items: images }
     }
 }
 

@@ -1,20 +1,20 @@
 import { RowValue } from "../../components/common/SortableTabularSection.data";
 import { hideByContainer, hideByName, hideByValue, showTradingItemData } from "../actions/inventory";
 import { setTabularFilter } from "../actions/tabular";
-import { INVENTORY_TABULAR_OWNED, InventoryState, ItemVisible } from "../state/inventory";
+import { INVENTORY_TABULAR_OWNED, InventoryState, ItemVisible, TradeItemData } from "../state/inventory";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 
 const inventoryTabularData = (state: InventoryState): TabularRawData<ItemVisible> => ({
-    [INVENTORY_TABULAR_OWNED]: state.visible
+    [INVENTORY_TABULAR_OWNED]: { data: state.tradeItemData, items: state.visible }
 })
 
 const inventoryTabularDefinitions: TabularDefinitions = {
     [INVENTORY_TABULAR_OWNED]: {
         title: 'Owned List',
         columns: ['Name', 'Quantity', 'Value', 'Container', 'TT Service'],
-        // TODO:
-        // [TT_SERVICE_COLUMN]: { justifyContent: 'end', show: SHOW_TT_SERVICE, sortable: false, sub: [
+        // TODO: TT_SERVICE_COLUMN
         // { title: 'Reload TT Service from sheet', imgButton: { src: 'img/reload.png', dispatch: () => reloadTTService }}
+        columnVisible: (data: TradeItemData) => [true, true, true, !data, false],
         getRow: (g: ItemVisible): RowValue[] => {
             return [
                 { // Name
@@ -40,7 +40,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                 ]
             ]
         },
-        getRowForSort: (g: ItemVisible) => [g.data.n,, g.data.v, g.data.c, g.c?.ttServiceValue ?? ''],
+        getRowForSort: (g: ItemVisible) => [g.data.n, Number(g.data.q), Number(g.data.v), g.data.c, g.c?.ttServiceValue ?? ''],
         getPedValue: (g: ItemVisible) => Number(g.data.v)
     }
 }

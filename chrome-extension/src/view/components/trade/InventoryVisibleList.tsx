@@ -60,7 +60,11 @@ const TradeItemDetails = () => {
 
     if (favoriteTableData && ownedTableData)
     {
-        const columnsWidth: number[] = favoriteTableData.columnsWidth.map((w, i) => Math.max(w, ownedTableData.columnsWidth[i]))
+        let columnsWidth: number[] = favoriteTableData.columnsWidth.map((w, i) => Math.max(w, ownedTableData.columnsWidth[i]))
+        if (otherTableData) {
+            columnsWidth = columnsWidth.map((w, i) => Math.max(w, otherTableData.columnsWidth[i]))
+            otherTableData.columnsWidth = columnsWidth
+        }
         favoriteTableData.columnsWidth = columnsWidth
         ownedTableData.columnsWidth = columnsWidth
     }

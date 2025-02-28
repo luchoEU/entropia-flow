@@ -44,12 +44,13 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
 
 const reduceSetTabularData = (state: TabularState, data: TabularRawData): TabularState => ({
     ...state,
-    ...Object.fromEntries(Object.entries(data).map(([selector, all]) => [selector,
-        all && _applyFilterAndSort(selector, {
+    ...Object.fromEntries(Object.entries(data).map(([selector, raw]) => [selector,
+        raw && _applyFilterAndSort(selector, {
             ...state[selector],
+            data: raw.data,
             items: {
                 ...state[selector]?.items,
-                all
+                all: raw.items
             }
         })]))
 })
@@ -70,7 +71,21 @@ const reduceSortTabularBy = (state: TabularState, selector: string, column: numb
 }
 
 const _tabularDefinitions: TabularDefinitions = { }
-const getTabularDefinition = (selector: string): TabularDefinition => _tabularDefinitions[selector]
+const getTabularDefinition = (selector: string, data: any): TabularDefinition => {
+    const d = _tabularDefinitions[selector]
+    if (!d?.columnVisible)
+        return d
+
+    const isVisible = d.columnVisible(data)
+    return {
+        ...d,
+        columnVisible: undefined,
+        columns: d.columns.filter((_, i) => isVisible[i]),
+        getRow: (item: any, index?: number) => d.getRow(item, index).filter((_, i) => isVisible[i]),
+        getRowForSort: (item: any, index?: number) => d.getRowForSort(item, index).filter((_, i) => isVisible[i])
+    }
+}
+
 const setTabularDefinitions = (tabularDefinitions: TabularDefinitions) => {
     Object.entries(tabularDefinitions).forEach(([selector, definition]) => {
         _tabularDefinitions[selector] = definition.getRowForSort ? {

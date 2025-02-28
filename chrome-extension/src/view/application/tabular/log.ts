@@ -69,15 +69,15 @@ const gameLogTabularDefinitions: TabularDefinitions = {
 }
 
 const gameLogTabularData = (gameLog: GameLogData): TabularRawData => ({
-    [GAME_LOG_TABULAR_LOOT]: gameLog.loot,
-    [GAME_LOG_TABULAR_TIER]: gameLog.tier,
-    [GAME_LOG_TABULAR_SKILL]: gameLog.skill,
-    [GAME_LOG_TABULAR_ENHANCER_BROKEN]: gameLog.enhancerBroken,
-    [GAME_LOG_TABULAR_GLOBAL]: gameLog.global,
-    [GAME_LOG_TABULAR_EVENT]: gameLog.event,
-    [GAME_LOG_TABULAR_STATISTICS]: Object.entries(gameLog.stats),
-    [GAME_LOG_TABULAR_MISSING]: gameLog.raw.filter(d => !d.player && Object.keys(d.data).length === 0),
-    [GAME_LOG_TABULAR_RAW]: gameLog.raw
+    [GAME_LOG_TABULAR_LOOT]: { items: gameLog.loot },
+    [GAME_LOG_TABULAR_TIER]: { items: gameLog.tier },
+    [GAME_LOG_TABULAR_SKILL]: { items: gameLog.skill },
+    [GAME_LOG_TABULAR_ENHANCER_BROKEN]: { items: gameLog.enhancerBroken },
+    [GAME_LOG_TABULAR_GLOBAL]: { items: gameLog.global },
+    [GAME_LOG_TABULAR_EVENT]: { items: gameLog.event },
+    [GAME_LOG_TABULAR_STATISTICS]: { items: Object.entries(gameLog.stats) },
+    [GAME_LOG_TABULAR_MISSING]: { items: gameLog.raw.filter(d => !d.player && Object.keys(d.data).length === 0) },
+    [GAME_LOG_TABULAR_RAW]: { items: gameLog.raw }
 })
 
 const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {

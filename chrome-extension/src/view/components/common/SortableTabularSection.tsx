@@ -195,7 +195,7 @@ const SortableFixedTable = <TItem extends any>(p: {
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
     const { selector, itemHeight, rowValueRender } = p
-    const { columns, getRow: getItemRow } = getTabularDefinition(selector)
+    const { columns, getRow: getItemRow } = getTabularDefinition(selector, s.data)
     const sortRow = _getSortRow(selector, columns, s.sortSecuence)
     const table: TableParameters<TItem> = {
         width: _calculateWidths(s.items.all, sortRow, getItemRow),
@@ -218,7 +218,7 @@ const SortableTable = (p: {
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
     const { selector, rowValueRender: RowValueRenderComponent } = p
-    const { columns, getRow: getItemRow } = getTabularDefinition(selector)
+    const { columns, getRow: getItemRow } = getTabularDefinition(selector, s.data)
     const sortRow = _getSortRow(selector, columns, s.sortSecuence)
     const width = _calculateWidths(s.items.all, sortRow, getItemRow)
 
@@ -254,7 +254,7 @@ const SortableTabularSection = (p: {
 }) => {
     const { selector } = p
     const RowValueRenderComponent = p.rowValueRender ?? BaseRowValueRender
-    const { title }: TabularDefinition<any, any> = getTabularDefinition(selector)
+    const { title }: TabularDefinition<any, any> = getTabularDefinition(selector, undefined)
     const s: TabularStateData = useSelector(getTabularData(selector))
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
