@@ -12,7 +12,7 @@ import { getTabularDefinition } from '../../application/helpers/tabular';
 import { COLUMN_PADDING, FONT, IMG_SORT_WIDTH, IMG_WIDTH, ITEM_HEIGHT, LIST_TOTAL_HEIGHT, RowValue, RowValueRender, SCROLL_BAR_WIDTH } from './SortableTabularSection.data';
 import BaseRowValueRender, { getRowValueWidth } from './SortableTabularSection.baseRender';
 
-const _getSortRow = (selector: string, columns: string[], sortSecuence?: SortSecuence): RowValue[] => columns.map((text, i) => ({
+const _getSortRow = (selector: string, columns: string[], columnHeaderAfterName?: RowValue[], sortSecuence?: SortSecuence): RowValue[] => columns.map((text, i) => ({
     dispatch: () => sortTabularBy(selector, i),
     style: { justifyContent: 'center' },
     sub: [
@@ -22,6 +22,7 @@ const _getSortRow = (selector: string, columns: string[], sortSecuence?: SortSec
             title: sortSecuence?.[0].ascending ? 'Sorted Ascending' : 'Sorted Descending',
             visible: sortSecuence?.[0].column === i
         },
+        columnHeaderAfterName[i]
     ]
 }))
 
@@ -195,8 +196,8 @@ const SortableFixedTable = <TItem extends any>(p: {
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
     const { selector, itemHeight, rowValueRender } = p
-    const { columns, getRow: getItemRow } = getTabularDefinition(selector, s.data)
-    const sortRow = _getSortRow(selector, columns, s.sortSecuence)
+    const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.data)
+    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName, s.sortSecuence)
     const table: TableParameters<TItem> = {
         width: _calculateWidths(s.items.all, sortRow, getItemRow),
         itemCount: s.items.show.length,
@@ -218,8 +219,8 @@ const SortableTable = (p: {
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
     const { selector, rowValueRender: RowValueRenderComponent } = p
-    const { columns, getRow: getItemRow } = getTabularDefinition(selector, s.data)
-    const sortRow = _getSortRow(selector, columns, s.sortSecuence)
+    const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.data)
+    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName, s.sortSecuence)
     const width = _calculateWidths(s.items.all, sortRow, getItemRow)
 
     return <table className='sort-table' style={{ font: FONT }}>

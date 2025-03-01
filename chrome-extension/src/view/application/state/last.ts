@@ -16,6 +16,7 @@ interface LastRequiredState {
     sortType: number,
     blacklist: Array<string>,
     permanentBlacklist: Array<string>,
+    notificationsDone: Array<string>,
 }
 
 export {

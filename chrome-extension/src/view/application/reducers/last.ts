@@ -1,5 +1,5 @@
-import { initialState, reduceAddActions, reduceAddPeds, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetBlacklist, reduceSetExpanded, reduceSetPeds, reduceSetPermanentBlacklist, reduceSortByPart } from "../helpers/last"
-import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, SET_BLACKLIST, EXCLUDE_WARNINGS, SET_PEDS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, SET_PERMANENT_BLACKLIST, ADD_ACTIONS } from "../actions/last"
+import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetBlacklist, reduceSetExpanded, reduceSetPeds, reduceSetPermanentBlacklist, reduceSortByPart } from "../helpers/last"
+import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, SET_BLACKLIST, EXCLUDE_WARNINGS, SET_PEDS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, SET_PERMANENT_BLACKLIST, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -16,6 +16,7 @@ export default (state = initialState, action) => {
         case ADD_PEDS: return reduceAddPeds(state, action.payload.value)
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
         case ADD_ACTIONS: return reduceAddActions(state, action.payload.availableCriteria)
+        case ADD_NOTIFICATIONS_DONE: return reduceAddNotificationsDone(state, action.payload.messages)
         default: return state
     }
 }

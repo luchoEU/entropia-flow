@@ -3,7 +3,6 @@ import { showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBluep
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
 import { getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
-import { getTTServiceItemValues } from '../../application/selectors/ttService'
 import { INVENTORY_TABULAR_OWNED, TradeBlueprintLineData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
@@ -31,7 +30,6 @@ const getBlueprintsTableData = (type: string): TableData2<TradeBlueprintLineData
 
 const TradeItemDetails = () => {
     const tradeItemDataChain = useSelector(getTradeItemDataChain)
-    const ttServiceItemValues = useSelector(getTTServiceItemValues)
     const dispatch = useDispatch()
 
     return <>{ tradeItemDataChain?.map((tradeItemData, chainIndex) => {
@@ -63,7 +61,7 @@ const TradeItemDetails = () => {
             itemSelector: getTradeOtherBlueprintItem(chainIndex),
             tableData: getBlueprintsTableData('Not Owned')
         })
-    
+
         if (favoriteTableData && ownedTableData)
         {
             let columnsWidth: number[] = favoriteTableData.columnsWidth.map((w, i) => Math.max(w, ownedTableData.columnsWidth[i]))

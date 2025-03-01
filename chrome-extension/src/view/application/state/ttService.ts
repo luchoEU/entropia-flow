@@ -1,10 +1,12 @@
+import { WebLoadResponse } from "../../../web/loader"
+
 interface TTServiceState {
-    loading: boolean
-    inventory: Array<TTServiceItem>
-    c?: {
-        itemInventoryValue: {[name: string]: number}
+    web?: {
+        inventory?: WebLoadResponse<TTServiceInventoryWebData>
     }
 }
+
+type TTServiceInventoryWebData = Array<TTServiceItem>
 
 interface TTServiceItem {
     date: string

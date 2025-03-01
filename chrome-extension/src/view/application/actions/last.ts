@@ -15,6 +15,7 @@ const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
 const ADD_ACTIONS = "[last] add actions"
+const ADD_NOTIFICATIONS_DONE = "[last] add notifications done"
 
 const setBlacklist = (list: Array<string>) => ({
     type: SET_BLACKLIST,
@@ -114,6 +115,13 @@ const addActionsToLast = (availableCriteria: AvailableCriteria) => ({
     }
 })
 
+const addNotificationsDone = (messages: string[]) => ({
+    type: ADD_NOTIFICATIONS_DONE,
+    payload: {
+        messages
+    }
+})
+
 export {
     SET_BLACKLIST,
     SET_PERMANENT_BLACKLIST,
@@ -128,6 +136,7 @@ export {
     ADD_PEDS,
     REMOVE_PEDS,
     ADD_ACTIONS,
+    ADD_NOTIFICATIONS_DONE,
     setBlacklist,
     setPermanentBlacklist,
     setPeds,
@@ -142,4 +151,5 @@ export {
     permanentExcludeOn,
     permanentExcludeOff,
     addActionsToLast,
+    addNotificationsDone,
 }

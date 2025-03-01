@@ -16,7 +16,8 @@ const initialState: LastRequiredState = {
     peds: [],
     sortType: SORT_VALUE_DESCENDING,
     blacklist: [],
-    permanentBlacklist: []
+    permanentBlacklist: [],
+    notificationsDone: [],
 }
 
 function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewItemData>): number {
@@ -41,7 +42,7 @@ function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewIte
     // mark auction sells as excluded, unless they are all auction changes
     if (diff.find(i => i.c !== 'AUCTION')) {
         for (const item of diff) {
-            if (item.c === 'AUCTION') {
+            if (item.c === 'AUCTION' && Number(item.q) < 0) { // < 0 are sells
                 const existed = last && last.find(i => {
                     return i.n === item.n
                         && i.q === item.q
@@ -182,7 +183,8 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
                 text: getText(inv, true),
                 date: last,
                 diff: null,
-                peds: []
+                peds: [],
+                notificationsDone: [],
             }
         } else {
             let d = Number(lastInv.meta.total) - Number(inv.meta.total)
@@ -211,6 +213,11 @@ const reduceAddActions = (state: LastRequiredState, availableCriteria: Available
         ...d,
         a: getItemAction(d, availableCriteria)
     }))
+})
+
+const reduceAddNotificationsDone = (state: LastRequiredState, messages: Array<string>): LastRequiredState => ({
+    ...state,
+    notificationsDone: [ ...state.notificationsDone, ...messages ]
 })
 
 const reduceSetPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
@@ -260,6 +267,7 @@ export {
     reduceExclude,
     reduceExcludeWarnings,
     reducePermanentExclude,
+    reduceAddNotificationsDone,
     reduceSetPeds,
     reduceAddPeds,
     reduceRemovePeds,

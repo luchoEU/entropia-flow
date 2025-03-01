@@ -1,5 +1,4 @@
-import { Inventory } from "../../../common/state"
-import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds, addActionsToLast, ADD_ACTIONS } from "../actions/last"
+import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds, addActionsToLast, ADD_ACTIONS, addNotificationsDone } from "../actions/last"
 import { PAGE_LOADED } from "../actions/ui"
 import { getInventory } from "../selectors/inventory"
 import { getPermanentBlacklist, getBlacklist, getPeds, getLast } from "../selectors/last"
@@ -46,12 +45,21 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
             if (state.diff !== null) {
-                var reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+                const reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+
+                state.notificationsDone.forEach(m => {
+                    const index = reduced.indexOf(m);
+                    if (index > -1) {
+                        reduced.splice(index, 1);
+                    }
+                })
+
                 if (reduced.length > 0) {
                     chrome.notifications.create(
                         undefined,
                         { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: reduced.join('\n') }
                     )
+                    dispatch(addNotificationsDone(reduced))
                 }
             }
             break
