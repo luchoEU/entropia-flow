@@ -366,14 +366,15 @@ const showAll = () => ({
     type: SHOW_ALL
 })
 
-const showTradingItemData = (name: string) => ({
+const showTradingItemData = (name: string, chainIndex: number) => ({
     type: SHOW_TRADING_ITEM_DATA,
     payload: {
-        name
+        name,
+        chainIndex
     }
 })
 
-const loadTradingItemData = (craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>) => ({
+const loadTradingItemData = (craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>[]) => ({
     type: LOAD_TRADING_ITEM_DATA,
     payload: {
         craftState,
@@ -381,23 +382,26 @@ const loadTradingItemData = (craftState: CraftState, usage: WebLoadResponse<Item
     }
 })
 
-const sortTradeFavoriteBlueprintsBy = (part: number) => ({
+const sortTradeFavoriteBlueprintsBy = (chainIndex: number) => (part: number) => ({
     type: SORT_TRADE_FAVORITE_BLUEPRINTS_BY,
     payload: {
+        chainIndex,
         part
     }
 })
 
-const sortTradeOwnedBlueprintsBy = (part: number) => ({
+const sortTradeOwnedBlueprintsBy = (chainIndex: number) => (part: number) => ({
     type: SORT_TRADE_OWNED_BLUEPRINTS_BY,
     payload: {
+        chainIndex,
         part
     }
 })
 
-const sortTradeOtherBlueprintsBy = (part: number) => ({
+const sortTradeOtherBlueprintsBy = (chainIndex: number) => (part: number) => ({
     type: SORT_TRADE_OTHER_BLUEPRINTS_BY,
     payload: {
+        chainIndex,
         part
     }
 })

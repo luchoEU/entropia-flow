@@ -9,7 +9,8 @@ import {
   AvailableCriteria,
   InventoryListWithFilter,
   ItemVisible,
-  TradeBlueprintLineData
+  TradeBlueprintLineData,
+  TradeItemData
 } from "../state/inventory";
 import { initialListByStore, loadInventoryByStore } from "./inventory.byStore";
 import {
@@ -54,7 +55,7 @@ const initialState: InventoryState = {
   byStore: initialListByStore(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
   availableCriteria: { name: [] },
-  tradeItemData: undefined
+  tradeItemDataChain: undefined
 };
 
 const _visibleSelect = (x: ItemVisible): ItemData => x.data;
@@ -395,48 +396,67 @@ const reduceShowAll = (state: InventoryState): InventoryState =>
 
 const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
   ...state,
-  visible: state.visible.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemData?.name } }))
+  visible: state.visible.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemDataChain?.[0].name } }))
 })
 
-const reduceShowTradingItemData = (state: InventoryState, name: string): InventoryState =>
-  _propagateTradeItemName({
-    ...state,
-    tradeItemData: name === undefined ? undefined : {
-      name,
-      sortSecuence: {
-        favoriteBlueprints: defaultSortSecuence,
-        ownedBlueprints: defaultSortSecuence,
-        otherBlueprints: defaultSortSecuence,
+const reduceShowTradingItemData = (state: InventoryState, name: string, chainIndex: number): InventoryState => {
+  let tradeItemDataChain: TradeItemData[]
+  if (!name && chainIndex === 0) {
+    tradeItemDataChain = undefined
+  } else {
+    if (chainIndex === 0) {
+      tradeItemDataChain = []
+    } else {
+      tradeItemDataChain = state.tradeItemDataChain || [];
+      if (tradeItemDataChain.length > chainIndex) {
+        tradeItemDataChain = tradeItemDataChain.slice(0, chainIndex)
       }
     }
+    if (name) {
+      tradeItemDataChain.push({
+        name,
+        sortSecuence: {
+          favoriteBlueprints: defaultSortSecuence,
+          ownedBlueprints: defaultSortSecuence,
+          otherBlueprints: defaultSortSecuence,
+        }
+      })
+    }
+  }
+  return _propagateTradeItemName({
+    ...state,
+    tradeItemDataChain
   });
+}
 
-const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>): InventoryState => {
-  if (!state.tradeItemData) {
+const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>[]): InventoryState => {
+  if (!state.tradeItemDataChain) {
     return state
   }
-  const usageBPs = usage?.data?.value.blueprints
-  const w = (list: BlueprintData[]): BlueprintWebData[] => list
-    .map(bp => bp.web?.blueprint.data?.value ?? usageBPs?.find(b => b.name === bp.name))
-    .filter(bp => bp)
-  const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
-  const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
-  const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
-  const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
-    .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === state.tradeItemData.name)?.quantity }))
-    .filter(bp => bp.quantity);
-
   return {
     ...state,
-    tradeItemData: {
-      ...state.tradeItemData,
-      c: {
-        favoriteBlueprints: cloneAndSort(m(fav), state.tradeItemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
-        ownedBlueprints: cloneAndSort(m(own), state.tradeItemData.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
-        otherBlueprints: cloneAndSort(m(oth), state.tradeItemData.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
-        loading: !!usage?.loading
+    tradeItemDataChain: state.tradeItemDataChain.map((d, i) => {
+      const usageBPs = usage[i]?.data?.value.blueprints
+      const w = (list: BlueprintData[]): BlueprintWebData[] => list
+        .map(bp => bp.web?.blueprint.data?.value ?? usageBPs?.find(b => b.name === bp.name))
+        .filter(bp => bp)
+      const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
+      const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
+      const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
+      const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
+        .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === d.name)?.quantity }))
+        .filter(bp => bp.quantity);
+
+      return {
+        ...d,
+        c: {
+          favoriteBlueprints: cloneAndSort(m(fav), d.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
+          ownedBlueprints: cloneAndSort(m(own), d.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
+          otherBlueprints: cloneAndSort(m(oth), d.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
+          usage: usage[i]
+        }
       }
-    }
+    })
   }
 }
 
@@ -454,33 +474,34 @@ const _tradeSortColumnDefinition = [
 const _reduceSortTradeBlueprintsBy = (
   fieldName: string,
   state: InventoryState,
+  chainIndex: number,
   column: number,
 ): InventoryState => {
-  const sortSecuence = nextSortSecuence(state.tradeItemData.sortSecuence[fieldName], column);
+  const sortSecuence = nextSortSecuence(state.tradeItemDataChain[chainIndex].sortSecuence[fieldName], column);
   return {
     ...state,
-    tradeItemData: {
-      ...state.tradeItemData,
+    tradeItemDataChain: state.tradeItemDataChain.map((d, i) => i !== chainIndex ? d : {
+      ...d,
       sortSecuence: {
-        ...state.tradeItemData.sortSecuence,
+        ...d.sortSecuence,
         [fieldName]: sortSecuence
       },
       c: {
-        ...state.tradeItemData.c,
-        [fieldName]: cloneAndSort(state.tradeItemData.c[fieldName], sortSecuence, _tradeSortColumnDefinition),
+        ...d.c,
+        [fieldName]: cloneAndSort(d.c[fieldName], sortSecuence, _tradeSortColumnDefinition),
       }
-    }
+    })
   }
 };
 
-const reduceSortTradeFavoriteBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
-  _reduceSortTradeBlueprintsBy('favoriteBlueprints', state, column);
+const reduceSortTradeFavoriteBlueprintsBy = (state: InventoryState, chainIndex: number, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('favoriteBlueprints', state, chainIndex, column);
 
-const reduceSortTradeOwnedBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
-  _reduceSortTradeBlueprintsBy('ownedBlueprints', state, column);
+const reduceSortTradeOwnedBlueprintsBy = (state: InventoryState, chainIndex: number, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('ownedBlueprints', state, chainIndex, column);
 
-const reduceSortTradeOtherBlueprintsBy = (state: InventoryState, column: number): InventoryState =>
-  _reduceSortTradeBlueprintsBy('otherBlueprints', state, column);
+const reduceSortTradeOtherBlueprintsBy = (state: InventoryState, chainIndex: number, column: number): InventoryState =>
+  _reduceSortTradeBlueprintsBy('otherBlueprints', state, chainIndex, column);
 
 const reduceAddAvailable = (state: InventoryState, name: string): InventoryState =>
   loadInventory(
@@ -524,7 +545,7 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   byStore: undefined, // saved independently because it is too big
   available: cleanForSaveInventoryList(state.available),
   availableCriteria: state.availableCriteria,
-  tradeItemData: state.tradeItemData
+  tradeItemDataChain: state.tradeItemDataChain?.map(t => ({ ...t, c: undefined})),
 });
 
 export {

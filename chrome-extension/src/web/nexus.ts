@@ -56,9 +56,19 @@ const _extractMaterial = (materialName: string) => async (m: EntropiaNexusMateri
 const _extractUsage = (itemName: string) => async (u: EntropiaNexusUsage): Promise<SourceLoadResponse<ItemUsageWebData>> => ({
     ok: true,
     data: {
-       blueprints: u.Blueprints.map(_extractBlueprintData),
+        blueprints: u.Blueprints.map(_extractBlueprintData),
+        refinings: u.RefiningRecipes.map(m => ({
+            ingredients: m.Ingredients.map(m => ({
+                name: m.Item.Name,
+                quantity: m.Amount
+            })),
+            product: {
+                name: m.Product.Name,
+                quantity: m.Amount
+            }
+        }))
     },
-    url: _wwwUrl(`items/material/${itemName}`)
+    url: _wwwUrl(`items/materials/${itemName}`)
 })
 
 const _extractBlueprintData = (bp: EntropiaNexusBlueprint): BlueprintWebData => ({
@@ -112,7 +122,7 @@ interface EntropiaNexusMaterial {
     Links: EntropiaNexusLinks
 }
 
-interface EntropiaNexusUsage {
+interface EntropiaNexusUsage extends EntropiaNexusAcquisition {
     Blueprints: EntropiaNexusBlueprint[]
 }
 

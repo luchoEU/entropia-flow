@@ -11,6 +11,12 @@ interface MaterialWebData {
 
 interface ItemUsageWebData {
     blueprints: Array<BlueprintWebData>
+    refinings: Array<RefiningWebData>
+}
+
+interface RefiningWebData {
+    ingredients: Array<RawMaterialWebData>
+    product: RawMaterialWebData
 }
 
 interface BlueprintWebData {

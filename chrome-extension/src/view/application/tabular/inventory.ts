@@ -5,7 +5,7 @@ import { INVENTORY_TABULAR_OWNED, InventoryState, ItemVisible, TradeItemData } f
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 
 const inventoryTabularData = (state: InventoryState): TabularRawData<ItemVisible> => ({
-    [INVENTORY_TABULAR_OWNED]: { data: state.tradeItemData, items: state.visible }
+    [INVENTORY_TABULAR_OWNED]: { data: state.tradeItemDataChain, items: state.visible }
 })
 
 const inventoryTabularDefinitions: TabularDefinitions = {
@@ -14,11 +14,11 @@ const inventoryTabularDefinitions: TabularDefinitions = {
         columns: ['Name', 'Quantity', 'Value', 'Container', 'TT Service'],
         // TODO: TT_SERVICE_COLUMN
         // { title: 'Reload TT Service from sheet', imgButton: { src: 'img/reload.png', dispatch: () => reloadTTService }}
-        columnVisible: (data: TradeItemData) => [true, true, true, !data, false],
+        columnVisible: (data: TradeItemData[]) => [true, true, true, !data, false],
         getRow: (g: ItemVisible): RowValue[] => {
             return [
                 { // Name
-                    dispatch: () => showTradingItemData(g.c?.showingTradeItem ? undefined : g.data.n),
+                    dispatch: () => showTradingItemData(g.c?.showingTradeItem ? undefined : g.data.n, 0),
                     sub: [
                         { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => hideByName(g.data.n) },
                         g.data.n,

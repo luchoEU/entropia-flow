@@ -1,4 +1,6 @@
 import { ItemData } from "../../../common/state";
+import { WebLoadResponse } from "../../../web/loader";
+import { ItemUsageWebData } from "../../../web/state";
 import { SortSecuence } from "./sort";
 
 const INVENTORY_TABULAR_OWNED = '[inventory] owned'
@@ -120,7 +122,7 @@ interface TradeItemData {
     favoriteBlueprints: Array<TradeBlueprintLineData>;
     ownedBlueprints: Array<TradeBlueprintLineData>;
     otherBlueprints: Array<TradeBlueprintLineData>;
-    loading: boolean
+    usage: WebLoadResponse<ItemUsageWebData>
   }
 }
 
@@ -138,7 +140,7 @@ interface InventoryState {
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
-  tradeItemData: TradeItemData;
+  tradeItemDataChain: TradeItemData[];
 }
 
 export {
