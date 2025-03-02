@@ -17,6 +17,12 @@ function gameTime(time: string): number {
     return new Date(`${time}Z`).getTime()
 }
 
+const ignoreLootForKill = [
+    'Brukite', 'Kaldon', 'Nissit', 'Rutol', 'Sopur', 'Trutun',
+    'Bombardo', 'Caroot', 'Haimoros', 'Papplon',
+    'Common Dung',
+]
+
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
     private lastLootDateTime: number
@@ -47,15 +53,17 @@ class GameLogHistory implements IGameLogHistory {
                 this.gameLog.loot.unshift(line.data.loot);
             }
 
-            const lineDateTime: number = gameTime(line.time);
-            if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime > 1000) {
-                if (!this.gameLog.stats.lootGroup)
-                    this.gameLog.stats.lootGroup = emptyTemporalValue();
-                this.gameLog.stats.lootGroup.count++;
-                this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count;
-                this.gameLog.stats.lootGroup.history.unshift({ time: lineDateTime, value: 1 });
+            if (!ignoreLootForKill.includes(line.data.loot.name)) {
+                const lineDateTime: number = gameTime(line.time);
+                if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime > 1000) {
+                    if (!this.gameLog.stats.kills)
+                        this.gameLog.stats.kills = emptyTemporalValue();
+                    this.gameLog.stats.kills.count++;
+                    this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
+                    this.gameLog.stats.kills.history.unshift({ time: lineDateTime, value: 1 });
+                }
+                this.lastLootDateTime = lineDateTime
             }
-            this.lastLootDateTime = lineDateTime
         }
 
         if (line.data.team) {
@@ -72,24 +80,15 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.event) {
-            // remove loot group when the mission is completed and gives rewards
             if (line.data.event.action == 'missionCompleted') {
-                const lineDateTime: number = gameTime(line.time);
-                if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) {
-                    if (this.gameLog.stats.lootGroup.count == 1) {
-                        this.gameLog.stats.lootGroup = undefined
-                    } else {
-                        this.gameLog.stats.lootGroup.history.shift();
-                        this.gameLog.stats.lootGroup.count--;
-                        this.gameLog.stats.lootGroup.total = this.gameLog.stats.lootGroup.count;
-                    }
-                }
-                this.lastLootDateTime = lineDateTime
+                // remove kill when the mission is completed and gives rewards
+                this.removeFromKillCount(line.time)
             }
             this.gameLog.event.unshift(line.data.event)
         }
 
         if (line.data.enhancerBroken) {
+            this.removeFromKillCount(line.time)
             this.gameLog.enhancerBroken.unshift(line.data.enhancerBroken)
         }
 
@@ -123,6 +122,20 @@ class GameLogHistory implements IGameLogHistory {
 
         if (this.onChange)
             await this.onChange(this.gameLog)
+    }
+
+    private removeFromKillCount(time: string) {
+        const lineDateTime: number = gameTime(time);
+        if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) {
+            if (this.gameLog.stats.kills.count == 1) {
+                this.gameLog.stats.kills = undefined
+            } else {
+                this.gameLog.stats.kills.history.shift();
+                this.gameLog.stats.kills.count--;
+                this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
+            }
+        }
+        this.lastLootDateTime = lineDateTime
     }
 }
 

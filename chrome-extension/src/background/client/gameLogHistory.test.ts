@@ -64,7 +64,7 @@ describe('formula parser', () => {
                 quantity: 19484
             }],
             stats: {
-                lootGroup: { total: 2, count: 2, history: [{ time: gameTime('2024-12-23 17:09:18'), value: 1 }, { time: gameTime('2024-12-23 17:08:58'), value: 1 }] }
+                kills: { total: 2, count: 2, history: [{ time: gameTime('2024-12-23 17:09:18'), value: 1 }, { time: gameTime('2024-12-23 17:08:58'), value: 1 }] }
             }
         })
     )
@@ -103,7 +103,7 @@ describe('formula parser', () => {
 2025-01-12 07:47:37 [System] [] You received Shrapnel x (45745) Value: 4.57 PED`,
         {
             stats: {
-                lootGroup: {
+                kills: {
                     total: 1,
                     count: 1,
                     history: [{
@@ -129,7 +129,7 @@ describe('formula parser', () => {
 2025-01-15 09:41:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                lootGroup: {
+                kills: {
                     total: 1,
                     count: 1,
                     history: [{
@@ -155,7 +155,7 @@ describe('formula parser', () => {
 2025-01-15 09:42:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                lootGroup: {
+                kills: {
                     total: 2,
                     count: 2,
                     history: [{
@@ -374,8 +374,8 @@ describe('formula parser', () => {
 2025-02-18 07:53:42 [System] [] You received Recycling Scrip x (1) Value: 0.0100 PED`,
         {
             loot: [
-                {"name":"Recycling Scrip","quantity":1,"value":0.01},
-                {"name":"Blazar Fragment","quantity":200,"value":0.002}
+                {name:"Recycling Scrip",quantity:1,value:0.01},
+                {name:"Blazar Fragment",quantity:200,value:0.002}
             ],
             event: [{
                 time: '2025-02-18 07:53:42',
@@ -383,6 +383,41 @@ describe('formula parser', () => {
                 data: [ 'GenStar Mining Initiative - Asteroids' ],
                 message: 'Mission completed (GenStar Mining Initiative - Asteroids)'
             }]
+        }
+    ))
+
+    test('stone, no kill', async () => await parseExpect(
+`2025-03-02 06:48:04 [System] [] You received Brukite x (48) Value: 0.0004 PED`,
+        {
+            loot: [
+                {name:"Brukite",quantity:48,value:0.0004}
+            ]
+        }
+    ))
+    
+    test('fruit, no kill', async () => await parseExpect(
+`2025-03-02 07:08:01 [System] [] You received Caroot x (26) Value: 0.0002 PED`,
+        {
+            loot: [
+                {name:"Caroot",quantity:26,value:0.0002}
+            ]
+        }
+    ))
+
+    test('enhancer broken, no kill', async () => await parseExpect(
+`2025-03-02 07:20:50 [System] [] You received Shrapnel x (8000) Value: 0.8000 PED
+2025-03-02 07:20:50 [System] [] Your enhancer Weapon Damage Enhancer 2 on your ArMatrix BP-65 (L) broke. You have 4 enhancers remaining on the item. You received 0.8000 PED Shrapnel.`,
+        {
+            enhancerBroken: [{
+                enhancer: "Weapon Damage Enhancer 2",
+                item: "ArMatrix BP-65 (L)",
+                received: 0.8,
+                remaining: 4,
+                time: "2025-03-02 07:20:50",
+            }],
+            loot: [
+                {name:"Shrapnel",quantity:8000,value:0.8}
+            ]
         }
     ))
 })
