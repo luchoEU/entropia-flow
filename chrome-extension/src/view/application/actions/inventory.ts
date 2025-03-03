@@ -24,7 +24,7 @@ const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
 const SET_BY_STORE_ITEM_STARED = "[inv] set by store item stared"
 const SET_BY_STORE_STARED_EXPANDED = "[inv] set by store stared expanded"
 const SET_BY_STORE_STARED_ITEM_EXPANDED = "[inv] set by store stared item expanded"
-const SET_BY_STORE_CRAFT_ITEM_EXPANDED = "[inv] set by store craft item expanded"
+const SET_BY_STORE_MATERIAL_ITEM_EXPANDED = "[inv] set by store material item expanded"
 const SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED = "[inv] set by store stared all items expanded"
 const SET_BY_STORE_STARED_FILTER = "[inv] set by store stared filter"
 const START_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] start by store stared item name editing"
@@ -32,12 +32,12 @@ const CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] confirm by store stared
 const CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING = "[inv] cancel by store stared item name editing"
 const SET_BY_STORE_STARED_ITEM_NAME = "[inv] set by store stared item name"
 const SET_BY_STORE_STARED_ITEM_STARED = "[inv] set by store stared item stared"
-const SET_BY_STORE_CRAFT_FILTER = "[inv] set by store craft filter"
+const SET_BY_STORE_MATERIAL_FILTER = "[inv] set by store material filter"
 const SORT_AUCTION_BY = "[inv] sort auction by"
 const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
-const SORT_BY_STORE_CRAFT_BY = "[inv] sort by store craft by"
+const SORT_BY_STORE_MATERIAL_BY = "[inv] sort by store material by"
 const SORT_AVAILABLE_BY = "[inv] sort available by"
 const HIDE_BY_NAME = "[inv] hide by name"
 const SHOW_BY_NAME = "[inv] show by name"
@@ -163,8 +163,8 @@ const setByStoreStaredItemExpanded = (id: string) => (expanded: boolean) => ({
     }
 })
 
-const setByStoreCraftItemExpanded = (id: string) => (expanded: boolean) => ({
-    type: SET_BY_STORE_CRAFT_ITEM_EXPANDED,
+const setByStoreMaterialItemExpanded = (id: string) => (expanded: boolean) => ({
+    type: SET_BY_STORE_MATERIAL_ITEM_EXPANDED,
     payload: {
         id,
         expanded
@@ -215,8 +215,8 @@ const setByStoreStaredItemStared = (id: string, stared: boolean) => ({
     }
 })
 
-const setByStoreCraftFilter = (filter: string) => ({
-    type: SET_BY_STORE_CRAFT_FILTER,
+const setByStoreMaterialFilter = (filter: string) => ({
+    type: SET_BY_STORE_MATERIAL_FILTER,
     payload: {
         filter
     }
@@ -292,8 +292,8 @@ const sortByStoreStaredBy = (part: number) => ({
     }
 })
 
-const sortByStoreCraftBy = (part: number) => ({
-    type: SORT_BY_STORE_CRAFT_BY,
+const sortByStoreMaterialBy = (part: number) => ({
+    type: SORT_BY_STORE_MATERIAL_BY,
     payload: {
         part
     }
@@ -427,7 +427,7 @@ export {
     SET_BY_STORE_ITEM_STARED,
     SET_BY_STORE_STARED_EXPANDED,
     SET_BY_STORE_STARED_ITEM_EXPANDED,
-    SET_BY_STORE_CRAFT_ITEM_EXPANDED,
+    SET_BY_STORE_MATERIAL_ITEM_EXPANDED,
     SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED,
     SET_BY_STORE_STARED_FILTER,
     START_BY_STORE_STARED_ITEM_NAME_EDITING,
@@ -435,12 +435,12 @@ export {
     CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING,
     SET_BY_STORE_STARED_ITEM_NAME,
     SET_BY_STORE_STARED_ITEM_STARED,
-    SET_BY_STORE_CRAFT_FILTER,
+    SET_BY_STORE_MATERIAL_FILTER,
     SORT_AUCTION_BY,
     SORT_HIDDEN_BY,
     SORT_BY_STORE_BY,
     SORT_BY_STORE_STARED_BY,
-    SORT_BY_STORE_CRAFT_BY,
+    SORT_BY_STORE_MATERIAL_BY,
     SORT_AVAILABLE_BY,
     HIDE_BY_NAME,
     SHOW_BY_NAME,
@@ -467,7 +467,7 @@ export {
     sortOwnedBlueprintsBy,
     setByStoreInventoryExpanded,
     setByStoreItemExpanded,
-    setByStoreCraftItemExpanded,
+    setByStoreMaterialItemExpanded,
     setByStoreAllItemsExpanded,
     setByStoreInventoryFilter,
     startByStoreItemNameEditing,
@@ -484,12 +484,12 @@ export {
     cancelByStoreStaredItemNameEditing,
     setByStoreStaredItemName,
     setByStoreStaredItemStared,
-    setByStoreCraftFilter,
+    setByStoreMaterialFilter,
     sortAuctionBy,
     sortHiddenBy,
     sortByStoreBy,
     sortByStoreStaredBy,
-    sortByStoreCraftBy,
+    sortByStoreMaterialBy,
     sortAvailableBy,
     hideByName,
     showByName,

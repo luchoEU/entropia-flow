@@ -1,4 +1,4 @@
-import React, { Dispatch, JSX } from 'react'
+import React, { Dispatch } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
@@ -10,19 +10,16 @@ import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ER
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
-import ImgButton from '../common/ImgButton'
-import { setByStoreCraftItemExpanded, sortByStoreCraftBy } from '../../application/actions/inventory'
 import { MaterialsMap } from '../../application/state/materials'
 import { getMaterialsMap } from '../../application/selectors/materials'
-import { SortableFixedSizeTable, TableData } from '../common/SortableTableSection'
-import { getByStoreInventory, getByStoreInventoryCraftItem } from '../../application/selectors/inventory'
-import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
-import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
+import { getByStoreInventory, getByStoreInventoryItem, getInventory } from '../../application/selectors/inventory'
+import { InventoryByStore, InventoryState } from '../../application/state/inventory'
 import { BlueprintWebMaterial } from '../../../web/state'
-import { WebLoadResponse } from '../../../web/loader'
 import { loadMaterialData, loadMaterialRawMaterials, materialBuyMarkupChanged, materialNotesValueChanged } from '../../application/actions/materials'
 import { Field, FieldArea } from '../common/Field'
 import WebDataControl from '../common/WebDataControl'
+import MaterialInventory from '../material/MaterialInventory'
+import { info } from 'sass'
 
 function SessionInfo(p: {
     name: string,
@@ -185,6 +182,7 @@ function CraftSingle(p: {
     } else {
         const { diff }: LastRequiredState = useSelector(getLast);
         if (diff) {
+            let onNeeded = false
             d.c.materials?.forEach((m: BlueprintWebMaterial) => {
                 const sum = diff.filter(x => x.n == m.name && !x.c.includes('⭢'))
                     .reduce((p, c) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
@@ -199,8 +197,15 @@ function CraftSingle(p: {
                     session[m.name] = sum.q;
                     sessionTTprofit += sum.v;
                     sessionMUprofit += sum.v * (markupMap?.[m.name] ?? 1);
+                    onNeeded = onNeeded || m.quantity > 0
                 }
             })
+            if (session && !onNeeded) {
+                // mostly by changes on residue
+                session = undefined
+                sessionTTprofit = undefined
+                sessionMUprofit = undefined
+            }
         }
     }
 
@@ -299,7 +304,10 @@ function CraftSingle(p: {
             {
                 d.c.inventory &&
                 <>
-                    <p>Clicks available: {d.c.inventory.clicksAvailable} (limited by {d.c.inventory.limitClickItems.join(', ')})</p>
+                    <p>Clicks available: {d.c.inventory.clicksAvailable} { d.c.inventory.owned ?
+                        `(limited by ${d.c.inventory.limitClickItems.join(', ')})` :
+                        <>(not owned) <img style={{height: '17px', marginLeft: '2px'}} title='Not Owned' src='img/warning.png' /></> }
+                    </p>
                     <p>Click TT cost: {d.c.inventory.clickTTCost.toFixed(2)} PED</p>
                     { clickMUCost &&
                         <p>Click with MU cost: {clickMUCost.toFixed(2)} PED</p> }
@@ -313,37 +321,6 @@ function CraftSingle(p: {
             }
         </>}/>
     )
-}
-
-const INDENT_SPACE = 10
-const tableData: TableData<TreeLineData> = {
-    columns: [NAME, QUANTITY, VALUE],
-    definition: sortColumnDefinition,
-    sortRow: {
-        [NAME]: { justifyContent: 'center', text: 'Name in Inventory' },
-        [QUANTITY]: { justifyContent: 'end' },
-        [VALUE]: { justifyContent: 'end' },
-    },
-    getRow: (item: TreeLineData) => ({
-        dispatch: item.expanded !== undefined ? () => setByStoreCraftItemExpanded(item.id)(!item.expanded) : undefined,
-        columns: {
-            [NAME]: {
-                style: { paddingLeft: item.indent * INDENT_SPACE },
-                sub: [
-                    { plusButton: { expanded: item.expanded, setExpanded: setByStoreCraftItemExpanded(item.id) } },
-                    { itemText: item.n }
-                ]
-            },
-            [QUANTITY]: {
-                style: { justifyContent: 'center' },
-                sub: [{ itemText: item.q }]
-            },
-            [VALUE]: {
-                style: { justifyContent: 'center' },
-                sub: [{ itemText: item.v }]
-            }
-        }
-    })
 }
 
 function CraftExpandedList() {
@@ -447,19 +424,7 @@ function CraftExpandedList() {
                                     </tbody>
                                 </table>
                             }/>
-                            { inv.flat.craft.length === 0 ?
-                                <p><strong>None on Inventory</strong></p> :
-                                <SortableFixedSizeTable
-                                    data={{
-                                        allItems: inv.flat.craft,
-                                        showItems: inv.flat.craft,
-                                        sortType: inv.craft.list.sortType,
-                                        sortBy: sortByStoreCraftBy,
-                                        itemSelector: getByStoreInventoryCraftItem,
-                                        tableData
-                                    }}
-                                />
-                            }
+                            <MaterialInventory />
                             { mat[afterChain] &&
                                 <FieldArea label='Notes:' value={mat[afterChain].notes} getChangeAction={materialNotesValueChanged(afterChain)} />
                             }

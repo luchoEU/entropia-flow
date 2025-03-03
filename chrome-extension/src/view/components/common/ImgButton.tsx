@@ -1,5 +1,6 @@
 import React, { CSSProperties, MouseEventHandler } from "react"
 import { useDispatch } from "react-redux"
+import { Dispatch, UnknownAction } from "redux"
 
 const ImgButton = (p: {
     title: string,
@@ -21,12 +22,7 @@ const ImgButton = (p: {
             setTimeout(() => { popup.style.display = 'none' }, 1000)
         }
 
-        const action = p.dispatch()
-        if (Array.isArray(action)) {
-            action.forEach((a) => dispatch(a))
-        } else {
-            dispatch(action)
-        }
+        multiDispatch(dispatch, p.dispatch)
     }
 
     return <>
@@ -46,4 +42,16 @@ const ImgButton = (p: {
     </>;
 }
 
+function multiDispatch(dispatch: Dispatch<UnknownAction>, getDispatchAction: () => any) {
+    const action = getDispatchAction()
+    if (Array.isArray(action)) {
+        action.forEach((a) => dispatch(a))
+    } else {
+        dispatch(action)
+    }
+}
+
 export default ImgButton
+export {
+    multiDispatch
+}

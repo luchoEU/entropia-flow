@@ -22,8 +22,8 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
     ...initialListWithFilter(expanded, sortType),
     containers: { },
     stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
-    craft: { filter: undefined, expanded: [], list: initialList(true, sortType) },
-    flat: { original: [], show: [], stared: [], craft: [] },
+    material: { filter: undefined, expanded: [], list: initialList(true, sortType) },
+    flat: { original: [], show: [], stared: [], material: [] },
     c: { validPlanets: [] },
 });
 
@@ -304,26 +304,26 @@ const _loadByStoreShowList = (
     return byStore
 }
 
-const _loadByStoreCraftList = (
+const _loadByStoreMaterialList = (
     byStore: InventoryByStore
 ): InventoryByStore => {
-    if (byStore.craft.filter === undefined || byStore.craft.filter.length === 0) {
+    if (byStore.material.filter === undefined || byStore.material.filter.length === 0) {
         byStore = {
             ...byStore,
-            craft: {
-                ...byStore.craft,
+            material: {
+                ...byStore.material,
                 list: {
-                    ...byStore.craft.list,
+                    ...byStore.material.list,
                     items: []
                 }
             }
         }
     } else {
-        byStore = _sortByStore(_craftListSelector, {
+        byStore = _sortByStore(_materialListSelector, {
             ...byStore,
-            craft: {
-                ...byStore.craft,
-                list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.craft.filter, () => true))
+            material: {
+                ...byStore.material,
+                list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.material.filter, () => true))
             }
         })
     }
@@ -331,7 +331,7 @@ const _loadByStoreCraftList = (
         ...byStore,
         flat: {
             ...byStore.flat,
-            craft: _flatTree(byStore.craft.list, 0)
+            material: _flatTree(byStore.material.list, 0)
         }
     }
 }
@@ -372,7 +372,7 @@ const _loadValidPlanets = (
 
 const _loadByStoreShowAndStaredList = (
     byStore: InventoryByStore
-): InventoryByStore => _loadValidPlanets(_loadByStoreCraftList(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))))
+): InventoryByStore => _loadValidPlanets(_loadByStoreMaterialList(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))))
 
 const loadInventoryByStore = (
     byStore: InventoryByStore,
@@ -560,9 +560,9 @@ const _staredListSelector: ListSelector = {
     set: (byStore, list) => ({...byStore, stared: { ...byStore.stared, list }, flat: { ...byStore.flat, stared: _flatTree(list, 0) } }),
 }
 
-const _craftListSelector: ListSelector = {
-    get: (byStore) => byStore.craft.list,
-    set: (byStore, list) => ({...byStore, craft: { ...byStore.craft, list }, flat: { ...byStore.flat, craft: _flatTree(list, 0) } }),
+const _materialListSelector: ListSelector = {
+    get: (byStore) => byStore.material.list,
+    set: (byStore, list) => ({...byStore, material: { ...byStore.material, list }, flat: { ...byStore.flat, material: _flatTree(list, 0) } }),
 }
 
 const reduceSetByStoreItemExpanded = (
@@ -619,13 +619,13 @@ const reduceSetByStoreStaredItemExpanded = (
     return newState
 }
 
-const reduceSetByStoreCraftItemExpanded = (
+const reduceSetByStoreMaterialItemExpanded = (
     state: InventoryState,
     id: string,
     expanded: boolean
 ): InventoryState => {
-    const newState = _applyByStoreStateChange(state, id, _craftListSelector, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }))
-    newState.byStore.craft.expanded = expanded ? [ ...newState.byStore.craft.expanded, id ] : newState.byStore.craft.expanded.filter(i => i !== id)
+    const newState = _applyByStoreStateChange(state, id, _materialListSelector, t => ({ ...t, list: t.list ? { ...t.list, expanded } : undefined }))
+    newState.byStore.material.expanded = expanded ? [ ...newState.byStore.material.expanded, id ] : newState.byStore.material.expanded.filter(i => i !== id)
     return newState
 }
 
@@ -640,14 +640,14 @@ const reduceSetByStoreStaredAllItemsExpanded = (
     return { ...state, byStore }
 }
 
-const reduceSetByStoreCraftFilter = (
+const reduceSetByStoreMaterialFilter = (
     state: InventoryState,
     filter: string
 ): InventoryState => ({
     ...state,
-    byStore: _loadByStoreCraftList({
+    byStore: _loadByStoreMaterialList({
         ...state.byStore,
-        craft: { ...state.byStore.craft, filter }
+        material: { ...state.byStore.material, filter }
     })
 })
 
@@ -878,12 +878,12 @@ const reduceSortByStoreStaredBy = (
     byStore: _nextSortByStore(_staredListSelector, state.byStore, part)
 });
 
-const reduceSortByStoreCraftBy = (
+const reduceSortByStoreMaterialBy = (
     state: InventoryState,
     part: number,
 ): InventoryState => ({
     ...state,
-    byStore: _nextSortByStore(_craftListSelector, state.byStore, part)
+    byStore: _nextSortByStore(_materialListSelector, state.byStore, part)
 });
 
 const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
@@ -908,9 +908,9 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
         ...state.stared,
         list: cleanForSaveInventoryList(state.stared.list)
     },
-    craft: {
-        ...state.craft,
-        list: cleanForSaveInventoryList(state.craft.list)
+    material: {
+        ...state.material,
+        list: cleanForSaveInventoryList(state.material.list)
     },
     flat: undefined,
     c: undefined
@@ -930,7 +930,7 @@ export {
     reduceSetByStoreItemStared,
     reduceSetByStoreStaredInventoryExpanded,
     reduceSetByStoreStaredItemExpanded,
-    reduceSetByStoreCraftItemExpanded,
+    reduceSetByStoreMaterialItemExpanded,
     reduceSetByStoreStaredAllItemsExpanded,
     reduceSetByStoreStaredInventoryFilter,
     reduceStartByStoreStaredItemNameEditing,
@@ -938,9 +938,9 @@ export {
     reduceCancelByStoreStaredItemNameEditing,
     reduceSetByStoreStaredItemName,
     reduceSetByStoreStaredItemStared,
-    reduceSetByStoreCraftFilter,
+    reduceSetByStoreMaterialFilter,
     reduceSortByStoreBy,
     reduceSortByStoreStaredBy,
-    reduceSortByStoreCraftBy,
+    reduceSortByStoreMaterialBy,
     cleanForSaveByStore,
 };

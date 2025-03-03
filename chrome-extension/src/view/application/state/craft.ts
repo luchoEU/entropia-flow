@@ -38,6 +38,7 @@ interface BlueprintData {
 
 interface BlueprintInventory {
     bpClicks: number
+    owned: boolean
     clicksAvailable: number
     limitClickItems: Array<string>
     clickTTCost: number

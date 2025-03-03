@@ -22,7 +22,7 @@ const _getSortRow = (selector: string, columns: string[], columnHeaderAfterName?
             title: sortSecuence?.[0].ascending ? 'Sorted Ascending' : 'Sorted Descending',
             visible: sortSecuence?.[0].column === i
         },
-        columnHeaderAfterName[i]
+        columnHeaderAfterName?.[i]
     ]
 }))
 

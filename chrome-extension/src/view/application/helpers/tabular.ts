@@ -24,7 +24,7 @@ const reduceSetTabularFilter = (state: TabularState, selector: string, filter: s
 
 const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
     const sortDefinition = _getTabularSortDefinition(selector);
-    const filtered = data.items.all.filter(d => sortDefinition.map(s => s.selector(d)).some(t => t && multiIncludes(data.filter, t)));
+    const filtered = data.items.all.filter(d => sortDefinition.map(s => s.selector(d)).some(t => t && typeof t === 'string' && multiIncludes(data.filter, t)));
     const show = cloneAndSort<any>(filtered, data.sortSecuence, sortDefinition);
     const pedSelector: (d: any) => number = _getTabularPedSelector(selector);  
     const sumPed = pedSelector && show.reduce((partialSum, item) => partialSum + pedSelector(item), 0);

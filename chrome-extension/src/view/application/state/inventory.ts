@@ -41,7 +41,7 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
     expanded: Array<string>
     list: InventoryList<InventoryTree<ItemData>>
   }
-  craft: {
+  material: {
     filter?: string
     expanded: Array<string>
     list: InventoryList<InventoryTree<ItemData>>
@@ -50,7 +50,7 @@ interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemDat
     original: Array<TreeLineData>
     show: Array<TreeLineData>
     stared: Array<TreeLineData>
-    craft: Array<TreeLineData>
+    material: Array<TreeLineData>
   }
   c: {
     validPlanets: Array<string>
@@ -122,7 +122,6 @@ interface TradeItemData {
     favoriteBlueprints: Array<TradeBlueprintLineData>;
     ownedBlueprints: Array<TradeBlueprintLineData>;
     otherBlueprints: Array<TradeBlueprintLineData>;
-    usage: WebLoadResponse<ItemUsageWebData>
   }
 }
 

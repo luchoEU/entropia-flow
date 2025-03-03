@@ -453,7 +453,6 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
           favoriteBlueprints: cloneAndSort(m(fav), d.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
           ownedBlueprints: cloneAndSort(m(own), d.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
           otherBlueprints: cloneAndSort(m(oth), d.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
-          usage: usage[i]
         }
       }
     })

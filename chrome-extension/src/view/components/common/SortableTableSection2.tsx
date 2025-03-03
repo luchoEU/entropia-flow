@@ -2,7 +2,7 @@ import React, { CSSProperties, JSX, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
-import ImgButton from './ImgButton';
+import ImgButton, { multiDispatch } from './ImgButton';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
@@ -16,7 +16,7 @@ const PLUS_WIDTH = 11 // ExpandablePlusButton
 const ITEM_TEXT_PADDING = 5
 const INPUT_WIDTH = 200
 const SCROLL_BAR_WIDTH = 17
-const LIST_TOTAL_HEIGHT = 610 // not multiple of ITEM_SIZE so it is visible there are more
+const TOTAL_ITEMS_HEIGHT = 30
 const ITEM_HEIGHT = 20
 
 function getTextWidth(text: string, font: string): number {
@@ -184,7 +184,7 @@ const ItemRowRender = (p: {
         { p.columns.map((c: ColumnWidthData, i: number) => {
             const d = p.data.columns[i]
             return d && <div key={i} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) }, className: 'pointer' } : {}}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); multiDispatch(dispatch, d.dispatch) }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>
@@ -238,6 +238,7 @@ const calculate = <TItem extends any>(d: TableParametersInput<TItem>): TablePara
         itemsSubColumnsWidth,
         sortSubColumnsWidth,
         columnsWidth,
+        maxShownItemsHeight: 5,
         getRowData: i => { const x = t.getRow(i); return { ...x, columns: filterVisible(x.columns) } },
         itemSelector: d.itemSelector
     }
@@ -258,6 +259,7 @@ interface TableParameters<TItem> {
     itemsSubColumnsWidth: number[][],
     sortSubColumnsWidth: number[][],
     columnsWidth: number[],
+    maxShownItemsHeight?: number,
     getRowData: (item: TItem) => ItemRowData,
     itemSelector: (index: number) => (state: any) => TItem,
 }
@@ -273,7 +275,7 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
         const extra = totalWidth - window.innerWidth
         //totalWidth = window.innerWidth
     }
-    const totalHeight = Math.min(d.itemCount * ITEM_HEIGHT, LIST_TOTAL_HEIGHT)
+    const totalHeight = Math.min(d.itemCount, (p.data.maxShownItemsHeight || TOTAL_ITEMS_HEIGHT) + .5) * ITEM_HEIGHT; // add .5 so it is visible there are more
 
     const getColumnsWidthData = (subWidths: number[][]): ColumnWidthData[] => subWidths.map((sw, i) => ({
         width: d.columnsWidth[i],

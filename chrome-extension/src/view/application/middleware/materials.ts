@@ -1,9 +1,6 @@
 import { mergeDeep } from "../../../common/merge"
-import { filterExact, filterOr } from "../../../common/filter"
 import { CLEAR_WEB_ON_LOAD } from "../../../config"
-import { loadFromWeb, WebLoadResponse } from "../../../web/loader"
-import { RawMaterialWebData } from "../../../web/state"
-import { setByStoreCraftFilter } from "../actions/inventory"
+import { loadFromWeb } from "../../../web/loader"
 import { LOAD_ITEM_USAGE_DATA, LOAD_MATERIAL_DATA, LOAD_MATERIAL_RAW_MATERIALS, MATERIAL_BUY_AMOUNT_CHANGED, MATERIAL_BUY_MARKUP_CHANGED, MATERIAL_NOTES_VALUE_CHANGED, MATERIAL_ORDER_MARKUP_CHANGED, MATERIAL_ORDER_VALUE_CHANGED, MATERIAL_REFINE_AMOUNT_CHANGED, MATERIAL_USE_AMOUNT_CHANGED, SET_MATERIAL_PARTIAL_WEB_DATA, setMaterialPartialWebData, setMaterialsState } from "../actions/materials"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSaveCache, cleanForSaveMain, cleanWeb, initialState } from "../helpers/materials"
@@ -46,17 +43,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 
     switch (action.type) {
-        case SET_MATERIAL_PARTIAL_WEB_DATA: {
-            const materialName: string = action.payload.material
-            const rawMaterials: WebLoadResponse<RawMaterialWebData[]> = action.payload.change?.rawMaterials
-            if (rawMaterials) {
-                dispatch(setByStoreCraftFilter(filterExact(
-                    rawMaterials.data ?
-                        filterOr([ materialName, ...rawMaterials.data.value.map(m => m.name) ]) :
-                        materialName)))
-            }
-            break;
-        }
         case LOAD_MATERIAL_RAW_MATERIALS: {
             const materialName: string = action.payload.material
             for await (const r of loadFromWeb(s => s.loadRawMaterials(materialName))) {

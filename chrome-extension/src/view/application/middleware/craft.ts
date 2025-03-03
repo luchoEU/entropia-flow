@@ -3,7 +3,7 @@ import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_STARED_BLUEPRINTS_EXPANDED, SET_BLUEPRINT_QUANTITY, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
-import { SET_CURRENT_INVENTORY, setByStoreCraftFilter } from '../actions/inventory'
+import { SET_CURRENT_INVENTORY, setByStoreMaterialFilter } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
@@ -24,8 +24,9 @@ import { loadMaterialData, loadMaterialRawMaterials, SET_MATERIAL_PARTIAL_WEB_DA
 import { filterExact, filterOr } from '../../../common/filter'
 import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
-import { BlueprintWebData, BlueprintWebMaterial, MaterialWebData } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial, MaterialWebData, RawMaterialWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
+import { CRAFT_PAGE, SELECT_MENU } from '../actions/menu'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -125,10 +126,48 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (!raw) {
                     dispatch(loadMaterialRawMaterials(materialName))
                 }
-                dispatch(setByStoreCraftFilter(filterExact(
-                    raw?.data ?
-                        filterOr([ materialName, ...raw.data.value.map(m => m.name) ]) :
-                        materialName)))
+                dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
+            }
+            break
+        }
+        case SET_MATERIAL_PARTIAL_WEB_DATA: {
+            const materialName: string = action.payload.material
+            const rawMaterials: WebLoadResponse<RawMaterialWebData[]> = action.payload.change?.rawMaterials
+            if (rawMaterials) {
+                dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, rawMaterials)))
+            }
+            break;
+        }
+        case SELECT_MENU: {
+            const menu = action.payload.menu
+            if (menu === CRAFT_PAGE) {
+                const inv: InventoryState = getInventory(getState())
+                const state: CraftState = getCraft(getState())
+                if (!state.activePage) {
+                    break
+                }
+
+                let bp = state.blueprints[state.activePage]
+                let materialName = bp.chain
+
+                while (materialName && materialName !== bp.c.itemName) {
+                    bp = bpDataFromItemName(state, materialName)
+                    if (bp) {
+                        materialName = bp.chain
+                    } else {
+                        const addBpName = bpNameFromItemName(inv, materialName)
+                        if (addBpName) {
+                            materialName = undefined
+                        }
+                        break
+                    }
+                }
+
+                if (materialName) {
+                    const mat: MaterialsMap = getMaterialsMap(getState())
+                    const raw = mat[materialName]?.web?.rawMaterials
+                    dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
+                }
             }
             break
         }
@@ -165,13 +204,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 try {
                     const bpInfo = state.blueprints[bpName]
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
-    
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
+                    
+                    // TODO: error 429 (Too Many Requests)
+                    /*const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
                     if (sheet !== undefined) {
                         await sheet.save()
                         const info: BudgetSheetGetInfo = await sheet.getInfo()
                         dispatch(setBudgetPageInfo(bpName, info))
-                    }
+                    }*/
                 } catch (e) {
                     dispatch(setBudgetPageLoadingError(bpName, e.message))
                     traceError('CraftMiddleware', 'exception loading budget sheet:', e)
@@ -392,10 +432,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
     if (!bpName) return; // TODO, why is it not defined?
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
-        
         dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
     }
 }
+
+const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse<RawMaterialWebData[]>): string => 
+    filterExact(
+        rawMaterials?.data ?
+            filterOr([ materialName, ...rawMaterials.data.value.map(m => m.name) ]) :
+            materialName);
 
 export default [
     requests
