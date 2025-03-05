@@ -47,6 +47,7 @@ const gameLogStatsKeys = [
     "youMissed",
     "youRepaired",
     "youRevived",
+    "youWereHealed",
     "youWereKilled",
 ] as const;
 type GameLogStats<T> = {

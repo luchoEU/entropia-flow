@@ -420,4 +420,25 @@ describe('formula parser', () => {
             ]
         }
     ))
+
+    test('healed', async () => await parseExpect(
+`2025-03-04 21:16:29 [System] [] You were healed 54.0 points by .sGC) Zoka`,
+        {
+            stats: {
+                youWereHealed: { total: 54.0, count: 1, history: [{ time: gameTime('2025-03-04 21:16:29'), value: 54.0 }] }
+            }
+        }
+    ))
+
+    test('request sent', async () => await parseExpect(
+`2025-03-04 21:26:22 [System] [] Request sent`,
+        {
+            event: [{
+                time: '2025-03-04 21:26:22',
+                action: 'requestSent',
+                data: [ ],
+                message: 'Request sent'
+            }]
+        }
+    ))
 })

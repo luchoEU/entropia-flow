@@ -34,6 +34,7 @@ const statsRegex: GameLogStats<RegExp> = {
     youMissed: /You missed/,
     youRepaired: /You restored the vehicle's Structural Integrity by (.+)/,
     youRevived: /You have been revived/,
+    youWereHealed: /You were healed (.+) points by .+/,
     youWereKilled: /You were killed by/,
 }
 const hofSuffix = ' A record has been added to the Hall of Fame!'
@@ -79,6 +80,7 @@ const eventRegex = {
     notWounded: /That person isn't wounded/,
     petReturned: /Your pet has been returned to your inventory/,
     resourceDepleted: /This resource is depleted/,
+    requestSent: /Request sent/,
     savedByDivine: /You have been saved from certain death by divine intervention/,
     sessionTime: /Session time: (.+)/,
     takenControl: /(.+?) has taken control of the land area (.+?)!/,
