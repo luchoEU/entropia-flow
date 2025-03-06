@@ -680,3 +680,25 @@ button:active {
 .item-row > div > * {
     align-self: center;
 }
+
+.trade-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0px; /* Ensure no extra gaps */
+    align-items: start;
+    line-height: 1.5; /* Adjust for readability */
+}
+  
+.trade-item span {
+    white-space: pre-wrap; /* Ensures spaces are respected */
+}
+
+.trade-item span, .trade-item img {
+    margin: 0px;
+    display: inline;
+}
+
+.trade-item div {
+    margin: 0px;
+    display: inline-flex !important;
+}

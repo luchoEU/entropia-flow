@@ -7,6 +7,7 @@ interface GameLogData {
     tier: Array<GameLogTier>
     skill: Array<GameLogSkill>
     global: Array<GameLogGlobal>
+    trade: Array<GameLogTrade>
     event: Array<GameLogEvent>
     enhancerBroken: Array<GameLogEnhancerBroken>
     stats: GameLogStats<TemporalValue>
@@ -19,6 +20,7 @@ const emptyGameLogData = (): GameLogData => ({
     tier: [],
     skill: [],
     global: [],
+    trade: [],
     event: [],
     enhancerBroken: [],
     stats: {}
@@ -91,7 +93,15 @@ interface GameLogLine {
         event?: GameLogEvent
         enhancerBroken?: GameLogEnhancerBroken
         items?: string[]
+        trade?: GameLogTrade
     }
+}
+
+interface GameLogTrade {
+    time: string
+    channel: string
+    player: string
+    message: string
 }
 
 interface GameLogLoot {
@@ -144,6 +154,7 @@ export {
     GameLogLoot,
     GameLogTier,
     GameLogGlobal,
+    GameLogTrade,
     GameLogSkill,
     GameLogEnhancerBroken,
     GameLogStats,

@@ -6,6 +6,8 @@ import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
 import InventoryVisibleList from './InventoryVisibleList'
 import InventoryHiddenList from './InventoryHiddenList'
+import SortableTabularSection from '../common/SortableTabularSection'
+import { GAME_LOG_TABULAR_TRADE } from '../../application/state/log'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
@@ -22,6 +24,7 @@ function TradePage() {
                     isFavorite={(n) => s.availableCriteria.name.includes(n)} classMap={{}} sort={sortAuctionBy} />
                 <TradeList title='Favorites to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
                     isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
+                <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true} />
             </div>
             <div className='flex'>
                 <InventoryVisibleList />

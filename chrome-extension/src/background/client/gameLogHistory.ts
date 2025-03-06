@@ -8,7 +8,7 @@ const MAX_LOG_LINES = 500
 
 interface IGameLogHistory {
     onLine(line: GameLogLine): Promise<void>
-    clear(): Promise<void>
+    clearSession(): Promise<void>
     getGameLog(): GameLogData
     onChange: (gameLog: GameLogData) => Promise<void>
 }
@@ -35,8 +35,8 @@ class GameLogHistory implements IGameLogHistory {
             await this.onChange(this.gameLog)
     }
 
-    public async clear(): Promise<void> {
-        await this.setGameLog(emptyGameLogData())
+    public async clearSession(): Promise<void> {
+        await this.setGameLog({ ...emptyGameLogData(), trade: this.gameLog.trade || [] });
     }
 
     public async onLine(line: GameLogLine): Promise<void> {
@@ -118,6 +118,11 @@ class GameLogHistory implements IGameLogHistory {
                 this.gameLog.stats[key].total += value
                 this.gameLog.stats[key].history.unshift({ time: gameTime(line.time), value })
             })
+        }
+
+        if (line.data.trade) {
+            this.gameLog.trade = this.gameLog.trade.filter(t => t.player !== line.data.trade.player || t.message !== line.data.trade.message);
+            this.gameLog.trade.unshift(line.data.trade);
         }
 
         if (this.onChange)

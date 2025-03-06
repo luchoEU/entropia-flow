@@ -23,14 +23,14 @@ function multiIncludes(multiSearch: string, mainStr: string): boolean {
 
     function check(multi: string[], main: string[]): boolean {
         if (multi.length == 0)
-        return true;
+            return true;
 
         for (let n = 0; n < main.length; n++) {
-        if (main[n].includes(multi[0])) {
-            const newMain = main.slice(0, n).concat(main.slice(n + 1));
-            if (check(multi.slice(1), newMain))
-            return true;
-        }  
+            if (main[n].includes(multi[0])) {
+                const newMain = main.slice(0, n).concat(main.slice(n + 1));
+                if (check(multi.slice(1), newMain))
+                return true;
+            }  
         }
 
         return false;

@@ -247,6 +247,15 @@ class GameLogParser {
             line.data.positions = positions
         }
 
+        if (line.channel.includes("trade") || ["WTS", "WTB", "BUY", "SELL"].some(t => line.message.toUpperCase().includes(t))) {
+            line.data.trade = {
+                time: line.time,
+                channel: line.channel,
+                player: line.player,
+                message: line.message
+            }
+        }
+
         this.onLine?.(line)
     }
 }

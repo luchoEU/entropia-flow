@@ -94,7 +94,8 @@ async function wiring(
                 viewStateManager.setClientVersion(msg.data)
                 break;
             case "log":
-                await gameLogParser.onMessage(msg.data)
+                const dataUnescaped = decodeURIComponent(msg.data) // it is saved escaped in log, i.e &apos;
+                await gameLogParser.onMessage(dataUnescaped)
                 break;
             case "dispatch":
                 await viewTabManager.sendDispatch(msg.data)
@@ -141,7 +142,7 @@ async function wiring(
                 await inventoryStorage.tag(m.last, m.tag)
             viewStateManager.reload()
             if (m.tag?.last)
-                gameLogHistory.clear()
+                gameLogHistory.clearSession()
         },
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff(),
