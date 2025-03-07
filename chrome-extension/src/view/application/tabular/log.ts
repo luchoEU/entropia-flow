@@ -65,10 +65,10 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_TRADE]: {
         title: 'Trade',
         columns: ['Time', 'Channel', 'Player', 'Message'],
-        getRow: (g: GameLogTrade) => [g.time, g.channel, g.player, { class: 'trade-item', maxWidth: 400, sub:
+        getRow: (g: GameLogTrade) => [g.time.slice(0, -3), g.channel, { maxWidth: 180, text: g.player }, { class: 'trade-item', maxWidth: 400, sub:
             (g.message.match(/\[[^\]]+\]|\s+|[^\[\]\s]+/g) || []).map(t => t.startsWith('[') && t.endsWith(']') ?
             [ t, { img: 'img/find.png', title: 'Search by this item', dispatch: () => setTabularFilter(GAME_LOG_TABULAR_TRADE)(t) } ] : t)}],
-        getRowForSort: (g: GameLogTrade) => [,,,g.message],
+        getRowForSort: (g: GameLogTrade) => [,, g.player, g.message],
     },
     [GAME_LOG_TABULAR_RAW]: {
         title: 'Full log',

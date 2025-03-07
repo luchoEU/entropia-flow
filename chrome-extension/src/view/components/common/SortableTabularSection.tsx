@@ -223,26 +223,28 @@ const SortableTable = (p: {
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName, s.sortSecuence)
     const width = _calculateWidths(s.items.all, sortRow, getItemRow)
 
-    return <table className='sort-table' style={{ font: FONT }}>
-        <thead>
-            <tr>
-                {sortRow.map((v, i) =>
-                    <th key={i} className='sort-row' style={{ width: width.columns[i] }}>
-                        <RowValueRenderComponent v={v} />
-                    </th>)}
-            </tr>
-        </thead>
-        <tbody>
-            {s.items.show.map((r, i) =>
-                <tr key={i} className='item-row'>
-                    {getItemRow(r, i).map((v, j) =>
-                        <td key={j}>
-                            <div><RowValueRenderComponent v={v} /></div>
-                        </td>)}
+    return <div style={{ maxHeight: LIST_TOTAL_HEIGHT, overflowX: 'hidden', overflowY: 'auto' }}>
+        <table className='sort-table' style={{ font: FONT }}>
+            <thead>
+                <tr>
+                    {sortRow.map((v, i) =>
+                        <th key={i} className='sort-row' style={{ width: width.columns[i] }}>
+                            <RowValueRenderComponent v={v} />
+                        </th>)}
                 </tr>
-            )}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {s.items.show.map((r, i) =>
+                    <tr key={i} className='item-row'>
+                        {getItemRow(r, i).map((v, j) =>
+                            <td key={j}>
+                                <div><RowValueRenderComponent v={v} /></div>
+                            </td>)}
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    </div>
 }
 
 const SortableTabularSection = (p: {

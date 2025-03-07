@@ -94,7 +94,8 @@ async function wiring(
                 viewStateManager.setClientVersion(msg.data)
                 break;
             case "log":
-                const dataUnescaped = decodeURIComponent(msg.data) // it is saved escaped in log, i.e &apos;
+                const fixedString = msg.data.replace('%', '%25'); // replace % to avoid URI malformed
+                const dataUnescaped = decodeURIComponent(fixedString) // it is saved escaped in log, i.e &apos;
                 await gameLogParser.onMessage(dataUnescaped)
                 break;
             case "dispatch":
