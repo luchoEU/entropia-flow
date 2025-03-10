@@ -442,6 +442,8 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
         .filter(bp => bp)
       const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
       const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
+      if (usageBPs) // add owned blueprints that were never opened in crafting tab
+        own.push(...usageBPs.filter(bp => state.blueprints.originalList.items.find(b => b.n === bp.name) && !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)))
       const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
       const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
         .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === d.name)?.quantity }))
