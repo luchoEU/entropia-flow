@@ -1,17 +1,6 @@
 import Mustache from "mustache";
 import DOMPurify from "dompurify";
-
-function _escapeHTML(str: string): string {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;', // Single quotes
-        '`': '&#96;', // Backticks
-    };
-    return str.replace(/[&<>"'`]/g, (char) => map[char]);
-}
+import { encodeHTML } from "../common/html";
 
 function _checkSafeHtml(html: string): string {
     // check that the template and variables only contains safe html
@@ -40,7 +29,7 @@ function _checkSafeHtml(html: string): string {
         console.log('Full unsafe HTML: ', html)
         return [
             'Unsafe html tags or attributes:',
-            ...Array.from(unsafe).map(s => _escapeHTML(s)),
+            ...Array.from(unsafe).map(s => encodeHTML(s)),
             'see console for full html'
         ].map(s => `<p>${s}</p>`).join('\n')
     }

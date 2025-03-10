@@ -441,4 +441,16 @@ describe('formula parser', () => {
             }]
         }
     ))
+
+    test('healing decreased', async () => await parseExpect(
+`2025-03-09 06:36:59 [System] [] Healing was decreased by 10.0% by an Effect Over Time`,
+        {
+            event: [{
+                time: '2025-03-09 06:36:59',
+                action: 'healingDecreased',
+                data: [ '10.0%' ],
+                message: 'Healing was decreased by 10.0% by an Effect Over Time'
+            }]
+        }
+    ))
 })

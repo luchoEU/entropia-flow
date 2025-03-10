@@ -62,6 +62,7 @@ const eventRegex = {
     effectOverTime: /Received Effect Over Time: (.+)/ , 
     enteredVehicle: /(.+) entered the vehicle/,
     entropiaTime: /Entropia Universe time: (.+)/,
+    healingDecreased: /Healing was decreased by (.+) by an Effect Over Time/,
     healingDiminished: /Healing is diminished while moving/,
     itemDamaged: /The item is damaged/,
     itemEffectAdded: /Item Set Effect: (.+)/,

@@ -33,6 +33,7 @@ import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
 import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
+import { decodeHTML } from '../common/html'
 
 async function wiring(
     messages: IMessagesHub,
@@ -94,8 +95,7 @@ async function wiring(
                 viewStateManager.setClientVersion(msg.data)
                 break;
             case "log":
-                const fixedString = msg.data.replace('%', '%25'); // replace % to avoid URI malformed
-                const dataUnescaped = decodeURIComponent(fixedString) // it is saved escaped in log, i.e &apos;
+                const dataUnescaped = decodeHTML(msg.data) // it is saved escaped in log, i.e &apos;
                 await gameLogParser.onMessage(dataUnescaped)
                 break;
             case "dispatch":
