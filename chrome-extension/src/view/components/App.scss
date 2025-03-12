@@ -702,3 +702,21 @@ button:active {
     margin: 0px;
     display: inline-flex !important;
 }
+
+.notification-item {
+    border: solid 1px lightblue;
+    border-radius: 5px;
+    background-color: aliceblue;
+    padding: 3px 8px;
+}
+
+.notification-item img {
+    height: 12px;
+    margin-left: 4px;
+    margin-top: 2px;
+}
+
+.notification-item-container {
+    margin-bottom: 10px;
+    gap: 8px;
+}

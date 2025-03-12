@@ -14,6 +14,11 @@ function matchDate(inv: Inventory, date: number): boolean {
     return false
 }
 
+function gameTime(time: string): number {
+    return new Date(`${time}Z`).getTime()
+}
+
 export {
-    matchDate
+    matchDate,
+    gameTime,
 }

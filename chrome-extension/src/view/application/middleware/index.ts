@@ -27,6 +27,7 @@ import budget from './budget'
 import ttService from './ttService'
 import tabular from './tabular'
 import expandable from './expandable'
+import trade from './trade'
 
 export default [
     ...messages,
@@ -58,4 +59,5 @@ export default [
     ...ttService,
     ...tabular,
     ...expandable,
+    ...trade,
 ]

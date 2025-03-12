@@ -37,6 +37,7 @@ import { decodeHTML } from '../common/html'
 
 async function wiring(
     messages: IMessagesHub,
+    notifications: INotificationManager,
     refreshItemHtmlAlarm: IAlarmManager,
     refreshItemAjaxAlarm: IAlarmManager,
     refreshItemTickAlarm: IAlarmManager,
@@ -120,6 +121,14 @@ async function wiring(
     const webSocketUrl = await viewSettings.getWebSocketUrl()
     webSocketClient.start(webSocketUrl)
     
+    // notifications
+    if (notifications) {
+        notifications.onClick = async (id) => {
+            await viewTabManager.createOrOpenView();
+            await viewTabManager.sendNotificationClicked(id);
+        }
+    }
+
     // listen to new content or view
     messages.listen({
         [MSG_NAME_REGISTER_CONTENT]: contentPortManager,

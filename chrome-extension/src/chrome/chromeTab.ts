@@ -11,7 +11,7 @@ class ChromeTab implements ITab {
     }
 
     async select() {
-        await chrome.tabs.update(this.tabId, { selected: true })
+        await chrome.tabs.update(this.tabId, { highlighted: true })
     }
 }
 

@@ -18,6 +18,7 @@ const PORT_NAME_BACK_VIEW = 'EntropiaFlowBackgroundView'
 const MSG_NAME_REGISTER_VIEW = 'RegisterView'
 const MSG_NAME_REFRESH_VIEW = 'RefreshView'
 const MSG_NAME_ACTION_VIEW = 'ActionView'
+const MSG_NAME_NOTIFICATION_VIEW = 'NotificationView'
 const MSG_NAME_REQUEST_NEW = 'RequestNewInventory'
 const MSG_NAME_REQUEST_TIMER_ON = 'RequestTimerOn'
 const MSG_NAME_REQUEST_TIMER_OFF = 'RequestTimerOff'
@@ -62,6 +63,7 @@ const STORAGE_VIEW_CALCULATOR = 'calculator'
 const STORAGE_VIEW_ACTIVES = 'actives'
 const STORAGE_VIEW_ORDER = 'order'
 const STORAGE_VIEW_SWEAT = 'sweat'
+const STORAGE_VIEW_TRADE = 'trade'
 const STORAGE_VIEW_FRUIT = 'fruit'
 const STORAGE_VIEW_STACKABLE = 'stackable'
 const STORAGE_VIEW_REFINE = 'refine'
@@ -116,6 +118,7 @@ export {
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REFRESH_VIEW,
     MSG_NAME_ACTION_VIEW,
+    MSG_NAME_NOTIFICATION_VIEW,
     MSG_NAME_REQUEST_NEW,
     MSG_NAME_REQUEST_TIMER_ON,
     MSG_NAME_REQUEST_TIMER_OFF,
@@ -154,6 +157,7 @@ export {
     STORAGE_VIEW_ACTIVES,
     STORAGE_VIEW_ORDER,
     STORAGE_VIEW_SWEAT,
+    STORAGE_VIEW_TRADE,
     STORAGE_VIEW_FRUIT,
     STORAGE_VIEW_STACKABLE,
     STORAGE_VIEW_REFINE,

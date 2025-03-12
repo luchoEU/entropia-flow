@@ -16,11 +16,12 @@ interface TabularStateData {
     data?: any
 }
 
-interface TabularDefinition<TItem = any, TValueForSort = any, TData = any> {
+interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = any, TData = any> {
     title: string,
     columns: string[],
     getRow: (item: TItem, rowIndex: number) => RowValue[],
     getRowForSort?: (item: TItem, rowIndex: number) => TValueForSort[], // if not defined it uses getRow
+    getRowForFilter?: (item: TItem, rowIndex: number) => TValueForFilter[], // if not defined it uses getRowForSort
     columnComparer?: ((a: TValueForSort, b: TValueForSort) => number)[], // if not defined it uses byTypeComparer
     columnVisible?: (data: TData) => boolean[], // if not defined all are visible
     columnHeaderAfterName?: RowValue[],

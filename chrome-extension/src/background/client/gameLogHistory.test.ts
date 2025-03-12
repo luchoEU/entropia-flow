@@ -1,5 +1,6 @@
+import { gameTime } from "../../common/date"
 import { emptyGameLogData, GameLogData } from "./gameLogData"
-import GameLogHistory, { gameTime } from "./gameLogHistory"
+import GameLogHistory from "./gameLogHistory"
 import GameLogParser from "./gameLogParser"
 
 describe('formula parser', () => {

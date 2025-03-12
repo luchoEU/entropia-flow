@@ -23,7 +23,8 @@
     "permissions": [
         "alarms",
         "storage",
-        "notifications"
+        "notifications",
+        "tabs"
     ],
     "host_permissions": [
         "https://api.entropianexus.com/*",

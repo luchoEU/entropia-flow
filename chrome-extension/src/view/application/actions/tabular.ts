@@ -1,4 +1,3 @@
-import { SortColumnDefinition } from "../helpers/sort"
 import { TabularRawData, TabularState } from "../state/tabular"
 
 const SET_TABULAR_STATE = '[tabular] set state'

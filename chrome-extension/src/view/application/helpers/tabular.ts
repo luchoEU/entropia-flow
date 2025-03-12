@@ -22,9 +22,12 @@ const reduceSetTabularFilter = (state: TabularState, selector: string, filter: s
     })
 })
 
+const itemMatchesFilter = (d: any, selector: string, filter: string) =>
+    _tabularDefinitions[selector].getRowForFilter(d, undefined).some((t: any) => t && typeof t === 'string' && multiIncludes(filter, t))
+
 const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
     const sortDefinition = _getTabularSortDefinition(selector);
-    const filtered = data.items.all.filter(d => sortDefinition.map(s => s.selector(d)).some(t => t && typeof t === 'string' && multiIncludes(data.filter, t)));
+    const filtered = data.items.all.filter(d => itemMatchesFilter(d, selector, data.filter));
     const show = cloneAndSort<any>(filtered, data.sortSecuence, sortDefinition);
     const pedSelector: (d: any) => number = _getTabularPedSelector(selector);  
     const sumPed = pedSelector && show.reduce((partialSum, item) => partialSum + pedSelector(item), 0);
@@ -82,7 +85,8 @@ const getTabularDefinition = (selector: string, data: any): TabularDefinition =>
         columnVisible: undefined,
         columns: d.columns.filter((_, i) => isVisible[i]),
         getRow: (item: any, index?: number) => d.getRow(item, index).filter((_, i) => isVisible[i]),
-        getRowForSort: (item: any, index?: number) => d.getRowForSort(item, index).filter((_, i) => isVisible[i])
+        getRowForSort: (item: any, index?: number) => d.getRowForSort(item, index).filter((_, i) => isVisible[i]),
+        getRowForFilter: (item: any, index?: number) => d.getRowForFilter(item, index).filter((_, i) => isVisible[i])
     }
 }
 
@@ -107,6 +111,12 @@ const setTabularDefinitions = (tabularDefinitions: TabularDefinitions) => {
             ...definition,
             getRowForSort: definition.getRow
         }
+        _tabularDefinitions[selector].getRowForFilter = definition.getRowForFilter ?
+            (d, rowIndex) => {
+                const base = _tabularDefinitions[selector].getRowForSort(d, rowIndex);
+                const forFilter = definition.getRowForFilter(d, rowIndex);
+                return base.map((v, colIndex) => forFilter[colIndex] ?? v)
+            } : _tabularDefinitions[selector].getRowForSort;
     })
 }
 
@@ -133,6 +143,7 @@ const cleanForSave = (state: TabularState): TabularState =>
 export {
     initialState,
     cleanForSave,
+    itemMatchesFilter,
     getTabularDefinition,
     setTabularDefinitions,
     reduceSetTabularState,

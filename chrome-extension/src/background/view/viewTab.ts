@@ -2,6 +2,7 @@ import ITabManager from '../../chrome/ITab'
 import {
     HTML_VIEW,
     MSG_NAME_ACTION_VIEW,
+    MSG_NAME_NOTIFICATION_VIEW,
     MSG_NAME_REFRESH_VIEW
 } from '../../common/const'
 import IPortManager, { IPort } from '../../chrome/IPort'
@@ -72,6 +73,12 @@ class ViewTabManager {
         const portList = await this.portManager.all()
         const that = this
         await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_ACTION_VIEW, { action })))
+    }
+
+    public async sendNotificationClicked(notificationId: string): Promise<void> {
+        const portList = await this.portManager.all()
+        const that = this
+        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_NOTIFICATION_VIEW, { notificationId })))
     }
 }
 

@@ -83,7 +83,7 @@ describe('full', () => {
         viewPortManager.allMock.mockReturnValue([viewPort])
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
-        await wiring(messages, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
+        await wiring(messages, undefined, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
 
         expect(viewPort.sendMock.mock.calls.length).toBe(1)
         viewPort.sendMock = jest.fn() // clear RefreshManager.SetContentTab in wiring

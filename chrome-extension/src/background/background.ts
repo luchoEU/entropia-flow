@@ -1,4 +1,5 @@
 import ChromeActionManager from "../chrome/chromeActionManager"
+import ChromeNotificationManager from '../chrome/chromeNotificationManager'
 import ChromeAlarmManager from "../chrome/chromeAlarmManager"
 import ChromeMessagesHub from "../chrome/chromeMessages"
 import IMessagesHub from "../chrome/IMessagesHub"
@@ -23,6 +24,7 @@ class BackgroundInitializer {
         const tickAlarm = new ChromeAlarmManager(TICK_ALARM_NAME)
         const tabs = new ChromeTabManager()
         const actions = new ChromeActionManager()
+        const notifications = new ChromeNotificationManager()
 
         // ports
         const webSocketClient = new WebSocketClient()
@@ -30,7 +32,7 @@ class BackgroundInitializer {
             new PortManager(storage, messages, tabs, portName)
 
         // wiring
-        await wiring(messages, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient,
+        await wiring(messages, notifications, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient,
             portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
 
         async function test() {

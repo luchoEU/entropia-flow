@@ -25,7 +25,8 @@ import {
     STORAGE_VIEW_BUDGET,
     STORAGE_VIEW_INVENTORY_BY_STORE,
     STORAGE_VIEW_TABULAR,
-    STORAGE_VIEW_EXPANDABLE
+    STORAGE_VIEW_EXPANDABLE,
+    STORAGE_VIEW_TRADE
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -47,6 +48,7 @@ import { StackableStateIn } from "../../application/state/stackable";
 import { StreamState } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
 import { TabularState } from "../../application/state/tabular";
+import { TradeState } from "../../application/state/trade";
 import { UseState } from "../../application/state/use";
 
 import pako from 'pako';
@@ -102,6 +104,14 @@ async function saveSweat(state: SweatStateIn) {
 
 async function loadSweat(): Promise<SweatStateIn> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_SWEAT)
+}
+
+async function saveTrade(state: TradeState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_TRADE, state)
+}
+
+async function loadTrade(): Promise<TradeState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_TRADE)
 }
 
 async function saveFruit(state: FruitStateIn) {
@@ -291,6 +301,8 @@ export default {
     loadOrder,
     saveSweat,
     loadSweat,
+    saveTrade,
+    loadTrade,
     saveFruit,
     loadFruit,
     saveStackable,

@@ -1,6 +1,7 @@
 //// GAME LOG HISTORY ////
 // Keep the log history and summary from game log
 
+import { gameTime } from "../../common/date"
 import { emptyTemporalValue } from "../../common/state"
 import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
@@ -11,10 +12,6 @@ interface IGameLogHistory {
     clearSession(): Promise<void>
     getGameLog(): GameLogData
     onChange: (gameLog: GameLogData) => Promise<void>
-}
-
-function gameTime(time: string): number {
-    return new Date(`${time}Z`).getTime()
 }
 
 const ignoreLootForKill = [
@@ -130,6 +127,9 @@ class GameLogHistory implements IGameLogHistory {
     }
 
     private removeFromKillCount(time: string) {
+        if (!this.gameLog.stats.kills)
+            return;
+
         const lineDateTime: number = gameTime(time);
         if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) {
             if (this.gameLog.stats.kills.count == 1) {
@@ -146,6 +146,5 @@ class GameLogHistory implements IGameLogHistory {
 
 export default GameLogHistory
 export {
-    gameTime,
     IGameLogHistory
 }

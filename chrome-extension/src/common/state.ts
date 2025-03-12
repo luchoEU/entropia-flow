@@ -53,6 +53,10 @@ interface ViewDispatch {
     action: string
 }
 
+interface ViewNotification {
+    notificationId: string
+}
+
 let mockDate = undefined
 
 function setMockDate(date: number) {
@@ -121,6 +125,7 @@ export {
     Status,
     ViewState,
     ViewDispatch,
+    ViewNotification,
     setMockDate,
     getNowDate,
     makeLogInventory,

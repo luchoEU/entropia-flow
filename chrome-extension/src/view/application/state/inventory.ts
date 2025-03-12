@@ -1,6 +1,4 @@
 import { ItemData } from "../../../common/state";
-import { WebLoadResponse } from "../../../web/loader";
-import { ItemUsageWebData } from "../../../web/state";
 import { SortSecuence } from "./sort";
 
 const INVENTORY_TABULAR_OWNED = '[inventory] owned'

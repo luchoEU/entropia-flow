@@ -9,5 +9,4 @@ class ChromeActionManager implements IActionManager {
     }
 }
 
-
 export default ChromeActionManager

@@ -42,10 +42,10 @@ const BaseRowValueRender: RowValueRender = (p) => {
     const { v } = p;
     const dispatch = useDispatch();
     const style = typeof v === 'object' && {
-        ...'style' in v && v.style,
         ...'visible' in v && !v.visible && { visibility: 'hidden' },
         ...'maxWidth' in v && v.maxWidth && { maxWidth: v.maxWidth },
         ...'sub' in v && { display: 'flex', width: '100%' }, // so flex works
+        ...'style' in v && v.style,
     }
     if (style)
         delete style['justifyContent']
