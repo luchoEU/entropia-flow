@@ -253,6 +253,7 @@ class GameLogParser {
                 ["WTS", "WTB", "BUY", "SELL"].some(t => line.message.toUpperCase().includes(t)))
         {
             line.data.trade = {
+                serial: line.serial,
                 time: line.time,
                 channel: line.channel,
                 player: line.player,

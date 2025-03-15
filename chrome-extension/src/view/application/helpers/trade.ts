@@ -1,7 +1,7 @@
 import { TradeState } from "../state/trade"
 
 const initialState: TradeState = {
-    lastMessageCheckTime: 0,
+    lastMessageCheckSerial: 0,
     notifications: []
 }
 
@@ -17,9 +17,9 @@ const reduceRemoveTradeMessageNotification = (state: TradeState, time: string): 
     notifications: state.notifications.filter(n => n.time !== time)
 })
 
-const reduceSetLastMessageCheckTime = (state: TradeState, time: number): TradeState => ({
+const reduceSetLastMessageCheckSerial = (state: TradeState, serial: number): TradeState => ({
     ...state,
-    lastMessageCheckTime: time
+    lastMessageCheckSerial: serial
 })
 
 export {
@@ -27,5 +27,5 @@ export {
     reduceSetTradeState,
     reduceAddTradeMessageNotification,
     reduceRemoveTradeMessageNotification,
-    reduceSetLastMessageCheckTime,
+    reduceSetLastMessageCheckSerial,
 }

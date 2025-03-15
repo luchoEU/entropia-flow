@@ -1,5 +1,5 @@
 interface TradeState {
-    lastMessageCheckTime: number
+    lastMessageCheckSerial: number
     notifications: TradeNotification[]
 }
 

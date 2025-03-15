@@ -98,6 +98,7 @@ interface GameLogLine {
 }
 
 interface GameLogTrade {
+    serial: number
     time: string
     channel: string
     player: string

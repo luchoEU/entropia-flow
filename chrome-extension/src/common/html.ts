@@ -15,7 +15,10 @@ function decodeHTML(str: string): string {
                .replace(/&quot;/g, '"')
                .replace(/&gt;/g, '>')
                .replace(/&lt;/g, '<')
-               .replace(/&amp;/g, '&');
+               .replace(/&amp;/g, '&')
+               .replace(/&#91;/g, '[')
+               .replace(/&#93;/g, ']')
+               .replace(/&#96;/g, '`');
 };
 
 export {
