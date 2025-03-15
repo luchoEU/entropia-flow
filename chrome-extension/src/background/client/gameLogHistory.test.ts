@@ -283,12 +283,12 @@ describe('formula parser', () => {
         }
     ))
 
-    test('not wounded', async () => await parseExpect(
+    test('person not wounded', async () => await parseExpect(
 `2025-01-29 06:55:35 [System] [] That person isn't wounded`,
         {
             event: [{
                 time: '2025-01-29 06:55:35',
-                action: 'notWounded',
+                action: 'personNotWounded',
                 data: [],
                 message: 'That person isn\'t wounded'
             }]
@@ -451,6 +451,30 @@ describe('formula parser', () => {
                 action: 'healingDecreased',
                 data: [ '10.0%' ],
                 message: 'Healing was decreased by 10.0% by an Effect Over Time'
+            }]
+        }
+    ))
+
+    test('concentration affected', async () => await parseExpect(
+`2025-03-15 08:56:53 [System] [] Mindforce concentration was affected due to being hit`,
+        {
+            event: [{
+                time: '2025-03-15 08:56:53',
+                action: 'concentrationAffected',
+                data: [ ],
+                message: 'Mindforce concentration was affected due to being hit'
+            }]
+        }
+    ))
+
+    test('you are not wounded', async () => await parseExpect(
+`2025-03-15 08:53:19 [System] [] You are not wounded`,
+        {
+            event: [{
+                time: '2025-03-15 08:53:19',
+                action: 'youNotWounded',
+                data: [ ],
+                message: 'You are not wounded'
             }]
         }
     ))

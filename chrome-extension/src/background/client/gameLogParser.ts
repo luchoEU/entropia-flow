@@ -57,6 +57,7 @@ const eventRegex = {
     auctionCreated: /Auction successfully created/,
     blueprintImproved: /Your blueprint Quality Rating has improved/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
+    concentrationAffected: /Mindforce concentration was affected due to being hit/,
     destroyed: /(.+) was destroyed by the \w+ (.+)/,
     effectEquip: /Equip Effect: (.+)/,
     effectOverTime: /Received Effect Over Time: (.+)/ , 
@@ -78,7 +79,7 @@ const eventRegex = {
     missionUpdated: /Mission updated \((.+)\)/,
     newSkill: /Congratulations, you have acquired a new skill; (.+)/,
     newRank: /You have gained a new rank in (.+)!/,
-    notWounded: /That person isn't wounded/,
+    personNotWounded: /That person isn't wounded/,
     petReturned: /Your pet has been returned to your inventory/,
     resourceDepleted: /This resource is depleted/,
     requestSent: /Request sent/,
@@ -90,6 +91,7 @@ const eventRegex = {
     vehicleRecovered: /The vehicle \((.+)\) is returned to planet storage, where you can recover it/,
     youAreAfk: /You are now away from keyboard/,
     youNoLongerAway: /You are no longer away from keyboard/,
+    youNotWounded: /You are not wounded/,
 }
 const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
