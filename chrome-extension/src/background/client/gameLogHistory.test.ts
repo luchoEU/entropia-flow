@@ -478,4 +478,21 @@ describe('formula parser', () => {
             }]
         }
     ))
+
+    test('you healed', async () => await parseExpect(
+`2025-03-15 08:56:53 [System] [] You healed wackadoodle wackadoodle wackadoodle with 40.3 points`,
+        {
+            stats: {
+                youWereHealed: { total: 40.3, count: 1, history: [{ time: gameTime('2025-03-15 08:56:53'), value: 40.3 }] }
+            }
+        }
+    ))
+
+    test('killed', async () => await parseExpect(
+`2025-03-15 20:03:10 [System] [] Nicholas Looser EnterGate killed Lucho MUCHO Ireton using a A&P Series Mayhem LP-100, Modified
+2025-03-15 20:03:07 [System] [] Nicholas Looser EnterGate destroyed Scavenged Skyripper (L)`,
+        {
+    
+        }
+    ))
 })

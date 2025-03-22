@@ -60,7 +60,6 @@ const faq = [
 
 function AboutPage() {
     const isFeedbackExpanded = useSelector(isExpanded(FEEDBACK))
-    const isDonationsExpanded = useSelector(isExpanded(DONATIONS))
     const isTutorialsExpanded = useSelector(isExpanded(TUTORIALS))
     const isSourceCodeExpanded = useSelector(isExpanded(SOURCECODE))
     const isFaqExpanded = useSelector(isExpanded(FAQ))
@@ -72,7 +71,7 @@ function AboutPage() {
                     className='img-about' />
                 <div className='inline'>
                     <h1>Entropia Flow</h1>
-                    <p>A tool to help you see your returns in Entropia Universe.</p>
+                    <p>A tool to help you in Entropia Universe.</p>
                     <p>Version: {VERSION}</p>
                     <p>Author: Lucho MUCHO Ireton</p>
                 </div>
@@ -81,11 +80,8 @@ function AboutPage() {
                 <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
             </ExpandableSection>
 
-            <ExpandableSection title='Donations' expanded={isDonationsExpanded} setExpanded={setExpanded(DONATIONS)}>
-                <p>If you think this tool is useful consider support its development by buying my Mind Essence ingame, just contact me ingame (my full avatar name is Lucho MUCHO Ireton).</p>
-            </ExpandableSection>
-
             <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)}>
+                <p>outdated videos, new ones are on the way</p>
                 <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
                 <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
             </ExpandableSection>
