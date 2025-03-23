@@ -46,6 +46,7 @@ const gameLogStatsKeys = [
     "vehicleRepaired",
     "youDodgedAttack",
     "youEvadedAttack",
+    "youHealed",
     "youMissed",
     "youRepaired",
     "youRevived",

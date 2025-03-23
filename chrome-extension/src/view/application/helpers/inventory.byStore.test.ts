@@ -17,6 +17,11 @@ describe('inventory by store reducers', () => {
         state = reduceSetCurrentInventory(initialState, { meta: undefined, itemlist: [item1, item2, item3] })
     })
 
+    function reloadStateByStore() {
+        state.byStore = cleanForSaveByStore(state.byStore)
+        state = reduceLoadInventoryState(state, state)
+    }
+
     test('load original', async () => {
         expect(state.byStore.originalList.items[0].list.items.map((i) => i.data)).toEqual([item1, item2])
     })
@@ -29,9 +34,8 @@ describe('inventory by store reducers', () => {
     })
 
     test('save star item', async () => {
-        state = reduceSetByStoreItemStared(state, '-1', true)
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        state = reduceSetByStoreItemStared(state, '-1', true);
+        reloadStateByStore();
         expect(state.byStore.containers['-1'].stared).toBe(true)
         expect(state.byStore.stared.list.items[0].list.items.map((i) => i.data.n)).toEqual(['item1', 'item2'])
     })
@@ -45,8 +49,7 @@ describe('inventory by store reducers', () => {
     test('save sort stared by quantity', async () => {
         state = reduceSetByStoreItemStared(state, '-1', true)
         state = reduceSortByStoreStaredBy(state, SORT_QUANTITY_ASCENDING)
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items.map((i) => i.data.q)).toEqual(['1', '2'])
     })
 
@@ -57,8 +60,7 @@ describe('inventory by store reducers', () => {
 
     test('save expand stared inventory', async () => {
         state = reduceSetByStoreStaredInventoryExpanded(state, false)
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.expanded).toBe(false)
     })
 
@@ -71,8 +73,7 @@ describe('inventory by store reducers', () => {
     test('save expand item stared', async () => {
         state = reduceSetByStoreItemStared(state, '-1', true)
         state = reduceSetByStoreStaredItemExpanded(state, 'x', false)
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items[1].list.expanded).toBe(false)
     })
 
@@ -85,8 +86,7 @@ describe('inventory by store reducers', () => {
     test('save filter stared', async () => {
         state = reduceSetByStoreItemStared(state, '-1', true)
         state = reduceSetByStoreStaredInventoryFilter(state, 'item2')
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items.map((i) => i.data.n)).toEqual(['item2'])
     })
 
@@ -106,8 +106,7 @@ describe('inventory by store reducers', () => {
     test('save start name editing stared', async () => {
         state = reduceSetByStoreItemStared(state, '-1', true)
         state = reduceStartByStoreStaredItemNameEditing(state, '-1.x')
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items[1].editing).toBe(undefined)
     })
 
@@ -130,8 +129,7 @@ describe('inventory by store reducers', () => {
         state = reduceStartByStoreStaredItemNameEditing(state, '-1.x')
         state = reduceSetByStoreStaredItemName(state, '-1.x', 'item2renamed')
         state = reduceConfirmByStoreStaredItemNameEditing(state, '-1.x')
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.containers['x'].displayName).toBe('item2renamed')
     })
 
@@ -191,8 +189,7 @@ describe('inventory by store reducers', () => {
     test('save child item stared', async () => {
         state = reduceSetByStoreItemStared(state, '-1', true)
         state = reduceSetByStoreStaredItemStared(state, '-1.x', true)
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[1].data.n).toBe('item2')
     })
 
@@ -220,8 +217,7 @@ describe('inventory by store reducers', () => {
         state = reduceStartByStoreItemNameEditing(state, 'x')
         state = reduceSetByStoreItemName(state, 'x', 'aitem2')
         state = reduceConfirmByStoreItemNameEditing(state, 'x')
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.showList.items[0].list.items[0].displayName).toBe('aitem2')
     })
 
@@ -249,8 +245,7 @@ describe('inventory by store reducers', () => {
         state = reduceStartByStoreStaredItemNameEditing(state, '-1.x')
         state = reduceSetByStoreStaredItemName(state, '-1.x', 'aitem2')
         state = reduceConfirmByStoreStaredItemNameEditing(state, '-1.x')
-        state.byStore = cleanForSaveByStore(state.byStore)
-        state = reduceLoadInventoryState(initialState, state)
+        reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items[0].displayName).toBe('aitem2')
     })
 

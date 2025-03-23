@@ -31,6 +31,7 @@ const statsRegex: GameLogStats<RegExp> = {
     vehicleRepaired: /The vehicle's Structural Integrity restored by (.+)/,
     youDodgedAttack: /You Dodged the attack/,
     youEvadedAttack: /You Evaded the attack/,
+    youHealed: /You healed .+ with (.+) points/,
     youMissed: /You missed/,
     youRepaired: /You restored the vehicle's Structural Integrity by (.+)/,
     youRevived: /You have been revived/,

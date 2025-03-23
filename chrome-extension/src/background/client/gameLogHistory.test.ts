@@ -483,7 +483,7 @@ describe('formula parser', () => {
 `2025-03-15 08:56:53 [System] [] You healed wackadoodle wackadoodle wackadoodle with 40.3 points`,
         {
             stats: {
-                youWereHealed: { total: 40.3, count: 1, history: [{ time: gameTime('2025-03-15 08:56:53'), value: 40.3 }] }
+                youHealed: { total: 40.3, count: 1, history: [{ time: gameTime('2025-03-15 08:56:53'), value: 40.3 }] }
             }
         }
     ))

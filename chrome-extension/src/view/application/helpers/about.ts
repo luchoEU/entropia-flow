@@ -1,7 +1,7 @@
-import { AboutState, DONATIONS, FEEDBACK, SOURCECODE, TUTORIALS } from "../state/about"
+import { AboutState, FEEDBACK, SOURCECODE, TUTORIALS } from "../state/about"
 
 const initialState: AboutState = {
-    expanded: [FEEDBACK, DONATIONS, TUTORIALS, SOURCECODE]
+    expanded: [FEEDBACK, TUTORIALS, SOURCECODE]
 }
 
 const setState = (state: AboutState, newState: AboutState): AboutState => newState

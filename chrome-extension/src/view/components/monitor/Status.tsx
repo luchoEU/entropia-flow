@@ -8,6 +8,7 @@ import { getStatus } from '../../application/selectors/status';
 import { HistoryState } from '../../application/state/history';
 import { STRING_PLEASE_LOG_IN } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
+import ExpandableSection from '../common/ExpandableSection2';
 
 const MY_ITEMS_URL = 'https://account.entropiauniverse.com/account/my-account/my-items/'
 
@@ -17,7 +18,7 @@ const Status = () => {
     const { class: className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
 
     return (
-        <section>
+        <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items'>
             { showTimer &&
                 <ImgButton
                     title='Refresh'
@@ -50,7 +51,7 @@ const Status = () => {
                     Start Automatic Refresh
                 </button>
             }
-        </section>
+        </ExpandableSection>
     )
 }
 

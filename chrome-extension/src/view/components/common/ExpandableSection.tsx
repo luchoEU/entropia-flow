@@ -2,6 +2,7 @@ import React from "react"
 import ExpandableArrowButton from "./ExpandableArrowButton"
 import { useDispatch } from "react-redux"
 
+// deprecated, use ExpandableSection2
 const ExpandableSection = (p: {
     title: string,
     expanded: boolean,

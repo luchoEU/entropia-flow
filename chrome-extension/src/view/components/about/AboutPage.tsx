@@ -2,7 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { setExpanded } from '../../application/actions/about'
 import { isExpanded } from '../../application/selectors/about'
-import { DONATIONS, FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../../application/state/about'
+import { FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../../application/state/about'
 import ExpandableSection from '../common/ExpandableSection'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
