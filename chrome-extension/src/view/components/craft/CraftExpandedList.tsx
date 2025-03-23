@@ -263,7 +263,7 @@ function CraftSingle(p: {
                                 </td>
                                 <td data-text={m.type}>{m.type}</td>
                                 { m.available ? <td data-text-right={m.available}>{m.available}</td> : <td/> }
-                                { m.clicks ? <td data-text-right={m.clicks}>{m.clicks}</td> : <td/> }
+                                { m.clicks !== undefined ? <td data-text-right={m.clicks}>{m.clicks}</td> : <td/> }
                                 { markupMap && <td align='right'>{markupMap[m.name] && markupMap[m.name] !== 1 ? `${(markupMap[m.name] * 100).toFixed(2)}%` : ''}</td> }
                                 { budgetMap && <td align='right'>{budgetMap[m.name]}</td> }
                                 { session && <td align="right">{session[m.name]}</td> }
@@ -437,3 +437,6 @@ function CraftExpandedList() {
 }
 
 export default CraftExpandedList
+export {
+    addZeroes
+}

@@ -6,13 +6,14 @@ import { useDispatch, useSelector } from 'react-redux'
 import { INVENTORY_TABULAR_OWNED, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
-import { loadItemUsageData, materialNotesValueChanged } from '../../application/actions/materials';
-import { ItemUsageWebData } from '../../../web/state';
+import { loadItemUsageData, loadMaterialData, materialNotesValueChanged } from '../../application/actions/materials';
+import { ItemUsageWebData, MaterialWebData } from '../../../web/state';
 import { setBlueprintActivePage } from '../../application/actions/craft';
 import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
 import { FieldArea } from '../common/Field';
 import { getMaterial } from '../../application/selectors/materials';
 import MaterialInventory from '../material/MaterialInventory';
+import { addZeroes } from '../craft/CraftExpandedList';
 
 const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -48,8 +49,8 @@ const TradeItemDetailsChain = () => {
         { tradeItemDataChain?.map((tradeItemData, chainIndex) => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
             return <div key={tradeItemData.name} className='trade-item-data'>
-                <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(undefined, chainIndex)) }}>
-                    { tradeItemData.name }<img src='img/left.png' />
+                <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
+                    { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
                 </h2>
                 { !chainNext &&
                     <TradeItemDetails
@@ -108,6 +109,13 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         ownedTableData.columnsWidth = columnsWidth
 
     return <>
+        <WebDataControl w={material?.web?.material} dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(material: MaterialWebData) =>
+            <>
+                <p>Type: { material.type }</p>
+                <p>Value: { addZeroes(material.value) }</p>
+            </>
+        } />
+        <FieldArea label='Notes:' value={material?.notes} getChangeAction={materialNotesValueChanged(tradeItemData.name)} />
         <WebDataControl w={material?.web?.usage} dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
             <>
                 { favoriteTableData ?
@@ -144,7 +152,6 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             </>
         } />
         <MaterialInventory />
-        <FieldArea label='Notes:' value={material?.notes} getChangeAction={materialNotesValueChanged(tradeItemData.name)} />
     </>
 }
 
