@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux"
 
 // deprecated, use ExpandableSection2
 const ExpandableSection = (p: {
+    id?: string,
     title: string,
     expanded: boolean,
     setExpanded: (expanded: boolean) => any,
@@ -12,7 +13,7 @@ const ExpandableSection = (p: {
 }) => {
     const dispatch = useDispatch()
     return (
-        <section>
+        <section id={p.id}>
             <h1 onClick={(e) => {
                     e.stopPropagation()
                     dispatch(p.setExpanded(!p.expanded))}

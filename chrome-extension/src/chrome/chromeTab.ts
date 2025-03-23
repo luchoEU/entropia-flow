@@ -10,8 +10,10 @@ class ChromeTab implements ITab {
         this.tabId = tabId
     }
 
-    async select() {
-        await chrome.tabs.update(this.tabId, { highlighted: true })
+    async select(): Promise<void> {
+        const emptyTab = await chrome.tabs.create({ url: 'about:blank' }); // Workaround for Arc Browser where first space is empty and extension is in another space
+        await chrome.tabs.update(this.tabId, { active: true })
+        await chrome.tabs.remove(emptyTab.id)
     }
 }
 

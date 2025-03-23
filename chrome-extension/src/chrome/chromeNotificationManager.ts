@@ -4,7 +4,7 @@ class ChromeNotificationManager implements INotificationManager {
     constructor() {
         chrome.notifications.onClicked.addListener((notificationId) => {
             this.onClick?.(notificationId);
-        })
+        });
     }
 }
 

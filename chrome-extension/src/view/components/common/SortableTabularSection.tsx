@@ -264,7 +264,7 @@ const SortableTabularSection = (p: {
 
     const stats = s.items.stats
 
-    return <ExpandableSection title={title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
+    return <ExpandableSection id={selector} title={title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
         <div className='inline'>
             <div className='search-container'>
                 <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>

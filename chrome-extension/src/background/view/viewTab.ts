@@ -36,11 +36,11 @@ class ViewTabManager {
     public async createOrOpenView(): Promise<void> {
         const isEmpty = await this.portManager.isEmpty()
         if (isEmpty) {
-            this.tabs.create(HTML_VIEW)
+            await this.tabs.create(HTML_VIEW)
         } else {
             const tab = await this.portManager.firstTab()
             if (tab !== undefined)
-                tab.select()
+                await tab.select()
         }
     }
 

@@ -1,8 +1,10 @@
 import { GameLogData } from "../../../background/client/gameLogData"
+import { HTML_VIEW } from "../../../common/const"
 import { mergeDeep } from "../../../common/merge"
 import { SET_CURRENT_GAME_LOG } from "../actions/log"
 import { selectMenu, TRADE_PAGE } from "../actions/menu"
 import { ON_NOTIFICATION_CLICKED } from "../actions/notification"
+import { setTabularExpanded, setTabularFilter } from "../actions/tabular"
 import { ADD_TRADE_MESSAGE_NOTIFICATION, REMOVE_TRADE_MESSAGE_NOTIFICATION, SET_LAST_TRADE_MESSAGE_CHECK_SERIAL, setLastTradeMessageCheckSerial, setTradeState } from "../actions/trade"
 import { PAGE_LOADED } from "../actions/ui"
 import { itemMatchesFilter } from "../helpers/tabular"
@@ -43,8 +45,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (matches.length > 0) {
                     matches.unshift('New matches to trade chat filters')
                     chrome.notifications.create(
-                        NOTIFICATION_ID,
-                        { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: matches.join('\n') }
+                        `${NOTIFICATION_ID}-${matches[1]}`,
+                        {
+                            type: "basic",
+                            iconUrl: "img/flow128.png",
+                            title: "Entropia Flow",
+                            message: matches.join('\n')
+                        }
                     )
                 }
             }
@@ -53,8 +60,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break;
         }
         case ON_NOTIFICATION_CLICKED: {
-            if (action.payload.notificationId === NOTIFICATION_ID) {
+            if (action.payload.notificationId.startsWith(NOTIFICATION_ID)) {
+                const filter = action.payload.notificationId.replace(`${NOTIFICATION_ID}-`, '');
                 dispatch(selectMenu(TRADE_PAGE));
+                dispatch(setTabularExpanded(GAME_LOG_TABULAR_TRADE)(true));
+                dispatch(setTabularFilter(GAME_LOG_TABULAR_TRADE)(filter));
+                window.location.href = `#${GAME_LOG_TABULAR_TRADE}`;
             }
             break
         }
