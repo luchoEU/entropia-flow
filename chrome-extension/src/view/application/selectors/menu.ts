@@ -1,1 +1,1 @@
-export const getSelectedMenu = state => state.menu
+export const getSelectedMenu = (state: any): number => state.menu

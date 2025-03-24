@@ -7,19 +7,50 @@ body {
 // Navigation
 nav {
     box-shadow: 0 6px 32px rgba(0, 0, 0, 0.2);
+}
+
+nav .nav-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0px 13px;
+}
+
+nav .img-logo {
+    height: 20px;
+}
+
+nav .img-subtitles {
+    display: inline-flex;
+    align-items: flex-end;
+    height: 28px;
+}
+
+nav .img-subtitles img {
+    height: 14px;
+}
+
+nav .nav-with-subtitle {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+nav .nav-with-subtitle div {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
 }
 
-nav div {
-    margin: 2px;
-    padding: 13px;
-    display: inline-flex;
+nav .nav-with-subtitle div:nth-child(2) {
+    background-color: whitesmoke;
+    padding: 0px 13px;
 }
 
-nav div img {
-    height: 20px;
+nav .nav-with-subtitle div:nth-child(2) span:nth-child(1) {
+    flex: 1px;
+    text-align: center;
+    padding: 7px;
 }
 
 nav div strong {

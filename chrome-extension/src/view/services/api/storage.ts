@@ -26,7 +26,8 @@ import {
     STORAGE_VIEW_INVENTORY_BY_STORE,
     STORAGE_VIEW_TABULAR,
     STORAGE_VIEW_EXPANDABLE,
-    STORAGE_VIEW_TRADE
+    STORAGE_VIEW_TRADE,
+    STORAGE_VIEW_MODE
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -40,6 +41,7 @@ import { InventoryState } from "../../application/state/inventory";
 import { ViewPedData } from "../../application/state/last";
 import { GameLogState } from "../../application/state/log";
 import { MaterialsState } from "../../application/state/materials";
+import ModeState from "../../application/state/mode";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
 import { RefinedState } from "../../application/state/refined";
@@ -129,6 +131,15 @@ async function saveStackable(state: StackableStateIn) {
 async function loadStackable(): Promise<StackableStateIn> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_STACKABLE)
 }
+
+async function saveMode(state: ModeState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_MODE, state)
+}
+
+async function loadMode(): Promise<ModeState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_MODE)
+}
+
 
 async function saveRefine(state: RefineState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_REFINE, state)
@@ -307,6 +318,8 @@ export default {
     loadFruit,
     saveStackable,
     loadStackable,
+    saveMode,
+    loadMode,
     saveRefine,
     loadRefine,
     saveRefined,

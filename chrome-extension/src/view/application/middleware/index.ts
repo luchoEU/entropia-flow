@@ -28,6 +28,7 @@ import ttService from './ttService'
 import tabular from './tabular'
 import expandable from './expandable'
 import trade from './trade'
+import mode from './mode'
 
 export default [
     ...messages,
@@ -60,4 +61,5 @@ export default [
     ...tabular,
     ...expandable,
     ...trade,
+    ...mode,
 ]
