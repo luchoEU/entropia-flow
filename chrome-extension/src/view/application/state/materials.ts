@@ -22,6 +22,7 @@ interface MaterialState {
     useAmount?: string,
     refineAmount?: string,
     notes?: string
+    calc?: MaterialStateCalcData
 
     web?: MaterialStateWebData
 
@@ -33,9 +34,16 @@ interface MaterialState {
     }
 }
 
+interface MaterialStateCalcData {
+    quantity: string,
+    total: string,
+    totalMU: string
+}
+
 export {
     MaterialsState,
     MaterialsMap,
     MaterialState,
     MaterialStateWebData,
+    MaterialStateCalcData,
 }

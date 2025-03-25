@@ -1,4 +1,4 @@
-import { MaterialsMap, MaterialsState, MaterialState, MaterialStateWebData } from "../state/materials"
+import { MaterialsMap, MaterialsState, MaterialState, MaterialStateCalcData, MaterialStateWebData } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -126,8 +126,28 @@ const _materialChanged = (state: MaterialsState, material: string, change: Parti
     }
 })
 
+const _materialChangedMod = (state: MaterialsState, material: string, change: (s?: MaterialState) => Partial<MaterialState>): MaterialsState => ({
+    ...state,
+    map: {
+        ...state.map,
+        [material]: {
+            ...state.map[material],
+            ...change(state.map[material])
+        }
+    }
+})
+
 const reduceMaterialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
-    _materialChanged(state, material, { buyMarkup, buyMarkupModified: new Date().toString() })
+    _materialChangedMod(state, material, s => {
+        let calc = s.calc
+        if (calc) {
+            const mu = buyMarkup ? Number(buyMarkup) / 100 : 1;
+            const n = parseFloat(calc.total)
+            if (!isNaN(n))
+                calc = { ...calc, totalMU: (n * mu).toFixed(2) }
+        }
+        return { buyMarkup, buyMarkupModified: new Date().toString(), calc }
+    })
 
 const reduceMaterialOrderMarkupChanged = (state: MaterialsState, material: string, orderMarkup: string): MaterialsState =>
     _materialChanged(state, material, { orderMarkup })
@@ -147,19 +167,28 @@ const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string
 const reduceMaterialNotesValueChanged = (state: MaterialsState, material: string, notes: string): MaterialsState =>
     _materialChanged(state, material, { notes })
 
-const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState => ({
-    ...state,
-    map: {
-        ...state.map,
-        [material]: {
-            ...state.map[material],
-            web: {
-                ...state.map[material]?.web,
-                ...change
-            }
-        }
-    }
-})
+const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState =>
+    _materialChangedMod(state, material, s => ({ web: { ...s?.web, ...change } }))
+
+const _materialChangedCalc = (state: MaterialsState, material: string, str: string, partial: Partial<MaterialStateCalcData>, getCalc: (n: number, v: number, mu: number) => MaterialStateCalcData): MaterialsState => {
+    const n = parseFloat(str)
+    const m = state.map[material]
+    if (!m?.web?.material?.data && isNaN(n))
+        return _materialChangedMod(state, material, s => ({ calc: { ...s?.calc, ...partial } }))
+
+    const v = m.web.material.data.value.value
+    const mu = m.buyMarkup ? Number(m.buyMarkup) / 100 : 1;
+    return _materialChangedMod(state, material, s => ({ calc: getCalc(n, v, mu) })) // parameters are (input Number, Value, Markup)
+}
+
+const reduceSetMaterialCalculatorQuantity = (state: MaterialsState, material: string, quantity: string): MaterialsState =>
+    _materialChangedCalc(state, material, quantity, { quantity }, (n, v, mu) => ({ quantity, total: (v * n).toFixed(2), totalMU: (v * n * mu).toFixed(2) }))
+
+const reduceSetMaterialCalculatorTotal = (state: MaterialsState, material: string, total: string): MaterialsState =>
+    _materialChangedCalc(state, material, total, { total }, (n, v, mu) => ({ quantity: (n / v).toFixed(0), total, totalMU: (n * mu).toFixed(2) }))
+
+const reduceSetMaterialCalculatorTotalMU = (state: MaterialsState, material: string, totalMU: string): MaterialsState =>
+    _materialChangedCalc(state, material, totalMU, { totalMU }, (n, v, mu) => ({ quantity: (n / v / mu).toFixed(0), total: (n / mu).toFixed(2), totalMU }))
 
 const cleanWeb = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
@@ -213,6 +242,9 @@ export {
     reduceMaterialOrderValueChanged,
     reduceMaterialNotesValueChanged,
     reduceSetMaterialPartialWebData,
+    reduceSetMaterialCalculatorQuantity,
+    reduceSetMaterialCalculatorTotal,
+    reduceSetMaterialCalculatorTotalMU,
     cleanWeb,
     cleanForSaveMain,
     cleanForSaveCache,

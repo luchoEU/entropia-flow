@@ -751,3 +751,25 @@ button:active {
     margin-bottom: 10px;
     gap: 8px;
 }
+
+.material-calculator {
+    border: 1px solid lightgray;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+}
+
+.material-calculator > img {
+    height: 25px;
+}
+
+.material-calculator > table {
+    border: 0px solid white;
+}
+
+input {
+    margin: 0px 5px;
+}

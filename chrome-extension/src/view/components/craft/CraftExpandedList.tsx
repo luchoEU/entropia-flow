@@ -20,6 +20,8 @@ import { Field, FieldArea } from '../common/Field'
 import WebDataControl from '../common/WebDataControl'
 import MaterialInventory from '../material/MaterialInventory'
 import { info } from 'sass'
+import MaterialNotes from '../material/MaterialNotes'
+import MaterialMarkup from '../material/MaterialMarkup'
 
 function SessionInfo(p: {
     name: string,
@@ -396,14 +398,7 @@ function CraftExpandedList() {
                                 <p>Type: { afterChainMat.type }</p>
                                 <p>Value: { addZeroes(afterChainMat.value) }</p>
                             </>}
-                            { mat[afterChain] &&
-                                <Field label='Markup:' value={mat[afterChain].buyMarkup ?? ''}
-                                        getChangeAction={materialBuyMarkupChanged(afterChain)}>
-                                    <span>%</span>
-                                    { mat[afterChain].buyMarkupModified ?
-                                        <span> (Modified on { new Date(mat[afterChain].buyMarkupModified).toLocaleDateString() })</span> : '' }
-                                </Field>
-                            }
+                            <MaterialMarkup name={afterChain} />
                             <WebDataControl w={afterChainRaw}
                                 dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}
                                 content={d => d.length > 0 &&
@@ -425,9 +420,7 @@ function CraftExpandedList() {
                                 </table>
                             }/>
                             <MaterialInventory />
-                            { mat[afterChain] &&
-                                <FieldArea label='Notes:' value={mat[afterChain].notes} getChangeAction={materialNotesValueChanged(afterChain)} />
-                            }
+                            <MaterialNotes name={afterChain} />
                         </div>
                     </div>
                 }

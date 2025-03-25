@@ -12,6 +12,9 @@ const SET_MATERIAL_PARTIAL_WEB_DATA = '[material] set partial web data'
 const LOAD_MATERIAL_RAW_MATERIALS = '[material] load raw materials'
 const LOAD_MATERIAL_DATA = '[material] load data'
 const LOAD_ITEM_USAGE_DATA = '[material] load item usage data'
+const SET_MATERIAL_CALCULATOR_QUANTITY = '[material] set calculator quantity'
+const SET_MATERIAL_CALCULATOR_TOTAL = '[material] set calculator total'
+const SET_MATERIAL_CALCULATOR_TOTAL_MU = '[material] set calculator total mu'
 
 const setMaterialsState = (state: MaterialsState) => ({
     type: SET_MATERIALS_STATE,
@@ -106,6 +109,30 @@ const loadItemUsageData = (item: string) => ({
     }
 })
 
+const setMaterialCalculatorQuantity = (material: string, quantity: string) => ({
+    type: SET_MATERIAL_CALCULATOR_QUANTITY,
+    payload: {
+        material,
+        quantity
+    }
+})
+
+const setMaterialCalculatorTotal = (material: string, total: string) => ({
+    type: SET_MATERIAL_CALCULATOR_TOTAL,
+    payload: {
+        material,
+        total
+    }
+})
+
+const setMaterialCalculatorTotalMU = (material: string, totalMU: string) => ({
+    type: SET_MATERIAL_CALCULATOR_TOTAL_MU,
+    payload: {
+        material,
+        totalMU
+    }
+})
+
 export {
     SET_MATERIALS_STATE,
     MATERIAL_BUY_MARKUP_CHANGED,
@@ -119,6 +146,9 @@ export {
     LOAD_MATERIAL_RAW_MATERIALS,
     LOAD_MATERIAL_DATA,
     LOAD_ITEM_USAGE_DATA,
+    SET_MATERIAL_CALCULATOR_QUANTITY,
+    SET_MATERIAL_CALCULATOR_TOTAL,
+    SET_MATERIAL_CALCULATOR_TOTAL_MU,
     setMaterialsState,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
@@ -131,4 +161,7 @@ export {
     loadMaterialRawMaterials,
     loadMaterialData,
     loadItemUsageData,
+    setMaterialCalculatorQuantity,
+    setMaterialCalculatorTotal,
+    setMaterialCalculatorTotalMU,
 }

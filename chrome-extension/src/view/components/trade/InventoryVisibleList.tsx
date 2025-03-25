@@ -14,6 +14,9 @@ import { FieldArea } from '../common/Field';
 import { getMaterial } from '../../application/selectors/materials';
 import MaterialInventory from '../material/MaterialInventory';
 import { addZeroes } from '../craft/CraftExpandedList';
+import MaterialNotes from '../material/MaterialNotes';
+import MaterialMarkup from '../material/MaterialMarkup';
+import MaterialCalculator from '../material/MaterialCalculator';
 
 const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -113,9 +116,11 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             <>
                 <p>Type: { material.type }</p>
                 <p>Value: { addZeroes(material.value) }</p>
+                <MaterialMarkup name={tradeItemData.name} />
+                <MaterialCalculator name={tradeItemData.name} />
             </>
         } />
-        <FieldArea label='Notes:' value={material?.notes} getChangeAction={materialNotesValueChanged(tradeItemData.name)} />
+        <MaterialNotes name={tradeItemData.name} />
         <WebDataControl w={material?.web?.usage} dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
             <>
                 { favoriteTableData ?
