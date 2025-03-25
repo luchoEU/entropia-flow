@@ -770,6 +770,10 @@ button:active {
     border: 0px solid white;
 }
 
-input {
+input, textarea {
     margin: 0px 5px;
+}
+
+label {
+    vertical-align: super;
 }

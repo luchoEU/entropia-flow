@@ -247,11 +247,14 @@ async function loadTabular(): Promise<TabularState> {
 }
 
 async function saveMaterials(state: MaterialsState) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_MATERIALS, state)
+    await SYNC_STORAGE.set(STORAGE_VIEW_MATERIALS, _compress(state))
 }
 
 async function loadMaterials(): Promise<MaterialsState> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
+    // chrome.storage.sync.QUOTA_BYTES_PER_ITEM
+    // TODO: refactor InventoryStorage and _compress
+    const compressedState = await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
+    return _uncompress(compressedState)
 }
 
 async function saveMaterialsCache(state: MaterialsState) {
