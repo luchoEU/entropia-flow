@@ -495,4 +495,11 @@ describe('formula parser', () => {
     
         }
     ))
+
+    test('ath', async () => await parseExpect(
+`2025-03-27 12:32:37 [Globals] [] Daniel Danutu07 Ionut killed a creature (Sampling: TZ-15) with a value of 67638 PED! A record has been added to the Hall of Fame ALL TIME HIGH. Congratulations!`,
+        {
+            
+        }
+    ))
 })
