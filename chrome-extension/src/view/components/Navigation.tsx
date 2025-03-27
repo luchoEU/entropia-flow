@@ -6,41 +6,52 @@ import { getSelectedMenu } from '../application/selectors/menu';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
 import { getMode } from '../application/selectors/mode';
-import { setShowSubtitles } from '../application/actions/mode';
+import { setShowSubtitles, setShowVisibleToggle } from '../application/actions/mode';
+import { ConnectionState } from '../application/state/connection';
+import { getConnection } from '../application/selectors/connection';
+import { STRING_PLEASE_LOG_IN } from '../../common/const';
+import { getStatus } from '../application/selectors/status';
+import { getLast } from '../application/selectors/last';
 
 const Tab = (p: {
     id: number,
-    title: string
+    title: string,
+    actionRequired?: string
 }) => {
     const dispatch = useDispatch()
     const menu = useSelector(getSelectedMenu)
 
     return (
         <button
-            className={menu === p.id ? 'selected-menu' : ''}
+            className={(p.actionRequired ? 'warning-menu ' : '') + (menu === p.id ? 'selected-menu ' : '') + 'button-menu'}
             onClick={() => dispatch(selectMenu(p.id))}>
             {p.title}
+            { p.actionRequired && <img className='img-warning-menu' src='img/warning.png' title={p.actionRequired} /> }
         </button>
     )
 }
 
 const FirstRow = () => {
+    const { show } = useSelector(getLast)
+    const { client: { status } } = useSelector(getConnection)
+    const { message } = useSelector(getStatus);
+
     return (
         <>
             <div>
                 <img src='img/flow128.png' className='img-logo'></img>
                 <strong>Entropia Flow</strong>
             </div>
-            <Tab id={MONITOR_PAGE} title='Monitor' />
-            <Tab id={INVENTORY_PAGE} title='Inventory' />
-            <Tab id={TRADE_PAGE} title="Trading" />
+            <Tab id={MONITOR_PAGE} title='Monitor' actionRequired={message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined} />
+            { show && <Tab id={INVENTORY_PAGE} title='Inventory' /> }
+            <Tab id={TRADE_PAGE} title='Trading' />
             <Tab id={CRAFT_PAGE} title='Crafting' />
-            <Tab id={CLIENT_PAGE} title='Client' />
+            <Tab id={CLIENT_PAGE} title='Client' actionRequired={!status.startsWith('connected') && !status.startsWith('init') ? 'Disconnected' : undefined} />
             <Tab id={STREAM_PAGE} title='Stream' />
             { SHOW_REFINED_PAGE && <Tab id={REFINED_PAGE} title='Refined' /> }
             { SHOW_BUDGET_PAGE && <Tab id={BUDGET_PAGE} title='Budget' /> }
             { SHOW_SETTINGS_PAGE && <Tab id={SETTING_PAGE} title='Settings' /> }
-            <Tab id={ABOUT_PAGE} title='About' />   
+            <Tab id={ABOUT_PAGE} title='About' />
         </>
     )
 }
@@ -59,7 +70,7 @@ const tabSubtitle = {
 }
 
 const Navigation = () => {
-    const { showSubtitles }: ModeState = useSelector(getMode)
+    const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
     const menu = useSelector(getSelectedMenu)
 
     return (
@@ -71,6 +82,10 @@ const Navigation = () => {
                     </div>
                     <div>
                         <span>{tabSubtitle[menu]}</span>
+                        <ImgButton title={showVisibleToggle ? 'click to Hide Section Visiblity Button' : 'click to Show Section Visiblity Button'}
+                            className='img-visible-section'
+                            src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
+                            dispatch={() => setShowVisibleToggle(!showVisibleToggle)} />
                         <ImgButton title='Hide Subtitles' className='img-subtitles' src='img/up.png' dispatch={() => setShowSubtitles(false)} />
                     </div>
                 </div> :

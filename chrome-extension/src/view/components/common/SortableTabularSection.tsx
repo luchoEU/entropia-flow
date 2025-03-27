@@ -3,10 +3,10 @@ import { useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import isEqual from 'lodash.isequal';
 import SearchInput from './SearchInput';
-import ExpandableSection from './ExpandableSection';
+import ExpandableSection from './ExpandableSection2';
 import { getTabularData, getTabularDataItem } from '../../application/selectors/tabular';
 import { TabularDefinition, TabularStateData } from '../../application/state/tabular';
-import { setTabularExpanded, setTabularFilter, sortTabularBy } from '../../application/actions/tabular';
+import { setTabularFilter, sortTabularBy } from '../../application/actions/tabular';
 import { SortSecuence } from '../../application/state/sort';
 import { getTabularDefinition } from '../../application/helpers/tabular';
 import { COLUMN_PADDING, FONT, IMG_SORT_WIDTH, IMG_WIDTH, ITEM_HEIGHT, LIST_TOTAL_HEIGHT, RowValue, RowValueRender, SCROLL_BAR_WIDTH } from './SortableTabularSection.data';
@@ -258,13 +258,13 @@ const SortableTabularSection = (p: {
 }) => {
     const { selector } = p
     const RowValueRenderComponent = p.rowValueRender ?? BaseRowValueRender
-    const { title }: TabularDefinition<any, any> = getTabularDefinition(selector, undefined)
+    const { title, subtitle }: TabularDefinition<any, any> = getTabularDefinition(selector, undefined)
     const s: TabularStateData = useSelector(getTabularData(selector))
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
     const stats = s.items.stats
 
-    return <ExpandableSection id={selector} title={title} expanded={s.expanded} setExpanded={setTabularExpanded(selector)}>
+    return <ExpandableSection selector={`TabularSection.${selector}`} title={title} subtitle={subtitle}>
         <div className='inline'>
             <div className='search-container'>
                 <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>

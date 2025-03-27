@@ -407,16 +407,6 @@ const loadInventoryByStore = (
     })
 };
 
-const reduceSetByStoreInventoryExpanded = (
-    state: InventoryState,
-    expanded: boolean
-): InventoryState => _partialSetState(_originalListSelector, state, { expanded })
-
-const reduceSetByStoreStaredInventoryExpanded = (
-    state: InventoryState,
-    expanded: boolean
-): InventoryState => _partialSetState(_staredListSelector, state, { expanded })
-
 const _applyByStoreItemsChange = (
     items: Array<InventoryTree<ItemData>>,
     id: string,
@@ -919,7 +909,6 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
 export {
     initialListByStore,
     loadInventoryByStore,
-    reduceSetByStoreInventoryExpanded,
     reduceSetByStoreItemExpanded,
     reduceSetByStoreAllItemsExpanded,
     reduceSetByStoreInventoryFilter,
@@ -928,7 +917,6 @@ export {
     reduceCancelByStoreItemNameEditing,
     reduceSetByStoreItemName,
     reduceSetByStoreItemStared,
-    reduceSetByStoreStaredInventoryExpanded,
     reduceSetByStoreStaredItemExpanded,
     reduceSetByStoreMaterialItemExpanded,
     reduceSetByStoreStaredAllItemsExpanded,

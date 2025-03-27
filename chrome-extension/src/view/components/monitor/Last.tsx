@@ -10,6 +10,7 @@ import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ImgButton from '../common/ImgButton'
+import ExpandableSection from '../common/ExpandableSection2'
 
 function getDeltaClass(delta: number) {
     if (Math.abs(delta) < 0.005)
@@ -54,8 +55,7 @@ const Last = () => {
 
     if (show) {
         return (
-            <section>
-                <h1>Last</h1>
+            <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
                 <p>
                     <ExpandablePlusButton
                         expanded={expanded}
@@ -72,7 +72,7 @@ const Last = () => {
                     }
                     { diff !== null && craft.activeSession === undefined &&
                         <ImgButton
-                            title='Set as Last'
+                            title='Set as Session Start'
                             src='img/tick.png'
                             className='img-delta-zero'
                             dispatch={() => setLast} />
@@ -92,7 +92,7 @@ const Last = () => {
                         peds={peds}
                         config={config} />
                 }
-            </section>
+            </ExpandableSection>
         )
     } else {
         return <></>

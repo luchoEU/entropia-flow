@@ -6,14 +6,9 @@ import { InventoryState } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
-const SET_AUCTION_EXPANDED = "[inv] set auction expanded"
-const SET_AVAILABLE_EXPANDED = "[inv] set available expanded"
-const SET_HIDDEN_EXPANDED = "[inv] set hidden expanded"
 const SET_HIDDEN_FILTER = "[inv] set hidden filter"
-const SET_BLUEPRINTS_EXPANDED = "[inv] set blueprints expanded"
 const SET_BLUEPRINTS_FILTER = "[inv] set blueprints filter"
 const SORT_OWNED_BLUEPRINTS_BY = "[inv] sort owned blueprints by"
-const SET_BY_STORE_EXPANDED = "[inv] set by store expanded"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
 const SET_BY_STORE_ALL_ITEMS_EXPANDED = "[inv] set by store all items expanded"
 const SET_BY_STORE_FILTER = "[inv] set by store filter"
@@ -22,7 +17,6 @@ const CONFIRM_BY_STORE_ITEM_NAME_EDITING = "[inv] confirm by store item name edi
 const CANCEL_BY_STORE_ITEM_NAME_EDITING = "[inv] cancel by store item name editing"
 const SET_BY_STORE_ITEM_NAME = "[inv] set by store item name"
 const SET_BY_STORE_ITEM_STARED = "[inv] set by store item stared"
-const SET_BY_STORE_STARED_EXPANDED = "[inv] set by store stared expanded"
 const SET_BY_STORE_STARED_ITEM_EXPANDED = "[inv] set by store stared item expanded"
 const SET_BY_STORE_MATERIAL_ITEM_EXPANDED = "[inv] set by store material item expanded"
 const SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED = "[inv] set by store stared all items expanded"
@@ -65,34 +59,6 @@ const setCurrentInventory = (inventory: Inventory) => ({
     type: SET_CURRENT_INVENTORY,
     payload: {
         inventory
-    }
-})
-
-const setAuctionInventoryExpanded = (expanded: boolean) => ({
-    type: SET_AUCTION_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setAvailableInventoryExpanded = (expanded: boolean) => ({
-    type: SET_AVAILABLE_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setHiddenInventoryExpanded = (expanded: boolean) => ({
-    type: SET_HIDDEN_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setByStoreInventoryExpanded = (expanded: boolean) => ({
-    type: SET_BY_STORE_EXPANDED,
-    payload: {
-        expanded
     }
 })
 
@@ -145,13 +111,6 @@ const setByStoreItemStared = (id: string, stared: boolean) => ({
     payload: {
         id,
         stared
-    }
-})
-
-const setByStoreStaredInventoryExpanded = (expanded: boolean) => ({
-    type: SET_BY_STORE_STARED_EXPANDED,
-    payload: {
-        expanded
     }
 })
 
@@ -240,13 +199,6 @@ const setByStoreStaredInventoryFilter = (filter: string) => ({
     type: SET_BY_STORE_STARED_FILTER,
     payload: {
         filter
-    }
-})
-
-const setOwnedBlueprintsExpanded = (expanded: boolean) => ({
-    type: SET_BLUEPRINTS_EXPANDED,
-    payload: {
-        expanded
     }
 })
 
@@ -409,14 +361,9 @@ const sortTradeOtherBlueprintsBy = (chainIndex: number) => (part: number) => ({
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
-    SET_AUCTION_EXPANDED,
-    SET_AVAILABLE_EXPANDED,
-    SET_HIDDEN_EXPANDED,
     SET_HIDDEN_FILTER,
-    SET_BLUEPRINTS_EXPANDED,
     SET_BLUEPRINTS_FILTER,
     SORT_OWNED_BLUEPRINTS_BY,
-    SET_BY_STORE_EXPANDED,
     SET_BY_STORE_ITEM_EXPANDED,
     SET_BY_STORE_ALL_ITEMS_EXPANDED,
     SET_BY_STORE_FILTER,
@@ -425,7 +372,6 @@ export {
     CANCEL_BY_STORE_ITEM_NAME_EDITING,
     SET_BY_STORE_ITEM_NAME,
     SET_BY_STORE_ITEM_STARED,
-    SET_BY_STORE_STARED_EXPANDED,
     SET_BY_STORE_STARED_ITEM_EXPANDED,
     SET_BY_STORE_MATERIAL_ITEM_EXPANDED,
     SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED,
@@ -458,14 +404,9 @@ export {
     REMOVE_AVAILABLE,
     loadInventoryState,
     setCurrentInventory,
-    setAuctionInventoryExpanded,
-    setAvailableInventoryExpanded,
-    setHiddenInventoryExpanded,
     setHiddenInventoryFilter,
-    setOwnedBlueprintsExpanded,
     setOwnedBlueprintsFilter,
     sortOwnedBlueprintsBy,
-    setByStoreInventoryExpanded,
     setByStoreItemExpanded,
     setByStoreMaterialItemExpanded,
     setByStoreAllItemsExpanded,
@@ -475,7 +416,6 @@ export {
     cancelByStoreItemNameEditing,
     setByStoreItemName,
     setByStoreItemStared,
-    setByStoreStaredInventoryExpanded,
     setByStoreStaredItemExpanded,
     setByStoreStaredAllItemsExpanded,
     setByStoreStaredInventoryFilter,

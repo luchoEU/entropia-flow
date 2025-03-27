@@ -2,11 +2,8 @@ import { BudgetState, BudgetMaterialsMap, BudgetItem } from "../state/budget"
 
 const SET_BUDGET_STATE = '[budget] set state'
 const SET_BUDGET_FROM_SHEET = '[budget] set from sheet'
-const SET_BUDGET_MATERIAL_LIST_EXPANDED = '[budget] set material list expanded'
 const SET_BUDGET_MATERIAL_EXPANDED = '[budget] set material expanded'
 const SET_BUDGET_STAGE = '[budget] set stage'
-const SET_BUDGET_LIST_EXPANDED = '[budget] set list expanded'
-const SET_BUDGET_DISABLED_EXPANDED = '[budget] set disabled expanded'
 const ENABLE_BUDGET_ITEM = '[budget] enable item'
 const DISABLE_BUDGET_ITEM = '[budget] disable item'
 const ENABLE_BUDGET_MATERIAL = '[budget] enable material'
@@ -32,13 +29,6 @@ const setBudgetFromSheet = (map: BudgetMaterialsMap, items: BudgetItem[], loadPe
     }
 })
 
-const setBudgetMaterialListExpanded = (expanded: boolean) => ({
-    type: SET_BUDGET_MATERIAL_LIST_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
 const setBudgetMaterialExpanded = (material: string) => (expanded: boolean) => ({
     type: SET_BUDGET_MATERIAL_EXPANDED,
     payload: {
@@ -51,20 +41,6 @@ const setBudgetStage = (stage: number) => ({
     type: SET_BUDGET_STAGE,
     payload: {
         stage
-    }
-})
-
-const setBudgetListExpanded = (expanded: boolean) => ({
-    type: SET_BUDGET_LIST_EXPANDED,
-    payload: {
-        expanded
-    }
-})
-
-const setBudgetDisabledExpanded = (expanded: boolean) => ({
-    type: SET_BUDGET_DISABLED_EXPANDED,
-    payload: {
-        expanded
     }
 })
 
@@ -123,11 +99,8 @@ const processBudgetMaterialSelection = () => ({
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
-    SET_BUDGET_MATERIAL_LIST_EXPANDED,
     SET_BUDGET_MATERIAL_EXPANDED,
     SET_BUDGET_STAGE,
-    SET_BUDGET_LIST_EXPANDED,
-    SET_BUDGET_DISABLED_EXPANDED,
     ENABLE_BUDGET_ITEM,
     DISABLE_BUDGET_ITEM,
     ENABLE_BUDGET_MATERIAL,
@@ -138,11 +111,8 @@ export {
     PROCESS_BUDGET_MATERIAL_SELECTION,
     setBudgetState,
     setBudgetFromSheet,
-    setBudgetMaterialListExpanded,
     setBudgetMaterialExpanded,
     setBudgetStage,
-    setBudgetListExpanded,
-    setBudgetDisabledExpanded,
     enableBudgetItem,
     disableBudgetItem,
     enableBudgetMaterial,

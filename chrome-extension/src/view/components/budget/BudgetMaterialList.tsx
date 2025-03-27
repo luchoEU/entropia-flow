@@ -1,9 +1,9 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
 import { BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
-import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded, setBudgetMaterialListExpanded } from '../../application/actions/budget'
+import { addBudgetMaterialSelection, disableBudgetMaterial, enableBudgetMaterial, processBudgetMaterialSelection, removeBudgetMaterialSelection, setBudgetMaterialExpanded } from '../../application/actions/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP } from '../../application/helpers/budget'
 import ImgButton from '../common/ImgButton'
@@ -42,7 +42,7 @@ function BudgetMaterialList() {
     const dispatch = useDispatch()
 
     return (
-        <ExpandableSection title='Budget Materials' expanded={s.materials.expanded} setExpanded={setBudgetMaterialListExpanded}>
+        <ExpandableSection selector='BudgetMaterialList' title='Budget Materials' subtitle='Materials with budget'>
             { Object.keys(m).sort().map(k =>
                 <ExpandableMaterial key={k} name={k} material={m[k]} setExpanded={setBudgetMaterialExpanded(k)}>
                     <table className='table-diff'>

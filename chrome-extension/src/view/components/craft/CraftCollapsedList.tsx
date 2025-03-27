@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { reloadBlueprint, setBlueprintActivePage, setBlueprintStared, setStaredBlueprintsExpanded, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { reloadBlueprint, setBlueprintActivePage, setBlueprintStared, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
@@ -92,11 +92,12 @@ function CraftCollapsedList() {
 
     return <>
         <SortableTableSection
+            selector='CraftCollapsedList'
             title='Favorite Blueprints'
+            subtitle='Your favorite blueprints, for easy access'
             expanded={s.stared.expanded}
             filter={s.stared.filter}
             stats={{ count: s.c.filteredStaredBlueprints.length, itemTypeName: 'blueprint' }}
-            setExpanded={setStaredBlueprintsExpanded}
             setFilter={setStaredBlueprintsFilter}
             table={{
                 allItems: blueprints,

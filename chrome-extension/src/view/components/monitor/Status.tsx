@@ -1,7 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Status } from '../../../common/state'
-import { setHistoryExpanded } from '../../application/actions/history';
 import { refresh, timerOff, timerOn } from '../../application/actions/messages';
 import { getHistory } from '../../application/selectors/history';
 import { getStatus } from '../../application/selectors/status';
@@ -9,6 +8,7 @@ import { HistoryState } from '../../application/state/history';
 import { STRING_PLEASE_LOG_IN } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
 import ExpandableSection from '../common/ExpandableSection2';
+import { setExpanded } from '../../application/actions/expandable';
 
 const MY_ITEMS_URL = 'https://account.entropiauniverse.com/account/my-account/my-items/'
 
@@ -18,7 +18,7 @@ const Status = () => {
     const { class: className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
 
     return (
-        <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items'>
+        <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items' subtitle='Status of connection' actionRequired={message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined}>
             { showTimer &&
                 <ImgButton
                     title='Refresh'
@@ -35,7 +35,7 @@ const Status = () => {
                     title={history.hiddenError}
                     src='img/error.png'
                     className='img-refresh'
-                    dispatch={() => setHistoryExpanded(true)} />
+                    dispatch={() => setExpanded('MonitorStatus')(true)} />
             }
             <span className={className}>
                 {message === STRING_PLEASE_LOG_IN ?

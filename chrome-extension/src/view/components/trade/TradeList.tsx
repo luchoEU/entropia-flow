@@ -2,7 +2,7 @@ import React from 'react'
 import { ItemData } from '../../../common/state'
 import { NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryList } from '../../application/state/inventory'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import SortableTable from '../common/SortableTable'
 import ImgButton from '../common/ImgButton'
 import { addAvailable, removeAvailable } from '../../application/actions/inventory'
@@ -35,17 +35,18 @@ const ItemRow = (p: {
 }
 
 const TradeList = (p: {
+    selector: string,
     title: string,
+    subtitle: string,
     list: InventoryList<ItemData>,
-    setExpanded: (expanded: boolean) => any,
     isFavorite: (name: string) => boolean,
     classMap: { [k: string]: string },
     sort: (part: number) => any
 }) => {
-    let { title, list, setExpanded } = p
+    let { selector, title, subtitle, list } = p
     return (
         <>
-            <ExpandableSection title={title} expanded={list.expanded} setExpanded={setExpanded}>
+            <ExpandableSection selector={selector} title={title} subtitle={subtitle}>
                 <p>Total value {list.stats.ped} PED for {list.stats.count} items</p>
                 <SortableTable
                     sortType={list.sortType}

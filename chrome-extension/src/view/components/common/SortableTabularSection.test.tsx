@@ -11,7 +11,6 @@ import { gameLogTabularDefinitions } from "../../application/tabular/log";
 import { GAME_LOG_TABULAR_GLOBAL } from "../../application/state/log";
 
 const _toState = (list: any[]): TabularStateData => ({
-    expanded: true,
     filter: '',
     items: {
         all: list,
@@ -29,6 +28,7 @@ describe.skip("SortableTabularSection", () => {
         setTabularDefinitions({
             t: {
                 title: 'Test',
+                subtitle: 'Test',
                 columns: ['Test'],
                 getRow: (g) => [g.toString()]
             }
@@ -38,7 +38,6 @@ describe.skip("SortableTabularSection", () => {
     it("renders a value", () => {
         const tabular: TabularState = {
             t: {
-                expanded: true,
                 filter: '',
                 items: {
                     all: [1, 2, 3],

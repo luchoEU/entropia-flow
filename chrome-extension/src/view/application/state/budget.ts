@@ -8,14 +8,12 @@ interface BudgetState {
 }
 
 interface BudgetDisabledItems {
-    expanded: boolean
     names: Array<string>
 }
 
 type BudgetDisabledMaterials = { [name: string] : Array<string> }
 
 interface BudgetMaterials {
-    expanded: boolean
     selectedCount: number
     map: BudgetMaterialsMap
 }
@@ -49,7 +47,6 @@ interface BudgetMaterial {
 }
 
 interface BudgetList {
-    expanded: boolean
     items: Array<BudgetItem>
 }
 

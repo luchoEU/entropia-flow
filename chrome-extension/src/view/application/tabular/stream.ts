@@ -61,6 +61,7 @@ const _field = (g: StreamComputedVariable, selector: string, maxWidth: number, f
 const streamTabularDefinitions: TabularDefinitions = {
     [STREAM_TABULAR_IMAGES]: {
         title: 'Images',
+        subtitle: 'Available images ot use on template',
         columns: ['Source', 'Name', 'Image', 'Description'],
         getRow: (g: StreamComputedVariable): RowValue[] => {
             const img: RowValue = { img: g.value as string, title: `${g.name} image`, show: true, maxWidth: 100, style: { height: '90%', objectFit: 'contain', flex: 1 } }
@@ -77,6 +78,7 @@ const streamTabularDefinitions: TabularDefinitions = {
     },
     [STREAM_TABULAR_VARIABLES]: {
         title: 'Variables',
+        subtitle: 'Available variables ot use on template',
         columns: ['Source', 'Name', 'Value', 'Computed', 'Description'],
         getRow: (g: StreamComputedVariable) => [
             g.source,
@@ -89,6 +91,7 @@ const streamTabularDefinitions: TabularDefinitions = {
     },
     [STREAM_TABULAR_CHOOSER]: {
         title: 'Layouts',
+        subtitle: 'Available layouts',
         columns: [ 'Name', 'Preview' ],
         getRow: (g: StreamChooserLine, i: number) => [
             [ g.name,

@@ -1,7 +1,7 @@
 import { AboutState } from "../state/about"
 
 const SET_STATE = '[about] load state'
-const SET_EXPANDED = '[abouy] set expanded'
+const SET_EXPANDED = '[about] set expanded'
 
 const setState = (state: AboutState) => ({
     type: SET_STATE,

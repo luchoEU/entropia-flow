@@ -1,10 +1,10 @@
 import React from 'react'
 import { ConnectionState } from '../../application/state/connection';
 import { getConnection } from '../../application/selectors/connection';
-import { setConnectionClientExpanded, webSocketConnectionChanged, webSocketRetry } from '../../application/actions/connection';
+import { webSocketConnectionChanged, webSocketRetry } from '../../application/actions/connection';
 import ImgButton from '../common/ImgButton';
 import { useSelector } from 'react-redux';
-import ExpandableSection from '../common/ExpandableSection';
+import ExpandableSection from '../common/ExpandableSection2';
 import { Field } from '../common/Field';
 
 function EntropiaFlowClient() {
@@ -12,7 +12,7 @@ function EntropiaFlowClient() {
     
     return (
         <>
-            <ExpandableSection title='Entropia Flow Client' expanded={s.client.expanded} setExpanded={setConnectionClientExpanded}>
+            <ExpandableSection selector='ClientSettings' title='Entropia Flow Client' subtitle='Status of the connection with Client' actionRequired={!s.client.status.startsWith('connected') ? 'Disconnected' : undefined}>
                 <div className="form-settings">
                     <Field
                         label='WebSocket'

@@ -1,8 +1,8 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { setBudgetDisabledExpanded, enableBudgetItem } from '../../application/actions/budget'
+import { enableBudgetItem } from '../../application/actions/budget'
 import { BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 
@@ -10,7 +10,7 @@ function BudgetDisabledList() {
     const s: BudgetState = useSelector(getBudget)
 
     return (
-        <ExpandableSection title='Disabled' expanded={s.disabledItems.expanded} setExpanded={setBudgetDisabledExpanded}>
+        <ExpandableSection selector='BudgetDisabledList' title='Disabled' subtitle='Budget material disable items'>
             <table className='table-diff'>
                 <thead>
                     <tr>

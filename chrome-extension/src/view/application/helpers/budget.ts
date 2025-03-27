@@ -6,17 +6,14 @@ const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
     loadPercentage: 0,
     disabledItems: {
-        expanded: false,
         names: []
     },
     disabledMaterials: { },
     materials: {
-        expanded: false,
         selectedCount: 0,
         map: { }
     },
     list: {
-        expanded: true,
         items: []
     }
 }
@@ -86,43 +83,19 @@ const cleanForSave = (state: BudgetState): BudgetState => ({
     }
 })
 
-const setBudgetMaterialListExpanded = (state: BudgetState, expanded: boolean) => ({
-    ...state,
-    materials: {
-        ...state.materials,
-        expanded
-    }
-})
-
 const setBudgetMaterialExpanded = (state: BudgetState, material: string, expanded: boolean): BudgetState => {
     const cState: BudgetState = JSON.parse(JSON.stringify(state))
     cState.materials.map[material].expanded = expanded
     return cState
 }
 
-const setBudgetStage = (state: BudgetState, stage: number) => ({
+const setBudgetStage = (state: BudgetState, stage: number): BudgetState => ({
     ...state,
     stage,
     loadPercentage: stage === STAGE_INITIALIZING ? 0 : state.loadPercentage
 })
 
-const setBudgetListExpanded = (state: BudgetState, expanded: boolean) => ({
-    ...state,
-    list: {
-        ...state.list,
-        expanded
-    }
-})
-
-const setBudgetDisabledExpanded = (state: BudgetState, expanded: boolean) => ({
-    ...state,
-    disabledItems: {
-        ...state.disabledItems,
-        expanded
-    }
-})
-
-const reduceEnableBudgetItem = (state: BudgetState, name: string) => ({
+const reduceEnableBudgetItem = (state: BudgetState, name: string): BudgetState => ({
     ...state,
     disabledItems: {
         ...state.disabledItems,
@@ -163,7 +136,7 @@ function removeMaterialsByItemName(
     return updatedMap
 }
 
-const reduceDisableBudgetItem = (state: BudgetState, name: string) => ({
+const reduceDisableBudgetItem = (state: BudgetState, name: string): BudgetState => ({
     ...state,
     disabledItems: {
         ...state.disabledItems,
@@ -264,11 +237,8 @@ export {
     reduceSetBudgetFromSheet,
     setState,
     cleanForSave,
-    setBudgetMaterialListExpanded,
     setBudgetMaterialExpanded,
     setBudgetStage,
-    setBudgetListExpanded,
-    setBudgetDisabledExpanded,
     reduceEnableBudgetItem,
     reduceDisableBudgetItem,
     reduceEnableBudgetMaterial,

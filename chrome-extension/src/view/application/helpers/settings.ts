@@ -2,7 +2,6 @@ import { SettingsState } from "../state/settings";
 
 const initialState: SettingsState = {
     sheet: {
-        expanded: true,
         documentId: undefined,
         ttServiceDocumentId: undefined,
         googleServiceAccountEmail: undefined,
@@ -11,14 +10,6 @@ const initialState: SettingsState = {
 }
 
 const setState = (state: SettingsState, inState: SettingsState) => inState
-
-const setSheetExpanded = (state: SettingsState, expanded: boolean) => ({
-    ...state,
-    sheet: {
-        ...state.sheet,
-        expanded
-    }
-})
 
 const setSheetDocumentId = (state: SettingsState, documentId: string) => ({
     ...state,
@@ -55,7 +46,6 @@ const setSheetGooglePrivateKey = (state: SettingsState, googlePrivateKey: string
 export {
     initialState,
     setState,
-    setSheetExpanded,
     setSheetDocumentId,
     setSheetTTServiceDocumentId,
     setSheetGoogleServiceAccountEmail,

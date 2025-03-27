@@ -15,15 +15,15 @@ const MaterialCalculator = ({ name }: { name: string }) => {
                 <tbody>
                     <tr>
                         <td>Quantity</td>
-                        <td><input type='text' value={material.calc?.quantity} onChange={(e) => dispatch(setMaterialCalculatorQuantity(name, e.target.value))} /></td>
+                        <td><input type='text' value={material.calc?.quantity ?? ''} onChange={(e) => dispatch(setMaterialCalculatorQuantity(name, e.target.value))} /></td>
                     </tr>
                     <tr>
                         <td>Total</td>
-                        <td><input type='text' value={material.calc?.total} onChange={(e) => dispatch(setMaterialCalculatorTotal(name, e.target.value))} /></td>
+                        <td><input type='text' value={material.calc?.total ?? ''} onChange={(e) => dispatch(setMaterialCalculatorTotal(name, e.target.value))} /></td>
                     </tr>
                     <tr>
                         <td>Total+MU</td>
-                        <td><input type='text' value={material.calc?.totalMU} onChange={(e) => dispatch(setMaterialCalculatorTotalMU(name, e.target.value))} /></td>
+                        <td><input type='text' value={material.calc?.totalMU ?? ''} onChange={(e) => dispatch(setMaterialCalculatorTotalMU(name, e.target.value))} /></td>
                     </tr>
                 </tbody>
             </table>

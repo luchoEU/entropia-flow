@@ -39,14 +39,14 @@ const InventoryItem = (p: { item: ViewInventory }) => {
             </td>
             <td>
                 { item.isLast ?
-                    <span className='label-up'>Last</span> :
+                    <span className='label-up'>Session Start</span> :
                     (item.canBeLast &&
-                        <span className='img-up'
+                        <span className='img-up' title='Set this moment as the start of the session'
                             onClick={(e) => {
                                 e.stopPropagation()
                                 dispatch(setAsLast(item.key))
                             }}>
-                            <img src='img/up.png' />Last
+                            <img src='img/up.png' />Session Start
                         </span>)
                 }
             </td>

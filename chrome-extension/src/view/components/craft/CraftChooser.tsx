@@ -1,12 +1,12 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft'
-import { setOwnedBlueprintsExpanded, setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
+import { setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { getCraft } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
 import { CraftState } from '../../application/state/craft'
 import { InventoryState } from '../../application/state/inventory'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import SearchInput from '../common/SearchInput'
 import SortableTable from '../common/SortableTable'
 import { NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
@@ -25,7 +25,7 @@ function CraftChooser() {
 
     return (
         <>
-            <ExpandableSection title='Owned Blueprints' expanded={inv.blueprints.originalList.expanded} setExpanded={setOwnedBlueprintsExpanded}>
+            <ExpandableSection selector='CraftChooser.OwnedBlueprints' title='Owned Blueprints' subtitle='List of the Blueprints you own'>
                 <div className='search-container'>
                     <p>Listing {unique.length} blueprint{unique.length == 1 ? '' : 's'}</p>
                     <p className='search-input-container'><SearchInput filter={inv.blueprints.filter} setFilter={setOwnedBlueprintsFilter} /></p>

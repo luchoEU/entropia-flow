@@ -5,7 +5,6 @@ import * as Sort from "./inventory.sort"
 import { HistoryState, ViewInventory } from "../state/history";
 
 const initialState: HistoryState = {
-    expanded: false,
     hiddenError: undefined,
     list: [],
     intervalId: undefined
@@ -123,25 +122,16 @@ function setHistoryList(state: HistoryState, list: Array<Inventory>, last: numbe
     }
     return {
         ...state,
-        expanded: state.expanded,
-        hiddenError: getHiddenError(state.expanded, viewList),
+        hiddenError: getHiddenError(viewList),
         list: viewList
     }
 }
 
-function getHiddenError(expanded: boolean, list: Array<ViewInventory>): string {
-    if (!expanded && list.length > 0 && !list[0].canBeLast)
+function getHiddenError(list: Array<ViewInventory>): string {
+    if (list.length > 0 && !list[0].canBeLast)
         return list[0].text
     else
         return undefined
-}
-
-function setHistoryExpanded(state: HistoryState, expanded: boolean): HistoryState {
-    return {
-        ...state,
-        expanded,
-        hiddenError: getHiddenError(expanded, state.list)
-    }
 }
 
 function setItemExpanded(state: HistoryState, key: number, expanded: boolean): HistoryState {
@@ -183,7 +173,6 @@ export {
     getLatestFromInventoryList,
     getLatestFromHistory,
     setHistoryList,
-    setHistoryExpanded,
     setItemExpanded,
     setHistoryIntervalId,
     sortBy

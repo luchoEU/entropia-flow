@@ -4,7 +4,7 @@ import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
 import ImgButton from './ImgButton';
 import SearchInput from './SearchInput';
-import ExpandableSection from './ExpandableSection';
+import ExpandableSection from './ExpandableSection2';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
@@ -293,18 +293,19 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
 // Deprecated control
 // TODO: migrate to SortableTabularSection
 const SortableTableSection = <TItem extends any>(p: {
+    selector: string,
     title: string,
+    subtitle: string,
     expanded: boolean,
     filter: string,
     stats: { count: number, ped?: string, itemTypeName?: string },
     searchRowAfterTotalColumnData?: ItemRowColumnData,
     searchRowAfterSearchColumnData?: ItemRowColumnData,
-    setExpanded: (expanded: boolean) => any,
     setFilter: (v: string) => any,
     table: TableParameters<TItem>
 }) => {
     const stats = p.stats
-    return <ExpandableSection title={p.title} expanded={p.expanded} setExpanded={p.setExpanded}>
+    return <ExpandableSection selector={`TableSection.${p.selector}`} title={p.title} subtitle={p.subtitle}>
         <div className='search-container'>
             <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
                 <span> {stats.count} </span>

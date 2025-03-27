@@ -6,14 +6,6 @@ const initialState: TabularState = { }
 
 const reduceSetTabularState = (state: TabularState, inState: TabularState): TabularState => inState
 
-const reduceSetTabularExpanded = (state: TabularState, selector: string, expanded: boolean): TabularState => ({
-    ...state,
-    [selector]: {
-        ...state[selector],
-        expanded
-    }
-})
-
 const reduceSetTabularFilter = (state: TabularState, selector: string, filter: string): TabularState => ({
     ...state,
     [selector]: _applyFilterAndSort(selector, {
@@ -147,7 +139,6 @@ export {
     getTabularDefinition,
     setTabularDefinitions,
     reduceSetTabularState,
-    reduceSetTabularExpanded,
     reduceSetTabularFilter,
     reduceSetTabularData,
     reduceSortTabularBy,

@@ -1,5 +1,4 @@
-import { setHistoryExpanded, setHistoryIntervalId, SET_HISTORY_EXPANDED, SET_HISTORY_LIST } from "../actions/history"
-import { PAGE_LOADED } from "../actions/ui"
+import { setHistoryIntervalId, SET_HISTORY_LIST } from "../actions/history"
 import { getHistory } from "../selectors/history"
 import { getStatus } from "../selectors/status"
 import { HistoryState } from "../state/history"
@@ -10,12 +9,6 @@ const NOTIFICATION_TIMES = 3
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
-            const expanded = await api.storage.loadHistoryExpanded()
-            if (expanded)
-                dispatch(setHistoryExpanded(expanded))
-            break
-        }
         case SET_HISTORY_LIST: {
             const state: HistoryState = getHistory(getState())
 
@@ -40,11 +33,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             )
             dispatch(setHistoryIntervalId(intervalId))
 
-            break
-        }
-        case SET_HISTORY_EXPANDED: {
-            const state: HistoryState = getHistory(getState())
-            await api.storage.saveHistoryExpanded(state.expanded)
             break
         }
     }

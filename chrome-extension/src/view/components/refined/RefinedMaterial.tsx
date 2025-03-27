@@ -1,7 +1,6 @@
 import React from 'react'
-import { setRefinedExpanded } from '../../application/actions/refined'
 import { RefinedOneState } from '../../application/state/refined'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import RefinedBuy from './RefinedBuy'
 import RefinedCalculator from './RefinedCalculator'
 import RefinedOrder from './RefinedOrder'
@@ -15,7 +14,7 @@ const RefinedMaterial = (p: {
 
     return (
         <>
-            <ExpandableSection title={material.name} expanded={material.expanded} setExpanded={setRefinedExpanded(material.name)} >
+            <ExpandableSection selector={`RefinedMaterial.${material.name}`} title={material.name} subtitle={`Tools for ${material.name} material`}>
                 <RefinedCalculator material={material} />
                 <RefinedBuy material={material} />
                 <RefinedRefine material={material} />

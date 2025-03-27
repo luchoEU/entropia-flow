@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { MODE_SHOW_SUBTITLES, setModeState } from "../actions/mode"
+import { MODE_SHOW_SUBTITLES, MODE_SHOW_VISIBLE_TOGGLE, setModeState } from "../actions/mode"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/refine"
 import { getMode } from "../selectors/mode"
@@ -14,7 +14,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setModeState(mergeDeep(initialState, state)))
             break
         }
-        case MODE_SHOW_SUBTITLES: {
+        case MODE_SHOW_SUBTITLES:
+        case MODE_SHOW_VISIBLE_TOGGLE: {
             const state: ModeState = getMode(getState())
             await api.storage.saveMode(state)
             break

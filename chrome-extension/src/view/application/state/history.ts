@@ -28,7 +28,6 @@ interface ViewInventory {
 }
 
 interface HistoryState {
-    expanded: boolean
     hiddenError: string
     list: Array<ViewInventory>
     intervalId: NodeJS.Timeout

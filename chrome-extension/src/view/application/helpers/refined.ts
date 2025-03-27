@@ -159,9 +159,6 @@ const changeCalculator = (state: RefinedState, material: string, change: any, m:
     return inState
 }
 
-const setRefinedExpanded = (state: RefinedState, material: string, expanded: boolean): RefinedState =>
-    changeMaterial(state, material, { expanded })
-
 const refinedValueChanged = (state: RefinedState, material: string, value: string, m: MaterialsMap): RefinedState =>
     changeCalculator(state, material, { value }, m)
 
@@ -196,7 +193,6 @@ function budgetGetCreateParams(state: any, material: string): any[] {
 export {
     initialState,
     setState,
-    setRefinedExpanded,
     refinedValueChanged,
     refinedMarkupChanged,
     refinedMaterialChanged,

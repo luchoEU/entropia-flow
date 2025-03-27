@@ -5,7 +5,6 @@ import { SortSecuence } from "./sort"
 type TabularState = { [selector: string]: TabularStateData }
 
 interface TabularStateData {
-    expanded: boolean,
     filter: string,
     sortSecuence?: SortSecuence,
     items?: { // don't serialize
@@ -18,6 +17,7 @@ interface TabularStateData {
 
 interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = any, TData = any> {
     title: string,
+    subtitle: string,
     columns: string[],
     getRow: (item: TItem, rowIndex: number) => RowValue[],
     getRowForSort?: (item: TItem, rowIndex: number) => TValueForSort[], // if not defined it uses getRow

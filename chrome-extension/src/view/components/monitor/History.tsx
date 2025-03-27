@@ -1,9 +1,8 @@
 import React from 'react'
 import { useSelector } from 'react-redux';
-import { setHistoryExpanded } from '../../application/actions/history';
 import { getHistory } from '../../application/selectors/history'
 import { HistoryState, ViewInventory } from '../../application/state/history'
-import ExpandableSection from '../common/ExpandableSection';
+import ExpandableSection from '../common/ExpandableSection2';
 import InventoryItem from './InventoryItem'
 
 const History = () => {
@@ -11,10 +10,7 @@ const History = () => {
 
     if (history.list.length > 0) {
         return (
-            <ExpandableSection
-                title='History'
-                expanded={history.expanded}
-                setExpanded={setHistoryExpanded}>
+            <ExpandableSection selector='History' title='History' subtitle='History of changes to your items'>
                 <table className='table-history'>
                     <tbody>
                     {

@@ -1,7 +1,7 @@
 import { ItemData } from "../../../common/state"
 import { InventoryState } from "../state/inventory"
 import { initialState, reduceLoadInventoryState, reduceSetCurrentInventory } from "./inventory"
-import { cleanForSaveByStore, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryExpanded, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "./inventory.byStore"
+import { cleanForSaveByStore, reduceCancelByStoreStaredItemNameEditing, reduceConfirmByStoreItemNameEditing, reduceConfirmByStoreStaredItemNameEditing, reduceSetByStoreItemExpanded, reduceSetByStoreItemName, reduceSetByStoreItemStared, reduceSetByStoreStaredInventoryFilter, reduceSetByStoreStaredItemExpanded, reduceSetByStoreStaredItemName, reduceSetByStoreStaredItemStared, reduceSortByStoreBy, reduceSortByStoreStaredBy, reduceStartByStoreItemNameEditing, reduceStartByStoreStaredItemNameEditing } from "./inventory.byStore"
 import { SORT_NAME_ASCENDING, SORT_QUANTITY_ASCENDING } from "./inventory.sort"
 
 describe('inventory by store reducers', () => {
@@ -51,17 +51,6 @@ describe('inventory by store reducers', () => {
         state = reduceSortByStoreStaredBy(state, SORT_QUANTITY_ASCENDING)
         reloadStateByStore();
         expect(state.byStore.stared.list.items[0].list.items.map((i) => i.data.q)).toEqual(['1', '2'])
-    })
-
-    test('expand stared inventory', async () => {
-        state = reduceSetByStoreStaredInventoryExpanded(state, false)
-        expect(state.byStore.stared.list.expanded).toBe(false)
-    })
-
-    test('save expand stared inventory', async () => {
-        state = reduceSetByStoreStaredInventoryExpanded(state, false)
-        reloadStateByStore();
-        expect(state.byStore.stared.list.expanded).toBe(false)
     })
 
     test('expand item stared', async () => {

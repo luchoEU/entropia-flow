@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { setExpanded } from '../../application/actions/about'
 import { isExpanded } from '../../application/selectors/about'
 import { FAQ, FEEDBACK, QUESTION, SOURCECODE, TUTORIALS } from '../../application/state/about'
-import ExpandableSection from '../common/ExpandableSection'
+import ExpandableSection from '../common/ExpandableSection2'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
 const VERSION = '0.4.6'
@@ -58,44 +58,37 @@ const faq = [
     }
 ]
 
-function AboutPage() {
-    const isFeedbackExpanded = useSelector(isExpanded(FEEDBACK))
-    const isTutorialsExpanded = useSelector(isExpanded(TUTORIALS))
-    const isSourceCodeExpanded = useSelector(isExpanded(SOURCECODE))
-    const isFaqExpanded = useSelector(isExpanded(FAQ))
+const AboutPage = () =>
+    <div className='about-page'>
+        <section>
+            <img src='img/flow128.png'
+                className='img-about' />
+            <div className='inline'>
+                <h1>Entropia Flow</h1>
+                <p>A tool to help you in Entropia Universe.</p>
+                <p>Version: {VERSION}</p>
+                <p>Author: Lucho MUCHO Ireton</p>
+            </div>
+        </section>
 
-    return (
-        <div className='about-page'>
-            <section>
-                <img src='img/flow128.png'
-                    className='img-about' />
-                <div className='inline'>
-                    <h1>Entropia Flow</h1>
-                    <p>A tool to help you in Entropia Universe.</p>
-                    <p>Version: {VERSION}</p>
-                    <p>Author: Lucho MUCHO Ireton</p>
-                </div>
-            </section>
-            <ExpandableSection title='Feedback' expanded={isFeedbackExpanded} setExpanded={setExpanded(FEEDBACK)}>
-                <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
-            </ExpandableSection>
+        <ExpandableSection selector='AboutPage.Feedback' title='Feedback' subtitle='Get in touch'>
+            <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
+        </ExpandableSection>
 
-            <ExpandableSection title='Tutorials' expanded={isTutorialsExpanded} setExpanded={setExpanded(TUTORIALS)}>
-                <p>outdated videos, new ones are on the way</p>
-                <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
-                <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
-            </ExpandableSection>
+        <ExpandableSection selector='AboutPage.Tutorials' title='Tutorials' subtitle='How to use Entropia Flow'>
+            <p>outdated videos, new ones are on the way</p>
+            <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
+            <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
+        </ExpandableSection>
 
-            <ExpandableSection title='Source Code' expanded={isSourceCodeExpanded} setExpanded={setExpanded(SOURCECODE)}>
-                <p>The source code is available in <a href='https://github.com/luchoEU/entropia-flow' target="_blank">GitHub</a>, so if you are a fellow programmer you can look around or collaborate.</p>
-            </ExpandableSection>
+        <ExpandableSection selector='AboutPage.SourceCode' title='Source Code' subtitle='View the source code and collaborate in GitHub'>
+            <p>The source code is available in <a href='https://github.com/luchoEU/entropia-flow' target="_blank">GitHub</a>, so if you are a fellow programmer you can look around or collaborate.</p>
+        </ExpandableSection>
 
-            <ExpandableSection title='FAQ' expanded={isFaqExpanded} setExpanded={setExpanded(FAQ)}>
-                { faq.map((q: Question) => <ExpandableQuestion q={q} key={q.id}/>) }
-            </ExpandableSection>
-        </div>
-    )
-}
+        <ExpandableSection selector='AboutPage.Faq' title='FAQ' subtitle='Frequently Asked Questions'>
+            { faq.map((q: Question) => <ExpandableQuestion q={q} key={q.id}/>) }
+        </ExpandableSection>
+    </div>
 
 export default AboutPage
 export {

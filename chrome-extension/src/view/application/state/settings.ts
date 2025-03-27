@@ -3,7 +3,6 @@ interface SettingsState {
 }
 
 interface SheetAccessInfo {
-    expanded: boolean
     documentId: string
     ttServiceDocumentId: string
     googleServiceAccountEmail: string

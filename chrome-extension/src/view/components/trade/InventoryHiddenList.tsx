@@ -1,5 +1,5 @@
 import React from 'react'
-import { setHiddenInventoryExpanded, setHiddenInventoryFilter, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
+import { setHiddenInventoryFilter, showAll, showByContainer, showByName, showByValue, sortHiddenBy } from '../../application/actions/inventory'
 import { CONTAINER, NAME, QUANTITY, sortColumnDefinition, VALUE } from '../../application/helpers/inventory.sort'
 import { InventoryListWithFilter, ItemHidden } from '../../application/state/inventory'
 import SortableTableSection, { ItemRowColumnData, TableData } from '../common/SortableTableSection'
@@ -68,11 +68,12 @@ const InventoryHiddenList = () => {
 
     return (
         <SortableTableSection
+            selector='InventoryHiddenList'
             title='Hidden List'
+            subtitle='List of your inventory hidden items'
             expanded={inv.originalList.expanded}
             filter={inv.filter}
             stats={inv.showList.stats}
-            setExpanded={setHiddenInventoryExpanded}
             setFilter={setHiddenInventoryFilter}
             searchRowAfterTotalColumnData={searchRowAfterTotalColumnData}
             table={{

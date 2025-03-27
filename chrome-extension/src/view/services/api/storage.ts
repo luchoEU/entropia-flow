@@ -5,7 +5,6 @@ import {
     STORAGE_VIEW_BLACKLIST,
     STORAGE_VIEW_PERMANENT_BLACKLIST,
     STORAGE_VIEW_CALCULATOR,
-    STORAGE_VIEW_HISTORY_EXPANDED,
     STORAGE_VIEW_INVENTORY,
     STORAGE_VIEW_MENU,
     STORAGE_VIEW_ORDER,
@@ -197,14 +196,6 @@ async function loadPermanentBlacklist(): Promise<Array<string>> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_PERMANENT_BLACKLIST)
 }
 
-async function saveHistoryExpanded(expanded: boolean) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_HISTORY_EXPANDED, expanded)
-}
-
-async function loadHistoryExpanded(): Promise<boolean> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_HISTORY_EXPANDED)
-}
-
 async function saveStream(state: StreamState) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, state) // TODO: save in SYNC_STORAGE with user images separatetly
 }
@@ -337,8 +328,6 @@ export default {
     loadBlacklist,
     savePermanentBlacklist,
     loadPermanentBlacklist,
-    saveHistoryExpanded,
-    loadHistoryExpanded,
     saveStream,
     loadStream,
     saveInventoryState,

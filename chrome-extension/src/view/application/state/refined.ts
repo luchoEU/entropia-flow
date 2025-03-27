@@ -4,7 +4,6 @@ interface RefinedState {
 
 interface RefinedOneState {
     name: string,
-    expanded: boolean,
     calculator: RefinedCalculatorState,
     refine: RefinedRefine[]
 }

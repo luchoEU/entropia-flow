@@ -3,21 +3,12 @@ import { ConnectionState } from "../state/connection"
 
 const initialState: ConnectionState = {
     client: {
-        expanded: true,
         webSocket: DEFAULT_WEB_SOCKET_URL,
         status: 'initializing'
     }
 }
 
 const reduceSetState = (state: ConnectionState, inState: ConnectionState) => inState
-
-const reduceSetConnectionClientExpanded = (state: ConnectionState, expanded: boolean) => ({
-    ...state,
-    client: {
-        ...state.client,
-        expanded
-    }
-})
 
 const reduceSetConnectionWebSocket = (state: ConnectionState, webSocket: string) => ({
     ...state,
@@ -47,7 +38,6 @@ export {
     initialState,
     cleanForSave,
     reduceSetState,
-    reduceSetConnectionClientExpanded,
     reduceSetConnectionWebSocket,
     reduceSetConnectionStatus
 }

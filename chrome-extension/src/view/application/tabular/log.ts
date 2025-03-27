@@ -3,7 +3,6 @@ import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABU
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { StreamStateVariable, StreamTemporalVariable } from "../state/stream";
 import { emptyTemporalValue, TemporalValue } from "../../../common/state";
-import { StreamRenderObject } from "../../../stream/data";
 import { setTabularFilter } from "../actions/tabular";
 import { filterExact } from "../../../common/filter";
 
@@ -16,6 +15,7 @@ function _separateCamelCase(s: string): string {
 const gameLogTabularDefinitions: TabularDefinitions = {
     [GAME_LOG_TABULAR_LOOT]: {
         title: 'Loot',
+        subtitle: 'List with your looted items',
         columns: ['Name', 'Quantity', 'Value'],
         getRow: (d: GameLogLoot) => [d.name, d.quantity.toString(), d.value.toFixed(2) + ' PED'],
         getRowForSort: (g: GameLogLoot) => [, g.quantity, g.value],
@@ -23,47 +23,55 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     },
     [GAME_LOG_TABULAR_TIER]: {
         title: 'Tier',
+        subtitle: 'List with your tiers reached',
         columns: ['Name', 'Tier'],
         getRow: (d: GameLogTier) => [d.name, d.tier.toFixed(2)],
         getRowForSort: (d: GameLogTier) => [, d.tier],
     },
     [GAME_LOG_TABULAR_SKILL]: {
         title: 'Skill',
+        subtitle: 'List with your skills gained',
         columns: ['Name', 'Value'],
         getRow: (d: GameLogSkill) => [d.name, d.value.toFixed(4)],
         getRowForSort: (d: GameLogSkill) => [, d.value],
     },
     [GAME_LOG_TABULAR_ENHANCER_BROKEN]: {
         title: 'Enhancer Broken',
+        subtitle: 'List with the Enhancers Broken',
         columns: ['Name', 'Quantity'],
         getRow: (d: GameLogEnhancerBroken) => [d.time, d.enhancer, d.item, d.remaining.toString(), d.received.toFixed(2)],
         getRowForSort: (d: GameLogEnhancerBroken) => [,,, d.remaining, d.received],
     },
     [GAME_LOG_TABULAR_GLOBAL]: {
         title: 'Global',
+        subtitle: 'List of all globals',
         columns: ['Time', 'Player', 'Name', 'Type', 'Value', 'Location', 'HOF'],
         getRow: (g: GameLogGlobal) => [g.time, g.player, g.name, g.type, g.value?.toFixed(0), g.location , g.isHoF ? '[HoF]' : ''],
         getRowForSort: (g: GameLogGlobal) => [,,,,g.value ?? 0],
     },
     [GAME_LOG_TABULAR_EVENT]: {
         title: 'Events',
+        subtitle: 'List of other messages',
         columns: ['Time', 'Action', 'Data'],
         getRow: (g: GameLogEvent) => [g.time, { text: _separateCamelCase(g.action), title: g.message }, g.data.toString()],
         getRowForSort: (g: GameLogEvent) => [,_separateCamelCase(g.action)],
     },
     [GAME_LOG_TABULAR_STATISTICS]: {
         title: 'Statistics',
+        subtitle: 'List with counters for your game actions',
         columns: ['Name', 'Total', 'Count'],
         getRow: (g: [string, TemporalValue]) => [_separateCamelCase(g[0]), g[1].total.toFixed(gameLogStatsDecimals[g[0]] ?? 0), g[1].count.toString()],
         getRowForSort: (g: [string, TemporalValue]) => [, g[1]],
     },
     [GAME_LOG_TABULAR_MISSING]: {
         title: 'Missing',
+        subtitle: 'Messages not recognized, please report them',
         columns: ['Time', 'Channel', 'Message'],
         getRow: (g: GameLogLine) => [g.time, g.channel, g.message],
     },
     [GAME_LOG_TABULAR_TRADE]: {
         title: 'Trade',
+        subtitle: 'List of trade related messages on chat',
         columns: ['Time', 'Channel', 'Player', 'Message'],
         getRow: (g: GameLogTrade) => [ g.time.slice(0, -3),
             [ g.channel,
@@ -78,6 +86,7 @@ const gameLogTabularDefinitions: TabularDefinitions = {
     },
     [GAME_LOG_TABULAR_RAW]: {
         title: 'Full log',
+        subtitle: 'Raw log, all the entries',
         columns: ['Serial', 'Time', 'Channel', 'Player', 'Message', 'Data'],
         getRow: (g: GameLogLine) => [g.serial.toString(), g.time, g.channel, g.player, g.message, JSON.stringify(g.data)],
         getRowForSort: (g: GameLogLine) => [g.serial],

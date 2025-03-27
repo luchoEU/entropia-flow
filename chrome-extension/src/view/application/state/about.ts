@@ -1,5 +1,5 @@
 interface AboutState {
-    expanded: string[]
+    expanded: string[] // for questions
 }
 
 const FEEDBACK = 'feedback'

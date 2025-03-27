@@ -77,6 +77,24 @@ nav button {
     background-color: whitesmoke;
 }
 
+.warning-menu {
+    background-color: beige;
+}
+
+.button-menu {
+    margin: 0px 5px;
+}
+
+.img-warning-menu {
+    height: 20px;
+    margin-left: 8px;
+}
+
+.img-visible-section {
+    height: 20px;
+    margin: 0px 3px;
+}
+
 // General
 section {
     background: rgba(0, 0, 0, 0.05);
@@ -776,4 +794,8 @@ input, textarea {
 
 label {
     vertical-align: super;
+}
+
+.subtitle {
+    margin: -10px 0px 10px 0px;
 }

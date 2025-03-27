@@ -1,9 +1,9 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { documentIdSettingChanged, googlePrivateKeyChanged, googleServiceAccountEmailChanged, setSheetSettingExpanded, ttServiceDocumentIdSettingChanged } from '../../application/actions/settings';
+import { documentIdSettingChanged, googlePrivateKeyChanged, googleServiceAccountEmailChanged, ttServiceDocumentIdSettingChanged } from '../../application/actions/settings';
 import { getSettings } from '../../application/selectors/settings';
 import { SettingsState } from '../../application/state/settings';
-import ExpandableSection from '../common/ExpandableSection';
+import ExpandableSection from '../common/ExpandableSection2';
 import { Field, FieldArea } from '../common/Field';
 import { SHOW_SHEET_SETTINGS, SHOW_TT_SERVICE } from '../../../config';
 
@@ -12,7 +12,7 @@ function SheetAccess() {
 
     return (
         <>
-            <ExpandableSection title="Sheet Access" expanded={s.sheet.expanded} setExpanded={setSheetSettingExpanded}>
+            <ExpandableSection selector='SettingsPage.SheetAccess' title="Sheet Access" subtitle='Access to google spreadsheet'>
                 <div className="form-settings">
                     <Field
                         label='Document Identifier'

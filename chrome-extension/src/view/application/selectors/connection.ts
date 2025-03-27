@@ -1,1 +1,3 @@
-export const getConnection = state => state.connection
+import { ConnectionState } from "../state/connection";
+
+export const getConnection = (state: any): ConnectionState => state.connection

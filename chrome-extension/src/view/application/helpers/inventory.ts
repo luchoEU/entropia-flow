@@ -171,56 +171,6 @@ const reduceSetCurrentInventory = (
   inventory: Inventory,
 ): InventoryState => loadInventory(state, inventory.itemlist);
 
-const reduceSetAuctionExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  auction: {
-    ...state.auction,
-    expanded,
-  },
-});
-
-const reduceSetAvailableExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  available: {
-    ...state.available,
-    expanded,
-  }
-});
-
-const reduceSetHiddenExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  hidden: {
-    ...state.hidden,
-    originalList: {
-      ...state.hidden.originalList,
-      expanded
-    }
-  }
-});
-
-const reduceSetBlueprintsExpanded = (
-  state: InventoryState,
-  expanded: boolean,
-): InventoryState => ({
-  ...state,
-  blueprints: {
-    ...state.blueprints,
-    originalList : {
-      ...state.blueprints.originalList,
-      expanded,
-    }
-  },
-})
-
 const reduceSetBlueprintsFilter = (
   state: InventoryState,
   filter: string,
@@ -555,11 +505,7 @@ export {
   initialListWithFilter,
   reduceLoadInventoryState,
   reduceSetCurrentInventory,
-  reduceSetAuctionExpanded,
-  reduceSetAvailableExpanded,
-  reduceSetHiddenExpanded,
   reduceSetHiddenFilter,
-  reduceSetBlueprintsExpanded,
   reduceSetBlueprintsFilter,
   reduceSortOwnedBlueprintsBy,
   reduceSortAuctionBy,

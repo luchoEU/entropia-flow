@@ -1,6 +1,6 @@
 
 import { mergeDeep } from "../../../common/merge"
-import { SET_EXPANDED, setExpandableState } from "../actions/expandable"
+import { SET_EXPANDED, SET_VISIBLE, setExpandableState } from "../actions/expandable"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialExpandableState } from "../helpers/expandable"
 import { getExpandable } from "../selectors/expandable"
@@ -15,7 +15,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setExpandableState(mergeDeep(initialExpandableState, state)))
             break
         }
-        case SET_EXPANDED: {
+        case SET_EXPANDED:
+        case SET_VISIBLE: {
             const state: ExpandableState = getExpandable(getState())
             await api.storage.saveExpandable(state)
             break

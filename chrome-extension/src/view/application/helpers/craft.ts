@@ -58,14 +58,6 @@ const reduceSetBlueprintActivePage = (state: CraftState, name: string): CraftSta
     activePage: name
 })
 
-const reduceSetStaredBlueprintsExpanded = (state: CraftState, expanded: boolean): CraftState => ({
-    ...state,
-    stared: {
-        ...state.stared,
-        expanded
-    }
-})
-
 const reduceSetStaredBlueprintsFilter = (state: CraftState, filter: string): CraftState => _applyFilter({
     ...state,
     stared: {
@@ -483,7 +475,6 @@ export {
     reduceRemoveBlueprint,
     reduceSortBlueprintsByPart,
     reduceSetBlueprintActivePage,
-    reduceSetStaredBlueprintsExpanded,
     reduceSetStaredBlueprintsFilter,
     reduceAddBlueprint,
     reduceSetBlueprintPartialWebData,

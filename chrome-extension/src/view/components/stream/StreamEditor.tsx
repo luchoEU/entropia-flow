@@ -49,7 +49,7 @@ function StreamLayoutEditor() {
     const c = layouts[editing.layoutId]
 
     return <>
-        <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' className='stream-layout'>
+        <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
             <CodeEditor
                 language='html'
                 readOnly={c.readonly}
@@ -57,7 +57,7 @@ function StreamLayoutEditor() {
                 dispatchChange={setStreamHtmlTemplate}
             />
         </ExpandableSection>
-        <ExpandableSection selector='StreamEditor-layout-css' title='CSS Template' className='stream-layout'>
+        <ExpandableSection selector='StreamEditor-layout-css' title='CSS Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
             <CodeEditor
                 language='css'
                 readOnly={c.readonly}
@@ -89,7 +89,7 @@ function StreamEditor() {
             }}
         />
         <div className='flex'>
-            <ExpandableSection selector='StreamEditor.background' title='Background' >
+            <ExpandableSection selector='StreamEditor.background' title='Background' subtitle='Select a background'>
                 <div className='stream-background-section'>
                     { backgroundList.map((b: BackgroundSpec) =>
                         <StreamBackground key={b.type} background={b} isSelected={b.type === c.backgroundType} />) }
@@ -105,7 +105,7 @@ function StreamEditor() {
                 itemHeight={50}
                 afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
             />
-            <ExpandableSection selector='StreamEditor-preview' title='Preview'>
+            <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
                 <StreamViewLayout id={'stream-preview'} layoutId={editing.layoutId} single={{ data: data.data, layout: c}} />
             </ExpandableSection>
             <StreamLayoutEditor />

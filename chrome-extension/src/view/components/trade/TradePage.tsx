@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { setAuctionInventoryExpanded, setAvailableInventoryExpanded, sortAuctionBy, sortAvailableBy } from '../../application/actions/inventory'
+import { sortAuctionBy, sortAvailableBy } from '../../application/actions/inventory'
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
@@ -27,10 +27,10 @@ function TradePage() {
     return (
         <>
             <div className='flex'>
-                <TradeList title='Currently on Auction' list={s.auction} setExpanded={setAuctionInventoryExpanded}
-                    isFavorite={(n) => s.availableCriteria.name.includes(n)} classMap={{}} sort={sortAuctionBy} />
-                <TradeList title='Favorites to Auction' list={s.available} setExpanded={setAvailableInventoryExpanded}
-                    isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
+                <TradeList selector='TradePage.CurrentlyOnAuction' title='Currently on Auction' subtitle='Items currently on auction, selling or pending to retrieve'
+                    list={s.auction} isFavorite={(n) => s.availableCriteria.name.includes(n)} classMap={{}} sort={sortAuctionBy} />
+                <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
+                    list={s.available} isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
                 <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
                     afterSearch={[ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(filter) } ]}
                     beforeTable={ t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:

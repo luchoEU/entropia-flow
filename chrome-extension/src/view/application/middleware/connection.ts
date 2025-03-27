@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { SET_CONNECTION_CLIENT_EXPANDED, WEB_SOCKET_CHANGED, WEB_SOCKET_RETRY, setConnectionState } from "../actions/connection"
+import { WEB_SOCKET_CHANGED, WEB_SOCKET_RETRY, setConnectionState } from "../actions/connection"
 import { setWebSocketUrl } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/connection"
@@ -17,7 +17,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             break
         }
-        case SET_CONNECTION_CLIENT_EXPANDED:
         case WEB_SOCKET_CHANGED: {
             const state: ConnectionState = getConnection(getState())
             await api.storage.saveConnection(cleanForSave(state))

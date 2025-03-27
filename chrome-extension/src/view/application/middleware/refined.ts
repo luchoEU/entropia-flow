@@ -1,6 +1,6 @@
 import { mergeDeep } from "../../../common/merge"
 import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIALS_STATE } from "../actions/materials"
-import { refinedMaterialChanged, REFINED_BUY_MATERIAL, REFINED_MARKUP_CHANGED, REFINED_MATERIAL_CHANGED, REFINED_VALUE_CHANGED, setRefinedState, SET_REFINED_EXPANDED, REFINED_ORDER_MATERIAL, REFINED_USE_MATERIAL, REFINED_REFINE_MATERIAL } from "../actions/refined"
+import { refinedMaterialChanged, REFINED_BUY_MATERIAL, REFINED_MARKUP_CHANGED, REFINED_MATERIAL_CHANGED, REFINED_VALUE_CHANGED, setRefinedState, REFINED_ORDER_MATERIAL, REFINED_USE_MATERIAL, REFINED_REFINE_MATERIAL } from "../actions/refined"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/refined"
 import { getMaterialsMap } from "../selectors/materials"
@@ -17,7 +17,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 dispatch(setRefinedState(mergeDeep(initialState, state)))
             break
         }
-        case SET_REFINED_EXPANDED:
         case REFINED_VALUE_CHANGED:
         case REFINED_MARKUP_CHANGED:
         case REFINED_MATERIAL_CHANGED:

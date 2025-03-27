@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { setByStoreItemExpanded, setByStoreInventoryExpanded, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredInventoryExpanded, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
+import { setByStoreItemExpanded, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
 import SortableTableSection, { ItemRowColumnData, ItemRowData, SortRowData } from '../common/SortableTableSection'
@@ -121,11 +121,12 @@ const InventoryByStoreList = () => {
     return (
         <div className='flex'>
             <SortableTableSection
+                selector='InventoryByStoreList.staredContainers'
                 title='Favorite Containers'
+                subtitle='Your favorite containers'
                 expanded={inv.stared.list.expanded}
                 filter={inv.stared.filter}
                 stats={inv.stared.list.stats}
-                setExpanded={setByStoreStaredInventoryExpanded}
                 setFilter={setByStoreStaredInventoryFilter}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreStaredAllItemsExpanded)}
                 table={{
@@ -143,11 +144,12 @@ const InventoryByStoreList = () => {
                 }}
             />
             <SortableTableSection
+                selector='InventoryByStoreList.byContainers'
                 title='List by Containers'
+                subtitle='Your items organized by containers'
                 expanded={inv.originalList.expanded}
                 filter={inv.filter}
                 stats={inv.showList.stats}
-                setExpanded={setByStoreInventoryExpanded}
                 setFilter={setByStoreInventoryFilter}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreAllItemsExpanded)}
                 table={{

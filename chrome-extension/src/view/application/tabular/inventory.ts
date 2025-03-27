@@ -13,6 +13,7 @@ const inventoryTabularData = (state: InventoryState): TabularRawData<ItemVisible
 const inventoryTabularDefinitions: TabularDefinitions = {
     [INVENTORY_TABULAR_OWNED]: {
         title: 'Owned List',
+        subtitle: 'List of the Items you own, excluding hidden ones',
         columns: ['Name', 'Quantity', 'Value', 'TT Service', 'Container'],
         columnVisible: (data: TradeItemData[]) => [true, true, true, !data && SHOW_TT_SERVICE, !data],
         columnHeaderAfterName: [,,,{ img: 'img/reload.png', title: 'Reload TT Service from sheet', dispatch: reloadTTService }],
