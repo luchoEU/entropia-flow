@@ -4,8 +4,6 @@ import { sortAuctionBy, sortAvailableBy } from '../../application/actions/invent
 import { getInventory } from '../../application/selectors/inventory'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
-import InventoryVisibleList from './InventoryVisibleList'
-import InventoryHiddenList from './InventoryHiddenList'
 import SortableTabularSection from '../common/SortableTabularSection'
 import { GAME_LOG_TABULAR_TRADE } from '../../application/state/log'
 import { addTradeMessageNotification, removeTradeMessageNotification } from '../../application/actions/trade'
@@ -13,6 +11,7 @@ import { getTrade } from '../../application/selectors/trade'
 import { TradeState } from '../../application/state/trade'
 import { getTabularData } from '../../application/selectors/tabular'
 import { setTabularFilter } from '../../application/actions/tabular'
+import InventoryOwnedList from './InventoryOwnedList'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
@@ -43,8 +42,7 @@ function TradePage() {
                 />
             </div>
             <div className='flex'>
-                <InventoryVisibleList />
-                <InventoryHiddenList />
+                <InventoryOwnedList />
             </div>
         </>
     )

@@ -300,6 +300,10 @@ form label {
     visibility: visible;
 }
 
+.hidden-item-row {
+    color: grey;
+}
+
 .sort-row img {
     width: 8px;
     height: 8px;
@@ -355,6 +359,11 @@ td:hover .img-info {
 .img-delta-zero, .img-copy {
     height: 15px;
     margin-left: 10px;
+}
+
+.img-hidden {
+    height: 15px;
+    align-self: center;
 }
 
 .img-warning {

@@ -6,7 +6,6 @@ import { InventoryState } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
-const SET_HIDDEN_FILTER = "[inv] set hidden filter"
 const SET_BLUEPRINTS_FILTER = "[inv] set blueprints filter"
 const SORT_OWNED_BLUEPRINTS_BY = "[inv] sort owned blueprints by"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
@@ -28,7 +27,6 @@ const SET_BY_STORE_STARED_ITEM_NAME = "[inv] set by store stared item name"
 const SET_BY_STORE_STARED_ITEM_STARED = "[inv] set by store stared item stared"
 const SET_BY_STORE_MATERIAL_FILTER = "[inv] set by store material filter"
 const SORT_AUCTION_BY = "[inv] sort auction by"
-const SORT_HIDDEN_BY = "[inv] sort hidden by"
 const SORT_BY_STORE_BY = "[inv] sort by store by"
 const SORT_BY_STORE_STARED_BY = "[inv] sort by store stared by"
 const SORT_BY_STORE_MATERIAL_BY = "[inv] sort by store material by"
@@ -40,6 +38,7 @@ const SHOW_BY_CONTAINER = "[inv] show by container"
 const HIDE_BY_VALUE = "[inv] hide by value"
 const SHOW_BY_VALUE = "[inv] show by value"
 const SHOW_ALL = "[inv] show all"
+const SHOW_HIDDEN_ITEMS = "[inv] show hidden items"
 const SHOW_TRADING_ITEM_DATA = "[inv] show trading item data"
 const LOAD_TRADING_ITEM_DATA = "[inv] load trading item data"
 const SORT_TRADE_FAVORITE_BLUEPRINTS_BY = "[inv] sort trade favorite blueprints by"
@@ -181,13 +180,6 @@ const setByStoreMaterialFilter = (filter: string) => ({
     }
 })
 
-const setHiddenInventoryFilter = (filter: string) => ({
-    type: SET_HIDDEN_FILTER,
-    payload: {
-        filter
-    }
-})
-
 const setByStoreInventoryFilter = (filter: string) => ({
     type: SET_BY_STORE_FILTER,
     payload: {
@@ -218,13 +210,6 @@ const sortOwnedBlueprintsBy = (part: number) => ({
 
 const sortAuctionBy = (part: number) => ({
     type: SORT_AUCTION_BY,
-    payload: {
-        part
-    }
-})
-
-const sortHiddenBy = (part: number) => ({
-    type: SORT_HIDDEN_BY,
     payload: {
         part
     }
@@ -314,6 +299,13 @@ const removeAvailable = (name: string) => ({
     }
 })
 
+const showHiddenItems = (show: boolean) => ({
+    type: SHOW_HIDDEN_ITEMS,
+    payload: {
+        show
+    }
+})
+
 const showAll = () => ({
     type: SHOW_ALL
 })
@@ -361,7 +353,6 @@ const sortTradeOtherBlueprintsBy = (chainIndex: number) => (part: number) => ({
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
-    SET_HIDDEN_FILTER,
     SET_BLUEPRINTS_FILTER,
     SORT_OWNED_BLUEPRINTS_BY,
     SET_BY_STORE_ITEM_EXPANDED,
@@ -383,7 +374,6 @@ export {
     SET_BY_STORE_STARED_ITEM_STARED,
     SET_BY_STORE_MATERIAL_FILTER,
     SORT_AUCTION_BY,
-    SORT_HIDDEN_BY,
     SORT_BY_STORE_BY,
     SORT_BY_STORE_STARED_BY,
     SORT_BY_STORE_MATERIAL_BY,
@@ -394,6 +384,7 @@ export {
     SHOW_BY_CONTAINER,
     HIDE_BY_VALUE,
     SHOW_BY_VALUE,
+    SHOW_HIDDEN_ITEMS,
     SHOW_ALL,
     SHOW_TRADING_ITEM_DATA,
     LOAD_TRADING_ITEM_DATA,
@@ -404,7 +395,6 @@ export {
     REMOVE_AVAILABLE,
     loadInventoryState,
     setCurrentInventory,
-    setHiddenInventoryFilter,
     setOwnedBlueprintsFilter,
     sortOwnedBlueprintsBy,
     setByStoreItemExpanded,
@@ -426,7 +416,6 @@ export {
     setByStoreStaredItemStared,
     setByStoreMaterialFilter,
     sortAuctionBy,
-    sortHiddenBy,
     sortByStoreBy,
     sortByStoreStaredBy,
     sortByStoreMaterialBy,
@@ -437,6 +426,7 @@ export {
     showByContainer,
     hideByValue,
     showByValue,
+    showHiddenItems,
     showAll,
     showTradingItemData,
     loadTradingItemData,

@@ -5,19 +5,17 @@ import {
   InventoryState,
   InventoryList,
   HideCriteria,
-  ItemHidden,
   AvailableCriteria,
   InventoryListWithFilter,
-  ItemVisible,
   TradeBlueprintLineData,
-  TradeItemData
+  TradeItemData,
+  ItemOwned
 } from "../state/inventory";
 import { initialListByStore, loadInventoryByStore } from "./inventory.byStore";
 import {
   cloneSortListSelect,
   sortListSelect,
   SORT_NAME_ASCENDING,
-  SORT_VALUE_DESCENDING,
   nextSortType,
 } from "./inventory.sort";
 import { cloneAndSort, defaultSortSecuence, nextSortSecuence, numberComparer, stringComparer } from "./sort";
@@ -25,6 +23,7 @@ import { WebLoadResponse } from "../../../web/loader";
 import { BlueprintWebData, ItemUsageWebData } from "../../../web/state";
 
 const emptyCriteria: HideCriteria = {
+  show: false,
   name: [],
   container: [],
   value: -0.01,
@@ -49,8 +48,7 @@ const initialListWithFilter = <D>(expanded: boolean, sortType: number): Inventor
 const initialState: InventoryState = {
   blueprints: initialListWithFilter(true, SORT_NAME_ASCENDING),
   auction: initialList(true, SORT_NAME_ASCENDING),
-  visible: [],
-  hidden: initialListWithFilter(false, SORT_NAME_ASCENDING),
+  owned: [],
   hiddenCriteria: emptyCriteria,
   byStore: initialListByStore(true, SORT_NAME_ASCENDING),
   available: initialList(true, SORT_NAME_ASCENDING),
@@ -58,8 +56,7 @@ const initialState: InventoryState = {
   tradeItemDataChain: undefined
 };
 
-const _visibleSelect = (x: ItemVisible): ItemData => x.data;
-const _hiddenSelect = (x: ItemHidden): ItemData => x.data;
+const _ownedSelect = (x: ItemOwned): ItemData => x.data;
 const _blueprintSelect = (x: ItemData): ItemData => x;
 
 const _isHiddenByName = (c: HideCriteria, d: ItemData): boolean =>
@@ -68,21 +65,6 @@ const _isHiddenByContainer = (c: HideCriteria, d: ItemData): boolean =>
   c.container.includes(d.c);
 const _isHiddenByValue = (c: HideCriteria, d: ItemData): boolean =>
   Number(d.v) <= c.value;
-const _isHidden =
-  (c: HideCriteria) =>
-  (d: ItemData): boolean =>
-    _isHiddenByName(c, d) || _isHiddenByContainer(c, d) || _isHiddenByValue(c, d);
-
-const _addCriteria =
-  (c: HideCriteria) =>
-  (d: ItemData): ItemHidden => ({
-    data: d,
-    criteria: {
-      name: _isHiddenByName(c, d),
-      container: _isHiddenByContainer(c, d),
-      value: _isHiddenByValue(c, d),
-    },
-  });
 
 const _getBlueprints = (list: Array<ItemData>): Array<ItemData> =>
   list.filter((d) => d.n.includes("Blueprint"));
@@ -90,11 +72,18 @@ const _getBlueprints = (list: Array<ItemData>): Array<ItemData> =>
 const _getAuction = (list: Array<ItemData>): Array<ItemData> =>
   list.filter((d) => d.c === "AUCTION");
 
-const _getVisible = (list: Array<ItemData>, c: HideCriteria): Array<ItemVisible> =>
-  list.filter((d) => !_isHidden(c)(d)).map(data => ({ data }));
-
-const _getHidden = (list: Array<ItemData>, c: HideCriteria): Array<ItemHidden> =>
-  list.filter(_isHidden(c)).map(_addCriteria(c));
+const _getOwned = (list: Array<ItemData>, c: HideCriteria): Array<ItemOwned> =>
+  list.map(d => {
+    const hidden = {
+      name: _isHiddenByName(c, d),
+      container: _isHiddenByContainer(c, d),
+      value: _isHiddenByValue(c, d),
+    };
+    return {
+      data: d,
+      c: { hidden: { ...hidden, any: hidden.name || hidden.container || hidden.value } }
+    }
+  });
 
 const joinDuplicates = (
   list: Array<ItemData>,
@@ -147,8 +136,7 @@ const loadInventory = (
     ...state.auction,
     items: _getAuction(list),
   }, (x) => x),
-  visible: _getVisible(list, state.hiddenCriteria),
-  hidden: _sortAndStatsWithFilter(state.hidden, _getHidden(list, state.hiddenCriteria), _hiddenSelect),
+  owned: _getOwned(list, state.hiddenCriteria),
   available: _sortAndStats({
     ...state.available,
     items: _getAvailable(list, state.availableCriteria),
@@ -156,15 +144,12 @@ const loadInventory = (
   byStore: loadInventoryByStore(state.byStore, list)
 });
 
-const joinList = (state: InventoryState): Array<ItemData> => [
-  ...state.visible.map(_visibleSelect),
-  ...state.hidden.originalList.items.map(_hiddenSelect),
-];
+const getItemList = (state: InventoryState): Array<ItemData> => state.owned.map(_ownedSelect);
 
 const reduceLoadInventoryState = (
   oldState: InventoryState, // where to get the items
   state: InventoryState, // where to get the rest
-): InventoryState => loadInventory(state, joinList(oldState)); // use oldState in case reduceSetCurrentInventory was called first
+): InventoryState => loadInventory(state, getItemList(oldState)); // use oldState in case reduceSetCurrentInventory was called first
 
 const reduceSetCurrentInventory = (
   state: InventoryState,
@@ -190,18 +175,6 @@ const reduceSortOwnedBlueprintsBy = (
   ...state,
   blueprints: _nextSortByPartWithFilter(state.blueprints, part, _blueprintSelect),
 });
-
-const reduceSetHiddenFilter = (
-  state: InventoryState,
-  filter: string
-): InventoryState => ({
-  ...state,
-  hidden: {
-    ...state.hidden,
-    filter,
-    showList: applyListFilter(state.hidden.originalList, filter, _hiddenSelect)
-  }
-})
 
 function applyListFilter<D>(list: InventoryList<D>, filter: string, select: (d: D) => ItemData): InventoryList<D> {
   const items = list.items
@@ -292,11 +265,6 @@ const reduceSortAuctionBy = (
   auction: _nextSortByPart(state.auction, part, (x) => x),
 });
 
-const reduceSortHiddenBy = (state: InventoryState, part: number): InventoryState => ({
-  ...state,
-  hidden: _nextSortByPartWithFilter(state.hidden, part, _hiddenSelect),
-});
-
 const reduceSortAvailableBy = (
   state: InventoryState,
   part: number,
@@ -305,17 +273,17 @@ const reduceSortAvailableBy = (
   available: _nextSortByPart(state.available, part, (x) => x),
 });
 
-const changeHiddenCriteria = (state: InventoryState, newCriteria: any) =>
+const _changeHiddenCriteria = (state: InventoryState, newCriteria: any) =>
   loadInventory(
     { ...state, hiddenCriteria: { ...state.hiddenCriteria, ...newCriteria } },
-    joinList(state),
+    getItemList(state),
   );
 
 const reduceHideByName = (state: InventoryState, name: string): InventoryState =>
-  changeHiddenCriteria(state, { name: [...state.hiddenCriteria.name, name] });
+  _changeHiddenCriteria(state, { name: [...state.hiddenCriteria.name, name] });
 
 const reduceShowByName = (state: InventoryState, name: string): InventoryState =>
-  changeHiddenCriteria(state, {
+  _changeHiddenCriteria(state, {
     name: state.hiddenCriteria.name.filter((x) => x !== name),
   });
 
@@ -323,7 +291,7 @@ const reduceHideByContainer = (
   state: InventoryState,
   container: string,
 ): InventoryState =>
-  changeHiddenCriteria(state, {
+  _changeHiddenCriteria(state, {
     container: [...state.hiddenCriteria.container, container],
   });
 
@@ -331,22 +299,25 @@ const reduceShowByContainer = (
   state: InventoryState,
   container: string,
 ): InventoryState =>
-  changeHiddenCriteria(state, {
+  _changeHiddenCriteria(state, {
     container: state.hiddenCriteria.container.filter((x) => x !== container),
   });
 
 const reduceHideByValue = (state: InventoryState, value: string): InventoryState =>
-  changeHiddenCriteria(state, { value: Number(value) });
+  _changeHiddenCriteria(state, { value: Number(value) });
 
 const reduceShowByValue = (state: InventoryState, value: string): InventoryState =>
-  changeHiddenCriteria(state, { value: Number(value) - 0.01 });
+  _changeHiddenCriteria(state, { value: Number(value) - 0.01 });
+
+const reduceShowHiddenItems = (state: InventoryState, show: boolean): InventoryState =>
+  _changeHiddenCriteria(state, { show });
 
 const reduceShowAll = (state: InventoryState): InventoryState =>
-  changeHiddenCriteria(state, emptyCriteria);
+  _changeHiddenCriteria(state, emptyCriteria);
 
 const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
   ...state,
-  visible: state.visible.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemDataChain?.[0].name } }))
+  owned: state.owned.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemDataChain?.[0].name } }))
 })
 
 const reduceShowTradingItemData = (state: InventoryState, name: string, chainIndex: number): InventoryState => {
@@ -460,7 +431,7 @@ const reduceAddAvailable = (state: InventoryState, name: string): InventoryState
       ...state,
       availableCriteria: { name: [...state.availableCriteria.name, name] },
     },
-    joinList(state),
+    getItemList(state),
   );
 
 const reduceRemoveAvailable = (state: InventoryState, name: string): InventoryState =>
@@ -471,7 +442,7 @@ const reduceRemoveAvailable = (state: InventoryState, name: string): InventorySt
         name: state.availableCriteria.name.filter((n) => n !== name),
       },
     },
-    joinList(state),
+    getItemList(state),
   );
 
 const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> => ({
@@ -490,8 +461,7 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
   // remove what will be reconstructed in loadInventory
   blueprints: cleanForSaveInventoryListWithFilter(state.blueprints),
   auction: cleanForSaveInventoryList(state.auction),
-  visible: undefined,
-  hidden: cleanForSaveInventoryListWithFilter(state.hidden),
+  owned: undefined, // calculated value
   hiddenCriteria: state.hiddenCriteria,
   byStore: undefined, // saved independently because it is too big
   available: cleanForSaveInventoryList(state.available),
@@ -505,11 +475,9 @@ export {
   initialListWithFilter,
   reduceLoadInventoryState,
   reduceSetCurrentInventory,
-  reduceSetHiddenFilter,
   reduceSetBlueprintsFilter,
   reduceSortOwnedBlueprintsBy,
   reduceSortAuctionBy,
-  reduceSortHiddenBy,
   reduceSortAvailableBy,
   reduceHideByName,
   reduceHideByContainer,
@@ -517,6 +485,7 @@ export {
   reduceShowByName,
   reduceShowByContainer,
   reduceShowByValue,
+  reduceShowHiddenItems,
   reduceShowAll,
   reduceShowTradingItemData,
   reduceLoadTradingItemData,
@@ -525,7 +494,7 @@ export {
   reduceSortTradeOtherBlueprintsBy,
   reduceAddAvailable,
   reduceRemoveAvailable,
-  joinList,
+  getItemList,
   joinDuplicates,
   cleanForSave,
   cleanForSaveInventoryList,

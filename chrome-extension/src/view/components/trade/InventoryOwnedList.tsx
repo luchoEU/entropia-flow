@@ -1,16 +1,15 @@
 import React from 'react'
-import { showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
+import { showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
-import { getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
+import { getHideCriteria, getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
 import { INVENTORY_TABULAR_OWNED, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
-import { loadItemUsageData, loadMaterialData, materialNotesValueChanged } from '../../application/actions/materials';
+import { loadItemUsageData, loadMaterialData } from '../../application/actions/materials';
 import { ItemUsageWebData, MaterialWebData } from '../../../web/state';
 import { setBlueprintActivePage } from '../../application/actions/craft';
 import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
-import { FieldArea } from '../common/Field';
 import { getMaterial } from '../../application/selectors/materials';
 import MaterialInventory from '../material/MaterialInventory';
 import { addZeroes } from '../craft/CraftExpandedList';
@@ -160,9 +159,23 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     </>
 }
 
-const InventoryVisibleList = () =>
-    <SortableTabularSection selector={INVENTORY_TABULAR_OWNED}>
+const InventoryVisibleList = () => {
+    const c = useSelector(getHideCriteria)
+    const addButton = c.name.length > 0 || c.container.length > 0 || c.value >= 0
+    return <SortableTabularSection
+        selector={INVENTORY_TABULAR_OWNED}
+        afterSearch={ addButton && [
+            c.show && { button: 'Unhide All', class: 'show-all', title: 'Clear all hide filters and show all items', dispatch: showAll },
+            {
+                img: c.show ? 'img/eyeClose.png' : 'img/eyeOpen.png',
+                class: 'img-hidden',
+                title: `${c.show ? 'Show':'Hide'} Hidden Items`,
+                dispatch: () => showHiddenItems(!c.show)
+            }
+        ]}
+    >
         <TradeItemDetailsChain />
     </SortableTabularSection>
+}
 
 export default InventoryVisibleList

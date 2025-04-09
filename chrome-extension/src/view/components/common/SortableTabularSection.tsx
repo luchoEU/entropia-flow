@@ -67,6 +67,7 @@ interface TableParameters<TItem> {
     width: TableWidths,
     sortRow: RowValue[],
     getItemRow: (item: TItem, index?: number) => RowValue[],
+    getRowClass: (item: TItem, index?: number) => string | undefined,
     itemSelector: (index: number) => (state: any) => TItem,
     itemHeight?: number,
     rowValueRender: RowValueRender
@@ -115,10 +116,11 @@ const _ItemRowRender = (p: {
 </>
 
 const _ItemRow = <T extends any>(
-    { index, style, getRow, itemSelector, columns, height, rowValueRender } : {
+    { index, style, getRow, getRowClass, itemSelector, columns, height, rowValueRender } : {
     index: number;
     style: React.CSSProperties;
     getRow: (item: T, index?: number) => RowValue[];
+    getRowClass: (item: T, index?: number) => string | undefined;
     itemSelector: (index: number) => (state: any) => T;
     columns: ColumnWidthData[];
     height: number;
@@ -128,7 +130,9 @@ const _ItemRow = <T extends any>(
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
     const row = getRow(item, index);
-    const className = 'item-row' + ('dispatch' in row ? ' pointer' : '');
+    let className = 'item-row' + ('dispatch' in row ? ' pointer' : '');
+    const rowClass = getRowClass?.(item, index);
+    if (rowClass) className += ` ${rowClass}`
 
     return (
         <div className={className} style={style}>
@@ -161,6 +165,7 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
                 index={index}
                 style={style}
                 getRow={d.getItemRow}
+                getRowClass={d.getRowClass}
                 itemSelector={d.itemSelector}
                 columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
                 height={itemHeight}
@@ -196,13 +201,14 @@ const SortableFixedTable = <TItem extends any>(p: {
     if (!s?.items) return <p>{p.selector} is not loaded with items</p>
 
     const { selector, itemHeight, rowValueRender } = p
-    const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.data)
+    const { columns, columnHeaderAfterName, getRow: getItemRow, getRowClass } = getTabularDefinition(selector, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName, s.sortSecuence)
     const table: TableParameters<TItem> = {
         width: _calculateWidths(s.items.all, sortRow, getItemRow),
         itemCount: s.items.show.length,
         sortRow,
         getItemRow,
+        getRowClass,
         itemSelector: getTabularDataItem(selector),
         itemHeight,
         rowValueRender

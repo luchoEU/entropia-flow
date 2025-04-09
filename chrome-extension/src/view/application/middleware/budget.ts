@@ -5,7 +5,7 @@ import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsSt
 import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_MATERIAL_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/budget"
-import { joinList } from "../helpers/inventory"
+import { getItemList } from "../helpers/inventory"
 import { getBudget } from "../selectors/budget"
 import { getInventory } from "../selectors/inventory"
 import { getMaterials } from "../selectors/materials"
@@ -38,7 +38,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const settings: SettingsState = getSettings(getState())
             const budget: BudgetState = getBudget(getState())
             const materials: MaterialsState = getMaterials(getState())
-            const inventory: Array<ItemData> = joinList(getInventory(getState()))
+            const inventory: Array<ItemData> = getItemList(getInventory(getState()))
 
             let map: BudgetMaterialsMap = { }
             let items: BudgetItem[] = []

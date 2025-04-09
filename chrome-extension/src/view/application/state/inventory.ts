@@ -83,6 +83,7 @@ interface TreeLineData extends ItemData {
 }
 
 interface HideCriteria {
+  show: boolean;
   name: Array<string>;
   container: Array<string>;
   value: number;
@@ -92,21 +93,18 @@ interface AvailableCriteria {
   name: Array<string>;
 }
 
-interface ItemVisible {
+interface ItemOwned {
   data: ItemData;
-  c?: {
-    showingTradeItem: boolean
+  c: {
+    showingTradeItem?: boolean
     ttServiceValue?: number
+    hidden: {
+      any: boolean;
+      name: boolean;
+      container: boolean;
+      value: boolean;
+    };
   }
-}
-
-interface ItemHidden {
-  data: ItemData;
-  criteria: {
-    name: boolean;
-    container: boolean;
-    value: boolean;
-  };
 }
 
 interface TradeItemData {
@@ -131,8 +129,7 @@ interface TradeBlueprintLineData {
 interface InventoryState {
   blueprints: InventoryListWithFilter<ItemData>;
   auction: InventoryList<ItemData>;
-  visible: Array<ItemVisible>;
-  hidden: InventoryListWithFilter<ItemHidden>;
+  owned: Array<ItemOwned>;
   hiddenCriteria: HideCriteria;
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
@@ -144,8 +141,7 @@ export {
   INVENTORY_TABULAR_OWNED,
   HideCriteria,
   AvailableCriteria,
-  ItemVisible,
-  ItemHidden,
+  ItemOwned,
   ContainerMapData,
   ContainerMapDataItem,
   BasicItemData,

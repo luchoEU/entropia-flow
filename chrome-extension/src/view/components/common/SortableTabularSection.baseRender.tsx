@@ -49,26 +49,29 @@ const BaseRowValueRender: RowValueRender = (p) => {
     }
     if (style)
         delete style['justifyContent']
+    const className = typeof v === 'object' && 'class' in v && v.class;
     const extra = typeof v === 'object' && {
-        ...'class' in v && { className: v.class },
         ...'title' in v && { title: v.title },
+        ...className && { className },
         ...style && { style },
-        ...'dispatch' in v && { onClick: (e) => { e.stopPropagation(); dispatch(v.dispatch()) }, className: 'pointer' },
+        ...'dispatch' in v && { onClick: (e) => { e.stopPropagation(); dispatch(v.dispatch()) }, className: className ? className + ' pointer' : 'pointer' },
     }
 
     return v === undefined ? <></> :
         (typeof v === 'string' ? <ItemText text={v} extra={extra} /> :
         (Array.isArray(v) ? <>{ v.map((w, i) => <BaseRowValueRender key={i} v={w} />) }</> :
-        ('flex' in v ? <div style={{ flex: v.flex }} /> :
-        ('img' in v ? <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
-        ('button' in v ? <button {...extra}>{v.button}</button> :
-        ('text' in v ? <ItemText text={v.text} extra={extra} /> :
-        ('strong' in v ? <strong {...extra}>{v.strong}</strong> :
-        ('input' in v ? <_Input value={v.input} width={v.width ?? INPUT_WIDTH} dispatchChange={v.dispatchChange} /> :
-        ('file' in v ? <_File value={v.file} dispatchChange={v.dispatchChange} /> :
-        ('sub' in v ? <div {...extra}><BaseRowValueRender v={v.sub} /></div> :
-        <></>
-    ))))))))));
+        typeof v === 'object' ? (
+            ('flex' in v ? <div style={{ flex: v.flex }} /> :
+            ('img' in v ? <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
+            ('button' in v ? <button {...extra}>{v.button}</button> :
+            ('text' in v ? <ItemText text={v.text} extra={extra} /> :
+            ('strong' in v ? <strong {...extra}>{v.strong}</strong> :
+            ('input' in v ? <_Input value={v.input} width={v.width ?? INPUT_WIDTH} dispatchChange={v.dispatchChange} /> :
+            ('file' in v ? <_File value={v.file} dispatchChange={v.dispatchChange} /> :
+            ('sub' in v ? <div {...extra}><BaseRowValueRender v={v.sub} /></div> :
+            <></>
+            ))))))))) : <></>
+        ));
 }
 
 const _Input = (p: { value: string, width: number, dispatchChange: (value: string) => any }): JSX.Element => {
