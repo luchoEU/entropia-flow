@@ -24,7 +24,7 @@ interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = 
     getRowForSort?: (item: TItem, rowIndex: number) => TValueForSort[], // if not defined it uses getRow
     getRowForFilter?: (item: TItem, rowIndex: number) => TValueForFilter[], // if not defined it uses getRowForSort
     columnComparer?: ((a: TValueForSort, b: TValueForSort) => number)[], // if not defined it uses byTypeComparer
-    columnVisible?: (data: TData) => boolean[], // if not defined all are visible
+    columnVisible?: (data?: TData) => boolean[], // if not defined all are visible
     columnHeaderAfterName?: RowValue[],
     justifiyContent?: ('start' | 'end' | 'center')[], // if not defined it uses right for numbers and left for others
     getPedValue?: (item: TItem) => number, // to calculate the ped total

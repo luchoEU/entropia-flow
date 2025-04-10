@@ -1,4 +1,4 @@
-import { SHOW_FEATURES_IN_DEVELOPMENT, SHOW_TT_SERVICE } from '../../../../config'
+import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../../config'
 import { SheetAccessInfo } from '../../../application/state/settings'
 import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
 import { newDayInventory } from './sheetsInventory'
@@ -57,8 +57,6 @@ async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, 
 }
 
 async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<TTServiceInventorySheet> {
-    if (!SHOW_TT_SERVICE) return undefined
-
     const doc = await loadTTDoc(accessInfo, setStage)
     if (!doc)
         return undefined

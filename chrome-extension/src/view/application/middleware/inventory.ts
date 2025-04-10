@@ -12,8 +12,10 @@ import { setTabularDefinitions } from "../helpers/tabular"
 import { getCraft } from "../selectors/craft"
 import { getInventory } from "../selectors/inventory"
 import { getMaterial } from "../selectors/materials"
+import { getSettings } from "../selectors/settings"
 import { CraftState } from "../state/craft"
 import { InventoryByStore, InventoryState } from "../state/inventory"
+import { SettingsState } from "../state/settings"
 import { inventoryTabularData, inventoryTabularDefinitions } from "../tabular/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -115,7 +117,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SHOW_ALL:
         case SHOW_TRADING_ITEM_DATA: {
             const state: InventoryState = getInventory(getState())
-            dispatch(setTabularData(inventoryTabularData(state)))
+            const settings: SettingsState = getSettings(getState())
+            dispatch(setTabularData(inventoryTabularData(state, settings)))
             break
         }
     }

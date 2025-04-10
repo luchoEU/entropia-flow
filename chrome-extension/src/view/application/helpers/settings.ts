@@ -6,12 +6,13 @@ const initialState: SettingsState = {
         ttServiceDocumentId: undefined,
         googleServiceAccountEmail: undefined,
         googlePrivateKey: undefined
-    }
+    },
+    features: []
 }
 
-const setState = (state: SettingsState, inState: SettingsState) => inState
+const reduceSetSettingsState = (state: SettingsState, inState: SettingsState) => inState
 
-const setSheetDocumentId = (state: SettingsState, documentId: string) => ({
+const reduceSetSheetDocumentId = (state: SettingsState, documentId: string) => ({
     ...state,
     sheet: {
         ...state.sheet,
@@ -19,7 +20,7 @@ const setSheetDocumentId = (state: SettingsState, documentId: string) => ({
     }
 })
 
-const setSheetTTServiceDocumentId = (state: SettingsState, documentId: string) => ({
+const reduceSetSheetTTServiceDocumentId = (state: SettingsState, documentId: string) => ({
     ...state,
     sheet: {
         ...state.sheet,
@@ -27,7 +28,7 @@ const setSheetTTServiceDocumentId = (state: SettingsState, documentId: string) =
     }
 })
 
-const setSheetGoogleServiceAccountEmail = (state: SettingsState, googleServiceAccountEmail: string) => ({
+const reduceSetSheetGoogleServiceAccountEmail = (state: SettingsState, googleServiceAccountEmail: string) => ({
     ...state,
     sheet: {
         ...state.sheet,
@@ -35,7 +36,7 @@ const setSheetGoogleServiceAccountEmail = (state: SettingsState, googleServiceAc
     }
 })
 
-const setSheetGooglePrivateKey = (state: SettingsState, googlePrivateKey: string) => ({
+const reduceSetSheetGooglePrivateKey = (state: SettingsState, googlePrivateKey: string) => ({
     ...state,
     sheet: {
         ...state.sheet,
@@ -43,11 +44,17 @@ const setSheetGooglePrivateKey = (state: SettingsState, googlePrivateKey: string
     }
 })
 
+const reduceEnableFeature = (state: SettingsState, featureId: string, enabled: boolean) => ({
+    ...state,
+    features: enabled ? [...state.features, featureId] : state.features.filter(f => f !== featureId)
+})
+
 export {
     initialState,
-    setState,
-    setSheetDocumentId,
-    setSheetTTServiceDocumentId,
-    setSheetGoogleServiceAccountEmail,
-    setSheetGooglePrivateKey,
+    reduceSetSettingsState,
+    reduceSetSheetDocumentId,
+    reduceSetSheetTTServiceDocumentId,
+    reduceSetSheetGoogleServiceAccountEmail,
+    reduceSetSheetGooglePrivateKey,
+    reduceEnableFeature,
 }

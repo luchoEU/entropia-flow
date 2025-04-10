@@ -5,6 +5,7 @@ const DOCUMENT_ID_CHANGED = "[setting] document id changed"
 const TT_SERVICE_DOCUMENT_ID_CHANGED = "[setting] tt service document id changed"
 const GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED = "[setting] google service account email changed" 
 const GOOGLE_PRIVATE_KEY_CHANGED = "[setting] google private key changed"
+const ENABLE_FEATURE = "[setting] enable feature"
 
 const setSettingsState = (state: SettingsState) => ({
     type: SET_SETTING_STATE,
@@ -41,6 +42,13 @@ const googlePrivateKeyChanged = (googlePrivateKey: string) => ({
     }
 })
 
+const enableFeature = (featureId: string, enabled: boolean) => ({
+    type: ENABLE_FEATURE,
+    payload: {
+        featureId,
+        enabled
+    }
+})
 
 export {
     SET_SETTING_STATE,
@@ -48,9 +56,11 @@ export {
     TT_SERVICE_DOCUMENT_ID_CHANGED,
     GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED,
     GOOGLE_PRIVATE_KEY_CHANGED,
+    ENABLE_FEATURE,
     setSettingsState,
     documentIdSettingChanged,
     ttServiceDocumentIdSettingChanged,
     googleServiceAccountEmailChanged,
     googlePrivateKeyChanged,
+    enableFeature,
 }
