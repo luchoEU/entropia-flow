@@ -26,45 +26,39 @@ const inventoryTabularDefinitions: TabularDefinitions = {
         title: 'Owned List',
         subtitle: 'List of the Items you own, excluding hidden ones',
         columns: ['Name', 'Quantity', 'Value', 'TT Service', 'Container'],
-        columnVisible: (d?: InventoryTabularOwnedData) => [true, true, true, !d?.chain && d?.ttService, !d?.chain],
+        columnVisible: (items?: ItemOwned[], data?: InventoryTabularOwnedData) => {
+            const chainRootName = data?.chain?.[0].name;
+            const hasChain = !chainRootName || !items?.some(g => g.data.n === chainRootName);
+            return [true, true, true, hasChain && data?.ttService, hasChain]
+        },
         columnHeaderAfterName: [,,,{ img: 'img/reload.png', title: 'Reload TT Service from sheet', dispatch: reloadTTService }],
         getRow: (g: ItemOwned): RowValue[] => {
-            return g.c.hidden.any ? [
-                [ // Name
-                    { img: 'img/tick.png', title: 'Show this item name', dispatch: () => showByName(g.data.n), visible: g.c.hidden.name },
-                    g.data.n,
-                    { flex: 1 },
-                    { img: 'img/find.png', title: 'Search by this item name', dispatch: () => setTabularFilter(INVENTORY_TABULAR_OWNED)(`!${g.data.n}`) }
-                ], g.data.q // Quantity
-                , [ // Value
-                    { img: 'img/tick.png', title: 'Show this value or higher', dispatch: () => showByValue(g.data.v), visible: g.c.hidden.value },
-                    g.data.v + ' PED'
-                ], [ // TT Service
-                    g.c?.ttServiceValue?.toFixed(2) + ' PED'
-                ], [ // Container
-                    { img: 'img/tick.png', title: 'Show this container', dispatch: () => showByContainer(g.data.c), visible: g.c.hidden.container },
-                    g.data.c
-                ]
-            ] : [
+            return [
                 { // Name
                     dispatch: () => showTradingItemData(g.c?.showingTradeItem ? undefined : g.data.n, 0),
                     sub: [
-                        { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => hideByName(g.data.n) },
+                        g.c.hidden.any ?
+                            { img: 'img/tick.png', title: 'Show this item name', dispatch: () => showByName(g.data.n), visible: g.c.hidden.name } :
+                            { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => hideByName(g.data.n) },
                         g.data.n,
                         g.c?.showingTradeItem ?
-                            { img: 'img/left.png', title: 'Hide item details' } :
+                            { img: 'img/left.png', title: 'Hide item details', show: true } :
                             { img: 'img/right.png', title: 'Show item details' },
                         { flex: 1 },
                         { img: 'img/find.png', title: 'Search by this item name', dispatch: () => setTabularFilter(INVENTORY_TABULAR_OWNED)(`!${g.data.n}`) }
                     ]
                 }, g.data.q // Quantity
                 , [ // Value
-                    { img: 'img/cross.png', title: 'Hide this value or lower', dispatch: () => hideByValue(g.data.v) },
+                    g.c.hidden.any ?
+                        { img: 'img/tick.png', title: 'Show this value or higher', dispatch: () => showByValue(g.data.v), visible: g.c.hidden.value } :
+                        { img: 'img/cross.png', title: 'Hide this value or lower', dispatch: () => hideByValue(g.data.v) },
                     g.data.v + ' PED'
                 ], [ // TT Service
                     g.c?.ttServiceValue?.toFixed(2) + ' PED'
                 ], [ // Container
-                    { img: 'img/cross.png', title: 'Hide this container', dispatch: () => hideByContainer(g.data.c) },
+                    g.c.hidden.any ?
+                        { img: 'img/tick.png', title: 'Show this container', dispatch: () => showByContainer(g.data.c), visible: g.c.hidden.container } :
+                        { img: 'img/cross.png', title: 'Hide this container', dispatch: () => hideByContainer(g.data.c) },
                     g.data.c
                 ]
             ]

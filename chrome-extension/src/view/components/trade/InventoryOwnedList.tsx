@@ -3,7 +3,7 @@ import { showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBluepri
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
 import { getHideCriteria, getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
-import { INVENTORY_TABULAR_OWNED, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
+import { INVENTORY_TABULAR_OWNED, ItemOwned, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
 import { loadItemUsageData, loadMaterialData } from '../../application/actions/materials';
@@ -16,6 +16,7 @@ import { addZeroes } from '../craft/CraftExpandedList';
 import MaterialNotes from '../material/MaterialNotes';
 import MaterialMarkup from '../material/MaterialMarkup';
 import MaterialCalculator from '../material/MaterialCalculator';
+import { getTabularData } from '../../application/selectors/tabular';
 
 const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -46,9 +47,16 @@ const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<Tr
 const TradeItemDetailsChain = () => {
     const dispatch = useDispatch()
     const tradeItemDataChain = useSelector(getTradeItemDataChain)
+    const tabularItems = useSelector(getTabularData(INVENTORY_TABULAR_OWNED)).items;
+    if (!tradeItemDataChain)
+        return <></> // no chain
+
+    const chainRootName = tradeItemDataChain[0]?.name;
+    if (!tabularItems?.show.find((d: ItemOwned) => d.data.n === chainRootName))
+        return <></> // chain root is not visible
 
     return <>
-        { tradeItemDataChain?.map((tradeItemData, chainIndex) => {
+        { tradeItemDataChain.map((tradeItemData, chainIndex) => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
             return <div key={tradeItemData.name} className='trade-item-data'>
                 <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>

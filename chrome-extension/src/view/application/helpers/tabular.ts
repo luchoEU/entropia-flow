@@ -66,12 +66,12 @@ const reduceSortTabularBy = (state: TabularState, selector: string, column: numb
 }
 
 const _tabularDefinitions: TabularDefinitions = { }
-const getTabularDefinition = (selector: string, data: any): TabularDefinition => {
+const getTabularDefinition = (selector: string, items: any[], data: any): TabularDefinition => {
     const d = _tabularDefinitions[selector]
     if (!d?.columnVisible)
         return d
 
-    const isVisible = d.columnVisible(data)
+    const isVisible = d.columnVisible(items, data)
     return {
         ...d,
         columnVisible: undefined,
