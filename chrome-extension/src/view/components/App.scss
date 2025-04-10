@@ -81,6 +81,10 @@ nav button {
     background-color: beige;
 }
 
+.hidden-menu {
+    background-color: lightgray;
+}
+
 .button-menu {
     margin: 0px 5px;
 }
@@ -90,7 +94,7 @@ nav button {
     margin-left: 8px;
 }
 
-.img-visible-section {
+.img-visible-tab, .img-visible-section {
     height: 20px;
     margin: 0px 3px;
 }

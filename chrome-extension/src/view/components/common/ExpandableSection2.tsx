@@ -16,7 +16,8 @@ const ExpandableSection = (p: {
     children: any
 }) => {
     const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
-    const visible: boolean = useSelector(getVisible(p.selector)) || p.actionRequired !== undefined
+    const visibleSelector = `section.${p.selector}`
+    const visible: boolean = useSelector(getVisible(visibleSelector)) || p.actionRequired !== undefined
     const expanded: boolean = useSelector(getExpanded(p.selector)) && visible || p.actionRequired !== undefined
     const dispatch = useDispatch()
 
@@ -31,12 +32,12 @@ const ExpandableSection = (p: {
                         e.stopPropagation()
                         dispatch(setExpanded(p.selector)(!expanded))}
                     }>
-                    {p.title}
+                    { expanded && showSubtitles ? p.title : <span title={p.subtitle}>{p.title}</span> }
                     { showVisible &&
                         <ImgButton title={visible ? 'click to Hide Section' : 'click to Show Section'}
                             className='img-visible-section'
                             src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
-                            dispatch={() => setVisible(p.selector)(!visible)} />}
+                            dispatch={() => setVisible(visibleSelector)(!visible)} />}
                     { visible && !p.actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(p.selector)} /> }
                     { p.actionRequired && <img className='img-warning' src='img/warning.png' title={p.actionRequired} /> }
                 </h1>
