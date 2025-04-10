@@ -1,10 +1,11 @@
-import { SHOW_BUDGET_IN_CRAFT } from "../../../config";
+import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
 
 const featureList: FeatureInfo[] = [
     {
         id: 'ttService',
         title: 'TT Service',
         description: 'Integration with <a href="bit.ly/dmTTservice">Dark Matter TT Service</a>',
+        development: true,
         components: ['sheet', 'tradeColumn', 'reload']
     }
 ]
@@ -14,10 +15,16 @@ const FEATURE_TT_SERVICE_TRADE_COLUMN: FeatureComponentId = { id: 'ttService', c
 const FEATURE_TT_SERVICE_RELOAD: FeatureComponentId = { id: 'ttService', component: 'reload' }
 const FEATURE_SHOW_SHEET_SETTINGS: FeatureComponentId = SHOW_BUDGET_IN_CRAFT ? { id: 'const', component: 'true' } : FEATURE_TT_SERVICE_TRADE_COLUMN
 
-const isFeatureEnabled = (feature: FeatureComponentId, state: SettingsState): boolean =>
-    feature.id === 'const' ? feature.component === 'true' :
-        state.features.includes(feature.id) &&
-        featureList.find(f => f.id === feature.id).components.some(c => c === feature.component);
+const isFeatureEnabled = (feature: FeatureComponentId, state: SettingsState): boolean => {
+    if (feature.id === 'const')
+        return feature.component === 'true';
+
+    const f = featureList.find(f => f.id === feature.id)
+    if (!f || f.development && !SHOW_FEATURES_IN_DEVELOPMENT)
+        return false;
+
+    return state.features.includes(feature.id) && f.components.some(c => c === feature.component);
+}
 
 interface FeatureComponentId {
     id: string // ID of feature
@@ -28,6 +35,7 @@ interface FeatureInfo {
     id: string
     title: string
     description: string
+    development: boolean
     components: string[] // ID of components
 }
 
