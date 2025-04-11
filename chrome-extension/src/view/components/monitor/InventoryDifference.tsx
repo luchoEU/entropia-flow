@@ -9,9 +9,10 @@ import { addPeds, removePeds } from '../../application/actions/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
 import { getMaterial } from '../../application/selectors/materials'
-import { materialBuyMarkupChanged } from '../../application/actions/materials'
-import { getMarkup } from '../../application/helpers/materials'
+import { materialBuyMarkupChanged, setMaterialMarkupUnit } from '../../application/actions/materials'
 import TextButton from '../common/TextButton'
+import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/materials'
+import { getValueWithMarkup } from '../../application/helpers/materials'
 
 interface Config {
     sortBy: (part: number) => any
@@ -74,19 +75,46 @@ const ItemRow = (p: {
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
                         <>
                             <input id='newPedInput' type='text' value={material.buyMarkup} onChange={(e) => dispatch(materialBuyMarkupChanged(item.n)(e.target.value))} />
+                            <TextButton title={`Unit: ${unitDescription(material.markupUnit)}, click to change`} text={unitText(material.markupUnit)} dispatch={() => setMaterialMarkupUnit(item.n, nextUnit(material.markupUnit)) } />
                         </> :
-                        <ItemText text={material?.buyMarkup ? `${material.buyMarkup} %` : ''} /> }
+                        <ItemText text={material?.buyMarkup ? `${material.buyMarkup} ${unitText(material.markupUnit)}` : ''} /> }
                 </td><td style={{paddingLeft: 0}}>
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
                         <>
                             <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ materialBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode(item.key)} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.buyMarkup === '' ? [ materialBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
                         </> : <>
-                            <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => [
-                                materialBuyMarkupChanged(item.n)(material?.buyMarkup ?? '100'), // ensure that the material is created
-                                c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
-                            ]} />
-                            { material?.buyMarkup && !isNaN(parseFloat(item.v)) && <ItemText text={(parseFloat(item.v) * getMarkup(material)).toFixed(2) + ' PED'} /> }
+                            <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => {
+                                const init = []
+                                if (!material?.buyMarkup) {
+                                    // ensure that the material is created
+                                    const defaultUnit = (): MarkupUnit => {
+                                        if (item.n.endsWith('(L)')) return UNIT_PERCENTAGE
+                                        const v = Number(item.v) ?? 0
+                                        const q = Number(item.q) ?? 0
+                                        if (q > 1 && v / q < 0.01) return UNIT_PED_K
+                                        if (q === 1) return UNIT_PLUS
+                                        return UNIT_PERCENTAGE
+                                    }
+                                    const defaultMarkup = (unit: MarkupUnit): string => {
+                                        switch (unit) {
+                                            case UNIT_PERCENTAGE: return '100';
+                                            case UNIT_PLUS: return '0';
+                                            case UNIT_PED_K: return '1';
+                                 3       }
+                                    }
+                                    const unit = material?.markupUnit || defaultUnit();
+                                    if (material?.markupUnit !== unit) {
+                                        init.push(setMaterialMarkupUnit(item.n, unit))
+                                    }
+                                    init.push(materialBuyMarkupChanged(item.n)(defaultMarkup(unit)))
+                                }
+                                return [
+                                    ...init,
+                                    c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
+                                ]
+                            }} />
+                            { material?.buyMarkup && !isNaN(parseFloat(item.v)) && <ItemText text={getValueWithMarkup(item.q, item.v, material).toFixed(2) + ' PED'} /> }
                         </> }
                 </td></>
             }

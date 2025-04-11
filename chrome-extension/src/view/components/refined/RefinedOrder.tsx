@@ -23,7 +23,7 @@ const RefinedOrder = (p: {
                 <RefinedInput
                     label={m.c.name}
                     value={m.orderMarkup}
-                    unit={m.c.unit}
+                    unit={m.markupUnit}
                     getChangeAction={materialOrderMarkupChanged(m.c.name)} />
                 <input
                     type='text'

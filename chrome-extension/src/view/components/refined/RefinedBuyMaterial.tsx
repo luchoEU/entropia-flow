@@ -6,7 +6,7 @@ import { MaterialState } from '../../application/state/materials'
 import RefinedButton from './RefinedButton'
 import { refinedBuyMaterial } from '../../application/actions/sheets'
 import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
-import { UNIT_PERCENTAGE } from '../../application/helpers/materials'
+import { getMarkupMultiplier } from '../../application/helpers/materials'
 
 const RefinedBuyMaterial = (p: {
     pageMaterial: string,
@@ -17,7 +17,7 @@ const RefinedBuyMaterial = (p: {
     const pending = useSelector(sheetPendingRefinedBuy(p.pageMaterial, p.buyMaterial))
 
     const kAmount = Number(m.buyAmount) / 1000
-    const nMarkup = Number(m.buyMarkup) / (m.c.unit === UNIT_PERCENTAGE ? 100 : 0.01)
+    const nMarkup = getMarkupMultiplier(m)
     const cost = kAmount * m.c.kValue * nMarkup
 
     return (
@@ -28,7 +28,7 @@ const RefinedBuyMaterial = (p: {
                     type='text'
                     value={m.buyMarkup}
                     onChange={(e) => dispatch(materialBuyMarkupChanged(m.c.name)(e.target.value))} />
-                <label>{m.c.unit}</label>
+                <label>{m.markupUnit}</label>
             </div>
             <input
                 type='text'

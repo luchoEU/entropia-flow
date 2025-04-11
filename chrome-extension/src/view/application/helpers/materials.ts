@@ -1,4 +1,4 @@
-import { MaterialsMap, MaterialsState, MaterialState, MaterialStateCalcData, MaterialStateWebData } from "../state/materials"
+import { MarkupUnit, MaterialsMap, MaterialsState, MaterialState, MaterialStateCalcData, MaterialStateWebData, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS } from "../state/materials"
 
 const MATERIAL_PED = 'PED'
 const MATERIAL_ME = 'Mind Essence'
@@ -9,9 +9,6 @@ const MATERIAL_SW = 'Vibrant Sweat'
 const MATERIAL_DW = 'Diluted Sweat'
 const MATERIAL_ST = 'Sweetstuff'
 const MATERIAL_FT = 'Fruit'
-
-const UNIT_PERCENTAGE = '%'
-const UNIT_PED_K = 'PED/k'
 
 const materialMap = {
     [MATERIAL_NX]: 'nexus',
@@ -28,11 +25,11 @@ const refinedInitialMap: MaterialsMap = {
         buyAmount: '100000',
         orderMarkup: '101',
         orderValue: '1000',
+        markupUnit: UNIT_PERCENTAGE,
         useAmount: '10000',
         refineAmount: '100000',
         c: {
             name: MATERIAL_ME,
-            unit: UNIT_PERCENTAGE,
             kValue: 0.1,
         }
     },
@@ -41,11 +38,11 @@ const refinedInitialMap: MaterialsMap = {
         buyAmount: '100000',
         orderMarkup: '101',
         orderValue: '1000',
+        markupUnit: UNIT_PERCENTAGE,
         useAmount: '10000',
         refineAmount: '100000',
         c: {
             name: MATERIAL_LME,
-            unit: UNIT_PERCENTAGE,
             kValue: 0.1,
         }
     },
@@ -54,56 +51,56 @@ const refinedInitialMap: MaterialsMap = {
         buyAmount: '1000',
         orderMarkup: '101',
         orderValue: '1000',
+        markupUnit: UNIT_PERCENTAGE,
         useAmount: '1000',
         refineAmount: '1000',
         c: {
             name: MATERIAL_NB,
-            unit: UNIT_PERCENTAGE,
             kValue: 10,
         }
     },
     [MATERIAL_NX]: {
         buyMarkup: '101',
         buyAmount: '10000',
+        markupUnit: UNIT_PERCENTAGE,
         c: {
             name: MATERIAL_NX,
-            unit: UNIT_PERCENTAGE,
             kValue: 10,
         }
     },
     [MATERIAL_SW]: {
         buyMarkup: '1.35',
         buyAmount: '1000',
+        markupUnit: UNIT_PED_K,
         c: {
             name: MATERIAL_SW,
-            unit: UNIT_PED_K,
             kValue: 0.01,
         }
     },
     [MATERIAL_DW]: {
         buyMarkup: '101',
         buyAmount: '10000',
+        markupUnit: UNIT_PERCENTAGE,
         c: {
             name: MATERIAL_DW,
-            unit: UNIT_PERCENTAGE,
             kValue: 10,
         }
     },
     [MATERIAL_ST]: {
         buyMarkup: '110',
         buyAmount: '10000',
+        markupUnit: UNIT_PERCENTAGE,
         c: {
             name: MATERIAL_ST,
-            unit: UNIT_PERCENTAGE,
             kValue: 10,
         }
     },
     [MATERIAL_FT]: {
         buyMarkup: '2.8',
         buyAmount: '1000',
+        markupUnit: UNIT_PED_K,
         c: {
             name: MATERIAL_FT,
-            unit: UNIT_PED_K,
             kValue: 0.01,
         }
     },
@@ -161,6 +158,9 @@ const reduceMaterialRefineAmountChanged = (state: MaterialsState, material: stri
 const reduceMaterialBuyAmountChanged = (state: MaterialsState, material: string, buyAmount: string): MaterialsState =>
     _materialChanged(state, material, { buyAmount })
 
+const reduceSetMaterialMarkupUnit = (state: MaterialsState, material: string, markupUnit: MarkupUnit): MaterialsState =>
+    _materialChanged(state, material, { markupUnit })
+
 const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string, orderValue: string): MaterialsState =>
     _materialChanged(state, material, { orderValue })
 
@@ -177,7 +177,7 @@ const _materialChangedCalc = (state: MaterialsState, material: string, str: stri
         return _materialChangedMod(state, material, s => ({ calc: { ...s?.calc, ...partial } }))
 
     const v = m.web.material.data.value.value
-    const mu = getMarkup(m);
+    const mu = getMarkupMultiplier(m);
     return _materialChangedMod(state, material, s => ({ calc: getCalc(n, v, mu) })) // parameters are (input Number, Value, Markup)
 }
 
@@ -198,7 +198,34 @@ const cleanWeb = (state: MaterialsState): MaterialsState => {
     return cState
 }
 
-const getMarkup = (m: MaterialState) => { const mu = parseFloat(m?.buyMarkup); return isNaN(mu) ? 1 : mu / 100 }
+const getMarkupMultiplier = (m: MaterialState): number => {
+    const mu = parseFloat(m?.buyMarkup);
+    const unitMultiplier = (unit: string): number => {
+        switch (unit) {
+            case UNIT_PED_K: return 100
+            case UNIT_PLUS: return 1
+            case UNIT_PERCENTAGE: default: return 0.01
+        }
+    }
+    return isNaN(mu) ? 1 : mu * unitMultiplier(m.markupUnit);
+}
+
+const getValueWithMarkup = (q: string, v: string, m: MaterialState): number => {
+    const nv = parseFloat(v);
+    if (isNaN(nv))
+        return 0 // moved item, number in parenthesis (N)
+
+    const mu = parseFloat(m?.buyMarkup);
+    if (isNaN(mu))
+        return nv ?? 0
+
+    const nq = parseInt(q);
+    switch (m.markupUnit) {
+        case UNIT_PED_K: return nq * mu / 1000
+        case UNIT_PLUS: return nv + nq * mu
+        case UNIT_PERCENTAGE: default: return nv * mu / 100
+    }
+}
 
 const cleanForSaveMain = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
@@ -235,7 +262,8 @@ export {
     initialState,
     materialMap,
     refinedInitialMap,
-    getMarkup,
+    getMarkupMultiplier,
+    getValueWithMarkup,
     reduceSetState,
     reduceMaterialBuyMarkupChanged,
     reduceMaterialOrderMarkupChanged,
@@ -248,6 +276,7 @@ export {
     reduceSetMaterialCalculatorQuantity,
     reduceSetMaterialCalculatorTotal,
     reduceSetMaterialCalculatorTotalMU,
+    reduceSetMaterialMarkupUnit,
     cleanWeb,
     cleanForSaveMain,
     cleanForSaveCache,

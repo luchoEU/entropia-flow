@@ -1,6 +1,6 @@
 import { mergeDeep } from "../../../common/merge"
 import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS } from "../actions/last"
-import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIALS_STATE } from "../actions/materials"
+import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIAL_MARKUP_UNIT, SET_MATERIALS_STATE } from "../actions/materials"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/last"
@@ -68,7 +68,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case EXCLUDE:
         case EXCLUDE_WARNINGS:
         case SET_MATERIALS_STATE:
-        case MATERIAL_BUY_MARKUP_CHANGED: {
+        case MATERIAL_BUY_MARKUP_CHANGED:
+        case SET_MATERIAL_MARKUP_UNIT: {
             const { showMarkup }: LastRequiredState = getLast(getState())
             if (showMarkup) {
                 const materials = getMaterialsMap(getState())

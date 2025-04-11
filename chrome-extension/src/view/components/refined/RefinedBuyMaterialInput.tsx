@@ -15,7 +15,7 @@ function RefinedBuyMaterialInput(p: {
             <RefinedInput
                 label={m.c.name}
                 value={m.buyMarkup}
-                unit={m.c.unit}
+                unit={m.markupUnit}
                 getChangeAction={materialBuyMarkupChanged(m.c.name)} />
         </>
     )

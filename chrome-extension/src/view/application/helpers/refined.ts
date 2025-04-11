@@ -4,7 +4,7 @@ import { getMaterial } from "../selectors/materials"
 import { getOneRefined } from "../selectors/refined"
 import { MaterialsMap } from "../state/materials"
 import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedRefine, RefinedState } from "../state/refined"
-import { MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_PED, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
+import { getMarkupMultiplier, MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_PED, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
     [MATERIAL_ME]: {
@@ -97,21 +97,13 @@ const initialState: RefinedState = ({
 
 function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculatorStateOut {
     const auctionFee = (difference: number): number => Math.round(50 + difference * 4.9) / 100
-    const unitMult = (unit: string): number => {
-        switch (unit) {
-            case UNIT_PED_K:
-                return 100
-            case UNIT_PERCENTAGE:
-                return 0.01
-        }
-    }
 
     const refiner = 0.15 // PED for 1k refined
 
     const buyoutValue = Number(state.value) //120
     const markup = Number(m[state.refinedMaterial].buyMarkup) //119.99
     const pedMaterial = 1000 / m[state.refinedMaterial].c.kValue // 10000
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + Number(m[name].buyMarkup) * m[name].c.kValue * unitMult(m[name].c.unit), 0) // 11.493
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue * getMarkupMultiplier(m[name]), 0) // 11.493
     const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue, 0) / m[state.refinedMaterial].c.kValue * 1000 // 100100
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042

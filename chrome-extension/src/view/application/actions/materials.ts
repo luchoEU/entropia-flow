@@ -1,4 +1,4 @@
-import { MaterialsState, MaterialStateWebData } from '../state/materials'
+import { MarkupUnit, MaterialsState, MaterialStateWebData } from '../state/materials'
 
 const SET_MATERIALS_STATE = '[material] set state'
 const MATERIAL_BUY_MARKUP_CHANGED = '[material] buy markup changed'
@@ -15,6 +15,7 @@ const LOAD_ITEM_USAGE_DATA = '[material] load item usage data'
 const SET_MATERIAL_CALCULATOR_QUANTITY = '[material] set calculator quantity'
 const SET_MATERIAL_CALCULATOR_TOTAL = '[material] set calculator total'
 const SET_MATERIAL_CALCULATOR_TOTAL_MU = '[material] set calculator total mu'
+const SET_MATERIAL_MARKUP_UNIT = '[material] set markup unit'
 
 const setMaterialsState = (state: MaterialsState) => ({
     type: SET_MATERIALS_STATE,
@@ -133,6 +134,14 @@ const setMaterialCalculatorTotalMU = (material: string, totalMU: string) => ({
     }
 })
 
+const setMaterialMarkupUnit = (material: string, unit: MarkupUnit) => ({
+    type: SET_MATERIAL_MARKUP_UNIT,
+    payload: {
+        material,
+        unit
+    }
+})
+
 export {
     SET_MATERIALS_STATE,
     MATERIAL_BUY_MARKUP_CHANGED,
@@ -149,6 +158,7 @@ export {
     SET_MATERIAL_CALCULATOR_QUANTITY,
     SET_MATERIAL_CALCULATOR_TOTAL,
     SET_MATERIAL_CALCULATOR_TOTAL_MU,
+    SET_MATERIAL_MARKUP_UNIT,
     setMaterialsState,
     materialBuyMarkupChanged,
     materialOrderMarkupChanged,
@@ -164,4 +174,5 @@ export {
     setMaterialCalculatorQuantity,
     setMaterialCalculatorTotal,
     setMaterialCalculatorTotalMU,
+    setMaterialMarkupUnit,
 }
