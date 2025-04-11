@@ -36,7 +36,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const visibleSelector = `tab.${menu}`;
                 const visible: boolean = getVisible(visibleSelector)(getState())
                 if (!visible) {
-                    const { show } = getLast(getState())
+                    const { c: { show } } = getLast(getState())
                     const isTabVisible = (id: number) => getVisible(`tab.${id}`)(getState()) && tabShow(id, show)
                     const index = tabOrder.findIndex((id) => id === menu)
                     const firstVisibleAfter = tabOrder.find((id, i) => i > index && isTabVisible(id))

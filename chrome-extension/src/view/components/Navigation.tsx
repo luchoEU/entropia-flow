@@ -49,7 +49,7 @@ const Tab = (p: {
 }
 
 const FirstRow = () => {
-    const { show } = useSelector(getLast)
+    const { c: { show } } = useSelector(getLast)
     const { client: { status } } = useSelector(getConnection)
     const { message } = useSelector(getStatus);
 

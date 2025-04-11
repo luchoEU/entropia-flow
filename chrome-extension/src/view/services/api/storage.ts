@@ -2,13 +2,10 @@ import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea";
 import {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
-    STORAGE_VIEW_BLACKLIST,
-    STORAGE_VIEW_PERMANENT_BLACKLIST,
     STORAGE_VIEW_CALCULATOR,
     STORAGE_VIEW_INVENTORY,
     STORAGE_VIEW_MENU,
     STORAGE_VIEW_ORDER,
-    STORAGE_VIEW_PEDS,
     STORAGE_VIEW_REFINE,
     STORAGE_VIEW_STACKABLE,
     STORAGE_VIEW_STREAM,
@@ -26,7 +23,8 @@ import {
     STORAGE_VIEW_TABULAR,
     STORAGE_VIEW_EXPANDABLE,
     STORAGE_VIEW_TRADE,
-    STORAGE_VIEW_MODE
+    STORAGE_VIEW_MODE,
+    STORAGE_VIEW_LAST
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -37,7 +35,7 @@ import { CraftState } from "../../application/state/craft";
 import ExpandableState from "../../application/state/expandable";
 import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
-import { ViewPedData } from "../../application/state/last";
+import { LastRequiredState, ViewPedData } from "../../application/state/last";
 import { GameLogState } from "../../application/state/log";
 import { MaterialsState } from "../../application/state/materials";
 import ModeState from "../../application/state/mode";
@@ -164,14 +162,6 @@ async function loadUse(): Promise<UseState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_USE)
 }
 
-async function savePeds(state: Array<ViewPedData>) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_PEDS, state)
-}
-
-async function loadPeds(): Promise<Array<ViewPedData>> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_PEDS)
-}
-
 async function saveExpandable(expandable: ExpandableState) {
     await SYNC_STORAGE.set(STORAGE_VIEW_EXPANDABLE,expandable)
 }
@@ -180,20 +170,12 @@ async function loadExpandable(): Promise<ExpandableState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_EXPANDABLE)
 }
 
-async function saveBlacklist(list: Array<string>) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_BLACKLIST, list)
+async function saveLast(state: LastRequiredState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_LAST, state)
 }
 
-async function loadBlacklist(): Promise<Array<string>> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_BLACKLIST)
-}
-
-async function savePermanentBlacklist(list: Array<string>) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_PERMANENT_BLACKLIST, list)
-}
-
-async function loadPermanentBlacklist(): Promise<Array<string>> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_PERMANENT_BLACKLIST)
+async function loadLast(): Promise<LastRequiredState> {
+    return await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
 }
 
 async function saveStream(state: StreamState) {
@@ -320,14 +302,10 @@ export default {
     loadRefined,
     saveUse,
     loadUse,
-    savePeds,
-    loadPeds,
     saveExpandable,
     loadExpandable,
-    saveBlacklist,
-    loadBlacklist,
-    savePermanentBlacklist,
-    loadPermanentBlacklist,
+    saveLast,
+    loadLast,
     saveStream,
     loadStream,
     saveInventoryState,

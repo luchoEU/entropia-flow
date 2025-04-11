@@ -6,16 +6,20 @@ interface ViewPedData {
 }
 
 interface LastRequiredState {
-    show: boolean,
-    text?: string,
-    delta?: number,
+    c: { // not persisted
+        show: boolean,
+        text?: string,
+        delta?: number,
+        date: number,
+        diff: Array<ViewItemData>,
+    }
+
     expanded?: boolean,
-    date: number,
-    diff: Array<ViewItemData>,
-    peds: Array<ViewPedData>,
     sortType: number,
+    showMarkup: boolean,
     blacklist: Array<string>,
     permanentBlacklist: Array<string>,
+    peds: Array<ViewPedData>,
     notificationsDone: Array<string>,
 }
 

@@ -2,25 +2,33 @@ import { Inventory } from "../../../common/state"
 import { getDifference, getValue, hasValue } from "./diff"
 import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./inventory.sort"
 import { getLatestFromInventoryList, getText } from "./history"
-import { ViewItemData } from "../state/history"
+import { ViewItemData, ViewItemMode } from "../state/history"
 import { matchDate } from "../../../common/date"
 import { LastRequiredState, ViewPedData } from "../state/last"
 import { AvailableCriteria } from "../state/inventory"
 import { getItemAction } from "./soldDetector"
+import { MaterialsMap, MaterialsState } from "../state/materials"
+import { calculate } from "../../components/common/SortableTableSection2"
+import { getMarkup } from "./materials"
 
 const initialState: LastRequiredState = {
-    show: false,
     expanded: false,
-    date: 0,
-    diff: null,
     peds: [],
     sortType: SORT_VALUE_DESCENDING,
     blacklist: [],
     permanentBlacklist: [],
     notificationsDone: [],
+    showMarkup: false,
+    c: {
+        show: false,
+        date: 0,
+        diff: null,
+    }
 }
 
-function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewItemData>): number {
+const reduceSetLastState = (state: LastRequiredState, newState: LastRequiredState): LastRequiredState => newState
+
+function _applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewItemData>): number {
     // transfer excluded from previous list
     if (last !== null) {
         for (const item of last) {
@@ -59,7 +67,7 @@ function applyExcludes(d: number, diff: Array<ViewItemData>, last: Array<ViewIte
     return d
 }
 
-function applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBlacklist: Array<string>): number {
+function _applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBlacklist: Array<string>): number {
     diff.forEach(item => {
         if (hasValue(item) && permanentBlacklist.includes(item.n)) {
             item.x = true
@@ -72,7 +80,7 @@ function applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBl
     return d
 }
 
-function applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
+function _applyWarning(diff: Array<ViewItemData>, blacklist: Array<string>) {
     diff.forEach(item => item.w = !item.e && hasValue(item) && blacklist.includes(item.n))
 }
 
@@ -82,8 +90,8 @@ const reduceSetExpanded = (state: LastRequiredState, expanded: boolean) => ({
 })
 
 function _changeExclude(state: LastRequiredState, key: number, excluded: boolean, mult: number): LastRequiredState {
-    const item = state.diff.find(i => i.key === key)
-    const diff = state.diff.map(
+    const item = state.c.diff.find(i => i.key === key)
+    const diff = state.c.diff.map(
         i => i.key === key ? { ...i, e: excluded } : i)
     let blacklist = state.blacklist
     if (excluded) {
@@ -92,13 +100,16 @@ function _changeExclude(state: LastRequiredState, key: number, excluded: boolean
     } else {
         blacklist = blacklist.filter(s => s !== item.n)
     }
-    applyWarning(diff, blacklist)
-    const delta = Number(state.delta) + getValue(item) * mult
+    _applyWarning(diff, blacklist)
+    const delta = Number(state.c.delta) + getValue(item) * mult
     return {
         ...state,
-        delta,
-        diff,
-        blacklist
+        blacklist,
+        c: {
+            ...state.c,
+            delta,
+            diff
+        }
     }
 }
 
@@ -109,23 +120,26 @@ const reduceExclude = (state: LastRequiredState, key: number) =>
     _changeExclude(state, key, true, -1)
 
 function reduceExcludeWarnings(state: LastRequiredState): LastRequiredState {
-    let delta = Number(state.delta)
-    state.diff.forEach(item => {
+    let delta = Number(state.c.delta)
+    state.c.diff.forEach(item => {
         if (item.w && !item.e) {
             delta -= getValue(item)
         }
     })
-    const diff = state.diff.map(i => ({ ...i, e: i.e || i.w, w: false }))
+    const diff = state.c.diff.map(i => ({ ...i, e: i.e || i.w, w: false }))
     return {
         ...state,
-        delta,
-        diff
+        c: {
+            ...state.c,
+            delta,
+            diff
+        }
     }
 }
 
 function reducePermanentExclude(state: LastRequiredState, key: number, value: boolean): LastRequiredState {
-    const item = state.diff.find(i => i.key === key)
-    const diff = state.diff.map(
+    const item = state.c.diff.find(i => i.key === key)
+    const diff = state.c.diff.map(
         i => i.key === key ? { ...i, x: value } : i)
     let permanentBlacklist = state.permanentBlacklist
     if (!permanentBlacklist)
@@ -138,10 +152,26 @@ function reducePermanentExclude(state: LastRequiredState, key: number, value: bo
     }
     return {
         ...state,
-        diff,
-        permanentBlacklist
+        permanentBlacklist,
+        c: {
+            ...state.c,
+            diff
+        }
     }
 }
+
+const reduceSetLastItemMode = (state: LastRequiredState, key: number, mode: ViewItemMode): LastRequiredState => ({
+    ...state,
+    c: {
+        ...state.c,
+        diff: state.c.diff.map(d => d.key === key ? { ...d, m: mode } : d)
+    }
+})
+
+const reduceSetLastShowMarkup = (state: LastRequiredState, showMarkup: boolean): LastRequiredState => ({
+    ...state,
+    showMarkup
+})
 
 function _findInventory(list: Array<Inventory>, lastRefresh: number) {
     if (lastRefresh === undefined)
@@ -154,65 +184,78 @@ function _findInventory(list: Array<Inventory>, lastRefresh: number) {
     return null
 }
 
-const reduceSetBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
-    ...state,
-    blacklist: list
-})
-
-const reduceSetPermanentBlacklist = (state: LastRequiredState, list: Array<string>): LastRequiredState => ({
-    ...state,
-    permanentBlacklist: list
-})
-
 function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
     const inv = _findInventory(list, last)
     if (inv === null) {
         return {
             ...state,
-            date: 0,
-            show: false
+            c: {
+                ...state.c,
+                date: 0,
+                show: false
+            }
         }
     } else {
         const lastInv: Inventory = getLatestFromInventoryList(list)
         if (inv === lastInv) {
             return {
                 ...state,
-                delta: 0,
-                show: true,
                 expanded: false,
-                text: getText(inv, true),
-                date: last,
-                diff: null,
                 peds: [],
                 notificationsDone: [],
+                c: {
+                    ...state.c,
+                    delta: 0,
+                    show: true,
+                    text: getText(inv, true),
+                    date: last,
+                    diff: null,
+                }
             }
         } else {
             let d = Number(lastInv.meta.total) - Number(inv.meta.total)
             const diff = getDifference(lastInv, inv)
             if (diff !== null) {
-                d = applyExcludes(d, diff, state.diff)
-                d = applyPermanentExclude(d, diff, state.permanentBlacklist)
-                applyWarning(diff, state.blacklist)
+                d = _applyExcludes(d, diff, state.c.diff)
+                d = _applyPermanentExclude(d, diff, state.permanentBlacklist)
+                _applyWarning(diff, state.blacklist)
                 sortList(diff, state.sortType)
             }
-            state.peds.forEach(p => d += Number(p.value))
+            d += _pedSum(state.peds)
             return {
                 ...state,
-                delta: d,
-                show: true,
-                text: getText(inv, true),
-                diff: diff || state.diff
+                c: {
+                    ...state.c,
+                    delta: d,
+                    show: true,
+                    text: getText(inv, true),
+                    diff: diff || state.c.diff
+                }
             }
         }
     }
 }
 
+const _sumDiff = (diff: ViewItemData[], materials: MaterialsMap): number =>
+    diff?.reduce((p, c) => p + (c.e ? 0 : Number(c.v) * getMarkup(materials[c.n])), 0) ?? 0;
+
+const reduceApplyMarkup = (state: LastRequiredState, materials: MaterialsMap): LastRequiredState => ({
+    ...state,
+    c: {
+        ...state.c,
+        delta: _sumDiff(state.c.diff, materials) + _pedSum(state.peds)
+    }
+})
+
 const reduceAddActions = (state: LastRequiredState, availableCriteria: AvailableCriteria): LastRequiredState => ({
     ...state,
-    diff: state.diff === null ? null : state.diff.map(d => ({
-        ...d,
-        a: getItemAction(d, availableCriteria)
-    }))
+    c: {
+        ...state.c,
+        diff: state.c.diff === null ? null : state.c.diff.map(d => ({
+            ...d,
+            a: getItemAction(d, availableCriteria)
+        }))
+    }
 })
 
 const reduceAddNotificationsDone = (state: LastRequiredState, messages: Array<string>): LastRequiredState => ({
@@ -220,46 +263,37 @@ const reduceAddNotificationsDone = (state: LastRequiredState, messages: Array<st
     notificationsDone: [ ...state.notificationsDone, ...messages ]
 })
 
-const reduceSetPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
+const _pedSum = (peds: Array<ViewPedData>) => peds.reduce((p, c) => p + Number(c.value), 0)
+
+const _reduceSetPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
     ...state,
-    peds: inState
+    peds: inState,
+    c: { ...state.c, delta: Number(state.c.delta) - _pedSum(state.peds) + _pedSum(inState) },
 })
 
-const reduceAddPeds = (state: LastRequiredState, value: string): LastRequiredState => {
-    const v = Number(value)
-    const delta = Number(state.delta) + v
-    return {
-        ...state,
-        delta,
-        peds: [...state.peds, { key: new Date().getTime(), value: v.toFixed(2) }]
-    }
-}
+const reduceAddPeds = (state: LastRequiredState, value: string): LastRequiredState =>
+    _reduceSetPeds(state, [...state.peds, { key: new Date().getTime(), value: Number(value).toFixed(2) }]);
 
-const reduceRemovePeds = (state: LastRequiredState, key: number): LastRequiredState => {
-    const p = state.peds.find(s => s.key === key)
-    const v = Number(p.value)
-    const delta = Number(state.delta) - v
-    return {
-        ...state,
-        delta,
-        peds: state.peds.filter(s => s.key !== key)
-    }
-}
+const reduceRemovePeds = (state: LastRequiredState, key: number): LastRequiredState =>
+    _reduceSetPeds(state, state.peds.filter(s => s.key !== key));
 
 function reduceSortByPart(state: LastRequiredState, part: number): LastRequiredState {
     const sortType = nextSortType(part, state.sortType)
     return {
         ...state,
         sortType,
-        diff: cloneSortList(state.diff, sortType)
+        c: { ...state.c, diff: cloneSortList(state.c.diff, sortType) }
     }
 }
 
+const cleanLastStateForSave = (state: LastRequiredState): Partial<LastRequiredState> => ({
+    ...state,
+    c: undefined
+})
+
 export {
-    LastRequiredState,
     initialState,
-    reduceSetBlacklist,
-    reduceSetPermanentBlacklist,
+    reduceSetLastState,
     reduceOnLast,
     reduceAddActions,
     reduceSetExpanded,
@@ -267,9 +301,12 @@ export {
     reduceExclude,
     reduceExcludeWarnings,
     reducePermanentExclude,
+    reduceSetLastItemMode,
+    reduceSetLastShowMarkup,
     reduceAddNotificationsDone,
-    reduceSetPeds,
     reduceAddPeds,
     reduceRemovePeds,
     reduceSortByPart,
+    reduceApplyMarkup,
+    cleanLastStateForSave,
 }

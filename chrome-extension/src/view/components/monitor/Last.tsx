@@ -1,8 +1,7 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy } from '../../application/actions/last'
+import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy, setLastItemMode, clearLastItemMode, setLastShowMarkup } from '../../application/actions/last'
 import { copyLast, setLast } from '../../application/actions/messages'
-import { LastRequiredState } from '../../application/helpers/last'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { CraftState } from '../../application/state/craft'
@@ -11,6 +10,8 @@ import InventoryDifference from './InventoryDifference'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ImgButton from '../common/ImgButton'
 import ExpandableSection from '../common/ExpandableSection2'
+import { LastRequiredState } from '../../application/state/last'
+import TextButton from '../common/TextButton'
 
 function getDeltaClass(delta: number) {
     if (Math.abs(delta) < 0.005)
@@ -26,12 +27,15 @@ function getDeltaClass(delta: number) {
 
 const Last = () => {
     const {
-        show,
-        text,
-        delta,
+        c: {
+            show,
+            text,
+            delta,
+            diff,
+        },
         expanded,
-        diff,
-        peds
+        peds,
+        showMarkup
     }: LastRequiredState = useSelector(getLast)
 
     const config = {
@@ -41,7 +45,10 @@ const Last = () => {
         exclude: exclude,
         permanentExcludeOn: permanentExcludeOn,
         permanentExcludeOff: permanentExcludeOff,
+        setMode: setLastItemMode,
+        clearMode: clearLastItemMode,
         showPeds: true,
+        showMarkup,
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"
     }
 
@@ -77,13 +84,20 @@ const Last = () => {
                             className='img-delta-zero'
                             dispatch={() => setLast} />
                     }
-                    { diff !== null &&
-                        <ImgButton
-                            title='Copy to clipboard'
-                            src='img/copy.png'
-                            className='img-copy'
-                            clickPopup='Copied!'
-                            dispatch={() => copyLast} />
+                    { expanded && 
+                        <>
+                            <ImgButton
+                                title='Copy to clipboard'
+                                src='img/copy.png'
+                                className='img-copy'
+                                clickPopup='Copied!'
+                                dispatch={() => copyLast} />
+                            <TextButton
+                                title={ showMarkup ? 'Hide markup' : 'Show markup' }
+                                className={ `button-markup ${showMarkup ? 'active' : ''}` }
+                                text='%'
+                                dispatch={() => setLastShowMarkup(!showMarkup)} />
+                        </>
                     }
                 </p>
                 { expanded &&

@@ -15,6 +15,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
         sortBy: (part: number) => () => dispatch(sortBy(item.key, part)),
         allowExclude: false,
         showPeds: false,
+        showMarkup: false,
         movedTitle: 'this item was moved by this amount (parenthesis)'
     }
     

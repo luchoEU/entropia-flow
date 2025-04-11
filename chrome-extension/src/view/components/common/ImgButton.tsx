@@ -15,7 +15,7 @@ const ImgButton = (p: {
     const dispatch = useDispatch()
     const onClick: MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation()
-        
+
         if (p.clickPopup) {
             const popup = e.currentTarget.querySelector('.popup') as HTMLElement
             popup.style.display = 'block'

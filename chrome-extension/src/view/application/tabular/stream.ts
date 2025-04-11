@@ -102,6 +102,7 @@ const streamTabularDefinitions: TabularDefinitions = {
             ], {
                 layout: g.layout, layoutId: g.id, id: `stream-chooser-${i}`, scale: 0.4, width: 200
             }],
+        getRowForSort: (g: StreamChooserLine) => [g.name, ''],
     }
 }
 

@@ -1,51 +1,46 @@
-import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, setPermanentBlacklist, setBlacklist, setPeds, addActionsToLast, ADD_ACTIONS, addNotificationsDone } from "../actions/last"
+import { mergeDeep } from "../../../common/merge"
+import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS } from "../actions/last"
+import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIALS_STATE } from "../actions/materials"
+import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"
+import { initialState } from "../helpers/last"
 import { getInventory } from "../selectors/inventory"
-import { getPermanentBlacklist, getBlacklist, getPeds, getLast } from "../selectors/last"
+import { getLast } from "../selectors/last"
+import { getMaterialsMap } from "../selectors/materials"
 import { InventoryState } from "../state/inventory"
-import { LastRequiredState, ViewPedData } from "../state/last"
+import { LastRequiredState } from "../state/last"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
-            let list: Array<string> = await api.storage.loadBlacklist()
-            if (list)
-                dispatch(setBlacklist(list))
-            let aList: Array<string> = await api.storage.loadPermanentBlacklist()
-            if (aList)
-                dispatch(setPermanentBlacklist(aList))
-            let peds: Array<ViewPedData> = await api.storage.loadPeds()
-            if (peds)
-                dispatch(setPeds(peds))
+            let state: LastRequiredState = await api.storage.loadLast()
+            if (state)
+                dispatch(setLastState(mergeDeep(initialState, state)));
+            break
         }
         case INCLUDE:
-        case EXCLUDE: {
-            const state: Array<string> = getBlacklist(getState())
-            await api.storage.saveBlacklist(state)
-            break
-        }
-        case PERMANENT_EXCLUDE: {
-            const state: Array<string> = getPermanentBlacklist(getState())
-            await api.storage.savePermanentBlacklist(state)
-            break
-        }
+        case EXCLUDE:
+        case PERMANENT_EXCLUDE:
         case ADD_PEDS:
         case REMOVE_PEDS:
-        case ON_LAST: {
-            const state: Array<ViewPedData> = getPeds(getState())
-            await api.storage.savePeds(state)
-
-            if (action.type === ON_LAST) {
-                const inv: InventoryState = getInventory(getState())
-                dispatch(addActionsToLast(inv.availableCriteria))
-            }
+        case SET_LAST:
+        case SET_AS_LAST:
+        case SORT_BY:
+        case SET_EXPANDED:
+        case SET_LAST_SHOW_MARKUP: {
+            const state: LastRequiredState = getLast(getState())
+            await api.storage.saveLast(state)
             break
+        }
+        case ON_LAST: {
+            const inv: InventoryState = getInventory(getState())
+            dispatch(addActionsToLast(inv.availableCriteria))
         }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
-            if (state.diff !== null) {
-                const reduced = state.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+            if (state.c.diff !== null) {
+                const reduced = state.c.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
 
                 state.notificationsDone.forEach(m => {
                     const index = reduced.indexOf(m);
@@ -61,6 +56,25 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                     )
                     dispatch(addNotificationsDone(reduced))
                 }
+            }
+            break
+        }
+    }
+
+    switch (action.type) {
+        case SET_LAST_SHOW_MARKUP:
+        case ON_LAST:
+        case INCLUDE:
+        case EXCLUDE:
+        case EXCLUDE_WARNINGS:
+        case SET_MATERIALS_STATE:
+        case MATERIAL_BUY_MARKUP_CHANGED: {
+            const { showMarkup }: LastRequiredState = getLast(getState())
+            if (showMarkup) {
+                const materials = getMaterialsMap(getState())
+                dispatch(applyMarkupToLast(materials))
+            } else if (action.type === SET_LAST_SHOW_MARKUP) {
+                dispatch(applyMarkupToLast({}))
             }
             break
         }

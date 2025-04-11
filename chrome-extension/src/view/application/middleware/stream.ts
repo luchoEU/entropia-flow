@@ -4,7 +4,7 @@ import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import StreamRenderData from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
-import { ADD_PEDS, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
+import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
 import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_EDITING, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES } from "../actions/stream"
@@ -66,8 +66,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case INCLUDE:
         case EXCLUDE:
         case EXCLUDE_WARNINGS:
+        case APPLY_MARKUP_TO_LAST:
         {
-            const { delta } = getLast(getState())
+            const { c: { delta } } = getLast(getState())
             dispatch(setStreamVariables('last', [
                 { name: 'delta', value: (delta || 0).toFixed(2) },
                 { name: 'deltaBackColor', value: "=IF(delta > 0, 'green', delta < 0, 'red', 'black')", description: 'delta background color' },

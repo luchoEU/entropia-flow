@@ -8,6 +8,14 @@ interface ViewItemData {
     x?: boolean // permanent exclude from difference
     w?: boolean // show warning
     a?: ViewItemAction // action available
+    m?: ViewItemMode // i.e for edit markup
+}
+
+const VIEW_ITEM_MODE_EDIT_MARKUP = 1
+
+interface ViewItemMode {
+    type: number,
+    data: any
 }
 
 interface ViewItemAction {
@@ -36,6 +44,8 @@ interface HistoryState {
 export {
     ViewItemData,
     ViewItemAction,
+    ViewItemMode,
+    VIEW_ITEM_MODE_EDIT_MARKUP,
     ViewInventory,
     HistoryState
 }

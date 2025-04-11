@@ -67,7 +67,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }
         case COPY_LAST: {
-            const { diff }: LastRequiredState = getLast(getState())
+            const { c: { diff } }: LastRequiredState = getLast(getState())
             if (diff) {
                 const text = diff.map(d => `${d.n}\t${d.q}\t${d.v}`).join('\n')
                 navigator.clipboard.writeText(text).catch(err => console.error('Failed to copy text: ', err));

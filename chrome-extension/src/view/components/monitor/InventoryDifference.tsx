@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
-import { ViewItemData } from '../../application/state/history'
+import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectForAction } from '../../application/actions/menu'
 import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
+import { getMaterial } from '../../application/selectors/materials'
+import { materialBuyMarkupChanged } from '../../application/actions/materials'
 
 interface Config {
     sortBy: (part: number) => any
@@ -16,7 +18,10 @@ interface Config {
     exclude?: (key: number) => any
     permanentExcludeOn?: (key: number) => any
     permanentExcludeOff?: (key: number) => any
+    setMode?: (key: number, type: number, data: any) => any
+    clearMode?: (key: number) => any
     showPeds: boolean
+    showMarkup: boolean
     movedTitle: string
 }
 
@@ -26,6 +31,7 @@ const ItemRow = (p: {
 }) => {
     const { item, c } = p
     const dispatch = useDispatch()
+    const material = useSelector(getMaterial(item.n))
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
         dispatch(c.sortBy(part))
@@ -61,6 +67,23 @@ const ItemRow = (p: {
                 title={item.v.includes('(') ? c.movedTitle : ''}>
                 <ItemText text={item.v === '' ? '' : item.v + ' PED'} />
             </td>
+            { c.showMarkup && <>
+                <td style={{paddingRight: 0}}>
+                    { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
+                        <><input id='newPedInput' type='text' value={material.buyMarkup} onChange={(e) => dispatch(materialBuyMarkupChanged(item.n)(e.target.value))} /> %</> :
+                        <ItemText text={material?.buyMarkup ? `${material.buyMarkup} %` : ''} /> }
+                </td><td style={{paddingLeft: 0}}>
+                    { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
+                        <>
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ materialBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode(item.key)} />
+                        </> :
+                        <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => [
+                            materialBuyMarkupChanged(item.n)(material?.buyMarkup ?? '100'), // ensure that the material is created
+                            c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
+                        ]} /> }
+                </td></>
+            }
             <td onClick={sortBy(CONTAINER)}>
                 <ItemText text={item.c} />
             </td>
@@ -81,9 +104,10 @@ const ItemRow = (p: {
 }
 
 const PedRow = (p: {
-    item: ViewPedData
+    item: ViewPedData,
+    c: Config
 }) => {
-    const { item } = p
+    const { item, c } = p
     return (
         <tr>
             <td>
@@ -92,12 +116,10 @@ const PedRow = (p: {
             <td>
                 <ImgButton title='Remove PEDs' src='img/cross.png' dispatch={() => removePeds(item.key)} />
             </td>
-            <td></td>
+            <td></td>{ /* quantity */ }
             <td>
                 <ItemText text={item.value + ' PED'} />
             </td>
-            <td></td>
-            <td></td>
         </tr >
     )
 }
@@ -108,8 +130,8 @@ const PedNewRow = () => {
     return (
         <tr>
             <td>PED</td>
-            <td></td>
-            <td></td>
+            <td></td>{ /* actions */ }
+            <td></td>{ /* quantity */ }
             <td>
                 <input id='newPedInput' type='text' value={peds} onChange={(e) => setPeds(e.target.value)} />
             </td>
@@ -128,7 +150,6 @@ const PedNewRow = () => {
                     }} />)
                 }
             </td>
-            <td></td>
         </tr >
     )
 }
@@ -153,7 +174,8 @@ const InventoryDifference = (p: {
                     p.peds.map((item: ViewPedData) =>
                         <PedRow
                             key={item.key}
-                            item={item} />
+                            item={item}
+                            c={p.config} />
                     )
                 }
                 { p.config.showPeds && <PedNewRow key='0' /> }

@@ -139,7 +139,7 @@ const _materialChangedMod = (state: MaterialsState, material: string, change: (s
 
 const reduceMaterialBuyMarkupChanged = (state: MaterialsState, material: string, buyMarkup: string): MaterialsState =>
     _materialChangedMod(state, material, s => {
-        let calc = s.calc
+        let calc = s?.calc
         if (calc) {
             const mu = buyMarkup ? Number(buyMarkup) / 100 : 1;
             const n = parseFloat(calc.total)
@@ -177,7 +177,7 @@ const _materialChangedCalc = (state: MaterialsState, material: string, str: stri
         return _materialChangedMod(state, material, s => ({ calc: { ...s?.calc, ...partial } }))
 
     const v = m.web.material.data.value.value
-    const mu = m.buyMarkup ? Number(m.buyMarkup) / 100 : 1;
+    const mu = getMarkup(m);
     return _materialChangedMod(state, material, s => ({ calc: getCalc(n, v, mu) })) // parameters are (input Number, Value, Markup)
 }
 
@@ -197,6 +197,8 @@ const cleanWeb = (state: MaterialsState): MaterialsState => {
     })
     return cState
 }
+
+const getMarkup = (m: MaterialState) => { const mu = parseFloat(m?.buyMarkup); return isNaN(mu) ? 1 : mu / 100 }
 
 const cleanForSaveMain = (state: MaterialsState): MaterialsState => {
     const cState: MaterialsState = JSON.parse(JSON.stringify(state))
@@ -233,6 +235,7 @@ export {
     initialState,
     materialMap,
     refinedInitialMap,
+    getMarkup,
     reduceSetState,
     reduceMaterialBuyMarkupChanged,
     reduceMaterialOrderMarkupChanged,

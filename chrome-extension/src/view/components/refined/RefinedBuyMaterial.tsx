@@ -4,7 +4,6 @@ import { materialBuyAmountChanged, materialBuyMarkupChanged } from '../../applic
 import { getMaterial } from '../../application/selectors/materials'
 import { MaterialState } from '../../application/state/materials'
 import RefinedButton from './RefinedButton'
-import RefinedBuyMaterialInput from './RefinedBuyMaterialInput'
 import { refinedBuyMaterial } from '../../application/actions/sheets'
 import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
 import { UNIT_PERCENTAGE } from '../../application/helpers/materials'

@@ -15,7 +15,7 @@ function FeatureSelector() {
                 {
                     featureList.map(f =>
                         <div>
-                            <input type="checkbox" checked={s.features.includes(f.id)} onChange={e => {
+                            <input type='checkbox' checked={s.features.includes(f.id)} onChange={e => {
                                 const checked = (e.target as HTMLInputElement).checked
                                 dispatch(enableFeature(f.id, checked))
                             }} />

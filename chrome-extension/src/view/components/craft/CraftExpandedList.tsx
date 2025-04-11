@@ -12,14 +12,12 @@ import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
 import { MaterialsMap } from '../../application/state/materials'
 import { getMaterialsMap } from '../../application/selectors/materials'
-import { getByStoreInventory, getByStoreInventoryItem, getInventory } from '../../application/selectors/inventory'
-import { InventoryByStore, InventoryState } from '../../application/state/inventory'
+import { getByStoreInventory } from '../../application/selectors/inventory'
+import { InventoryByStore } from '../../application/state/inventory'
 import { BlueprintWebMaterial } from '../../../web/state'
-import { loadMaterialData, loadMaterialRawMaterials, materialBuyMarkupChanged, materialNotesValueChanged } from '../../application/actions/materials'
-import { Field, FieldArea } from '../common/Field'
+import { loadMaterialData, loadMaterialRawMaterials } from '../../application/actions/materials'
 import WebDataControl from '../common/WebDataControl'
 import MaterialInventory from '../material/MaterialInventory'
-import { info } from 'sass'
 import MaterialNotes from '../material/MaterialNotes'
 import MaterialMarkup from '../material/MaterialMarkup'
 
@@ -155,7 +153,7 @@ function CraftSingle(p: {
             }
         })
 
-        const { diff }: LastRequiredState = useSelector(getLast)
+        const { c: { diff } }: LastRequiredState = useSelector(getLast)
         if (diff) {
             d.c.materials?.forEach((m: BlueprintWebMaterial) => {
                 const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
@@ -182,7 +180,7 @@ function CraftSingle(p: {
             })
         }
     } else {
-        const { diff }: LastRequiredState = useSelector(getLast);
+        const { c: { diff } }: LastRequiredState = useSelector(getLast);
         if (diff) {
             let onNeeded = false
             d.c.materials?.forEach((m: BlueprintWebMaterial) => {

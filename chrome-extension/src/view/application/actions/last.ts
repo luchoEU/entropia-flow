@@ -1,40 +1,28 @@
 import { Inventory } from "../../../common/state"
 import { AvailableCriteria } from "../state/inventory"
-import { ViewPedData } from "../state/last"
+import { LastRequiredState, ViewPedData } from "../state/last"
+import { MaterialsMap } from "../state/materials"
 
-const SET_BLACKLIST = "[last] set blacklist"
-const SET_PERMANENT_BLACKLIST = "[last] set permanent blacklist"
-const SET_PEDS = "[last] set peds"
+const SET_LAST_STATE = "[last] set state"
 const ON_LAST = "[last] on last"
 const SET_EXPANDED = "[last] set expanded"
 const INCLUDE = "[last] include"
 const EXCLUDE = "[last] exclude"
 const EXCLUDE_WARNINGS = "[last] exclude warnings"
 const PERMANENT_EXCLUDE = "[last] permanent exclude"
+const SET_LAST_ITEM_MODE = "[last] set last item mode"
+const SET_LAST_SHOW_MARKUP = "[last] set last show markup"
 const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
 const ADD_ACTIONS = "[last] add actions"
 const ADD_NOTIFICATIONS_DONE = "[last] add notifications done"
+const APPLY_MARKUP_TO_LAST = "[last] apply markup"
 
-const setBlacklist = (list: Array<string>) => ({
-    type: SET_BLACKLIST,
+const setLastState = (state: LastRequiredState) => ({
+    type: SET_LAST_STATE,
     payload: {
-        list
-    }
-})
-
-const setPermanentBlacklist = (list: Array<string>) => ({
-    type: SET_PERMANENT_BLACKLIST,
-    payload: {
-        list
-    }
-})
-
-const setPeds = (peds: Array<ViewPedData>) => ({
-    type: SET_PEDS,
-    payload: {
-        peds
+        state
     }
 })
 
@@ -83,6 +71,29 @@ const permanentExcludeOff = (key: number) => ({
     }
 })
 
+const setLastItemMode = (key: number, type: number, data: any) => ({
+    type: SET_LAST_ITEM_MODE,
+    payload: {
+        key,
+        mode: { type, data }
+    }
+})
+
+const clearLastItemMode = (key: number) => ({
+    type: SET_LAST_ITEM_MODE,
+    payload: {
+        key,
+        mode: undefined
+    }
+})
+
+const setLastShowMarkup = (showMarkup: boolean) => ({
+    type: SET_LAST_SHOW_MARKUP,
+    payload: {
+        showMarkup
+    }
+})
+
 const excludeWarnings = {
     type: EXCLUDE_WARNINGS
 }
@@ -122,24 +133,30 @@ const addNotificationsDone = (messages: string[]) => ({
     }
 })
 
+const applyMarkupToLast = (materials: MaterialsMap) => ({
+    type: APPLY_MARKUP_TO_LAST,
+    payload: {
+        materials
+    }
+})
+
 export {
-    SET_BLACKLIST,
-    SET_PERMANENT_BLACKLIST,
-    SET_PEDS,
+    SET_LAST_STATE,
     ON_LAST,
     SET_EXPANDED,
     INCLUDE,
     EXCLUDE,
     EXCLUDE_WARNINGS,
     PERMANENT_EXCLUDE,
+    SET_LAST_ITEM_MODE,
+    SET_LAST_SHOW_MARKUP,
     SORT_BY,
     ADD_PEDS,
     REMOVE_PEDS,
     ADD_ACTIONS,
     ADD_NOTIFICATIONS_DONE,
-    setBlacklist,
-    setPermanentBlacklist,
-    setPeds,
+    APPLY_MARKUP_TO_LAST,
+    setLastState,
     onLast,
     setExpanded,
     include,
@@ -150,6 +167,10 @@ export {
     removePeds,
     permanentExcludeOn,
     permanentExcludeOff,
+    setLastItemMode,
+    setLastShowMarkup,
+    clearLastItemMode,
     addActionsToLast,
     addNotificationsDone,
+    applyMarkupToLast,
 }

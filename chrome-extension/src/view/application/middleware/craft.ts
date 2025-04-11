@@ -314,7 +314,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             if (state.activeSession) {
                 const activeSessionBp = state.blueprints[state.activeSession]
                 const map: { [n: string]: { q: number, v: number } } = { }
-                const { diff }: LastRequiredState  = getLast(getState())
+                const { c: { diff } }: LastRequiredState  = getLast(getState())
                 if (diff) {
                     diff.forEach((v: ViewItemData) => {
                         if (!v.e) {// not excluded
