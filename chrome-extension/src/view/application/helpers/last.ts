@@ -237,7 +237,12 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
 }
 
 const _sumDiff = (diff: ViewItemData[], materials: MaterialsMap): number =>
-    diff?.reduce((p, c) => p + (c.e ? 0 : Number(c.v) * getMarkup(materials[c.n])), 0) ?? 0;
+    diff?.reduce((p, c) => {
+        if (c.e) return p; // excluded
+        const v = parseFloat(c.v);
+        if (isNaN(v)) return p; // moved item, number in parenthesis (N)
+        return p + v * getMarkup(materials[c.n]);
+    }, 0) ?? 0;
 
 const reduceApplyMarkup = (state: LastRequiredState, materials: MaterialsMap): LastRequiredState => ({
     ...state,

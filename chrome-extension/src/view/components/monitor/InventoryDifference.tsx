@@ -10,6 +10,8 @@ import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
 import { getMaterial } from '../../application/selectors/materials'
 import { materialBuyMarkupChanged } from '../../application/actions/materials'
+import { getMarkup } from '../../application/helpers/materials'
+import TextButton from '../common/TextButton'
 
 interface Config {
     sortBy: (part: number) => any
@@ -70,18 +72,22 @@ const ItemRow = (p: {
             { c.showMarkup && <>
                 <td style={{paddingRight: 0}}>
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
-                        <><input id='newPedInput' type='text' value={material.buyMarkup} onChange={(e) => dispatch(materialBuyMarkupChanged(item.n)(e.target.value))} /> %</> :
+                        <>
+                            <input id='newPedInput' type='text' value={material.buyMarkup} onChange={(e) => dispatch(materialBuyMarkupChanged(item.n)(e.target.value))} />
+                        </> :
                         <ItemText text={material?.buyMarkup ? `${material.buyMarkup} %` : ''} /> }
                 </td><td style={{paddingLeft: 0}}>
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
                         <>
                             <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ materialBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
                             <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode(item.key)} />
-                        </> :
-                        <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => [
-                            materialBuyMarkupChanged(item.n)(material?.buyMarkup ?? '100'), // ensure that the material is created
-                            c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
-                        ]} /> }
+                        </> : <>
+                            <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => [
+                                materialBuyMarkupChanged(item.n)(material?.buyMarkup ?? '100'), // ensure that the material is created
+                                c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
+                            ]} />
+                            { material?.buyMarkup && !isNaN(parseFloat(item.v)) && <ItemText text={(parseFloat(item.v) * getMarkup(material)).toFixed(2) + ' PED'} /> }
+                        </> }
                 </td></>
             }
             <td onClick={sortBy(CONTAINER)}>

@@ -69,7 +69,7 @@ const Last = () => {
                         setExpanded={setExpanded}
                     />
                     <span onClick={() => dispatch(setExpanded(!expanded))}>{ text }</span>
-                    <span className={`difference ${getDeltaClass(delta)}`}>{ delta.toFixed(2) }</span>
+                    <span className={`difference ${getDeltaClass(delta)}`}>{ delta?.toFixed(2) }</span>
                     { hasWarning &&
                         <ImgButton
                             title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
@@ -84,7 +84,7 @@ const Last = () => {
                             className='img-delta-zero'
                             dispatch={() => setLast} />
                     }
-                    { expanded && 
+                    { expanded &&
                         <>
                             <ImgButton
                                 title='Copy to clipboard'
