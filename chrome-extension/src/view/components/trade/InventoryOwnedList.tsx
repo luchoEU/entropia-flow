@@ -121,7 +121,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         ownedTableData.columnsWidth = columnsWidth
 
     return <>
-        <WebDataControl w={material?.web?.material} dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(webMaterial: MaterialWebData) =>
+        <WebDataControl w={material?.web?.material} name='Basic Information' dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(webMaterial: MaterialWebData) =>
             <>
                 <p>Type: { webMaterial.type }</p>
                 <p>Value: { addZeroes(webMaterial.value) }</p>
@@ -131,7 +131,8 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             </>
         } />
         <MaterialNotes name={tradeItemData.name} />
-        <WebDataControl w={material?.web?.usage} dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
+        <p style={{ height: '5px' }} />
+        <WebDataControl w={material?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
             <>
                 { favoriteTableData ?
                     <SortableFixedSizeTable data={favoriteTableData} /> :

@@ -5,12 +5,13 @@ import React from "react"
 
 function WebDataControl<T>(p: {
     w: WebLoadResponse<T>,
+    name: string,
     dispatchReload: () => any,
     content: (data: T) => JSX.Element
 }) {
-    const { w } = p
+    const { w, name } = p
     const reload = () => p.dispatchReload && <ImgButton
-        title='Try to load blueprint again'
+        title={`Try to load ${name} again`}
         src='img/reload.png'
         className='img-delta-zero'
         dispatch={p.dispatchReload} />
@@ -27,7 +28,7 @@ function WebDataControl<T>(p: {
                     { reload() }
                 </> :
                 <>
-                    <p>{ w.data.link && <a href={w.data.link.href} target='_blank'>{w.data.link.text}</a> }{ reload() }</p>
+                    <p>{ w.data.link && <a href={w.data.link.href} target='_blank'>{`${name} in ${w.data.link.text}`}</a> }{ reload() }</p>
                     { p.content(w.data.value) }
                 </>)
         )}

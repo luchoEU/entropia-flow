@@ -214,7 +214,7 @@ function CraftSingle(p: {
     bought = undefined
 
     return (
-        <WebDataControl w={d.web?.blueprint} dispatchReload={() => reloadBlueprint(d.name)} content={bp => <>
+        <WebDataControl w={d.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(d.name)} content={bp => <>
             { SHOW_FEATURES_IN_DEVELOPMENT && SHOW_BUDGET_IN_CRAFT && <>
                 <p>Budget Page: { d.budget.loading ?
                 <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
@@ -397,7 +397,7 @@ function CraftExpandedList() {
                                 <p>Value: { addZeroes(afterChainMat.value) }</p>
                             </>}
                             <MaterialMarkup name={afterChain} />
-                            <WebDataControl w={afterChainRaw}
+                            <WebDataControl w={afterChainRaw} name='Raw Materials'
                                 dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}
                                 content={d => d.length > 0 &&
                                 <table style={{ marginBottom: '10px' }}>
