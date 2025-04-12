@@ -571,7 +571,7 @@ button:active {
     font-weight: bold;
 }
 
-.button-text {
+.button-text, .button-reserve {
     background-color: transparent;
     color: black;
     border: solid 1px gray;
@@ -581,12 +581,22 @@ button:active {
     width: 20px;
 }
 
+.sortable-before-table {
+    display: flex;
+    margin-bottom: 10px;
+}
+
 .button-markup {
     margin-left: 15px;
     border-color: transparent;
 }
 
-.button-markup.active {
+.button-reserve {
+    border: unset;
+    background-color: lightyellow;
+}
+
+.button-markup.active, .button-reserve.active {
     background-color: black;
     color: white;
 }

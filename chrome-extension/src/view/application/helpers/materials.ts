@@ -167,6 +167,9 @@ const reduceMaterialOrderValueChanged = (state: MaterialsState, material: string
 const reduceMaterialNotesValueChanged = (state: MaterialsState, material: string, notes: string): MaterialsState =>
     _materialChanged(state, material, { notes })
 
+const reduceMaterialReserveValueChanged = (state: MaterialsState, material: string, reserveAmount: string): MaterialsState =>
+    _materialChanged(state, material, { reserveAmount })
+
 const reduceSetMaterialPartialWebData = (state: MaterialsState, material: string, change: Partial<MaterialStateWebData>): MaterialsState =>
     _materialChangedMod(state, material, s => ({ web: { ...s?.web, ...change } }))
 
@@ -272,6 +275,7 @@ export {
     reduceMaterialBuyAmountChanged,
     reduceMaterialOrderValueChanged,
     reduceMaterialNotesValueChanged,
+    reduceMaterialReserveValueChanged,
     reduceSetMaterialPartialWebData,
     reduceSetMaterialCalculatorQuantity,
     reduceSetMaterialCalculatorTotal,

@@ -22,6 +22,7 @@ interface MaterialState {
     markupUnit: MarkupUnit,
     useAmount?: string,
     refineAmount?: string,
+    reserveAmount?: string,
     notes?: string
     calc?: MaterialStateCalcData
 

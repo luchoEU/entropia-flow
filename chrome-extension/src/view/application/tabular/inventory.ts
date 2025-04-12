@@ -3,6 +3,7 @@ import { hideByContainer, hideByName, hideByValue, showByContainer, showByName, 
 import { setTabularFilter } from "../actions/tabular";
 import { reloadTTService } from "../actions/ttService";
 import { INVENTORY_TABULAR_OWNED, InventoryState, ItemOwned, TradeItemData } from "../state/inventory";
+import { MaterialsMap, MaterialState } from "../state/materials";
 import { FEATURE_TT_SERVICE_TRADE_COLUMN, isFeatureEnabled, SettingsState } from "../state/settings";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 
@@ -11,15 +12,31 @@ interface InventoryTabularOwnedData {
     chain: TradeItemData[]
 }
 
-const inventoryTabularData = (state: InventoryState, settings: SettingsState): TabularRawData<ItemOwned, InventoryTabularOwnedData> => ({
-    [INVENTORY_TABULAR_OWNED]: {
-        data: {
-            ttService: isFeatureEnabled(FEATURE_TT_SERVICE_TRADE_COLUMN, settings),
-            chain: state.tradeItemDataChain
+const inventoryTabularData = (state: InventoryState, settings: SettingsState, materials: MaterialsMap): TabularRawData<ItemOwned, InventoryTabularOwnedData> => {
+    let items: ItemOwned[] = state.owned.hideCriteria.show ? state.owned.items : state.owned.items.filter(d => !d.c.hidden.any);
+    if (state.owned.options.reserve) {
+        items = items.map(d => {
+            const m: MaterialState = materials[d.data.n];
+            if (!m) return d;
+            const reserve: number = parseFloat(m.reserveAmount);
+            if (isNaN(reserve)) return d;
+            const unitValue = m.web?.material?.data.value.value
+            const nv = Number(d.data.v) - reserve;
+            const v = nv.toFixed(2);
+            const q = unitValue ? (nv / unitValue).toFixed(0) : ''; // dont show quantity if unit value is unknown
+            return { ...d, data: { ...d.data, v, q } }
+        });
+    }
+    return {
+        [INVENTORY_TABULAR_OWNED]: {
+            data: {
+                ttService: isFeatureEnabled(FEATURE_TT_SERVICE_TRADE_COLUMN, settings),
+                chain: state.tradeItemDataChain
+            },
+            items
         },
-        items: state.hiddenCriteria.show ? state.owned : state.owned.filter(d => !d.c.hidden.any)
-    },
-})
+    }
+}
 
 const inventoryTabularDefinitions: TabularDefinitions = {
     [INVENTORY_TABULAR_OWNED]: {

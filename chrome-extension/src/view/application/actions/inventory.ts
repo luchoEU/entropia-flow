@@ -46,6 +46,7 @@ const SORT_TRADE_OWNED_BLUEPRINTS_BY = "[inv] sort trade owned blueprints by"
 const SORT_TRADE_OTHER_BLUEPRINTS_BY = "[inv] sort trade other blueprint by"
 const ADD_AVAILABLE = "[inv] add available"
 const REMOVE_AVAILABLE = "[inv] remove available"
+const ENABLE_OWNED_RESERVE_FEATURE = "[inv] enable owned reserve feature"
 
 const loadInventoryState = (state: InventoryState) => ({
     type: LOAD_INVENTORY_STATE,
@@ -350,6 +351,13 @@ const sortTradeOtherBlueprintsBy = (chainIndex: number) => (part: number) => ({
     }
 })
 
+const enableOwnedReserveFeature = (enabled: boolean) => ({
+    type: ENABLE_OWNED_RESERVE_FEATURE,
+    payload: {
+        enabled
+    }
+})
+
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
@@ -393,6 +401,7 @@ export {
     SORT_TRADE_OTHER_BLUEPRINTS_BY,
     ADD_AVAILABLE,
     REMOVE_AVAILABLE,
+    ENABLE_OWNED_RESERVE_FEATURE,
     loadInventoryState,
     setCurrentInventory,
     setOwnedBlueprintsFilter,
@@ -435,4 +444,5 @@ export {
     sortTradeOtherBlueprintsBy,
     addAvailable,
     removeAvailable,
+    enableOwnedReserveFeature,
 }

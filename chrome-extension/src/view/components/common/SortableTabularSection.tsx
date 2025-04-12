@@ -282,7 +282,7 @@ const SortableTabularSection = (p: {
                     { p.afterSearch && <RowValueRenderComponent v={p.afterSearch} /> }
                 </p>
             </div>
-            { p.beforeTable && <div><RowValueRenderComponent v={p.beforeTable} /></div> }
+            { p.beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={p.beforeTable} /></div> }
             {
                 p.useTable ?
                     <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} /> :

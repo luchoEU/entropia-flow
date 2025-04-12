@@ -82,7 +82,20 @@ interface TreeLineData extends ItemData {
   isEditing?: boolean
 }
 
-interface HideCriteria {
+interface OwnedOptions {
+  planet?: string;
+  reserve?: boolean; // feature enabled
+  groupBy?: OwnedGroupBy;
+  groupRefined?: boolean;
+}
+
+enum OwnedGroupBy {
+  None,
+  SameContainer,
+  SameItem
+}
+
+interface OwnedHideCriteria {
   show: boolean;
   name: Array<string>;
   container: Array<string>;
@@ -129,8 +142,11 @@ interface TradeBlueprintLineData {
 interface InventoryState {
   blueprints: InventoryListWithFilter<ItemData>;
   auction: InventoryList<ItemData>;
-  owned: Array<ItemOwned>;
-  hiddenCriteria: HideCriteria;
+  owned: {
+    items: Array<ItemOwned>;
+    options: OwnedOptions;
+    hideCriteria: OwnedHideCriteria;
+  }
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria;
@@ -139,7 +155,8 @@ interface InventoryState {
 
 export {
   INVENTORY_TABULAR_OWNED,
-  HideCriteria,
+  OwnedOptions,
+  OwnedHideCriteria,
   AvailableCriteria,
   ItemOwned,
   ContainerMapData,

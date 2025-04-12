@@ -8,6 +8,7 @@ const MATERIAL_REFINE_AMOUNT_CHANGED = '[material] refine amount changed'
 const MATERIAL_BUY_AMOUNT_CHANGED = '[material] buy amount changed'
 const MATERIAL_ORDER_VALUE_CHANGED = '[material] order value changed'
 const MATERIAL_NOTES_VALUE_CHANGED = '[material] notes value changed'
+const MATERIAL_RESERVE_VALUE_CHANGED = '[material] reserve value changed'
 const SET_MATERIAL_PARTIAL_WEB_DATA = '[material] set partial web data'
 const LOAD_MATERIAL_RAW_MATERIALS = '[material] load raw materials'
 const LOAD_MATERIAL_DATA = '[material] load data'
@@ -77,6 +78,14 @@ const materialNotesValueChanged = (material: string) => (value: string) => ({
     payload: {
         material,
         value
+    }
+})
+
+const materialReserveValueChanged = (material: string) => (reserveAmount: string) => ({
+    type: MATERIAL_RESERVE_VALUE_CHANGED,
+    payload: {
+        material,
+        reserveAmount
     }
 })
 
@@ -151,6 +160,7 @@ export {
     MATERIAL_BUY_AMOUNT_CHANGED,
     MATERIAL_ORDER_VALUE_CHANGED,
     MATERIAL_NOTES_VALUE_CHANGED,
+    MATERIAL_RESERVE_VALUE_CHANGED,
     SET_MATERIAL_PARTIAL_WEB_DATA,
     LOAD_MATERIAL_RAW_MATERIALS,
     LOAD_MATERIAL_DATA,
@@ -167,6 +177,7 @@ export {
     materialBuyAmountChanged,
     materialOrderValueChanged,
     materialNotesValueChanged,
+    materialReserveValueChanged,
     setMaterialPartialWebData,
     loadMaterialRawMaterials,
     loadMaterialData,

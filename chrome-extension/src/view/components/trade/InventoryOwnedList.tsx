@@ -1,12 +1,12 @@
 import React from 'react'
-import { showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
+import { enableOwnedReserveFeature, showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
-import { getHideCriteria, getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
+import { getHideCriteria, getOwnedOptions, getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
 import { INVENTORY_TABULAR_OWNED, ItemOwned, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
-import { loadItemUsageData, loadMaterialData } from '../../application/actions/materials';
+import { loadItemUsageData, loadMaterialData, materialReserveValueChanged } from '../../application/actions/materials';
 import { ItemUsageWebData, MaterialWebData } from '../../../web/state';
 import { setBlueprintActivePage } from '../../application/actions/craft';
 import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
@@ -17,6 +17,7 @@ import MaterialNotes from '../material/MaterialNotes';
 import MaterialMarkup from '../material/MaterialMarkup';
 import MaterialCalculator from '../material/MaterialCalculator';
 import { getTabularData } from '../../application/selectors/tabular';
+import { Field } from '../common/Field';
 
 const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -77,6 +78,7 @@ const TradeItemDetailsChain = () => {
 const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemData: TradeItemData, chainIndex: number, chainNext: string }) => {
     const dispatch = useDispatch()
     const material = useSelector(getMaterial(tradeItemData.name))
+    const { reserve } = useSelector(getOwnedOptions)
 
     const favoriteTableData = tradeItemData?.c?.favoriteBlueprints?.length > 0 && calculate({
         allItems: tradeItemData.c.favoriteBlueprints,
@@ -119,11 +121,12 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         ownedTableData.columnsWidth = columnsWidth
 
     return <>
-        <WebDataControl w={material?.web?.material} dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(material: MaterialWebData) =>
+        <WebDataControl w={material?.web?.material} dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(webMaterial: MaterialWebData) =>
             <>
-                <p>Type: { material.type }</p>
-                <p>Value: { addZeroes(material.value) }</p>
+                <p>Type: { webMaterial.type }</p>
+                <p>Value: { addZeroes(webMaterial.value) }</p>
                 <MaterialMarkup name={tradeItemData.name} />
+                { reserve && <Field label='Reserve:' value={material.reserveAmount ?? ''} getChangeAction={materialReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
                 <MaterialCalculator name={tradeItemData.name} />
             </>
         } />
@@ -169,16 +172,26 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
 
 const InventoryVisibleList = () => {
     const c = useSelector(getHideCriteria)
-    const addButton = c.name.length > 0 || c.container.length > 0 || c.value >= 0
+    const opt = useSelector(getOwnedOptions)
+    const hasAnyHideCriteria = c.name.length > 0 || c.container.length > 0 || c.value >= 0
     return <SortableTabularSection
         selector={INVENTORY_TABULAR_OWNED}
-        afterSearch={ addButton && [
+        afterSearch={ hasAnyHideCriteria && [
             c.show && { button: 'Unhide All', class: 'show-all', title: 'Clear all hide filters and show all items', dispatch: showAll },
             {
                 img: c.show ? 'img/eyeClose.png' : 'img/eyeOpen.png',
                 class: 'img-hidden',
-                title: `${c.show ? 'Show':'Hide'} Hidden Items`,
+                title: `click to ${c.show ? 'Show':'Hide'} Hidden items`,
                 dispatch: () => showHiddenItems(!c.show)
+            }
+        ]}
+        beforeTable={[
+            { flex: 1 },
+            {
+                button: 'R',
+                class: `button-reserve ${opt.reserve ? 'active' : ''}`,
+                title: `Reserve option ${opt.reserve ? 'en' : 'dis'}abled, click to switch ${opt.reserve ? 'off':'on'}`,
+                dispatch: () => enableOwnedReserveFeature(!opt.reserve)
             }
         ]}
     >
