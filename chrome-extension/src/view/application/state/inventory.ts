@@ -110,15 +110,17 @@ interface AvailableCriteria {
 
 interface ItemOwned {
   data: ItemData;
-  c: {
-    showingTradeItem?: boolean
-    ttServiceValue?: number
+  c: { // calculated on data
     hidden: {
       any: boolean;
       name: boolean;
       container: boolean;
       value: boolean;
     };
+  }
+  t?: { // calculated when creating the tabular data
+    showingTradeItem: boolean
+    ttServiceValue: number | undefined
   }
 }
 

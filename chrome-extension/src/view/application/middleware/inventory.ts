@@ -6,6 +6,7 @@ import { loadItemUsageData, MATERIAL_RESERVE_VALUE_CHANGED, SET_MATERIAL_PARTIAL
 import { SELECT_MENU, TRADE_PAGE } from "../actions/menu"
 import { ENABLE_FEATURE } from "../actions/settings"
 import { setTabularData } from "../actions/tabular"
+import { SET_TT_SERVICE_PARTIAL_WEB_DATA } from "../actions/ttService"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/inventory"
 import { cleanForSaveByStore } from "../helpers/inventory.byStore"
@@ -14,10 +15,12 @@ import { getCraft } from "../selectors/craft"
 import { getInventory } from "../selectors/inventory"
 import { getMaterial, getMaterialsMap } from "../selectors/materials"
 import { getSettings } from "../selectors/settings"
+import { getTTService } from "../selectors/ttService"
 import { CraftState } from "../state/craft"
 import { InventoryByStore, InventoryState } from "../state/inventory"
 import { MaterialsMap } from "../state/materials"
 import { SettingsState } from "../state/settings"
+import { TTServiceState } from "../state/ttService"
 import { inventoryTabularData, inventoryTabularDefinitions } from "../tabular/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -122,11 +125,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case ENABLE_FEATURE:
         case ENABLE_OWNED_RESERVE_FEATURE:
         case MATERIAL_RESERVE_VALUE_CHANGED:
-        case SET_MATERIALS_STATE: {
+        case SET_MATERIALS_STATE:
+        case SET_TT_SERVICE_PARTIAL_WEB_DATA: {
             const state: InventoryState = getInventory(getState())
             const settings: SettingsState = getSettings(getState())
             const materials: MaterialsMap = getMaterialsMap(getState())
-            dispatch(setTabularData(inventoryTabularData(state, settings, materials)))
+            const ttService: TTServiceState = getTTService(getState())
+            dispatch(setTabularData(inventoryTabularData(state, settings, materials, ttService)))
             break
         }
     }

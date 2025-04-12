@@ -132,7 +132,7 @@ const _getAvailable = (
 const loadInventory = (
   state: InventoryState,
   list: Array<ItemData>,
-): InventoryState => _propagateTradeItemName({
+): InventoryState => ({
   ...state,
   blueprints: _sortAndStatsWithFilter(state.blueprints, _getBlueprints(list), _blueprintSelect),
   auction: _sortAndStats({
@@ -321,14 +321,6 @@ const reduceShowHiddenItems = (state: InventoryState, show: boolean): InventoryS
 const reduceShowAll = (state: InventoryState): InventoryState =>
   _changeHiddenCriteria(state, emptyCriteria);
 
-const _propagateTradeItemName = (state: InventoryState): InventoryState => ({
-  ...state,
-  owned: {
-    ...state.owned,
-    items: state.owned.items.map(d => ({ ...d, c: { ...d.c, showingTradeItem: d.data.n === state.tradeItemDataChain?.[0].name } }))
-  }
-})
-
 const reduceShowTradingItemData = (state: InventoryState, name: string, chainIndex: number): InventoryState => {
   let tradeItemDataChain: TradeItemData[]
   if (!name && chainIndex === 0) {
@@ -353,10 +345,7 @@ const reduceShowTradingItemData = (state: InventoryState, name: string, chainInd
       })
     }
   }
-  return _propagateTradeItemName({
-    ...state,
-    tradeItemDataChain
-  });
+  return { ...state, tradeItemDataChain };
 }
 
 const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState, usage: WebLoadResponse<ItemUsageWebData>[]): InventoryState => {

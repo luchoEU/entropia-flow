@@ -1,14 +1,16 @@
 import { WebLoadResponse } from "../../../web/loader"
 
 interface TTServiceState {
-    web?: {
-        inventory?: WebLoadResponse<TTServiceInventoryWebData>
-    }
+    web?: TTServiceStateWebData
 }
 
-type TTServiceInventoryWebData = Array<TTServiceItem>
+interface TTServiceStateWebData {
+    inventory?: WebLoadResponse<TTServiceInventoryWebData>
+}
 
-interface TTServiceItem {
+type TTServiceInventoryWebData = Array<TTServiceSheetItem>
+
+interface TTServiceSheetItem {
     date: string
     player: string
     name: string
@@ -18,5 +20,7 @@ interface TTServiceItem {
 
 export {
     TTServiceState,
-    TTServiceItem
+    TTServiceStateWebData,
+    TTServiceInventoryWebData,
+    TTServiceSheetItem,
 }

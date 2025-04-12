@@ -1,6 +1,6 @@
 import { FetchResponse } from "./fetch";
 import { EntropiaNexus } from "./nexus";
-import { IWebSource, SourceLoadResponse } from "./sources";
+import { ISource, IWebSource, SourceLoadResponse } from "./sources";
 import { EntropiaWiki } from "./wiki";
 
 const WebSources: IWebSource[]  = [ new EntropiaNexus(), new EntropiaWiki() ]
@@ -40,11 +40,11 @@ async function mapResponse<TF,TR>(fetch: Promise<FetchResponse<TF>>, mapper: (da
     }
 }
 
-async function* loadFromWeb<T>(loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
+async function* loadFrom<T, TSource extends ISource>(sources: TSource[], _loadFrom: (source: TSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
     let errors: { message: string, href: string }[] = [];
-    for (const source of WebSources) {
+    for (const source of sources) {
         yield { loading: { source: source.name } }
-        const response = await loadFrom(source)
+        const response = await _loadFrom(source)
         if (response.ok) {
             errors = undefined
             yield { data: { value: response.data, link: { text: source.name, href: response.url } } }
@@ -58,8 +58,13 @@ async function* loadFromWeb<T>(loadFrom: (source: IWebSource) => Promise<SourceL
     }
 }
 
+async function* loadFromWeb<T>(_loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
+    yield* loadFrom(WebSources, _loadFrom);
+}
+
 export {
     mapResponse,
     WebLoadResponse,
+    loadFrom,
     loadFromWeb,
 }

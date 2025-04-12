@@ -18,6 +18,11 @@ import MaterialMarkup from '../material/MaterialMarkup';
 import MaterialCalculator from '../material/MaterialCalculator';
 import { getTabularData } from '../../application/selectors/tabular';
 import { Field } from '../common/Field';
+import { getTTService } from '../../application/selectors/ttService';
+import { getSettings, isFeatureEnabled } from '../../application/selectors/settings';
+import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
+import { loadTTService } from '../../application/actions/ttService';
+import { TTServiceInventoryWebData } from '../../application/state/ttService';
 
 const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -78,6 +83,9 @@ const TradeItemDetailsChain = () => {
 const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemData: TradeItemData, chainIndex: number, chainNext: string }) => {
     const dispatch = useDispatch()
     const material = useSelector(getMaterial(tradeItemData.name))
+    const ttService = useSelector(getTTService)
+    const showTTService = useSelector(isFeatureEnabled(FEATURE_TT_SERVICE_RELOAD));
+
     const { reserve } = useSelector(getOwnedOptions)
 
     const favoriteTableData = tradeItemData?.c?.favoriteBlueprints?.length > 0 && calculate({
@@ -131,6 +139,34 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             </>
         } />
         <MaterialNotes name={tradeItemData.name} />
+        { showTTService && <>
+            <p style={{ height: '5px' }} />
+            <WebDataControl w={ttService?.web?.inventory} name='TT Inventory' dispatchReload={loadTTService} content={(inventory: TTServiceInventoryWebData) => {
+                const list = inventory.filter(d => d.name === tradeItemData.name)
+                return list.length === 0 ?
+                    <p><strong>No entries in TT Service Inventory</strong></p> :
+                    <table style={{ marginBottom: '10px' }}>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Player</th>
+                                <th>Quantity</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            { list.map(d => (
+                                <tr>
+                                    <td>{d.date}</td>
+                                    <td>{d.player}</td>
+                                    <td>{d.quantity}</td>
+                                    <td>{d.value}</td>
+                                </tr>
+                            )) }
+                        </tbody>
+                    </table>
+            }} />
+        </> }
         <p style={{ height: '5px' }} />
         <WebDataControl w={material?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
             <>

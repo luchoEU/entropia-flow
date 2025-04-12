@@ -25,7 +25,7 @@ async function loadTTDoc(accessInfo: SheetAccessInfo, setStage: SetStage): Promi
             { ...accessInfo, documentId: accessInfo.ttServiceDocumentId }, setStage)
         ttDocId = accessInfo.ttServiceDocumentId
     }
-    return doc
+    return ttDoc
 }
 
 async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<string[]> {

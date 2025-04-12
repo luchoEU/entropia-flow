@@ -16,7 +16,7 @@ function WebDataControl<T>(p: {
         className='img-delta-zero'
         dispatch={p.dispatchReload} />
     return <>
-        { !w ? reload() : (
+        { !w ? <p>{name}{ reload() }</p> : (
             w.loading ?
                 <p><img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...</p> :
             (w.errors ?

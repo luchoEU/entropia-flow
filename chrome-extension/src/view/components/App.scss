@@ -375,6 +375,19 @@ td:hover .img-info {
     margin-left: 10px;
 }
 
+.sort-row .img-tt-service-reload, .sort-row .img-tt-service-loading, .sort-row .img-tt-service-error {
+    height: 12px;
+    width: 11px;
+}
+
+.sort-row .img-tt-service-reload, .sort-row .img-tt-service-loading {
+    margin: 0px;
+}
+
+.sort-row .img-tt-service-error {
+    margin: 0px 5px 0px 0px;
+}
+
 .img-hidden {
     height: 15px;
     align-self: center;

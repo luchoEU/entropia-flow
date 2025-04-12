@@ -69,7 +69,6 @@ async function listBudgetSheet(doc: any): Promise<string[]> {
         .map(s => s.title.slice(0, -TITLE_SUFFIX.length));
 }
 
-
 async function getTTServiceInventorySheet(doc: any, setStage: SetStage): Promise<any> {
     return await getSheet(doc, 'Inventory', setStage, STATE_LOADING_BUDGET_SHEET)
 }
@@ -80,7 +79,7 @@ async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
 }
 
 function getLastRow(sheet: any, column: number): number {
-    // last non empty cell of the first column
+    // last non empty cell of the column
     let row = sheet.rowCount - 1
     while (row > 0 && sheet.getCell(row, column).value === null)
         row--
@@ -116,6 +115,8 @@ function setDayDate(sheet: any, row: number, column: number, letter: string) {
     sheet.getCell(row, column).numberFormat = DATE_FORMAT
 }
 
+const getSheetUrl = (sheet: any) => `https://docs.google.com/spreadsheets/d/${sheet._spreadsheet.spreadsheetId}/edit#gid=${sheet.sheetId}`;
+
 export {
     DATE_FORMAT,
     TITLE_SUFFIX,
@@ -130,4 +131,5 @@ export {
     saveUpdatedCells,
     getLastRow,
     setDayDate,
+    getSheetUrl,
 }
