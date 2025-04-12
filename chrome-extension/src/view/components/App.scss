@@ -710,6 +710,10 @@ button:active {
     visibility: hidden;
 }
 
+.item-row .active {
+    font-weight: bold;
+}
+
 .item-row:hover .img-info {
     visibility: visible;
 }

@@ -121,7 +121,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SHOW_TRADING_ITEM_DATA:
         case ENABLE_FEATURE:
         case ENABLE_OWNED_RESERVE_FEATURE:
-        case MATERIAL_RESERVE_VALUE_CHANGED: {
+        case MATERIAL_RESERVE_VALUE_CHANGED:
+        case SET_MATERIALS_STATE: {
             const state: InventoryState = getInventory(getState())
             const settings: SettingsState = getSettings(getState())
             const materials: MaterialsMap = getMaterialsMap(getState())

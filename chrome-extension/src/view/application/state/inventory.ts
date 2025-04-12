@@ -83,10 +83,12 @@ interface TreeLineData extends ItemData {
 }
 
 interface OwnedOptions {
-  planet?: string;
   reserve?: boolean; // feature enabled
-  groupBy?: OwnedGroupBy;
-  groupRefined?: boolean;
+
+  // not implemented
+  planet?: string; // filter by planet
+  groupBy?: OwnedGroupBy; // group by same container or all containers
+  groupRefined?: boolean; // group refined and unrefined ores
 }
 
 enum OwnedGroupBy {

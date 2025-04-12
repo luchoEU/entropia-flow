@@ -125,8 +125,8 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             <>
                 <p>Type: { webMaterial.type }</p>
                 <p>Value: { addZeroes(webMaterial.value) }</p>
-                <MaterialMarkup name={tradeItemData.name} />
                 { reserve && <Field label='Reserve:' value={material.reserveAmount ?? ''} getChangeAction={materialReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
+                <MaterialMarkup name={tradeItemData.name} />
                 <MaterialCalculator name={tradeItemData.name} />
             </>
         } />

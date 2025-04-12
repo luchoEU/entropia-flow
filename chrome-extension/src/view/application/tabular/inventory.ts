@@ -57,7 +57,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                         g.c.hidden.any ?
                             { img: 'img/tick.png', title: 'Show this item name', dispatch: () => showByName(g.data.n), visible: g.c.hidden.name } :
                             { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => hideByName(g.data.n) },
-                        g.data.n,
+                        { text: g.data.n, class: g.c?.showingTradeItem && 'active' },
                         g.c?.showingTradeItem ?
                             { img: 'img/left.png', title: 'Hide item details', show: true } :
                             { img: 'img/right.png', title: 'Show item details' },
