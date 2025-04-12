@@ -8,7 +8,7 @@ import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
 import { loadItemUsageData, loadMaterialData, materialReserveValueChanged } from '../../application/actions/materials';
 import { ItemUsageWebData, MaterialWebData } from '../../../web/state';
-import { setBlueprintActivePage } from '../../application/actions/craft';
+import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft';
 import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
 import { getMaterial } from '../../application/selectors/materials';
 import MaterialInventory from '../material/MaterialInventory';
@@ -24,7 +24,7 @@ import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
 
-const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
+const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
         { justifyContent: 'center', text: type + ' Blueprint' }, // BP_NAME
         { justifyContent: 'end', text: 'Quantity per Click' }, // QUANTITY
@@ -33,12 +33,23 @@ const getBlueprintsTableData = (type: string, addBpLink: boolean): TableData2<Tr
         columns: [
             { // BP_NAME
                 style: { justifyContent: 'start' },
-                dispatch: () => [ selectMenu(CRAFT_PAGE), setBlueprintActivePage(item.bpName) ],
                 sub: [
                     { itemText: item.bpName },
-                    { visible: addBpLink,
+                    {
+                        visible: stared !== undefined,
+                        title: stared ? 'Remove from Favorites' : 'Add to Favorites',
+                        imgButton: {
+                            src: stared ? 'img/staron.png' : 'img/staroff.png',
+                            dispatch: () => setBlueprintStared(item.bpName, !stared)
+                        },
+                    },
+                    {
+                        visible: addBpLink,
                         title: 'Open this blueprint',
-                        img: { src: 'img/right.png' }
+                        imgButton: {
+                            src: 'img/right.png',
+                            dispatch: () => [ selectMenu(CRAFT_PAGE), setBlueprintActivePage(item.bpName) ],
+                        },
                     }
                 ]
             },
@@ -94,7 +105,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.favoriteBlueprints,
         sortBy: sortTradeFavoriteBlueprintsBy(chainIndex),
         itemSelector: getTradeFavoriteBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Favorite', true)
+        tableData: getBlueprintsTableData('Favorite', true, true)
     })
 
     const ownedTableData = tradeItemData?.c?.ownedBlueprints?.length > 0 && calculate({
@@ -103,7 +114,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.ownedBlueprints,
         sortBy: sortTradeOwnedBlueprintsBy(chainIndex),
         itemSelector: getTradeOwnedBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Owned', true)
+        tableData: getBlueprintsTableData('Owned', false, true)
     })
 
     const otherTableData = tradeItemData?.c?.otherBlueprints?.length > 0 && calculate({
@@ -112,7 +123,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.otherBlueprints,
         sortBy: sortTradeOtherBlueprintsBy(chainIndex),
         itemSelector: getTradeOtherBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Not Owned', false)
+        tableData: getBlueprintsTableData('Not Owned', undefined, false)
     })
 
     let columnsWidth: number[] = favoriteTableData?.columnsWidth
@@ -160,7 +171,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                                     <td>{d.date}</td>
                                     <td>{d.player}</td>
                                     <td>{d.quantity}</td>
-                                    <td>{d.value}</td>
+                                    <td>{d.value.toFixed(2)}</td>
                                 </tr>
                             )) }
                         </tbody>
