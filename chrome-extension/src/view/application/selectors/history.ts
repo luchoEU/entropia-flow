@@ -1,1 +1,3 @@
-export const getHistory = state => state.history
+import { HistoryState } from "../state/history";
+
+export const getHistory = (state: any): HistoryState => state.history

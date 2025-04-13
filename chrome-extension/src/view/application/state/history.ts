@@ -1,3 +1,5 @@
+import { Inventory } from "../../../common/state"
+
 interface ViewItemData {
     key: number // index
     n: string // name, string
@@ -33,6 +35,7 @@ interface ViewInventory {
     sortType: number
     isLast: boolean
     canBeLast: boolean
+    rawInventory: Inventory
 }
 
 interface HistoryState {

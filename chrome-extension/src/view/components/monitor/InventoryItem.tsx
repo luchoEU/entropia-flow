@@ -1,11 +1,12 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { sortBy, setItemExpanded } from '../../application/actions/history'
+import { sortBy, setItemExpanded, exportToFile } from '../../application/actions/history'
 import { setAsLast } from '../../application/actions/messages'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ItemText from '../common/ItemText'
+import ImgButton from '../common/ImgButton'
 
 const InventoryItem = (p: { item: ViewInventory }) => {
     const { item } = p
@@ -36,6 +37,12 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                     <span
                         className='img-info'
                         title={item.info}>i</span>
+                }
+                { item.canBeLast && <ImgButton
+                    title='Export all items to a file'
+                    src='img/export.png'
+                    className='img-export'
+                    dispatch={() => exportToFile(item.key)} />
                 }
             </td>
             <td>

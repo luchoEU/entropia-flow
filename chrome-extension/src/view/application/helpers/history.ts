@@ -93,7 +93,8 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
         diff,
         sortType,
         isLast,
-        canBeLast: getCanBeLast(inventory)
+        canBeLast: getCanBeLast(inventory),
+        rawInventory: inventory
     }
 }
 
