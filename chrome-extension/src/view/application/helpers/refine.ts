@@ -1,5 +1,5 @@
 import { RefineState } from "../state/refine"
-import { materialMap } from "./materials"
+import { refinedMap } from "./items"
 
 const initialState: RefineState = {
     me: {
@@ -17,8 +17,8 @@ const setState = (state: RefineState, inState: RefineState): RefineState => inSt
 
 const refineAmountChanged = (state: RefineState, material: string, amount: string): RefineState => {
     const inState = { ...state }
-    inState[materialMap[material]] = {
-        ...inState[materialMap[material]],
+    inState[refinedMap[material]] = {
+        ...inState[refinedMap[material]],
         amount
     }
     return inState

@@ -3,7 +3,7 @@ import { hideByContainer, hideByName, hideByValue, showByContainer, showByName, 
 import { setTabularFilter } from "../actions/tabular";
 import { loadTTService } from "../actions/ttService";
 import { INVENTORY_TABULAR_OWNED, InventoryState, ItemOwned, TradeItemData } from "../state/inventory";
-import { MaterialsMap, MaterialState } from "../state/materials";
+import { ItemsMap, ItemState } from "../state/items";
 import { FEATURE_TT_SERVICE_TRADE_COLUMN, isFeatureEnabled, SettingsState } from "../state/settings";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { TTServiceInventoryWebData, TTServiceState } from "../state/ttService";
@@ -17,15 +17,15 @@ interface InventoryTabularOwnedData {
     chain: TradeItemData[]
 }
 
-const inventoryTabularData = (state: InventoryState, settings: SettingsState, materials: MaterialsMap, ttService: TTServiceState): TabularRawData<ItemOwned, InventoryTabularOwnedData> => {
-    let items: ItemOwned[] = state.owned.hideCriteria.show ? state.owned.items : state.owned.items.filter(d => !d.c.hidden.any);
+const inventoryTabularData = (state: InventoryState, settings: SettingsState, items: ItemsMap, ttService: TTServiceState): TabularRawData<ItemOwned, InventoryTabularOwnedData> => {
+    let list: ItemOwned[] = state.owned.hideCriteria.show ? state.owned.items : state.owned.items.filter(d => !d.c.hidden.any);
     if (state.owned.options.reserve) {
-        items = items.map(d => {
-            const m: MaterialState = materials[d.data.n];
+        list = list.map(d => {
+            const m: ItemState = items[d.data.n];
             if (!m) return d;
             const reserve: number = parseFloat(m.reserveAmount);
             if (isNaN(reserve)) return d;
-            const unitValue = m.web?.material?.data.value.value
+            const unitValue = m.web?.item?.data.value.value
             const nv = Number(d.data.v) - reserve;
             const v = nv.toFixed(2);
             const q = unitValue ? (nv / unitValue).toFixed(0) : ''; // dont show quantity if unit value is unknown
@@ -34,7 +34,7 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, ma
     }
     if (state.owned.options.auction) {
         const auctionItems: string[] = state.owned.items.filter(d => d.data.c === 'AUCTION').map(d => d.data.n);
-        items = items.filter(d => !auctionItems.includes(d.data.n));
+        list = list.filter(d => !auctionItems.includes(d.data.n));
     }
     const chainRootName = state.tradeItemDataChain?.[0]?.name;
     const ttServiceWebData: TTServiceInventoryWebData = ttService.web?.inventory?.data?.value
@@ -51,7 +51,7 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, ma
                 },
                 chain: state.tradeItemDataChain
             },
-            items: items.map(d => ({ ...d, t: {
+            items: list.map(d => ({ ...d, t: {
                 showingTradeItem: d.data.n === chainRootName,
                 ttServiceValue: ttServiceValueMap?.[d.data.n]
             }})),

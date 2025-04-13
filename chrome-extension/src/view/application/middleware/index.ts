@@ -20,7 +20,7 @@ import craft from './craft'
 import settings from './settings'
 import menu from './menu'
 import refined from './refined'
-import materials from './materials'
+import items from './items'
 import log from './log'
 import connection from './connection'
 import budget from './budget'
@@ -33,7 +33,7 @@ import mode from './mode'
 export default [
     ...messages,
     ...status,
-    ...materials,
+    ...items,
     ...ui,
     ...calculator,
     ...actives,

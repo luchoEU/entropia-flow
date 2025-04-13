@@ -1,83 +1,83 @@
 import { objectMap } from "../../../common/object"
 import { BudgetInfoData } from "../../services/api/sheets/sheetsBudget"
-import { getMaterial } from "../selectors/materials"
+import { getItem } from "../selectors/items"
 import { getOneRefined } from "../selectors/refined"
-import { MaterialsMap } from "../state/materials"
+import { ItemsMap } from "../state/items"
 import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedRefine, RefinedState } from "../state/refined"
-import { getMarkupMultiplier, MATERIAL_DW, MATERIAL_FT, MATERIAL_LME, MATERIAL_ME, MATERIAL_NB, MATERIAL_NX, MATERIAL_PED, MATERIAL_ST, MATERIAL_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./materials"
+import { getMarkupMultiplier, REFINED_DW, REFINED_FT, REFINED_LME, REFINED_ME, REFINED_NB, REFINED_NX, REFINED_PED, REFINED_ST, REFINED_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./items"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
-    [MATERIAL_ME]: {
+    [REFINED_ME]: {
         value: '120',
-        refinedMaterial: MATERIAL_ME,
-        sourceMaterials: [ MATERIAL_NX, MATERIAL_SW
+        refinedMaterial: REFINED_ME,
+        sourceMaterials: [ REFINED_NX, REFINED_SW
         ]
     },
-    [MATERIAL_LME]: {
+    [REFINED_LME]: {
         value: '49',
-        refinedMaterial: MATERIAL_LME,
-        sourceMaterials: [ MATERIAL_NX, MATERIAL_DW
+        refinedMaterial: REFINED_LME,
+        sourceMaterials: [ REFINED_NX, REFINED_DW
         ]
     },
-    [MATERIAL_NB]: {
+    [REFINED_NB]: {
         value: '49',
-        refinedMaterial: MATERIAL_NB,
-        sourceMaterials: [ MATERIAL_ST, MATERIAL_FT ]
+        refinedMaterial: REFINED_NB,
+        sourceMaterials: [ REFINED_ST, REFINED_FT ]
     },
 }
 
 const initialStateRefined: { [n: string]: RefinedRefine[] } = {
-    [MATERIAL_ME]: [
+    [REFINED_ME]: [
         {
-            name: MATERIAL_PED,
+            name: REFINED_PED,
             mult: -0.00015
         },
         {
-            name: MATERIAL_ME,
+            name: REFINED_ME,
             mult: 100.1
         },
         {
-            name: MATERIAL_NX,
+            name: REFINED_NX,
             mult: -1
         },
         {
-            name: MATERIAL_SW,
+            name: REFINED_SW,
             mult: -1
         }
     ],
-    [MATERIAL_LME]: [
+    [REFINED_LME]: [
         {
-            name: MATERIAL_PED,
+            name: REFINED_PED,
             mult: -0.00015
         },
         {
-            name: MATERIAL_LME,
+            name: REFINED_LME,
             mult: 200
         },
         {
-            name: MATERIAL_NX,
+            name: REFINED_NX,
             mult: -1
         },
         {
-            name: MATERIAL_DW,
+            name: REFINED_DW,
             mult: -1
         }
     ],
-    [MATERIAL_NB]: [
+    [REFINED_NB]: [
         {
-            name: MATERIAL_PED,
+            name: REFINED_PED,
             mult: -0.00015
         },
         {
-            name: MATERIAL_NB,
+            name: REFINED_NB,
             mult: 1.001
         },
         {
-            name: MATERIAL_ST,
+            name: REFINED_ST,
             mult: -1
         },
         {
-            name: MATERIAL_FT,
+            name: REFINED_FT,
             mult: -1
         }
     ]
@@ -95,16 +95,16 @@ const initialState: RefinedState = ({
     }))
 })
 
-function calc(state: RefinedCalculatorStateIn, m: MaterialsMap): RefinedCalculatorStateOut {
+function calc(state: RefinedCalculatorStateIn, m: ItemsMap): RefinedCalculatorStateOut {
     const auctionFee = (difference: number): number => Math.round(50 + difference * 4.9) / 100
 
     const refiner = 0.15 // PED for 1k refined
 
     const buyoutValue = Number(state.value) //120
-    const markup = Number(m[state.refinedMaterial].buyMarkup) //119.99
-    const pedMaterial = 1000 / m[state.refinedMaterial].c.kValue // 10000
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue * getMarkupMultiplier(m[name]), 0) // 11.493
-    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].c.kValue, 0) / m[state.refinedMaterial].c.kValue * 1000 // 100100
+    const markup = Number(m[state.refinedMaterial].markup.value) //119.99
+    const pedMaterial = 1000 / m[state.refinedMaterial].refined.kValue // 10000
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined.kValue * getMarkupMultiplier(m[name]), 0) // 11.493
+    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined.kValue, 0) / m[state.refinedMaterial].refined.kValue * 1000 // 100100
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042
     const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial) // 1.48
@@ -138,7 +138,7 @@ const changeMaterial = (state: RefinedState, material: string, change: any): Ref
     return inState
 }
 
-const changeCalculator = (state: RefinedState, material: string, change: any, m: MaterialsMap): RefinedState => {
+const changeCalculator = (state: RefinedState, material: string, change: any, m: ItemsMap): RefinedState => {
     const inState = JSON.parse(JSON.stringify(state))
     const inCalcState = {
         ...inState.map[material].calculator.in,
@@ -151,13 +151,13 @@ const changeCalculator = (state: RefinedState, material: string, change: any, m:
     return inState
 }
 
-const refinedValueChanged = (state: RefinedState, material: string, value: string, m: MaterialsMap): RefinedState =>
+const refinedValueChanged = (state: RefinedState, material: string, value: string, m: ItemsMap): RefinedState =>
     changeCalculator(state, material, { value }, m)
 
-const refinedMarkupChanged = (state: RefinedState, material: string, markup: string, m: MaterialsMap): RefinedState =>
+const refinedMarkupChanged = (state: RefinedState, material: string, markup: string, m: ItemsMap): RefinedState =>
     changeCalculator(state, material, { markup }, m)
 
-const refinedMaterialChanged = (state: RefinedState, m: MaterialsMap): RefinedState => {
+const refinedMaterialChanged = (state: RefinedState, m: ItemsMap): RefinedState => {
     const inState = JSON.parse(JSON.stringify(state))
     Object.keys(inState.map).forEach(k => inState.map[k].calculator.out = calc(inState.map[k].calculator.in, m))
     return inState
@@ -176,7 +176,7 @@ function budgetGetCreateParams(state: any, material: string): any[] {
         itemName: material,
         materials: [ calc.refinedMaterial, ...calc.sourceMaterials ].map(m => ({
             name: m,
-            unitValue: getMaterial(m)(state).c.kValue / 1000
+            unitValue: getItem(m)(state).refined.kValue / 1000
         }))
     }
     return [ info, true ]

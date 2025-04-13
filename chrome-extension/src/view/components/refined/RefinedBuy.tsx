@@ -1,16 +1,16 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { getMaterialsMap } from '../../application/selectors/materials'
+import { getItemsMap } from '../../application/selectors/items'
 import { RefinedCalculatorState, RefinedOneState } from '../../application/state/refined'
 import RefinedBuyMaterial from './RefinedBuyMaterial'
-import { MaterialsMap } from '../../application/state/materials'
+import { ItemsMap } from '../../application/state/items'
 
 const RefinedBuy = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
     const c: RefinedCalculatorState = material.calculator
-    const m: MaterialsMap = useSelector(getMaterialsMap)
+    const m: ItemsMap = useSelector(getItemsMap)
 
     return (
         <section>

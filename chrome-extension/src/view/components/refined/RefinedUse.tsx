@@ -1,29 +1,29 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getMaterial } from '../../application/selectors/materials'
+import { useSelector } from 'react-redux'
+import { getItem } from '../../application/selectors/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
-import { MaterialState } from '../../application/state/materials'
-import { materialUseAmountChanged } from '../../application/actions/materials'
+import { ItemState } from '../../application/state/items'
+import { itemUseAmountChanged } from '../../application/actions/items'
 import { refinedUseMaterial } from '../../application/actions/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
-    const m: MaterialState = useSelector(getMaterial(material.name))
+    const m: ItemState = useSelector(getItem(material.name))
 
     return (
         <section>
             <h2>Use Material</h2>
             <div className='use-refined'>
                 <RefinedInput
-                    label={m.c.name}
-                    value={m.useAmount}
+                    label={m.name}
+                    value={m.refined.useAmount}
                     unit=''
-                    getChangeAction={materialUseAmountChanged(m.c.name)} />
-                <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.useAmount)} />
+                    getChangeAction={itemUseAmountChanged(m.name)} />
+                <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.refined.useAmount)} />
             </div>
         </section>
     )

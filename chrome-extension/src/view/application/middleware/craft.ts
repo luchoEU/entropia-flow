@@ -18,13 +18,13 @@ import { HistoryState, ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
-import { MaterialsMap } from '../state/materials'
-import { getMaterialsMap } from '../selectors/materials'
-import { loadMaterialData, loadMaterialRawMaterials, SET_MATERIAL_PARTIAL_WEB_DATA, SET_MATERIALS_STATE } from '../actions/materials'
+import { ItemsMap } from '../state/items'
+import { getItemsMap } from '../selectors/items'
+import { loadItemData, loadItemRawMaterials, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from '../actions/items'
 import { filterExact, filterOr } from '../../../common/filter'
 import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
-import { BlueprintWebData, BlueprintWebMaterial, MaterialWebData, RawMaterialWebData } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial, ItemWebData, RawMaterialWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { CRAFT_PAGE, SELECT_MENU } from '../actions/menu'
 
@@ -120,20 +120,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             
             if (materialName) {
-                const mat: MaterialsMap = getMaterialsMap(getState())
+                const mat: ItemsMap = getItemsMap(getState())
                 const raw = mat[materialName]?.web?.rawMaterials
                 if (!raw) {
-                    dispatch(loadMaterialRawMaterials(materialName))
+                    dispatch(loadItemRawMaterials(materialName))
                 }
                 dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
             }
             break
         }
-        case SET_MATERIAL_PARTIAL_WEB_DATA: {
-            const materialName: string = action.payload.material
+        case SET_ITEM_PARTIAL_WEB_DATA: {
+            const itemName: string = action.payload.item
             const rawMaterials: WebLoadResponse<RawMaterialWebData[]> = action.payload.change?.rawMaterials
             if (rawMaterials) {
-                dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, rawMaterials)))
+                dispatch(setByStoreMaterialFilter(craftMaterialFilter(itemName, rawMaterials)))
             }
             break;
         }
@@ -163,7 +163,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
 
                 if (materialName) {
-                    const mat: MaterialsMap = getMaterialsMap(getState())
+                    const mat: ItemsMap = getItemsMap(getState())
                     const raw = mat[materialName]?.web?.rawMaterials
                     dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
                 }
@@ -175,11 +175,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case SET_CURRENT_INVENTORY: {
             const s: CraftState = getCraft(getState())
             const inv: InventoryState = getInventory(getState())
-            const planetItems = inv.byStore.flat.original.filter(i => i.c === 'Carried' || i.c == s.activePlanet)
             let itemMap: { [k: string]: number } = {}
-            planetItems.forEach(i => {
+            inv.byStore.flat.original.forEach(i => {
                 let q: number
-                if (i.q.startsWith('[')) {
+                if (i.c !== 'Carried' && i.c !== s.activePlanet) {
+                    q = 0 // send zero so it can check if the blueprint is owned
+                } else if (i.q.startsWith('[')) {
                     q = 1 // container
                 } else {
                     q = Number(i.q)
@@ -238,13 +239,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const bp: WebLoadResponse<BlueprintWebData> = action.payload.change.blueprint
                 const bpValue = bp?.data?.value
                 if (bpValue) {
-                    const mat: MaterialsMap = getMaterialsMap(getState())
-                    const list: MaterialWebData[] = []
+                    const mat: ItemsMap = getItemsMap(getState())
+                    const list: ItemWebData[] = []
                     bpValue.materials.forEach(m => {
-                        const material = mat[m.name]?.web?.material;
+                        const material = mat[m.name]?.web?.item;
                         if (!material) {
                             // load missing materials types
-                            dispatch(loadMaterialData(m.name, m.url));
+                            dispatch(loadItemData(m.name, m));
                         } else if (material.data?.value) {
                             list.push(material.data.value);
                         }
@@ -255,16 +256,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
 
             break;
         }
-        case SET_MATERIALS_STATE: {
-            const mat: MaterialsMap = getMaterialsMap(getState());
-            const list: MaterialWebData[] = Object.values(mat)
-                .map(m => m.web?.material?.data?.value)
+        case SET_ITEMS_STATE: {
+            const mat: ItemsMap = getItemsMap(getState());
+            const list: ItemWebData[] = Object.values(mat)
+                .map(m => m.web?.item?.data?.value)
                 .filter(t => t);
             dispatch(setBlueprintMaterialTypeAndValue(list));
             break;
         }
-        case SET_MATERIAL_PARTIAL_WEB_DATA: {
-            const change: WebLoadResponse<MaterialWebData> = action.payload.change.material
+        case SET_ITEM_PARTIAL_WEB_DATA: {
+            const change: WebLoadResponse<ItemWebData> = action.payload.change.item
             if (change?.data)
                 dispatch(setBlueprintMaterialTypeAndValue([change.data.value]));
             break;

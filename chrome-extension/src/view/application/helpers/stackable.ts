@@ -1,5 +1,5 @@
 import { StackableOneStateIn, StackableOneStateOut, StackableState, StackableStateIn } from "../state/stackable"
-import { materialMap } from "./materials"
+import { refinedMap } from "./items"
 
 const calcOne = (s: StackableOneStateIn): StackableOneStateOut => ({
     value: (Number(s.ttValue) * Number(s.markup) / 100).toFixed(2)
@@ -50,8 +50,8 @@ const setState = (state: StackableState, inState: StackableStateIn): StackableSt
 
 const stackableTTValueChanged = (state: StackableState, material: string, ttValue: string): StackableState => {
     const inState = { ...state.in }
-    inState[materialMap[material]] = {
-        ...inState[materialMap[material]],
+    inState[refinedMap[material]] = {
+        ...inState[refinedMap[material]],
         ttValue
     }
     return {
@@ -62,8 +62,8 @@ const stackableTTValueChanged = (state: StackableState, material: string, ttValu
 
 const stackableMarkupChanged = (state: StackableState, material: string, markup: string): StackableState => {
     const inState = { ...state.in }
-    inState[materialMap[material]] = {
-        ...inState[materialMap[material]],
+    inState[refinedMap[material]] = {
+        ...inState[refinedMap[material]],
         markup
     }
     return {

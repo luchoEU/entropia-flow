@@ -8,11 +8,11 @@ import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
-import { getMaterial } from '../../application/selectors/materials'
-import { materialBuyMarkupChanged, setMaterialMarkupUnit } from '../../application/actions/materials'
+import { getItem } from '../../application/selectors/items'
+import { itemBuyMarkupChanged, setItemMarkupUnit } from '../../application/actions/items'
 import TextButton from '../common/TextButton'
-import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/materials'
-import { getValueWithMarkup } from '../../application/helpers/materials'
+import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
+import { getValueWithMarkup } from '../../application/helpers/items'
 
 interface Config {
     sortBy: (part: number) => any
@@ -34,7 +34,7 @@ const ItemRow = (p: {
 }) => {
     const { item, c } = p
     const dispatch = useDispatch()
-    const material = useSelector(getMaterial(item.n))
+    const material = useSelector(getItem(item.n))
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
         dispatch(c.sortBy(part))
@@ -74,19 +74,19 @@ const ItemRow = (p: {
                 <td style={{paddingRight: 0}}>
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
                         <>
-                            <input id='newPedInput' type='text' value={material.buyMarkup} onChange={(e) => dispatch(materialBuyMarkupChanged(item.n)(e.target.value))} />
-                            <TextButton title={`Unit: ${unitDescription(material.markupUnit)}, click to change`} text={unitText(material.markupUnit)} dispatch={() => setMaterialMarkupUnit(item.n, nextUnit(material.markupUnit)) } />
+                            <input id='newPedInput' type='text' value={material.markup.value} onChange={(e) => dispatch(itemBuyMarkupChanged(item.n)(e.target.value))} />
+                            <TextButton title={`Unit: ${unitDescription(material.markup.unit)}, click to change`} text={unitText(material.markup.unit)} dispatch={() => setItemMarkupUnit(item.n, nextUnit(material.markup.unit)) } />
                         </> :
-                        <ItemText text={material?.buyMarkup ? `${material.buyMarkup} ${unitText(material.markupUnit)}` : ''} /> }
+                        <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit)}` : ''} /> }
                 </td><td style={{paddingLeft: 0}}>
                     { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
                         <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ materialBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.buyMarkup === '' ? [ materialBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.markup.value === '' ? [ itemBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
                         </> : <>
                             <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => {
                                 const init = []
-                                if (!material?.buyMarkup) {
+                                if (!material?.markup?.value) {
                                     // ensure that the material is created
                                     const defaultUnit = (): MarkupUnit => {
                                         if (item.n.endsWith('(L)')) return UNIT_PERCENTAGE
@@ -103,18 +103,18 @@ const ItemRow = (p: {
                                             case UNIT_PED_K: return '1';
                                  3       }
                                     }
-                                    const unit = material?.markupUnit || defaultUnit();
-                                    if (material?.markupUnit !== unit) {
-                                        init.push(setMaterialMarkupUnit(item.n, unit))
+                                    const unit = material?.markup?.unit || defaultUnit();
+                                    if (material?.markup?.unit !== unit) {
+                                        init.push(setItemMarkupUnit(item.n, unit))
                                     }
-                                    init.push(materialBuyMarkupChanged(item.n)(defaultMarkup(unit)))
+                                    init.push(itemBuyMarkupChanged(item.n)(defaultMarkup(unit)))
                                 }
                                 return [
                                     ...init,
-                                    c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.buyMarkup) // save current value in case of cancel
+                                    c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.markup?.value) // save current value in case of cancel
                                 ]
                             }} />
-                            { material?.buyMarkup && !isNaN(parseFloat(item.v)) && <ItemText text={getValueWithMarkup(item.q, item.v, material).toFixed(2) + ' PED'} /> }
+                            { material?.markup?.value && !isNaN(parseFloat(item.v)) && <ItemText text={getValueWithMarkup(item.q, item.v, material).toFixed(2) + ' PED'} /> }
                         </> }
                 </td></>
             }

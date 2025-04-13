@@ -1,4 +1,4 @@
-import { MaterialsMap } from '../state/materials'
+import { ItemsMap } from '../state/items'
 import { RefinedState } from '../state/refined'
 
 const SET_REFINED_STATE = '[refined] set state'
@@ -17,7 +17,7 @@ const setRefinedState = (state: RefinedState) => ({
     }
 })
 
-const refinedValueChanged = (material: string, m: MaterialsMap) => (value: string) => ({
+const refinedValueChanged = (material: string, m: ItemsMap) => (value: string) => ({
     type: REFINED_VALUE_CHANGED,
     payload: {
         material,
@@ -26,7 +26,7 @@ const refinedValueChanged = (material: string, m: MaterialsMap) => (value: strin
     }
 })
 
-const refinedMarkupChanged = (material: string, m: MaterialsMap) => (value: string) => ({
+const refinedMarkupChanged = (material: string, m: ItemsMap) => (value: string) => ({
     type: REFINED_MARKUP_CHANGED,
     payload: {
         material,
@@ -35,7 +35,7 @@ const refinedMarkupChanged = (material: string, m: MaterialsMap) => (value: stri
     }
 })
 
-const refinedMaterialChanged = (m: MaterialsMap) => ({
+const refinedMaterialChanged = (m: ItemsMap) => ({
     type: REFINED_MATERIAL_CHANGED,
     payload: {
         m

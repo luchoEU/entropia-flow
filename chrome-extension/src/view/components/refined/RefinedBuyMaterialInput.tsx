@@ -1,22 +1,22 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { materialBuyMarkupChanged } from '../../application/actions/materials'
-import { getMaterial } from '../../application/selectors/materials'
-import { MaterialState } from '../../application/state/materials'
+import { itemBuyMarkupChanged } from '../../application/actions/items'
+import { getItem } from '../../application/selectors/items'
+import { ItemState } from '../../application/state/items'
 import RefinedInput from './RefinedInput'
 
 function RefinedBuyMaterialInput(p: {
     name: string,
 }) {
-    const m: MaterialState = useSelector(getMaterial(p.name))
+    const m: ItemState = useSelector(getItem(p.name))
 
     return (
         <>
             <RefinedInput
-                label={m.c.name}
-                value={m.buyMarkup}
-                unit={m.markupUnit}
-                getChangeAction={materialBuyMarkupChanged(m.c.name)} />
+                label={m.name}
+                value={m.markup.value}
+                unit={m.markup.unit}
+                getChangeAction={itemBuyMarkupChanged(m.name)} />
         </>
     )
 }

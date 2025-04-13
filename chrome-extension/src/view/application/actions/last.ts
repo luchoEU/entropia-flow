@@ -1,7 +1,7 @@
 import { Inventory } from "../../../common/state"
 import { AvailableCriteria } from "../state/inventory"
-import { LastRequiredState, ViewPedData } from "../state/last"
-import { MaterialsMap } from "../state/materials"
+import { LastRequiredState } from "../state/last"
+import { ItemsMap } from "../state/items"
 
 const SET_LAST_STATE = "[last] set state"
 const ON_LAST = "[last] on last"
@@ -133,10 +133,10 @@ const addNotificationsDone = (messages: string[]) => ({
     }
 })
 
-const applyMarkupToLast = (materials: MaterialsMap) => ({
+const applyMarkupToLast = (items: ItemsMap) => ({
     type: APPLY_MARKUP_TO_LAST,
     payload: {
-        materials
+        items
     }
 })
 

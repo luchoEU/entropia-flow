@@ -16,7 +16,7 @@ import InventoryOwnedList from './InventoryOwnedList'
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
     const t: TradeState = useSelector(getTrade)
-    const { filter } = useSelector(getTabularData(GAME_LOG_TABULAR_TRADE))
+    const gameLogTrade = useSelector(getTabularData(GAME_LOG_TABULAR_TRADE))
 
     let toAuction = {}
     for (let availableItem of s.available.items)
@@ -31,7 +31,7 @@ function TradePage() {
                 <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
                     list={s.available} isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
                 <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
-                    afterSearch={[ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(filter) } ]}
+                    afterSearch={ gameLogTrade ? [ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(gameLogTrade?.filter) } ] : [] }
                     beforeTable={ t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:
                         t.notifications.map(n => ({ class: 'notification-item', style: { display: 'inline-flex', width: 'auto' }, sub:
                             [

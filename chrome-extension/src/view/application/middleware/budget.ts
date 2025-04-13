@@ -8,10 +8,10 @@ import { cleanForSave, initialState } from "../helpers/budget"
 import { getItemList } from "../helpers/inventory"
 import { getBudget } from "../selectors/budget"
 import { getInventory } from "../selectors/inventory"
-import { getMaterials } from "../selectors/materials"
+import { getItems } from "../selectors/items"
 import { getSettings } from "../selectors/settings"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
-import { MaterialsState } from "../state/materials"
+import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -37,7 +37,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REFRESH_BUDGET: { 
             const settings: SettingsState = getSettings(getState())
             const budget: BudgetState = getBudget(getState())
-            const materials: MaterialsState = getMaterials(getState())
+            const materials: ItemsState = getItems(getState())
             const inventory: Array<ItemData> = getItemList(getInventory(getState()))
 
             let map: BudgetMaterialsMap = { }
@@ -78,7 +78,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case PROCESS_BUDGET_MATERIAL_SELECTION: {
             const settings: SettingsState = getSettings(getState())
             const budget: BudgetState = getBudget(getState())
-            const materials: MaterialsState = getMaterials(getState())
+            const materials: ItemsState = getItems(getState())
 
             const lines : { [itemName: string]: BudgetLineData } = { }
 
@@ -134,7 +134,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 }
 
-async function processSheetInfo(api: any, setStage: SetStage, settings: SettingsState, itemName: string, disabledMaterials: string[], materials: MaterialsState, map: BudgetMaterialsMap, items: BudgetItem[]): Promise<{ updatedMap: BudgetMaterialsMap, updatedItems: BudgetItem[] }> {
+async function processSheetInfo(api: any, setStage: SetStage, settings: SettingsState, itemName: string, disabledMaterials: string[], materials: ItemsState, map: BudgetMaterialsMap, items: BudgetItem[]): Promise<{ updatedMap: BudgetMaterialsMap, updatedItems: BudgetItem[] }> {
     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
     const info: BudgetSheetGetInfo = await sheet.getInfo()
 
@@ -148,7 +148,7 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
                 expanded: false,
                 selected: false,
                 markup: m.markup,
-                unitValue: matInfo ? matInfo.c.kValue / 1000 : 0,
+                unitValue: matInfo ? matInfo.refined.kValue / 1000 : 0,
                 budgetList: [],
                 realList: [],
                 c: undefined

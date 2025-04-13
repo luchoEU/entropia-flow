@@ -1,4 +1,5 @@
-import { materialMap } from "../helpers/materials"
+import { refinedMap } from "../helpers/items"
+import { UseOneState, UseState } from "../state/use"
 
-export const getOneUse = material => state => state.use[materialMap[material]]
-export const getUse = state => state.use
+export const getOneUse = (material: string) => (state: any): UseOneState => getUse(state)[refinedMap[material]]
+export const getUse = (state: any): UseState => state.use

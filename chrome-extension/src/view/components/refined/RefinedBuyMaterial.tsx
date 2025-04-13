@@ -1,41 +1,41 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { materialBuyAmountChanged, materialBuyMarkupChanged } from '../../application/actions/materials'
-import { getMaterial } from '../../application/selectors/materials'
-import { MaterialState } from '../../application/state/materials'
+import { itemBuyAmountChanged, itemBuyMarkupChanged } from '../../application/actions/items'
+import { getItem } from '../../application/selectors/items'
+import { ItemState } from '../../application/state/items'
 import RefinedButton from './RefinedButton'
 import { refinedBuyMaterial } from '../../application/actions/sheets'
 import { sheetPendingRefinedBuy } from '../../application/selectors/sheets'
-import { getMarkupMultiplier } from '../../application/helpers/materials'
+import { getMarkupMultiplier } from '../../application/helpers/items'
 
 const RefinedBuyMaterial = (p: {
     pageMaterial: string,
     buyMaterial: string
 }) => {
     const dispatch = useDispatch()
-    const m: MaterialState = useSelector(getMaterial(p.buyMaterial))
+    const m: ItemState = useSelector(getItem(p.buyMaterial))
     const pending = useSelector(sheetPendingRefinedBuy(p.pageMaterial, p.buyMaterial))
 
-    const kAmount = Number(m.buyAmount) / 1000
+    const kAmount = Number(m.refined.buyAmount) / 1000
     const nMarkup = getMarkupMultiplier(m)
-    const cost = kAmount * m.c.kValue * nMarkup
+    const cost = kAmount * m.refined.kValue * nMarkup
 
     return (
         <>
-            <label>{m.c.name}</label>
+            <label>{m.name}</label>
             <div>
                 <input
                     type='text'
-                    value={m.buyMarkup}
-                    onChange={(e) => dispatch(materialBuyMarkupChanged(m.c.name)(e.target.value))} />
-                <label>{m.markupUnit}</label>
+                    value={m.markup.value}
+                    onChange={(e) => dispatch(itemBuyMarkupChanged(m.name)(e.target.value))} />
+                <label>{m.markup.unit}</label>
             </div>
             <input
                 type='text'
-                value={m.buyAmount}
-                onChange={(e) => dispatch(materialBuyAmountChanged(p.buyMaterial, e.target.value))} />
+                value={m.refined.buyAmount}
+                onChange={(e) => dispatch(itemBuyAmountChanged(p.buyMaterial, e.target.value))} />
             <div>{cost.toFixed(2)} PED</div>
-            <RefinedButton title='Buy' pending={pending} action={refinedBuyMaterial(p.pageMaterial, p.buyMaterial, m.buyAmount, cost)} />
+            <RefinedButton title='Buy' pending={pending} action={refinedBuyMaterial(p.pageMaterial, p.buyMaterial, m.refined.buyAmount, cost)} />
         </>
     )
 }

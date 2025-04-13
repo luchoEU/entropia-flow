@@ -7,8 +7,8 @@ import { matchDate } from "../../../common/date"
 import { LastRequiredState, ViewPedData } from "../state/last"
 import { AvailableCriteria } from "../state/inventory"
 import { getItemAction } from "./soldDetector"
-import { MaterialsMap } from "../state/materials"
-import { getValueWithMarkup } from "./materials"
+import { ItemsMap } from "../state/items"
+import { getValueWithMarkup } from "./items"
 
 const initialState: LastRequiredState = {
     expanded: false,
@@ -235,14 +235,14 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
     }
 }
 
-const _sumDiff = (diff: ViewItemData[], materials: MaterialsMap): number =>
-    diff?.reduce((p, c) => p + (c.e ? 0 : getValueWithMarkup(c.q, c.v, materials[c.n])), 0) ?? 0;
+const _sumDiff = (diff: ViewItemData[], items: ItemsMap): number =>
+    diff?.reduce((p, c) => p + (c.e ? 0 : getValueWithMarkup(c.q, c.v, items[c.n])), 0) ?? 0;
 
-const reduceApplyMarkup = (state: LastRequiredState, materials: MaterialsMap): LastRequiredState => ({
+const reduceApplyMarkup = (state: LastRequiredState, items: ItemsMap): LastRequiredState => ({
     ...state,
     c: {
         ...state.c,
-        delta: _sumDiff(state.c.diff, materials) + _pedSum(state.peds)
+        delta: _sumDiff(state.c.diff, items) + _pedSum(state.peds)
     }
 })
 

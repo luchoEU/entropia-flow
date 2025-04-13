@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { refinedValueChanged } from '../../application/actions/refined'
-import { getMaterialsMap } from '../../application/selectors/materials'
+import { getItemsMap } from '../../application/selectors/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedBuyMaterialInput'
@@ -14,7 +14,7 @@ const RefineCaculator = (p: {
 }) => {
     const { material } = p
     const c = material.calculator
-    const m = useSelector(getMaterialsMap)
+    const m = useSelector(getItemsMap)
     const pending = useSelector(sheetPendingRefinedAuction(material.name))
 
     return (

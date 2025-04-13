@@ -17,7 +17,7 @@ export default (state = initialState, action) => {
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
         case ADD_ACTIONS: return reduceAddActions(state, action.payload.availableCriteria)
         case ADD_NOTIFICATIONS_DONE: return reduceAddNotificationsDone(state, action.payload.messages)
-        case APPLY_MARKUP_TO_LAST: return reduceApplyMarkup(state, action.payload.materials)
+        case APPLY_MARKUP_TO_LAST: return reduceApplyMarkup(state, action.payload.items)
         default: return state
     }
 }

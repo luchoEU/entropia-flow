@@ -6,20 +6,20 @@ import { useDispatch, useSelector } from 'react-redux'
 import { INVENTORY_TABULAR_OWNED, ItemOwned, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
-import { loadItemUsageData, loadMaterialData, materialReserveValueChanged } from '../../application/actions/materials';
-import { ItemUsageWebData, MaterialWebData } from '../../../web/state';
+import { loadItemUsageData, loadItemData, itemReserveValueChanged } from '../../application/actions/items';
+import { ItemUsageWebData, ItemWebData } from '../../../web/state';
 import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft';
 import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
-import { getMaterial } from '../../application/selectors/materials';
-import MaterialInventory from '../material/MaterialInventory';
+import { getItem } from '../../application/selectors/items';
+import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftExpandedList';
-import MaterialNotes from '../material/MaterialNotes';
-import MaterialMarkup from '../material/MaterialMarkup';
-import MaterialCalculator from '../material/MaterialCalculator';
+import ItemNotes from '../item/ItemNotes';
+import ItemMarkup from '../item/ItemMarkup';
+import ItemCalculator from '../item/ItemCalculator';
 import { getTabularData } from '../../application/selectors/tabular';
 import { Field } from '../common/Field';
 import { getTTService } from '../../application/selectors/ttService';
-import { getSettings, isFeatureEnabled } from '../../application/selectors/settings';
+import { isFeatureEnabled } from '../../application/selectors/settings';
 import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
@@ -80,8 +80,7 @@ const TradeItemDetailsChain = () => {
                 <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
                 </h2>
-                { !chainNext &&
-                    <TradeItemDetails
+                { !chainNext && <TradeItemDetails
                     key={tradeItemData.name}
                     tradeItemData={tradeItemData}
                     chainIndex={chainIndex}
@@ -94,7 +93,7 @@ const TradeItemDetailsChain = () => {
 
 const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemData: TradeItemData, chainIndex: number, chainNext: string }) => {
     const dispatch = useDispatch()
-    const material = useSelector(getMaterial(tradeItemData.name))
+    const item = useSelector(getItem(tradeItemData.name))
     const ttService = useSelector(getTTService)
     const showTTService = useSelector(isFeatureEnabled(FEATURE_TT_SERVICE_RELOAD));
 
@@ -141,16 +140,16 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         ownedTableData.columnsWidth = columnsWidth
 
     return <>
-        <WebDataControl w={material?.web?.material} name='Basic Information' dispatchReload={() => loadMaterialData(tradeItemData.name)} content={(webMaterial: MaterialWebData) =>
+        <WebDataControl w={item?.web?.item} name='Basic Information' dispatchReload={() => loadItemData(tradeItemData.name)} content={(webItem: ItemWebData) =>
             <>
-                <p>Type: { webMaterial.type }</p>
-                <p>Value: { addZeroes(webMaterial.value) }</p>
-                { reserve && <Field label='Reserve:' value={material.reserveAmount ?? ''} getChangeAction={materialReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
-                <MaterialMarkup name={tradeItemData.name} />
-                <MaterialCalculator name={tradeItemData.name} />
+                <p>Type: { webItem.type }</p>
+                <p>Value: { addZeroes(webItem.value) }</p>
+                { reserve && <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={itemReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
+                <ItemMarkup name={tradeItemData.name} />
+                <ItemCalculator name={tradeItemData.name} />
             </>
         } />
-        <MaterialNotes name={tradeItemData.name} />
+        <ItemNotes name={tradeItemData.name} />
         { showTTService && <>
             <p style={{ height: '5px' }} />
             <WebDataControl w={ttService?.web?.inventory} name='TT Inventory' dispatchReload={loadTTService} content={(inventory: TTServiceInventoryWebData) => {
@@ -180,7 +179,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             }} />
         </> }
         <p style={{ height: '5px' }} />
-        <WebDataControl w={material?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
+        <WebDataControl w={item?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
             <>
                 { favoriteTableData ?
                     <SortableFixedSizeTable data={favoriteTableData} /> :
@@ -215,7 +214,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                 }
             </>
         } />
-        <MaterialInventory />
+        <ItemInventory />
     </>
 }
 

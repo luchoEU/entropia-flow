@@ -1,38 +1,41 @@
 import { WebLoadResponse } from "../../../web/loader"
-import { ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "../../../web/state"
+import { ItemUsageWebData, ItemWebData, RawMaterialWebData } from "../../../web/state"
 
-interface MaterialsState {
-    map: MaterialsMap
+interface ItemsState {
+    map: ItemsMap
 }
 
-type MaterialsMap = { [name: string] : MaterialState }
+type ItemsMap = { [name: string] : ItemState }
 
-interface MaterialStateWebData {
-    material?: WebLoadResponse<MaterialWebData>
+interface ItemStateWebData {
+    item?: WebLoadResponse<ItemWebData>
     rawMaterials?: WebLoadResponse<RawMaterialWebData[]>
     usage?: WebLoadResponse<ItemUsageWebData>
 }
 
-interface MaterialState {
-    buyMarkup?: string,
-    buyMarkupModified?: string,
+interface ItemState {
+    name: string,
+    markup: ItemStateMarkupData,
+    reserveAmount?: string,
+    notes?: string
+    calc?: ItemStateCalcData
+    web?: ItemStateWebData
+    refined?: ItemStateRefinedData
+}
+
+interface ItemStateMarkupData {
+    value?: string,
+    modified?: string,
+    unit?: MarkupUnit
+}
+
+interface ItemStateRefinedData {
     buyAmount?: string,
     orderMarkup?: string,
     orderValue?: string,
-    markupUnit: MarkupUnit,
     useAmount?: string,
     refineAmount?: string,
-    reserveAmount?: string,
-    notes?: string
-    calc?: MaterialStateCalcData
-
-    web?: MaterialStateWebData
-
-    // constants
-    c: {
-        name: string,
-        kValue: number // TT value in PED of 1k
-    }
+    kValue: number // TT value in PED of 1k
 }
 
 const UNIT_PERCENTAGE = '%'
@@ -59,7 +62,7 @@ const unitDescription = (unit: MarkupUnit): string => {
     }
 }
 
-interface MaterialStateCalcData {
+interface ItemStateCalcData {
     quantity: string,
     total: string,
     totalMU: string
@@ -73,9 +76,11 @@ export {
     nextUnit,
     unitText,
     unitDescription,
-    MaterialsState,
-    MaterialsMap,
-    MaterialState,
-    MaterialStateWebData,
-    MaterialStateCalcData,
+    ItemsState,
+    ItemsMap,
+    ItemState,
+    ItemStateMarkupData,
+    ItemStateWebData,
+    ItemStateCalcData,
+    ItemStateRefinedData,
 }

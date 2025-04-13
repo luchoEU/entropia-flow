@@ -1,12 +1,12 @@
 import { mergeDeep } from "../../../common/merge"
 import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS } from "../actions/last"
-import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIAL_MARKUP_UNIT, SET_MATERIALS_STATE } from "../actions/materials"
+import { ITEM_BUY_MARKUP_CHANGED, SET_ITEM_MARKUP_UNIT, SET_ITEMS_STATE } from "../actions/items"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/last"
 import { getInventory } from "../selectors/inventory"
 import { getLast } from "../selectors/last"
-import { getMaterialsMap } from "../selectors/materials"
+import { getItemsMap } from "../selectors/items"
 import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 
@@ -67,13 +67,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case INCLUDE:
         case EXCLUDE:
         case EXCLUDE_WARNINGS:
-        case SET_MATERIALS_STATE:
-        case MATERIAL_BUY_MARKUP_CHANGED:
-        case SET_MATERIAL_MARKUP_UNIT: {
+        case SET_ITEMS_STATE:
+        case ITEM_BUY_MARKUP_CHANGED:
+        case SET_ITEM_MARKUP_UNIT: {
             const { showMarkup }: LastRequiredState = getLast(getState())
             if (showMarkup) {
-                const materials = getMaterialsMap(getState())
-                dispatch(applyMarkupToLast(materials))
+                const items = getItemsMap(getState())
+                dispatch(applyMarkupToLast(items))
             } else if (action.type === SET_LAST_SHOW_MARKUP) {
                 dispatch(applyMarkupToLast({}))
             }

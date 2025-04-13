@@ -15,7 +15,7 @@ import {
     STORAGE_VIEW_CRAFT,
     STORAGE_VIEW_SETTINGS,
     STORAGE_VIEW_REFINED,
-    STORAGE_VIEW_MATERIALS,
+    STORAGE_VIEW_ITEMS,
     STORAGE_VIEW_GAME_LOG,
     STORAGE_VIEW_CONNECTION,
     STORAGE_VIEW_BUDGET,
@@ -37,7 +37,7 @@ import { FruitStateIn } from "../../application/state/fruit";
 import { InventoryState } from "../../application/state/inventory";
 import { LastRequiredState, ViewPedData } from "../../application/state/last";
 import { GameLogState } from "../../application/state/log";
-import { MaterialsState } from "../../application/state/materials";
+import { ItemsState } from "../../application/state/items";
 import ModeState from "../../application/state/mode";
 import { OrderState } from "../../application/state/order";
 import { RefineState } from "../../application/state/refine";
@@ -216,26 +216,26 @@ async function saveTabular(state: TabularState) {
 }
 
 async function loadTabular(): Promise<TabularState> {
-    return await LOCAL_STORAGE.get(STORAGE_VIEW_TABULAR)
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_ITEMS)
 }
 
-async function saveMaterials(state: MaterialsState) {
-    await SYNC_STORAGE.set(STORAGE_VIEW_MATERIALS, _compress(state))
+async function saveItems(state: ItemsState) {
+    await SYNC_STORAGE.set(STORAGE_VIEW_ITEMS, _compress(state))
 }
 
-async function loadMaterials(): Promise<MaterialsState> {
+async function loadItems(): Promise<ItemsState> {
     // chrome.storage.sync.QUOTA_BYTES_PER_ITEM
     // TODO: refactor InventoryStorage and _compress
-    const compressedState = await SYNC_STORAGE.get(STORAGE_VIEW_MATERIALS)
+    const compressedState = await SYNC_STORAGE.get(STORAGE_VIEW_ITEMS)
     return _uncompress(compressedState)
 }
 
-async function saveMaterialsCache(state: MaterialsState) {
-    await LOCAL_STORAGE.set(STORAGE_VIEW_MATERIALS, state)
+async function saveItemsCache(state: ItemsState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_ITEMS, state)
 }
 
-async function loadMaterialsCache(): Promise<MaterialsState> {
-    return await LOCAL_STORAGE.get(STORAGE_VIEW_MATERIALS)
+async function loadItemsCache(): Promise<ItemsState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_ITEMS)
 }
 
 async function saveBudget(state: BudgetState) {
@@ -316,10 +316,10 @@ export default {
     loadCraft,
     saveTabular,
     loadTabular,
-    saveMaterials,
-    loadMaterials,
-    saveMaterialsCache,
-    loadMaterialsCache,
+    saveItems,
+    loadItems,
+    saveItemsCache,
+    loadItemsCache,
     saveBudget,
     loadBudget,
     saveSettings,

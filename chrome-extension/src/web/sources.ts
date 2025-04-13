@@ -1,5 +1,5 @@
 import { TTServiceInventoryWebData } from "../view/application/state/ttService";
-import { BlueprintWebData, ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "./state"
+import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, RawMaterialWebData } from "./state"
 
 interface SourceLoadResponse<T> {
     ok: boolean;
@@ -13,7 +13,7 @@ interface ISource {
 }
 
 interface IWebSource extends ISource {
-    loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>>
+    loadItem(itemName: string, bpMaterial?: BlueprintWebMaterial): Promise<SourceLoadResponse<ItemWebData>>
     loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>>
     loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>>
     loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>>

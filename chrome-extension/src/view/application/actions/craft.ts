@@ -1,4 +1,4 @@
-import { MaterialWebData } from '../../../web/state'
+import { ItemWebData } from '../../../web/state'
 import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BlueprintSessionDiff, BlueprintStateWebData, CraftState } from '../state/craft'
 
@@ -104,7 +104,7 @@ const setBlueprintQuantity = (dictionary: { [k: string]: number }) => ({
     }
 })
 
-const setBlueprintMaterialTypeAndValue = (list: MaterialWebData[]) => ({
+const setBlueprintMaterialTypeAndValue = (list: ItemWebData[]) => ({
     type: SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE,
     payload: {
         list

@@ -1,5 +1,5 @@
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
-import { materialMap } from "../helpers/materials"
+import { refinedMap } from "../helpers/items"
 import { ActivesItem } from "../state/actives"
 import { RefinedCalculatorStateOut } from "../state/refined"
 import { OPERATION_TYPE_REFINED_AUCTION_MATERIAL, OPERATION_TYPE_REFINED_BUY_MATERIAL, OPERATION_TYPE_REFINED_ORDER_MATERIAL, OPERATION_TYPE_REFINED_REFINE_MATERIAL, OPERATION_TYPE_REFINED_USE_MATERIAL, OPERATION_TYPE_REFINED_SOLD_ACTIVE } from "../state/sheets"
@@ -29,7 +29,7 @@ const donePendingChanges = {
     type: DONE_PENDING_CHANGES
 }
 
-const auctionTitle = (material: string): string => `Auction ${materialMap[material].toUpperCase()}`
+const auctionTitle = (material: string): string => `Auction ${refinedMap[material].toUpperCase()}`
 
 const refinedSoldActive = (item: ActivesItem) => {
     const line: BudgetLineData = {

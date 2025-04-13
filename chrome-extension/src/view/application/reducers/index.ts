@@ -18,7 +18,7 @@ import use from './use'
 import craft from './craft'
 import settings from './settings'
 import refined from './refined'
-import materials from './materials'
+import items from './items'
 import log from './log'
 import connection from './connection'
 import budget from './budget'
@@ -29,7 +29,7 @@ import trade from './trade'
 import mode from './mode'
 
 export default combineReducers({
-    menu, status, materials, history, last, calculator, actives, order, sweat, stackable,
+    menu, status, items, history, last, calculator, actives, order, sweat, stackable,
     refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
     connection, budget, ttService, tabular, expandable, trade, mode
 })

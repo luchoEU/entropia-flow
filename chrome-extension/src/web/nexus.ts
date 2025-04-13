@@ -1,19 +1,40 @@
 import { fetchJson } from "./fetch";
 import { mapResponse } from "./loader";
 import { IWebSource, SourceLoadResponse } from "./sources";
-import { BlueprintWebData, ItemUsageWebData, MaterialWebData, RawMaterialWebData } from "./state";
+import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, RawMaterialWebData } from "./state";
 
 export class EntropiaNexus implements IWebSource {
     public name: string = "Entropia Nexus";
 
+    public async loadItem(itemName: string, bpMaterial?: BlueprintWebMaterial): Promise<SourceLoadResponse<ItemWebData>> {
+        let item: SourceLoadResponse<ItemWebData>
+        if (bpMaterial?.url?.startsWith(API_BASE_URL)) {
+            item = {
+                ok: true,
+                data: {
+                    name: bpMaterial.name,
+                    type: bpMaterial.type,
+                    value: bpMaterial.value
+                },
+                url: bpMaterial.url
+            }
+        } else {
+            const url = _apiUrl(`items/${itemName}`)
+            item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(itemName))
+        }
+        if (item.ok && item.data.type === 'Material') {
+            const r = await fetchJson<EntropiaNexusItem>(item.url)
+            if (r.ok) {
+                item.data.type = r.result.Properties.Type
+            }
+            item.url = _wwwUrl(`items/materials/${itemName}`)
+        }
+        return item
+    }
+
     public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         const url = _apiUrl(`acquisition/${materialName}`)
         return await mapResponse(fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials(materialName))
-    }
-
-    public async loadMaterial(materialName: string, materialUrl?: string): Promise<SourceLoadResponse<MaterialWebData>> {
-        const url = materialUrl?.startsWith(API_BASE_URL) ? materialUrl : _apiUrl(`materials/${materialName}`)
-        return await mapResponse(fetchJson<EntropiaNexusMaterial>(url), _extractMaterial(materialName))
     }
 
     public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
@@ -43,14 +64,14 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
     url: acq.RefiningRecipes.length > 0 && _wwwUrl(`items/materials/${materialName}`) // maybe it is not a material if no RefiningRecipes
 })
 
-const _extractMaterial = (materialName: string) => async (m: EntropiaNexusMaterial): Promise<SourceLoadResponse<MaterialWebData>> => ({
+const _extractItem = (itemName: string) => async (m: EntropiaNexusItem): Promise<SourceLoadResponse<ItemWebData>> => ({
     ok: true,
     data: {
         name: m.Name,
         type: m.Properties.Type,
-        value: m.Properties.Economy.MaxTT
+        value: m.Properties.Economy.Value,
     },
-    url: _wwwUrl(`items/materials/${materialName}`)
+    url: _apiUrl(m.Links.$Url)
 })
 
 const _extractUsage = (itemName: string) => async (u: EntropiaNexusUsage): Promise<SourceLoadResponse<ItemUsageWebData>> => ({
@@ -103,19 +124,20 @@ interface EntropiaNexusAcquisition {
         Id: number,
         Ingredients: {
             Amount: number,
-            Item: EntropiaNexusMaterial
+            Item: EntropiaNexusItem
         }[]
         Amount: number,
-        Product: EntropiaNexusMaterial,
+        Product: EntropiaNexusItem,
         Links: EntropiaNexusLinks
     }[]
 }
 
-interface EntropiaNexusMaterial {
+interface EntropiaNexusItem {
     Name: string,
     Properties: {
         Type: string,
         Economy: {
+            Value: number
             MaxTT: number
         }
     },
@@ -151,10 +173,10 @@ interface EntropiaNexusBlueprint {
       Name: string;
       Links: EntropiaNexusLinks;
     };
-    Product: EntropiaNexusMaterial;
+    Product: EntropiaNexusItem;
     Materials: {
       Amount: number;
-      Item: EntropiaNexusMaterial;
+      Item: EntropiaNexusItem;
     }[];
     Links: EntropiaNexusLinks;
 }

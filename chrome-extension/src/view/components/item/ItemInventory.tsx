@@ -37,7 +37,7 @@ const inventoryTableData: TableData<TreeLineData> = {
     })
 }
 
-const MaterialInventory = () => {
+const ItemInventory = () => {
     const inv: InventoryByStore = useSelector(getByStoreInventory)
     return <>
         { inv.flat.material.length === 0 ?
@@ -56,4 +56,4 @@ const MaterialInventory = () => {
     </>
 }
 
-export default MaterialInventory
+export default ItemInventory

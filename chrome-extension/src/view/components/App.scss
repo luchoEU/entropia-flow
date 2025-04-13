@@ -830,7 +830,7 @@ button:active {
     gap: 8px;
 }
 
-.material-calculator {
+.item-calculator {
     border: 1px solid lightgray;
     border-radius: 8px;
     padding: 12px;
@@ -840,11 +840,11 @@ button:active {
     width: fit-content;
 }
 
-.material-calculator > img {
+.item-calculator > img {
     height: 25px;
 }
 
-.material-calculator > table {
+.item-calculator > table {
     border: 0px solid white;
 }
 

@@ -1,5 +1,5 @@
 import { multiIncludes } from '../../../common/filter';
-import { BlueprintWebData, MaterialWebData } from '../../../web/state';
+import { BlueprintWebData, ItemWebData } from '../../../web/state';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial, BlueprintMaterial } from '../state/craft';
@@ -155,8 +155,8 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
             }
         });
 
-        const itemMaterial = materials.find(m => m.name == bp.c.itemName)
-        const materialBp = materials[bp.name]
+        const itemMaterial: BlueprintMaterial = materials.find(m => m.name === bp.c.itemName)
+        const materialBp: BlueprintMaterial = materials.find(m => m.name === bp.name)
         const isBlueprintLimited = materialBp && isLimited(bp.name)
         const isItemLimited = isLimited(bp.c.itemName)
         let residueNeeded = 0
@@ -179,9 +179,9 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
                 ...bp.c,
                 inventory: {
                     bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
-                    owned: !!dictionary[bp.name],
+                    owned: dictionary[bp.name] !== undefined,
                     clicksAvailable,
-                    limitClickItems: materials.filter(m => m.clicks === clicksAvailable && m.type !== 'Blueprint').map(m => m.name),
+                    limitClickItems: materials.filter(m => m.clicks === clicksAvailable).map(m => itemStringFromName(bp, m.name)),
                     clickTTCost,
                     residueNeeded: isItemLimited ? residueNeeded : undefined,
                 },
@@ -192,7 +192,7 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
     }))
 })
 
-const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: MaterialWebData[]): CraftState => {
+const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWebData[]): CraftState => {
     if (list.length === 0)
         return state;
 

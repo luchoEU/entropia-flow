@@ -1,11 +1,11 @@
 import { mergeDeep } from "../../../common/merge"
-import { MATERIAL_BUY_MARKUP_CHANGED, SET_MATERIALS_STATE } from "../actions/materials"
+import { ITEM_BUY_MARKUP_CHANGED, SET_ITEMS_STATE } from "../actions/items"
 import { refinedMaterialChanged, REFINED_BUY_MATERIAL, REFINED_MARKUP_CHANGED, REFINED_MATERIAL_CHANGED, REFINED_VALUE_CHANGED, setRefinedState, REFINED_ORDER_MATERIAL, REFINED_USE_MATERIAL, REFINED_REFINE_MATERIAL } from "../actions/refined"
 import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/refined"
-import { getMaterialsMap } from "../selectors/materials"
+import { getItemsMap } from "../selectors/items"
 import { getRefined } from "../selectors/refined"
-import { MaterialsMap } from "../state/materials"
+import { ItemsMap } from "../state/items"
 import { RefinedState } from "../state/refined"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -28,9 +28,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             await api.storage.saveRefined(cleanForSave(state))
             break
         }
-        case SET_MATERIALS_STATE:
-        case MATERIAL_BUY_MARKUP_CHANGED: {
-            const m: MaterialsMap = getMaterialsMap(getState())
+        case SET_ITEMS_STATE:
+        case ITEM_BUY_MARKUP_CHANGED: {
+            const m: ItemsMap = getItemsMap(getState())
             dispatch(refinedMaterialChanged(m))
             break
         }

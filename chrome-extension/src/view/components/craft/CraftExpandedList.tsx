@@ -10,16 +10,16 @@ import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ER
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
-import { MaterialsMap } from '../../application/state/materials'
-import { getMaterialsMap } from '../../application/selectors/materials'
+import { ItemsMap } from '../../application/state/items'
+import { getItemsMap } from '../../application/selectors/items'
 import { getByStoreInventory } from '../../application/selectors/inventory'
 import { InventoryByStore } from '../../application/state/inventory'
 import { BlueprintWebMaterial } from '../../../web/state'
-import { loadMaterialData, loadMaterialRawMaterials } from '../../application/actions/materials'
+import { loadItemData, loadItemRawMaterials } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
-import MaterialInventory from '../material/MaterialInventory'
-import MaterialNotes from '../material/MaterialNotes'
-import MaterialMarkup from '../material/MaterialMarkup'
+import ItemInventory from '../item/ItemInventory'
+import ItemNotes from '../item/ItemNotes'
+import ItemMarkup from '../item/ItemMarkup'
 
 function SessionInfo(p: {
     name: string,
@@ -70,7 +70,7 @@ function CraftSingle(p: {
 }) {
     const { d } = p
     const dispatch = useDispatch()
-    const mat: MaterialsMap = useSelector(getMaterialsMap)
+    const mat: ItemsMap = useSelector(getItemsMap)
 
     let markupLoaded = d.budget.sheet?.clickMUCost !== undefined
     let markupMap: {[name: string]: number}
@@ -93,7 +93,7 @@ function CraftSingle(p: {
     } else if (d.c.materials) {
         clickMUCost = 0;
         markupMap = Object.fromEntries(d.c.materials.map((m: BlueprintMaterial) => {
-            const strMarkup = mat[m.name]?.buyMarkup;
+            const strMarkup = mat[m.name]?.markup?.value;
             const markup = strMarkup ? Number(strMarkup) / 100 : 1;
             clickMUCost += m.quantity * m.value * markup;
             return [m.name, markup];
@@ -325,7 +325,7 @@ function CraftSingle(p: {
 
 function CraftExpandedList() {
     const s: CraftState = useSelector(getCraft)
-    const mat: MaterialsMap = useSelector(getMaterialsMap)
+    const mat: ItemsMap = useSelector(getItemsMap)
     const inv: InventoryByStore = useSelector(getByStoreInventory)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
@@ -356,7 +356,7 @@ function CraftExpandedList() {
     }
     const afterChainRaw = afterChain && mat[afterChain]?.web?.rawMaterials
     const afterChainBpMat = afterChain && afterBpChain.web?.blueprint?.data?.value.materials.find(m => m.name === afterChain)
-    const afterChainMat = afterChain && (mat[afterChain]?.web?.material?.data?.value ?? afterChainBpMat)
+    const afterChainMat = afterChain && (mat[afterChain]?.web?.item?.data?.value ?? afterChainBpMat)
 
     return (
         <section>
@@ -396,9 +396,9 @@ function CraftExpandedList() {
                                 <p>Type: { afterChainMat.type }</p>
                                 <p>Value: { addZeroes(afterChainMat.value) }</p>
                             </>}
-                            <MaterialMarkup name={afterChain} />
+                            <ItemMarkup name={afterChain} />
                             <WebDataControl w={afterChainRaw} name='Raw Materials'
-                                dispatchReload={() => [loadMaterialRawMaterials(afterChain), loadMaterialData(afterChain, afterChainBpMat?.url)]}
+                                dispatchReload={() => [loadItemRawMaterials(afterChain), loadItemData(afterChain, afterChainBpMat)]}
                                 content={d => d.length > 0 &&
                                 <table style={{ marginBottom: '10px' }}>
                                     <thead>
@@ -417,8 +417,8 @@ function CraftExpandedList() {
                                     </tbody>
                                 </table>
                             }/>
-                            <MaterialInventory />
-                            <MaterialNotes name={afterChain} />
+                            <ItemInventory />
+                            <ItemNotes name={afterChain} />
                         </div>
                     </div>
                 }

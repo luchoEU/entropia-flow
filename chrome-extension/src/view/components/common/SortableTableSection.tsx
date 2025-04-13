@@ -216,6 +216,8 @@ export function useDeepCompareMemoize(value: any) {
     return ref.current;
 }
 
+// Deprecated control
+// TODO: migrate to SortableTabularSection
 const SortableFixedSizeTable = <TItem extends any>(p: {
     data: TableParameters<TItem>
 }) => {

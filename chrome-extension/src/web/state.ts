@@ -3,7 +3,7 @@ interface RawMaterialWebData {
     quantity: number;
 }
 
-interface MaterialWebData {
+interface ItemWebData {
     name: string;
     type: string;
     value: number;
@@ -38,7 +38,7 @@ interface BlueprintWebMaterial {
 
 export {
     RawMaterialWebData,
-    MaterialWebData,
+    ItemWebData,
     ItemUsageWebData,
     BlueprintWebData,
     BlueprintWebMaterial,
