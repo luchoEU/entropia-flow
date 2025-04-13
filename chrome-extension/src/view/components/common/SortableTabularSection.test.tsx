@@ -85,7 +85,8 @@ describe.skip("SortableTabularSection", () => {
             name: 'Maffoid Warlord',
             type: 'hunt',
             value: 808,
-            isHoF: true
+            isHoF: true,
+            isATH: false
         }];
 
         const store = _mockTabularStoreFromList(GAME_LOG_TABULAR_GLOBAL, data);

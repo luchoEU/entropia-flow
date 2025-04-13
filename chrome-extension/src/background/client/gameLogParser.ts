@@ -39,6 +39,7 @@ const statsRegex: GameLogStats<RegExp> = {
     youWereKilled: /You were killed by/,
 }
 const hofSuffix = ' A record has been added to the Hall of Fame!'
+const athSuffix = ' A record has been added to the Hall of Fame ALL TIME HIGH. Congratulations!'
 const valueLocationRegex = /(\d+) (PED|PEC)(?: at (.*))?/
 const globalRegex = {
     hunt: /(?<player>.+) killed a creature \((?<name>.+)\) with a value of (?<valueLocation>.+)!/,
@@ -82,6 +83,8 @@ const eventRegex = {
     newRank: /You have gained a new rank in (.+)!/,
     personNotWounded: /That person isn't wounded/,
     petReturned: /Your pet has been returned to your inventory/,
+    playerDestroyed: /(.+) destroyed (.+)/,
+    playerKilled: /(.+) killed (.+) using a (.+)/,
     resourceDepleted: /This resource is depleted/,
     requestSent: /Request sent/,
     savedByDivine: /You have been saved from certain death by divine intervention/,
@@ -141,7 +144,7 @@ class GameLogParser {
                 })
                 Object.entries(eventRegex).forEach(([key, regex]) => {
                     const match = regex.exec(line.message);
-                    if (match !== null) {
+                    if (match !== null && line.data.event === undefined) {
                         line.data.event = {
                             time: line.time,
                             data: match.slice(1),
@@ -180,7 +183,9 @@ class GameLogParser {
                 break
             case "Globals":
                 const isHoF = line.message.endsWith(hofSuffix);
-                const msg = isHoF ? line.message.substring(0, line.message.length - hofSuffix.length) : line.message
+                const isATH = line.message.endsWith(athSuffix);
+                const msg = isHoF ? line.message.substring(0, line.message.length - hofSuffix.length) :
+                    (isATH ? line.message.substring(0, line.message.length - athSuffix.length) : line.message)
                 Object.entries(globalRegex).forEach(([key, regex]) => {
                     const match = regex. exec(msg);
                     if (match !== null) {
@@ -191,7 +196,8 @@ class GameLogParser {
                             name,
                             value: undefined,
                             type: key,
-                            isHoF
+                            isHoF,
+                            isATH
                         }
                         if (valueLocation) {
                             const valueLocationMatch = valueLocationRegex.exec(valueLocation);

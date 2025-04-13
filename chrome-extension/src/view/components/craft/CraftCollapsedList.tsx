@@ -58,13 +58,13 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
         [CASH]: {
             style: { justifyContent: 'end' },
             sub: [{
-                itemText: d.budget.sheet?.peds.toFixed(2) + ' PED'
+                itemText: d.budget.sheet ? d.budget.sheet.peds.toFixed(2) + ' PED' : ''
             }]
         },
         [BUDGET]: {
             style: { justifyContent: 'end' },
             sub: [{
-                itemText: d.budget.sheet?.total.toFixed(2) + ' PED'
+                itemText: d.budget.sheet ? d.budget.sheet.total.toFixed(2) + ' PED' : ''
             }]
         }
     }

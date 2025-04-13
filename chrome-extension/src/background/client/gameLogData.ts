@@ -75,6 +75,7 @@ interface GameLogGlobal {
     value: number
     location?: string
     isHoF: boolean
+    isATH: boolean
 }
 
 interface GameLogLine {

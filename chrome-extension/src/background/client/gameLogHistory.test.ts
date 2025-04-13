@@ -79,7 +79,8 @@ describe('formula parser', () => {
                 name: 'Merry Annihilation Daikiba 08',
                 type: 'hunt',
                 value: 57,
-                isHoF: false
+                isHoF: false,
+                isATH: false
             }]
         })
     )
@@ -93,7 +94,8 @@ describe('formula parser', () => {
                 name: 'Maffoid Warlord',
                 type: 'hunt',
                 value: 808,
-                isHoF: true
+                isHoF: true,
+                isATH: false
             }]
         })
     )
@@ -279,6 +281,7 @@ describe('formula parser', () => {
                 name: 'Genesis Star Ivaldi III (L) Blueprint (L)',
                 value: undefined,
                 isHoF: true,
+                isATH: false
             }]
         }
     ))
@@ -317,6 +320,7 @@ describe('formula parser', () => {
                 name: 'Yule Daudaormur',
                 value: 15,
                 isHoF: true,
+                isATH: false
             }]
         }
     ))
@@ -492,14 +496,32 @@ describe('formula parser', () => {
 `2025-03-15 20:03:10 [System] [] Nicholas Looser EnterGate killed Lucho MUCHO Ireton using a A&P Series Mayhem LP-100, Modified
 2025-03-15 20:03:07 [System] [] Nicholas Looser EnterGate destroyed Scavenged Skyripper (L)`,
         {
-    
+            event: [{
+                time: '2025-03-15 20:03:07',
+                action: 'playerDestroyed',
+                data: ['Nicholas Looser EnterGate', 'Scavenged Skyripper (L)'],
+                message: 'Nicholas Looser EnterGate destroyed Scavenged Skyripper (L)'
+            }, {
+                time: '2025-03-15 20:03:10',
+                action: 'playerKilled',
+                data: ['Nicholas Looser EnterGate', 'Lucho MUCHO Ireton', 'A&P Series Mayhem LP-100, Modified'],
+                message: 'Nicholas Looser EnterGate killed Lucho MUCHO Ireton using a A&P Series Mayhem LP-100, Modified'
+            }]
         }
     ))
 
     test('ath', async () => await parseExpect(
 `2025-03-27 12:32:37 [Globals] [] Daniel Danutu07 Ionut killed a creature (Sampling: TZ-15) with a value of 67638 PED! A record has been added to the Hall of Fame ALL TIME HIGH. Congratulations!`,
         {
-            
+            global: [{
+                time: '2025-03-27 12:32:37',
+                player: 'Daniel Danutu07 Ionut',
+                name: 'Sampling: TZ-15',
+                type: 'hunt',
+                value: 67638,
+                isHoF: false,
+                isATH: true
+            }]
         }
     ))
 })
