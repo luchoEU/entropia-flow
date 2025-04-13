@@ -202,7 +202,7 @@ const SortableFixedTable = <TItem extends any>(p: {
 
     const { selector, itemHeight, rowValueRender } = p
     const { columns, columnHeaderAfterName, getRow: getItemRow, getRowClass } = getTabularDefinition(selector, s.items?.show, s.data)
-    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName(s.data), s.sortSecuence)
+    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const table: TableParameters<TItem> = {
         width: _calculateWidths(s.items.all, sortRow, getItemRow),
         itemCount: s.items.show.length,
@@ -226,7 +226,7 @@ const SortableTable = (p: {
 
     const { selector, rowValueRender: RowValueRenderComponent } = p
     const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.items?.show, s.data)
-    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName(s.data), s.sortSecuence)
+    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const width = _calculateWidths(s.items.all, sortRow, getItemRow)
 
     return <div style={{ maxHeight: LIST_TOTAL_HEIGHT, overflowX: 'hidden', overflowY: 'auto' }}>

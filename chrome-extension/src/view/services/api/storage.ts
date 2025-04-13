@@ -216,7 +216,7 @@ async function saveTabular(state: TabularState) {
 }
 
 async function loadTabular(): Promise<TabularState> {
-    return await LOCAL_STORAGE.get(STORAGE_VIEW_ITEMS)
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_TABULAR)
 }
 
 async function saveItems(state: ItemsState) {

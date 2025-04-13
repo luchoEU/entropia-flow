@@ -151,7 +151,7 @@ const _itemChangedMod = (state: ItemsState, item: string, change: (s?: ItemState
 })
 
 const reduceItemBuyMarkupChanged = (state: ItemsState, item: string, buyMarkup: string): ItemsState =>
-    _itemChangedMod(state, item, s => {
+    _itemChangedMod(state, item, (s: ItemState): Partial<ItemState> => {
         let calc = s?.calc
         if (calc) {
             const mu = buyMarkup ? Number(buyMarkup) / 100 : 1;
@@ -159,7 +159,7 @@ const reduceItemBuyMarkupChanged = (state: ItemsState, item: string, buyMarkup: 
             if (!isNaN(n))
                 calc = { ...calc, totalMU: (n * mu).toFixed(2) }
         }
-        return { buyMarkup, buyMarkupModified: new Date().toString(), calc }
+        return { markup: { ...s?.markup, value: buyMarkup, modified: new Date().toString() }, calc }
     })
 
 const _refined = (change: Partial<ItemStateRefinedData>) => (s?: ItemState): Partial<ItemState> => ({ refined: { ...s?.refined, ...change } })
@@ -221,7 +221,7 @@ const cleanWeb = (state: ItemsState): ItemsState => {
 }
 
 const getMarkupMultiplier = (m: ItemState): number => {
-    const mu = parseFloat(m?.markup.value);
+    const mu = parseFloat(m?.markup?.value);
     const unitMultiplier = (unit: string): number => {
         switch (unit) {
             case UNIT_PED_K: return 100
