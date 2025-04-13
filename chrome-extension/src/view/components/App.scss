@@ -584,7 +584,7 @@ button:active {
     font-weight: bold;
 }
 
-.button-text, .button-reserve {
+.button-text, .button-option-switch {
     background-color: transparent;
     color: black;
     border: solid 1px gray;
@@ -604,12 +604,12 @@ button:active {
     border-color: transparent;
 }
 
-.button-reserve {
+.button-option-switch {
     border: unset;
     background-color: lightyellow;
 }
 
-.button-markup.active, .button-reserve.active {
+.button-markup.active, .button-option-switch.active {
     background-color: black;
     color: white;
 }

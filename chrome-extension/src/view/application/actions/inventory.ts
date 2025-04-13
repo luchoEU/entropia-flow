@@ -2,7 +2,7 @@ import { Inventory } from "../../../common/state"
 import { WebLoadResponse } from "../../../web/loader"
 import { ItemUsageWebData } from "../../../web/state"
 import { CraftState } from "../state/craft"
-import { InventoryState } from "../state/inventory"
+import { InventoryState, OwnedOptions } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
@@ -46,7 +46,7 @@ const SORT_TRADE_OWNED_BLUEPRINTS_BY = "[inv] sort trade owned blueprints by"
 const SORT_TRADE_OTHER_BLUEPRINTS_BY = "[inv] sort trade other blueprint by"
 const ADD_AVAILABLE = "[inv] add available"
 const REMOVE_AVAILABLE = "[inv] remove available"
-const ENABLE_OWNED_RESERVE_FEATURE = "[inv] enable owned reserve feature"
+const SET_OWNED_OPTIONS = "[inv] set owned options"
 
 const loadInventoryState = (state: InventoryState) => ({
     type: LOAD_INVENTORY_STATE,
@@ -351,10 +351,10 @@ const sortTradeOtherBlueprintsBy = (chainIndex: number) => (part: number) => ({
     }
 })
 
-const enableOwnedReserveFeature = (enabled: boolean) => ({
-    type: ENABLE_OWNED_RESERVE_FEATURE,
+const setOwnedOptions = (change: Partial<OwnedOptions>) => ({
+    type: SET_OWNED_OPTIONS,
     payload: {
-        enabled
+        change
     }
 })
 
@@ -401,7 +401,7 @@ export {
     SORT_TRADE_OTHER_BLUEPRINTS_BY,
     ADD_AVAILABLE,
     REMOVE_AVAILABLE,
-    ENABLE_OWNED_RESERVE_FEATURE,
+    SET_OWNED_OPTIONS,
     loadInventoryState,
     setCurrentInventory,
     setOwnedBlueprintsFilter,
@@ -444,5 +444,5 @@ export {
     sortTradeOtherBlueprintsBy,
     addAvailable,
     removeAvailable,
-    enableOwnedReserveFeature,
+    setOwnedOptions,
 }

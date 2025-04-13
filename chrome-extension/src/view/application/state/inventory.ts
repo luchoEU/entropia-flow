@@ -83,7 +83,8 @@ interface TreeLineData extends ItemData {
 }
 
 interface OwnedOptions {
-  reserve?: boolean; // feature enabled
+  reserve?: boolean; // reserve peds for item feature enabled
+  auction?: boolean; // hide items on auction feature enabled
 
   // not implemented
   planet?: string; // filter by planet

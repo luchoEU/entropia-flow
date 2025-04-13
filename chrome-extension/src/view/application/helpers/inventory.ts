@@ -9,7 +9,8 @@ import {
   InventoryListWithFilter,
   TradeBlueprintLineData,
   TradeItemData,
-  ItemOwned
+  ItemOwned,
+  OwnedOptions
 } from "../state/inventory";
 import { initialListByStore, loadInventoryByStore } from "./inventory.byStore";
 import {
@@ -443,13 +444,13 @@ const reduceRemoveAvailable = (state: InventoryState, name: string): InventorySt
     getItemList(state),
   );
 
-const reduceEnableOwnedReserveFeature = (state: InventoryState, enabled: boolean): InventoryState => ({
+const reduceSetOwnedOptions = (state: InventoryState, change: Partial<OwnedOptions>): InventoryState => ({
   ...state,
   owned: {
     ...state.owned,
     options: {
       ...state.owned.options,
-      reserve: enabled
+      ...change
     }
   }
 })
@@ -505,7 +506,7 @@ export {
   reduceSortTradeOtherBlueprintsBy,
   reduceAddAvailable,
   reduceRemoveAvailable,
-  reduceEnableOwnedReserveFeature,
+  reduceSetOwnedOptions,
   getItemList,
   joinDuplicates,
   cleanForSave,

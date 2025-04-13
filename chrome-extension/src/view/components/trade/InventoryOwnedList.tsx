@@ -1,5 +1,5 @@
 import React from 'react'
-import { enableOwnedReserveFeature, showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
+import { setOwnedOptions, showAll, showHiddenItems, showTradingItemData, sortTradeFavoriteBlueprintsBy, sortTradeOtherBlueprintsBy, sortTradeOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { calculate, SortableFixedSizeTable, TableData as TableData2 } from '../common/SortableTableSection2'
 import { getHideCriteria, getOwnedOptions, getTradeFavoriteBlueprintItem, getTradeItemDataChain, getTradeOtherBlueprintItem, getTradeOwnedBlueprintItem } from '../../application/selectors/inventory';
 import { useDispatch, useSelector } from 'react-redux'
@@ -23,6 +23,7 @@ import { getSettings, isFeatureEnabled } from '../../application/selectors/setti
 import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
+import { RowValue } from '../common/SortableTabularSection.data';
 
 const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -218,6 +219,13 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     </>
 }
 
+const _getSwitchButton = (button: string, description: string, enabled: boolean, dispatch: () => any): RowValue => ({
+    button,
+    class: `button-option-switch ${enabled ? 'active' : ''}`,
+    title: `${description} ${enabled ? '[ON]': '[OFF]'}, click to ${enabled ? 'dis' : 'en'}able it}`,
+    dispatch
+})
+
 const InventoryVisibleList = () => {
     const c = useSelector(getHideCriteria)
     const opt = useSelector(getOwnedOptions)
@@ -235,12 +243,8 @@ const InventoryVisibleList = () => {
         ]}
         beforeTable={[
             { flex: 1 },
-            {
-                button: 'R',
-                class: `button-reserve ${opt.reserve ? 'active' : ''}`,
-                title: `Reserve option ${opt.reserve ? 'en' : 'dis'}abled, click to switch ${opt.reserve ? 'off':'on'}`,
-                dispatch: () => enableOwnedReserveFeature(!opt.reserve)
-            }
+            _getSwitchButton('R', 'Add Reserve to items', opt.reserve, () => setOwnedOptions({ reserve: !opt.reserve })),
+            _getSwitchButton('A', 'Hide items on auction', opt.auction, () => setOwnedOptions({ auction: !opt.auction })),
         ]}
     >
         <TradeItemDetailsChain />

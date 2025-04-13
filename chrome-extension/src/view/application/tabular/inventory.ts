@@ -32,6 +32,10 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, ma
             return { ...d, data: { ...d.data, v, q } }
         });
     }
+    if (state.owned.options.auction) {
+        const auctionItems: string[] = state.owned.items.filter(d => d.data.c === 'AUCTION').map(d => d.data.n);
+        items = items.filter(d => !auctionItems.includes(d.data.n));
+    }
     const chainRootName = state.tradeItemDataChain?.[0]?.name;
     const ttServiceWebData: TTServiceInventoryWebData = ttService.web?.inventory?.data?.value
     const ttServiceValueMap: { [name: string]: number } = ttServiceWebData?.reduce((p, c) => ({
