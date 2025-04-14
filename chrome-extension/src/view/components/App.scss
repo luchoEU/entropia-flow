@@ -588,6 +588,10 @@ button:active {
     font-weight: bold;
 }
 
+.item-cell-value {
+    text-align: end;
+}
+
 .button-text, .button-option-switch {
     background-color: transparent;
     color: black;

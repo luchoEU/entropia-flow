@@ -40,6 +40,8 @@ const ItemRow = (p: {
         dispatch(c.sortBy(part))
     }
 
+    let valueMU = material?.markup?.value === undefined ? undefined : getValueWithMarkup(item.q, item.v, material);
+    const editMarkupMode = item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP;
     return (
         <tr className='item-row'>
             <td onClick={sortBy(NAME)}>
@@ -71,19 +73,13 @@ const ItemRow = (p: {
                 <ItemText text={item.v === '' ? '' : item.v + ' PED'} />
             </td>
             { c.showMarkup && <>
-                <td style={{paddingRight: 0}}>
-                    { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
+                <td style={{paddingRight: 0}} className='item-cell-value'>
+                    { editMarkupMode ?
                         <>
                             <input id='newPedInput' type='text' value={material.markup.value} onChange={(e) => dispatch(itemBuyMarkupChanged(item.n)(e.target.value))} />
                             <TextButton title={`Unit: ${unitDescription(material.markup.unit)}, click to change`} text={unitText(material.markup.unit)} dispatch={() => setItemMarkupUnit(item.n, nextUnit(material.markup.unit)) } />
-                        </> :
-                        <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit)}` : ''} /> }
-                </td><td style={{paddingLeft: 0}}>
-                    { item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP ?
-                        <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.markup.value === '' ? [ itemBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
                         </> : <>
+                            <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit)}` : ''} />
                             <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => {
                                 const init = []
                                 if (!material?.markup?.value) {
@@ -114,7 +110,14 @@ const ItemRow = (p: {
                                     c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.markup?.value) // save current value in case of cancel
                                 ]
                             }} />
-                            { material?.markup?.value && !isNaN(parseFloat(item.v)) && <ItemText text={getValueWithMarkup(item.q, item.v, material).toFixed(2) + ' PED'} /> }
+                        </> }
+                </td><td style={{paddingLeft: 0}} className={ editMarkupMode ? undefined : 'item-cell-value'}>
+                    { editMarkupMode ?
+                        <>
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.markup.value === '' ? [ itemBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
+                        </> : <>
+                            { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }
                 </td></>
             }
