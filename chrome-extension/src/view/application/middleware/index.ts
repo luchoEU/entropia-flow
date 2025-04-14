@@ -6,7 +6,6 @@ import messages from './messages'
 import order from './order'
 import status from './status'
 import sweat from './sweat'
-import ui from './ui'
 import stackable from './stackable'
 import refine from './refine'
 import history from './history'
@@ -34,7 +33,6 @@ export default [
     ...messages,
     ...status,
     ...items,
-    ...ui,
     ...calculator,
     ...actives,
     ...helpers,

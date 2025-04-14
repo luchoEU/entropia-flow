@@ -1,4 +1,4 @@
-import { SHOW_FEATURES_IN_DEVELOPMENT } from '../../../../config'
+import { ENABLE_BUDGET_SHEET_CALLS, ENABLE_INVENTORY_SHEET_CALLS } from '../../../../config'
 import { SheetAccessInfo } from '../../../application/state/settings'
 import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
 import { newDayInventory } from './sheetsInventory'
@@ -29,7 +29,7 @@ async function loadTTDoc(accessInfo: SheetAccessInfo, setStage: SetStage): Promi
 }
 
 async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<string[]> {
-    if (!SHOW_FEATURES_IN_DEVELOPMENT) return []
+    if (!ENABLE_BUDGET_SHEET_CALLS) return []
 
     const doc = await loadDoc(accessInfo, setStage)
     if (!doc)
@@ -39,7 +39,7 @@ async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStag
 }
 
 async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
-    if (!SHOW_FEATURES_IN_DEVELOPMENT) return undefined
+    if (!ENABLE_BUDGET_SHEET_CALLS) return undefined
 
     const doc = await loadDoc(accessInfo, setStage)
     if (!doc)
@@ -70,7 +70,7 @@ async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage
 }
 
 async function newDay(accessInfo: SheetAccessInfo, setStage: SetStage) {
-    if (!SHOW_FEATURES_IN_DEVELOPMENT) return
+    if (!ENABLE_INVENTORY_SHEET_CALLS) return
 
     const doc = await loadDoc(accessInfo, setStage)
     if (!doc) return

@@ -7,7 +7,9 @@ import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/log"
 import { setTabularDefinitions } from "../helpers/tabular"
 import { getGameLog } from "../selectors/log"
+import { getSettings } from "../selectors/settings"
 import { GameLogState } from "../state/log"
+import { FEATURE_CLIENT_VARIABLES, isFeatureEnabled, SettingsState } from "../state/settings"
 import { gameLogStatsTemporalVariables, gameLogTabularData, gameLogTabularDefinitions, gameLogVariables } from "../tabular/log"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -21,6 +23,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_CURRENT_GAME_LOG: {
+            const settings: SettingsState = getSettings(getState())
+            if (!isFeatureEnabled(FEATURE_CLIENT_VARIABLES, settings))
+                break
+
             const state: GameLogState = getGameLog(getState())
             await api.storage.saveGameLog(state)
 

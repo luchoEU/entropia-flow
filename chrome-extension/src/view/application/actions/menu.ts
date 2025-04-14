@@ -1,5 +1,3 @@
-import { SHOW_BUDGET_PAGE, SHOW_REFINED_PAGE, SHOW_SETTINGS_PAGE } from "../../../config"
-
 const SELECT_MENU = "[menu] select"
 const SELECT_FOR_ACTION = "[menu] select for action"
 
@@ -27,16 +25,6 @@ const tabOrder = [
     SETTING_PAGE,
     ABOUT_PAGE
 ]
-
-const tabShow = (id: number, show: boolean): boolean => {
-    switch (id) {
-        case INVENTORY_PAGE: return show
-        case REFINED_PAGE: return SHOW_REFINED_PAGE
-        case BUDGET_PAGE: return SHOW_BUDGET_PAGE
-        case SETTING_PAGE: return SHOW_SETTINGS_PAGE
-        default: return true
-    }
-}
 
 const selectMenu = (menu: number) => ({
     type: SELECT_MENU,
@@ -68,7 +56,6 @@ export {
     REFINED_PAGE,
     CLIENT_PAGE,
     tabOrder,
-    tabShow,
     selectMenu,
     selectForAction,
 }

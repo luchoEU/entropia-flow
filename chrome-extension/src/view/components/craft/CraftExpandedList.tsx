@@ -9,7 +9,7 @@ import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
-import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from '../../../config'
+import { SHOW_BUDGET_IN_CRAFT } from '../../../config'
 import { ItemsMap } from '../../application/state/items'
 import { getItemsMap } from '../../application/selectors/items'
 import { getByStoreInventory } from '../../application/selectors/inventory'
@@ -215,7 +215,7 @@ function CraftSingle(p: {
 
     return (
         <WebDataControl w={d.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(d.name)} content={bp => <>
-            { SHOW_FEATURES_IN_DEVELOPMENT && SHOW_BUDGET_IN_CRAFT && <>
+            { SHOW_BUDGET_IN_CRAFT && <>
                 <p>Budget Page: { d.budget.loading ?
                 <><img className='img-loading' src='img/loading.gif' />{StageText[d.budget.stage]}...</> :
                 <button onClick={(e) => {

@@ -1,3 +1,4 @@
+import { SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamRenderLayout, StreamRenderLayoutSet } from '../../../stream/data';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream";
@@ -80,7 +81,9 @@ const initialStateIn: StreamStateIn = {
     view: [ 'entropiaflow.default' ],
     layouts: {
         ['entropiaflow.default']: _defaultLayout,
-        ['entropiaflow.team']: _teamLootLayout,
+        ...SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA ? {
+            ['entropiaflow.team']: _teamLootLayout,
+        } : {}
     },
     userVariables: []
 }

@@ -20,7 +20,7 @@ const PING_HANDLER: PortHandlers = {
 function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, messageSender: IMessageSender, className: string, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
         trace(className, `_setListener received: '${m.name}' ${endPointName}`)
-        const handler = PING_HANDLER[m.name] ?? handlerMap[m.name]
+        const handler = PING_HANDLER[m.name] ?? handlerMap?.[m.name]
         if (handler) {
             const response = await handler(m, messageSender)
             if (response && response.name) {

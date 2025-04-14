@@ -12,10 +12,13 @@ import { TradeState } from '../../application/state/trade'
 import { getTabularData } from '../../application/selectors/tabular'
 import { setTabularFilter } from '../../application/actions/tabular'
 import InventoryOwnedList from './InventoryOwnedList'
+import { getSettings } from '../../application/selectors/settings'
+import { FEATURE_CLIENT_TRADE, isFeatureEnabled, SettingsState } from '../../application/state/settings'
 
 function TradePage() {
     const s: InventoryState = useSelector(getInventory)
     const t: TradeState = useSelector(getTrade)
+    const settings: SettingsState = useSelector(getSettings)
     const gameLogTrade = useSelector(getTabularData(GAME_LOG_TABULAR_TRADE))
 
     let toAuction = {}
@@ -30,7 +33,7 @@ function TradePage() {
                     list={s.auction} isFavorite={(n) => s.availableCriteria.name.includes(n)} classMap={{}} sort={sortAuctionBy} />
                 <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
                     list={s.available} isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
-                <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
+                { isFeatureEnabled(FEATURE_CLIENT_TRADE, settings) && <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
                     afterSearch={ gameLogTrade ? [ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(gameLogTrade?.filter) } ] : [] }
                     beforeTable={ t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:
                         t.notifications.map(n => ({ class: 'notification-item', style: { display: 'inline-flex', width: 'auto' }, sub:
@@ -39,7 +42,7 @@ function TradePage() {
                                 { img: 'img/cross.png', title: 'Remove notification', dispatch: () => removeTradeMessageNotification(n.time) }
                             ]
                         })) }]}
-                />
+                /> }
             </div>
             <div className='flex'>
                 <InventoryOwnedList />

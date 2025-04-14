@@ -3,7 +3,7 @@ import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
 import ColorOrbsBackground from './effects/color-orbs/main';
-import { SHOW_FEATURES_IN_DEVELOPMENT } from '../config';
+import { SHOW_STREAM_BACKGROUNDS_IN_DEVELOPMENT } from '../config';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
 
@@ -130,7 +130,7 @@ const backgroundList: BackgroundSpec[] = [
     },
 ]
 
-if (SHOW_FEATURES_IN_DEVELOPMENT) {
+if (SHOW_STREAM_BACKGROUNDS_IN_DEVELOPMENT) {
     backgroundList.push({
         type: BackgroundType.ColorOrbs,
         title: 'Color Orbs (WIP)',
