@@ -1,10 +1,12 @@
 import { SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamRenderLayout, StreamRenderLayoutSet } from '../../../stream/data';
+import { LUCHO } from '../../components/about/AboutPage';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream";
 
 const _defaultLayout: StreamRenderLayout = {
     name: 'Entropia Flow Default',
+    author: LUCHO,
     backgroundType: BackgroundType.Ashfall,
     readonly: true,
     stared: true,
@@ -49,6 +51,7 @@ const _defaultLayout: StreamRenderLayout = {
 
 const _teamLootLayout: StreamRenderLayout = {
     name: 'Entropia Flow Team',
+    author: LUCHO,
     backgroundType: BackgroundType.Matrix,
     readonly: true,
     htmlTemplate: `
@@ -78,6 +81,8 @@ td:nth-child(even), th:nth-child(even) {
 
 const initialStateIn: StreamStateIn = {
     enabled: true,
+    advanced: false,
+    defaultAuthor: undefined,
     view: [ 'entropiaflow.default' ],
     layouts: {
         ['entropiaflow.default']: _defaultLayout,
@@ -116,6 +121,14 @@ const reduceSetStreamEnabled = (state: StreamState, enabled: boolean) => ({
     }
 })
 
+const reduceSetStreamAdvanced = (state: StreamState, advanced: boolean) => ({
+    ...state,
+    in: {
+        ...state.in,
+        advanced
+    }
+})
+
 const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLayout>): StreamState => ({
     ...state,
     in: {
@@ -130,9 +143,22 @@ const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLa
     }
 })
 
-const reduceSetStreamBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => _changeStreamLayout(state, {
-    backgroundType: selected
+const reduceSetStreamAuthor = (state: StreamState, author: string): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        defaultAuthor: author,
+        layouts: {
+            ...state.in.layouts,
+            [state.in.editing.layoutId]: {
+                ...state.in.layouts[state.in.editing.layoutId],
+                author
+            }
+        }
+    }
 })
+
+const reduceSetStreamBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => _changeStreamLayout(state, { backgroundType: selected })
 
 const reduceSetStreamVariables = (state: StreamState, source: string, variables: StreamStateVariable[]): StreamState => ({
     ...state,
@@ -218,11 +244,11 @@ const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, name: string): strin
     return _getUnique(Object.keys(layouts), `${baseId}_`, baseId);
 }
 
-const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet): string =>
-    _getUnique(Object.values(layouts).map(l => l.name), `Layout `);
+const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet, base: string, noNumberName?: string): string =>
+    _getUnique(Object.values(layouts).map(l => l.name), base, noNumberName);
 
 const reduceAddStreamLayout = (state: StreamState): StreamState => {
-    const name = _getUniqueLayoutName(state.in.layouts);
+    const name = _getUniqueLayoutName(state.in.layouts, 'Layout ');
     const layoutId = _getUniqueLayoutId(state.in.layouts, name);
     return {
         ...state,
@@ -235,6 +261,7 @@ const reduceAddStreamLayout = (state: StreamState): StreamState => {
                 ...state.in.layouts,
                 [layoutId]: {
                     name,
+                    author: state.in.defaultAuthor,
                     backgroundType: _defaultLayout.backgroundType,
                     htmlTemplate: _defaultLayout.htmlTemplate,
                     cssTemplate: _defaultLayout.cssTemplate,
@@ -242,6 +269,37 @@ const reduceAddStreamLayout = (state: StreamState): StreamState => {
             }
         }
     };
+}
+
+
+const reduceCloneStreamLayout = (state: StreamState): StreamState => {
+    if (!state.in.editing?.layoutId) {
+        return state;
+    }
+
+    const layout = state.in.layouts[state.in.editing.layoutId];
+    const baseName = `${layout.name} copy`;
+    const name = _getUniqueLayoutName(state.in.layouts, `${baseName} `, baseName);
+    const layoutId = _getUniqueLayoutId(state.in.layouts, name);
+    return {
+        ...state,
+        in: {
+            ...state.in,
+            editing: {
+                layoutId
+            },
+            layouts: {
+                ...state.in.layouts,
+                [layoutId]: {
+                    ...layout,
+                    name,
+                    author: state.in.defaultAuthor,
+                    readonly: false,
+                    stared: false
+                }
+            }
+        }
+    }
 }
 
 const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamState => {
@@ -293,6 +351,7 @@ export {
     initialStateIn,
     reduceSetStreamState,
     reduceSetStreamEnabled,
+    reduceSetStreamAdvanced,
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
     reduceSetStreamTemporalVariables,
@@ -302,9 +361,11 @@ export {
     reduceSetStreamStared,
     reduceSetStreamData,
     reduceSetStreamName,
+    reduceSetStreamAuthor,
     reduceAddStreamLayout,
     reduceAddStreamUserVariable,
     reduceRemoveStreamLayout,
     reduceRemoveStreamUserVariable,
     reduceSetStreamUserVariablePartial,
+    reduceCloneStreamLayout,
 }

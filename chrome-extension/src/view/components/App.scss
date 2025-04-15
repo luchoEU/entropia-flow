@@ -204,6 +204,10 @@ form label {
     grid-gap: 10px;
 }
 
+.calc-refined input {
+    width: 40px;
+}
+
 .buy-refined {
     display: grid;
     grid-auto-flow: column;
@@ -332,19 +336,13 @@ form label {
     text-align: end;
 }
 
-td .img-up {
+.item-row .img-up,
+.item-row .img-info {
     display: none;
 }
 
-td:hover .img-up {
-    display: inline;
-}
-
-td .img-info {
-    display: none;
-}
-
-td:hover .img-info {
+.item-row:hover .img-up,
+.item-row:hover .img-info {
     display: inline;
 }
 
@@ -737,6 +735,22 @@ button:active {
 
 .item-row:hover .img-info {
     visibility: visible;
+}
+
+.stream-editor-button {
+    border: solid 1px black;
+    background-color: transparent;
+    color: black;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.stream-layout-data-table input {
+    margin-left: 10px;
+}
+.stream-layout-data-table input:read-only {
+    border: 1px solid rgb(204, 204, 204);
+    background-color: transparent;
 }
 
 // Craft

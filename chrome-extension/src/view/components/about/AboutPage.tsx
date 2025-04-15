@@ -7,6 +7,7 @@ import ExpandableSection from '../common/ExpandableSection2'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
 const VERSION = '0.4.6'
+const LUCHO = 'Lucho MUCHO Ireton'
 
 const ExpandableQuestion = (p: { q: Question }) => {
     const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
@@ -67,7 +68,7 @@ const AboutPage = () =>
                 <h1>Entropia Flow</h1>
                 <p>A tool to help you in Entropia Universe.</p>
                 <p>Version: {VERSION}</p>
-                <p>Author: Lucho MUCHO Ireton</p>
+                <p>Author: {LUCHO}</p>
             </div>
         </section>
 
@@ -92,5 +93,6 @@ const AboutPage = () =>
 
 export default AboutPage
 export {
-    VERSION
+    VERSION,
+    LUCHO,
 }

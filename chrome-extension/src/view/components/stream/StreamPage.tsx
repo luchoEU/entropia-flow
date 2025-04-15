@@ -3,13 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setStreamEditing, setStreamEnabled } from '../../application/actions/stream';
 import { getStreamIn } from '../../application/selectors/stream';
 import { StreamStateIn } from '../../application/state/stream';
-import StreamEditor from './StreamEditor';
-import StreamChooser from './StreamChooser';
+import StreamLayoutChooser from './StreamChooser';
 import Back from '../common/Back';
+import StreamAdvancedEditor from './StreamAdvancedEditor';
+import StreamBasicEditor from './StreamBasicEditor';
 
 function StreamPage() {
     const dispatch = useDispatch()
-    const { enabled, editing }: StreamStateIn = useSelector(getStreamIn);
+    const { enabled, layouts, editing, advanced }: StreamStateIn = useSelector(getStreamIn);
+    const c = layouts[editing?.layoutId];
 
     return (
         <>
@@ -23,10 +25,13 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { editing?.layoutId ? <>
+            { advanced && editing?.layoutId ? <>
                     <Back text="Back to list" dispatch={() => setStreamEditing(undefined)} />
-                    <StreamEditor />
-                </> : <StreamChooser /> }
+                    <StreamAdvancedEditor />
+                </> : <>
+                    <StreamLayoutChooser />
+                    { editing?.layoutId && <StreamBasicEditor /> }
+                </> }
         </>
     )
 }

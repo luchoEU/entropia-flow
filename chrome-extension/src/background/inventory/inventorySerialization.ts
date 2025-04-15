@@ -1,4 +1,4 @@
-import { Inventory, Log, Meta } from "../../common/state"
+import { Inventory, ItemData, Log, Meta } from "../../common/state"
 import { trace } from "../../common/trace"
 import StringTable from "./stringTable"
 
@@ -22,6 +22,10 @@ class InventoryWritter {
 
     public data(): Array<number> {
         return this.output
+    }
+
+    public writeId(id: number) {
+        this.write(id)
     }
 
     public writeType(type: number) {
@@ -101,8 +105,10 @@ class InventoryWritter {
     }
 }
 
+const INVENTORY_STORAGE_VERSION = 16; // start from 0x10 that was not a valid type
+
 function serializeInventory(strings: StringTable, list: Array<Inventory>): Array<number> {
-    let data = []
+    let data: Array<number> = [INVENTORY_STORAGE_VERSION];
     list.forEach(inv => {
         const writter = new InventoryWritter(strings)
         let type = INV_STORAGE_TYPE_EMPTY
@@ -126,10 +132,32 @@ function serializeInventory(strings: StringTable, list: Array<Inventory>): Array
         }
 
         if (inv.itemlist !== undefined) {
-            writter.writeLength(inv.itemlist.length)
-            inv.itemlist.forEach((d, index) => {
-                if (Number(d.id) !== index + 1)
-                    throw new Error(`failed assumption that index ${index + 1} equals id ${d.id}`);
+            const { match, notMatch } = inv.itemlist.reduce(
+                (acc, d) => {
+                    if (Number(d.id) === acc.index + 1) {
+                        acc.match.push(d)
+                    } else {
+                        acc.notMatch.push(d)
+                    }
+                    acc.index++
+                    return acc
+                },
+                { match: [], notMatch: [], index: 0 }
+            )
+
+            writter.writeLength(match.length)
+            match.forEach(d => {
+                writter.writeString(d.n)
+                writter.writeQuantity(d.q)
+                writter.writeValue(d.v)
+                writter.writeString(d.c)
+                writter.writeReference(d.r)
+            })
+
+            // This is possible, it may return invalid data at the end
+            writter.writeLength(notMatch.length)
+            notMatch.forEach(d => {
+                writter.writeId(d.id)
                 writter.writeString(d.n)
                 writter.writeQuantity(d.q)
                 writter.writeValue(d.v)
@@ -168,6 +196,10 @@ class InventoryReader {
 
     public getPosition(): number {
         return this.position
+    }
+
+    public readId(): number {
+        return this.read()
     }
 
     public readType(): number {
@@ -262,6 +294,12 @@ class InventoryReader {
 function deserializeInventory(strings: StringTable, invStorage: Array<number>): Array<Inventory> {
     let list = []
     let position = 0
+    const version = invStorage[position++]
+    if (version !== INVENTORY_STORAGE_VERSION) {
+        trace('InventoryReader', `Inventory version mismatch ${version} != ${INVENTORY_STORAGE_VERSION}`)
+        return []
+    }
+
     while (position < invStorage.length) {
         const reader = new InventoryReader(strings, invStorage, position)
         const type = reader.readType()
@@ -274,24 +312,28 @@ function deserializeInventory(strings: StringTable, invStorage: Array<number>): 
             }
         }
 
-        let total = undefined
-        let itemlist = undefined
+        let total: number = undefined
+        let itemlist: ItemData[] = undefined
         if ((type & INV_STORAGE_TYPE_LIST) !== 0) {
             total = 0
             itemlist = []
-            const len = reader.readLength()
-            for (let m = 1; m <= len; m++) {
-                const d = {
-                    id: m.toString(),
-                    n: reader.readString(),
-                    q: reader.readQuantity(),
-                    v: reader.readValue(),
-                    c: reader.readString(),
-                    r: reader.readReference()
+            function readList(readId: (m: number, r: InventoryReader) => number) {
+                const len = reader.readLength()
+                for (let m = 1; m <= len; m++) {
+                    const d: ItemData = {
+                        id: readId(m, reader).toString(),
+                        n: reader.readString(),
+                        q: reader.readQuantity(),
+                        v: reader.readValue(),
+                        c: reader.readString(),
+                        r: reader.readReference()
+                    }
+                    total += Number(d.v)
+                    itemlist.push(d)
                 }
-                total += Number(d.v)
-                itemlist.push(d)
             }
+            readList((m,_) => m) // implicit id
+            readList((_,r) => r.readId()) // explicit id
         }
 
         let tag = undefined
@@ -345,7 +387,6 @@ function serializeStrings(invList: Array<Inventory>): StringTable {
     })
     return strings
 }
-
 
 
 export {

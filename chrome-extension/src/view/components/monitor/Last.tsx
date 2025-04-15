@@ -60,57 +60,56 @@ const Last = () => {
     if (hasWarning)
         expandedClass += ' button-with-warning'
 
-    if (show) {
-        return (
-            <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
-                <p>
-                    <ExpandablePlusButton
-                        expanded={expanded}
-                        setExpanded={setExpanded}
-                    />
-                    <span onClick={() => dispatch(setExpanded(!expanded))}>{ text }</span>
-                    <span className={`difference ${getDeltaClass(delta)}`}>{ delta?.toFixed(2) }</span>
-                    { hasWarning &&
-                        <ImgButton
-                            title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
-                            src='img/warning.png'
-                            className='img-warning'
-                            dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />
-                    }
-                    { diff !== null && craft.activeSession === undefined &&
-                        <ImgButton
-                            title='Set as Session Start'
-                            src='img/tick.png'
-                            className='img-delta-zero'
-                            dispatch={() => setLast} />
-                    }
-                    { expanded &&
-                        <>
-                            <ImgButton
-                                title='Copy to clipboard'
-                                src='img/copy.png'
-                                className='img-copy'
-                                clickPopup='Copied!'
-                                dispatch={() => copyLast} />
-                            <TextButton
-                                title={ showMarkup ? 'Hide markup' : 'Show markup' }
-                                className={ `button-markup ${showMarkup ? 'active' : ''}` }
-                                text='%'
-                                dispatch={() => setLastShowMarkup(!showMarkup)} />
-                        </>
-                    }
-                </p>
-                { expanded &&
-                    <InventoryDifference
-                        diff={diff}
-                        peds={peds}
-                        config={config} />
-                }
-            </ExpandableSection>
-        )
-    } else {
+    if (!show)
         return <></>
-    }
+    
+    return (
+        <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
+            <p>
+                <ExpandablePlusButton
+                    expanded={expanded}
+                    setExpanded={setExpanded}
+                />
+                <span onClick={() => dispatch(setExpanded(!expanded))}>{ text }</span>
+                <span className={`difference ${getDeltaClass(delta)}`}>{ delta?.toFixed(2) }</span>
+                { hasWarning &&
+                    <ImgButton
+                        title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
+                        src='img/warning.png'
+                        className='img-warning'
+                        dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />
+                }
+                { diff !== null && craft.activeSession === undefined &&
+                    <ImgButton
+                        title='Set as Session Start'
+                        src='img/tick.png'
+                        className='img-delta-zero'
+                        dispatch={() => setLast} />
+                }
+                { expanded &&
+                    <>
+                        <ImgButton
+                            title='Copy to clipboard'
+                            src='img/copy.png'
+                            className='img-copy'
+                            clickPopup='Copied!'
+                            dispatch={() => copyLast} />
+                        <TextButton
+                            title={ showMarkup ? 'Hide markup' : 'Show markup' }
+                            className={ `button-markup ${showMarkup ? 'active' : ''}` }
+                            text='%'
+                            dispatch={() => setLastShowMarkup(!showMarkup)} />
+                    </>
+                }
+            </p>
+            { expanded &&
+                <InventoryDifference
+                    diff={diff}
+                    peds={peds}
+                    config={config} />
+            }
+        </ExpandableSection>
+    )
 }
 
 export default Last

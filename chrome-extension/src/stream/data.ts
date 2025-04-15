@@ -1,5 +1,6 @@
 interface StreamRenderLayout {
     name: string,
+    author: string,
     backgroundType: number // BackgroundType
     htmlTemplate?: string
     cssTemplate?: string

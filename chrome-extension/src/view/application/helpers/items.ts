@@ -234,10 +234,10 @@ const getMarkupMultiplier = (m: ItemState): number => {
 
 const getValueWithMarkup = (q: string, v: string, m: ItemState): number => {
     const nv = parseFloat(v);
-    if (m.markup.unit !== UNIT_PED_K && isNaN(nv))
+    if (m?.markup?.unit !== UNIT_PED_K && isNaN(nv))
         return 0 // moved item, number in parenthesis (N)
 
-    const mu = parseFloat(m?.markup.value);
+    const mu = parseFloat(m?.markup?.value);
     if (isNaN(mu))
         return nv ?? 0
 

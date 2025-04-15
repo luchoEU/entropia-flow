@@ -1,10 +1,11 @@
-import { ADD_STREAM_LAYOUT, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_LAYOUT, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CSS_TEMPLATE, SET_STREAM_DATA, SET_STREAM_EDITING, SET_STREAM_ENABLED, SET_STREAM_HTML_TEMPLATE, SET_STREAM_NAME, SET_STREAM_STARED, SET_STREAM_STATE, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_VARIABLES } from "../actions/stream"
-import { initialState, reduceAddStreamLayout, reduceAddStreamUserVariable, reduceRemoveStreamLayout, reduceRemoveStreamUserVariable, reduceSetStreamBackgroundSelected, reduceSetStreamCssTemplate, reduceSetStreamData, reduceSetStreamEditing, reduceSetStreamEnabled, reduceSetStreamHtmlTemplate, reduceSetStreamName, reduceSetStreamStared, reduceSetStreamState, reduceSetStreamTemporalVariables, reduceSetStreamUserVariablePartial, reduceSetStreamVariables } from "../helpers/stream"
+import { ADD_STREAM_LAYOUT, ADD_STREAM_USER_VARIABLE, CLONE_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CSS_TEMPLATE, SET_STREAM_DATA, SET_STREAM_EDITING, SET_STREAM_ENABLED, SET_STREAM_HTML_TEMPLATE, SET_STREAM_NAME, SET_STREAM_STARED, SET_STREAM_STATE, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_VARIABLES } from "../actions/stream"
+import { initialState, reduceAddStreamLayout, reduceAddStreamUserVariable, reduceCloneStreamLayout, reduceRemoveStreamLayout, reduceRemoveStreamUserVariable, reduceSetStreamAdvanced, reduceSetStreamAuthor, reduceSetStreamBackgroundSelected, reduceSetStreamCssTemplate, reduceSetStreamData, reduceSetStreamEditing, reduceSetStreamEnabled, reduceSetStreamHtmlTemplate, reduceSetStreamName, reduceSetStreamStared, reduceSetStreamState, reduceSetStreamTemporalVariables, reduceSetStreamUserVariablePartial, reduceSetStreamVariables } from "../helpers/stream"
 
 export default (state = initialState, action) => {
     switch (action.type) {
         case SET_STREAM_STATE: return reduceSetStreamState(state, action.payload.state)
         case SET_STREAM_ENABLED: return reduceSetStreamEnabled(state, action.payload.enabled)
+        case SET_STREAM_ADVANCED: return reduceSetStreamAdvanced(state, action.payload.advanced)
         case SET_STREAM_BACKGROUND_SELECTED: return reduceSetStreamBackgroundSelected(state, action.payload.selected)
         case SET_STREAM_VARIABLES: return reduceSetStreamVariables(state, action.payload.source, action.payload.variables)
         case SET_STREAM_TEMPORAL_VARIABLES: return reduceSetStreamTemporalVariables(state, action.payload.source, action.payload.variables)
@@ -14,11 +15,13 @@ export default (state = initialState, action) => {
         case SET_STREAM_EDITING: return reduceSetStreamEditing(state, action.payload.layoutId)
         case SET_STREAM_STARED: return reduceSetStreamStared(state, action.payload.layoutId, action.payload.stared)
         case SET_STREAM_NAME: return reduceSetStreamName(state, action.payload.name)
+        case SET_STREAM_AUTHOR: return reduceSetStreamAuthor(state, action.payload.author)
         case ADD_STREAM_LAYOUT: return reduceAddStreamLayout(state)
         case ADD_STREAM_USER_VARIABLE: return reduceAddStreamUserVariable(state, action.payload.isImage)
         case REMOVE_STREAM_LAYOUT: return reduceRemoveStreamLayout(state, action.payload.layoutId)
         case REMOVE_STREAM_USER_VARIABLE: return reduceRemoveStreamUserVariable(state, action.payload.id)
         case SET_STREAM_USER_VARIABLE_PARTIAL: return reduceSetStreamUserVariablePartial(state, action.payload.id, action.payload.partial)
+        case CLONE_STREAM_LAYOUT: return reduceCloneStreamLayout(state)
         default: return state
     }
 }

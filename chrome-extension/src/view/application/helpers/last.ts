@@ -180,7 +180,7 @@ function _findInventory(list: Array<Inventory>, lastRefresh: number) {
         if (matchDate(inv, lastRefresh))
             return inv
     }
-    return null
+    return list[0]
 }
 
 function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
