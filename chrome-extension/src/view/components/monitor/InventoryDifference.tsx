@@ -115,7 +115,7 @@ const ItemRow = (p: {
                     { editMarkupMode ?
                         <>
                             <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => [ ...material.markup.value === '' ? [ itemBuyMarkupChanged(item.n)(undefined) ] : [], c.clearMode(item.key) ]} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode(item.key)} />
                         </> : <>
                             { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }

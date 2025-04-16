@@ -152,14 +152,16 @@ const _itemChangedMod = (state: ItemsState, item: string, change: (s?: ItemState
 
 const reduceItemBuyMarkupChanged = (state: ItemsState, item: string, buyMarkup: string): ItemsState =>
     _itemChangedMod(state, item, (s: ItemState): Partial<ItemState> => {
+        const value = buyMarkup === '' ? undefined : buyMarkup;
         let calc = s?.calc
         if (calc) {
-            const mu = buyMarkup ? Number(buyMarkup) / 100 : 1;
+            const numValue = Number(value);
+            const mu = isNaN(numValue) ? 1 : numValue / 100;
             const n = parseFloat(calc.total)
             if (!isNaN(n))
                 calc = { ...calc, totalMU: (n * mu).toFixed(2) }
         }
-        return { markup: { ...s?.markup, value: buyMarkup, modified: new Date().toString() }, calc }
+        return { markup: { ...s?.markup, value, modified: new Date().toString() }, calc }
     })
 
 const _refined = (change: Partial<ItemStateRefinedData>) => (s?: ItemState): Partial<ItemState> => ({ refined: { ...s?.refined, ...change } })

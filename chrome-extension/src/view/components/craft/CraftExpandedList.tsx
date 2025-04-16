@@ -93,8 +93,8 @@ function CraftSingle(p: {
     } else if (d.c.materials) {
         clickMUCost = 0;
         markupMap = Object.fromEntries(d.c.materials.map((m: BlueprintMaterial) => {
-            const strMarkup = mat[m.name]?.markup?.value;
-            const markup = strMarkup ? Number(strMarkup) / 100 : 1;
+            const nMarkup = Number(mat[m.name]?.markup?.value);
+            const markup = isNaN(nMarkup) ? 1 : nMarkup / 100;
             clickMUCost += m.quantity * m.value * markup;
             return [m.name, markup];
         }))
