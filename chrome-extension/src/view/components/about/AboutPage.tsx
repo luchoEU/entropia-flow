@@ -73,13 +73,16 @@ const AboutPage = () =>
         </section>
 
         <ExpandableSection selector='AboutPage.Feedback' title='Feedback' subtitle='Get in touch'>
-            <p>Any feedback is welcome, positive, negative, suggestions, or whatever, post at <a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/">Planet Calyso Forum</a> or contact me ingame.</p>
+            <p>Any feedback is welcome, positive, negative, suggestions, or whatever.</p>
+            <p><a href="https://discord.gg/g4mnrZvgAV" target="_blank">Join Discord Server</a></p>
+            <p><a href="https://www.planetcalypsoforum.com/forum/index.php?threads/entropia-flow-chrome-extension.286300/" target="_blank">Planet Calyso Forum thread</a></p>
+            <p>or contact me ingame</p>
         </ExpandableSection>
 
         <ExpandableSection selector='AboutPage.Tutorials' title='Tutorials' subtitle='How to use Entropia Flow'>
             <p>outdated videos, new ones are on the way</p>
-            <p><a href="https://youtu.be/aZoQd8j1jSA">Tutorial about how to tracking your returns</a></p>
-            <p><a href="https://youtu.be/VGPJic1s5R8">Tutorial about how to see your items to sell</a></p>
+            <p><a href="https://youtu.be/aZoQd8j1jSA" target="_blank">Tutorial about how to tracking your returns</a></p>
+            <p><a href="https://youtu.be/VGPJic1s5R8" target="_blank">Tutorial about how to see your items to sell</a></p>
         </ExpandableSection>
 
         <ExpandableSection selector='AboutPage.SourceCode' title='Source Code' subtitle='View the source code and collaborate in GitHub'>
