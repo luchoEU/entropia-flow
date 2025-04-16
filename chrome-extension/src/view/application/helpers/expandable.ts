@@ -1,7 +1,7 @@
 import ExpandableState from "../state/expandable"
 
 const initialExpandableState: ExpandableState = {
-    expanded: [],
+    collapsed: [],
     hidden: ['TabularSection.[log] missing'],
 }
 
@@ -9,7 +9,7 @@ const reduceSetExpandableState = (state: ExpandableState, newState: ExpandableSt
 
 const reduceSetExpanded = (state: ExpandableState, selector: string, expanded: boolean): ExpandableState => ({
     ...state,
-    expanded: expanded ? [...state.expanded, selector] : state.expanded.filter(x => x !== selector)
+    collapsed: expanded ? state.collapsed.filter(x => x !== selector) : [...state.collapsed, selector]
 })
 
 const reduceSetVisible = (state: ExpandableState, selector: string, visible: boolean): ExpandableState => ({

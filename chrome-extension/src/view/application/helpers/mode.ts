@@ -1,7 +1,7 @@
 import ModeState from "../state/mode";
 
 const initialState: ModeState = {
-    showSubtitles: false,
+    showSubtitles: true,
     showVisibleToggle: false,
 }
 

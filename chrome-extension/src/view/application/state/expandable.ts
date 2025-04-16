@@ -1,5 +1,5 @@
 interface ExpandableState {
-    expanded: string[]
+    collapsed: string[]
     hidden: string[]
 }
 

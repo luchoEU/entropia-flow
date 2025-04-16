@@ -80,7 +80,7 @@ const AboutPage = () =>
         </ExpandableSection>
 
         <ExpandableSection selector='AboutPage.Tutorials' title='Tutorials' subtitle='How to use Entropia Flow'>
-            <p>outdated videos, new ones are on the way</p>
+            <p>This videos are outdated, new ones are on the way</p>
             <p><a href="https://youtu.be/aZoQd8j1jSA" target="_blank">Tutorial about how to tracking your returns</a></p>
             <p><a href="https://youtu.be/VGPJic1s5R8" target="_blank">Tutorial about how to see your items to sell</a></p>
         </ExpandableSection>
