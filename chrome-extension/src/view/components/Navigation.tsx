@@ -49,7 +49,7 @@ const Tab = (p: {
 }
 
 const FirstRow = () => {
-    const { c: { show } } = useSelector(getLast)
+    const { c: { anyInventory } } = useSelector(getLast)
     const { client: { status } } = useSelector(getConnection)
     const { message } = useSelector(getStatus);
     const settings = useSelector(getSettings)
@@ -60,7 +60,7 @@ const FirstRow = () => {
                 <img src='img/flow128.png' className='img-logo'></img>
                 <strong>Entropia Flow</strong>
             </div>
-            { tabOrder.map((id) => tabShow(id, show, settings) &&
+            { tabOrder.map((id) => tabShow(id, anyInventory, settings) &&
                 <Tab key={id} id={id} actionRequired={tabActionRequired(id, message, status)} />) }
         </>
     )

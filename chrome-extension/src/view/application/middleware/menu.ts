@@ -56,9 +56,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (menu === EMPTY_PAGE)
                     break
 
-                const { c: { show } } = getLast(getState())
+                const { c: { anyInventory } } = getLast(getState())
                 const settings = getSettings(getState())
-                const isTabVisible = (id: number) => getVisible(`tab.${id}`)(getState()) && tabShow(id, show, settings)
+                const isTabVisible = (id: number) => getVisible(`tab.${id}`)(getState()) && tabShow(id, anyInventory, settings)
                 if (isTabVisible(menu))
                     break
 

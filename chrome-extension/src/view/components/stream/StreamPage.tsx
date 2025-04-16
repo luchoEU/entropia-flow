@@ -7,6 +7,8 @@ import StreamLayoutChooser from './StreamChooser';
 import Back from '../common/Back';
 import StreamAdvancedEditor from './StreamAdvancedEditor';
 import StreamBasicEditor from './StreamBasicEditor';
+import StreamBackgroundChooser from './StreamBackground';
+import { SHOW_STREAM_EDITOR } from '../../../config';
 
 function StreamPage() {
     const dispatch = useDispatch()
@@ -25,13 +27,15 @@ function StreamPage() {
                     Show Stream View in every page
                 </label>
             </section>
-            { advanced && editing?.layoutId ? <>
+            { SHOW_STREAM_EDITOR ?
+                (advanced && editing?.layoutId ? <>
                     <Back text="Back to list" dispatch={() => setStreamEditing(undefined)} />
                     <StreamAdvancedEditor />
                 </> : <>
                     <StreamLayoutChooser />
                     { editing?.layoutId && <StreamBasicEditor /> }
-                </> }
+                </>) : <StreamBackgroundChooser />
+            }
         </>
     )
 }

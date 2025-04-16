@@ -47,10 +47,11 @@ const cloneStreamLayout = {
     type: CLONE_STREAM_LAYOUT
 }
 
-const setStreamBackgroundSelected = (selected: BackgroundType) => ({
+const setStreamBackgroundSelected = (layoutId: string, backgroundType: BackgroundType) => ({
     type: SET_STREAM_BACKGROUND_SELECTED,
     payload: {
-        selected
+        layoutId,
+        backgroundType
     }
 })
 

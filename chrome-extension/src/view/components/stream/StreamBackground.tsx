@@ -7,10 +7,13 @@ import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
 import { LUCHO } from "../about/AboutPage";
+import { SHOW_STREAM_EDITOR } from "../../../config";
+import { DEFAULT_LAYOUT_ID } from "../../application/helpers/stream";
 
 const StreamBackground = (p: {
     background: BackgroundSpec,
-    isSelected: boolean,
+    layoutId: string,
+    isSelected: boolean,    
 }): JSX.Element => {
     const dispatch = useDispatch()
 
@@ -36,7 +39,7 @@ const StreamBackground = (p: {
 
     return (
         <div {...(p.isSelected ? { className: 'stream-selected' } : {})}
-            onClick={() => dispatch(setStreamBackgroundSelected(p.background.type))}>
+            onClick={() => dispatch(setStreamBackgroundSelected(p.layoutId, p.background.type))}>
             <StreamViewLayout id={`stream-background-${p.background.type}`} layoutId={'entropiaflow.background'} single={single} />
         </div>
     )
@@ -44,12 +47,13 @@ const StreamBackground = (p: {
 
 function StreamBackgroundChooser() {
     const { in: { editing, layouts } } = useSelector(getStream);
-    const c = layouts[editing.layoutId];
+    const layoutId: string = SHOW_STREAM_EDITOR ? editing.layoutId : DEFAULT_LAYOUT_ID;
+    const c = layouts[layoutId];
 
     return <ExpandableSection selector='StreamBackground' title='Background' subtitle='Select a background'>
                 <div className='stream-background-section'>
                     { backgroundList.map((b: BackgroundSpec) =>
-                        <StreamBackground key={b.type} background={b} isSelected={b.type === c.backgroundType} />) }
+                        <StreamBackground key={b.type} background={b} layoutId={layoutId} isSelected={b.type === c.backgroundType} />) }
                 </div>
                 <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>
             </ExpandableSection>

@@ -29,9 +29,12 @@ const tabSubtitle = {
     [ABOUT_PAGE]: 'Information about Entropia Flow'
 }
 
-const tabShow = (id: number, show: boolean, settings: SettingsState): boolean => {
+const tabShow = (id: number, anyInventory: boolean, settings: SettingsState): boolean => {
     switch (id) {
-        case INVENTORY_PAGE: return show
+        case INVENTORY_PAGE:
+        case TRADE_PAGE:
+        case CRAFT_PAGE:
+        case STREAM_PAGE: return anyInventory
         case CLIENT_PAGE: return isFeatureEnabled(FEATURE_CLIENT_TAB, settings)
         case REFINED_PAGE: return SHOW_REFINED_PAGE
         case BUDGET_PAGE: return SHOW_BUDGET_PAGE

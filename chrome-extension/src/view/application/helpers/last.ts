@@ -19,7 +19,7 @@ const initialState: LastRequiredState = {
     notificationsDone: [],
     showMarkup: false,
     c: {
-        show: false,
+        anyInventory: false,
         date: 0,
         diff: null,
     }
@@ -191,7 +191,7 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
             c: {
                 ...state.c,
                 date: 0,
-                show: false
+                anyInventory: false
             }
         }
     } else {
@@ -205,7 +205,7 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
                 c: {
                     ...state.c,
                     delta: 0,
-                    show: true,
+                    anyInventory: true,
                     text: getText(inv, true),
                     date: last,
                     diff: null,
@@ -226,7 +226,7 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
                 c: {
                     ...state.c,
                     delta: d,
-                    show: true,
+                    anyInventory: true,
                     text: getText(inv, true),
                     diff: diff || state.c.diff
                 }

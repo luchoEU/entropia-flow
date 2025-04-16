@@ -28,7 +28,7 @@ function getDeltaClass(delta: number) {
 const Last = () => {
     const {
         c: {
-            show,
+            anyInventory,
             text,
             delta,
             diff,
@@ -60,7 +60,7 @@ const Last = () => {
     if (hasWarning)
         expandedClass += ' button-with-warning'
 
-    if (!show)
+    if (!anyInventory)
         return <></>
     
     return (

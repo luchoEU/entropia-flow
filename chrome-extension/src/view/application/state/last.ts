@@ -7,7 +7,7 @@ interface ViewPedData {
 
 interface LastRequiredState {
     c: { // not persisted
-        show: boolean,
+        anyInventory: boolean,
         text?: string,
         delta?: number,
         date: number,

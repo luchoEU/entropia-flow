@@ -79,15 +79,18 @@ td:nth-child(even), th:nth-child(even) {
 }`.trimStart(),
 }
 
+const DEFAULT_LAYOUT_ID = 'entropiaflow.default'
+const TEAM_LAYOUT_ID = 'entropiaflow.team'
+
 const initialStateIn: StreamStateIn = {
     enabled: true,
     advanced: false,
     defaultAuthor: undefined,
-    view: [ 'entropiaflow.default' ],
+    view: [ DEFAULT_LAYOUT_ID ],
     layouts: {
-        ['entropiaflow.default']: _defaultLayout,
+        [DEFAULT_LAYOUT_ID]: _defaultLayout,
         ...SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA ? {
-            ['entropiaflow.team']: _teamLootLayout,
+            [TEAM_LAYOUT_ID]: _teamLootLayout,
         } : {}
     },
     userVariables: []
@@ -129,19 +132,21 @@ const reduceSetStreamAdvanced = (state: StreamState, advanced: boolean) => ({
     }
 })
 
-const _changeStreamLayout = (state: StreamState, partial: Partial<StreamRenderLayout>): StreamState => ({
+const _changeStreamLayout = (state: StreamState, layoutId: string, partial: Partial<StreamRenderLayout>): StreamState => ({
     ...state,
     in: {
         ...state.in,
         layouts: {
             ...state.in.layouts,
-            [state.in.editing.layoutId]: {
-                ...state.in.layouts[state.in.editing.layoutId],
+            [layoutId]: {
+                ...state.in.layouts[layoutId],
                 ...partial
             }
         }
     }
 })
+
+const _changeEditingStreamLayout = (state: StreamState, partial: Partial<StreamRenderLayout>): StreamState => _changeStreamLayout(state, state.in.editing.layoutId, partial)
 
 const reduceSetStreamAuthor = (state: StreamState, author: string): StreamState => ({
     ...state,
@@ -158,7 +163,7 @@ const reduceSetStreamAuthor = (state: StreamState, author: string): StreamState 
     }
 })
 
-const reduceSetStreamBackgroundSelected = (state: StreamState, selected: BackgroundType): StreamState => _changeStreamLayout(state, { backgroundType: selected })
+const reduceSetStreamBackgroundSelected = (state: StreamState, layoutId: string, backgroundType: BackgroundType): StreamState => _changeStreamLayout(state, layoutId, { backgroundType })
 
 const reduceSetStreamVariables = (state: StreamState, source: string, variables: StreamStateVariable[]): StreamState => ({
     ...state,
@@ -180,11 +185,11 @@ const reduceSetStreamTemporalVariables = (state: StreamState, source: string, va
     }
 })
 
-const reduceSetStreamHtmlTemplate = (state: StreamState, htmlTemplate: string): StreamState => _changeStreamLayout(state, {
+const reduceSetStreamHtmlTemplate = (state: StreamState, htmlTemplate: string): StreamState => _changeEditingStreamLayout(state, {
     htmlTemplate
 })
 
-const reduceSetStreamCssTemplate = (state: StreamState, cssTemplate: string): StreamState => _changeStreamLayout(state, {
+const reduceSetStreamCssTemplate = (state: StreamState, cssTemplate: string): StreamState => _changeEditingStreamLayout(state, {
     cssTemplate
 })
 
@@ -349,6 +354,7 @@ const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, part
 export {
     initialState,
     initialStateIn,
+    DEFAULT_LAYOUT_ID,
     reduceSetStreamState,
     reduceSetStreamEnabled,
     reduceSetStreamAdvanced,
