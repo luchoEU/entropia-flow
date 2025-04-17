@@ -58,7 +58,6 @@ const STORAGE_TAB_CONTENTS = 'tabContents'
 const STORAGE_ALARM = 'alarm'
 const STORAGE_GAME_LOG = 'gameLog'
 const STORAGE_VIEW = 'view'
-const STORAGE_VIEW_MENU = 'menu'
 const STORAGE_VIEW_CALCULATOR = 'calculator'
 const STORAGE_VIEW_ACTIVES = 'actives'
 const STORAGE_VIEW_ORDER = 'order'
@@ -150,7 +149,6 @@ export {
     STORAGE_ALARM,
     STORAGE_GAME_LOG,
     STORAGE_VIEW,
-    STORAGE_VIEW_MENU,
     STORAGE_VIEW_CALCULATOR,
     STORAGE_VIEW_ACTIVES,
     STORAGE_VIEW_ORDER,

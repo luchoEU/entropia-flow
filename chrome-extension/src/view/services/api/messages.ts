@@ -5,7 +5,7 @@ import { traceId } from "../../../common/trace"
 
 let messagesClient: ChromeMessagesClient
 
-function initMessageClient(refreshViewHandler: PortHandler, dispatchHandler: PortHandler,  notificationHandler: PortHandler) {
+function initMessageClient(refreshViewHandler: PortHandler, dispatchHandler: PortHandler, notificationHandler: PortHandler) {
     messagesClient = new ChromeMessagesClient(
         MSG_NAME_REGISTER_VIEW,
         PORT_NAME_BACK_VIEW, {

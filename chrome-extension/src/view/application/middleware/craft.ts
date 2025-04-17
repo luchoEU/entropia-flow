@@ -1,7 +1,7 @@
 import { traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_BLUEPRINT_ACTIVE_PAGE, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
+import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY, setByStoreMaterialFilter } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
@@ -26,7 +26,6 @@ import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
 import { BlueprintWebData, BlueprintWebMaterial, ItemWebData, RawMaterialWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
-import { CRAFT_PAGE, SELECT_MENU } from '../actions/menu'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
     next(action)
@@ -47,7 +46,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case REMOVE_BLUEPRINT:
         case SORT_BLUEPRINTS_BY:
-        case SET_BLUEPRINT_ACTIVE_PAGE:
         case SET_STARED_BLUEPRINTS_FILTER:
         case ADD_BLUEPRINT:
         case SET_BLUEPRINT_PARTIAL_WEB_DATA:
@@ -89,13 +87,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
             break
         }
-        case SET_BLUEPRINT_ACTIVE_PAGE: {
-            const state: CraftState = getCraft(getState())
-            if (action.payload.name && !state.blueprints[action.payload.name]) {
-                dispatch(addBlueprint(action.payload.name))
-            }
-            break
-        }
         case SHOW_BLUEPRINT_MATERIAL_DATA: {
             const inv: InventoryState = getInventory(getState())
             const state: CraftState = getCraft(getState())
@@ -124,48 +115,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 const raw = mat[materialName]?.web?.rawMaterials
                 if (!raw) {
                     dispatch(loadItemRawMaterials(materialName))
-                }
-                dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
-            }
-            break
-        }
-        case SET_ITEM_PARTIAL_WEB_DATA: {
-            const itemName: string = action.payload.item
-            const rawMaterials: WebLoadResponse<RawMaterialWebData[]> = action.payload.change?.rawMaterials
-            if (rawMaterials) {
-                dispatch(setByStoreMaterialFilter(craftMaterialFilter(itemName, rawMaterials)))
-            }
-            break;
-        }
-        case SELECT_MENU: {
-            const menu = action.payload.menu
-            if (menu === CRAFT_PAGE) {
-                const inv: InventoryState = getInventory(getState())
-                const state: CraftState = getCraft(getState())
-                if (!state.activePage) {
-                    break
-                }
-
-                let bp = state.blueprints[state.activePage]
-                let materialName = bp.chain
-
-                while (materialName && materialName !== bp.c.itemName) {
-                    bp = bpDataFromItemName(state, materialName)
-                    if (bp) {
-                        materialName = bp.chain
-                    } else {
-                        const addBpName = bpNameFromItemName(inv, materialName)
-                        if (addBpName) {
-                            materialName = undefined
-                        }
-                        break
-                    }
-                }
-
-                if (materialName) {
-                    const mat: ItemsMap = getItemsMap(getState())
-                    const raw = mat[materialName]?.web?.rawMaterials
-                    dispatch(setByStoreMaterialFilter(craftMaterialFilter(materialName, raw)))
                 }
             }
             break
@@ -435,12 +384,6 @@ async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
         dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
     }
 }
-
-const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse<RawMaterialWebData[]>): string => 
-    filterExact(
-        rawMaterials?.data ?
-            filterOr([ materialName, ...rawMaterials.data.value.map(m => m.name) ]) :
-            materialName);
 
 export default [
     requests

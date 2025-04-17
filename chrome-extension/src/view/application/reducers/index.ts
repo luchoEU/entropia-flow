@@ -1,5 +1,4 @@
 import { combineReducers } from 'redux'
-import menu from './menu'
 import status from './status'
 import history from './history'
 import last from './last'
@@ -29,7 +28,7 @@ import trade from './trade'
 import mode from './mode'
 
 export default combineReducers({
-    menu, status, items, history, last, calculator, actives, order, sweat, stackable,
+    status, items, history, last, calculator, actives, order, sweat, stackable,
     refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
     connection, budget, ttService, tabular, expandable, trade, mode
 })

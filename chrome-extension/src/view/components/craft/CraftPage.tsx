@@ -4,10 +4,12 @@ import CraftCollapsedList from './CraftCollapsedList'
 import CraftExpandedList from './CraftExpandedList'
 import { useDispatch, useSelector } from 'react-redux'
 import { getCraft } from '../../application/selectors/craft'
-import { CraftState } from '../../application/state/craft'
-import { setBlueprintActivePage, setCraftActivePlanet } from '../../application/actions/craft'
+import { setCraftActivePlanet } from '../../application/actions/craft'
 import { getInventory } from '../../application/selectors/inventory'
 import Back from '../common/Back'
+import { useParams } from 'react-router-dom'
+import { TabId } from '../../application/state/navigation'
+import { formatUrlToBlueprint } from '../../application/helpers/navigation'
 
 const CraftPlanet = () => {
     const { activePlanet } = useSelector(getCraft)
@@ -26,15 +28,16 @@ const CraftPlanet = () => {
 }
 
 function CraftPage() {
-    const state: CraftState = useSelector(getCraft)
+    const { bpName } = useParams()
+    const bpNameDecoded = formatUrlToBlueprint(bpName)
 
-    return state.activePage ?
+    return bpNameDecoded ?
         <>
             <div className='flex'>
-                <Back text='List' dispatch={() => setBlueprintActivePage(undefined)} />
+                <Back text='List' parentPage={TabId.CRAFT} />
                 <CraftPlanet />
             </div>
-            <CraftExpandedList />
+            <CraftExpandedList bpName={bpNameDecoded} />
         </> :
         <>
             <CraftCollapsedList />

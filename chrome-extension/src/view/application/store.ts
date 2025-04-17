@@ -1,3 +1,5 @@
+import { useDispatch } from "react-redux";
+import services from "../services";
 import middleware from "./middleware";
 import reducers from "./reducers";
 import { configureStore } from '@reduxjs/toolkit';
@@ -14,10 +16,18 @@ const defaultMiddlewareOptions = DISABLE_CHECKS_FOR_PERFORMANCE ?
     },
 }
 
-export const setupStore = (services) => {
+const setupStore = (services: any) => {
     return configureStore({
         reducer: reducers, // Pass your reducers here
         middleware: (getDefaultMiddleware) =>
-            getDefaultMiddleware(defaultMiddlewareOptions).concat(middleware.map((f) => f(services))),
+            getDefaultMiddleware({
+                ...defaultMiddlewareOptions,
+                thunk: { extraArgument: services }
+            }).concat(middleware.map((f) => f(services))),
     });
 };
+export const store = setupStore(services);
+
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>;
+export const useAppDispatch = () => useDispatch<AppDispatch>();

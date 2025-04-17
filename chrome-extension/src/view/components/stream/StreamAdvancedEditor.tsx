@@ -9,11 +9,13 @@ import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
-import { Dispatch, UnknownAction } from "redux"
+import { useNavigate, useParams } from "react-router-dom"
+import { useAppDispatch } from "../../application/store"
 
 function StreamLayoutEditor() {
-    const { editing, layouts } = useSelector(getStreamIn)
-    const c = layouts[editing.layoutId]
+    const { layouts } = useSelector(getStreamIn)
+    const { layoutId } = useParams();
+    const c = layouts[layoutId]
 
     return <>
         <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
@@ -36,9 +38,12 @@ function StreamLayoutEditor() {
 }
 
 function StreamAdvancedEditor() {
-    const { in: { editing, layouts }, out: { data } } = useSelector(getStream);
-    const c = layouts[editing.layoutId];
-    const dispatch = useDispatch();
+    const { in: { layouts }, out: { data } } = useSelector(getStream);
+    const { layoutId } = useParams();
+    const c = layouts[layoutId];
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    if (!c) return <></>
 
     function InputRow(label: string, value: string, setValueAction: (value: string) => any): React.ReactNode {
         return <tr>
@@ -62,12 +67,12 @@ function StreamAdvancedEditor() {
             <button title='Click to switch to Basic Editor if you just want to select the background' className='stream-editor-button' onClick={() => dispatch(setStreamAdvanced(false))}>Advanced</button>
         </h1>
         <table className='stream-layout-data-table'>
-            {InputRow('Name', c.name, setStreamName)}
-            {InputRow('Author', c.author, setStreamAuthor)}
-            <tr><td/><td><button title='This layout is Read Only, click here to clone it to be able to modify your own version' onClick={() => dispatch(cloneStreamLayout)}>Clone</button></td></tr>
+            {InputRow('Name', c.name, setStreamName(navigate, layoutId))}
+            {InputRow('Author', c.author, setStreamAuthor(layoutId))}
+            <tr><td/><td><button title='This layout is Read Only, click here to clone it to be able to modify your own version' onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}>Clone</button></td></tr>
         </table>
         <div className='flex'>
-            <StreamBackgroundChooser />
+            <StreamBackgroundChooser layoutId={layoutId} />
             <SortableTabularSection
                 selector={STREAM_TABULAR_VARIABLES}
                 afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
@@ -78,7 +83,7 @@ function StreamAdvancedEditor() {
                 afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
             />
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
-                <StreamViewLayout id={'stream-preview'} layoutId={editing.layoutId} single={{ data: data.data, layout: c}} />
+                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: data.data, layout: c}} />
             </ExpandableSection>
             <StreamLayoutEditor />
         </div>

@@ -7,6 +7,7 @@ import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
 import { SortSecuence } from '../../application/state/sort';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -62,7 +63,7 @@ interface ItemRowSubColumnData {
         src: string
         text?: string
         show?: boolean
-        dispatch: () => any
+        dispatch: (navigate: NavigateFunction) => any
     }
     plusButton?: {
         expanded: boolean
@@ -70,7 +71,7 @@ interface ItemRowSubColumnData {
     }
     textButton?: {
         text: string
-        dispatch: () => any
+        dispatch: (navigate: NavigateFunction) => any
     }
     itemText?: string
     strong?: string
@@ -180,11 +181,12 @@ const ItemRowRender = (p: {
     columns: ColumnWidthData[]
 }): JSX.Element => {
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     return <>
         { p.columns.map((c: ColumnWidthData, i: number) => {
             const d = p.data.columns[i]
             return d && <div key={i} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); multiDispatch(dispatch, d.dispatch) }, className: 'pointer' } : {}}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); multiDispatch(dispatch, navigate, d.dispatch) }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>

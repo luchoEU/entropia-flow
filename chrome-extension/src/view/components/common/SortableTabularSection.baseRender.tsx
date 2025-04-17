@@ -2,6 +2,8 @@ import React, { JSX, useRef, useState } from 'react'
 import { FONT, FONT_BOLD, IMG_WIDTH, INPUT_PADDING, INPUT_WIDTH, ITEM_TEXT_PADDING, RowValue, RowValueRender } from './SortableTabularSection.data'
 import { useDispatch } from 'react-redux'
 import ItemText from './ItemText'
+import { useNavigate } from 'react-router-dom';
+import { multiDispatch } from './ImgButton';
 
 const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] => {
     const padding: number =
@@ -41,6 +43,8 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
 const BaseRowValueRender: RowValueRender = (p) => {
     const { v } = p;
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+
     const style = typeof v === 'object' && {
         ...'visible' in v && !v.visible && { visibility: 'hidden' },
         ...'maxWidth' in v && v.maxWidth && { maxWidth: v.maxWidth },
@@ -54,7 +58,10 @@ const BaseRowValueRender: RowValueRender = (p) => {
         ...'title' in v && { title: v.title },
         ...className && { className },
         ...style && { style },
-        ...'dispatch' in v && { onClick: (e) => { e.stopPropagation(); dispatch(v.dispatch()) }, className: className ? className + ' pointer' : 'pointer' },
+        ...'dispatch' in v && {
+            onClick: (e: React.MouseEvent) => { e.stopPropagation(); multiDispatch(dispatch, navigate, v.dispatch) },
+            className: className ? className + ' pointer' : 'pointer'
+        },
     }
 
     return v === undefined ? <></> :

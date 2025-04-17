@@ -1,4 +1,5 @@
 import ExpandableState from "../state/expandable"
+import { GAME_LOG_TABULAR_TRADE } from "../state/log"
 
 const initialExpandableState: ExpandableState = {
     collapsed: [],
@@ -17,9 +18,17 @@ const reduceSetVisible = (state: ExpandableState, selector: string, visible: boo
     hidden: visible ? state.hidden.filter(x => x !== selector) : [...state.hidden, selector]
 })
 
+const scrollValueForExpandable = (selector: string): string => {
+    switch(selector) {
+        case `TabularSection.${GAME_LOG_TABULAR_TRADE}`: return 'trade'
+        default: return undefined
+    }
+}
+
 export {
     initialExpandableState,
     reduceSetExpandableState,
     reduceSetExpanded,
     reduceSetVisible,
+    scrollValueForExpandable,
 }

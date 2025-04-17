@@ -3,7 +3,6 @@ import { mergeDeep } from "../../../common/merge"
 import { SET_BLUEPRINT_PARTIAL_WEB_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_STATE } from "../actions/craft"
 import { ADD_AVAILABLE, CANCEL_BY_STORE_ITEM_NAME_EDITING, CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING, CONFIRM_BY_STORE_ITEM_NAME_EDITING, CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING, HIDE_BY_CONTAINER, HIDE_BY_NAME, HIDE_BY_VALUE, LOAD_INVENTORY_STATE, LOAD_TRADING_ITEM_DATA, loadInventoryState, loadTradingItemData, REMOVE_AVAILABLE, SET_BLUEPRINTS_FILTER, SET_BY_STORE_ALL_ITEMS_EXPANDED, SET_BY_STORE_MATERIAL_FILTER, SET_BY_STORE_MATERIAL_ITEM_EXPANDED, SET_BY_STORE_FILTER, SET_BY_STORE_ITEM_EXPANDED, SET_BY_STORE_ITEM_NAME, SET_BY_STORE_ITEM_STARED, SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED, SET_BY_STORE_STARED_FILTER, SET_BY_STORE_STARED_ITEM_EXPANDED, SET_BY_STORE_STARED_ITEM_NAME, SET_BY_STORE_STARED_ITEM_STARED, SET_CURRENT_INVENTORY, SHOW_ALL, SHOW_BY_CONTAINER, SHOW_BY_NAME, SHOW_BY_VALUE, SHOW_TRADING_ITEM_DATA, SORT_AUCTION_BY, SORT_AVAILABLE_BY, SORT_BY_STORE_BY, SORT_BY_STORE_MATERIAL_BY, SORT_BY_STORE_STARED_BY, SORT_TRADE_FAVORITE_BLUEPRINTS_BY, SORT_TRADE_OTHER_BLUEPRINTS_BY, SORT_TRADE_OWNED_BLUEPRINTS_BY, START_BY_STORE_ITEM_NAME_EDITING, START_BY_STORE_STARED_ITEM_NAME_EDITING, setByStoreMaterialFilter, SHOW_HIDDEN_ITEMS, SET_OWNED_OPTIONS } from "../actions/inventory"
 import { loadItemUsageData, ITEM_RESERVE_VALUE_CHANGED, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
-import { SELECT_MENU, TRADE_PAGE } from "../actions/menu"
 import { ENABLE_FEATURE } from "../actions/settings"
 import { setTabularData } from "../actions/tabular"
 import { SET_TT_SERVICE_PARTIAL_WEB_DATA } from "../actions/ttService"
@@ -132,21 +131,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             const items: ItemsMap = getItemsMap(getState())
             const ttService: TTServiceState = getTTService(getState())
             dispatch(setTabularData(inventoryTabularData(state, settings, items, ttService)))
-            break
-        }
-    }
-
-    switch (action.type) {
-        case SHOW_TRADING_ITEM_DATA:
-        case SELECT_MENU: {
-            if (action.type === SELECT_MENU && action.payload.menu !== TRADE_PAGE) {
-                break
-            }
-            const state: InventoryState = getInventory(getState())
-            if (state.tradeItemDataChain) {
-                const name = state.tradeItemDataChain[state.tradeItemDataChain.length - 1].name
-                dispatch(setByStoreMaterialFilter(filterExact(name)))
-            }
             break
         }
     }

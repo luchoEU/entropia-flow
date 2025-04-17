@@ -4,7 +4,6 @@ import {
     STORAGE_VIEW_ACTIVES,
     STORAGE_VIEW_CALCULATOR,
     STORAGE_VIEW_INVENTORY,
-    STORAGE_VIEW_MENU,
     STORAGE_VIEW_ORDER,
     STORAGE_VIEW_REFINE,
     STORAGE_VIEW_STACKABLE,
@@ -63,14 +62,6 @@ function _uncompress(compressed: any): any {
     const compressedData = Buffer.from(compressed, 'base64');
     const uncompressed = pako.inflate(compressedData, { to: 'string' });
     return JSON.parse(uncompressed);
-}
-
-async function saveMenu(menu: number) {
-    await LOCAL_STORAGE.set(STORAGE_VIEW_MENU, menu)
-}
-
-async function loadMenu(): Promise<number> {
-    return await LOCAL_STORAGE.get(STORAGE_VIEW_MENU)
 }
 
 async function saveCalculator(state: CalculatorStateIn) {
@@ -278,8 +269,6 @@ async function loadGameLog(): Promise<GameLogState> {
 }
 
 export default {
-    saveMenu,
-    loadMenu,
     saveCalculator,
     loadCalculator,
     saveActives,

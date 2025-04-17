@@ -3,7 +3,6 @@ import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inve
 import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectForAction } from '../../application/actions/menu'
 import { ViewPedData } from '../../application/state/last'
 import { addPeds, removePeds } from '../../application/actions/last'
 import ImgButton from '../common/ImgButton'
@@ -13,6 +12,8 @@ import { itemBuyMarkupChanged, setItemMarkupUnit } from '../../application/actio
 import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
+import { useNavigate } from 'react-router-dom'
+import { SHOW_ACTION_LINK } from '../../../config'
 
 interface Config {
     sortBy: (part: number) => any
@@ -34,6 +35,7 @@ const ItemRow = (p: {
 }) => {
     const { item, c } = p
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const material = useSelector(getItem(item.n))
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
@@ -125,12 +127,12 @@ const ItemRow = (p: {
                 <ItemText text={item.c} />
             </td>
             <td>
-                { item.a &&
+                { SHOW_ACTION_LINK && item.a &&
                     <button
                         className='button-me-log'
                         onClick={(e) => {
-                            e.stopPropagation()
-                            dispatch(selectForAction(item.a.menu, item.n))
+                            e.stopPropagation();
+                            navigate(item.a.navigateTo);
                         }}>
                         { '>' }
                     </button>

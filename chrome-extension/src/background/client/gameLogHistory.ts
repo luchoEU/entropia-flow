@@ -5,7 +5,7 @@ import { gameTime } from "../../common/date"
 import { emptyTemporalValue } from "../../common/state"
 import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
-const MAX_LOG_LINES = 500
+const MAX_LOG_LINES = 1000
 
 interface IGameLogHistory {
     onLine(line: GameLogLine): Promise<void>
@@ -19,6 +19,12 @@ const ignoreLootForKill = [
     'Bombardo', 'Caroot', 'Haimoros', 'Papplon',
     'Common Dung',
 ]
+
+function _unshiftWithMax<T>(list: T[], item: T) {
+    list.unshift(item)
+    if (list.length > MAX_LOG_LINES)
+        list.splice(MAX_LOG_LINES)
+}
 
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
@@ -37,9 +43,7 @@ class GameLogHistory implements IGameLogHistory {
     }
 
     public async onLine(line: GameLogLine): Promise<void> {
-        this.gameLog.raw.unshift(line)
-        if (this.gameLog.raw.length > MAX_LOG_LINES)
-            this.gameLog.raw.splice(MAX_LOG_LINES)
+        _unshiftWithMax(this.gameLog.raw, line)
 
         if (line.data.loot) {
             const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name);
@@ -57,7 +61,7 @@ class GameLogHistory implements IGameLogHistory {
                         this.gameLog.stats.kills = emptyTemporalValue();
                     this.gameLog.stats.kills.count++;
                     this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
-                    this.gameLog.stats.kills.history.unshift({ time: lineDateTime, value: 1 });
+                    _unshiftWithMax(this.gameLog.stats.kills.history, { time: lineDateTime, value: 1 });
                 }
                 this.lastLootDateTime = lineDateTime
             }
@@ -73,7 +77,7 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.global) {
-            this.gameLog.global.unshift(line.data.global)
+            _unshiftWithMax(this.gameLog.global, line.data.global)
         }
 
         if (line.data.event) {
@@ -81,7 +85,7 @@ class GameLogHistory implements IGameLogHistory {
                 // remove kill when the mission is completed and gives rewards
                 this.removeFromKillCount(line.time)
             }
-            this.gameLog.event.unshift(line.data.event)
+            _unshiftWithMax(this.gameLog.event, line.data.event)
         }
 
         if (line.data.enhancerBroken) {
@@ -113,13 +117,13 @@ class GameLogHistory implements IGameLogHistory {
                     this.gameLog.stats[key] = emptyTemporalValue()
                 this.gameLog.stats[key].count++
                 this.gameLog.stats[key].total += value
-                this.gameLog.stats[key].history.unshift({ time: gameTime(line.time), value })
+                _unshiftWithMax(this.gameLog.stats[key].history, { time: gameTime(line.time), value })
             })
         }
 
         if (line.data.trade) {
             this.gameLog.trade = this.gameLog.trade.filter(t => t.player !== line.data.trade.player || t.message !== line.data.trade.message);
-            this.gameLog.trade.unshift(line.data.trade);
+            _unshiftWithMax(this.gameLog.trade, line.data.trade)
         }
 
         if (this.onChange)
@@ -131,7 +135,7 @@ class GameLogHistory implements IGameLogHistory {
             return;
 
         const lineDateTime: number = gameTime(time);
-        if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) {
+        if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) { // 1 second
             if (this.gameLog.stats.kills.count == 1) {
                 this.gameLog.stats.kills = undefined
             } else {

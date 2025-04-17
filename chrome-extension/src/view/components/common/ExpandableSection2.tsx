@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import ExpandableArrowButton from "./ExpandableArrowButton"
 import { useDispatch, useSelector } from "react-redux"
 import { getExpanded, getVisible } from "../../application/selectors/expandable"
@@ -6,8 +6,17 @@ import { setExpanded, setVisible } from "../../application/actions/expandable"
 import ModeState from "../../application/state/mode"
 import { getMode } from "../../application/selectors/mode"
 import ImgButton from "./ImgButton"
+import { useLocation } from "react-router-dom"
+import { scrollValueForExpandable } from "../../application/helpers/expandable"
 
-const ExpandableSection = (p: {
+const ExpandableSection = ({
+    selector,
+    title,
+    subtitle,
+    className,
+    actionRequired,
+    children
+}: {
     selector: string,
     title: string,
     subtitle: string,
@@ -16,34 +25,48 @@ const ExpandableSection = (p: {
     children: any
 }) => {
     const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
-    const visibleSelector = `section.${p.selector}`
-    const visible: boolean = useSelector(getVisible(visibleSelector)) || p.actionRequired !== undefined
-    const expanded: boolean = useSelector(getExpanded(p.selector)) && visible || p.actionRequired !== undefined
+    const visibleSelector = `section.${selector}`
+    const visible: boolean = useSelector(getVisible(visibleSelector)) || actionRequired !== undefined
+    const expanded: boolean = useSelector(getExpanded(selector)) && visible || actionRequired !== undefined
     const dispatch = useDispatch()
 
-    const showVisible = showSubtitles && showVisibleToggle && !p.actionRequired
+    const location = useLocation()
+    const ref = useRef<HTMLElement>(null);
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const shouldScroll = params.get("scrollTo") === scrollValueForExpandable(selector);
+    
+        if (shouldScroll && ref.current) {
+            // optional delay in case the component isn't fully mounted
+            setTimeout(() => {
+                ref.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }, [location.search]);
+
+    const showVisible = showSubtitles && showVisibleToggle && !actionRequired
     if (!visible && !showVisible)
         return <></>
 
     return (
-        <section id={p.selector} className={p.className}>
+        <section ref={ref} className={className}>
             <div>
                 <h1 onClick={(e) => {
                         e.stopPropagation()
-                        dispatch(setExpanded(p.selector)(!expanded))}
+                        dispatch(setExpanded(selector)(!expanded))}
                     }>
-                    { expanded && showSubtitles ? p.title : <span title={p.subtitle}>{p.title}</span> }
+                    { expanded && showSubtitles ? title : <span title={subtitle}>{title}</span> }
                     { showVisible &&
                         <ImgButton title={visible ? 'click to Hide Section' : 'click to Show Section'}
                             className='img-visible-section'
                             src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                             dispatch={() => setVisible(visibleSelector)(!visible)} />}
-                    { visible && !p.actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(p.selector)} /> }
-                    { p.actionRequired && <img className='img-warning' src='img/warning.png' title={p.actionRequired} /> }
+                    { visible && !actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(selector)} /> }
+                    { actionRequired && <img className='img-warning' src='img/warning.png' title={actionRequired} /> }
                 </h1>
-                { expanded && showSubtitles && p.subtitle && <div className="subtitle">{p.subtitle}</div> }
+                { expanded && showSubtitles && subtitle && <div className="subtitle">{subtitle}</div> }
             </div>
-            { expanded && p.children }
+            { expanded && children }
         </section>
     )
 }

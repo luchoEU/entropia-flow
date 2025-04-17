@@ -5,7 +5,7 @@ import { getLatestFromInventoryList, getText } from "./history"
 import { ViewItemData, ViewItemMode } from "../state/history"
 import { matchDate } from "../../../common/date"
 import { LastRequiredState, ViewPedData } from "../state/last"
-import { AvailableCriteria } from "../state/inventory"
+import { InventoryState } from "../state/inventory"
 import { getItemAction } from "./soldDetector"
 import { ItemsMap } from "../state/items"
 import { getValueWithMarkup } from "./items"
@@ -246,13 +246,13 @@ const reduceApplyMarkup = (state: LastRequiredState, items: ItemsMap): LastRequi
     }
 })
 
-const reduceAddActions = (state: LastRequiredState, availableCriteria: AvailableCriteria): LastRequiredState => ({
+const reduceAddActions = (state: LastRequiredState, inventory: InventoryState): LastRequiredState => ({
     ...state,
     c: {
         ...state.c,
         diff: state.c.diff === null ? null : state.c.diff.map(d => ({
             ...d,
-            a: getItemAction(d, availableCriteria)
+            a: getItemAction(d, inventory)
         }))
     }
 })

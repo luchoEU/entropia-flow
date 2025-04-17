@@ -2,10 +2,10 @@ import React, { useEffect } from 'react'
 import { Provider, useDispatch } from 'react-redux';
 import { pageLoaded } from '../application/actions/ui';
 import './App.scss'
-import { setupStore } from '../application/store';
-import services from '../services';
+import { store } from '../application/store';
 import Navigation from './Navigation';
 import Content from './Content';
+import { HashRouter } from 'react-router-dom';
 
 function _AppWithPageLoaded() {
   const dispatch = useDispatch()
@@ -22,8 +22,10 @@ function _AppWithPageLoaded() {
 
 function App() {
   return (
-    <Provider store={setupStore(services)}>
-      <_AppWithPageLoaded />
+    <Provider store={store}>
+      <HashRouter>
+        <_AppWithPageLoaded />
+      </HashRouter>
     </Provider>
   )
 }

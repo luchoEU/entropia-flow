@@ -1,6 +1,10 @@
+import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData from '../../../stream/data'
+import StreamRenderData, { StreamRenderLayoutSet } from '../../../stream/data'
+import { getStreamIn } from '../selectors/stream'
 import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream"
+import { AppDispatch, RootState } from '../store'
+import { navigateTo, streamEditorUrl } from './navigation'
 
 const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"
@@ -11,7 +15,6 @@ const SET_STREAM_TEMPORAL_VARIABLES = "[stream] set temporal variables"
 const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
 const SET_STREAM_CSS_TEMPLATE = "[stream] set css template"
 const SET_STREAM_DATA = "[stream] set data"
-const SET_STREAM_EDITING = "[stream] set editing"
 const SET_STREAM_STARED = "[stream] set stared"
 const SET_STREAM_NAME = "[stream] set name"
 const SET_STREAM_AUTHOR = "[stream] set author"
@@ -24,135 +27,127 @@ const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
-    payload: {
-        state
-    }
+    payload: { state }
 })
 
 const setStreamEnabled = (enabled: boolean) => ({
     type: SET_STREAM_ENABLED,
-    payload: {
-        enabled
-    }
+    payload: { enabled }
 })
 
 const setStreamAdvanced = (advanced: boolean) => ({
     type: SET_STREAM_ADVANCED,
-    payload: {
-        advanced
-    }
+    payload: { advanced }
 })
 
-const cloneStreamLayout = {
-    type: CLONE_STREAM_LAYOUT
+const _getUnique = (used: string[], base: string, noNumberName: string = undefined): string => {
+    let n = 1;
+    let name = noNumberName;
+    while (!name || used.includes(name)) {
+        name = `${base}${n++}`;
+    }
+    return name;
+}
+
+const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, name: string): string => {
+    const baseId = (name.startsWith('entropiaflow.') ? `user.${name}` : name).replace(' ', '_');
+    return _getUnique(Object.keys(layouts), `${baseId}_`, baseId);
+}
+
+const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet, base: string, noNumberName?: string): string =>
+    _getUnique(Object.values(layouts).map(l => l.name), base, noNumberName);
+
+const cloneStreamLayout = (navigate: NavigateFunction, layoutId: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    const layouts = getStreamIn(getState()).layouts;
+    const baseName = `${layouts[layoutId].name} copy`;
+    const newName = _getUniqueLayoutName(layouts, `${baseName} `, baseName);
+    const newLayoutId = _getUniqueLayoutId(layouts, newName);
+    dispatch({
+        type: CLONE_STREAM_LAYOUT,
+        payload: { layoutId, newLayoutId, newName }
+    })
+    dispatch(navigateTo(navigate, streamEditorUrl(newLayoutId)))
 }
 
 const setStreamBackgroundSelected = (layoutId: string, backgroundType: BackgroundType) => ({
     type: SET_STREAM_BACKGROUND_SELECTED,
-    payload: {
-        layoutId,
-        backgroundType
-    }
+    payload: { layoutId, backgroundType }
 })
 
 const setStreamData = (data: StreamRenderData) => ({
     type: SET_STREAM_DATA,
-    payload: {
-        data
-    }
+    payload: { data }
 })
 
-const setStreamEditing = (layoutId: string) => ({
-    type: SET_STREAM_EDITING,
-    payload: {
-        layoutId
-    }
-})
-
-const setStreamStared = (layoutId: string, stared: boolean) => ({
+const setStreamStared = (layoutId: string) => (stared: boolean) => ({
     type: SET_STREAM_STARED,
-    payload: {
-        layoutId,
-        stared
-    }
+    payload: { layoutId, stared }
 })
 
-const setStreamHtmlTemplate = (template: string) => ({
+const setStreamHtmlTemplate = (layoutId: string) => (template: string) => ({
     type: SET_STREAM_HTML_TEMPLATE,
-    payload: {
-        template
-    }
+    payload: { layoutId, template }
 })
 
-const setStreamCssTemplate = (template: string) => ({
+const setStreamCssTemplate = (layoutId: string) => (template: string) => ({
     type: SET_STREAM_CSS_TEMPLATE,
-    payload: {
-        template
-    }
+    payload: { layoutId, template }
 })
 
-const setStreamName = (name: string) => ({
-    type: SET_STREAM_NAME,
-    payload: {
-        name
-    }
-})
+const setStreamName = (navigate: NavigateFunction, layoutId: string) => (name: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    const newLayoutId = _getUniqueLayoutId(getStreamIn(getState()).layouts, name);
+    dispatch({
+        type: SET_STREAM_NAME,
+        payload: { layoutId, newLayoutId, name }
+    })
+    dispatch(navigateTo(navigate, streamEditorUrl(newLayoutId), { replace: true }))
+}
 
-const setStreamAuthor = (author: string) => ({
+const setStreamAuthor = (layoutId: string) => (author: string) => ({
     type: SET_STREAM_AUTHOR,
-    payload: {
-        author
-    }
+    payload: { layoutId, author }
 })
 
 const setStreamVariables = (source: string, variables: StreamStateVariable[]) => ({
     type: SET_STREAM_VARIABLES,
-    payload: {
-        source,
-        variables
-    }
+    payload: { source, variables }
 })
 
 const setStreamTemporalVariables = (source: string, variables: StreamTemporalVariable[]) => ({
     type: SET_STREAM_TEMPORAL_VARIABLES,
-    payload: {
-        source,
-        variables
-    }
+    payload: { source, variables }
 })
 
-const addStreamLayout = {
-    type: ADD_STREAM_LAYOUT
+const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    const layouts = getStreamIn(getState()).layouts;
+    const name = _getUniqueLayoutName(layouts, 'Layout ');
+    const layoutId = _getUniqueLayoutId(layouts, name);
+    dispatch({
+        type: ADD_STREAM_LAYOUT,
+        payload: { layoutId, name }
+    })
+    dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
 }
 
 const removeStreamLayout = (layoutId: string) => ({
     type: REMOVE_STREAM_LAYOUT,
-    payload: {
-        layoutId
-    }
+    payload: { layoutId }
 })
 
 const addStreamUserVariable = (isImage: boolean) => ({
     type: ADD_STREAM_USER_VARIABLE,
-    payload: {
-        isImage
-    }
+    payload: { isImage }
 })
 
 
 const removeStreamUserVariable = (id: number) => ({
     type: REMOVE_STREAM_USER_VARIABLE,
-    payload: {
-        id
-    }
+    payload: { id }
 })
 
 const setStreamUserVariablePartial = (id: number, partial: Partial<StreamUserVariable>) => ({
     type: SET_STREAM_USER_VARIABLE_PARTIAL,
-    payload: {
-        id,
-        partial
-    }
+    payload: { id, partial }
 })
 
 export {
@@ -165,7 +160,6 @@ export {
     SET_STREAM_HTML_TEMPLATE,
     SET_STREAM_CSS_TEMPLATE,
     SET_STREAM_DATA,
-    SET_STREAM_EDITING,
     SET_STREAM_STARED,
     SET_STREAM_NAME,
     SET_STREAM_AUTHOR,
@@ -184,7 +178,6 @@ export {
     setStreamHtmlTemplate,
     setStreamCssTemplate,
     setStreamData,
-    setStreamEditing,
     setStreamStared,
     setStreamName,
     setStreamAuthor,

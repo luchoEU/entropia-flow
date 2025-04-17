@@ -15,7 +15,7 @@ export default (state = initialState, action) => {
         case SET_LAST_SHOW_MARKUP: return reduceSetLastShowMarkup(state, action.payload.showMarkup)
         case ADD_PEDS: return reduceAddPeds(state, action.payload.value)
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
-        case ADD_ACTIONS: return reduceAddActions(state, action.payload.availableCriteria)
+        case ADD_ACTIONS: return reduceAddActions(state, action.payload.inventory)
         case ADD_NOTIFICATIONS_DONE: return reduceAddNotificationsDone(state, action.payload.messages)
         case APPLY_MARKUP_TO_LAST: return reduceApplyMarkup(state, action.payload.items)
         default: return state

@@ -1,10 +1,10 @@
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { NAME, QUANTITY, sortColumnDefinition, VALUE } from "../../application/helpers/inventory.sort"
 import { InventoryByStore, TreeLineData } from "../../application/state/inventory"
 import { SortableFixedSizeTable, TableData } from "../common/SortableTableSection"
 import { getByStoreInventory, getByStoreInventoryMaterialItem } from "../../application/selectors/inventory"
-import React from "react"
-import { setByStoreMaterialItemExpanded, sortByStoreMaterialBy } from "../../application/actions/inventory"
+import React, { useEffect } from "react"
+import { setByStoreMaterialFilter, setByStoreMaterialItemExpanded, sortByStoreMaterialBy } from "../../application/actions/inventory"
 
 const INDENT_SPACE = 10
 const inventoryTableData: TableData<TreeLineData> = {
@@ -37,8 +37,15 @@ const inventoryTableData: TableData<TreeLineData> = {
     })
 }
 
-const ItemInventory = () => {
+const ItemInventory = ({ filter }: { filter: string }) => {
     const inv: InventoryByStore = useSelector(getByStoreInventory)
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        if (filter === inv.material.filter) return // already set
+        dispatch(setByStoreMaterialFilter(filter))
+    }, [filter])
+
     return <>
         { inv.flat.material.length === 0 ?
             <p><strong>None on Inventory</strong></p> :

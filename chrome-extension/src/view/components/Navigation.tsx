@@ -1,7 +1,5 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { selectMenu, tabOrder } from '../application/actions/menu';
-import { getSelectedMenu } from '../application/selectors/menu';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
 import { getMode } from '../application/selectors/mode';
@@ -12,17 +10,37 @@ import { getLast } from '../application/selectors/last';
 import { getVisible } from '../application/selectors/expandable';
 import { setVisible } from '../application/actions/expandable';
 import { getSettings } from '../application/selectors/settings';
-import { tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/menu';
+import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { TabId, tabOrder } from '../application/state/navigation';
 
 const Tab = (p: {
-    id: number,
+    id: TabId,
     actionRequired?: string
 }) => {
-    const dispatch = useDispatch()
-    const menu = useSelector(getSelectedMenu)
-    const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
+    const navigate = useNavigate();
+    const location = useLocation();
+    const tabId = getTabIdFromLocation(location);
+
+    const [lastVisited, setLastVisited] = useState<string | null>(null);
+    const isCurrentTab = tabId === p.id;
+    useEffect(() => {
+        if (isCurrentTab) {
+            setLastVisited(location.pathname);
+        }
+    }, [isCurrentTab, location.pathname]);
+
+    const handleClick = () => {
+        const fallback = getLocationFromTabId(p.id);
+        const target = lastVisited ?? fallback;
+        if (location.pathname !== target) {
+            navigate(target);
+        }
+    };
+
+    const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode);
     const visibleSelector = `tab.${p.id}`;
-    const visible: boolean = useSelector(getVisible(visibleSelector))
+    const visible: boolean = useSelector(getVisible(visibleSelector));
 
     const showVisible = showSubtitles && showVisibleToggle
     if (!visible && !showVisible)
@@ -32,10 +50,10 @@ const Tab = (p: {
         <button
             className={
                 (p.actionRequired ? 'warning-menu ' : '') +
-                (menu === p.id ? 'selected-menu ' : '') +
+                (tabId === p.id ? 'selected-menu ' : '') +
                 (!visible ? 'hidden-menu ' : '') +
                 'button-menu'}
-            onClick={() => dispatch(selectMenu(p.id))}>
+            onClick={handleClick}>
             { tabTitle[p.id] }
             { p.actionRequired && <img className='img-warning-menu' src='img/warning.png' title={p.actionRequired} /> }
             { showVisible &&
@@ -68,7 +86,7 @@ const FirstRow = () => {
 
 const Navigation = () => {
     const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
-    const menu = useSelector(getSelectedMenu)
+    const tabId = getTabIdFromLocation(useLocation())
 
     return (
         <nav>
@@ -78,7 +96,7 @@ const Navigation = () => {
                         <FirstRow />
                     </div>
                     <div>
-                        <span>{tabSubtitle[menu]}</span>
+                        <span>{tabSubtitle[tabId]}</span>
                         <ImgButton title={showVisibleToggle ? 'click to Hide Section Visibility Button' : 'click to Show Section Visibility Button'}
                             className='img-visible-section'
                             src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}

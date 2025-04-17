@@ -146,17 +146,15 @@ const _changeStreamLayout = (state: StreamState, layoutId: string, partial: Part
     }
 })
 
-const _changeEditingStreamLayout = (state: StreamState, partial: Partial<StreamRenderLayout>): StreamState => _changeStreamLayout(state, state.in.editing.layoutId, partial)
-
-const reduceSetStreamAuthor = (state: StreamState, author: string): StreamState => ({
+const reduceSetStreamAuthor = (state: StreamState, layoutId: string, author: string): StreamState => ({
     ...state,
     in: {
         ...state.in,
         defaultAuthor: author,
         layouts: {
             ...state.in.layouts,
-            [state.in.editing.layoutId]: {
-                ...state.in.layouts[state.in.editing.layoutId],
+            [layoutId]: {
+                ...state.in.layouts[layoutId],
                 author
             }
         }
@@ -185,21 +183,9 @@ const reduceSetStreamTemporalVariables = (state: StreamState, source: string, va
     }
 })
 
-const reduceSetStreamHtmlTemplate = (state: StreamState, htmlTemplate: string): StreamState => _changeEditingStreamLayout(state, {
-    htmlTemplate
-})
+const reduceSetStreamHtmlTemplate = (state: StreamState, layoutId: string, htmlTemplate: string): StreamState => _changeStreamLayout(state, layoutId, { htmlTemplate })
 
-const reduceSetStreamCssTemplate = (state: StreamState, cssTemplate: string): StreamState => _changeEditingStreamLayout(state, {
-    cssTemplate
-})
-
-const reduceSetStreamEditing = (state: StreamState, layoutId: string): StreamState => ({
-    ...state,
-    in: {
-        ...state.in,
-        editing: layoutId === undefined ? undefined : { layoutId }
-    }
-})
+const reduceSetStreamCssTemplate = (state: StreamState, layoutId: string, cssTemplate: string): StreamState => _changeStreamLayout(state, layoutId, { cssTemplate })
 
 const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boolean): StreamState => ({
     ...state,
@@ -210,18 +196,16 @@ const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boo
     }
 })
 
-const reduceSetStreamName = (state: StreamState, name: string): StreamState => {
+const reduceSetStreamName = (state: StreamState, layoutId: string, newLayoutId: string, name: string): StreamState => {
     const layouts = { ...state.in.layouts }
-    delete layouts[state.in.editing.layoutId]
-    const layoutId = _getUniqueLayoutId(layouts, name);
-    layouts[layoutId] = { ...state.in.layouts[state.in.editing.layoutId], name };
+    if (layoutId !== newLayoutId) {
+        delete layouts[layoutId]
+    }
+    layouts[newLayoutId] = { ...state.in.layouts[layoutId], name };
     return {
         ...state,
         in: {
             ...state.in,
-            editing: {
-                layoutId
-            },
             layouts
         }
     }
@@ -235,69 +219,38 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
     }
 })
 
-const _getUnique = (used: string[], base: string, noNumberName: string = undefined): string => {
-    let n = 1;
-    let name = noNumberName;
-    while (!name || used.includes(name)) {
-        name = `${base}${n++}`;
-    }
-    return name;
-}
-
-const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, name: string): string => {
-    const baseId = (name.startsWith('entropiaflow.') ? `user.${name}` : name).replace(' ', '_');
-    return _getUnique(Object.keys(layouts), `${baseId}_`, baseId);
-}
-
-const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet, base: string, noNumberName?: string): string =>
-    _getUnique(Object.values(layouts).map(l => l.name), base, noNumberName);
-
-const reduceAddStreamLayout = (state: StreamState): StreamState => {
-    const name = _getUniqueLayoutName(state.in.layouts, 'Layout ');
-    const layoutId = _getUniqueLayoutId(state.in.layouts, name);
-    return {
-        ...state,
-        in: {
-            ...state.in,
-            editing: {
-                layoutId
-            },
-            layouts: {
-                ...state.in.layouts,
-                [layoutId]: {
-                    name,
-                    author: state.in.defaultAuthor,
-                    backgroundType: _defaultLayout.backgroundType,
-                    htmlTemplate: _defaultLayout.htmlTemplate,
-                    cssTemplate: _defaultLayout.cssTemplate,
-                }
+const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: string): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        layouts: {
+            ...state.in.layouts,
+            [layoutId]: {
+                name,
+                author: state.in.defaultAuthor,
+                backgroundType: _defaultLayout.backgroundType,
+                htmlTemplate: _defaultLayout.htmlTemplate,
+                cssTemplate: _defaultLayout.cssTemplate,
             }
         }
-    };
-}
+    }
+});
 
-
-const reduceCloneStreamLayout = (state: StreamState): StreamState => {
-    if (!state.in.editing?.layoutId) {
+const reduceCloneStreamLayout = (state: StreamState, layoutId: string, newLayoutId: string, newName: string): StreamState => {
+    const layout = state.in.layouts[layoutId];
+    if (!layout) {
         return state;
     }
 
-    const layout = state.in.layouts[state.in.editing.layoutId];
-    const baseName = `${layout.name} copy`;
-    const name = _getUniqueLayoutName(state.in.layouts, `${baseName} `, baseName);
-    const layoutId = _getUniqueLayoutId(state.in.layouts, name);
     return {
         ...state,
         in: {
             ...state.in,
-            editing: {
-                layoutId
-            },
             layouts: {
                 ...state.in.layouts,
                 [layoutId]: {
                     ...layout,
-                    name,
+                    name: newName,
                     author: state.in.defaultAuthor,
                     readonly: false,
                     stared: false
@@ -363,7 +316,6 @@ export {
     reduceSetStreamTemporalVariables,
     reduceSetStreamHtmlTemplate,
     reduceSetStreamCssTemplate,
-    reduceSetStreamEditing,
     reduceSetStreamStared,
     reduceSetStreamData,
     reduceSetStreamName,

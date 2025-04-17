@@ -1,3 +1,4 @@
+import { NavigateFunction } from "react-router-dom";
 import { StreamRenderLayout } from "../../../stream/data";
 
 const FONT = '12px system-ui, sans-serif'
@@ -16,7 +17,7 @@ const COLUMN_PADDING = 3
 type RowValue =
     string |
     RowValue[] |
-    { dispatch?: () => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
+    { dispatch?: (navigate: NavigateFunction) => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
         { flex: number } |
         { img: string, title: string, show?: boolean } |
         { button: string } |

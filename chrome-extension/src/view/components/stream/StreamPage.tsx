@@ -1,6 +1,6 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setStreamEditing, setStreamEnabled } from '../../application/actions/stream';
+import { setStreamEnabled } from '../../application/actions/stream';
 import { getStreamIn } from '../../application/selectors/stream';
 import { StreamStateIn } from '../../application/state/stream';
 import StreamLayoutChooser from './StreamChooser';
@@ -9,11 +9,15 @@ import StreamAdvancedEditor from './StreamAdvancedEditor';
 import StreamBasicEditor from './StreamBasicEditor';
 import StreamBackgroundChooser from './StreamBackground';
 import { SHOW_STREAM_EDITOR } from '../../../config';
+import { TabId } from '../../application/state/navigation';
+import { useParams } from 'react-router-dom';
+import { DEFAULT_LAYOUT_ID } from '../../application/helpers/stream';
 
 function StreamPage() {
     const dispatch = useDispatch()
-    const { enabled, layouts, editing, advanced }: StreamStateIn = useSelector(getStreamIn);
-    const c = layouts[editing?.layoutId];
+    const { layoutId } = useParams()
+    const { enabled, layouts, advanced }: StreamStateIn = useSelector(getStreamIn);
+    const c = layouts[layoutId];
 
     return (
         <>
@@ -28,13 +32,13 @@ function StreamPage() {
                 </label>
             </section>
             { SHOW_STREAM_EDITOR ?
-                (advanced && editing?.layoutId ? <>
-                    <Back text="Back to list" dispatch={() => setStreamEditing(undefined)} />
+                (advanced && layoutId ? <>
+                    <Back text="Back to list" parentPage={TabId.STREAM} />
                     <StreamAdvancedEditor />
                 </> : <>
                     <StreamLayoutChooser />
-                    { editing?.layoutId && <StreamBasicEditor /> }
-                </>) : <StreamBackgroundChooser />
+                    { layoutId && <StreamBasicEditor /> }
+                </>) : <StreamBackgroundChooser layoutId={DEFAULT_LAYOUT_ID} />
             }
         </>
     )

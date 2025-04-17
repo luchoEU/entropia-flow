@@ -1,18 +1,20 @@
 import React, { CSSProperties, MouseEventHandler } from "react"
 import { useDispatch } from "react-redux"
+import { NavigateFunction, useNavigate } from "react-router-dom"
 import { Dispatch, UnknownAction } from "redux"
 
 const ImgButton = (p: {
     title: string,
     text?: string,
     src: string,
-    dispatch: () => any,
+    dispatch: (navigate: NavigateFunction) => any,
     clickPopup?: string
     className?: string
     style?: CSSProperties
     show?: boolean
 }) => {
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const onClick: MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation()
 
@@ -22,7 +24,7 @@ const ImgButton = (p: {
             setTimeout(() => { popup.style.display = 'none' }, 1000)
         }
 
-        multiDispatch(dispatch, p.dispatch)
+        multiDispatch(dispatch, navigate, p.dispatch)
     }
 
     return <>
@@ -42,8 +44,11 @@ const ImgButton = (p: {
     </>;
 }
 
-function multiDispatch(dispatch: Dispatch<UnknownAction>, getDispatchAction: () => any) {
-    const action = getDispatchAction()
+function multiDispatch(dispatch: Dispatch<UnknownAction>,
+    navigate: NavigateFunction,
+    getDispatchAction: (navigate: NavigateFunction) => any
+) {
+    const action = getDispatchAction(navigate)
     if (Array.isArray(action)) {
         action.forEach((a) => dispatch(a))
     } else {

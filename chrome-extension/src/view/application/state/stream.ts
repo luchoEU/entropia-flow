@@ -9,9 +9,6 @@ interface StreamStateIn {
     enabled: boolean
     advanced: boolean // show advanced editor
     defaultAuthor: string
-    editing?: {
-        layoutId: string
-    }
     view: string[]
     layouts: StreamRenderLayoutSet
     userVariables: StreamUserVariable[]

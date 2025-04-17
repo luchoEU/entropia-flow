@@ -3,7 +3,6 @@ import { BlueprintWebData } from "../../../web/state"
 
 interface CraftState {
     activeSession?: string
-    activePage?: string // blueprint name
     activePlanet?: string
     blueprints: { [ name: string ]: BlueprintData }
     stared: {

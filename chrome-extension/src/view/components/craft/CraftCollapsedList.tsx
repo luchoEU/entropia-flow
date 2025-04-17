@@ -1,10 +1,12 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { reloadBlueprint, setBlueprintActivePage, setBlueprintStared, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { reloadBlueprint, setBlueprintStared, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
 import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
+import { NavigateFunction } from 'react-router-dom'
+import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation'
 
 const sortRowData: SortRowData = {
     [CLICKS]: { justifyContent: 'center' },
@@ -19,7 +21,7 @@ const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
     compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
 }]
 const getRowData = (d: BlueprintData): ItemRowData => ({
-    dispatch: () => setBlueprintActivePage(d.name),
+    dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(d.name)),
     columns: {
         [NAME]: {
             sub: [{

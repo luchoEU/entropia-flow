@@ -22,7 +22,7 @@ interface ViewItemMode {
 
 interface ViewItemAction {
     message: string
-    menu: number
+    navigateTo: string
 }
 
 interface ViewInventory {

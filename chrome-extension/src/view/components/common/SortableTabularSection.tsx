@@ -253,7 +253,15 @@ const SortableTable = (p: {
     </div>
 }
 
-const SortableTabularSection = (p: {
+const SortableTabularSection = ({
+    selector,
+    afterSearch,
+    beforeTable,
+    itemHeight,
+    useTable,
+    rowValueRender,
+    children
+}: {
     selector: string,
     afterSearch?: RowValue[],
     beforeTable?: RowValue[],
@@ -262,12 +270,14 @@ const SortableTabularSection = (p: {
     rowValueRender?: RowValueRender,
     children?: any
 }) => {
-    const { selector } = p
-    const RowValueRenderComponent = p.rowValueRender ?? BaseRowValueRender
-    const { title, subtitle }: TabularDefinition<any, any> = getTabularDefinition(selector, undefined, undefined)
+    const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
+    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined, undefined)
     const s: TabularStateData = useSelector(getTabularData(selector))
+
+    if (!definition) return <p>{selector} is not defined</p>
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
+    const { title, subtitle } = definition
     const stats = s.items.stats
 
     return <ExpandableSection selector={`TabularSection.${selector}`} title={title} subtitle={subtitle}>
@@ -279,18 +289,18 @@ const SortableTabularSection = (p: {
                 </p>
                 <p className='search-input-container'>
                     <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
-                    { p.afterSearch && <RowValueRenderComponent v={p.afterSearch} /> }
+                    { afterSearch && <RowValueRenderComponent v={afterSearch} /> }
                 </p>
             </div>
-            { p.beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={p.beforeTable} /></div> }
+            { beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={beforeTable} /></div> }
             {
-                p.useTable ?
+                useTable ?
                     <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} /> :
-                    <SortableFixedTable selector={selector} itemHeight={p.itemHeight} rowValueRender={RowValueRenderComponent} />
+                    <SortableFixedTable selector={selector} itemHeight={itemHeight} rowValueRender={RowValueRenderComponent} />
             }
         </div>
         <div className='inline'>
-            { p.children }
+            { children }
         </div>
     </ExpandableSection>
 }

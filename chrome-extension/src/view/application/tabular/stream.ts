@@ -1,10 +1,12 @@
+import { NavigateFunction } from "react-router-dom";
 import { StreamRenderLayout, StreamRenderLayoutSet } from "../../../stream/data";
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { removeStreamLayout, removeStreamUserVariable, setStreamEditing, setStreamStared, setStreamUserVariablePartial } from "../actions/stream";
+import { removeStreamLayout, removeStreamUserVariable, setStreamStared, setStreamUserVariablePartial } from "../actions/stream";
 import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
+import { navigateTo, streamEditorUrl } from "../actions/navigation";
 
 interface StreamChooserLine {
     id: string,
@@ -96,8 +98,8 @@ const streamTabularDefinitions: TabularDefinitions = {
         getRow: (g: StreamChooserLine, i: number) => [
             [ g.name,
                 { flex: 1 },
-                { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => setStreamStared(g.id, !g.stared) },
-                { img: 'img/edit.png', title: 'Edit', dispatch: () => setStreamEditing(g.id) },
+                { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => setStreamStared(g.id)(!g.stared) },
+                { img: 'img/edit.png', title: 'Edit', dispatch: (n: NavigateFunction) => navigateTo(n, streamEditorUrl(g.id)) },
                 { img: 'img/cross.png', title: 'Remove', dispatch: () => removeStreamLayout(g.id), visible: !g.readonly },
             ], {
                 layout: g.layout, layoutId: g.id, id: `stream-chooser-${i}`, scale: 0.4, width: 200

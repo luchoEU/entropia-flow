@@ -1,5 +1,5 @@
 import { Inventory } from "../../../common/state"
-import { AvailableCriteria } from "../state/inventory"
+import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 import { ItemsMap } from "../state/items"
 
@@ -119,10 +119,10 @@ const removePeds = (key: number) => ({
     }
 })
 
-const addActionsToLast = (availableCriteria: AvailableCriteria) => ({
+const addActionsToLast = (inventory: InventoryState) => ({
     type: ADD_ACTIONS,
     payload: {
-        availableCriteria
+        inventory
     }
 })
 

@@ -1,7 +1,4 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { ABOUT_PAGE, BUDGET_PAGE, CLIENT_PAGE, CRAFT_PAGE, INVENTORY_PAGE, MONITOR_PAGE, REFINED_PAGE, SETTING_PAGE, STREAM_PAGE, TRADE_PAGE } from '../application/actions/menu'
-import { getSelectedMenu } from '../application/selectors/menu'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
 import InventoryPage from './inventory/InventoryPage'
@@ -13,33 +10,64 @@ import StreamView from './stream/StreamView'
 import TradePage from './trade/TradePage'
 import BudgetPage from './budget/BudgetPage'
 import ClientPage from './client/ClientPage'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { TabId } from '../application/state/navigation'
+import { useSelector } from 'react-redux'
+import { getVisibleByExpandable } from '../application/selectors/expandable'
+import { tabShow } from '../application/helpers/navigation'
+import { getSettings } from '../application/selectors/settings'
+import { getLast } from '../application/selectors/last'
+import { getExpandable } from '../application/selectors/expandable'
+import { getMode } from '../application/selectors/mode'
 
 function ContentPage() {
-    const menu = useSelector(getSelectedMenu)
-    switch (menu) {
-        case MONITOR_PAGE:
-            return <MonitorPage />
-        case INVENTORY_PAGE:
-            return <InventoryPage />
-        case STREAM_PAGE:
-            return <StreamPage />
-        case REFINED_PAGE:
-            return <RefinedPage />
-        case ABOUT_PAGE:
-            return <AboutPage />
-        case CRAFT_PAGE:
-            return <CraftPage />
-        case BUDGET_PAGE:
-            return <BudgetPage />
-        case TRADE_PAGE:
-            return <TradePage />
-        case SETTING_PAGE:
-            return <SettingsPage />
-        case CLIENT_PAGE:
-            return <ClientPage />
-        default:
-            return <></>
-    }
+    const { c: { anyInventory } } = useSelector(getLast)
+    const settings = useSelector(getSettings)
+    const expandable = useSelector(getExpandable)
+    const { showVisibleToggle } = useSelector(getMode);
+    const isTabVisible = (id: TabId) => getVisibleByExpandable(expandable, `tab.${id}`)
+
+    const tabs: { id: TabId, routes: { path: string, component: React.ComponentType }[] }[] = [
+        { id: TabId.MONITOR, routes: [
+            { path: "/", component: MonitorPage },
+            { path: TabId.MONITOR, component: MonitorPage }
+        ] },
+        { id: TabId.INVENTORY, routes: [ { path: TabId.INVENTORY, component: InventoryPage } ] },
+        { id: TabId.REFINED, routes: [ { path: TabId.REFINED, component: RefinedPage } ] },
+        { id: TabId.TRADE, routes: [ { path: TabId.TRADE, component: TradePage } ] },
+        { id: TabId.CRAFT, routes: [
+            { path: TabId.CRAFT, component: CraftPage },
+            { path: `${TabId.CRAFT}/:bpName`, component: CraftPage }
+        ] },
+        { id: TabId.BUDGET, routes: [ { path: TabId.BUDGET, component: BudgetPage } ] },
+        { id: TabId.STREAM, routes: [
+            { path: TabId.STREAM, component: StreamPage },
+            { path: `${TabId.STREAM}/:layoutId`, component: StreamPage }
+        ] },
+        { id: TabId.CLIENT, routes: [ { path: TabId.CLIENT, component: ClientPage } ] },
+        { id: TabId.SETTING, routes: [ { path: TabId.SETTING, component: SettingsPage } ] },
+        { id: TabId.ABOUT, routes: [ { path: TabId.ABOUT, component: AboutPage } ] }
+    ]
+
+    return (
+        <Routes>
+            {tabs.map((tab) => tabShow(tab.id, anyInventory, settings) && tab.routes.map((route) =>
+                <Route key={route.path} path={route.path} element={
+                    showVisibleToggle || isTabVisible(tab.id) ? <route.component /> : <Navigate to={TabId.MONITOR} />}
+                />))
+            }
+            <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+    )
+}
+
+const NotFoundPage = () => {
+    return (
+        <section>
+            <h3>Page Not Found</h3>
+            <p><Link to="/">Go to Monitor</Link></p>
+        </section>
+    )
 }
 
 function Content() {

@@ -1,6 +1,6 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft'
+import { useSelector } from 'react-redux'
+import { setBlueprintStared } from '../../application/actions/craft'
 import { setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
 import { getCraft } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
@@ -12,11 +12,13 @@ import SortableTable from '../common/SortableTable'
 import { NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
+import { useNavigate } from 'react-router-dom'
+import { craftBlueprintUrl } from '../../application/actions/navigation'
 
 function CraftChooser() {
     const inv: InventoryState = useSelector(getInventory)
     const s: CraftState = useSelector(getCraft)
-    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     let bp = inv.blueprints.showList.items.map(d => d.n)
     let unique = bp.filter((element, index) => { // show only 1 instance of each blueprint
@@ -36,7 +38,7 @@ function CraftChooser() {
                     definition={sortColumnDefinition}>
                     { unique.map((n: string) =>
                         <tr key={n} className='item-row pointer'
-                            onClick={(e) => { e.stopPropagation(); dispatch(setBlueprintActivePage(n)) }}>
+                            onClick={(e) => { e.stopPropagation(); navigate(craftBlueprintUrl(n)) }}>
                             <td>
                                 <ItemText text={n} />
                                 <img src="img/right.png" />

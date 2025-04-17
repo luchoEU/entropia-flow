@@ -1,29 +1,33 @@
 // Auction Sold Detector
 
-import { CRAFT_PAGE, REFINED_PAGE } from "../actions/menu";
+import { craftBlueprintUrl } from "../actions/navigation";
 import { ViewItemAction, ViewItemData } from "../state/history";
-import { AvailableCriteria } from "../state/inventory";
+import { InventoryState } from "../state/inventory";
+import { TabId } from "../state/navigation";
+import { bpNameFromItemName } from "./craft";
 import { REFINED_LME, REFINED_ME, REFINED_NB } from "./items";
 
-function getItemAction(inv: ViewItemData, availableCriteria: AvailableCriteria): ViewItemAction {
-    let q = Number(inv.q)
-    if (inv.c === 'AUCTION' && inv.q[0] === '-' && availableCriteria.name.includes(inv.n)) {
-        let menu = undefined
-        switch (inv.n) {
+function getItemAction(item: ViewItemData, inventory: InventoryState): ViewItemAction {
+    if (item.c === 'AUCTION' && item.q[0] === '-' && inventory.availableCriteria.name.includes(item.n)) {
+        let navigateTo: string = undefined
+        switch (item.n) {
             case REFINED_ME:
             case REFINED_LME:
             case REFINED_NB:
-                menu = REFINED_PAGE
+                navigateTo = TabId.REFINED // open to sell more
                 break
             default:
-                menu = CRAFT_PAGE
+                const addBpName = bpNameFromItemName(inventory, item.n)
+                if (addBpName)
+                    navigateTo = craftBlueprintUrl(addBpName) // open blueprint to craft more
                 break
         }
         return {
-            message: `${inv.n} sold to auction`,
-            menu
+            message: `${item.n} sold to auction`, // used for send notification check
+            navigateTo
         }
     }
+    return undefined
 }
 
 export {

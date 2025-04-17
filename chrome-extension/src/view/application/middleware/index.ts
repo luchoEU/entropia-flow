@@ -17,7 +17,6 @@ import fruit from './fruit'
 import use from './use'
 import craft from './craft'
 import settings from './settings'
-import menu from './menu'
 import refined from './refined'
 import items from './items'
 import log from './log'
@@ -50,7 +49,6 @@ export default [
     ...use,
     ...craft,
     ...settings,
-    ...menu,
     ...refined,
     ...log,
     ...connection,

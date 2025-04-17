@@ -8,6 +8,7 @@ import ExpandableSection from './ExpandableSection2';
 import ExpandablePlusButton from './ExpandablePlusButton';
 import TextButton from './TextButton';
 import isEqual from 'lodash.isequal';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -35,7 +36,7 @@ function getTextWidth(text: string, font: string): number {
 
 interface ItemRowData {
     columns: { [part: number]: ItemRowColumnData }
-    dispatch?: () => any
+    dispatch?: (navigate: NavigateFunction) => any
 }
 
 type SortRowData = { [part: number]: SortRowColumnData }
@@ -157,6 +158,7 @@ const ItemRow = <T extends any>(
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const data = getData(item);
     const className = 'item-row' + (data.dispatch ? ' pointer' : '');
 
@@ -165,7 +167,7 @@ const ItemRow = <T extends any>(
         className={className}
         style={style}
         {...(data.dispatch
-        ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch()); } }
+        ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch(navigate)); } }
         : {})}
     >
         <ItemRowRender data={data} columns={columns} />

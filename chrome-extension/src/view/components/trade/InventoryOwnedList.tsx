@@ -8,8 +8,7 @@ import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
 import { loadItemUsageData, loadItemData, itemReserveValueChanged } from '../../application/actions/items';
 import { ItemUsageWebData, ItemWebData } from '../../../web/state';
-import { setBlueprintActivePage, setBlueprintStared } from '../../application/actions/craft';
-import { CRAFT_PAGE, selectMenu } from '../../application/actions/menu';
+import { setBlueprintStared } from '../../application/actions/craft';
 import { getItem } from '../../application/selectors/items';
 import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftExpandedList';
@@ -24,6 +23,9 @@ import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
 import { RowValue } from '../common/SortableTabularSection.data';
+import { NavigateFunction } from 'react-router-dom';
+import { filterExact } from '../../../common/filter';
+import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation';
 
 const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -49,7 +51,7 @@ const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBp
                         title: 'Open this blueprint',
                         imgButton: {
                             src: 'img/right.png',
-                            dispatch: () => [ selectMenu(CRAFT_PAGE), setBlueprintActivePage(item.bpName) ],
+                            dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(item.bpName)),
                         },
                     }
                 ]
@@ -214,7 +216,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                 }
             </>
         } />
-        <ItemInventory />
+        <ItemInventory filter={filterExact(tradeItemData.name)} />
     </>
 }
 
