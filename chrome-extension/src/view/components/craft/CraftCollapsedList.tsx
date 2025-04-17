@@ -45,7 +45,7 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
                         [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
                         (d.web.blueprint.errors ?
                             reloadSub(d.web.blueprint.errors) :
-                            [{ itemText: d.c.inventory?.clicksAvailable?.toString() }]))
+                            [{ itemText: d.c.clicks?.available?.toString() }]))
         },
         [LIMIT]: {
             sub: [{ itemText: getLimitText(d) }]
@@ -79,8 +79,8 @@ function CraftCollapsedList() {
     if (blueprints.length == 0)
         return <></>
     
-    var clicks = blueprints.some(d => d.c.inventory)
-    var limit = blueprints.some(d => d.c.inventory?.limitClickItems?.length > 0)
+    var clicks = blueprints.some(d => d.c?.clicks)
+    var limit = blueprints.some(d => d.c?.clicks?.limitingItems?.length > 0)
     var items = blueprints.some(d => getItemAvailable(d) > 0)
     var budget = blueprints.some(d => d.budget.sheet?.total !== undefined)
     var cash = blueprints.some(d => d.budget.sheet?.peds !== undefined)

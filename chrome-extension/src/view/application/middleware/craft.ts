@@ -3,7 +3,7 @@ import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
-import { SET_CURRENT_INVENTORY, setByStoreMaterialFilter } from '../actions/inventory'
+import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { PAGE_LOADED } from '../actions/ui'
@@ -21,10 +21,9 @@ import { SettingsState } from '../state/settings'
 import { ItemsMap } from '../state/items'
 import { getItemsMap } from '../selectors/items'
 import { loadItemData, loadItemRawMaterials, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from '../actions/items'
-import { filterExact, filterOr } from '../../../common/filter'
 import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
-import { BlueprintWebData, BlueprintWebMaterial, ItemWebData, RawMaterialWebData } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial, ItemWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
@@ -38,7 +37,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 }
                 dispatch(setCraftState(mergeDeep(initialState, state)))
                 await Promise.all(Object.values(state.blueprints)
-                    .filter(bp => !bp.web?.blueprint || bp.web.blueprint.loading)
+                    .filter(bp => bp.web?.blueprint.loading)
                     .map(bp => loadBlueprint(bp.name, dispatch))
                 )
             }
@@ -190,10 +189,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
                 if (bpValue) {
                     const mat: ItemsMap = getItemsMap(getState())
                     const list: ItemWebData[] = []
-                    bpValue.materials.forEach(m => {
+                    bpValue.materials.concat(bpValue.item).forEach((m: BlueprintWebMaterial) => {
                         const material = mat[m.name]?.web?.item;
                         if (!material) {
-                            // load missing materials types
+                            // load missing materials
                             dispatch(loadItemData(m.name, m));
                         } else if (material.data?.value) {
                             list.push(material.data.value);

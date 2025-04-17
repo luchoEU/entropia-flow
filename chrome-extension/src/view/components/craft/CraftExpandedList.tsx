@@ -12,15 +12,12 @@ import { StageText } from '../../services/api/sheets/sheetsStages'
 import { SHOW_BUDGET_IN_CRAFT } from '../../../config'
 import { ItemsMap } from '../../application/state/items'
 import { getItemsMap } from '../../application/selectors/items'
-import { getByStoreInventory } from '../../application/selectors/inventory'
-import { InventoryByStore } from '../../application/state/inventory'
 import { BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
 import { loadItemData, loadItemRawMaterials } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
 import ItemNotes from '../item/ItemNotes'
 import ItemMarkup from '../item/ItemMarkup'
-import { useParams } from 'react-router-dom'
 import { WebLoadResponse } from '../../../web/loader'
 import { filterExact, filterOr } from '../../../common/filter'
 
@@ -92,7 +89,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 budgetMap[k] = m.count
             }
         })
-    } else if (bp.c.materials) {
+    } else if (bp.c?.materials) {
         clickMUCost = 0;
         markupMap = Object.fromEntries(bp.c.materials.map((m: BlueprintMaterial) => {
             const nMarkup = Number(mat[m.name]?.markup?.value);
@@ -230,7 +227,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                     <SessionInfo name={bp.name} session={bp.session} dispatch={dispatch} message={message} showMoveAll={showMoveAll} />
                 }</p>
             </> }
-            <p>Item: {bp.c.itemName}</p>
+            <p>Item: {bp.c?.itemName}</p>
             <p>Type: {webBp.type}</p>
             <table>
                 <thead>
@@ -251,7 +248,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 </thead>
                 <tbody>
                     {
-                        bp.c.materials?.map((m: BlueprintMaterial) => {
+                        bp.c?.materials?.map((m: BlueprintMaterial) => {
                             const name = itemStringFromName(bp, m.name)
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
@@ -304,17 +301,16 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 </tbody>
             </table>
             {
-                bp.c.inventory &&
-                <>
-                    <p>Clicks available: {bp.c.inventory.clicksAvailable} { bp.c.inventory.owned ?
-                        `(limited by ${bp.c.inventory.limitClickItems.join(', ')})` :
+                bp.c?.clicks && <>
+                    <p>Clicks available: {bp.c.clicks.available} { bp.c.owned ?
+                        `(limited by ${bp.c.clicks.limitingItems.join(', ')})` :
                         <>(not owned) <img style={{height: '17px', marginLeft: '2px'}} title='Not Owned' src='img/warning.png' /></> }
                     </p>
-                    <p>Click TT cost: {bp.c.inventory.clickTTCost.toFixed(2)} PED</p>
+                    <p>Click TT cost: {bp.c.clicks.ttCost.toFixed(2)} PED</p>
                     { clickMUCost &&
                         <p>Click with MU cost: {clickMUCost.toFixed(2)} PED</p> }
-                    { bp.c.inventory.residueNeeded > 0 &&
-                        <p>Residue needed per click: {bp.c.inventory.residueNeeded.toFixed(2)} PED</p> }
+                    { bp.c.clicks.residueNeeded > 0 &&
+                        <p>Residue needed per click: {bp.c.clicks.residueNeeded.toFixed(2)} PED</p> }
                     { sessionTTprofit !== undefined &&
                         <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
                     { sessionMUprofit !== undefined &&

@@ -8,7 +8,7 @@ export class EntropiaNexus implements IWebSource {
 
     public async loadItem(itemName: string, bpMaterial?: BlueprintWebMaterial): Promise<SourceLoadResponse<ItemWebData>> {
         let item: SourceLoadResponse<ItemWebData>
-        if (bpMaterial?.url?.startsWith(API_BASE_URL)) {
+        if (bpMaterial?.url?.startsWith(API_BASE_URL) && bpMaterial?.value) {
             item = {
                 ok: true,
                 data: {

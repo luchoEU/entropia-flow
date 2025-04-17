@@ -15,11 +15,23 @@ const initialState: CraftState = {
         list: []
     },
     c: {
-        filteredStaredBlueprints: []
+        filteredStaredBlueprints: [],
+        residues: {}
     }
 }
 
-const reduceSetState = (state: CraftState, inState: CraftState) => inState
+const _calcFromWeb = (state: CraftState): CraftState => ({
+    ...state,
+    blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([name, bp]) => [name, {
+        ...bp,
+        c: {
+            itemName: itemNameFromBpName(bp.name),
+            materials: _materialsFromWeb(bp.web?.blueprint.data?.value)
+        }
+    }]))
+})
+
+const reduceSetState = (state: CraftState, inState: CraftState): CraftState => _calcFromWeb(inState);
 
 const itemNameFromBpName = (bpName: string): string => bpName.split('Blueprint')[0].trim()
 const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
@@ -126,7 +138,7 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
                 ...state.blueprints[bpName],
                 web,
                 c: {
-                    itemName: state.blueprints[bpName].c.itemName,
+                    ...state.blueprints[bpName].c,
                     materials: _materialsFromWeb(web?.blueprint.data?.value)
                 }
             }
@@ -134,33 +146,24 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
     }
 }
 
-const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter({
+const _calcClicks = (state: CraftState): CraftState => ({
     ...state,
     blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
         if (!bp.c?.materials) return [n, bp];
 
-        let clickTTCost = 0
-        const materials: BlueprintMaterial[] = bp.c.materials.map(m => {
-            const available = dictionary[m.name] ?? 0;
-            clickTTCost += m.quantity * m.value;
-            return {
-                ...m,
-                available,
-                clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
-            }
-        });
-
+        const materials = bp.c.materials;
         const itemMaterial: BlueprintMaterial = materials.find(m => m.name === bp.c.itemName)
         const materialBp: BlueprintMaterial = materials.find(m => m.name === bp.name)
         const isBlueprintLimited = materialBp && isLimited(bp.name)
         const isItemLimited = isLimited(bp.c.itemName)
+        const clickTTCost = bp.c.materials.reduce((result, m) => result + m.quantity * m.value, 0)
         let residueNeeded = 0
         if (itemMaterial) {
             residueNeeded = Math.max(0, itemMaterial.value - clickTTCost)
             if (residueNeeded > 0 && isItemLimited) {
                 const residueMaterials = materials.filter(m => m.type === 'Residue')
-                if (residueMaterials.length > 0) {
-                    const residueValue = residueMaterials.reduce((result, m) => result + m.value * m.available, 0);
+                if (residueMaterials.some(m => m.available !== undefined)) {
+                    const residueValue = residueMaterials.reduce((result, m) => result + m.value * (m.available ?? 0), 0);
                     const residueClicks = Math.floor(residueValue / residueNeeded);
                     residueMaterials.forEach(m => m.clicks = residueClicks)
                 }
@@ -172,27 +175,62 @@ const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]
             ...bp,
             c: {
                 ...bp.c,
-                inventory: {
-                    bpClicks: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
-                    owned: dictionary[bp.name] !== undefined,
-                    clicksAvailable,
-                    limitClickItems: materials.filter(m => m.clicks === clicksAvailable).map(m => itemStringFromName(bp, m.name)),
-                    clickTTCost,
+                clicks: {
+                    bp: isBlueprintLimited ? (materialBp.clicks == 0 ? undefined : materialBp.clicks) : Infinity,
+                    available: clicksAvailable,
+                    limitingItems: materials.filter(m => m.clicks === clicksAvailable).map(m => itemStringFromName(bp, m.name)),
+                    ttCost: clickTTCost,
                     residueNeeded: isItemLimited ? residueNeeded : undefined,
-                },
-                materials
+                }
             }
         }
         return [n, bp];
     }))
 })
 
+const reduceSetBlueprintQuantity = (state: CraftState, dictionary: { [k: string]: number }): CraftState => _applyFilter(_calcClicks({
+    ...state,
+    blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
+        if (!bp.c?.materials) return [n, bp];
+
+        const materials: BlueprintMaterial[] = bp.c.materials.map(m => {
+            const available = dictionary[m.name] ?? 0;
+            return {
+                ...m,
+                available,
+                clicks: m.quantity === 0 ? undefined : Math.floor(available / m.quantity)
+            }
+        });
+
+        bp = {
+            ...bp,
+            c: {
+                ...bp.c,
+                owned: dictionary[bp.name] !== undefined,
+                materials
+            }
+        }
+        return [n, bp];
+    })),
+    c: {
+        ...state.c,
+        residues: Object.keys(_residueMap).reduce((result, name) => ({ ...result, [name]: dictionary[name] }), {})
+    }
+}))
+
+const _residueMap: { [k: string]: (m: BlueprintMaterial) => boolean } = {
+    'Metal Residue': () => true,
+    'Energy Matter Residue': (m: BlueprintMaterial) => m.type === 'Refined Enmatter',
+    'Robot Component Residue': (m: BlueprintMaterial) => m.type === 'Robot Component',
+    'Animal Oil Residue': (m: BlueprintMaterial) => m.type === 'Animal Oils',
+    'Tailoring Remnants': (m: BlueprintMaterial) => m.name.includes('Leather')
+}
 const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWebData[]): CraftState => {
     if (list.length === 0)
         return state;
 
     const map = Object.fromEntries(list.map(m => [m.name, m]))
-    return {
+    const s ={
         ...state,
         blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
             if (!bp.c?.materials) return [n, bp];
@@ -202,32 +240,15 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
                 type: map[m.name]?.type ?? m.type,
                 value: m.value === 0 ? map[m.name]?.value ?? 0 : m.value
             }));
-
-            const addResidue = (name: string, condition: (m: BlueprintMaterial) => boolean): void => {
-                if (materials.some(condition)) {
-                    materials.push({
-                        name,
-                        type: 'Residue',
-                        quantity: 0,
-                        value: 0.01
-                    })
-                }
-            }
+            
             const metalResidueIndex = materials.findIndex(m => m.name === 'Metal Residue');
-            if (metalResidueIndex !== -1) {
-                materials.splice(metalResidueIndex);
-            }
-            addResidue('Metal Residue', m => true);
-            addResidue('Energy Matter Residue', m => m.type === 'Refined Enmatter');
-            addResidue('Robot Component Residue', m => m.type === 'Robot Component');
-            addResidue('Animal Oil Residue', m => m.type === 'Animal Oils');
-            addResidue('Tailoring Remnants', m => m.name.includes('Leather'));
-            materials.push({
-                name: 'Shrapnel',
-                type: 'Fragment',
-                quantity: 0,
-                value: 0.0001
-            });
+            materials.splice(metalResidueIndex)
+            Object.entries(_residueMap).forEach(([name, condition]) => {
+                if (materials.some(condition)) {
+                    materials.push({ name, type: 'Residue', quantity: 0, value: 0.01, available: state.c.residues[name] })
+                }
+            })
+            materials.push({ name: 'Shrapnel', type: 'Fragment', quantity: 0, value: 0.0001 });
 
             return [n, {
                 ...bp,
@@ -237,7 +258,9 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
                 }
             }];
         }))
-    };
+    }
+    const s1 = _calcClicks(s)
+    return s1
 }
 
 const reduceSetBlueprintStared = (state: CraftState, name: string, stared: boolean): CraftState => _applyFilter({
@@ -435,7 +458,7 @@ const cleanWeb = (state: CraftState): CraftState => {
     Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
         delete bp.web
         delete bp.chain // no bp recepie so chain is invalid
-        delete bp.c.inventory // was it saved?
+        delete bp.c // was it saved?
     })
     return cState;
 }
@@ -460,6 +483,7 @@ const cleanForSave = (state: CraftState): CraftState => {
         if (bp.session.step !== STEP_INACTIVE) {
             bp.session.step = STEP_DONE
         }
+        delete bp.c
     })
     return cState;
 }

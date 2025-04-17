@@ -13,6 +13,7 @@ interface CraftState {
     }
     c: { // calculated from previous
         filteredStaredBlueprints: Array<BlueprintData>
+        residues: { [ name: string ]: number } // available in Inventory
     }
 }
 
@@ -28,19 +29,19 @@ interface BlueprintData {
 
     web?: BlueprintStateWebData
 
-    c: { // calculated
+    c?: { // calculated
         itemName: string
-        inventory?: BlueprintInventory
+        owned?: boolean
+        clicks?: BlueprintClicks
         materials?: BlueprintMaterial[]
     }
 }
 
-interface BlueprintInventory {
-    bpClicks: number
-    owned: boolean
-    clicksAvailable: number
-    limitClickItems: Array<string>
-    clickTTCost: number
+interface BlueprintClicks {
+    bp: number
+    available: number
+    limitingItems: Array<string>
+    ttCost: number
     residueNeeded: number
 }
 
@@ -104,6 +105,7 @@ export {
     BlueprintSessionDiff,
     BlueprintStateWebData,
     BlueprintMaterial,
+    BlueprintClicks,
     BlueprintBudget,
     BlueprintBudgetMaterial,
     BlueprintBudgetMaterials,

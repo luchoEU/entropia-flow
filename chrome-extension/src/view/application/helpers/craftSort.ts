@@ -72,9 +72,9 @@ const sortColumnDefinition = {
 }
 
 const getLimitText = (d: BlueprintData): string =>
-    d.c?.inventory?.limitClickItems.length > 2 ? 
-        `${d.c.inventory.limitClickItems.slice(0, 2).join(', ')}, ${d.c.inventory.limitClickItems.length - 2} more` : 
-        d.c?.inventory?.limitClickItems.join(', ') ?? '';
+    d.c?.clicks?.limitingItems.length > 2 ? 
+        `${d.c.clicks?.limitingItems.slice(0, 2).join(', ')}, ${d.c.clicks?.limitingItems.length - 2} more` : 
+        d.c?.clicks?.limitingItems.join(', ') ?? '';
 
 const getItemAvailable = (d: BlueprintData): number =>
     d.c?.materials?.find(m => m.name === d.c.itemName)?.available ?? 0;
@@ -90,14 +90,14 @@ const comparer = [
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_ASCENDING
-        const c = Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0')) - Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0'))
+        const c = Math.abs(Number(a.c.clicks?.available ?? '0')) - Math.abs(Number(b.c.clicks?.available ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
     (a: BlueprintData, b: BlueprintData) => {
         // SORT_CLICKS_DESCENDING
-        const c = - Math.abs(Number(a.c.inventory?.clicksAvailable ?? '0')) + Math.abs(Number(b.c.inventory?.clicksAvailable ?? '0'))
+        const c = - Math.abs(Number(a.c.clicks?.available ?? '0')) + Math.abs(Number(b.c.clicks?.available ?? '0'))
         if (c != 0)
             return c
         return -a.name.localeCompare(b.name)
