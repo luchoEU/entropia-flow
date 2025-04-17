@@ -18,7 +18,7 @@ const defaultMiddlewareOptions = DISABLE_CHECKS_FOR_PERFORMANCE ?
 
 const setupStore = (services: any) => {
     return configureStore({
-        reducer: reducers, // Pass your reducers here
+        reducer: reducers,
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({
                 ...defaultMiddlewareOptions,

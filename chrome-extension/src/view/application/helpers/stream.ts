@@ -108,7 +108,7 @@ const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): St
         ...newStateIn,
         layouts: {
             ...Object.fromEntries(Object.entries(newStateIn.layouts).map(([k, v]) => [k, { ...v, readonly: false }])),
-            ...initialStateIn.layouts
+            ...Object.fromEntries(Object.entries(initialStateIn.layouts).map(([k, v]) => [k, { ...v, backgroundType: newStateIn.layouts[k].backgroundType ?? v.backgroundType }])),
         }
     },
     variables: state.variables,

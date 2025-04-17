@@ -16,8 +16,7 @@ import { DEFAULT_LAYOUT_ID } from '../../application/helpers/stream';
 function StreamPage() {
     const dispatch = useDispatch()
     const { layoutId } = useParams()
-    const { enabled, layouts, advanced }: StreamStateIn = useSelector(getStreamIn);
-    const c = layouts[layoutId];
+    const { enabled, advanced }: StreamStateIn = useSelector(getStreamIn);
 
     return (
         <>

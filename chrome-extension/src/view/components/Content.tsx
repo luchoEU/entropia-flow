@@ -16,15 +16,15 @@ import { useSelector } from 'react-redux'
 import { getVisibleByExpandable } from '../application/selectors/expandable'
 import { tabShow } from '../application/helpers/navigation'
 import { getSettings } from '../application/selectors/settings'
-import { getLast } from '../application/selectors/last'
+import { getAnyInventory } from '../application/selectors/last'
 import { getExpandable } from '../application/selectors/expandable'
-import { getMode } from '../application/selectors/mode'
+import { getShowVisibleToggle } from '../application/selectors/mode'
 
 function ContentPage() {
-    const { c: { anyInventory } } = useSelector(getLast)
+    const anyInventory = useSelector(getAnyInventory)
     const settings = useSelector(getSettings)
     const expandable = useSelector(getExpandable)
-    const { showVisibleToggle } = useSelector(getMode);
+    const showVisibleToggle = useSelector(getShowVisibleToggle);
     const isTabVisible = (id: TabId) => getVisibleByExpandable(expandable, `tab.${id}`)
 
     const tabs: { id: TabId, routes: { path: string, component: React.ComponentType }[] }[] = [

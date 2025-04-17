@@ -6,53 +6,76 @@ import useBackground from "../hooks/UseBackground"
 import { useDispatch } from "react-redux"
 import { getStreamClickAction } from "../../application/actions/stream.click"
 
-const _cacheSize: Record<string, StreamRenderSize> = { }
-
-function StreamViewLayout(p: {
-    id: string // each should have a unique id for background to work
-    layoutId: string // to cache the size
+const StreamViewLayout = ({ id, layoutId, single, scale }: {
+    id: string
+    layoutId: string
     single: StreamRenderSingle,
     scale?: number
-}) {
-    const { id, layoutId, single, scale } = p;
-    const shadowRootRef = useRef(null);
-    const dispatch = useDispatch()
+}) => {
+    const shadowRootRef = useRef<HTMLDivElement>(null);
+    const layoutRef = useRef<HTMLDivElement>(null);
+    const dispatch = useDispatch();
 
+    const [shadowReady, setShadowReady] = useState(false);
+    const [size, setSize] = useState<StreamRenderSize | undefined>();
+
+    // Attach shadow root
     useEffect(() => {
         if (shadowRootRef.current && !shadowRootRef.current.shadowRoot) {
             shadowRootRef.current.attachShadow({ mode: 'open' });
+            setShadowReady(true);
         }
     }, []);
 
+    // Attach click listeners
     useEffect(() => {
-        const handleClick = (e) => dispatch(getStreamClickAction(e.target.dataset.click));
-        const clickableElements = shadowRootRef.current?.shadowRoot.querySelectorAll('[data-click]');
+        const handleClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target?.dataset?.click) {
+                dispatch(getStreamClickAction(target.dataset.click));
+            }
+        };
+
+        const clickableElements = shadowRootRef.current?.shadowRoot?.querySelectorAll('[data-click]');
         clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
         return () => {
             clickableElements?.forEach((el: HTMLElement) => el.removeEventListener('click', handleClick));
         };
-    }, [id, layoutId, single, scale]);
+    }, [shadowReady, id, layoutId, single, scale]);
 
-    const contentRect = shadowRootRef.current?.shadowRoot.querySelector('.layout-root')?.getBoundingClientRect();
-    let size: StreamRenderSize = contentRect && { width: contentRect.width, height: contentRect.height };
-    if (size) {
-        _cacheSize[layoutId] = scale ? { width: size.width / scale, height: size.height / scale } : size;
-    } else {
-        size = _cacheSize[layoutId]
-        if (size && scale) {
-            size = { width: size.width * scale, height: size.height * scale };
-        }
-    }
+    // Measure layout size after rendering
+    useEffect(() => {
+        if (!shadowReady) return;
 
-    useBackground(single.layout.backgroundType, id, shadowRootRef.current?.shadowRoot);
+        const timeout = setTimeout(() => {
+            const contentRect = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root')?.getBoundingClientRect();
+            if (contentRect) {
+                let size: StreamRenderSize = {
+                    width: contentRect.width,
+                    height: contentRect.height
+                };
+                if (scale) {
+                    size = {
+                        width: size.width * scale,
+                        height: size.height * scale
+                    };
+                }
+                setSize(size);
+            }
+        }, 0); // delay to wait for DOM paint
+
+        return () => clearTimeout(timeout);
+    }, [shadowReady, single, scale]);
+
+    useBackground(single.layout.backgroundType, id, shadowRootRef.current?.shadowRoot, size);
     const children = <StreamViewDiv id={id} size={size} single={single} scale={scale} />
 
     return (
-        <div ref={shadowRootRef}>
-            {shadowRootRef.current &&
+        <div {...(!size && { style: { visibility: 'hidden' }})} ref={shadowRootRef}>
+            {shadowReady && shadowRootRef.current?.shadowRoot &&
                 ReactDOM.createPortal(children, shadowRootRef.current.shadowRoot)}
         </div>
     );
 };
 
-export default StreamViewLayout
+export default StreamViewLayout;

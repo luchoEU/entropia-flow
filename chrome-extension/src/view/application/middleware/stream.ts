@@ -1,7 +1,7 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
-import StreamRenderData from "../../../stream/data"
+import StreamRenderData, { StreamRenderLayoutSet } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
@@ -13,7 +13,7 @@ import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamIn, getStreamOut } from "../selectors/stream"
+import { getStream, getStreamIn, getStreamLayouts, getStreamOut } from "../selectors/stream"
 import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
@@ -21,7 +21,7 @@ import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTab
 import { computeServerFormulas } from "../../../stream/formulaCompute"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    const { variables: beforeVariables }: StreamState = getStream(getState())
+    const beforeState: StreamState = getStream(getState())
     next(action)
     switch (action.type) {
         case PAGE_LOADED: {
@@ -51,6 +51,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_STREAM_VARIABLES:
         case SET_STREAM_TEMPORAL_VARIABLES:{
+            const { variables: beforeVariables }: StreamState = beforeState
             const { variables, temporalVariables }: StreamState = getStream(getState())
             if (isEqual(beforeVariables, variables))
                 break
@@ -129,7 +130,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         case REMOVE_STREAM_LAYOUT:
         case CLONE_STREAM_LAYOUT:
         {
-            const { layouts }: StreamStateIn = getStreamIn(getState())
+            const layouts: StreamRenderLayoutSet = getStreamLayouts(getState())
             dispatch(setTabularData(streamTabularDataFromLayouts(layouts)));
             break;
         }

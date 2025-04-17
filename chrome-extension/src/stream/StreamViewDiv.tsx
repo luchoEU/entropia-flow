@@ -6,13 +6,12 @@ import { computeFormulas } from './formulaCompute';
 
 const MIN_SIZE = 30
 
-const StreamViewDiv = (p: {
+const StreamViewDiv = ({ id, single: { data, layout }, size, scale }: {
     id: string,
     single: StreamRenderSingle,
     size?: { width: number, height: number },
     scale?: number
 }): JSX.Element => {
-    const { data, layout } = p.single
 
     const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
     const variables = computeFormulas({ ...data, backDark });
@@ -20,14 +19,14 @@ const StreamViewDiv = (p: {
     const css = layout.cssTemplate && renderCssTemplate(layout.cssTemplate, variables);
 
     const px = (n: number): string => `${Math.max(n, MIN_SIZE)}px`;
-    const containerStyle: React.CSSProperties = p.size ? { width: px(p.size.width), height: px(p.size.height) } : { }
+    const containerStyle: React.CSSProperties = size ? { width: px(size.width), height: px(size.height) } : { }
     const contentStyle: React.CSSProperties = { position: 'absolute', overflow: 'hidden', zIndex: 1, width: 'max-content', height: 'max-content' }
-    if (p.scale) {
-        containerStyle.transform = `scale(${p.scale})`
+    if (scale) {
+        containerStyle.transform = `scale(${scale})`
         containerStyle.transformOrigin = 'top left'
     }
 
-    return <div id={p.id} style={containerStyle}>
+    return <div id={id} style={containerStyle}>
         <div className={'layout-root'} style={contentStyle} {...html && { dangerouslySetInnerHTML: { __html: html } }}/>
         { css && <style dangerouslySetInnerHTML={{ __html: css }} /> }
     </div>

@@ -2,17 +2,13 @@ import React, { JSX } from "react";
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background";
 import ExpandableSection from "../common/ExpandableSection2";
 import { useDispatch, useSelector } from "react-redux";
-import { getStream } from "../../application/selectors/stream";
+import { getStreamLayouts } from "../../application/selectors/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
 import { LUCHO } from "../about/AboutPage";
 
-const StreamBackground = ({
-    background,
-    layoutId,
-    isSelected
-}: {
+const StreamBackground = ({ background, layoutId, isSelected }: {
     background: BackgroundSpec,
     layoutId: string,
     isSelected: boolean,    
@@ -48,7 +44,7 @@ const StreamBackground = ({
 }
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
-    const { in: { layouts } } = useSelector(getStream);
+    const layouts = useSelector(getStreamLayouts);
     const c = layouts[layoutId];
 
     return (
