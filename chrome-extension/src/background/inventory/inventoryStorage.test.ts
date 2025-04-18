@@ -52,7 +52,7 @@ const INV: Inventory = {
     }
 }
 
-const INV_STORED = "AgEBBcOpAAAAACM="
+const INV_STORED = "EAIBAQXDqQDEASM="
 //{
 //  itemlist: [{ id: '1', n: 'hola', q: '5', v: '2.33', c: 'chau', r: '0' }],
 //  meta: { date: 35, total: '2.33' }
@@ -91,7 +91,7 @@ describe('inventory storage', () => {
             expect(area.storage[`${STORAGE_INVENTORY_STRINGS_}1`].length).toBe(STORAGE_QUOTA_BYTES_PER_ITEM)
             expect(area.storage[`${STORAGE_INVENTORY_STRINGS_}2`].length).toBe(4392)
             expect(area.storage[`${STORAGE_INVENTORY_}N`]).toBe(1)
-            expect(area.storage[`${STORAGE_INVENTORY_}1`].length).toBe(8008)
+            expect(area.storage[`${STORAGE_INVENTORY_}1`].length).toBe(8012)
         })
 
         test('set to storage', async () => {
