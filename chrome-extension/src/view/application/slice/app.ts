@@ -45,7 +45,7 @@ const initialize = createAsyncThunk<
         try {
             await next({ type: AppAction.INITIALIZE });
         } catch (error) {
-            traceError(Component.ReduxLogger, 'Error during middleware execution', error);
+            traceError(Component.AppLoader, 'Error during middleware execution', error);
         }
 
         return true;
