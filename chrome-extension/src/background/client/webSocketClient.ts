@@ -1,7 +1,7 @@
 //// WEB SOCKET ////
 // Communication with Entropia Flow Client in Windows
 
-import { traceData, traceError } from "../../common/trace"
+import { Component, traceData, traceError } from "../../common/trace"
 import { VERSION } from "../../view/components/about/AboutPage"
 import IWebSocketClient, { WebSocketState, WebSocketStateCode } from "./webSocketInterface"
 
@@ -37,19 +37,19 @@ class WebSocketClient implements IWebSocketClient {
         try {
             this.socket = new WebSocket(url)
         } catch (e) {
-            traceError('WebSocketClient', 'connection failed:', e);
+            traceError(Component.WebSocketClient, 'connection failed:', e);
             await this._setState(WebSocketStateCode.error, 'connection failed')
             return
         }
         this.socket.onopen = async event => {
-            traceData('WebSocketClient', 'connection opened:', event)
+            traceData(Component.WebSocketClient, 'connection opened:', event)
 
             this.socket.onmessage = async event => {
-                traceData('WebSocketClient', 'message received:', event.data)
+                traceData(Component.WebSocketClient, 'message received:', event.data)
                 await this.onMessage(JSON.parse(event.data))
             };
             this.socket.onclose = async event => {
-                traceData('WebSocketClient', 'connection closed:', event)
+                traceData(Component.WebSocketClient, 'connection closed:', event)
                 await this._setState(WebSocketStateCode.disconnected, 'disconnected')
             };
 
@@ -60,7 +60,7 @@ class WebSocketClient implements IWebSocketClient {
             this.pendingJson = []
         };
         this.socket.onerror = async event => {
-            traceError('WebSocketClient', 'error:', event)
+            traceError(Component.WebSocketClient, 'error:', event)
             await this._setState(WebSocketStateCode.error, 'error')
         };
     }
@@ -91,6 +91,4 @@ class WebSocketClient implements IWebSocketClient {
 }
 
 export default WebSocketClient
-export {
-    DEFAULT_WEB_SOCKET_URL
-}
+export { DEFAULT_WEB_SOCKET_URL }

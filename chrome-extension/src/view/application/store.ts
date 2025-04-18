@@ -5,7 +5,8 @@ import reducers from "./reducers";
 import { configureStore, Middleware } from '@reduxjs/toolkit';
 import logger from 'redux-logger'
 import { AppAction } from "./slice/app";
-import { ENABLE_REDUX_ACTION_LOGGER } from "../../config";
+import { ADD_REDUX_ACTION_LOGGER } from "../../config";
+import { Component, trace, traceEnabled } from "../../common/trace";
 
 const DISABLE_CHECKS_FOR_PERFORMANCE = true
 const defaultMiddlewareOptions = DISABLE_CHECKS_FOR_PERFORMANCE ?
@@ -21,13 +22,13 @@ const defaultMiddlewareOptions = DISABLE_CHECKS_FOR_PERFORMANCE ?
 
 let loggerEnabled = false;
 export const conditionalLogger: Middleware = (storeAPI) => (next) => (action: any) => {
-    if (loggerEnabled) {
+    if (loggerEnabled && traceEnabled(Component.ReduxLogger)) {
         return logger(storeAPI)(next)(action);
     }
 
     if (action.type === AppAction.LOADED) {
         loggerEnabled = true;
-        console.log('[Logger Enabled]');
+        trace(Component.ReduxLogger, 'enabled');
     }
 
     return next(action);
@@ -42,7 +43,7 @@ const setupStore = (services: any) => {
                 thunk: { extraArgument: services }
             })
             .concat(middleware.map((f) => f(services)))
-            .concat(ENABLE_REDUX_ACTION_LOGGER ? [conditionalLogger] : []),
+            .concat(ADD_REDUX_ACTION_LOGGER ? [conditionalLogger] : []),
     });
 };
 export const store = setupStore(services);

@@ -1,4 +1,4 @@
-import { traceError } from '../common/trace'
+import { Component, traceError } from '../common/trace'
 import IStorageArea from './IStorageArea'
 
 class ChromeStorageArea implements IStorageArea {
@@ -25,7 +25,7 @@ class ChromeStorageArea implements IStorageArea {
         this.area.set({ [name]: value }, () => {
             let error = chrome.runtime.lastError;
             if (error) {
-                traceError('ChromeStorageArea', `set value in '${name}' length ${JSON.stringify(value).length} error ${chrome.runtime.lastError.message}:`, error)
+                traceError(Component.ChromeStorageArea, `set value in '${name}' length ${JSON.stringify(value).length} error ${chrome.runtime.lastError.message}:`, error)
                 throw new Error(chrome.runtime.lastError.message)
             }
         })

@@ -6,7 +6,7 @@ import {
     MSG_NAME_REFRESH_VIEW
 } from '../../common/const'
 import IPortManager, { IPort } from '../../chrome/IPort'
-import { trace, traceError } from '../../common/trace'
+import { Component, trace, traceError } from '../../common/trace'
 import ViewStateManager, { ViewState } from './viewState'
 
 //// VIEW ////
@@ -48,11 +48,11 @@ class ViewTabManager {
         try {
             port.send(name, data);
         } catch (e) {
-            traceError('ViewTabManager', `.sendRefresh exception:`, e)
+            traceError(Component.ViewTabManager, `.sendRefresh exception:`, e)
             this.portManager.remove(port)
             const isEmpty = await this.portManager.isEmpty()
             if (isEmpty) {
-                trace('ViewTabManager', 'create view')
+                trace(Component.ViewTabManager, 'create view')
                 this.tabs.create(HTML_VIEW)
             }
         }

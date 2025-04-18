@@ -12,7 +12,7 @@ import {
     STRING_WAIT_3_MINUTES,
     NORMAL_WAIT_SECONDS
 } from '../common/const'
-import { traceEnd, traceId, traceStart } from '../common/trace'
+import { Component, traceEnd, traceId, traceStart } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
@@ -64,10 +64,10 @@ class ContentInitializer {
                 }
 
                 ContentInitializer.itemsLoadingTime = new Date().getTime();
-                traceStart('RefreshItem', 'received')
+                traceStart(Component.RefreshItem, 'received')
                 const inventory = await itemReader.requestItemsAjax(m.waitSeconds)
                 inventory.tag = m.tag
-                traceEnd('RefreshItem', 'completed')
+                traceEnd(Component.RefreshItem, 'completed')
                 ContentInitializer.itemsLoadedTime = new Date().getTime();
                 ContentInitializer.itemsLoadingTime = undefined;
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }

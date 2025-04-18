@@ -1,5 +1,5 @@
 /// <reference types="chrome"/>
-import { trace, traceError } from '../common/trace'
+import { Component, trace, traceError } from '../common/trace'
 import { MessageHandlers } from './IMessagesHub'
 import ChromePort from './chromePort'
 import { IMessageSender, IPort, PortHandlers } from './IPort'
@@ -17,18 +17,18 @@ const PING_HANDLER: PortHandlers = {
     }
 }
 
-function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, messageSender: IMessageSender, className: string, endPointName: string) {
+function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, messageSender: IMessageSender, component: Component, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
-        trace(className, `_setListener received: '${m.name}' ${endPointName}`)
+        trace(component, `_setListener received: '${m.name}' ${endPointName}`)
         const handler = PING_HANDLER[m.name] ?? handlerMap?.[m.name]
         if (handler) {
             const response = await handler(m, messageSender)
             if (response && response.name) {
                 try {
-                    trace(className, `_setListener response: '${response.name}' ${endPointName}`)
+                    trace(component, `_setListener response: '${response.name}' ${endPointName}`)
                     p.postMessage(response)
                 } catch (e) {
-                    traceError(className, '_setListener exception:', e)
+                    traceError(component, '_setListener exception:', e)
                 }
             }
         }
@@ -49,11 +49,11 @@ class ChromeMessagesClient implements IMessageSender {
 
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
-                trace('ChromeMessagesClient', `connected: port '${portName}' registerName '${this.registerName}'`)
-                _setListener(port, handlerMap, this, 'ChromeMessagesClient', `registerName '${registerName}'`)
+                trace(Component.ChromeMessagesClient, `connected: port '${portName}' registerName '${this.registerName}'`)
+                _setListener(port, handlerMap, this, Component.ChromeMessagesClient, `registerName '${registerName}'`)
                 this.port = port
                 if (this.pendingMesssage) {
-                    trace('ChromeMessagesClient', `send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)
+                    trace(Component.ChromeMessagesClient, `send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)
                     this.port.postMessage(this.pendingMesssage)
                     this.pendingMesssage = undefined
                 }
@@ -69,41 +69,41 @@ class ChromeMessagesClient implements IMessageSender {
     private tryConnect() {
         const now = Date.now();
         if (now - this.lastConnectAttempt < 5000) {
-            trace('ChromeMessagesClient', 'too soon, skipping connect')
+            trace(Component.ChromeMessagesClient, 'too soon, skipping connect')
             return;
         }
 
         this.lastConnectAttempt = now;
 
-        trace('ChromeMessagesClient', `establishing connection: registerName '${this.registerName}'`)
+        trace(Component.ChromeMessagesClient, `establishing connection: registerName '${this.registerName}'`)
         chrome.runtime.sendMessage({ name: this.registerName }, (response: any) => {
             const str = (n: string, x: any) => x ? `${n}: ${JSON.stringify(x)}` : `no ${n}`
-            trace('ChromeMessagesClient', `connect ${str('response', response)} ${str('lastError', chrome.runtime.lastError)}`)
+            trace(Component.ChromeMessagesClient, `connect ${str('response', response)} ${str('lastError', chrome.runtime.lastError)}`)
         })
     }
 
     public send(name: string, data?: object): boolean {
         if (!this.port) {
             if (!this.pendingMesssage) {
-                trace('ChromeMessagesClient', `reconnect, message pending: '${name}' on registerName '${this.registerName}'`)
+                trace(Component.ChromeMessagesClient, `reconnect, message pending: '${name}' on registerName '${this.registerName}'`)
                 this.pendingMesssage = { name, ...data }
                 this.tryConnect()
                 return true
             }
             else {
-                trace('ChromeMessagesClient', `reconnect, message dropped: '${name}' on registerName '${this.registerName}'`)
+                trace(Component.ChromeMessagesClient, `reconnect, message dropped: '${name}' on registerName '${this.registerName}'`)
                 this.tryConnect()
                 return false
             }
         }
 
         try {
-            trace('ChromeMessagesClient', `send: '${name}' on registerName '${this.registerName}'`)
+            trace(Component.ChromeMessagesClient, `send: '${name}' on registerName '${this.registerName}'`)
             this.port.postMessage({ name, ...data })
         } catch (e) {
             this.port = undefined
-            traceError('ChromeMessagesClient', 'send exception:', e)
-            trace('ChromeMessagesClient', 'trying to reconnect')
+            traceError(Component.ChromeMessagesClient, 'send exception:', e)
+            trace(Component.ChromeMessagesClient, 'trying to reconnect')
             this.pendingMesssage = { name, ...data }
             this.tryConnect()
         }
@@ -118,8 +118,8 @@ class ChromeMessagesClient implements IMessageSender {
 class ChromeMessagesHub {
     public connect(tabId: number, portName: string, handlers: PortHandlers): IPort {
         const port = chrome.tabs.connect(tabId, { name: portName })
-        trace('ChromeMessagesHub', `connected: tab ${tabId} port '${portName}'`)
-        _setListener(port, handlers, undefined, 'ChromeMessagesHub', `port '${portName}'`)
+        trace(Component.ChromeMessagesHub, `connected: tab ${tabId} port '${portName}'`)
+        _setListener(port, handlers, undefined, Component.ChromeMessagesHub, `port '${portName}'`)
         chrome.tabs.update(tabId, { autoDiscardable: false })
         return new ChromePort(tabId, port)
     }
@@ -130,16 +130,16 @@ class ChromeMessagesHub {
             sendResponse: (response?: any) => void) => {
             const portManager = handlers[message.name]
             if (portManager) {
-                trace('ChromeMessagesHub', `listen connection requested: tab ${sender.tab.id} title '${sender.tab.title}' registerName '${message.name}'`)
+                trace(Component.ChromeMessagesHub, `listen connection requested: tab ${sender.tab.id} title '${sender.tab.title}' registerName '${message.name}'`)
                 await portManager.handle(sender.tab.id, sender.tab.title)
                 sendResponse({ result: 'connected' })
             } else {
-                trace('ChromeMessagesHub', 'listen unknown name in message')
+                trace(Component.ChromeMessagesHub, 'listen unknown name in message')
                 sendResponse({ result: 'unknown name', failed: true })
             }
         }
 
-        trace('ChromeMessagesHub', 'listening')
+        trace(Component.ChromeMessagesHub, 'listening')
         chrome.runtime.onMessage.addListener(callback)
         // chrome.runtime.sendMessage({name: "test"}, (response) => { console.log(response); console.log(chrome.runtime.lastError) })
     }

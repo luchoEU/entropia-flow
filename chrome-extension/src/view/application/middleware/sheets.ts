@@ -1,4 +1,4 @@
-import { traceError } from "../../../common/trace"
+import { Component, traceError } from "../../../common/trace"
 import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
 import { ADD_PENDING_CHANGE, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
 import { loadSheetFunc, loadSheetParams, operationChangeFunc, operationDoneFunc } from "../helpers/sheets"
@@ -62,7 +62,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 }
             } catch (e) {
                 dispatch(setLoadingError(e.message))
-                traceError('SheetMiddleware', 'exception changing sheet:', e)
+                traceError(Component.SheetMiddleware, 'exception changing sheet:', e)
             } finally {
                 dispatch(endLoading)
                 dispatch(donePendingChanges)

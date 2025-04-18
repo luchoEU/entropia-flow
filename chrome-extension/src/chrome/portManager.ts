@@ -1,5 +1,5 @@
 import TabStorage, { TabData } from "../background/tabStorage"
-import { trace } from "../common/trace"
+import { Component, trace } from "../common/trace"
 import IMessagesHub from "./IMessagesHub"
 import IPortManager, { IPort, PortHandlers } from "./IPort"
 import ITabManager, { ITab } from "./ITab"
@@ -31,32 +31,32 @@ class PortManager implements IPortManager {
         if (tab) {
             const port = this.messages.connect(tabId, this.portName, this.handlers)
             this.ports[tabId] = port
-            trace('PortManager', `_connect connected: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
+            trace(Component.PortManager, `_connect connected: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
             await this.storage.add(tabId, tabTitle)
             if (!isReconnect && this.onConnect)
                 await this.onConnect(port) // don't call on reconnect to avoid a duplicate requestItems
             port.onDisconnect(async () => {
-                trace('PortManager', `_connect disconnected: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
+                trace(Component.PortManager, `_connect disconnected: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
                 this.ports[tabId] = null
                 await this.storage.remove(tabId)
                 await this.onDisconnect(port)
             })
             return port
         } else {
-            trace('PortManager', `_connect not found: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
+            trace(Component.PortManager, `_connect not found: tab ${tabId} title '${tabTitle}' port '${this.portName}`)
             return undefined
         }
     }
 
     private async _getList(): Promise<Array<IPort>> {
         const tabList = await this.storage.get()
-        trace('PortManager', `_getList start: tabList ${JSON.stringify(tabList)} port '${this.portName}'`)
+        trace(Component.PortManager, `_getList start: tabList ${JSON.stringify(tabList)} port '${this.portName}'`)
 
         const portList: Array<IPort> = await Promise.all(tabList.map(async (tab: TabData) => {
             let port = this.ports[tab.id]
             if (!port) {
                 // reconnect needed because service worker goes inactive and loses the connections
-                trace('PortManager', `_getList trying to reconnect: tab ${tab.id} title '${tab.title}' port '${this.portName}'`)
+                trace(Component.PortManager, `_getList trying to reconnect: tab ${tab.id} title '${tab.title}' port '${this.portName}'`)
                 port = await this._connect(tab.id, tab.title, true)
             }
             return port
@@ -74,7 +74,7 @@ class PortManager implements IPortManager {
             })
         await this.storage.removeAll(tabsToRemove)
 
-        trace('PortManager', `_getList end: tabsToRemove ${JSON.stringify(tabsToRemove)} validPortList ${JSON.stringify(validPortList.map(p => p.getTabId()))} port '${this.portName}`)
+        trace(Component.PortManager, `_getList end: tabsToRemove ${JSON.stringify(tabsToRemove)} validPortList ${JSON.stringify(validPortList.map(p => p.getTabId()))} port '${this.portName}`)
         return validPortList
     }
 

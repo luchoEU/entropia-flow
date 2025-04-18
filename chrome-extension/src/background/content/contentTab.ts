@@ -7,7 +7,7 @@ import {
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
     STRING_PLEASE_LOG_IN
 } from '../../common/const'
-import { trace, traceError } from '../../common/trace'
+import { Component, trace, traceError } from '../../common/trace'
 import { IContentTab } from './refreshManager'
 
 //// CONTENT TAB ////
@@ -42,19 +42,19 @@ class ContentTabManager implements IContentTab {
     private async requestItems(name: string, data: object): Promise<string> {
         const port = await this.portManager.first()
         if (port === undefined) {
-            trace('ContentTabManager', 'requestItems port undefined')
+            trace(Component.ContentTabManager, 'requestItems port undefined')
             return STRING_PLEASE_LOG_IN
         } else {
             try {
-                trace('ContentTabManager', `requestItems send ${name}`)
+                trace(Component.ContentTabManager, `requestItems send ${name}`)
                 port.send(name, data)
                 return undefined
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail
-                    trace('ContentTabManager', 'requestItems send failed')
+                    trace(Component.ContentTabManager, 'requestItems send failed')
                 } else {
-                    traceError('ContentTabManager', 'requestItems exception:', e)
+                    traceError(Component.ContentTabManager, 'requestItems exception:', e)
                 }
                 return STRING_CONNECTION_BACKGROUND_TO_CONTENT // STRING_PLEASE_LOG_IN
             }

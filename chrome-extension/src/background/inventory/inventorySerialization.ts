@@ -1,5 +1,5 @@
 import { Inventory, ItemData, Log, Meta } from "../../common/state"
-import { trace } from "../../common/trace"
+import { Component, trace } from "../../common/trace"
 import StringTable from "./stringTable"
 
 //// Constants ////
@@ -254,7 +254,7 @@ class InventoryReader {
 
         const second = this.read1()
         if ((second & 0xC0) !== 0x80) {
-            trace('InventoryReader', `UTF-8 read failure 0x${second.toString(16).padStart(2, '0')}`)
+            trace(Component.InventoryReader, `UTF-8 read failure 0x${second.toString(16).padStart(2, '0')}`)
             return 0
         }
 
@@ -263,7 +263,7 @@ class InventoryReader {
 
         const third = this.read1()
         if ((third & 0xC0) !== 0x80) {
-            trace('InventoryReader', `UTF-8 read failure 0x${third.toString(16).padStart(2, '0')}`)
+            trace(Component.InventoryReader, `UTF-8 read failure 0x${third.toString(16).padStart(2, '0')}`)
             return 0
         }
 
@@ -272,14 +272,14 @@ class InventoryReader {
 
         const forth = this.read1()
         if ((forth & 0xC0) !== 0x80) {
-            trace('InventoryReader', `UTF-8 read failure 0x${forth.toString(16).padStart(2, '0')}`)
+            trace(Component.InventoryReader, `UTF-8 read failure 0x${forth.toString(16).padStart(2, '0')}`)
             return 0
         }
 
         if ((first & 0xF8) === 0xF0)
             return (first & 0x07) * 0x40000 + (second & 0x3F) * 0x1000 + (third & 0x3F) * 0x40 + (forth & 0x3F)
 
-        trace('InventoryReader', `UTF-8 read failure 0x${first.toString(16).padStart(2, '0')}`)
+        trace(Component.InventoryReader, `UTF-8 read failure 0x${first.toString(16).padStart(2, '0')}`)
         return 0
     }
 
@@ -296,7 +296,7 @@ function deserializeInventory(strings: StringTable, invStorage: Array<number>): 
     let position = 0
     const version = invStorage[position++]
     if (version !== INVENTORY_STORAGE_VERSION) {
-        trace('InventoryReader', `Inventory version mismatch ${version} != ${INVENTORY_STORAGE_VERSION}`)
+        trace(Component.InventoryReader, `Inventory version mismatch ${version} != ${INVENTORY_STORAGE_VERSION}`)
         return []
     }
 

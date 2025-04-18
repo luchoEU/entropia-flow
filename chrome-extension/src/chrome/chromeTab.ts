@@ -1,6 +1,6 @@
 /// <reference types="chrome"/>
 
-import { traceError } from "../common/trace";
+import { Component, traceError } from "../common/trace";
 import ITabManager, { ITab } from "./ITab";
 
 class ChromeTab implements ITab {
@@ -29,7 +29,7 @@ class ChromeTabManager implements ITabManager {
             const res = await chrome.tabs.get(tabId)
             return res === undefined ? undefined : new ChromeTab(tabId)
         } catch (e) {
-            traceError('ChromeTabManager', 'get exception:', e)
+            traceError(Component.ChromeTabManager, 'get exception:', e)
             return undefined
         }
     }

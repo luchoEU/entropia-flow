@@ -41,8 +41,6 @@
 
 1. Update [CHANGESLOG.md](CHANGESLOG.md)
 
-1. Verify that `SHOW_FEATURES_IN_DEVELOPMENT = false` in [config.ts](src/config.ts)
-
 1. Execute `npm run build` to build a production (minified) version in [dist.zip](dist.zip)
 
 1. Do manual testing

@@ -1,4 +1,4 @@
-import { traceError } from '../../../common/trace'
+import { Component, traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
@@ -163,7 +163,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     }*/
                 } catch (e) {
                     dispatch(setBudgetPageLoadingError(bpName, e.message))
-                    traceError('CraftMiddleware', 'exception loading budget sheet:', e)
+                    traceError(Component.CraftMiddleware, 'exception loading budget sheet:', e)
                 } finally {
                     dispatch(endBudgetPageLoading(bpName))
                 }    
@@ -313,7 +313,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 dispatch(doneCraftingSession(state.activeSession))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(action.payload.name, e.message))
-                traceError('CraftMiddleware', 'exception saving craft session:', e)
+                traceError(Component.CraftMiddleware, 'exception saving craft session:', e)
             } finally {
                 dispatch(endBudgetPageLoading(action.payload.name))
             }
@@ -369,7 +369,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 dispatch(doneBuyBudget(bpName, action.payload.materialName, action.payload.quantity))
             } catch (e) {
                 dispatch(setBudgetPageLoadingError(bpName, e.message))
-                traceError('CraftMiddleware', 'exception saving craft session:', e)
+                traceError(Component.CraftMiddleware, 'exception saving craft session:', e)
             } finally {
                 dispatch(endBudgetPageLoading(bpName))
             }
