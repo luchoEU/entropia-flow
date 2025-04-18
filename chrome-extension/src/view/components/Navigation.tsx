@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
-import { getMode } from '../application/selectors/mode';
+import { getMode, getShowVisible } from '../application/selectors/mode';
 import { setShowSubtitles, setShowVisibleToggle } from '../application/actions/mode';
 import { getConnection } from '../application/selectors/connection';
 import { getStatus } from '../application/selectors/status';
@@ -38,11 +38,10 @@ const Tab = (p: {
         }
     };
 
-    const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode);
+    const showVisible = useSelector(getShowVisible);
     const visibleSelector = `tab.${p.id}`;
     const visible: boolean = useSelector(getVisible(visibleSelector));
 
-    const showVisible = showSubtitles && showVisibleToggle
     if (!visible && !showVisible)
         return <></>
 
