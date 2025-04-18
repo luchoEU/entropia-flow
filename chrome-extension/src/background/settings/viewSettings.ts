@@ -1,7 +1,6 @@
 import IStorageArea from "../../chrome/IStorageArea"
 import { STORAGE_VIEW } from "../../common/const"
 import { Inventory } from "../../common/state"
-import { DEFAULT_WEB_SOCKET_URL } from "../client/webSocketClient"
 
 class ViewSettings {
     private storage: IStorageArea
@@ -60,7 +59,7 @@ class ViewSettings {
             this.webSocketUrl = value.webSocketClient
         } else {
             this.last = null
-            this.webSocketUrl = DEFAULT_WEB_SOCKET_URL
+            this.webSocketUrl = null
         }
     }
 

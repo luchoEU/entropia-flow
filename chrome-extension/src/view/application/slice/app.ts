@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, Middleware } from "@reduxjs/toolkit";
 import { AppDispatch, RootState } from "../store";
 import middleware from "../middleware";
+import { Component, traceError } from "../../../common/trace";
 
 // Actions
 enum AppAction {
@@ -41,7 +42,11 @@ const initialize = createAsyncThunk<
             next = mw(extra)({ dispatch, getState })(next);
         }
         
-        await next({ type: AppAction.INITIALIZE });
+        try {
+            await next({ type: AppAction.INITIALIZE });
+        } catch (error) {
+            traceError(Component.ReduxLogger, 'Error during middleware execution', error);
+        }
 
         return true;
     }

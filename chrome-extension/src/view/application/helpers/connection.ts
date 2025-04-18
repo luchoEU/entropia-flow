@@ -1,5 +1,6 @@
-import { DEFAULT_WEB_SOCKET_URL } from "../../../background/client/webSocketClient"
 import { ConnectionState } from "../state/connection"
+
+const DEFAULT_WEB_SOCKET_URL = 'ws://localhost:6521'
 
 const initialState: ConnectionState = {
     client: {

@@ -29,7 +29,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             let state: InventoryState = await api.storage.loadInventoryState()
             const byStore: InventoryByStore = await api.storage.loadInventoryByStoreState()
             if (state || byStore) {
-                state = state && initialState
+                state = state || initialState
                 state.byStore = byStore && fillFromLoadByStore(byStore)
                 dispatch(loadInventoryState(mergeDeep(initialState, state)))
             }

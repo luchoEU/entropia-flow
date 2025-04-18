@@ -55,7 +55,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     switch (action.type) {
         case AppAction.INITIALIZE: {
             await new Promise<void>(resolve => {
-                //setTimeout(resolve, 2000) // wait for background service worker to respond
+                setTimeout(resolve, 2000) // wait for background service worker to respond
                 api.messages.initMessageClient(async (m: ViewState) => {
                     const actions = refreshViewHandler(m);
                     for (const action of actions) {

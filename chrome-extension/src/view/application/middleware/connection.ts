@@ -5,6 +5,8 @@ import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/connection"
 import { getConnection, getWebSocketUrl } from "../selectors/connection"
 import { ConnectionState } from "../state/connection"
+import { isFeatureEnabled } from "../selectors/settings"
+import { FEATURE_CLIENT_RECOVER_CONNECTION } from "../state/settings"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -18,7 +20,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case AppAction.LOADED: {
             const url: string = getWebSocketUrl(getState())
-            if (url)
+            if (url && isFeatureEnabled(FEATURE_CLIENT_RECOVER_CONNECTION)(getState()))
                 dispatch(setWebSocketUrl(url)) // recover the connection
             break
         }

@@ -5,8 +5,6 @@ import { Component, traceData, traceError } from "../../common/trace"
 import { VERSION } from "../../view/components/about/AboutPage"
 import IWebSocketClient, { WebSocketState, WebSocketStateCode } from "./webSocketInterface"
 
-const DEFAULT_WEB_SOCKET_URL = 'ws://localhost:6521'
-
 class WebSocketClient implements IWebSocketClient {
     private socket: WebSocket
     private pendingJson: Array<string>
@@ -91,4 +89,3 @@ class WebSocketClient implements IWebSocketClient {
 }
 
 export default WebSocketClient
-export { DEFAULT_WEB_SOCKET_URL }

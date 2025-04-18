@@ -20,6 +20,7 @@ enum Component {
     InventoryStorage = 'InventoryStorage',
     InventoryReader = 'InventoryReader',
     RefreshManager = 'RefreshManager',
+    AppLoader = 'AppLoader',
 }
 
 const silentComponents = new Set([

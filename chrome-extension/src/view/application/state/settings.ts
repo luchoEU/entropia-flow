@@ -13,7 +13,7 @@ const featureList: FeatureInfo[] = [
         title: 'Client',
         description: 'Integration with Entropia Flow Client',
         development: true,
-        components: ['tab', 'variables', 'trade']
+        components: ['tab', 'variables', 'trade', 'recover']
         // related flag SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA
     }
 ]
@@ -25,6 +25,7 @@ const FEATURE_SHOW_SHEET_SETTINGS: FeatureComponentId = SHOW_BUDGET_IN_CRAFT ? {
 const FEATURE_CLIENT_TAB: FeatureComponentId = { id: 'client', component: 'tab' }
 const FEATURE_CLIENT_VARIABLES: FeatureComponentId = { id: 'client', component: 'variables' }
 const FEATURE_CLIENT_TRADE: FeatureComponentId = { id: 'client', component: 'trade' }
+const FEATURE_CLIENT_RECOVER_CONNECTION: FeatureComponentId = { id: 'client', component: 'recover' }
 
 const isFeatureEnabled = (feature: FeatureComponentId, state: SettingsState): boolean => {
     if (feature.id === 'const')
@@ -71,6 +72,7 @@ export {
     FEATURE_CLIENT_TAB,
     FEATURE_CLIENT_VARIABLES,
     FEATURE_CLIENT_TRADE,
+    FEATURE_CLIENT_RECOVER_CONNECTION,
     isFeatureEnabled,
     FeatureComponentId,
     SheetAccessInfo,
