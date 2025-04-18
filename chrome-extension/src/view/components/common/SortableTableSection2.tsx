@@ -117,7 +117,7 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
         sc.visible === false ?
             <span key={j} style={{ flex: sc.flex, width: p.width ? p.width[j] : 0 }} /> :
             <span key={j} className={sc.class} title={sc.title} style={{ flex: sc.flex }}>
-                { sc.imgButton && <ImgButton text={sc.imgButton.text} title={undefined} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
+                { sc.imgButton && <ImgButton afterText={sc.imgButton.text} title={undefined} src={sc.imgButton.src} dispatch={sc.imgButton.dispatch} show={sc.imgButton.show} /> }
                 { sc.plusButton && <ExpandablePlusButton expanded={sc.plusButton.expanded} setExpanded={sc.plusButton.setExpanded} /> }
                 { sc.textButton && <TextButton text={sc.textButton.text} title={undefined} dispatch={sc.textButton.dispatch} /> }
                 { sc.itemText && <ItemText text={sc.itemText} /> }

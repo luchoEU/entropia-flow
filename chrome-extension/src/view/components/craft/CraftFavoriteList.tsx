@@ -7,6 +7,7 @@ import { BlueprintData, CraftState } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
 import { NavigateFunction } from 'react-router-dom'
 import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation'
+import CraftPlanet from './CraftPlanet'
 
 const sortRowData: SortRowData = {
     [CLICKS]: { justifyContent: 'center' },
@@ -72,7 +73,7 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
     }
 });
 
-function CraftCollapsedList() {
+function CraftFavoriteList() {
     const s: CraftState = useSelector(getCraft)
 
     const blueprints = Object.values(s.blueprints)
@@ -114,8 +115,9 @@ function CraftCollapsedList() {
                     getRow: getRowData
                 }
             }}
+            afterTitle={<CraftPlanet />}
         />
     </>
 }
 
-export default CraftCollapsedList
+export default CraftFavoriteList

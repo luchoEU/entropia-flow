@@ -20,6 +20,12 @@ import ItemNotes from '../item/ItemNotes'
 import ItemMarkup from '../item/ItemMarkup'
 import { WebLoadResponse } from '../../../web/loader'
 import { filterExact, filterOr } from '../../../common/filter'
+import { StarButton } from './CraftOwnedList'
+import CraftPlanet from './CraftPlanet'
+import ImgButton from '../common/ImgButton'
+import { TabId } from '../../application/state/navigation'
+import { navigateToTab } from '../../application/actions/navigation'
+import { NavigateFunction } from 'react-router-dom'
 
 function SessionInfo(p: {
     name: string,
@@ -373,7 +379,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     )
 }
 
-const CraftExpandedList = ({bpName}: {bpName: string}) => {
+const CraftBlueprint = ({bpName}: {bpName: string}) => {
     const s: CraftState = useSelector(getCraft)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
@@ -412,7 +418,11 @@ const CraftExpandedList = ({bpName}: {bpName: string}) => {
     return (
         <section>
             <div className='inline'>
-                <h1>{bp.name}</h1>
+                <h1 className='img-hover'>
+                    <ImgButton title='Back to list' src='img/left.png' beforeText={bp.name} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
+                    <StarButton bpName={bp.name} />
+                    <CraftPlanet />
+                </h1>
                 <CraftSingle key={bp.name} bp={bp} activeSession={s.activeSession} message={message} />
             </div>
             <div className='inline'>
@@ -432,7 +442,8 @@ const CraftExpandedList = ({bpName}: {bpName: string}) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined))
                             }}>
-                            { lastBpChain.name }<img src='img/left.png' />
+                            { lastBpChain.name }<img title='Close blueprint' src='img/left.png' />
+                            <StarButton bpName={lastBpChain.name} />
                         </h2>
                         <CraftSingle key={bp.chain} bp={lastBpChain} />
                     </div>
@@ -443,7 +454,5 @@ const CraftExpandedList = ({bpName}: {bpName: string}) => {
     )
 }
 
-export default CraftExpandedList
-export {
-    addZeroes
-}
+export default CraftBlueprint
+export { addZeroes }

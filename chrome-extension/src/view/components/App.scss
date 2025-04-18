@@ -791,6 +791,22 @@ button:active {
 }
 
 // Craft
+.craft-planet {
+    float: right;
+    margin-right: 10px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.craft-planet label {
+    vertical-align: baseline;
+    margin: 0px 5px;
+}
+
+.craft-planet select {
+    font-size: 12px;
+}
+
 .input-budget-buy {
     margin: 0px 5px;
     width: 40px;

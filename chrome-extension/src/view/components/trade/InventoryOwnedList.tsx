@@ -11,7 +11,7 @@ import { ItemUsageWebData, ItemWebData } from '../../../web/state';
 import { setBlueprintStared } from '../../application/actions/craft';
 import { getItem } from '../../application/selectors/items';
 import ItemInventory from '../item/ItemInventory';
-import { addZeroes } from '../craft/CraftExpandedList';
+import { addZeroes } from '../craft/CraftBlueprint';
 import ItemNotes from '../item/ItemNotes';
 import ItemMarkup from '../item/ItemMarkup';
 import ItemCalculator from '../item/ItemCalculator';

@@ -9,9 +9,11 @@ import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
-import { useNavigate, useParams } from "react-router-dom"
+import { NavigateFunction, useNavigate, useParams } from "react-router-dom"
 import { useAppDispatch } from "../../application/store"
 import { TabId } from "../../application/state/navigation"
+import { navigateToTab } from "../../application/actions/navigation"
+import ImgButton from "../common/ImgButton"
 
 function StreamLayoutEditor() {
     const { layouts } = useSelector(getStreamIn)
@@ -65,8 +67,8 @@ function StreamEditor() {
         </>
 
     return <section>
-        <h1>Editing Layout - {c.name}
-            <img title='Click to collapse editor' src='img/left.png' onClick={() => navigate(TabId.STREAM)}/>
+        <h1 className='img-hover'>
+            <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${c.name}`} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
             <button
                 title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}
                 className='stream-editor-button'

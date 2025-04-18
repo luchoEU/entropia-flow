@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { JSX, useEffect, useRef } from "react"
 import ExpandableArrowButton from "./ExpandableArrowButton"
 import { useDispatch, useSelector } from "react-redux"
 import { getExpanded, getVisible } from "../../application/selectors/expandable"
@@ -15,6 +15,7 @@ const ExpandableSection = ({
     subtitle,
     className,
     actionRequired,
+    afterTitle,
     children
 }: {
     selector: string,
@@ -22,6 +23,7 @@ const ExpandableSection = ({
     subtitle: string,
     className?: string,
     actionRequired?: string,
+    afterTitle?: JSX.Element,
     children: any
 }) => {
     const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
@@ -51,11 +53,11 @@ const ExpandableSection = ({
     return (
         <section ref={ref} className={className}>
             <div>
-                <h1 onClick={(e) => {
+                <h1>
+                    <span title={expanded && showSubtitles ? subtitle : undefined} onClick={(e) => {
                         e.stopPropagation()
-                        dispatch(setExpanded(selector)(!expanded))}
-                    }>
-                    { expanded && showSubtitles ? title : <span title={subtitle}>{title}</span> }
+                        dispatch(setExpanded(selector)(!expanded))
+                    }}>{title}</span>
                     { showVisible &&
                         <ImgButton title={visible ? 'click to Hide Section' : 'click to Show Section'}
                             className='img-visible-section'
@@ -63,6 +65,7 @@ const ExpandableSection = ({
                             dispatch={() => setVisible(visibleSelector)(!visible)} />}
                     { visible && !actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(selector)} /> }
                     { actionRequired && <img className='img-warning' src='img/warning.png' title={actionRequired} /> }
+                    { expanded && afterTitle }
                 </h1>
                 { expanded && showSubtitles && subtitle && <div className="subtitle">{subtitle}</div> }
             </div>

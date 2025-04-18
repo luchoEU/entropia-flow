@@ -2,7 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { setBlueprintStared } from '../../application/actions/craft'
 import { setOwnedBlueprintsFilter, sortOwnedBlueprintsBy } from '../../application/actions/inventory'
-import { getCraft } from '../../application/selectors/craft'
+import { getCraft, isBlueprintStared } from '../../application/selectors/craft'
 import { getInventory } from '../../application/selectors/inventory'
 import { CraftState } from '../../application/state/craft'
 import { InventoryState } from '../../application/state/inventory'
@@ -15,7 +15,15 @@ import ItemText from '../common/ItemText'
 import { useNavigate } from 'react-router-dom'
 import { craftBlueprintUrl } from '../../application/actions/navigation'
 
-function CraftChooser() {
+const StarButton = ({ bpName }: { bpName: string }) => {
+    const stared = useSelector(isBlueprintStared(bpName))
+    return <ImgButton
+        title={`${stared ? 'Remove from' : 'Add to'} Favorite Blueprints`}
+        src={stared ? 'img/staron.png' : 'img/staroff.png'}
+        dispatch={() => setBlueprintStared(bpName, !stared)} />
+}
+
+function CraftOwnedList() {
     const inv: InventoryState = useSelector(getInventory)
     const s: CraftState = useSelector(getCraft)
     const navigate = useNavigate()
@@ -43,12 +51,7 @@ function CraftChooser() {
                                 <ItemText text={n} />
                                 <img src="img/right.png" />
                             </td>
-                            <td>
-                                { s.stared.list.includes(n) ?
-                                    <ImgButton title='Remove from Favorite Blueprints' src="img/staron.png" dispatch={() => setBlueprintStared(n, true)} /> :
-                                    <ImgButton title='Add to Favorite Blueprints' src="img/staroff.png" dispatch={() => setBlueprintStared(n, true)} />
-                                }
-                            </td>
+                            <td><StarButton bpName={n} /></td>
                         </tr>
                     )}
                 </SortableTable>
@@ -57,4 +60,5 @@ function CraftChooser() {
     )
 }
 
-export default CraftChooser
+export default CraftOwnedList
+export { StarButton }

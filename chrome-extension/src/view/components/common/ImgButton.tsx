@@ -3,9 +3,10 @@ import { useDispatch } from "react-redux"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 import { Dispatch, UnknownAction } from "redux"
 
-const ImgButton = (p: {
+const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, clickPopup, className, style, show }: {
     title: string,
-    text?: string,
+    beforeText?: string,
+    afterText?: string,
     src: string,
     dispatch: (navigate: NavigateFunction) => any,
     clickPopup?: string
@@ -18,28 +19,29 @@ const ImgButton = (p: {
     const onClick: MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation()
 
-        if (p.clickPopup) {
+        if (clickPopup) {
             const popup = e.currentTarget.querySelector('.popup') as HTMLElement
             popup.style.display = 'block'
             setTimeout(() => { popup.style.display = 'none' }, 1000)
         }
 
-        multiDispatch(dispatch, navigate, p.dispatch)
+        multiDispatch(dispatch, navigate, pDispatch)
     }
 
     return <>
         <span
-            title={p.title}
-            className={'pointer popup-container ' + (p.className ?? '')}
+            title={title}
+            className={'pointer popup-container ' + (className ?? '')}
             onClick={onClick}
-            {...p.style ? { style: p.style } : {}}
-            {...p.show ? { 'data-show': true } : {}}>
-            <img src={p.src}
-                {...p.className ? { className: p.className } : {}}
-                {...p.show ? { 'data-show': true } : {}}
+            {...style ? { style } : {}}
+            {...show ? { 'data-show': true } : {}}>
+            {beforeText}
+            <img src={src}
+                {...className ? { className } : {}}
+                {...show ? { 'data-show': true } : {}}
             />
-            {p.clickPopup && <span style={{ display: 'none' }} className='popup'>{p.clickPopup}</span>}
-            {p.text}
+            {clickPopup && <span style={{ display: 'none' }} className='popup'>{clickPopup}</span>}
+            {afterText}
         </span>
     </>;
 }
