@@ -6,8 +6,8 @@ import { HistoryState } from "../state/history"
 const INTERVAL_MILLISECONDS = 10 * 60 * 1000  // 10 minutes
 const NOTIFICATION_TIMES = 3
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
         case SET_HISTORY_LIST: {
             const state: HistoryState = getHistory(getState())

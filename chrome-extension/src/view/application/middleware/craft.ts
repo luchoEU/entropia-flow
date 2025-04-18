@@ -6,7 +6,7 @@ import { SET_HISTORY_LIST } from '../actions/history'
 import { SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
-import { PAGE_LOADED } from '../actions/ui'
+import { AppAction } from '../slice/app'
 import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
@@ -26,20 +26,21 @@ import { Dispatch } from 'react'
 import { BlueprintWebData, BlueprintWebMaterial, ItemWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
-            let state: CraftState = await api.storage.loadCraft()
+        case AppAction.INITIALIZE: {
+            let state: CraftState = await api.storage.loadCraft();
             if (state) {
                 if (CLEAR_WEB_ON_LOAD) {
-                    state = cleanWeb(state)
+                    state = cleanWeb(state);
                 }
-                dispatch(setCraftState(mergeDeep(initialState, state)))
-                await Promise.all(Object.values(state.blueprints)
+                dispatch(setCraftState(mergeDeep(initialState, state)));
+
+                const tasks = Object.values(state.blueprints)
                     .filter(bp => bp.web?.blueprint.loading)
-                    .map(bp => loadBlueprint(bp.name, dispatch))
-                )
+                    .map(bp => loadBlueprint(bp.name, dispatch));
+                await Promise.race([Promise.all(tasks), new Promise(resolve => setTimeout(resolve, 1000))])
             }
             break
         }
@@ -144,7 +145,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case START_BUDGET_PAGE_LOADING:
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: CraftState = getCraft(getState())
             const settings: SettingsState = getSettings(getState())
 
@@ -169,7 +170,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             }
 
             switch (action.type) {
-                case PAGE_LOADED: {
+                case AppAction.INITIALIZE: {
                     Object.values(state.blueprints)
                         .filter(bp => bp.budget.loading)
                         .forEach(bp => loadBudget(bp.name))

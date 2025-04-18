@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { MODE_SHOW_SUBTITLES, MODE_SHOW_VISIBLE_TOGGLE, setModeState } from "../actions/mode"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/refine"
 import { getMode } from "../selectors/mode"
 import ModeState from "../state/mode"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: ModeState = await api.storage.loadMode()
             if (state)
                 dispatch(setModeState(mergeDeep(initialState, state)))

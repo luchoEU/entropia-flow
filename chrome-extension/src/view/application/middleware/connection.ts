@@ -1,20 +1,25 @@
 import { mergeDeep } from "../../../common/merge"
 import { WEB_SOCKET_CHANGED, WEB_SOCKET_RETRY, setConnectionState } from "../actions/connection"
 import { setWebSocketUrl } from "../actions/messages"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/connection"
-import { getConnection } from "../selectors/connection"
+import { getConnection, getWebSocketUrl } from "../selectors/connection"
 import { ConnectionState } from "../state/connection"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: ConnectionState = await api.storage.loadConnection()
             if (state) {
                 dispatch(setConnectionState(mergeDeep(initialState, state)))
-                dispatch(setWebSocketUrl(state.client.webSocket)) // recover the connection
             }
+            break
+        }
+        case AppAction.LOADED: {
+            const url: string = getWebSocketUrl(getState())
+            if (url)
+                dispatch(setWebSocketUrl(url)) // recover the connection
             break
         }
         case WEB_SOCKET_CHANGED: {
@@ -26,8 +31,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case WEB_SOCKET_RETRY: {
-            const state: ConnectionState = getConnection(getState())
-            dispatch(setWebSocketUrl(state.client.webSocket)) // this retriggers the connection
+            const url: string = getWebSocketUrl(getState())
+            dispatch(setWebSocketUrl(url)) // this retriggers the connection
             break
         }
     }

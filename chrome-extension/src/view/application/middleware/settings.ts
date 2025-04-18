@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { DOCUMENT_ID_CHANGED, ENABLE_FEATURE, GOOGLE_PRIVATE_KEY_CHANGED, GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED, setSettingsState, TT_SERVICE_DOCUMENT_ID_CHANGED } from "../actions/settings"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/settings"
 import { getSettings } from "../selectors/settings"
 import { SettingsState } from "../state/settings"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: SettingsState = await api.storage.loadSettings()
             if (state)
                 dispatch(setSettingsState(mergeDeep(initialState, state)))

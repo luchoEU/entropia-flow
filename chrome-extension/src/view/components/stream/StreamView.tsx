@@ -3,12 +3,19 @@ import { useSelector } from 'react-redux';
 import { getStream } from '../../application/selectors/stream';
 import StreamViewLayout from './StreamViewLayout';
 import { StreamState } from '../../application/state/stream';
-import StreamRenderData, { StreamRenderSingle } from '../../../stream/data';
+import { createSelector } from '@reduxjs/toolkit';
+
+const selectEnabledViewAndData = createSelector(
+    getStream,
+    (stream: StreamState) => ({
+        enabled: stream.in.enabled,
+        view: stream.in.view,
+        d: stream.out?.data,
+    })
+);
 
 function StreamView() {
-    const s: StreamState = useSelector(getStream)
-    const { enabled, view } = s.in
-    const d: StreamRenderData = s.out?.data
+    const { enabled, view, d } = useSelector(selectEnabledViewAndData)
 
     if (enabled && d) {
         return (

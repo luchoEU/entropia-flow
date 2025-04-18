@@ -3,15 +3,15 @@ import { CLEAR_WEB_ON_LOAD } from "../../../config"
 import { loadFromWeb } from "../../../web/loader"
 import { BlueprintWebMaterial } from "../../../web/state"
 import { LOAD_ITEM_USAGE_DATA, LOAD_ITEM_DATA, LOAD_ITEM_RAW_MATERIALS, ITEM_BUY_AMOUNT_CHANGED, ITEM_BUY_MARKUP_CHANGED, ITEM_NOTES_VALUE_CHANGED, ITEM_ORDER_MARKUP_CHANGED, ITEM_ORDER_VALUE_CHANGED, ITEM_REFINE_AMOUNT_CHANGED, ITEM_RESERVE_VALUE_CHANGED, ITEM_USE_AMOUNT_CHANGED, SET_ITEM_CALCULATOR_QUANTITY, SET_ITEM_CALCULATOR_TOTAL, SET_ITEM_CALCULATOR_TOTAL_MU, SET_ITEM_MARKUP_UNIT, SET_ITEM_PARTIAL_WEB_DATA, setItemPartialWebData, setItemsState } from "../actions/items"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { cleanForSaveCache, cleanForSaveMain, cleanWeb, initialState } from "../helpers/items"
 import { getItems } from "../selectors/items"
 import { ItemsState } from "../state/items"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             let state: ItemsState = await api.storage.loadItems()
             if (state) {
                 let stateCache: ItemsState = await api.storage.loadItemsCache()

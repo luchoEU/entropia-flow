@@ -9,7 +9,7 @@ import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
 import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
@@ -20,11 +20,11 @@ import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 import { computeServerFormulas } from "../../../stream/formulaCompute"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
-    next(action)
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             setTabularDefinitions(streamTabularDefinitions)
             const state: StreamStateIn = await api.storage.loadStream()
             if (state)
@@ -50,7 +50,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
             break
         }
         case SET_STREAM_VARIABLES:
-        case SET_STREAM_TEMPORAL_VARIABLES:{
+        case SET_STREAM_TEMPORAL_VARIABLES: {
             const { variables: beforeVariables }: StreamState = beforeState
             const { variables, temporalVariables }: StreamState = getStream(getState())
             if (isEqual(beforeVariables, variables))
@@ -62,7 +62,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 
     switch (action.type) {
-        case PAGE_LOADED:
+        case AppAction.INITIALIZE:
         case ON_LAST:
         case ADD_PEDS:
         case REMOVE_PEDS:
@@ -81,7 +81,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
     }
     switch (action.type) {
-        case PAGE_LOADED:
+        case AppAction.INITIALIZE:
         case SET_STATUS:
         {
             const { message } = getStatus(getState())
@@ -93,7 +93,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 
     switch (action.type) {
-        case PAGE_LOADED:
+        case AppAction.INITIALIZE:
         case SET_STREAM_BACKGROUND_SELECTED:
         {
             const { layouts } = getStreamIn(getState())
@@ -109,7 +109,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 
     switch (action.type) {
-        case PAGE_LOADED:
+        case AppAction.INITIALIZE:
         case ADD_STREAM_USER_VARIABLE:
         case REMOVE_STREAM_USER_VARIABLE:
         case SET_STREAM_USER_VARIABLE_PARTIAL: {
@@ -120,7 +120,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
     }
 
     switch (action.type) {
-        case PAGE_LOADED:
+        case AppAction.INITIALIZE:
         case SET_STREAM_BACKGROUND_SELECTED:
         case SET_STREAM_HTML_TEMPLATE:
         case SET_STREAM_CSS_TEMPLATE:

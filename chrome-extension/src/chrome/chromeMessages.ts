@@ -57,19 +57,28 @@ class ChromeMessagesClient implements IMessageSender {
                     this.port.postMessage(this.pendingMesssage)
                     this.pendingMesssage = undefined
                 }
+                this.send('ping') // test connection after getting the port
             }
         })
 
-        this.connect()
+        this.tryConnect()
     }
 
+    private lastConnectAttempt = 0;
 
-    private connect() {
+    private tryConnect() {
+        const now = Date.now();
+        if (now - this.lastConnectAttempt < 5000) {
+            trace('ChromeMessagesClient', 'too soon, skipping connect')
+            return;
+        }
+
+        this.lastConnectAttempt = now;
+
         trace('ChromeMessagesClient', `establishing connection: registerName '${this.registerName}'`)
         chrome.runtime.sendMessage({ name: this.registerName }, (response: any) => {
             const str = (n: string, x: any) => x ? `${n}: ${JSON.stringify(x)}` : `no ${n}`
             trace('ChromeMessagesClient', `connect ${str('response', response)} ${str('lastError', chrome.runtime.lastError)}`)
-            this.send('ping') // test connection
         })
     }
 
@@ -78,12 +87,12 @@ class ChromeMessagesClient implements IMessageSender {
             if (!this.pendingMesssage) {
                 trace('ChromeMessagesClient', `reconnect, message pending: '${name}' on registerName '${this.registerName}'`)
                 this.pendingMesssage = { name, ...data }
-                this.connect()
+                this.tryConnect()
                 return true
             }
             else {
                 trace('ChromeMessagesClient', `reconnect, message dropped: '${name}' on registerName '${this.registerName}'`)
-                this.connect()
+                this.tryConnect()
                 return false
             }
         }
@@ -96,7 +105,7 @@ class ChromeMessagesClient implements IMessageSender {
             traceError('ChromeMessagesClient', 'send exception:', e)
             trace('ChromeMessagesClient', 'trying to reconnect')
             this.pendingMesssage = { name, ...data }
-            this.connect()
+            this.tryConnect()
         }
 
         return true

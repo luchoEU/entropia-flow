@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { DILUTED_CHANGED, FRUIT_CHANGED, LME_MARKUP_CHANGED, LME_VALUE_CHANGED, ME_MARKUP_CHANGED, ME_VALUE_CHANGED, NB_MARKUP_CHANGED, NB_VALUE_CHANGED, NEXUS_CHANGED, setCalculatorState, SWEAT_CHANGED, SWEETSTUFF_CHANGED } from "../actions/calculator"
-import { PAGE_LOADED } from "../actions/ui"
 import { initialStateIn } from "../helpers/calculator"
 import { getCalculatorIn } from "../selectors/calculator"
+import { AppAction } from "../slice/app"
 import { CalculatorStateIn } from "../state/calculator"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: CalculatorStateIn = await api.storage.loadCalculator()
             if (state)
                 dispatch(setCalculatorState(mergeDeep(initialStateIn, state)))

@@ -5,7 +5,7 @@ import { SET_CURRENT_GAME_LOG } from "../actions/log"
 import { ON_NOTIFICATION_CLICKED } from "../actions/notification"
 import { setTabularFilter } from "../actions/tabular"
 import { ADD_TRADE_MESSAGE_NOTIFICATION, REMOVE_TRADE_MESSAGE_NOTIFICATION, SET_LAST_TRADE_MESSAGE_CHECK_SERIAL, setLastTradeMessageCheckSerial, setTradeState } from "../actions/trade"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { scrollValueForExpandable } from "../helpers/expandable"
 import { itemMatchesFilter } from "../helpers/tabular"
 import { initialState } from "../helpers/trade"
@@ -16,10 +16,10 @@ import { TradeState } from "../state/trade"
 
 const NOTIFICATION_ID = "entropiaFlowTrading"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: TradeState = await api.storage.loadTrade();
             if (state)
                 dispatch(setTradeState(mergeDeep(initialState, state)));

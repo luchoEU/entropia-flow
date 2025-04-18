@@ -1,9 +1,9 @@
 
 import React from "react"
-import { useDispatch, useSelector } from "react-redux"
+import { useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
-import { getStream, getStreamIn } from "../../application/selectors/stream"
+import { getStreamAdvancedEditor, getStreamIn, getStreamLayouts, getStreamOut } from "../../application/selectors/stream"
 import { addStreamUserVariable, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
@@ -11,6 +11,7 @@ import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
 import { useNavigate, useParams } from "react-router-dom"
 import { useAppDispatch } from "../../application/store"
+import { TabId } from "../../application/state/navigation"
 
 function StreamLayoutEditor() {
     const { layouts } = useSelector(getStreamIn)
@@ -37,16 +38,18 @@ function StreamLayoutEditor() {
     </>
 }
 
-function StreamAdvancedEditor() {
-    const { in: { layouts }, out: { data } } = useSelector(getStream);
+function StreamEditor() {
+    const layouts = useSelector(getStreamLayouts)
+    const advanced = useSelector(getStreamAdvancedEditor)
+    const { data } = useSelector(getStreamOut);
     const { layoutId } = useParams();
     const c = layouts[layoutId];
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     if (!c) return <></>
 
-    function InputRow(label: string, value: string, setValueAction: (value: string) => any): React.ReactNode {
-        return <tr>
+    const InputCells = (label: string, value: string, setValueAction: (value: string) => any): React.ReactNode =>
+        <>
             <td><label htmlFor={`stream-layout-${label}`}>{label}</label></td>
             <td><input
                 id={`stream-layout-${label}`}
@@ -59,35 +62,51 @@ function StreamAdvancedEditor() {
                     dispatch(setValueAction(e.target.value))
                 }}
             /></td>
-        </tr>
-    }
+        </>
 
     return <section>
         <h1>Editing Layout - {c.name}
-            <button title='Click to switch to Basic Editor if you just want to select the background' className='stream-editor-button' onClick={() => dispatch(setStreamAdvanced(false))}>Advanced</button>
+            <img title='Click to collapse editor' src='img/left.png' onClick={() => navigate(TabId.STREAM)}/>
+            <button
+                title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}
+                className='stream-editor-button'
+                onClick={() => dispatch(setStreamAdvanced(!advanced))}>
+                {advanced ? 'Advanced' : 'Basic'}
+            </button>
         </h1>
         <table className='stream-layout-data-table'>
-            {InputRow('Name', c.name, setStreamName(navigate, layoutId))}
-            {InputRow('Author', c.author, setStreamAuthor(layoutId))}
-            <tr><td/><td><button title='This layout is Read Only, click here to clone it to be able to modify your own version' onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}>Clone</button></td></tr>
+            <tbody>
+                <tr>
+                    { InputCells('Name', c.name, setStreamName(navigate, layoutId)) }
+                    <td>
+                        <button style={{ float: 'right', visibility: advanced ? 'visible' : 'hidden' }}
+                            title={c.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
+                            onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}
+                        >Clone</button>
+                    </td>
+                </tr>
+                <tr>{ InputCells('Author', c.author, setStreamAuthor(layoutId)) }</tr>                
+            </tbody>
         </table>
         <div className='flex'>
             <StreamBackgroundChooser layoutId={layoutId} />
-            <SortableTabularSection
-                selector={STREAM_TABULAR_VARIABLES}
-                afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
-            />
-            <SortableTabularSection
-                selector={STREAM_TABULAR_IMAGES}
-                itemHeight={50}
-                afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
-            />
+            { advanced && <>
+                <SortableTabularSection
+                    selector={STREAM_TABULAR_VARIABLES}
+                    afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
+                />
+                <SortableTabularSection
+                    selector={STREAM_TABULAR_IMAGES}
+                    itemHeight={50}
+                    afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
+                />
+            </>}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
                 <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: data.data, layout: c}} />
             </ExpandableSection>
-            <StreamLayoutEditor />
+            { advanced && <StreamLayoutEditor /> }
         </div>
     </section>
 }
 
-export default StreamAdvancedEditor
+export default StreamEditor

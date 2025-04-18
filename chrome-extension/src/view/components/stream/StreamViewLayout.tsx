@@ -13,7 +13,6 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
     scale?: number
 }) => {
     const shadowRootRef = useRef<HTMLDivElement>(null);
-    const layoutRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
 
     const [shadowReady, setShadowReady] = useState(false);
@@ -50,16 +49,10 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         const timeout = setTimeout(() => {
             const contentRect = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root')?.getBoundingClientRect();
             if (contentRect) {
-                let size: StreamRenderSize = {
+                const size: StreamRenderSize = {
                     width: contentRect.width,
                     height: contentRect.height
                 };
-                if (scale) {
-                    size = {
-                        width: size.width * scale,
-                        height: size.height * scale
-                    };
-                }
                 setSize(size);
             }
         }, 0); // delay to wait for DOM paint

@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { setState, SET_EXPANDED } from "../actions/about"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/about"
 import { getAbout } from "../selectors/about"
 import { AboutState } from "../state/about"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: AboutState = await api.storage.loadAbout()
             if (state)
                 dispatch(setState(mergeDeep(initialState, state)))

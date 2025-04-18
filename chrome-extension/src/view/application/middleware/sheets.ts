@@ -9,8 +9,8 @@ import { SheetsState } from "../state/sheets"
 
 const TIMEOUT_MILLISECONDS = 3000
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
         case ADD_PENDING_CHANGE: {
             const state: SheetsState = getSheets(getState())

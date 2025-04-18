@@ -9,48 +9,61 @@ import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
 import { getStreamClickAction } from '../actions/stream.click'
-import { PAGE_LOADED } from '../actions/ui'
+import { AppAction } from '../slice/app'
 import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
 import { getLast } from '../selectors/last'
+import { isAppLoaded } from '../slice/app'
 import { HistoryState } from '../state/history'
 import { LastRequiredState } from '../state/last'
+import { AppDispatch } from '../store'
 
-const refreshViewHandler = dispatch => async (m: ViewState) => {
+const refreshViewHandler = (m: ViewState): any[] => {
+    const actions = [];
     if (m.list) {
         m.list.reverse() // newer first
-        dispatch(setHistoryList(m.list, m.last))
+        actions.push(setHistoryList(m.list, m.last))
         if (m.last)
-            dispatch(onLast(m.list, m.last))
+            actions.push(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)
-            dispatch(setLast)
+            actions.push(setLast)
         const newest = m.list.find(e => e.log === undefined)
         if (newest !== undefined)
-            dispatch(setCurrentInventory(newest))
+            actions.push(setCurrentInventory(newest))
     }
     if (m.status)
-        dispatch(setStatus(m.status))
+        actions.push(setStatus(m.status))
     if (m.gameLog)
-        dispatch(setCurrentGameLog(m.gameLog))
+        actions.push(setCurrentGameLog(m.gameLog))
     if (m.clientState) {
-        dispatch(webSocketStateChanged(m.clientState.code))
-        dispatch(setConnectionStatus(m.clientState.message + (m.clientVersion ? ` (version ${m.clientVersion})` : '')))
+        actions.push(webSocketStateChanged(m.clientState.code))
+        actions.push(setConnectionStatus(m.clientState.message + (m.clientVersion ? ` (version ${m.clientVersion})` : '')))
     }
+    return actions;
 }
 
-const actionViewHandler = dispatch => async (m: ViewDispatch) => {
+const actionViewHandler = (dispatch: AppDispatch) => async (m: ViewDispatch) => {
     dispatch(getStreamClickAction(m.action));
 }
 
-const notificationViewHandler = dispatch => async (m: ViewNotification) => {
+const notificationViewHandler = (dispatch: AppDispatch) => async (m: ViewNotification) => {
     dispatch(onNotificationClicked(m.notificationId));
 }
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
-            api.messages.initMessageClient(refreshViewHandler(dispatch), actionViewHandler(dispatch), notificationViewHandler(dispatch))
+        case AppAction.INITIALIZE: {
+            await new Promise<void>(resolve => {
+                //setTimeout(resolve, 2000) // wait for background service worker to respond
+                api.messages.initMessageClient(async (m: ViewState) => {
+                    const actions = refreshViewHandler(m);
+                    for (const action of actions) {
+                        await Promise.resolve(dispatch(action));
+                    }
+                    resolve();
+                }, actionViewHandler(dispatch), notificationViewHandler(dispatch))
+            })
             break
         }
         case REFRESH: {
@@ -76,7 +89,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action)
         }
         case TIMER_ON: { api.messages.requestTimerOn(); break }
         case TIMER_OFF: { api.messages.requestTimerOff(); break }
-        case SEND_WEB_SOCKET_MESSAGE: { api.messages.sendWebSocketMessage(action.payload.type, action.payload.data); break }
+        case SEND_WEB_SOCKET_MESSAGE: {
+            if (isAppLoaded(getState()))
+                api.messages.sendWebSocketMessage(action.payload.type, action.payload.data);
+            break
+        }
         case SET_WEB_SOCKET_URL: { api.messages.setWebSocketUrl(action.payload.url); break }
         case RETRY_WEB_SOCKET: { api.messages.retryWebSocket(); break }
     }

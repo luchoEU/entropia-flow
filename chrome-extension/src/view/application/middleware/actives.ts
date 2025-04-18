@@ -1,12 +1,12 @@
 import { ADD_ACTIVE, REMOVE_ACTIVE, setActives } from "../actions/actives"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { getActiveList } from "../selectors/actives"
 import { ActivesList } from "../state/actives"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const actives: ActivesList = await api.storage.loadActives()
             if (actives)
                 dispatch(setActives(actives))

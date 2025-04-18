@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { REFINE_AMOUNT_CHANGED, setRefineState } from "../actions/refine"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/refine"
 import { getRefine } from "../selectors/refine"
 import { RefineState } from "../state/refine"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: RefineState = await api.storage.loadRefine()
             if (state)
                 dispatch(setRefineState(mergeDeep(initialState, state)))

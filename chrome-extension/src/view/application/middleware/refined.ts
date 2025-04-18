@@ -1,17 +1,17 @@
 import { mergeDeep } from "../../../common/merge"
 import { ITEM_BUY_MARKUP_CHANGED, SET_ITEMS_STATE } from "../actions/items"
 import { refinedMaterialChanged, REFINED_BUY_MATERIAL, REFINED_MARKUP_CHANGED, REFINED_MATERIAL_CHANGED, REFINED_VALUE_CHANGED, setRefinedState, REFINED_ORDER_MATERIAL, REFINED_USE_MATERIAL, REFINED_REFINE_MATERIAL } from "../actions/refined"
-import { PAGE_LOADED } from "../actions/ui"
+import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/refined"
 import { getItemsMap } from "../selectors/items"
 import { getRefined } from "../selectors/refined"
 import { ItemsMap } from "../state/items"
 import { RefinedState } from "../state/refined"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: RefinedState = await api.storage.loadRefined()
             if (state)
                 dispatch(setRefinedState(mergeDeep(initialState, state)))

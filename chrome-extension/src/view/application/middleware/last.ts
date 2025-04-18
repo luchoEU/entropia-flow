@@ -2,18 +2,18 @@ import { mergeDeep } from "../../../common/merge"
 import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
 import { ITEM_BUY_MARKUP_CHANGED, SET_ITEM_MARKUP_UNIT, SET_ITEMS_STATE } from "../actions/items"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
-import { PAGE_LOADED } from "../actions/ui"
 import { initialState } from "../helpers/last"
 import { getInventory } from "../selectors/inventory"
 import { getLast } from "../selectors/last"
 import { getItemsMap } from "../selectors/items"
 import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
+import { AppAction } from "../slice/app"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             let state: LastRequiredState = await api.storage.loadLast()
             if (state)
                 dispatch(setLastState(mergeDeep(initialState, state)));

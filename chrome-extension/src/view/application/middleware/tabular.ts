@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { SET_TABULAR_FILTER, setTabularState, SORT_TABULAR_BY } from "../actions/tabular"
-import { PAGE_LOADED } from "../actions/ui"
 import { cleanForSave, initialState } from "../helpers/tabular"
 import { getTabular } from "../selectors/tabular"
 import { TabularState } from "../state/tabular"
+import { AppAction } from "../slice/app"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: TabularState = await api.storage.loadTabular()
             if (state)
                 dispatch(setTabularState(mergeDeep(initialState, state)))

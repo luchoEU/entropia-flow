@@ -1,14 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
-import { addOrderToList, ORDER_MARKUP_CHANGED, ORDER_VALUE_CHANGED, setOrderState } from "../actions/order"
-import { PAGE_LOADED } from "../actions/ui"
+import { ORDER_MARKUP_CHANGED, ORDER_VALUE_CHANGED, setOrderState } from "../actions/order"
+import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/order"
 import { getOrder } from "../selectors/order"
 import { OrderState } from "../state/order"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
-        case PAGE_LOADED: {
+        case AppAction.INITIALIZE: {
             const state: OrderState = await api.storage.loadOrder()
             if (state)
                 dispatch(setOrderState(mergeDeep(initialState, state)))

@@ -3,8 +3,8 @@ import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../a
 import { NEW_DAY } from "../actions/helpers"
 import { getCalculatorOutME } from "../selectors/calculator"
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
         case NEW_DAY: {
             try {

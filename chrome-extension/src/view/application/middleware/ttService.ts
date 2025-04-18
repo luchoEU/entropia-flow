@@ -7,8 +7,8 @@ import { getSettings } from "../selectors/settings";
 import { FEATURE_TT_SERVICE_RELOAD, isFeatureEnabled, SettingsState, SheetAccessInfo } from "../state/settings";
 import { TTServiceInventoryWebData } from "../state/ttService";
 
-const requests = ({ api }) => ({ dispatch, getState }) => next => async (action) => {
-    next(action)
+const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    await next(action)
     switch (action.type) {
         case LOAD_TT_SERVICE: {
             const settings: SettingsState = getSettings(getState());
