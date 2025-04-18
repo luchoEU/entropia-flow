@@ -6,7 +6,7 @@ import { ENABLE_FEATURE } from "../actions/settings"
 import { setTabularData } from "../actions/tabular"
 import { SET_TT_SERVICE_PARTIAL_WEB_DATA } from "../actions/ttService"
 import { cleanForSave, initialState } from "../helpers/inventory"
-import { cleanForSaveByStore } from "../helpers/inventory.byStore"
+import { cleanForSaveByStore, fillFromLoadByStore } from "../helpers/inventory.byStore"
 import { setTabularDefinitions } from "../helpers/tabular"
 import { getCraft } from "../selectors/craft"
 import { getInventory } from "../selectors/inventory"
@@ -29,9 +29,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             let state: InventoryState = await api.storage.loadInventoryState()
             const byStore: InventoryByStore = await api.storage.loadInventoryByStoreState()
             if (state || byStore) {
-                if (!state)
-                    state = initialState
-                state.byStore = byStore
+                state = state && initialState
+                state.byStore = byStore && fillFromLoadByStore(byStore)
                 dispatch(loadInventoryState(mergeDeep(initialState, state)))
             }
             break

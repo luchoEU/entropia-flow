@@ -20,6 +20,7 @@ import {
 
 const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
     ...initialListWithFilter(expanded, sortType),
+    showStared: false,
     containers: { },
     stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
     material: { filter: undefined, expanded: [], list: initialList(true, sortType) },
@@ -595,7 +596,10 @@ const reduceSetByStoreItemStared = (
     const newState = _applyByStoreStateChange(state, id, _originalListSelector, t => ({ ...t, stared }), (_, s) => ({ ...s, stared }))
     return {
         ...newState,
-        byStore: _loadByStoreShowAndStaredList(newState.byStore)
+        byStore: {
+            ..._loadByStoreShowAndStaredList(newState.byStore),
+            showStared: true // show on first use
+        }
     }
 }
 
@@ -906,6 +910,11 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
     c: undefined
 })
 
+const fillFromLoadByStore = (state: InventoryByStore): InventoryByStore => ({
+    ...state,
+    showStared: state.showStared !== undefined ? state.showStared : Object.values(state.containers).some(c => c.stared)
+})
+
 export {
     initialListByStore,
     loadInventoryByStore,
@@ -931,4 +940,5 @@ export {
     reduceSortByStoreStaredBy,
     reduceSortByStoreMaterialBy,
     cleanForSaveByStore,
+    fillFromLoadByStore,
 };

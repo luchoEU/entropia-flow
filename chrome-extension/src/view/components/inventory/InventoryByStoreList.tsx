@@ -120,7 +120,7 @@ const InventoryByStoreList = () => {
 
     return (
         <div className='flex'>
-            <SortableTableSection
+            { inv.showStared && <SortableTableSection
                 selector='InventoryByStoreList.staredContainers'
                 title='Favorite Containers'
                 subtitle='Your favorite containers'
@@ -142,7 +142,7 @@ const InventoryByStoreList = () => {
                         getRow: getRowData(favoriteRowEvents)
                     }
                 }}
-            />
+            /> }
             <SortableTableSection
                 selector='InventoryByStoreList.byContainers'
                 title='List by Containers'

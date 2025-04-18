@@ -34,6 +34,7 @@ interface InventoryListWithFilter<T> {
 
 interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemData>> {
   containers: ContainerMapData
+  showStared: boolean
   stared: {
     filter?: string
     expanded: Array<string>
