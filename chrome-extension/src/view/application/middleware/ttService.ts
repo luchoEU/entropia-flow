@@ -4,7 +4,7 @@ import { SetStage } from "../../services/api/sheets/sheetsStages";
 import { TTServiceInventorySheet } from "../../services/api/sheets/sheetsTTServiceInventory";
 import { LOAD_TT_SERVICE, setTTServicePartialWebData } from "../actions/ttService"
 import { getSettings } from "../selectors/settings";
-import { FEATURE_TT_SERVICE_RELOAD, isFeatureEnabled, SettingsState, SheetAccessInfo } from "../state/settings";
+import { Feature, isFeatureEnabled, SettingsState, SheetAccessInfo } from "../state/settings";
 import { TTServiceInventoryWebData } from "../state/ttService";
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
@@ -12,7 +12,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     switch (action.type) {
         case LOAD_TT_SERVICE: {
             const settings: SettingsState = getSettings(getState());
-            if (!isFeatureEnabled(FEATURE_TT_SERVICE_RELOAD, settings)) break;
+            if (!isFeatureEnabled(settings, Feature.ttService)) break;
 
             const source: ISheetSource = new SheetSource(api, settings.sheet)
             for await (const r of loadFrom([source], s => s.loadTTServiceInventory())) {

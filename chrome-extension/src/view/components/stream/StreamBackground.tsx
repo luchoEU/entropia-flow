@@ -7,6 +7,7 @@ import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
 import { LUCHO } from "../about/AboutPage";
+import { getSettings } from "../../application/selectors/settings";
 
 const StreamBackground = ({ background, layoutId, isSelected }: {
     background: BackgroundSpec,
@@ -45,12 +46,13 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
     const layouts = useSelector(getStreamLayouts);
+    const settings = useSelector(getSettings)
     const c = layouts[layoutId];
 
     return (
         <ExpandableSection selector='StreamBackground' title='Background' subtitle='Select a background'>
             <div className='stream-background-section'>
-                { backgroundList.map((b: BackgroundSpec) =>
+                { backgroundList(settings).map((b: BackgroundSpec) =>
                     <StreamBackground key={b.type} background={b} layoutId={layoutId} isSelected={b.type === c.backgroundType} />) }
             </div>
             <p>If you want another background, you can <a href='https://www.google.com/search?q=css+background+animated'>search one on the internet</a>, and contact me.</p>

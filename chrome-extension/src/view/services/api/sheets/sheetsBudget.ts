@@ -1,5 +1,6 @@
 import { SetStage } from './sheetsStages'
 import { createBudgetSheet, getBudgetSheet, getLastRow, hasBudgetSheet, saveUpdatedCells, setDayDate } from './sheetsUtils'
+import { GoogleSpreadsheet } from 'google-spreadsheet'
 
 const DATE_COLUMN = 0
 const BUDGET_COLUMN = 1
@@ -112,11 +113,11 @@ class BudgetSheet {
         setDayDate(this.sheet, this.row, DATE_COLUMN, 'A')
     }
 
-    public async hasPage(doc: any, itemName: string): Promise<boolean> {
+    public async hasPage(doc: GoogleSpreadsheet, itemName: string): Promise<boolean> {
         return await hasBudgetSheet(doc, this.setStage, itemName)
     }
 
-    public async load(doc: any, itemName: string): Promise<boolean> {
+    public async load(doc: GoogleSpreadsheet, itemName: string): Promise<boolean> {
         this.sheet = await getBudgetSheet(doc, this.setStage, itemName)
         if (this.sheet !== undefined) {
             this.row = await this.getLastRow()

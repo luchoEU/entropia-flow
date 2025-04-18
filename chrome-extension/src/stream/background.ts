@@ -3,9 +3,9 @@ import AshfallBackground from './effects/ashfall/main'
 import MatrixBackground from './effects/matrix/main'
 import FirefliesBackground from './effects/fireflies/main';
 import ColorOrbsBackground from './effects/color-orbs/main';
-import { SHOW_STREAM_BACKGROUNDS_IN_DEVELOPMENT } from '../config';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
+import { Feature, isFeatureEnabled, SettingsState } from '../view/application/state/settings';
 
 enum BackgroundType {
     Light,
@@ -95,7 +95,7 @@ function loadBackground(type: BackgroundType, container: HTMLElement, oldContain
     }
 }
 
-const backgroundList: BackgroundSpec[] = [
+const backgroundList = (settings: SettingsState): BackgroundSpec[] => [
     {
         type: BackgroundType.Light,
         title: 'Light',
@@ -128,22 +128,21 @@ const backgroundList: BackgroundSpec[] = [
         title: 'Transparent',
         dark: false,
     },
+    ...(!settings || isFeatureEnabled(settings, Feature.streamBackgroundInDevelopment) ? [
+        {
+            type: BackgroundType.ColorOrbs,
+            title: 'Color Orbs (WIP)',
+            dark: true,
+        }
+    ] : [])
 ]
-
-if (SHOW_STREAM_BACKGROUNDS_IN_DEVELOPMENT) {
-    backgroundList.push({
-        type: BackgroundType.ColorOrbs,
-        title: 'Color Orbs (WIP)',
-        dark: true,
-    })
-}
 
 function getLogoUrl(darkBackground: boolean) {
     return darkBackground ? flow128w_png : flow128_png
 }
 
-function getBackgroundSpec(type: BackgroundType): BackgroundSpec {
-    return backgroundList.find(i => i.type == type)
+function getBackgroundSpec(type: BackgroundType): BackgroundSpec | undefined {
+    return backgroundList(undefined).find(i => i.type == type)
 }
 
 export default loadBackground

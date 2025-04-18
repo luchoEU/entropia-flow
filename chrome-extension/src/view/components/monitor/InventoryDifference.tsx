@@ -13,7 +13,8 @@ import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
 import { useNavigate } from 'react-router-dom'
-import { SHOW_ACTION_LINK } from '../../../config'
+import { selectIsFeatureEnabled } from '../../application/selectors/settings'
+import { Feature } from '../../application/state/settings'
 
 interface Config {
     sortBy: (part: number) => any
@@ -37,6 +38,7 @@ const ItemRow = (p: {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const material = useSelector(getItem(item.n))
+    const showActionLink = useSelector(selectIsFeatureEnabled(Feature.actionLink))
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
         dispatch(c.sortBy(part))
@@ -127,7 +129,7 @@ const ItemRow = (p: {
                 <ItemText text={item.c} />
             </td>
             <td>
-                { SHOW_ACTION_LINK && item.a &&
+                { showActionLink && item.a &&
                     <button
                         className='button-me-log'
                         onClick={(e) => {

@@ -1,7 +1,7 @@
 import { STRING_PLEASE_LOG_IN } from "../../../common/const"
-import { SHOW_REFINED_PAGE, SHOW_BUDGET_PAGE, SHOW_SETTINGS_PAGE } from "../../../config"
+import { SHOW_SETTINGS_PAGE } from "../../../config"
 import { TabId, tabOrder } from "../state/navigation"
-import { SettingsState, isFeatureEnabled, FEATURE_CLIENT_TAB } from "../state/settings"
+import { SettingsState, isFeatureEnabled, Feature } from "../state/settings"
 import { Location } from "react-router-dom"
 
 const tabTitle = {
@@ -36,9 +36,9 @@ const tabShow = (id: TabId, anyInventory: boolean, settings: SettingsState): boo
         case TabId.TRADE:
         case TabId.CRAFT:
         case TabId.STREAM: return anyInventory
-        case TabId.CLIENT: return isFeatureEnabled(FEATURE_CLIENT_TAB, settings)
-        case TabId.REFINED: return SHOW_REFINED_PAGE
-        case TabId.BUDGET: return SHOW_BUDGET_PAGE
+        case TabId.CLIENT: return isFeatureEnabled(settings, Feature.client)
+        case TabId.REFINED: return isFeatureEnabled(settings, Feature.refined)
+        case TabId.BUDGET: return isFeatureEnabled(settings, Feature.budget)
         case TabId.SETTING: return SHOW_SETTINGS_PAGE
         default: return true
     }

@@ -13,16 +13,19 @@ function FeatureSelector() {
         <>
             <ExpandableSection selector='SettingsPage.FeatureSelector' title='Features' subtitle='Enable or disable features'>
                 {
-                    featureList.map(f =>
-                        <div>
-                            <input type='checkbox' checked={s.features.includes(f.id)} onChange={e => {
-                                const checked = (e.target as HTMLInputElement).checked
-                                dispatch(enableFeature(f.id, checked))
-                            }} />
-                            <span className='feature-title'>{f.title}</span>
-                            <span className='feature-description' dangerouslySetInnerHTML={{ __html: f.description }}></span>
-                        </div>
-                    )
+                    featureList.map(f => {
+                        const enabled = s.features.includes(f.id)
+                        return (
+                            <div className='feature-container' key={f.id} onClick={() => dispatch(enableFeature(f.id, !enabled))}>
+                                <input type='checkbox' checked={enabled} onChange={e => {
+                                    const checked = (e.target as HTMLInputElement).checked
+                                    dispatch(enableFeature(f.id, checked))
+                                }} />
+                                <span className='feature-title'>{f.title}</span>
+                                <span className='feature-description' dangerouslySetInnerHTML={{ __html: f.description }}></span>
+                            </div>
+                        )
+                    })
                 }
             </ExpandableSection>
         </>

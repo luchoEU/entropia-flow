@@ -9,7 +9,6 @@ import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
-import { SHOW_BUDGET_IN_CRAFT } from '../../../config'
 import { ItemsMap } from '../../application/state/items'
 import { getItemsMap } from '../../application/selectors/items'
 import { BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
@@ -26,6 +25,8 @@ import ImgButton from '../common/ImgButton'
 import { TabId } from '../../application/state/navigation'
 import { navigateToTab } from '../../application/actions/navigation'
 import { NavigateFunction } from 'react-router-dom'
+import { Feature } from '../../application/state/settings'
+import { selectIsFeatureEnabled } from '../../application/selectors/settings'
 
 function SessionInfo(p: {
     name: string,
@@ -76,6 +77,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
 }) => {
     const dispatch = useDispatch()
     const mat: ItemsMap = useSelector(getItemsMap)
+    const showBudget = useSelector(selectIsFeatureEnabled(Feature.budget));
 
     let markupLoaded = bp.budget.sheet?.clickMUCost !== undefined
     let markupMap: {[name: string]: number}
@@ -220,7 +222,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
 
     return (
         <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} content={webBp => <>
-            { SHOW_BUDGET_IN_CRAFT && <>
+            { showBudget && <>
                 <p>Budget Page: { bp.budget.loading ?
                 <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
                 <button onClick={(e) => {

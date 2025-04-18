@@ -18,14 +18,14 @@ import ItemCalculator from '../item/ItemCalculator';
 import { getTabularData } from '../../application/selectors/tabular';
 import { Field } from '../common/Field';
 import { getTTService } from '../../application/selectors/ttService';
-import { isFeatureEnabled } from '../../application/selectors/settings';
-import { FEATURE_TT_SERVICE_RELOAD } from '../../application/state/settings';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
 import { RowValue } from '../common/SortableTabularSection.data';
 import { NavigateFunction } from 'react-router-dom';
 import { filterExact } from '../../../common/filter';
 import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation';
+import { Feature } from '../../application/state/settings';
+import { selectIsFeatureEnabled } from '../../application/selectors/settings';
 
 const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -97,7 +97,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     const dispatch = useDispatch()
     const item = useSelector(getItem(tradeItemData.name))
     const ttService = useSelector(getTTService)
-    const showTTService = useSelector(isFeatureEnabled(FEATURE_TT_SERVICE_RELOAD));
+    const showTTService = useSelector(selectIsFeatureEnabled(Feature.ttService));
 
     const { reserve } = useSelector(getOwnedOptions)
 

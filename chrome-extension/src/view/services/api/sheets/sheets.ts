@@ -1,47 +1,47 @@
-import { ENABLE_BUDGET_SHEET_CALLS, ENABLE_INVENTORY_SHEET_CALLS } from '../../../../config'
-import { SheetAccessInfo } from '../../../application/state/settings'
+import { Feature, isFeatureEnabled, SettingsState, SheetAccessInfo } from '../../../application/state/settings'
 import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
-import { newDayInventory } from './sheetsInventory'
 import { SetStage } from './sheetsStages'
 import { TTServiceInventorySheet } from './sheetsTTServiceInventory'
 import { getSpreadsheet, listBudgetSheet } from './sheetsUtils'
+import { GoogleSpreadsheet } from 'google-spreadsheet'
 
-let docId = undefined
-let doc = undefined
-let ttDocId = undefined
-let ttDoc = undefined
+class DocumentCache {
+    private _docId: string
+    private _doc: GoogleSpreadsheet
+    private _docIdSelector: (accessInfo: SheetAccessInfo) => string
 
-async function loadDoc(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<any> {
-    if (docId !== accessInfo.documentId) {
-        doc = await getSpreadsheet(accessInfo, setStage)
-        docId = accessInfo.documentId
+    constructor(docIdSelector: (accessInfo: SheetAccessInfo) => string) {
+        this._docId = undefined
+        this._doc = undefined
+        this._docIdSelector = docIdSelector
     }
-    return doc
-}
 
-async function loadTTDoc(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<any> {
-    if (ttDocId !== accessInfo.ttServiceDocumentId) {
-        ttDoc = await getSpreadsheet(
-            { ...accessInfo, documentId: accessInfo.ttServiceDocumentId }, setStage)
-        ttDocId = accessInfo.ttServiceDocumentId
+    async load(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<GoogleSpreadsheet> {
+        const requestedDocId = this._docIdSelector(accessInfo)
+        if (this._docId !== requestedDocId) {
+            this._doc = await getSpreadsheet(requestedDocId, accessInfo, setStage)
+            this._docId = requestedDocId
+        }
+        return this._doc
     }
-    return ttDoc
 }
+const budgetDoc = new DocumentCache(s => s.budgetDocumentId)
+const ttDoc = new DocumentCache(s => s.ttServiceDocumentId)
 
-async function getBudgetSheetList(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<string[]> {
-    if (!ENABLE_BUDGET_SHEET_CALLS) return []
+async function getBudgetSheetList(settings: SettingsState, setStage: SetStage): Promise<string[]> {
+    if (!isFeatureEnabled(settings, Feature.budget)) return undefined
 
-    const doc = await loadDoc(accessInfo, setStage)
+    const doc = await budgetDoc.load(settings.sheet, setStage)
     if (!doc)
         return []
 
     return listBudgetSheet(doc)
 }
 
-async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
-    if (!ENABLE_BUDGET_SHEET_CALLS) return undefined
+async function loadBudgetSheet(settings: SettingsState, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
+    if (!isFeatureEnabled(settings, Feature.budget)) return undefined
 
-    const doc = await loadDoc(accessInfo, setStage)
+    const doc = await budgetDoc.load(settings.sheet, setStage)
     if (!doc)
         return undefined
 
@@ -57,7 +57,7 @@ async function loadBudgetSheet(accessInfo: SheetAccessInfo, setStage: SetStage, 
 }
 
 async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<TTServiceInventorySheet> {
-    const doc = await loadTTDoc(accessInfo, setStage)
+    const doc = await ttDoc.load(accessInfo, setStage)
     if (!doc)
         return undefined
 
@@ -69,18 +69,8 @@ async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage
     }
 }
 
-async function newDay(accessInfo: SheetAccessInfo, setStage: SetStage) {
-    if (!ENABLE_INVENTORY_SHEET_CALLS) return
-
-    const doc = await loadDoc(accessInfo, setStage)
-    if (!doc) return
-
-    newDayInventory(doc, setStage)
-}
-
 export default {
     getBudgetSheetList,
     loadBudgetSheet,
     loadTTServiceInventorySheet,
-    newDay,
 }

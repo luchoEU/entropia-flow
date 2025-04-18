@@ -4,21 +4,21 @@ import RefinedStatus from './RefinedStatus'
 import { useSelector } from 'react-redux'
 import { getActiveList } from '../../application/selectors/actives'
 import { ActivesItem } from '../../application/state/actives'
+import ExpandableSection from '../common/ExpandableSection2'
 
-function AuctionActive() {
+function RefinedActive() {
     const list: ActivesItem[] = useSelector(getActiveList)
 
     if (list === undefined || list.length === 0) {
-        return (<RefinedStatus />)
+        return <RefinedStatus />
     } else {
         return (
-            <section>
-                <h1>Actives</h1>
+            <ExpandableSection selector='refined-active' title='Actives' subtitle='Refined sells active on auction'>
                 <RefinedActiveList />
                 <RefinedStatus />
-            </section>
+            </ExpandableSection>
         )
     }
 }
 
-export default AuctionActive
+export default RefinedActive

@@ -1,8 +1,8 @@
-import { SettingsState } from "../state/settings";
+import { Feature, SettingsState } from "../state/settings";
 
 const initialState: SettingsState = {
     sheet: {
-        documentId: undefined,
+        budgetDocumentId: undefined,
         ttServiceDocumentId: undefined,
         googleServiceAccountEmail: undefined,
         googlePrivateKey: undefined
@@ -12,11 +12,11 @@ const initialState: SettingsState = {
 
 const reduceSetSettingsState = (state: SettingsState, inState: SettingsState) => inState
 
-const reduceSetSheetDocumentId = (state: SettingsState, documentId: string) => ({
+const reduceSetSheetBudgetDocumentId = (state: SettingsState, documentId: string) => ({
     ...state,
     sheet: {
         ...state.sheet,
-        documentId
+        budgetDocumentId: documentId
     }
 })
 
@@ -44,7 +44,7 @@ const reduceSetSheetGooglePrivateKey = (state: SettingsState, googlePrivateKey: 
     }
 })
 
-const reduceEnableFeature = (state: SettingsState, featureId: string, enabled: boolean) => ({
+const reduceEnableFeature = (state: SettingsState, featureId: Feature, enabled: boolean) => ({
     ...state,
     features: enabled ? [...state.features, featureId] : state.features.filter(f => f !== featureId)
 })
@@ -52,7 +52,7 @@ const reduceEnableFeature = (state: SettingsState, featureId: string, enabled: b
 export {
     initialState,
     reduceSetSettingsState,
-    reduceSetSheetDocumentId,
+    reduceSetSheetBudgetDocumentId,
     reduceSetSheetTTServiceDocumentId,
     reduceSetSheetGoogleServiceAccountEmail,
     reduceSetSheetGooglePrivateKey,

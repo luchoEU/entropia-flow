@@ -2,16 +2,14 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { removeActive } from '../../application/actions/actives'
 import { getActiveList, getLoading } from '../../application/selectors/actives'
-import { getSheets, sheetPendingRefinedSold } from '../../application/selectors/sheets'
+import { sheetPendingRefinedSold } from '../../application/selectors/sheets'
 import { ActivesItem, ActivesLoadingState } from '../../application/state/actives'
-import { SheetsState } from '../../application/state/sheets'
 import RefinedButton from './RefinedButton'
 import { refinedSoldActive } from '../../application/actions/sheets'
 import ImgButton from '../common/ImgButton'
 
 function RefinedActiveItem(p: { item: ActivesItem }) {
     const loading: ActivesLoadingState = useSelector(getLoading)
-    const t: SheetsState = useSelector(getSheets)
     const pending: boolean = useSelector(sheetPendingRefinedSold(p.item.date))
 
     const item = p.item

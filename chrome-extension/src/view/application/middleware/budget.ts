@@ -45,7 +45,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             dispatch(setBudgetFromSheet(map, items, 0))
 
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
-            const list: string[] = await api.sheets.getBudgetSheetList(settings.sheet, setStage)
+            const list: string[] = await api.sheets.getBudgetSheetList(settings, setStage)
 
             let loaded = 0
             for (const itemName of list) {
@@ -107,7 +107,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
             let loaded = 0
             for (const itemName in lines) {
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, { itemName })
                 await sheet.addLine(lines[itemName])
                 await sheet.save()
 
@@ -135,7 +135,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 }
 
 async function processSheetInfo(api: any, setStage: SetStage, settings: SettingsState, itemName: string, disabledMaterials: string[], materials: ItemsState, map: BudgetMaterialsMap, items: BudgetItem[]): Promise<{ updatedMap: BudgetMaterialsMap, updatedItems: BudgetItem[] }> {
-    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings.sheet, setStage, { itemName })
+    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, { itemName })
     const info: BudgetSheetGetInfo = await sheet.getInfo()
 
     for (const name of Object.keys(info.materials)) {

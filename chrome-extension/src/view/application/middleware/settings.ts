@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { DOCUMENT_ID_CHANGED, ENABLE_FEATURE, GOOGLE_PRIVATE_KEY_CHANGED, GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED, setSettingsState, TT_SERVICE_DOCUMENT_ID_CHANGED } from "../actions/settings"
+import { BUDGET_DOCUMENT_ID_CHANGED, ENABLE_FEATURE, GOOGLE_PRIVATE_KEY_CHANGED, GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED, setSettingsState, TT_SERVICE_DOCUMENT_ID_CHANGED } from "../actions/settings"
 import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/settings"
 import { getSettings } from "../selectors/settings"
@@ -14,7 +14,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 dispatch(setSettingsState(mergeDeep(initialState, state)))
             break
         }
-        case DOCUMENT_ID_CHANGED:
+        case BUDGET_DOCUMENT_ID_CHANGED:
         case TT_SERVICE_DOCUMENT_ID_CHANGED:
         case GOOGLE_SERVICE_ACCOUNT_EMAIL_CHANGED:
         case GOOGLE_PRIVATE_KEY_CHANGED:
@@ -26,6 +26,4 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     }
 }
 
-export default [
-    requests
-]
+export default [ requests ]

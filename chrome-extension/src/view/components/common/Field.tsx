@@ -1,44 +1,42 @@
 import React from "react"
 import { useDispatch } from "react-redux"
 
-function Field(p: {
+const Field = ({ label, value, title, getChangeAction, children }: {
     label: string,
     value: string,
+    title?: string,
     getChangeAction: (v: string) => any,
     children?: any
-}) {
+}) => {
     const dispatch = useDispatch()
 
     return (
         <p>
-            <label>{p.label}</label>
+            <label title={title}>{label}</label>
             <input
                 type='text'
-                value={p.value}
-                onChange={(e) => dispatch(p.getChangeAction(e.target.value))} />
-            { p.children }
+                value={value}
+                onChange={(e) => dispatch(getChangeAction(e.target.value))} />
+            { children }
         </p>
     )
 }
 
-function FieldArea(p: {
+const FieldArea = ({ label, value, getChangeAction }: {
     label: string,
     value: string,
     getChangeAction: (v: string) => any
-}) {
+}) => {
     const dispatch = useDispatch()
 
     return (
         <p>
-            <label>{p.label}</label>
+            <label>{label}</label>
             <textarea
-                value={p.value}
-                onChange={(e) => dispatch(p.getChangeAction(e.target.value))} />
+                value={value}
+                onChange={(e) => dispatch(getChangeAction(e.target.value))} />
         </p>
     )
 }
 
-export {
-    Field,
-    FieldArea
-}
+export { Field, FieldArea }

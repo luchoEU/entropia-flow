@@ -1,6 +1,6 @@
-import { SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA } from '../../../config';
+import { ADD_CLIENT_INITIAL_LAYOUTS } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamRenderLayout, StreamRenderLayoutSet } from '../../../stream/data';
+import StreamRenderData, { StreamRenderLayout } from '../../../stream/data';
 import { LUCHO } from '../../components/about/AboutPage';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream";
 
@@ -89,7 +89,7 @@ const initialStateIn: StreamStateIn = {
     view: [ DEFAULT_LAYOUT_ID ],
     layouts: {
         [DEFAULT_LAYOUT_ID]: _defaultLayout,
-        ...SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA ? {
+        ...ADD_CLIENT_INITIAL_LAYOUTS ? {
             [TEAM_LAYOUT_ID]: _teamLootLayout,
         } : {}
     },

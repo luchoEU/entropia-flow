@@ -1,4 +1,4 @@
-import { DependencyList, useEffect, useMemo, useRef } from 'react';
+import { DependencyList, useEffect, useRef } from 'react';
 import loadBackground, { BackgroundType } from '../../../stream/background'
 import { StreamRenderSize } from '../../../stream/data';
 

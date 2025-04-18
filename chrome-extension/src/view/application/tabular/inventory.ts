@@ -4,7 +4,7 @@ import { setTabularFilter } from "../actions/tabular";
 import { loadTTService } from "../actions/ttService";
 import { INVENTORY_TABULAR_OWNED, InventoryState, ItemOwned, TradeItemData } from "../state/inventory";
 import { ItemsMap, ItemState } from "../state/items";
-import { FEATURE_TT_SERVICE_TRADE_COLUMN, isFeatureEnabled, SettingsState } from "../state/settings";
+import { Feature, isFeatureEnabled, SettingsState } from "../state/settings";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { TTServiceInventoryWebData, TTServiceState } from "../state/ttService";
 
@@ -45,7 +45,7 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, it
         [INVENTORY_TABULAR_OWNED]: {
             data: {
                 ttService: {
-                    featureEnabled: isFeatureEnabled(FEATURE_TT_SERVICE_TRADE_COLUMN, settings),
+                    featureEnabled: isFeatureEnabled(settings, Feature.ttService),
                     loadingSource: ttService.web?.inventory?.loading?.source,
                     loadingError: ttService.web?.inventory?.errors?.[0].message
                 },

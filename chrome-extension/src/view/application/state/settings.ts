@@ -1,80 +1,91 @@
-import { SHOW_BUDGET_IN_CRAFT, SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
+import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
+
+enum Feature {
+    client,
+    streamEditor,
+    streamBackgroundInDevelopment,
+    refined,
+    budget,
+    ttService,
+    actionLink,
+}
 
 const featureList: FeatureInfo[] = [
     {
-        id: 'ttService',
-        title: 'TT Service',
-        description: 'Integration with <a href="bit.ly/dmTTservice">Dark Matter TT Service</a>',
-        development: true,
-        components: ['sheet', 'tradeColumn', 'reload']
-    },
-    {
-        id: 'client',
+        id: Feature.client,
         title: 'Client',
         description: 'Integration with Entropia Flow Client',
         development: true,
-        components: ['tab', 'variables', 'trade', 'recover']
-        // related flag SHOW_STREAM_LAYOUTS_WITH_GAMELOG_DATA
-    }
+        // related flag ADD_CLIENT_INITIAL_LAYOUTS
+    },
+    {
+        id: Feature.streamEditor,
+        title: 'Stream Editor',
+        description: 'Show stream layout editor',
+    },
+    {
+        id: Feature.streamBackgroundInDevelopment,
+        title: 'Stream Background (in development)',
+        description: 'Show stream background in development',
+        development: true,
+    },
+    {
+        id: Feature.refined,
+        title: 'Refined',
+        description: 'Show refined tab',
+        development: true,
+    },
+    {
+        id: Feature.budget,
+        title: 'Budget',
+        description: 'Integration with Google Document for Budget',
+        development: true,
+    },
+    {
+        id: Feature.ttService,
+        title: 'TT Service',
+        description: 'Integration with <a href="bit.ly/dmTTservice">Dark Matter TT Service</a>',
+        development: true,
+    },
+    {
+        id: Feature.actionLink,
+        title: 'Action Link',
+        description: 'Show action link',
+        development: true,
+    },
 ]
 
-const FEATURE_TT_SERVICE_SHEET_SETTING: FeatureComponentId = { id: 'ttService', component: 'sheet' }
-const FEATURE_TT_SERVICE_TRADE_COLUMN: FeatureComponentId = { id: 'ttService', component: 'tradeColumn' }
-const FEATURE_TT_SERVICE_RELOAD: FeatureComponentId = { id: 'ttService', component: 'reload' }
-const FEATURE_SHOW_SHEET_SETTINGS: FeatureComponentId = SHOW_BUDGET_IN_CRAFT ? { id: 'const', component: 'true' } : FEATURE_TT_SERVICE_TRADE_COLUMN
-const FEATURE_CLIENT_TAB: FeatureComponentId = { id: 'client', component: 'tab' }
-const FEATURE_CLIENT_VARIABLES: FeatureComponentId = { id: 'client', component: 'variables' }
-const FEATURE_CLIENT_TRADE: FeatureComponentId = { id: 'client', component: 'trade' }
-const FEATURE_CLIENT_RECOVER_CONNECTION: FeatureComponentId = { id: 'client', component: 'recover' }
-
-const isFeatureEnabled = (feature: FeatureComponentId, state: SettingsState): boolean => {
-    if (feature.id === 'const')
-        return feature.component === 'true';
-
-    const f = featureList.find(f => f.id === feature.id)
+const isFeatureEnabled = (state: SettingsState, feature: Feature): boolean => {
+    const f = featureList.find(f => f.id === feature)
     if (!f || f.development && !SHOW_FEATURES_IN_DEVELOPMENT)
         return false;
 
-    return state.features.includes(feature.id) && f.components.some(c => c === feature.component);
-}
-
-interface FeatureComponentId {
-    id: string // ID of feature
-    component: string // ID of component
+    return state.features.includes(feature);
 }
 
 interface FeatureInfo {
-    id: string
+    id: Feature
     title: string
     description: string
-    development: boolean
-    components: string[] // ID of components
+    development?: boolean
 }
 
 interface SettingsState {
     sheet: SheetAccessInfo
-    features: string[] // ID of enabled features
+    features: Feature[] // ID of enabled features
 }
 
 interface SheetAccessInfo {
-    documentId: string
+    budgetDocumentId: string
     ttServiceDocumentId: string
     googleServiceAccountEmail: string
     googlePrivateKey: string
-}   
+}
 
 export {
     featureList,
-    FEATURE_TT_SERVICE_SHEET_SETTING,
-    FEATURE_TT_SERVICE_TRADE_COLUMN,
-    FEATURE_TT_SERVICE_RELOAD,
-    FEATURE_SHOW_SHEET_SETTINGS,
-    FEATURE_CLIENT_TAB,
-    FEATURE_CLIENT_VARIABLES,
-    FEATURE_CLIENT_TRADE,
-    FEATURE_CLIENT_RECOVER_CONNECTION,
     isFeatureEnabled,
-    FeatureComponentId,
+    Feature,
     SheetAccessInfo,
     SettingsState
 }
