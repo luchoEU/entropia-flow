@@ -18,13 +18,13 @@ import { tabShow } from '../application/helpers/navigation'
 import { getSettings } from '../application/selectors/settings'
 import { getAnyInventory } from '../application/selectors/last'
 import { getExpandable } from '../application/selectors/expandable'
-import { getShowVisible } from '../application/selectors/mode'
+import { getShowVisibility, getStreamViewPinned } from '../application/selectors/mode'
 
 function ContentPage() {
     const anyInventory = useSelector(getAnyInventory)
     const settings = useSelector(getSettings)
     const expandable = useSelector(getExpandable)
-    const showVisible = useSelector(getShowVisible);
+    const showVisibility = useSelector(getShowVisibility);
     const isTabVisible = (id: TabId) => getVisibleByExpandable(expandable, `tab.${id}`)
 
     const tabs: { id: TabId, routes: { path: string, component: React.ComponentType }[] }[] = [
@@ -53,7 +53,7 @@ function ContentPage() {
         <Routes>
             {tabs.map((tab) => tabShow(tab.id, anyInventory, settings) && tab.routes.map((route) =>
                 <Route key={route.path} path={route.path} element={
-                    showVisible || isTabVisible(tab.id) ? <route.component /> : <Navigate to={TabId.MONITOR} />}
+                    showVisibility || isTabVisible(tab.id) ? <route.component /> : <Navigate to={TabId.MONITOR} />}
                 />))
             }
             <Route path="*" element={<NotFoundPage />} />
@@ -71,10 +71,13 @@ const NotFoundPage = () => {
 }
 
 function Content() {
-    return <>
-        <StreamView />
-        <ContentPage />
-    </>
+    const streamViewPinned = useSelector(getStreamViewPinned);
+    return (
+        <>
+            {!streamViewPinned && <StreamView />}
+            <ContentPage />
+        </>
+    )
 }
 
 export default Content

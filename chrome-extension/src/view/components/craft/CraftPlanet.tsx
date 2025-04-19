@@ -12,7 +12,7 @@ const CraftPlanet = () => {
 
     return (
         <div className='craft-planet'>
-            <label>Planet</label>
+            <label title='Set your current planet to view available materials for this blueprint'>Planet</label>
             { inv.byStore.c.validPlanets.length === 0 ?
                 <span>{activePlanet ?? 'No valid planets'}</span> :
                 <select value={activePlanet} onChange={(e) => dispatch(setCraftActivePlanet(e.target.value))}>

@@ -51,7 +51,6 @@ const ItemInventory = ({ filter }: { filter: string }) => {
             <p><strong>None on Inventory</strong></p> :
             <SortableFixedSizeTable
                 data={{
-                    allItems: inv.flat.material,
                     showItems: inv.flat.material,
                     sortType: inv.material.list.sortType,
                     sortBy: sortByStoreMaterialBy,

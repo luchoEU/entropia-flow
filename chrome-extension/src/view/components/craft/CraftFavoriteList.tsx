@@ -103,7 +103,7 @@ function CraftFavoriteList() {
             stats={{ count: s.c.filteredStaredBlueprints.length, itemTypeName: 'blueprint' }}
             setFilter={setStaredBlueprintsFilter}
             table={{
-                allItems: blueprints,
+                widthItems: blueprints,
                 showItems: s.c.filteredStaredBlueprints,
                 sortType: s.stared.sortType,
                 sortBy: sortBlueprintsBy,

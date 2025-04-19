@@ -3,7 +3,7 @@ import React from "react"
 import { useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
-import { getStreamAdvancedEditor, getStreamIn, getStreamLayouts, getStreamOut } from "../../application/selectors/stream"
+import { getStreamAdvancedEditor, getStreamData, getStreamIn, getStreamLayout } from "../../application/selectors/stream"
 import { addStreamUserVariable, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
@@ -40,15 +40,13 @@ function StreamLayoutEditor() {
     </>
 }
 
-function StreamEditor() {
-    const layouts = useSelector(getStreamLayouts)
+function StreamEditor({ layoutId }: { layoutId: string }) {
+    const layout = useSelector(getStreamLayout(layoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
-    const { data } = useSelector(getStreamOut);
-    const { layoutId } = useParams();
-    const c = layouts[layoutId];
+    const data = useSelector(getStreamData);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    if (!c) return <></>
+    if (!layout) return <></>
 
     const InputCells = (label: string, value: string, setValueAction: (value: string) => any): React.ReactNode =>
         <>
@@ -57,7 +55,7 @@ function StreamEditor() {
                 id={`stream-layout-${label}`}
                 type='text'
                 value={value}
-                readOnly={c.readonly}
+                readOnly={layout.readonly}
                 onClick={(e) => { e.stopPropagation() }}
                 onChange={(e) => {
                     e.stopPropagation();
@@ -68,7 +66,7 @@ function StreamEditor() {
 
     return <section>
         <h1 className='img-hover'>
-            <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${c.name}`} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
+            <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${layout.name}`} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
             <button
                 title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}
                 className='stream-editor-button'
@@ -79,15 +77,15 @@ function StreamEditor() {
         <table className='stream-layout-data-table'>
             <tbody>
                 <tr>
-                    { InputCells('Name', c.name, setStreamName(navigate, layoutId)) }
+                    { InputCells('Name', layout.name, setStreamName(navigate, layoutId)) }
                     <td>
                         <button style={{ float: 'right', visibility: advanced ? 'visible' : 'hidden' }}
-                            title={c.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
+                            title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
                             onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}
                         >Clone</button>
                     </td>
                 </tr>
-                <tr>{ InputCells('Author', c.author, setStreamAuthor(layoutId)) }</tr>                
+                <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>                
             </tbody>
         </table>
         <div className='flex'>
@@ -104,7 +102,7 @@ function StreamEditor() {
                 />
             </>}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
-                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: data.data, layout: c}} />
+                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data, layout}} />
             </ExpandableSection>
             { advanced && <StreamLayoutEditor /> }
         </div>

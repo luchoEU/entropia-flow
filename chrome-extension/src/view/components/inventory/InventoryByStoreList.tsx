@@ -130,7 +130,6 @@ const InventoryByStoreList = () => {
                 setFilter={setByStoreStaredInventoryFilter}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreStaredAllItemsExpanded)}
                 table={{
-                    allItems: inv.flat.original,
                     showItems: inv.flat.stared,
                     sortType: inv.stared.list.sortType,
                     sortBy: sortByStoreStaredBy,
@@ -153,7 +152,6 @@ const InventoryByStoreList = () => {
                 setFilter={setByStoreInventoryFilter}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreAllItemsExpanded)}
                 table={{
-                    allItems: inv.flat.original,
                     showItems: inv.flat.show,
                     sortType: inv.showList.sortType,
                     sortBy: sortByStoreBy,

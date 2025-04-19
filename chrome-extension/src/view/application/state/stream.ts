@@ -6,7 +6,6 @@ const STREAM_TABULAR_VARIABLES = '[stream] variables'
 const STREAM_TABULAR_IMAGES = '[stream] images'
 
 interface StreamStateIn {
-    enabled: boolean
     advanced: boolean // show advanced editor
     defaultAuthor: string
     view: string[]

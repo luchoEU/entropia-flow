@@ -199,7 +199,7 @@ const ItemRowRender = (p: {
 }
 
 interface TableParameters<TItem> {
-    allItems: TItem[],
+    widthItems?: TItem[], // used to calculate the width, by default showItems is used
     showItems: TItem[],
     sortType: number,
     sortBy: (part: number) => any,
@@ -226,7 +226,7 @@ const SortableFixedSizeTable = <TItem extends any>(p: {
     const d = p.data
     const t = d.tableData
     const sumSubWidth = (d: {[part: number]: number[]}) => Object.fromEntries(Object.entries(d).map(([k, c]) => [k, c.reduce((acc, w) => acc + w, 0)]))
-    const itemsSubColumnsWidth = d.allItems.reduce((acc, item) => {
+    const itemsSubColumnsWidth = (d.widthItems ?? d.showItems).reduce((acc, item) => {
         const cw = getSubColumnsWidth(t.getRow(item))
         return Object.fromEntries(Object.entries(cw).map(([k, w]) => [k,
             acc[k] ? w.map((sw, j) => Math.max(sw, acc[k][j])) : w

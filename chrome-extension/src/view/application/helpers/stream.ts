@@ -83,7 +83,6 @@ const DEFAULT_LAYOUT_ID = 'entropiaflow.default'
 const TEAM_LAYOUT_ID = 'entropiaflow.team'
 
 const initialStateIn: StreamStateIn = {
-    enabled: true,
     advanced: false,
     defaultAuthor: undefined,
     view: [ DEFAULT_LAYOUT_ID ],

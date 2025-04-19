@@ -192,19 +192,19 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
     )
 }
 
-const SortableFixedTable = <TItem extends any>(p: {
-    selector: string,
+const SortableFixedTable = <TItem extends any>({ selector, rowValueRender, useWidthFromAll, itemHeight }: {
+    selector: string
     rowValueRender: RowValueRender
-    itemHeight?: number,
+    useWidthFromAll?: boolean
+    itemHeight?: number
 }) => {
-    const s: TabularStateData = useSelector(getTabularData(p.selector))
-    if (!s?.items) return <p>{p.selector} is not loaded with items</p>
+    const s: TabularStateData = useSelector(getTabularData(selector))
+    if (!s?.items) return <p>{selector} is not loaded with items</p>
 
-    const { selector, itemHeight, rowValueRender } = p
     const { columns, columnHeaderAfterName, getRow: getItemRow, getRowClass } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const table: TableParameters<TItem> = {
-        width: _calculateWidths(s.items.all, sortRow, getItemRow),
+        width: _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, getItemRow),
         itemCount: s.items.show.length,
         sortRow,
         getItemRow,
@@ -217,17 +217,18 @@ const SortableFixedTable = <TItem extends any>(p: {
     return <_SortableFixedSizeTable data={table} />
 }
 
-const SortableTable = (p: {
+const SortableTable = ({ selector, rowValueRender, useWidthFromAll }: {
     selector: string,
-    rowValueRender: RowValueRender
+    rowValueRender: RowValueRender,
+    useWidthFromAll?: boolean
 }) => {
-    const s: TabularStateData = useSelector(getTabularData(p.selector))
-    if (!s?.items) return <p>{p.selector} is not loaded with items</p>
+    const s: TabularStateData = useSelector(getTabularData(selector))
+    if (!s?.items) return <p>{selector} is not loaded with items</p>
 
-    const { selector, rowValueRender: RowValueRenderComponent } = p
+    const RowValueRenderComponent = rowValueRender
     const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
-    const width = _calculateWidths(s.items.all, sortRow, getItemRow)
+    const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, getItemRow)
 
     return <div style={{ maxHeight: LIST_TOTAL_HEIGHT, overflowX: 'hidden', overflowY: 'auto' }}>
         <table className='sort-table' style={{ font: FONT }}>
@@ -260,6 +261,7 @@ const SortableTabularSection = ({
     itemHeight,
     useTable,
     rowValueRender,
+    useWidthFromAll,
     children
 }: {
     selector: string,
@@ -268,6 +270,7 @@ const SortableTabularSection = ({
     itemHeight?: number,
     useTable?: boolean,
     rowValueRender?: RowValueRender,
+    useWidthFromAll?: boolean,
     children?: any
 }) => {
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
@@ -295,8 +298,8 @@ const SortableTabularSection = ({
             { beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={beforeTable} /></div> }
             {
                 useTable ?
-                    <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} /> :
-                    <SortableFixedTable selector={selector} itemHeight={itemHeight} rowValueRender={RowValueRenderComponent} />
+                    <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} /> :
+                    <SortableFixedTable selector={selector} itemHeight={itemHeight} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} />
             }
         </div>
         <div className='inline'>

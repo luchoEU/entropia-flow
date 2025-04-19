@@ -27,7 +27,7 @@ import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigat
 import { Feature } from '../../application/state/settings';
 import { selectIsFeatureEnabled } from '../../application/selectors/settings';
 
-const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBpLink: boolean): TableData2<TradeBlueprintLineData> => ({
+const getBlueprintsTableData = (type: string, stared: boolean | undefined): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
         { justifyContent: 'center', text: type + ' Blueprint' }, // BP_NAME
         { justifyContent: 'end', text: 'Quantity per Click' }, // QUANTITY
@@ -47,7 +47,6 @@ const getBlueprintsTableData = (type: string, stared: boolean | undefined, addBp
                         },
                     },
                     {
-                        visible: addBpLink,
                         title: 'Open this blueprint',
                         imgButton: {
                             src: 'img/right.png',
@@ -107,7 +106,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.favoriteBlueprints,
         sortBy: sortTradeFavoriteBlueprintsBy(chainIndex),
         itemSelector: getTradeFavoriteBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Favorite', true, true)
+        tableData: getBlueprintsTableData('Favorite', true)
     })
 
     const ownedTableData = tradeItemData?.c?.ownedBlueprints?.length > 0 && calculate({
@@ -116,7 +115,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.ownedBlueprints,
         sortBy: sortTradeOwnedBlueprintsBy(chainIndex),
         itemSelector: getTradeOwnedBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Owned', false, true)
+        tableData: getBlueprintsTableData('Owned', false)
     })
 
     const otherTableData = tradeItemData?.c?.otherBlueprints?.length > 0 && calculate({
@@ -125,7 +124,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         sortSecuence: tradeItemData.sortSecuence.otherBlueprints,
         sortBy: sortTradeOtherBlueprintsBy(chainIndex),
         itemSelector: getTradeOtherBlueprintItem(chainIndex),
-        tableData: getBlueprintsTableData('Not Owned', undefined, false)
+        tableData: getBlueprintsTableData('Not Owned', undefined)
     })
 
     let columnsWidth: number[] = favoriteTableData?.columnsWidth

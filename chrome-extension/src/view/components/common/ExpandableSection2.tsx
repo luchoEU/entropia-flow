@@ -16,6 +16,7 @@ const ExpandableSection = ({
     className,
     actionRequired,
     afterTitle,
+    showExpandableArrow,
     children
 }: {
     selector: string,
@@ -24,6 +25,7 @@ const ExpandableSection = ({
     className?: string,
     actionRequired?: string,
     afterTitle?: JSX.Element,
+    showExpandableArrow?: boolean,
     children: any
 }) => {
     const { showSubtitles, showVisibleToggle }: ModeState = useSelector(getMode)
@@ -63,11 +65,11 @@ const ExpandableSection = ({
                             className='img-visible-section'
                             src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                             dispatch={() => setVisible(visibleSelector)(!visible)} />}
-                    { visible && !actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(selector)} /> }
+                    { visible && showExpandableArrow && !actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(selector)} /> }
                     { actionRequired && <img className='img-warning' src='img/warning.png' title={actionRequired} /> }
                     { expanded && afterTitle }
                 </h1>
-                { expanded && showSubtitles && subtitle && <div className="subtitle">{subtitle}</div> }
+                { showSubtitles && subtitle && (expanded || !title) && <div className="subtitle">{subtitle}</div> }
             </div>
             { expanded && children }
         </section>
