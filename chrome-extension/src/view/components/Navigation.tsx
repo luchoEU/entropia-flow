@@ -14,6 +14,7 @@ import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow,
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId, tabOrder } from '../application/state/navigation';
 import StreamView from './stream/StreamView';
+import { useElementSize } from './common/useElementSize';
 
 const Tab = (p: {
     id: TabId,
@@ -96,19 +97,11 @@ const FirstRow = () => {
 const Navigation = () => {
     const { showSubtitles, showVisibleToggle, menuPinned, streamViewPinned }: ModeState = useSelector(getMode)
     const tabId = getTabIdFromLocation(useLocation())
-    const navRef = useRef<HTMLElement>(null);
-    const [navHeight, setNavHeight] = useState(0);
-  
-    useEffect(() => {
-        if (navRef.current) { setNavHeight(navRef.current.offsetHeight); }  
-        const observer = new ResizeObserver(() => { if (navRef.current) { setNavHeight(navRef.current.offsetHeight); } });
-        if (navRef.current) { observer.observe(navRef.current) };
-        return () => observer.disconnect();
-    }, []);
+    const { ref, size: { height } } = useElementSize<HTMLElement>();
 
     return (
         <>
-            <nav ref={navRef} className={menuPinned && 'nav-pinned'}>
+            <nav ref={ref} className={menuPinned && 'nav-pinned'}>
                 { showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>
@@ -131,7 +124,7 @@ const Navigation = () => {
                 }
                 { streamViewPinned && <StreamView /> }
             </nav>
-            { menuPinned && <div style={{height: navHeight}} /> }
+            { menuPinned && <div style={{ height }} /> }
         </>
     )
 }

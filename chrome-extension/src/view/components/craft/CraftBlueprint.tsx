@@ -27,6 +27,7 @@ import { navigateToTab } from '../../application/actions/navigation'
 import { NavigateFunction } from 'react-router-dom'
 import { Feature } from '../../application/state/settings'
 import { selectIsFeatureEnabled } from '../../application/selectors/settings'
+import { useElementSize } from '../common/useElementSize'
 
 function SessionInfo(p: {
     name: string,
@@ -78,6 +79,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
     const dispatch = useDispatch()
     const mat: ItemsMap = useSelector(getItemsMap)
     const showBudget = useSelector(selectIsFeatureEnabled(Feature.budget));
+    const { ref: tableRef, size: { width: tableWidth } } = useElementSize<HTMLTableElement>();
 
     let markupLoaded = bp.budget.sheet?.clickMUCost !== undefined
     let markupMap: {[name: string]: number}
@@ -237,7 +239,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
             </> }
             <p>Item: {bp.c?.itemName}</p>
             <p>Type: {webBp.type}</p>
-            <table>
+            <table ref={tableRef}>
                 <thead>
                     <tr>
                         <th>Needed</th>
@@ -310,7 +312,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
             </table>
             {
                 bp.c?.clicks && <>
-                    <p>Clicks available: {bp.c.clicks.available} { bp.c.owned ?
+                    <p style={{ width: tableWidth }}>Clicks available: {bp.c.clicks.available} { bp.c.owned ?
                         `(limited by ${bp.c.clicks.limitingItems.join(', ')})` :
                         <>(not owned) <img style={{height: '17px', marginLeft: '2px'}} title='Not Owned' src='img/warning.png' /></> }
                     </p>
