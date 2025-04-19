@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.5.0 - 2025-04-19
+### Added
+- Subtitles to sections
+- Show/hide sections
+- Set items markup and calculate returns using that in monitor and crafting
+- Copy items to clipboard from current session
+- Export all items to a file
+- Show items details in list
+- Calculator to easy calculate total from quantity, value and markup
+- Show what items limits clicks of a blueprint
+- Use URL for navigation (browser back/foward work now)
+
 ## Version 0.4.6 - 2024-12-02
 ### Fixes
 - Fix sorted list, increase scroll space so the values are shown correctly
