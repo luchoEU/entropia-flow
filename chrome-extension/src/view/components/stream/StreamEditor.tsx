@@ -16,9 +16,9 @@ import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
 
 function StreamLayoutEditor() {
-    const { layouts } = useSelector(getStreamIn)
     const { layoutId } = useParams();
-    const c = layouts[layoutId]
+    const { layout: c } = useSelector(getStreamLayout(layoutId))
+    if (!c) return <></>
 
     return <>
         <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
@@ -40,8 +40,8 @@ function StreamLayoutEditor() {
     </>
 }
 
-function StreamEditor({ layoutId }: { layoutId: string }) {
-    const layout = useSelector(getStreamLayout(layoutId))
+function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
+    const { layout, id: layoutId } = useSelector(getStreamLayout(parmlayoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
     const data = useSelector(getStreamData);
     const dispatch = useAppDispatch();
@@ -77,7 +77,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         <table className='stream-layout-data-table'>
             <tbody>
                 <tr>
-                    { InputCells('Name', layout.name, setStreamName(navigate, layoutId)) }
+                    { InputCells('Name', layout.name, setStreamName(layoutId)) }
                     <td>
                         <button style={{ float: 'right', visibility: advanced ? 'visible' : 'hidden' }}
                             title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}

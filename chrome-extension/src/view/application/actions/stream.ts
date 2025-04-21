@@ -94,13 +94,12 @@ const setStreamCssTemplate = (layoutId: string) => (template: string) => ({
     payload: { layoutId, template }
 })
 
-const setStreamName = (navigate: NavigateFunction, layoutId: string) => (name: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
+const setStreamName = (layoutId: string) => (name: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const newLayoutId = _getUniqueLayoutId(getStreamIn(getState()).layouts, name);
     dispatch({
         type: SET_STREAM_NAME,
         payload: { layoutId, newLayoutId, name }
     })
-    dispatch(navigateTo(navigate, streamEditorUrl(newLayoutId), { replace: true }))
 }
 
 const setStreamAuthor = (layoutId: string) => (author: string) => ({

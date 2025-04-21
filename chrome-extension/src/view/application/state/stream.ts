@@ -11,6 +11,7 @@ interface StreamStateIn {
     view: string[]
     layouts: StreamRenderLayoutSet
     userVariables: StreamUserVariable[]
+    layoutAlias?: { urlLayoutId: string, realLayoutId: string } // so the layout can change Id without changing the url while editing it
 }
 
 interface StreamStateOut {

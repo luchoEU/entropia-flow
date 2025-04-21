@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background";
 import ExpandableSection from "../common/ExpandableSection2";
 import { useDispatch, useSelector } from "react-redux";
-import { getStreamLayouts } from "../../application/selectors/stream";
+import { getStreamLayout, getStreamLayouts } from "../../application/selectors/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
@@ -45,9 +45,9 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 }
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
-    const layouts = useSelector(getStreamLayouts);
     const settings = useSelector(getSettings)
-    const c = layouts[layoutId];
+    const { layout: c } = useSelector(getStreamLayout(layoutId))
+    if (!c) return <></>
 
     return (
         <ExpandableSection selector='StreamBackground' title='Background' subtitle='Select a background'>
