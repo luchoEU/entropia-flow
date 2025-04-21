@@ -196,12 +196,9 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
         }
     } else {
         const lastInv: Inventory = getLatestFromInventoryList(list)
-        if (inv === lastInv) {
+        if (inv === lastInv) { // it is the most recent valid inventory in history
             return {
                 ...state,
-                expanded: false,
-                peds: [],
-                notificationsDone: [],
                 c: {
                     ...state.c,
                     delta: 0,
@@ -234,6 +231,19 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
         }
     }
 }
+
+const reduceSetLast = (state: LastRequiredState): LastRequiredState => ({
+    ...state,
+    expanded: false,
+    peds: [],
+    notificationsDone: [],
+})
+
+const reduceSetAsLast = (state: LastRequiredState, last: number): LastRequiredState => ({
+    ...state,
+    peds: [],
+    notificationsDone: [],
+})
 
 const _sumDiff = (diff: ViewItemData[], items: ItemsMap): number =>
     diff?.reduce((p, c) => p + (c.e ? 0 : getValueWithMarkup(c.q, c.v, items[c.n])), 0) ?? 0;
@@ -294,6 +304,8 @@ export {
     initialState,
     reduceSetLastState,
     reduceOnLast,
+    reduceSetLast,
+    reduceSetAsLast,
     reduceAddActions,
     reduceSetExpanded,
     reduceInclude,

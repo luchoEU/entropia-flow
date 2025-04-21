@@ -1,10 +1,13 @@
-import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkup, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetExpanded, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastState, reduceSortByPart } from "../helpers/last"
+import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkup, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastState, reduceSortByPart } from "../helpers/last"
 import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
+import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 
 export default (state = initialState, action) => {
     switch (action.type) {
         case SET_LAST_STATE: return reduceSetLastState(state, action.payload.state)
         case ON_LAST: return reduceOnLast(state, action.payload.list, action.payload.last)
+        case SET_LAST: return reduceSetLast(state)
+        case SET_AS_LAST: return reduceSetAsLast(state, action.payload.last)
         case SORT_BY: return reduceSortByPart(state, action.payload.part)
         case SET_EXPANDED: return reduceSetExpanded(state, action.payload.expanded)
         case INCLUDE: return reduceInclude(state, action.payload.key)
