@@ -32,17 +32,13 @@ class InventoryManager {
         inventory.itemlist?.forEach(item => {
             total += Number(item.v)
 
-            // Some names have '&amp;' in json but a & when read from html, like 'A&amp;P Series Mayhem LP-100, Modified (L)'
-            // Some names have '&apos;' in json but a ' when read from html
-            // Remove extra space at the end of 'Mission Galactica Coin (Green) '
-            item.n = item.n.replace(/&amp;/g, "&");
-            item.n = item.n.replace(/&apos;/g, "'");
-            item.n = item.n.trim()
+            item.n = item.n.replace(/&amp;/g, "&"); // Some names have '&amp;' in json but a & when read from html, like 'A&amp;P Series Mayhem LP-100, Modified (L)'
+            item.n = item.n.replace(/&apos;/g, "'"); // Some names have '&apos;' in json but a ' when read from html
+            item.n = item.n.replace(/\s{2,}/g, ' '); // Some blueprints from Rocktropia have extra spaces
+            item.n = item.n.trim(); // Remove extra space at the end of 'Mission Galactica Coin (Green) '
 
-            // The Hub container has '&#10;' in json but an '\n' when read from html
-            // Bukin has '&apos;' in json
-            item.c = item.c.replace(/&#10;/g, '\n');
-            item.c = item.c.replace(/&apos;/g, "'");
+            item.c = item.c.replace(/&#10;/g, '\n'); // The Hub container has '&#10;' in json but an '\n' when read from html
+            item.c = item.c.replace(/&apos;/g, "'"); // Bukin has '&apos;' in json
 
             const c_index = item.c.lastIndexOf('(');
             const res = item.c.match(/.*\(([\d)]+)\)/);
