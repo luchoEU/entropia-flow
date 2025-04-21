@@ -6,7 +6,7 @@ import { QUESTION } from '../../application/state/about'
 import ExpandableSection from '../common/ExpandableSection2'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
-const VERSION = '0.5.0'
+const VERSION = '0.5.1'
 const LUCHO = 'Lucho MUCHO Ireton'
 
 const ExpandableQuestion = (p: { q: Question }) => {

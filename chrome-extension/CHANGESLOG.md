@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.5.1 - 2025-04-21
+### Fixes
+- Fix the load of blueprints, which were shown as missing the last item
+- Fix the comparison of items with multiple spaces in the name, like some Rocktropia blueprints
+
 ## Version 0.5.0 - 2025-04-19
 ### Added
 - Subtitles to sections
