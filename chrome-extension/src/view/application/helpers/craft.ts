@@ -242,7 +242,9 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
             }));
             
             const metalResidueIndex = materials.findIndex(m => m.name === 'Metal Residue');
-            materials.splice(metalResidueIndex)
+            if (metalResidueIndex !== -1) {
+                materials.splice(metalResidueIndex)
+            }
             Object.entries(_residueMap).forEach(([name, condition]) => {
                 if (materials.some(condition)) {
                     materials.push({ name, type: 'Residue', quantity: 0, value: 0.01, available: state.c.residues[name] })
