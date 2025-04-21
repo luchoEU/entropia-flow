@@ -7,12 +7,12 @@ All notable changes to this project will be documented in this file.
 - Subtitles to sections
 - Show/hide sections
 - Set items markup and calculate returns using that in monitor and crafting
-- Copy items to clipboard from current session
+- Copy items to the clipboard from the current session
 - Export all items to a file
 - Show items details in list
-- Calculator to easy calculate total from quantity, value and markup
-- Show what items limits clicks of a blueprint
-- Use URL for navigation (browser back/foward work now)
+- Calculator to easily calculate the total from quantity, value and markup
+- Show what items limit clicks of a blueprint
+- Use URL for navigation (browser back/forward work now)
 
 ## Version 0.4.6 - 2024-12-02
 ### Fixes
