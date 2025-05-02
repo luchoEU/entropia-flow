@@ -4,7 +4,6 @@ import { Provider } from "react-redux";
 import configureMockStore from "redux-mock-store";
 import SortableTabularSection from "./SortableTabularSection";
 import { TabularState, TabularStateData } from "../../application/state/tabular";
-import 'canvas';
 import { setTabularDefinitions } from "../../application/helpers/tabular";
 import { GameLogGlobal } from "../../../background/client/gameLogData";
 import { gameLogTabularDefinitions } from "../../application/tabular/log";

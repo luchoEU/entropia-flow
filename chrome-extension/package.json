@@ -19,7 +19,6 @@
         "@types/react-dom": "^19.0.2",
         "archiver": "^7.0.1",
         "buffer": "^6.0.3",
-        "canvas": "^2.11.2",
         "css-loader": "^7.1.2",
         "del": "^8.0.0",
         "file-loader": "^6.2.0",
