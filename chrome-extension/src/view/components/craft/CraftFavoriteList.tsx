@@ -83,8 +83,8 @@ function CraftFavoriteList() {
     var clicks = blueprints.some(d => d.c?.clicks)
     var limit = blueprints.some(d => d.c?.clicks?.limitingItems?.length > 0)
     var items = blueprints.some(d => getItemAvailable(d) > 0)
-    var budget = blueprints.some(d => d.budget.sheet?.total !== undefined)
-    var cash = blueprints.some(d => d.budget.sheet?.peds !== undefined)
+    var budget = blueprints.some(d => d.budget?.sheet?.total !== undefined)
+    var cash = blueprints.some(d => d.budget?.sheet?.peds !== undefined)
 
     const columns: number[] = [NAME]
     if (clicks) columns.push(CLICKS)
