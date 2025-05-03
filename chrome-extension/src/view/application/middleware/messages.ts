@@ -27,7 +27,7 @@ const refreshViewHandler = (m: ViewState): any[] => {
             actions.push(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)
             actions.push(setLast)
-        const newest = m.list.find(e => e.log === undefined)
+        const newest = m.list.find(e => e.log === undefined && e.itemlist !== undefined)
         if (newest !== undefined)
             actions.push(setCurrentInventory(newest))
     }
