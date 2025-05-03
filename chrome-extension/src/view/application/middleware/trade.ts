@@ -1,4 +1,4 @@
-import { GameLogData } from "../../../background/client/gameLogData"
+import { GameLogData, GameLogTrade } from "../../../background/client/gameLogData"
 import { mergeDeep } from "../../../common/merge"
 import { setExpanded } from "../actions/expandable"
 import { SET_CURRENT_GAME_LOG } from "../actions/log"
@@ -38,20 +38,32 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             if (gameLog.trade.length === 0 || state.notifications.length == 0)
                 break
 
+            const linesByFilter: { [filter: string]: GameLogTrade[] } = {}
             for (const t of gameLog.trade) {
                 if (t.serial <= state.lastMessageCheckSerial)
                     break
 
-                const matches = state.notifications.filter(n => itemMatchesFilter(t, GAME_LOG_TABULAR_TRADE, n.filter)).map(n => n.filter)
-                if (matches.length > 0) {
-                    matches.unshift('New matches to trade chat filters')
+                for (const n of state.notifications) {
+                    if (itemMatchesFilter(t, GAME_LOG_TABULAR_TRADE, n.filter)) {
+                        if (!linesByFilter[n.filter])
+                            linesByFilter[n.filter] = []
+                        linesByFilter[n.filter].push(t)
+                    }
+                }
+            }
+            for (const filter in linesByFilter) {
+                const lines = linesByFilter[filter]
+                if (lines.length > 0) {
                     chrome.notifications.create(
-                        `${NOTIFICATION_ID}-${matches[1]}`,
+                        `${NOTIFICATION_ID}-${filter}`,
                         {
                             type: "basic",
                             iconUrl: "img/flow128.png",
                             title: "Entropia Flow",
-                            message: matches.join('\n')
+                            message:
+`New matches to trade chat filter
+${filter}
+${lines.map(l => `[${l.channel}] [${l.player}]: ${l.message}`).join('\n')}`
                         }
                     )
                 }

@@ -2,7 +2,7 @@
 
 ## Building
 
-1. `nvm use 22.12.0`
+1. `nvm use` (Mac/Linux) or `nvm use 22.12.0` (Windows) to use the tested version of node
 
 1. `npm i` to install dependencies
 
