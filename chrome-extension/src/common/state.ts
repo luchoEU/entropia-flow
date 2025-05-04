@@ -55,6 +55,7 @@ interface ViewDispatch {
 
 interface ViewNotification {
     notificationId: string
+    buttonIndex?: number
 }
 
 let mockDate = undefined

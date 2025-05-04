@@ -1,7 +1,7 @@
 //// WEB SOCKET ////
 // Communication with Entropia Flow Client in Windows
 
-import { Component, traceData, traceError } from "../../common/trace"
+import { Component, trace, traceError } from "../../common/trace"
 import { VERSION } from "../../view/components/about/AboutPage"
 import IWebSocketClient, { WebSocketState, WebSocketStateCode } from "./webSocketInterface"
 
@@ -40,18 +40,18 @@ class WebSocketClient implements IWebSocketClient {
             return
         }
         this.socket.onopen = async event => {
-            traceData(Component.WebSocketClient, 'connection opened:', event)
+            trace(Component.WebSocketClient, 'connection opened:', event)
 
             this.socket.onmessage = async event => {
-                traceData(Component.WebSocketClient, 'message received:', event.data)
-                await this.onMessage(JSON.parse(event.data))
+                trace(Component.WebSocketClient, 'message received:', event.data)
+                this.onMessage(JSON.parse(event.data))
             };
             this.socket.onclose = async event => {
-                traceData(Component.WebSocketClient, 'connection closed:', event)
-                await this._setState(WebSocketStateCode.disconnected, 'disconnected')
+                trace(Component.WebSocketClient, 'connection closed:', event)
+                this._setState(WebSocketStateCode.disconnected, 'disconnected')
             };
 
-            await this._setState(WebSocketStateCode.connected, `connected to ${url}`)
+            this._setState(WebSocketStateCode.connected, `connected to ${url}`)
             this.send('version', VERSION)
             for (const json in this.pendingJson)
                 this.socket.send(json)
@@ -59,7 +59,7 @@ class WebSocketClient implements IWebSocketClient {
         };
         this.socket.onerror = async event => {
             traceError(Component.WebSocketClient, 'error:', event)
-            await this._setState(WebSocketStateCode.error, 'error')
+            this._setState(WebSocketStateCode.error, 'error')
         };
     }
 

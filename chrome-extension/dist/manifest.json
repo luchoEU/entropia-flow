@@ -19,6 +19,12 @@
     "background": {
         "service_worker": "background.js"
     },
+    "web_accessible_resources": [
+        {
+            "resources": ["img/flow128.png"],
+            "matches": ["<all_urls>"]
+        }
+    ],
     "action": {},
     "permissions": [
         "alarms",

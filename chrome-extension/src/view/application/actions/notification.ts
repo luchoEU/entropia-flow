@@ -1,9 +1,10 @@
 const ON_NOTIFICATION_CLICKED = '[notification] clicked'
 
-const onNotificationClicked = (notificationId: string) => ({
+const onNotificationClicked = (notificationId: string, buttonIndex?: number) => ({
     type: ON_NOTIFICATION_CLICKED,
     payload: {
-        notificationId
+        notificationId,
+        buttonIndex
     }
 })
 

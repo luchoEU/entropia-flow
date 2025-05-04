@@ -75,10 +75,10 @@ class ViewTabManager {
         await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_ACTION_VIEW, { action })))
     }
 
-    public async sendNotificationClicked(notificationId: string): Promise<void> {
+    public async sendNotificationClicked(notificationId: string, buttonIndex?: number): Promise<void> {
         const portList = await this.portManager.all()
         const that = this
-        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_NOTIFICATION_VIEW, { notificationId })))
+        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_NOTIFICATION_VIEW, { notificationId, buttonIndex })))
     }
 }
 

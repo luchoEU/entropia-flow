@@ -1,3 +1,4 @@
+import { createBasicNotification } from "../../../common/notifications"
 import { setHistoryIntervalId, SET_HISTORY_LIST, EXPORT_TO_FILE } from "../actions/history"
 import { getHistory } from "../selectors/history"
 import { getStatus } from "../selectors/status"
@@ -21,10 +22,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const { isMonitoring } = getStatus(getState());
                     notificationTimes++
                     if (isMonitoring && notificationTimes < NOTIFICATION_TIMES) {
-                        chrome.notifications.create(
-                            undefined,
-                            { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: "Disconnected" }
-                        )
+                        createBasicNotification({ message: "Disconnected" });
                     } else {
                         clearInterval(state.intervalId)
                     }

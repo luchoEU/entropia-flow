@@ -1,3 +1,3 @@
 interface INotificationManager {
-    onClick: (notificationId: string) => Promise<void>
+    onClick: (notificationId: string, buttonIndex?: number) => Promise<void>
 }

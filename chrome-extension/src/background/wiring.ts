@@ -123,9 +123,9 @@ async function wiring(
     
     // notifications
     if (notifications) {
-        notifications.onClick = async (id) => {
+        notifications.onClick = async (notificationId, buttonIndex) => {
             await viewTabManager.createOrOpenView();
-            await viewTabManager.sendNotificationClicked(id);
+            await viewTabManager.sendNotificationClicked(notificationId, buttonIndex);
         }
     }
 

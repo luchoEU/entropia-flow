@@ -3,24 +3,25 @@ let _tid: string = '' // trace id, usually a letter
 let _traceOn = true
 
 enum Component {
-    ChromeMessagesClient = 'ChromeMessagesClient',
-    ChromeMessagesHub = 'ChromeMessagesHub',
-    ContentTabManager = 'ContentTabManager',
-    PortManager = 'PortManager',
-    WebSocketClient = 'WebSocketClient',
-    ReduxLogger = 'ReduxLogger',
-    SheetMiddleware = 'SheetMiddleware',
-    HelpersMiddleware = 'HelpersMiddleware',
-    CraftMiddleware = 'CraftMiddleware',
-    ItemsReader = 'ItemsReader',
-    RefreshItem = 'RefreshItem',
-    ChromeTabManager = 'ChromeTabManager',
-    ViewTabManager = 'ViewTabManager',
-    ChromeStorageArea = 'ChromeStorageArea',
-    InventoryStorage = 'InventoryStorage',
-    InventoryReader = 'InventoryReader',
-    RefreshManager = 'RefreshManager',
-    AppLoader = 'AppLoader',
+    AppLoader,
+    ChromeMessagesClient,
+    ChromeMessagesHub,
+    ChromeStorageArea,
+    ChromeTabManager,
+    ContentTabManager,
+    CraftMiddleware,
+    HelpersMiddleware,
+    InventoryReader,
+    InventoryStorage,
+    ItemsReader,
+    Notifications,
+    PortManager,
+    ReduxLogger,
+    RefreshItem,
+    RefreshManager,
+    SheetMiddleware,
+    ViewTabManager,
+    WebSocketClient,
 }
 
 const silentComponents = new Set([
@@ -40,30 +41,26 @@ function _trace(component: Component, message: string) {
     let sp = ''
     for (let n: number = 0; n < _indent; n++)
         sp += '  '
-    console.log(`${sp}${new Date().toLocaleTimeString()} .${_indent}${_tid}. ${component}.${message}`)
+    console.log(`${sp}${new Date().toLocaleTimeString()} .${_indent}${_tid}. ${Component[component]}.${message}`)
 }
 
 function traceId(id: string) {
     _tid = id
 }
 
-function trace(component: Component, message: string) {
+function trace(component: Component, message: string, data?: any) {
     if (traceEnabled(component)) {
         _trace(component, message)
+        if (data)
+            console.log(data)
     }
 }
 
-function traceData(component: Component, message: string, error: any) {
-    if (traceEnabled(component)) {
-        _trace(component, message);
-        console.log(error)
-    }
-}
-
-function traceError(component: Component, message: string, error: any) {
+function traceError(component: Component, message: string, error?: any) {
     if (_traceOn) {
         _trace(component, message);
-        console.log(error)
+        if (error)
+            console.log(error)
     }
 }
 
@@ -93,6 +90,5 @@ export {
     traceEnabled,
     traceError,
     traceStart,
-    traceData,
     traceEnd,
 }

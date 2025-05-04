@@ -13,6 +13,7 @@ import { getTrade } from "../selectors/trade"
 import { GAME_LOG_TABULAR_TRADE } from "../state/log"
 import { TabId } from "../state/navigation"
 import { TradeState } from "../state/trade"
+import { createListNotification } from "../../../common/notifications"
 
 const NOTIFICATION_ID = "entropiaFlowTrading"
 
@@ -54,18 +55,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             for (const filter in linesByFilter) {
                 const lines = linesByFilter[filter]
                 if (lines.length > 0) {
-                    chrome.notifications.create(
-                        `${NOTIFICATION_ID}-${filter}`,
-                        {
-                            type: "basic",
-                            iconUrl: "img/flow128.png",
-                            title: "Entropia Flow",
-                            message:
-`New matches to trade chat filter
-${filter}
-${lines.map(l => `[${l.channel}] [${l.player}]: ${l.message}`).join('\n')}`
-                        }
-                    )
+                    createListNotification({
+                        notificationId: `${NOTIFICATION_ID}-${filter}`,
+                        title: `New Trade Matches: ${filter}`,
+                        items: lines.map(l => ({ title: `[${l.channel}] ${l.player}`, message: l.message }))
+                    })
                 }
             }
 
@@ -73,7 +67,7 @@ ${lines.map(l => `[${l.channel}] [${l.player}]: ${l.message}`).join('\n')}`
             break;
         }
         case ON_NOTIFICATION_CLICKED: {
-            if (action.payload.notificationId.startsWith(NOTIFICATION_ID)) {
+            if (action.payload.notificationId.startsWith(NOTIFICATION_ID) && action.payload.buttonIndex === 0) {
                 const filter = action.payload.notificationId.replace(`${NOTIFICATION_ID}-`, '');
                 const selector = `TabularSection.${GAME_LOG_TABULAR_TRADE}`;
                 dispatch(setExpanded(selector)(true));

@@ -9,6 +9,7 @@ import { getItemsMap } from "../selectors/items"
 import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 import { AppAction } from "../slice/app"
+import { createBasicNotification } from "../../../common/notifications"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -51,10 +52,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 })
 
                 if (reduced.length > 0) {
-                    chrome.notifications.create(
-                        undefined,
-                        { type: "basic", iconUrl: "img/flow128.png", title: "Entropia Flow", message: reduced.join('\n') }
-                    )
+                    createBasicNotification({ message: reduced.join('\n') });
                     dispatch(addNotificationsDone(reduced))
                 }
             }

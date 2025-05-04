@@ -47,7 +47,7 @@ const actionViewHandler = (dispatch: AppDispatch) => async (m: ViewDispatch) => 
 }
 
 const notificationViewHandler = (dispatch: AppDispatch) => async (m: ViewNotification) => {
-    dispatch(onNotificationClicked(m.notificationId));
+    dispatch(onNotificationClicked(m.notificationId, m.buttonIndex));
 }
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
