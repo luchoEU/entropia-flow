@@ -10,6 +10,8 @@ function multiIncludes(multiSearch: string, mainStr: string): boolean {
     if (!multiSearch || multiSearch.length == 0)
         return true;
 
+    mainStr = mainStr.replace(/\!/g, ' '); // use ! as word separator
+
     if (multiSearch[0] === '!') // exact match
     {
         if (multiSearch.includes('|')) // or
