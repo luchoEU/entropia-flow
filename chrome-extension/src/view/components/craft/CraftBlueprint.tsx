@@ -237,7 +237,10 @@ const CraftSingle = ({ bp, activeSession, message }: {
                     <SessionInfo name={bp.name} session={bp.session} dispatch={dispatch} message={message} showMoveAll={showMoveAll} />
                 }</p>
             </> }
-            <p>Item: {bp.c?.itemName}</p>
+            <p className='item-row pointer' onClick={(e) => {
+                e.stopPropagation();
+                dispatch(showBlueprintMaterialData(bp.name, bp.chain === bp.c?.itemName ? undefined : bp.c?.itemName))
+            }}>Item: {bp.c?.itemName} <img src={bp.chain === bp.c?.itemName ? 'img/left.png' : 'img/right.png'}/></p>
             <p>Type: {webBp.type}</p>
             <table ref={tableRef}>
                 <thead>
