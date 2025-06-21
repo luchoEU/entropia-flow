@@ -1,4 +1,4 @@
-import { fetchJson } from "./fetch";
+import { fetchJson, fetchText } from "./fetch";
 import { mapResponse } from "./loader";
 import { IWebSource, SourceLoadResponse } from "./sources";
 import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, RawMaterialWebData } from "./state";
@@ -47,12 +47,27 @@ export class EntropiaNexus implements IWebSource {
         const url = _apiUrl(`blueprints/${bpName}`)
         return await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpName))
     }
+
+    public async loadBlueprintList(): Promise<SourceLoadResponse<string[]>> {
+        const url = _wwwUrl(`items/blueprints`)
+        return await mapResponse(fetchText(url), _extractBlueprintList(url))
+    }
 }
 
 const API_BASE_URL = 'https://api.entropianexus.com';
 const _encodeURI = (href: string) => href.replace(/\(/g, '%28').replace(/\)/g, '%29');
 const _apiUrl = (href: string) => href && _encodeURI(new URL(href, API_BASE_URL).href);
 const _wwwUrl = (href: string) => href && new URL(href.replace(/ /g, '~'), 'https://entropianexus.com').href;
+
+const _extractBlueprintList = (url: string) => async (page: string): Promise<SourceLoadResponse<string[]>> => {
+    const regex = /<a href="\/items\/blueprints\/[^<]+"><!-- HTML_TAG_START -->([^<]+)<!-- HTML_TAG_END --><\/a>/g;
+    const matches = Array.from(page.matchAll(regex));
+    return {
+        ok: true,
+        data: matches.map(([_, bpName]) => bpName.trim()),
+        url
+    }
+}
 
 const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexusAcquisition): Promise<SourceLoadResponse<RawMaterialWebData[]>> => ({
     ok: true,

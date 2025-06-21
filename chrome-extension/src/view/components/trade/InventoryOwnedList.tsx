@@ -26,6 +26,7 @@ import { filterExact } from '../../../common/filter';
 import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation';
 import { Feature } from '../../application/state/settings';
 import { selectIsFeatureEnabled } from '../../application/selectors/settings';
+import { getSwitchButton } from '../common/SortableTabularSection.control';
 
 const getBlueprintsTableData = (type: string, stared: boolean | undefined): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -219,13 +220,6 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     </>
 }
 
-const _getSwitchButton = (button: string, description: string, enabled: boolean, dispatch: () => any): RowValue => ({
-    button,
-    class: `button-option-switch ${enabled ? 'active' : ''}`,
-    title: `${description} ${enabled ? '[ON]': '[OFF]'}, click to ${enabled ? 'dis' : 'en'}able it}`,
-    dispatch
-})
-
 const InventoryVisibleList = () => {
     const c = useSelector(getHideCriteria)
     const opt = useSelector(getOwnedOptions)
@@ -243,8 +237,8 @@ const InventoryVisibleList = () => {
         ]}
         beforeTable={[
             { flex: 1 },
-            _getSwitchButton('R', 'Add Reserve to items', opt.reserve, () => setOwnedOptions({ reserve: !opt.reserve })),
-            _getSwitchButton('A', 'Hide items on auction', opt.auction, () => setOwnedOptions({ auction: !opt.auction })),
+            getSwitchButton('R', 'Add Reserve to items', opt.reserve, () => setOwnedOptions({ reserve: !opt.reserve })),
+            getSwitchButton('A', 'Hide items on auction', opt.auction, () => setOwnedOptions({ auction: !opt.auction })),
         ]}
     >
         <TradeItemDetailsChain />

@@ -1,6 +1,6 @@
 import { ItemWebData } from '../../../web/state'
 import { BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BlueprintSessionDiff, BlueprintStateWebData, CraftState } from '../state/craft'
+import { BlueprintSessionDiff, BlueprintStateWebData, CraftingWebData, CraftOptions, CraftState } from '../state/craft'
 
 const SET_CRAFT_STATE = '[craft] set state'
 const REMOVE_BLUEPRINT = '[craft] remove blueprint'
@@ -9,6 +9,7 @@ const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
 const ADD_BLUEPRINT = '[craft] add blueprint'
 const SET_BLUEPRINT_PARTIAL_WEB_DATA = '[craft] set blueprint partial web data'
+const SET_CRAFTING_PARTIAL_WEB_DATA = '[craft] set crafting partial web data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE = '[craft] set blueprint material type and value'
 const SET_BLUEPRINT_STARED = '[craft] set blueprint stared'
@@ -34,6 +35,7 @@ const SET_CRAFT_SAVE_STAGE = '[craft] set save stage'
 const DONE_CRAFT_SESSION = '[craft] done session'
 const CLEAR_CRAFT_SESSION = '[craft] clear session'
 const SET_CRAFT_ACTIVE_PLANET = '[craft] set active planet'
+const SET_CRAFT_OPTIONS = '[craft] set options'
 
 const BUDGET_BUY = 'Buy'
 const BUDGET_SELL = 'Sell'
@@ -85,6 +87,13 @@ const setBlueprintPartialWebData = (name: string, change: Partial<BlueprintState
     type: SET_BLUEPRINT_PARTIAL_WEB_DATA,
     payload: {
         name,
+        change
+    }
+})
+
+const setCraftingPartialWebData = (change: Partial<CraftingWebData>) => ({
+    type: SET_CRAFTING_PARTIAL_WEB_DATA,
+    payload: {
         change
     }
 })
@@ -279,12 +288,20 @@ const setCraftActivePlanet = (name: string) => ({
     }
 })
 
+const setCraftOptions = (change: Partial<CraftOptions>) => ({
+    type: SET_CRAFT_OPTIONS,
+    payload: {
+        change
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     REMOVE_BLUEPRINT,
     RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
     SET_STARED_BLUEPRINTS_FILTER,
+    SET_CRAFTING_PARTIAL_WEB_DATA,
     ADD_BLUEPRINT,
     SET_BLUEPRINT_PARTIAL_WEB_DATA,
     SET_BLUEPRINT_QUANTITY,
@@ -315,6 +332,7 @@ export {
     BUDGET_SELL,
     BUDGET_MOVE,
     SET_CRAFT_ACTIVE_PLANET,
+    SET_CRAFT_OPTIONS,
     setCraftState,
     removeBlueprint,
     reloadBlueprint,
@@ -322,6 +340,7 @@ export {
     setStaredBlueprintsFilter,
     addBlueprint,
     setBlueprintPartialWebData,
+    setCraftingPartialWebData,
     setBlueprintQuantity,
     setBlueprintMaterialTypeAndValue,
     setBlueprintStared,
@@ -347,4 +366,5 @@ export {
     doneCraftingSession,
     clearCraftingSession,
     setCraftActivePlanet,
+    setCraftOptions,
 }

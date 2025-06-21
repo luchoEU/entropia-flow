@@ -9,14 +9,21 @@ import {
     ContainerMapDataItem,
     BasicItemData,
     TreeLineData,
+    InventoryListWithFilter,
 } from "../state/inventory";
-import { cleanForSaveInventoryList, cleanForSaveInventoryListWithFilter, initialList, initialListWithFilter } from "./inventory";
+import { cleanForSaveInventoryList, initialList } from "./inventory";
 import {
     cloneSortListSelect,
     nextSortType,
     sortListSelect,
     SORT_NAME_ASCENDING,
 } from "./inventory.sort";
+
+const initialListWithFilter = <D>(expanded: boolean, sortType: number): InventoryListWithFilter<D> => ({
+    filter: undefined,
+    showList: initialList(true, sortType),
+    originalList: initialList(expanded, sortType),
+});
 
 const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
     ...initialListWithFilter(expanded, sortType),
@@ -894,6 +901,12 @@ const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData
     }
     return map;
 }
+
+const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<any>>(list: L): L=> ({
+    ...list,
+    showList: undefined,
+    originalList: cleanForSaveInventoryList(list.originalList)
+})
 
 const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
     ...cleanForSaveInventoryListWithFilter(state),

@@ -34,6 +34,7 @@
     ],
     "host_permissions": [
         "https://api.entropianexus.com/*",
+        "https://entropianexus.com/*",
         "http://www.entropiawiki.com/*"
     ]
 }

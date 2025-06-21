@@ -40,14 +40,7 @@ const initialList = <D>(expanded: boolean, sortType: number): InventoryList<D> =
   },
 });
 
-const initialListWithFilter = <D>(expanded: boolean, sortType: number): InventoryListWithFilter<D> => ({
-  filter: undefined,
-  showList: initialList(true, sortType),
-  originalList: initialList(expanded, sortType),
-});
-
 const initialState: InventoryState = {
-  blueprints: initialListWithFilter(true, SORT_NAME_ASCENDING),
   auction: initialList(true, SORT_NAME_ASCENDING),
   owned: {
     items: [],
@@ -61,7 +54,6 @@ const initialState: InventoryState = {
 };
 
 const _ownedSelect = (x: ItemOwned): ItemData => x.data;
-const _blueprintSelect = (x: ItemData): ItemData => x;
 
 const _isHiddenByName = (c: OwnedHideCriteria, d: ItemData): boolean =>
   c.name.includes(d.n);
@@ -69,9 +61,6 @@ const _isHiddenByContainer = (c: OwnedHideCriteria, d: ItemData): boolean =>
   c.container.includes(d.c);
 const _isHiddenByValue = (c: OwnedHideCriteria, d: ItemData): boolean =>
   Number(d.v) <= c.value;
-
-const _getBlueprints = (list: Array<ItemData>): Array<ItemData> =>
-  list.filter((d) => d.n.includes("Blueprint"));
 
 const _getAuction = (list: Array<ItemData>): Array<ItemData> =>
   list.filter((d) => d.c === "AUCTION");
@@ -135,7 +124,6 @@ const loadInventory = (
   list: Array<ItemData>,
 ): InventoryState => ({
   ...state,
-  blueprints: _sortAndStatsWithFilter(state.blueprints, _getBlueprints(list), _blueprintSelect),
   auction: _sortAndStats({
     ...state.auction,
     items: _getAuction(list),
@@ -152,6 +140,7 @@ const loadInventory = (
 });
 
 const getItemList = (state: InventoryState): Array<ItemData> => state.owned.items.map(_ownedSelect);
+const getBlueprintList = (state: InventoryState): Array<ItemData> => getItemList(state).filter(item => item.n.includes("Blueprint"));
 
 const reduceLoadInventoryState = (
   oldState: InventoryState, // where to get the items
@@ -162,26 +151,6 @@ const reduceSetCurrentInventory = (
   state: InventoryState,
   inventory: Inventory,
 ): InventoryState => loadInventory(state, inventory.itemlist);
-
-const reduceSetBlueprintsFilter = (
-  state: InventoryState,
-  filter: string,
-): InventoryState => ({
-  ...state,
-  blueprints: {
-    ...state.blueprints,
-    filter,
-    showList: applyListFilter(state.blueprints.originalList, filter, _blueprintSelect),
-  },
-})
-
-const reduceSortOwnedBlueprintsBy = (
-  state: InventoryState,
-  part: number,
-): InventoryState => ({
-  ...state,
-  blueprints: _nextSortByPartWithFilter(state.blueprints, part, _blueprintSelect),
-});
 
 function applyListFilter<D>(list: InventoryList<D>, filter: string, select: (d: D) => ItemData): InventoryList<D> {
   const items = list.items
@@ -363,7 +332,7 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
       const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
       const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
       if (usageBPs) // add owned blueprints that were never opened in crafting tab
-        own.push(...usageBPs.filter(bp => state.blueprints.originalList.items.find(b => b.n === bp.name) && !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)))
+        own.push(...usageBPs.filter(bp => getBlueprintList(state).find(b => b.n === bp.name) && !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)))
       const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
       const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
         .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === d.name)?.quantity }))
@@ -461,15 +430,8 @@ const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> 
   stats: undefined
 });
 
-const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<any>>(list: L): L=> ({
-  ...list,
-  showList: undefined,
-  originalList: cleanForSaveInventoryList(list.originalList)
-})
-
 const cleanForSave = (state: InventoryState): InventoryState => ({
   // remove what will be reconstructed in loadInventory
-  blueprints: cleanForSaveInventoryListWithFilter(state.blueprints),
   auction: cleanForSaveInventoryList(state.auction),
   owned: {
     ...state.owned,
@@ -484,11 +446,8 @@ const cleanForSave = (state: InventoryState): InventoryState => ({
 export {
   initialState,
   initialList,
-  initialListWithFilter,
   reduceLoadInventoryState,
   reduceSetCurrentInventory,
-  reduceSetBlueprintsFilter,
-  reduceSortOwnedBlueprintsBy,
   reduceSortAuctionBy,
   reduceSortAvailableBy,
   reduceHideByName,
@@ -508,8 +467,8 @@ export {
   reduceRemoveAvailable,
   reduceSetOwnedOptions,
   getItemList,
+  getBlueprintList,
   joinDuplicates,
   cleanForSave,
-  cleanForSaveInventoryList,
-  cleanForSaveInventoryListWithFilter
+  cleanForSaveInventoryList
 };

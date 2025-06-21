@@ -2,9 +2,10 @@ import { multiIncludes } from '../../../common/filter';
 import { BlueprintWebData, ItemWebData } from '../../../web/state';
 import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget';
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
-import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial, BlueprintMaterial } from '../state/craft';
+import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial, BlueprintMaterial, CraftingWebData, CraftOptions } from '../state/craft';
 import { InventoryState } from '../state/inventory';
 import * as Sort from "./craftSort"
+import { getBlueprintList } from './inventory';
 
 const initialState: CraftState = {
     blueprints: { },
@@ -13,6 +14,9 @@ const initialState: CraftState = {
         sortType: Sort.SORT_NAME_ASCENDING,
         filter: undefined,
         list: []
+    },
+    options: {
+        owned: false
     },
     c: {
         filteredStaredBlueprints: [],
@@ -35,7 +39,7 @@ const reduceSetState = (state: CraftState, inState: CraftState): CraftState => _
 
 const itemNameFromBpName = (bpName: string): string => bpName.split('Blueprint')[0].trim()
 const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
-    inv.blueprints.originalList.items.find(bp => itemNameFromBpName(bp.n) == itemName)?.n
+    getBlueprintList(inv).find(bp => itemNameFromBpName(bp.n) == itemName)?.n
 const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
     Object.values(state.blueprints).find(bp => bp.c?.itemName == itemName)
 
@@ -145,6 +149,14 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
         }
     }
 }
+
+const reduceSetCraftingPartialWebData = (state: CraftState, change: Partial<CraftingWebData>): CraftState => ({
+    ...state,
+    web: {
+        ...state.web,
+        ...change
+    }
+})
 
 const _calcClicks = (state: CraftState): CraftState => ({
     ...state,
@@ -455,6 +467,14 @@ const reduceSetCraftActivePlanet = (state: CraftState, name: string): CraftState
     activePlanet: name
 })
 
+const reduceSetCraftOptions = (state: CraftState, change: Partial<CraftOptions>): CraftState => ({
+    ...state,
+    options: {
+        ...state.options,
+        ...change
+    }
+})
+
 const cleanWeb = (state: CraftState): CraftState => {
     const cState: CraftState = JSON.parse(JSON.stringify(state));
     Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
@@ -498,6 +518,7 @@ export {
     reduceSetStaredBlueprintsFilter,
     reduceAddBlueprint,
     reduceSetBlueprintPartialWebData,
+    reduceSetCraftingPartialWebData,
     reduceSetBlueprintQuantity,
     reduceSetBlueprintMaterialTypeAndValue,
     reduceSetBlueprintStared,
@@ -522,6 +543,7 @@ export {
     reduceDoneCraftSession,
     reduceSetCraftActivePlanet,
     reduceClearCraftSession,
+    reduceSetCraftOptions,
     cleanWeb,
     cleanForSave,
     bpNameFromItemName,

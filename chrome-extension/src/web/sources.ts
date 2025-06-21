@@ -17,6 +17,7 @@ interface IWebSource extends ISource {
     loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>>
     loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>>
     loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>>
+    loadBlueprintList(): Promise<SourceLoadResponse<string[]>>
 }
 
 interface ISheetSource extends ISource {

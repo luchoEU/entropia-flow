@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { formatUrlToBlueprint } from '../../application/helpers/navigation'
 import CraftBlueprint from './CraftBlueprint'
 import CraftFavoriteList from './CraftFavoriteList'
-import CraftOwnedList from './CraftOwnedList'
+import CraftBlueprintList from './CraftBlueprintList'
 
 function CraftPage() {
     const { bpName } = useParams()
@@ -13,7 +13,7 @@ function CraftPage() {
         <CraftBlueprint bpName={bpNameDecoded} /> :
         <>
             <CraftFavoriteList />
-            <CraftOwnedList />
+            <CraftBlueprintList />
         </>
 }
 

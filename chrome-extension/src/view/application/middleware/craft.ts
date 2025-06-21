@@ -1,9 +1,9 @@
 import { Component, traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE } from '../actions/craft'
+import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_CRAFT_STATE, setCraftingPartialWebData, SET_CRAFTING_PARTIAL_WEB_DATA, SET_CRAFT_OPTIONS } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
-import { SET_CURRENT_INVENTORY } from '../actions/inventory'
+import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { AppAction } from '../slice/app'
@@ -25,11 +25,15 @@ import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
 import { BlueprintWebData, BlueprintWebMaterial, ItemWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
+import { setTabularDefinitions } from '../helpers/tabular'
+import { craftTabularData, craftTabularDefinitions } from '../tabular/craft'
+import { setTabularData } from '../actions/tabular'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
+            setTabularDefinitions(craftTabularDefinitions)
             let state: CraftState = await api.storage.loadCraft();
             if (state) {
                 if (CLEAR_WEB_ON_LOAD) {
@@ -70,7 +74,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_CRAFT_SAVE_STAGE:
         case DONE_CRAFT_SESSION:
         case CLEAR_CRAFT_SESSION:
-        case SET_CRAFT_ACTIVE_PLANET: {
+        case SET_CRAFT_ACTIVE_PLANET:
+        case SET_CRAFT_OPTIONS: {
             const state: CraftState = getCraft(getState())
             await api.storage.saveCraft(cleanForSave(state))
             break
@@ -375,6 +380,23 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             }
             break
         }
+    }
+
+    switch (action.type) {
+        case AppAction.INITIALIZE:
+            for await (const r of loadFromWeb(s => s.loadBlueprintList())) {
+                dispatch(setCraftingPartialWebData({ blueprintList: r }))
+            }
+            break
+        case SET_CRAFT_STATE:
+        case LOAD_INVENTORY_STATE:
+        case SET_CURRENT_INVENTORY:
+        case SET_CRAFTING_PARTIAL_WEB_DATA:
+        case SET_CRAFT_OPTIONS:
+            const state: CraftState = getCraft(getState())
+            const inventory: InventoryState = getInventory(getState())
+            dispatch(setTabularData(craftTabularData(state, inventory)))
+            break
     }
 }
 

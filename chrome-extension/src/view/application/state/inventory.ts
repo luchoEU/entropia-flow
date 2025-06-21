@@ -146,7 +146,6 @@ interface TradeBlueprintLineData {
 }
 
 interface InventoryState {
-  blueprints: InventoryListWithFilter<ItemData>;
   auction: InventoryList<ItemData>;
   owned: {
     items: Array<ItemOwned>;

@@ -17,6 +17,8 @@ function cloneAndSort<I extends any>(list: Array<I>, sortSecuence: SortSecuence,
     newList.sort((a: I, b: I) => {
       for (const s of sortSecuence)
       {
+        if (s.column >= sortColumnDefinition.length)
+          continue // removed column in definition
         const def = sortColumnDefinition[s.column]
         const res = def.comparer(def.selector(a), def.selector(b))
         if (res !== 0)

@@ -6,20 +6,24 @@ import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, 
 export class EntropiaWiki implements IWebSource {
     public name: string = "Entropia Wiki"
 
-    public async loadItem(itemName: string): Promise<SourceLoadResponse<ItemWebData>> {
-        return NOT_IMPLEMENTED
-    }
-
     public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
         return _loadFromSearch(materialName, _extractRawMaterials)
+    }
+
+    public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
+        return _loadFromSearch(bpName, _extractBlueprint)
+    }
+
+    public async loadItem(itemName: string): Promise<SourceLoadResponse<ItemWebData>> {
+        return NOT_IMPLEMENTED
     }
 
     public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
         return NOT_IMPLEMENTED
     }
 
-    public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
-        return _loadFromSearch(bpName, _extractBlueprint)
+    public async loadBlueprintList(): Promise<SourceLoadResponse<string[]>> {
+        return NOT_IMPLEMENTED
     }
 }
 

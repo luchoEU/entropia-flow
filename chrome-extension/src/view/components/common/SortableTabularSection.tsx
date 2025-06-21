@@ -288,7 +288,7 @@ const SortableTabularSection = ({
             <div className='search-container'>
                 <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
                     <span> {stats.count} </span>
-                    <span> {stats.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
+                    <span> {definition.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
                 </p>
                 <p className='search-input-container'>
                     <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />

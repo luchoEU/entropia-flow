@@ -18,6 +18,7 @@ interface TabularStateData {
 interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = any, TData = any> {
     title: string,
     subtitle: string,
+    itemTypeName?: string,
     columns: string[],
     getRow: (item: TItem, rowIndex: number) => RowValue[],
     getRowClass?: (item: TItem, rowIndex: number) => string | undefined,
@@ -36,8 +37,7 @@ type TabularRawData<TItem = any, TData = any> = { [selector: string]: { data?: T
 
 interface TabularStats {
     count: number,
-    ped?: string,
-    itemTypeName?: string
+    ped?: string   
 }
 
 export {

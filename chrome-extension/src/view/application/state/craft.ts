@@ -1,6 +1,8 @@
 import { WebLoadResponse } from "../../../web/loader"
 import { BlueprintWebData } from "../../../web/state"
 
+const CRAFT_TABULAR_BLUEPRINTS = '[craft] blueprints'
+
 interface CraftState {
     activeSession?: string
     activePlanet?: string
@@ -11,10 +13,20 @@ interface CraftState {
         filter: string
         list: Array<string>
     }
+    options: CraftOptions
+    web?: CraftingWebData
     c: { // calculated from previous
         filteredStaredBlueprints: Array<BlueprintData>
         residues: { [ name: string ]: number } // available in Inventory
     }
+}
+
+interface CraftOptions {
+    owned: boolean // show only owned blueprints
+}
+
+interface CraftingWebData {
+    blueprintList: WebLoadResponse<string[]>
 }
 
 interface BlueprintStateWebData {
@@ -99,7 +111,10 @@ interface BlueprintSessionDiff {
 }
 
 export {
+    CRAFT_TABULAR_BLUEPRINTS,
     CraftState,
+    CraftOptions,
+    CraftingWebData,
     BlueprintData,
     BlueprintSession,
     BlueprintSessionDiff,

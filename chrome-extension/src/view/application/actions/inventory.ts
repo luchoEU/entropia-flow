@@ -6,8 +6,6 @@ import { InventoryState, OwnedOptions } from "../state/inventory"
 
 const LOAD_INVENTORY_STATE = "[inv] load state"
 const SET_CURRENT_INVENTORY = "[inv] set current"
-const SET_BLUEPRINTS_FILTER = "[inv] set blueprints filter"
-const SORT_OWNED_BLUEPRINTS_BY = "[inv] sort owned blueprints by"
 const SET_BY_STORE_ITEM_EXPANDED = "[inv] set by store item expanded"
 const SET_BY_STORE_ALL_ITEMS_EXPANDED = "[inv] set by store all items expanded"
 const SET_BY_STORE_FILTER = "[inv] set by store filter"
@@ -195,20 +193,6 @@ const setByStoreStaredInventoryFilter = (filter: string) => ({
     }
 })
 
-const setOwnedBlueprintsFilter = (filter: string) => ({
-    type: SET_BLUEPRINTS_FILTER,
-    payload: {
-        filter
-    }
-})
-
-const sortOwnedBlueprintsBy = (part: number) => ({
-    type: SORT_OWNED_BLUEPRINTS_BY,
-    payload: {
-        part
-    }
-})
-
 const sortAuctionBy = (part: number) => ({
     type: SORT_AUCTION_BY,
     payload: {
@@ -361,8 +345,6 @@ const setOwnedOptions = (change: Partial<OwnedOptions>) => ({
 export {
     LOAD_INVENTORY_STATE,
     SET_CURRENT_INVENTORY,
-    SET_BLUEPRINTS_FILTER,
-    SORT_OWNED_BLUEPRINTS_BY,
     SET_BY_STORE_ITEM_EXPANDED,
     SET_BY_STORE_ALL_ITEMS_EXPANDED,
     SET_BY_STORE_FILTER,
@@ -404,8 +386,6 @@ export {
     SET_OWNED_OPTIONS,
     loadInventoryState,
     setCurrentInventory,
-    setOwnedBlueprintsFilter,
-    sortOwnedBlueprintsBy,
     setByStoreItemExpanded,
     setByStoreMaterialItemExpanded,
     setByStoreAllItemsExpanded,
