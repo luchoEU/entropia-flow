@@ -7,7 +7,7 @@ import PortManager from "../chrome/portManager"
 import { LOCAL_STORAGE } from "../chrome/chromeStorageArea"
 import ChromeTabManager from "../chrome/chromeTab"
 import ITabManager from "../chrome/ITab"
-import { AJAX_ALARM_NAME, HTML_ALARM_NAME, TICK_ALARM_NAME } from "../common/const"
+import { AJAX_ALARM_NAME, TICK_ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
 import WebSocketClient from "./client/webSocketClient"
 import TabStorage from "./tabStorage"
@@ -19,7 +19,6 @@ class BackgroundInitializer {
 
         // chrome
         const messages = new ChromeMessagesHub()
-        const htmlAlarm = new ChromeAlarmManager(HTML_ALARM_NAME)
         const ajaxAlarm = new ChromeAlarmManager(AJAX_ALARM_NAME)
         const tickAlarm = new ChromeAlarmManager(TICK_ALARM_NAME)
         const tabs = new ChromeTabManager()
@@ -32,7 +31,7 @@ class BackgroundInitializer {
             new PortManager(storage, messages, tabs, portName)
 
         // wiring
-        await wiring(messages, notifications, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient,
+        await wiring(messages, notifications, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient,
             portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
 
         async function test() {

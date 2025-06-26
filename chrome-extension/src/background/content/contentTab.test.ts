@@ -29,7 +29,7 @@ describe('content', () => {
         const port = new MockPort()
         ports.firstMock.mockReturnValue(port)
 
-        await contentTabManager.requestItemsAjax(TAG)
+        await contentTabManager.requestItems(TAG)
 
         expect(port.sendMock.mock.calls.length).toBe(1)
         expect(port.sendMock.mock.calls[0].length).toBe(2)
@@ -40,6 +40,6 @@ describe('content', () => {
     test('when request without port expect login error', async () => {
         ports.firstMock.mockReturnValue(undefined)
 
-        expect(await contentTabManager.requestItemsAjax(TAG)).toBe(STRING_PLEASE_LOG_IN)
+        expect(await contentTabManager.requestItems(TAG)).toBe(STRING_PLEASE_LOG_IN)
     })
 })

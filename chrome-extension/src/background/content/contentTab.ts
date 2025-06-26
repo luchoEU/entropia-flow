@@ -1,7 +1,6 @@
 /// <reference types="chrome"/>
 import IPortManager, { IPort } from '../../chrome/IPort'
 import {
-    MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_CONTENT,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
@@ -31,23 +30,16 @@ class ContentTabManager implements IContentTab {
             await this.onDisconnected()
     }
 
-    public async requestItemsHtml(): Promise<string> {
-        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_HTML, { })
-    }
-
-    public async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
-        return await this.requestItems(MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds, forced })
-    }
-
-    private async requestItems(name: string, data: object): Promise<string> {
+    public async requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
         const port = await this.portManager.first()
         if (port === undefined) {
             trace(Component.ContentTabManager, 'requestItems port undefined')
             return STRING_PLEASE_LOG_IN
         } else {
             try {
+                const name = MSG_NAME_REFRESH_ITEMS_AJAX
                 trace(Component.ContentTabManager, `requestItems send ${name}`)
-                port.send(name, data)
+                port.send(name, { tag, waitSeconds, forced })
                 return undefined
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {

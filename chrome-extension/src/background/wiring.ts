@@ -38,7 +38,6 @@ import { decodeHTML } from '../common/html'
 async function wiring(
     messages: IMessagesHub,
     notifications: INotificationManager,
-    refreshItemHtmlAlarm: IAlarmManager,
     refreshItemAjaxAlarm: IAlarmManager,
     refreshItemTickAlarm: IAlarmManager,
     tabs: ITabManager,
@@ -69,7 +68,7 @@ async function wiring(
     const gameLogHistory = new GameLogHistory()
     
     // state
-    const refreshManager = new RefreshManager(refreshItemHtmlAlarm, refreshItemAjaxAlarm, refreshItemTickAlarm, alarmSettings)
+    const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemTickAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
     const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
     

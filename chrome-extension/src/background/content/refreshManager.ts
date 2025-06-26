@@ -6,14 +6,12 @@ import AlarmSettings from "../settings/alarmSettings";
 
 interface IContentTab {
     setStatus(isMonitoring: boolean): Promise<void>
-    requestItemsHtml(): Promise<string>
-    requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
+    requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
     onConnected: () => Promise<void>
     onDisconnected: () => Promise<void>
 }
 
 class RefreshManager {
-    private htmlAlarm: IAlarmManager
     private ajaxAlarm: IAlarmManager
     private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
@@ -22,22 +20,12 @@ class RefreshManager {
     public onInventory: (inventory: Inventory) => Promise<void>
     public setViewStatus: (status: Status) => Promise<void>
 
-    constructor(htmlAlarm: IAlarmManager, ajaxAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
-        this.htmlAlarm = htmlAlarm
+    constructor(ajaxAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
         this.ajaxAlarm = ajaxAlarm
         this.tickAlarm = tickAlarm
         this.alarmSettings = alarmSettings
 
-        // prepare alarms
-        this.htmlAlarm?.listen(async () => {
-            await this.requestItemsHtml();
-            return false;
-        })
-        this.ajaxAlarm?.listen(async () => {
-            if (await this.alarmSettings.isMonitoringOn())
-                await this.requestItemsAjax();
-            return false;
-        })
+        // prepare alarm
         this.tickAlarm?.listen(async () => {
             this._setViewStatus();
             return true;
@@ -52,32 +40,13 @@ class RefreshManager {
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
             const on = await this.alarmSettings.isMonitoringOn();
             await this.contentTab.setStatus(on);
-            await this.htmlAlarm?.start(FIRST_HTML_CHECK_WAIT_SECONDS); // read the items loaded by the page when ready
             await this.tickAlarm?.start(TICK_SECONDS);
         }
 
         contentTab.onDisconnected = async () => {
             await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN);
-            await this.htmlAlarm?.end();
             await this.ajaxAlarm?.end();
             await this.tickAlarm?.end();
-        }
-    }
-
-    private async requestItemsHtml() {
-        await this.handleRequestResult(await this.contentTab.requestItemsHtml())
-    }
-
-    private async requestItemsAjax(tag?: any, waitSeconds?: number, forced?: boolean) {
-        const message = await this.contentTab.requestItemsAjax(tag, waitSeconds, forced)
-        await this.handleRequestResult(message)
-    }
-
-    private async handleRequestResult(message?: string) {
-        if (message !== undefined) {
-            await this._setViewStatus(CLASS_ERROR, message)
-        } else {
-            await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
         }
     }
 
@@ -96,9 +65,7 @@ class RefreshManager {
     public async handleNewInventory(inventory: Inventory) {
         try {
             const logMessage = inventory.log?.message
-            if (logMessage === STRING_NOT_READY) {
-                await this.htmlAlarm.start(NEXT_HTML_CHECK_WAIT_SECONDS)
-            } else if (logMessage === STRING_PLEASE_LOG_IN || logMessage == ERROR_425) {
+            if (logMessage === STRING_NOT_READY || logMessage === STRING_PLEASE_LOG_IN || logMessage == ERROR_425) {
                 // Don't start the alarm
                 await this._setViewStatus(CLASS_ERROR, logMessage)
             } else if (logMessage == STRING_NO_DATA) {
@@ -126,8 +93,6 @@ class RefreshManager {
             await this.alarmSettings.turnMonitoringOn(true)
             if (await this.ajaxAlarm.isActive()) {
                 await this._setViewStatus()
-            } else {
-                await this.requestItemsAjax()
             }
         }
         await this.contentTab?.setStatus(true)
@@ -144,7 +109,12 @@ class RefreshManager {
 
     public async manualRefresh(tag?: any, forced?: boolean) {
         await this.ajaxAlarm?.end()
-        await this.requestItemsAjax(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
+        const message = await this.contentTab.requestItems(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
+        if (message !== undefined) {
+            await this._setViewStatus(CLASS_ERROR, message)
+        } else {
+            await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
+        }
     }
 
     public async getStatus(): Promise<Status> {

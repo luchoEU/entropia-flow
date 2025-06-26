@@ -29,6 +29,7 @@ interface Inventory {
     meta: Meta
     tag?: any
     waitSeconds?: number
+    avatarName?: string
 }
 
 interface TimeLeft {

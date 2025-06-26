@@ -1,20 +1,21 @@
 // Renders and handles the UI in Entropia Universe website
 
-class ContentUI {
-    public isMonitoring = false
-    private showView: () => boolean
-    private setIsMonitoring: (isMonitoring: boolean) => boolean
+import { ContentTimerOptions } from "./contentTimer"
 
-    constructor(showView: () => boolean, setIsMonitoring: (isMonitoring: boolean) => boolean) {
+class ContentUI {
+    private showView: () => boolean
+    private toggleIsMonitoring: () => void
+
+    constructor(showView: () => boolean, toggleIsMonitoring: () => void) {
         this.showView = showView
-        this.setIsMonitoring = setIsMonitoring
+        this.toggleIsMonitoring = toggleIsMonitoring
         this.addDiv()
     }
 
-    public refreshButton() {
+    public refreshButton(isMonitoring: boolean) {
         const div = document.getElementById('EntropiaFlowExtension')
         const btn = document.getElementById('EntropiaFlowButton')
-        if (this.isMonitoring) {
+        if (isMonitoring) {
             btn.innerText = "Stop Automatic Refresh"
             div.className = "stop"
         } else {
@@ -23,31 +24,22 @@ class ContentUI {
         }
     }
 
-    public refreshItemsLoadTime(loadedTime: number, loadingTime?: number) {
+    public refreshItemsLoadTime(options: ContentTimerOptions) {
         const div = document.getElementById('EntropiaFlowExtension')
 
-        const now = new Date().getTime()
-        function pad(t: number) {
-            const time = now - t;
+        function pad(time: number) {
             const hours = Math.floor(time / (1000 * 60 * 60));
             const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((time % (1000 * 60)) / 1000);
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        div.title = `Click icon to open extension. Items loaded ${pad(loadedTime)} ago` + (loadingTime ? `, new request started ${pad(loadingTime)} ago` : '');
-    }
-
-    private getAvatarName(): string {
-        let btnList = document.getElementsByTagName('button')
-        for (let i = 0; i < btnList.length; i++) {
-            if (btnList[i].innerHTML.trim() == 'Log Out') {
-                const loginButton = btnList[i]
-                const prev = loginButton.parentElement.previousSibling as HTMLElement
-                return prev.innerText.replace('Avatar:', '').trim()
-            }
-        }
-        return undefined
+        const now = new Date().getTime()
+        const nextRequest = options.itemsLoadedTime + options.waitSeconds * 1000
+        div.title = `Click icon to open extension. Items loaded ${pad(now - options.itemsLoadedTime)} ago, ` +
+            (options.itemsLoadingTime ? `new request started ${pad(now - options.itemsLoadingTime)} ago` :
+            (options.isMonitoring ? 'updates' : 'safe to refresh') +
+            (nextRequest > now ? ` in ${pad(nextRequest - now)}` : ' now'));
     }
 
     private addDiv() {
@@ -91,7 +83,7 @@ class ContentUI {
         const icon = document.getElementById('EntropiaFlowIcon')
         icon.addEventListener('click', () => this.showView())
         const btn = document.getElementById('EntropiaFlowButton')
-        btn.addEventListener('click', () => this.setIsMonitoring(!this.isMonitoring))
+        btn.addEventListener('click', () => this.toggleIsMonitoring())
     }
 }
 

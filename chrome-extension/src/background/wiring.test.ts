@@ -49,7 +49,6 @@ traceOff()
 
 describe('full', () => {
     let messages: MockMessagesHub
-    let htmlAlarm: MockAlarmManager
     let ajaxAlarm: MockAlarmManager
     let tickAlarm: MockAlarmManager
     let tabs: MockTabManager
@@ -83,7 +82,7 @@ describe('full', () => {
         viewPortManager.allMock.mockReturnValue([viewPort])
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
-        await wiring(messages, undefined, htmlAlarm, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
+        await wiring(messages, undefined, ajaxAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
 
         expect(viewPort.sendMock.mock.calls.length).toBe(1)
         viewPort.sendMock = jest.fn() // clear RefreshManager.SetContentTab in wiring
@@ -92,7 +91,6 @@ describe('full', () => {
     beforeEach(async () => {
         setMockDate(DATE_CONST)
         messages = new MockMessagesHub()
-        htmlAlarm = new MockAlarmManager()
         ajaxAlarm = new MockAlarmManager()
         tickAlarm = new MockAlarmManager()
         tabs = new MockTabManager()
@@ -159,19 +157,6 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN_MONITORING_ON)
-        })
-
-        test('when content connects start html request alarm', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
-            await doWiring()
-
-            await contentPortManager.onConnect(contentPort)
-
-            expect(contentPort.sendMock.mock.calls.length).toBe(1)
-            expect(contentPort.sendMock.mock.calls[0].length).toBe(2)
-            expect(contentPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_CONTENT)
-            expect(contentPort.sendMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
-            expect(htmlAlarm.startMock.mock.calls.length).toBe(1)
         })
 
         test('when content connects expect loading message', async () => {
@@ -373,7 +358,7 @@ describe('partial', () => {
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager())
-        const refreshManager = new RefreshManager(undefined, undefined, undefined, undefined)
+        const refreshManager = new RefreshManager(undefined, undefined, undefined)
         await refreshManager.setContentTab(contentTabManager)
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         await refreshManager.manualRefresh()

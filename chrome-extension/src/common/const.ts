@@ -10,7 +10,6 @@ const PORT_NAME_BACK_CONTENT = 'EntropiaFlowBackgroundContent'
 const MSG_NAME_REGISTER_CONTENT = 'RegisterContent'
 const MSG_NAME_REFRESH_CONTENT = 'RefreshContent'
 const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
-const MSG_NAME_REFRESH_ITEMS_HTML = 'RefreshItemsHtml'
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
 
 // Messages with view
@@ -46,7 +45,6 @@ const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getti
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
 
 // Alarm
-const HTML_ALARM_NAME = 'refreshItemsHtmlAlarm'
 const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
 const TICK_ALARM_NAME = 'refreshItemsTickAlarm'
 
@@ -109,7 +107,6 @@ export {
     MSG_NAME_REGISTER_CONTENT,
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
-    MSG_NAME_REFRESH_ITEMS_HTML,
     MSG_NAME_NEW_INVENTORY,
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,
@@ -137,7 +134,6 @@ export {
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,
     STRING_WAIT_3_MINUTES,
-    HTML_ALARM_NAME,
     AJAX_ALARM_NAME,
     TICK_ALARM_NAME,
     STORAGE_INVENTORY_,

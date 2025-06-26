@@ -13,7 +13,8 @@
             "content.js"
         ],
         "matches": [
-            "https://account.entropiauniverse.com/account/my-account/*"
+            "https://account.entropiauniverse.com/account/my-account/*",
+            "https://account.entropiauniverse.com/auth/login.xml"
         ]
     }],
     "background": {

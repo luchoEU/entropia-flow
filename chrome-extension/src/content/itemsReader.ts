@@ -1,4 +1,4 @@
-import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY } from '../common/const'
+import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY, NEXT_HTML_CHECK_WAIT_SECONDS } from '../common/const'
 import { Inventory, makeLogInventory } from '../common/state'
 import { Component, traceError } from '../common/trace'
 
@@ -17,29 +17,28 @@ class ItemsReader {
                 res.status === 425 ? ERROR_425 :
                 res.status === 429 ? ERROR_429 :
                 `${res.status} - ${res.statusText}`
-            return makeLogInventory(CLASS_ERROR, message)
-        }
-    }
+            const inventory = makeLogInventory(CLASS_ERROR, message)
 
-    private _getWaitSeconds(res: Response, waitSeconds?: number): number {
-        if (!res.ok) {
             if (res.status === 425)
-                return ACCESS_BLOCKED_WAIT_SECONDS
+                inventory.waitSeconds = ACCESS_BLOCKED_WAIT_SECONDS
             if (res.status === 429)
-                return TOO_MANY_WAIT_SECONDS
+                inventory.waitSeconds = TOO_MANY_WAIT_SECONDS
+            
+            return inventory
         }
-        return waitSeconds
     }
 
     public async requestItemsHtml(): Promise<Inventory> {
-        let json: Inventory
+        let inventory: Inventory
         const items = document.getElementById('myItems')
         if (items) {
             const rows = items.getElementsByTagName('tr')
             if (rows.length <= 1) {
-                return makeLogInventory(CLASS_ERROR, STRING_NOT_READY) // not ready yet, retry in a few seconds
+                // not ready yet, retry in a few seconds
+                inventory = makeLogInventory(CLASS_ERROR, STRING_NOT_READY)
+                inventory.waitSeconds = NEXT_HTML_CHECK_WAIT_SECONDS
             } else {
-                json = { itemlist: [], meta: { date: (new Date()).getTime() } }
+                inventory = { itemlist: [], meta: { date: (new Date()).getTime() }, waitSeconds: FIRST_WAIT_SECONDS }
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
                     var cells = row.getElementsByTagName('td');
@@ -63,19 +62,18 @@ class ItemsReader {
                                 }
                             }
                         }
-                        json.itemlist.push({ id, n, q, v, c })
+                        inventory.itemlist.push({ id, n, q, v, c })
                     }
                 }
-                json.waitSeconds = FIRST_WAIT_SECONDS
-                this.loadFromHtml = false // only the first time from html
-                return json
+                this.loadFromHtml = false // the first time should be from html
             }
         } else {
-            return makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
+            inventory = makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
+        return inventory
     }
 
-    public async requestItemsAjax(waitSeconds?: number): Promise<Inventory> {
+    public async requestItemsAjax(): Promise<Inventory> {
         if (this.loadFromHtml)
             return makeLogInventory(CLASS_REQUESTED, STRING_NO_DATA)
 
@@ -92,12 +90,10 @@ class ItemsReader {
             };
             const res = await fetch(URL_MY_ITEMS, options)
             json = await this._getJson(res)
-            waitSeconds = this._getWaitSeconds(res, waitSeconds)
         } catch (e) {
             traceError(Component.ItemsReader, 'json exception:', e)
             json = makeLogInventory(CLASS_ERROR, STRING_PLEASE_LOG_IN)
         }
-        json.waitSeconds = waitSeconds
         return json
     }
 }
