@@ -17,10 +17,10 @@ const PING_HANDLER: PortHandlers = {
     }
 }
 
-function _setListener(port: chrome.runtime.Port, handlerMap: PortHandlers, messageSender: IMessageSender, component: Component, endPointName: string) {
+function _setListener(port: chrome.runtime.Port, handlersMap: PortHandlers, messageSender: IMessageSender, component: Component, endPointName: string) {
     port.onMessage.addListener(async (m, p) => {
         trace(component, `_setListener received: '${m.name}' ${endPointName}`)
-        const handler = PING_HANDLER[m.name] ?? handlerMap?.[m.name]
+        const handler = PING_HANDLER[m.name] ?? handlersMap?.[m.name]
         if (handler) {
             const response = await handler(m, messageSender)
             if (response && response.name) {
@@ -44,13 +44,13 @@ class ChromeMessagesClient implements IMessageSender {
     private port: chrome.runtime.Port
     private pendingMesssage: any
 
-    constructor(registerName: string, portName: string, handlerMap: PortHandlers) {
+    constructor(registerName: string, portName: string, handlersMap: PortHandlers) {
         this.registerName = registerName
 
         chrome.runtime.onConnect.addListener(port => {
             if (port.name === portName) {
                 trace(Component.ChromeMessagesClient, `connected: port '${portName}' registerName '${this.registerName}'`)
-                _setListener(port, handlerMap, this, Component.ChromeMessagesClient, `registerName '${registerName}'`)
+                _setListener(port, handlersMap, this, Component.ChromeMessagesClient, `registerName '${registerName}'`)
                 this.port = port
                 if (this.pendingMesssage) {
                     trace(Component.ChromeMessagesClient, `send: pending '${this.pendingMesssage.name}' on registerName '${this.registerName}'`)

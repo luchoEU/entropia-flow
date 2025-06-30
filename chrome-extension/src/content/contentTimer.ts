@@ -61,6 +61,10 @@ class ContentTimer {
         return undefined
     }
 
+    public async wakeUp() {
+        trace(Component.RefreshItem, 'wakeUp received');
+    }
+
     public async trigger(forced: boolean, fromHtml: boolean, source: string, waitSeconds?: number, tag?: any): Promise<Inventory> {
         if (!forced) {
             const now = new Date().getTime()

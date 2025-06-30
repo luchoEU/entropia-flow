@@ -78,7 +78,7 @@ class ContentUI {
         div.id = 'EntropiaFlowExtension';
         div.innerHTML = `
             <img id='EntropiaFlowIcon' src='https://i.ibb.co/5RxzC2Y/flow128w.png'>
-            <button id='EntropiaFlowButton'>Connecting to Entropia Flow extension...</button>`;
+            <button id='EntropiaFlowButton'>${this.toggleIsMonitoring ? 'Connecting to Entropia Flow extension...' : 'Entropia Flow'}</button>`;
         document.body.appendChild(div);
         const icon = document.getElementById('EntropiaFlowIcon')
         icon.addEventListener('click', () => this.showView())

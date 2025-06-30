@@ -1,20 +1,18 @@
 {
     "manifest_version": 3,
-
     "name": "Entropia Flow",
     "description": "This extension help you see your returns in Entropia Universe",
     "version": "0.5.1",
     "icons": {
         "128": "img/flow128.png"
     },
-
     "content_scripts": [{
         "js": [
-            "content.js"
+            "content-entropia-flow.js"
         ],
         "matches": [
             "https://account.entropiauniverse.com/account/my-account/*",
-            "https://account.entropiauniverse.com/auth/login.xml"
+            "https://account.entropiauniverse.com/auth/login.xml*"
         ]
     }],
     "background": {

@@ -4,7 +4,8 @@ import {
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_CONTENT,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
-    STRING_PLEASE_LOG_IN
+    STRING_PLEASE_LOG_IN,
+    MSG_NAME_REFRESH_WAKE_UP
 } from '../../common/const'
 import { Component, trace, traceError } from '../../common/trace'
 import { IContentTab } from './refreshManager'
@@ -49,6 +50,25 @@ class ContentTabManager implements IContentTab {
                     traceError(Component.ContentTabManager, 'requestItems exception:', e)
                 }
                 return STRING_CONNECTION_BACKGROUND_TO_CONTENT // STRING_PLEASE_LOG_IN
+            }
+        }
+    }
+
+    public async wakeUp() {
+        const port = await this.portManager.first()
+        if (port === undefined) {
+            trace(Component.ContentTabManager, 'wakeUp port undefined')
+        } else {
+            try {
+                trace(Component.ContentTabManager, `wakeUp sent`)
+                port.send(MSG_NAME_REFRESH_WAKE_UP)
+            } catch (e) {
+                if (e.message === 'Attempting to use a disconnected port object') {
+                    // expected fail
+                    trace(Component.ContentTabManager, 'wakeUp send failed')
+                } else {
+                    traceError(Component.ContentTabManager, 'wakeUp exception:', e)
+                }
             }
         }
     }

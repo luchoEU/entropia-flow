@@ -7,6 +7,7 @@ import AlarmSettings from "../settings/alarmSettings";
 interface IContentTab {
     setStatus(isMonitoring: boolean): Promise<void>
     requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
+    wakeUp(): Promise<void>
     onConnected: () => Promise<void>
     onDisconnected: () => Promise<void>
 }
@@ -25,7 +26,12 @@ class RefreshManager {
         this.tickAlarm = tickAlarm
         this.alarmSettings = alarmSettings
 
-        // prepare alarm
+        // prepare alarms
+        this.ajaxAlarm?.listen(async () => {
+            if (this.stickyStatus?.message !== STRING_LOADING_ITEMS)
+                await this.contentTab.wakeUp()
+            return false;
+        })
         this.tickAlarm?.listen(async () => {
             this._setViewStatus();
             return true;

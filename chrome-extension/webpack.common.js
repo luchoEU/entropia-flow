@@ -6,7 +6,7 @@ module.exports = {
   entry: {
     view: path.join(__dirname, "src/view/index.tsx"),
     background: path.join(__dirname, "src/background/background.ts"),
-    content: path.join(__dirname, "src/content/content.ts")
+    'content-entropia-flow': path.join(__dirname, "src/content/content-entropia-flow.ts")
   },
   output: {
     path: path.join(__dirname, "dist"),
