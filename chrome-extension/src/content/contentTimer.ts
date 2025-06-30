@@ -1,6 +1,6 @@
 import { CLASS_ERROR, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_PLEASE_LOG_IN, STRING_WAIT_3_MINUTES } from "../common/const";
 import { Inventory, makeLogInventory } from "../common/state";
-import { Component, traceEnd, traceStart } from "../common/trace";
+import { Component, trace, traceEnd, traceStart } from "../common/trace";
 
 interface ContentTimerOptions {
     isMonitoring: boolean;
@@ -13,27 +13,35 @@ interface ContentTimerOptions {
 class ContentTimer {
     private options: ContentTimerOptions;
     private requestItems: (fromHtml: boolean) => Promise<Inventory>
+    private sendLoading: (loading: boolean) => void
 
     constructor(
         requestItems: (fromHtml: boolean) => Promise<Inventory>,
         refreshItemsLoadTime: (options: ContentTimerOptions) => void,
+        sendLoading: (loading: boolean) => void,
         sendInventory: (inventory: Inventory) => void)
     {
         this.requestItems = requestItems
+        this.sendLoading = sendLoading
         this.options = {
             isMonitoring: false,
             firstRequest: true,
             waitSeconds: FIRST_HTML_CHECK_WAIT_SECONDS,
             itemsLoadedTime: new Date().getTime()
         }
-        const updateItemsLoadTime = async () => {
-            refreshItemsLoadTime(this.options);
-            setTimeout(updateItemsLoadTime, 1000);
+        const checkUpdateItemsLoadTime = async () => {
             if (!this.options.itemsLoadingTime && (this.options.isMonitoring || this.options.firstRequest)) {
                 const inventory = await this.trigger(false, this.options.firstRequest, 'auto')
-                if (inventory.log?.class !== CLASS_ERROR)
+                if (inventory.log?.class !== CLASS_ERROR) {
                     sendInventory(inventory);
+                    setTimeout(checkUpdateItemsLoadTime, inventory.waitSeconds * 1000);
+                }
             }
+        }
+        const updateItemsLoadTime = () => {
+            refreshItemsLoadTime(this.options);
+            setTimeout(updateItemsLoadTime, 1000);
+            checkUpdateItemsLoadTime();
         };
         updateItemsLoadTime();
     }
@@ -67,12 +75,14 @@ class ContentTimer {
         }
 
         this.options.itemsLoadingTime = new Date().getTime();
+        this.sendLoading(true)
         traceStart(Component.RefreshItem, `request start {source: ${source}, fromHtml: ${fromHtml}}`)
         const inventory = await this.requestItems(fromHtml);
         inventory.avatarName = this._getAvatarName()
         inventory.waitSeconds ??= waitSeconds ?? NORMAL_WAIT_SECONDS;
         inventory.tag = tag;
         traceEnd(Component.RefreshItem, `request end {inventory items: ${inventory.itemlist?.length ?? 'error'}}`)
+        this.sendLoading(false)
         if (inventory.log?.class !== CLASS_ERROR)
             this.options.firstRequest = false;
         this.options.waitSeconds = inventory.waitSeconds;

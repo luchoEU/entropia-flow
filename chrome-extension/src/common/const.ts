@@ -11,6 +11,7 @@ const MSG_NAME_REGISTER_CONTENT = 'RegisterContent'
 const MSG_NAME_REFRESH_CONTENT = 'RefreshContent'
 const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
+const MSG_NAME_LOADING = 'Loading'
 
 // Messages with view
 const PORT_NAME_BACK_VIEW = 'EntropiaFlowBackgroundView'
@@ -108,6 +109,7 @@ export {
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_NEW_INVENTORY,
+    MSG_NAME_LOADING,
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REFRESH_VIEW,

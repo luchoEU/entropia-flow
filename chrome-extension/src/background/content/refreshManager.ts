@@ -1,6 +1,6 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
-import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
-import { Inventory, Log, Status, TimeLeft } from "../../common/state";
+import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
+import { Inventory, Log, Status } from "../../common/state";
 import { Component, traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
@@ -82,6 +82,14 @@ class RefreshManager {
         } catch (e) {
             traceError(Component.RefreshManager, 'handleNewInventory exception:', e)
             await this._setViewStatus(CLASS_ERROR, e.message)
+        }
+    }
+
+    public async handleLoading(loading: boolean) {
+        if (loading) {
+            await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
+        } else {
+            await this._setViewStatus()
         }
     }
 

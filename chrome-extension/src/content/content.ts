@@ -6,7 +6,8 @@ import {
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_REQUEST_TIMER_OFF,
-    MSG_NAME_REQUEST_TIMER_ON} from '../common/const'
+    MSG_NAME_REQUEST_TIMER_ON,
+    MSG_NAME_LOADING} from '../common/const'
 import { traceId } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
@@ -40,6 +41,7 @@ class ContentInitializer {
         const contentUI = new ContentUI(showView, toggleIsMonitoring)
         const timer = new ContentTimer(requestItems,
             contentUI.refreshItemsLoadTime,
+            loading => messagesClient.send(MSG_NAME_LOADING, { loading }),
             inventory => messagesClient.send(MSG_NAME_NEW_INVENTORY, { inventory }));
 
         messagesClient = new ChromeMessagesClient(
