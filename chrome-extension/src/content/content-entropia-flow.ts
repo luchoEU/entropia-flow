@@ -22,45 +22,39 @@ import { PortHandlers } from '../chrome/IPort'
 //// INITIALIZATION ////
 
 class ContentInitializer {
-    public static init(isLogin: boolean) {
+    public static init() {
         let messagesClient: ChromeMessagesClient
         function showView(): boolean {
             return messagesClient.send(MSG_NAME_OPEN_VIEW)
         }
+        function toggleIsMonitoring(): boolean {
+            if (timer.isMonitoring)
+                return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
+            else
+                return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
+        }
+        async function requestItems(fromHtml: boolean): Promise<Inventory> {
+            return fromHtml ? await itemReader.requestItemsHtml() : await itemReader.requestItemsAjax()
+        }
 
-        let handlersMap: PortHandlers = { }
-        if (isLogin) {
-            new ContentUI(showView, undefined)
-        } else {
-            function toggleIsMonitoring(): boolean {
-                if (timer.isMonitoring)
-                    return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
-                else
-                    return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
-            }
-            async function requestItems(fromHtml: boolean): Promise<Inventory> {
-                return fromHtml ? await itemReader.requestItemsHtml() : await itemReader.requestItemsAjax()
-            }
-
-            const itemReader = new ItemsReader()
-            const contentUI = new ContentUI(showView, toggleIsMonitoring)
-            const timer = new ContentTimer(requestItems,
+        const itemReader = new ItemsReader()
+        const contentUI = new ContentUI(showView, toggleIsMonitoring)
+        const timer = new ContentTimer(requestItems,
                 contentUI.refreshItemsLoadTime,
                 loading => messagesClient.send(MSG_NAME_LOADING, { loading }),
                 inventory => messagesClient.send(MSG_NAME_NEW_INVENTORY, { inventory }));
 
-            handlersMap = {
-                [MSG_NAME_REFRESH_WAKE_UP]: async () => {
-                    await timer.wakeUp()
-                },
-                [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
-                    const inventory = await timer.trigger(m.forced, false, 'ajax', m.waitSeconds, m.tag);
-                    return { name: MSG_NAME_NEW_INVENTORY, inventory }
-                },
-                [MSG_NAME_REFRESH_CONTENT]: async (m) => {
-                    timer.isMonitoring = m.isMonitoring
-                    contentUI.refreshButton(m.isMonitoring)
-                }
+        const handlersMap: PortHandlers = {
+            [MSG_NAME_REFRESH_WAKE_UP]: async () => {
+                await timer.wakeUp()
+            },
+            [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
+                const inventory = await timer.trigger(m.forced, false, 'ajax', m.waitSeconds, m.tag);
+                return { name: MSG_NAME_NEW_INVENTORY, inventory }
+            },
+            [MSG_NAME_REFRESH_CONTENT]: async (m) => {
+                timer.isMonitoring = m.isMonitoring
+                contentUI.refreshButton(m.isMonitoring)
             }
         }
 
@@ -71,6 +65,4 @@ class ContentInitializer {
     }
 }
 
-traceId('C')
-const isLogin = window.location.pathname === "/auth/login.xml"
-ContentInitializer.init(isLogin)
+ContentInitializer.init()
