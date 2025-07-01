@@ -5,12 +5,10 @@ import { refresh, timerOff, timerOn } from '../../application/actions/messages';
 import { getHistory } from '../../application/selectors/history';
 import { getStatus } from '../../application/selectors/status';
 import { HistoryState } from '../../application/state/history';
-import { STRING_PLEASE_LOG_IN } from '../../../common/const';
+import { STRING_PLEASE_LOG_IN, URL_MY_ITEMS_PAGE } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
 import ExpandableSection from '../common/ExpandableSection2';
 import { setExpanded } from '../../application/actions/expandable';
-
-const MY_ITEMS_URL = 'https://account.entropiauniverse.com/account/my-account/my-items/'
 
 const Status = () => {
     const dispatch = useDispatch()
@@ -37,7 +35,7 @@ const Status = () => {
             }
             <span className={className}>
                 {message === STRING_PLEASE_LOG_IN ?
-                    <a href={MY_ITEMS_URL} target="_blank">{message}</a>
+                    <a href={URL_MY_ITEMS_PAGE} target="_blank">{message}</a>
                     : message
                 }
             </span>

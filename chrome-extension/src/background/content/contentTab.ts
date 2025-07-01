@@ -5,7 +5,8 @@ import {
     MSG_NAME_REFRESH_CONTENT,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
     STRING_PLEASE_LOG_IN,
-    MSG_NAME_REFRESH_WAKE_UP
+    MSG_NAME_REFRESH_WAKE_UP,
+    URL_MY_ITEMS_PAGE
 } from '../../common/const'
 import { Component, trace, traceError } from '../../common/trace'
 import { IContentTab } from './refreshManager'
@@ -38,9 +39,15 @@ class ContentTabManager implements IContentTab {
             return STRING_PLEASE_LOG_IN
         } else {
             const tab = await chrome.tabs.get(port.getTabId())
-            if (tab.discarded || tab.frozen) {
+            if (tab.discarded) {
                 trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
                 chrome.tabs.reload(tab.id, {}, () => { });
+                return undefined
+            }
+            if (tab.frozen) {
+                chrome.tabs.update(tab.id, { active: true }, () => {
+                    trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
+                });
                 return undefined
             }
 

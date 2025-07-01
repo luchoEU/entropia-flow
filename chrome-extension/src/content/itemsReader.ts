@@ -1,4 +1,4 @@
-import { CLASS_ERROR, URL_MY_ITEMS, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY, NEXT_HTML_CHECK_WAIT_SECONDS } from '../common/const'
+import { CLASS_ERROR, ERROR_425, ERROR_429, STRING_PLEASE_LOG_IN, ACCESS_BLOCKED_WAIT_SECONDS, TOO_MANY_WAIT_SECONDS, CLASS_REQUESTED, STRING_NO_DATA, NORMAL_WAIT_SECONDS, FIRST_WAIT_SECONDS, STRING_NOT_READY, NEXT_HTML_CHECK_WAIT_SECONDS, URL_MY_ITEMS_DATA } from '../common/const'
 import { Inventory, makeLogInventory } from '../common/state'
 import { Component, traceError } from '../common/trace'
 
@@ -88,7 +88,7 @@ class ItemsReader {
                 },
                 body: null
             };
-            const res = await fetch(URL_MY_ITEMS, options)
+            const res = await fetch(URL_MY_ITEMS_DATA, options)
             json = await this._getJson(res)
         } catch (e) {
             traceError(Component.ItemsReader, 'json exception:', e)
