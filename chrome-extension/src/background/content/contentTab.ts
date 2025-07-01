@@ -32,42 +32,32 @@ class ContentTabManager implements IContentTab {
     }
 
     private async _send(logName: string, messageName: string, data?: object): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            chrome.tabs.query({ url: "https://account.entropiauniverse.com/account/my-account/*" }, async (tabs) => {
-                trace(Component.ContentTabManager, `${logName} found ${tabs.length} tabs`)
-                let anyDiscarded = false
-                for (const tab of tabs) {
-                    if (tab.discarded) {
-                        trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
-                        chrome.tabs.reload(tab.id, {}, () => { });
-                        anyDiscarded = true
-                    }
-                }
-                if (anyDiscarded) {
-                    resolve(undefined)
-                }
+        const port = await this.portManager.first()
+        if (port === undefined) {
+            trace(Component.ContentTabManager, `${logName} port undefined`)
+            return STRING_PLEASE_LOG_IN
+        } else {
+            const tab = await chrome.tabs.get(port.getTabId())
+            if (tab.discarded || tab.frozen) {
+                trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
+                chrome.tabs.reload(tab.id, {}, () => { });
+                return undefined
+            }
 
-                const port = await this.portManager.first()
-                if (port === undefined) {
-                    trace(Component.ContentTabManager, `${logName} port undefined`)
-                    resolve(STRING_PLEASE_LOG_IN)
+            try {
+                trace(Component.ContentTabManager, `${logName} sent message ${messageName}`)
+                port.send(messageName)
+                return undefined
+            } catch (e) {
+                if (e.message === 'Attempting to use a disconnected port object') {
+                    // expected fail
+                    trace(Component.ContentTabManager, `${logName} send failed`)
                 } else {
-                    try {
-                        trace(Component.ContentTabManager, `${logName} sent message ${messageName}`)
-                        port.send(messageName)
-                        resolve(undefined)
-                    } catch (e) {
-                        if (e.message === 'Attempting to use a disconnected port object') {
-                            // expected fail
-                            trace(Component.ContentTabManager, `${logName} send failed`)
-                        } else {
-                            traceError(Component.ContentTabManager, `${logName} exception:`, e)
-                        }
-                        resolve(STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
-                    }
+                    traceError(Component.ContentTabManager, `${logName} exception:`, e)
                 }
-            })
-        })
+                return STRING_CONNECTION_BACKGROUND_TO_CONTENT // STRING_PLEASE_LOG_IN
+            }
+        }
     }
 
     public async requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
