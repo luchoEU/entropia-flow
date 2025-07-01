@@ -350,7 +350,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
 
     return (
         <div className='craft-chain'>
-            <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
+            <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
             </h2>
             <div>
@@ -425,7 +425,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     return (
         <section>
             <div className='inline'>
-                <h1 className='img-hover'>
+                <h1 className='img-container-hover'>
                     <ImgButton title='Back to list' src='img/left.png' beforeText={bp.name} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
                     <StarButton bpName={bp.name} />
                     <CraftPlanet />
@@ -435,7 +435,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
             <div className='inline'>
                 { chainNames.map(name =>
                     <div className='craft-chain'>
-                        <h2 className='pointer img-hover' onClick={(e) => {
+                        <h2 className='pointer img-container-hover' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(name, undefined))
                             }}>
@@ -445,7 +445,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                 )}
                 { lastBpChain &&
                     <div className='craft-chain'>
-                        <h2 className='pointer img-hover' onClick={(e) => {
+                        <h2 className='pointer img-container-hover' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined))
                             }}>

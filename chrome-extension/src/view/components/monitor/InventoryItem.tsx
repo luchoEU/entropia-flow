@@ -35,13 +35,13 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                 <ItemText className={item.class} text={ item.text } />
                 { item.info &&
                     <span
-                        className='img-info'
+                        className='img-txt-info'
                         title={item.info}>i</span>
                 }
                 { item.canBeLast && <ImgButton
                     title='Export all items to a file'
                     src='img/export.png'
-                    className='img-export'
+                    className='img-btn-export'
                     dispatch={() => exportToFile(item.key)} />
                 }
             </td>
@@ -49,13 +49,14 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                 { item.isLast ?
                     <span className='label-up'>Session Start</span> :
                     (item.canBeLast &&
-                        <span className='img-up' title='Set this moment as the start of the session'
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                dispatch(setAsLast(item.key))
-                            }}>
-                            <img src='img/up.png' />Session Start
-                        </span>)
+                        <ImgButton
+                            title='Set this moment as the start of the session'
+                            src='img/up.png'
+                            className='img-btn-up'
+                            afterText='Session Start'
+                            dispatch={() => setAsLast(item.key)}
+                        />
+                    )
                 }
             </td>
         </tr>

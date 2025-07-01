@@ -26,7 +26,7 @@ function StreamView() {
         <ExpandableSection selector='StreamView' title='' subtitle='Stream View' hideExpandableArrow className='stream-view-section'
             afterTitle={showVisibility && <ImgButton
                 title={`click to ${streamViewPinned ? 'Unpin' : 'Pin'} Stream View`}
-                className='img-stream-view-pin'
+                className='img-btn-stream-view-pin'
                 src={streamViewPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                 dispatch={() => pinStreamView(!streamViewPinned)}
             />}

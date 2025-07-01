@@ -22,7 +22,7 @@ function WebDataControl<T>({
     const reload = () => dispatchReload && <ImgButton
         title={`Try to load ${name} again`}
         src='img/reload.png'
-        className='img-delta-zero'
+        className='img-btn-delta-zero'
         dispatch={dispatchReload} />
 
     useEffect(() => {

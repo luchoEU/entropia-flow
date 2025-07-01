@@ -6,14 +6,12 @@ const initialState: StatusState = {
     class: CLASS_INFO,
     message: STRING_CONNECTING,
     showLoading: true,
-    showTimer: false,
     isMonitoring: true
 }
 
 const reduceSetStatus = (state: StatusState, status: Status): StatusState => ({
     ...status,
-    showLoading: status.message.includes('...'),
-    showTimer: status.message.includes(':'),
+    showLoading: status.message.includes('...')
 })
 
 export {

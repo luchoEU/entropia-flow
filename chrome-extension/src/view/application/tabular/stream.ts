@@ -50,7 +50,7 @@ const _field = (g: StreamComputedVariable, selector: string, maxWidth: number, f
         const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserVariablePartial(g.id, { [selector]: v }) }
         const img: RowValue =
             flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserVariable(g.id) } ||
-            flag.formulaHelp && { text: 'i', class: 'img-info', title: formulaHelp, width: 16 }
+            flag.formulaHelp && { text: 'i', class: 'img-txt-info', title: formulaHelp, width: 16 }
         return img ? { sub: [ w, img ] } : w;
     } else if (maxWidth) {
         const v = g[selector];

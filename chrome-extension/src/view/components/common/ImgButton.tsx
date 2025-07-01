@@ -37,7 +37,6 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
             {...show ? { 'data-show': true } : {}}>
             {beforeText}
             <img src={src}
-                {...className ? { className } : {}}
                 {...show ? { 'data-show': true } : {}}
             />
             {clickPopup && <span style={{ display: 'none' }} className='popup'>{clickPopup}</span>}

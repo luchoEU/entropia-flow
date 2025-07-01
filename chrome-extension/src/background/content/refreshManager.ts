@@ -28,8 +28,9 @@ class RefreshManager {
 
         // prepare alarms
         this.ajaxAlarm?.listen(async () => {
-            if (this.stickyStatus?.message !== STRING_LOADING_ITEMS)
+            if (this.stickyStatus?.message !== STRING_LOADING_ITEMS) {
                 await this.contentTab.wakeUp()
+            }
             return false;
         })
         this.tickAlarm?.listen(async () => {
@@ -126,8 +127,6 @@ class RefreshManager {
         const message = await this.contentTab.requestItems(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
         if (message !== undefined) {
             await this._setViewStatus(CLASS_ERROR, message)
-        } else {
-            await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)
         }
     }
 

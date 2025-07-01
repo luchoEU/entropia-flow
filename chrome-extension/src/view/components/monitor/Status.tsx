@@ -15,26 +15,24 @@ const MY_ITEMS_URL = 'https://account.entropiauniverse.com/account/my-account/my
 const Status = () => {
     const dispatch = useDispatch()
     const history: HistoryState = useSelector(getHistory)
-    const { class: className, message, showTimer, showLoading, isMonitoring } = useSelector(getStatus);
+    const { class: className, message, showLoading, isMonitoring } = useSelector(getStatus);
 
     return (
         <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items' subtitle='Status of connection' actionRequired={message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined}>
-            { showTimer &&
+            { showLoading ?
+                <img src='img/loading.gif'
+                    className='img-refresh-loading' /> :
                 <ImgButton
                     title='Refresh'
                     src='img/reload.png'
-                    className='img-refresh'
+                    className='img-btn-refresh'
                     dispatch={() => refresh} />
-            }
-            { showLoading &&
-                <img src='img/loading.gif'
-                    className='img-refresh' />
             }
             { history.hiddenError &&
                 <ImgButton
                     title={history.hiddenError}
                     src='img/error.png'
-                    className='img-refresh'
+                    className='img-btn-refresh'
                     dispatch={() => setExpanded('MonitorStatus')(true)} />
             }
             <span className={className}>

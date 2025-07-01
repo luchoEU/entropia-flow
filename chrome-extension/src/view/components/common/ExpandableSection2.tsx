@@ -62,7 +62,7 @@ const ExpandableSection = ({
                     }}>{title}</span>
                     { showVisible &&
                         <ImgButton title={visible ? 'click to Hide Section' : 'click to Show Section'}
-                            className='img-visible-section'
+                            className='img-btn-visible-section'
                             src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                             dispatch={() => setVisible(visibleSelector)(!visible)} />}
                     { visible && !hideExpandableArrow && !actionRequired && <ExpandableArrowButton expanded={expanded} setExpanded={setExpanded(selector)} /> }

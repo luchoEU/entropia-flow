@@ -76,14 +76,14 @@ const Last = () => {
                     <ImgButton
                         title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
                         src='img/warning.png'
-                        className='img-warning'
+                        className='img-btn-warning'
                         dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />
                 }
                 { diff !== null && craft.activeSession === undefined &&
                     <ImgButton
                         title='Set as Session Start'
                         src='img/tick.png'
-                        className='img-delta-zero'
+                        className='img-btn-delta-zero'
                         dispatch={() => setLast} />
                 }
                 { expanded &&
@@ -91,7 +91,7 @@ const Last = () => {
                         <ImgButton
                             title='Copy to clipboard'
                             src='img/copy.png'
-                            className='img-copy'
+                            className='img-btn-copy'
                             clickPopup='Copied!'
                             dispatch={() => copyLast} />
                         <TextButton

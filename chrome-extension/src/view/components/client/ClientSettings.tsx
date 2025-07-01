@@ -24,7 +24,7 @@ function EntropiaFlowClient() {
                     <ImgButton
                         title='Try to connect again'
                         src='img/reload.png'
-                        className='img-delta-zero'
+                        className='img-btn-delta-zero'
                         dispatch={() => webSocketRetry} />
                 </p>
             </ExpandableSection>

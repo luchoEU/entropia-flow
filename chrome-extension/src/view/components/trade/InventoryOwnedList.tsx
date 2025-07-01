@@ -79,7 +79,7 @@ const TradeItemDetailsChain = () => {
         { tradeItemDataChain.map((tradeItemData, chainIndex) => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
             return <div key={tradeItemData.name} className='trade-item-data'>
-                <h2 className='pointer img-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
+                <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
                 </h2>
                 { !chainNext && <TradeItemDetails

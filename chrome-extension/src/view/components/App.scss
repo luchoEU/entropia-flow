@@ -70,13 +70,12 @@ nav .img-logo {
     height: 20px;
 }
 
-nav .img-subtitles {
+nav .img-btn-ubtitles {
     display: inline-flex;
     align-items: flex-end;
     height: $nav-subtitle-height;
 }
-
-nav .img-subtitles img {
+nav .img-btn-subtitles img {
     height: 14px;
 }
 
@@ -153,16 +152,19 @@ nav .stream-view-section {
     margin-left: 8px;
 }
 
-.img-visible-tab, .img-visible-section, .img-stream-view-pin {
+.img-btn-visible-tab img, .img-btn-visible-section img, .img-btn-stream-view-pin img {
     height: 20px;
     margin: 0px 3px;
 }
 
-.img-nav-pin {
-    height: 20px;
+.img-btn-nav-pin {
     float: right;
     flex: 1;
 }
+.img-btn-nav-pin img {
+    height: 20px;
+}
+
 
 // General
 section {
@@ -377,7 +379,7 @@ form label {
 
 .table-diff tr td img,
 .item-row img,
-.img-hover img {
+.img-container-hover img {
     visibility: hidden;
     align-self: center;
 }
@@ -386,8 +388,8 @@ form label {
 .table-diff tr td img[data-show],
 .item-row:hover img,
 .item-row img[data-show],
-.img-hover:hover img,
-.img-hover img[data-show] {
+.img-container-hover:hover img,
+.img-container-hover img[data-show] {
     visibility: visible;
 }
 
@@ -409,14 +411,14 @@ form label {
     text-align: end;
 }
 
-.item-row .img-up,
-.item-row .img-info {
-    display: none;
+.item-row .img-btn-up,
+.item-row .img-txt-info {
+    visibility: hidden;
 }
 
-.item-row:hover .img-up,
-.item-row:hover .img-info {
-    display: inline;
+.item-row:hover .img-btn-up,
+.item-row:hover .img-txt-info {
+    visibility: visible;
 }
 
 .difference {
@@ -436,17 +438,17 @@ form label {
     background-color: red;
 }
 
-.img-refresh {
+.img-btn-refresh img, .img-refresh-loading {
     height: 20px;
     margin-right: 10px;
 }
 
-.img-delta-zero, .img-copy {
+.img-btn-delta-zero img, .img-btn-copy img {
     height: 15px;
     margin-left: 10px;
 }
 
-.img-export img {
+.img-btn-export img {
     height: 14px;
 }
 
@@ -468,7 +470,7 @@ form label {
     align-self: center;
 }
 
-.img-warning {
+.img-btn-warning img, .img-warning {
     height: 25px;
     margin-left: 10px;
 }
@@ -478,20 +480,19 @@ form label {
     margin-right: 10px;
 }
 
-.img-up {
+.img-btn-up {
     margin-left: 8px;
     font-weight: normal;
     font-style: normal;
     cursor: default;
 }
-
-.img-up img {
+.img-btn-up img {
     height: 10px;
     margin-right: 2px;
     margin-bottom: 2px;
 }
 
-.img-info {
+.img-txt-info {
     height: 15px;
     margin-left: 5px;
     font-weight: normal;
@@ -679,7 +680,7 @@ button:active {
 }
 
 .button-markup {
-    margin-left: 15px;
+    margin-left: 10px;
     border-color: transparent;
 }
 
@@ -798,16 +799,8 @@ button:active {
     height: 300px;
 }
 
-.item-row .img-info {
-    visibility: hidden;
-}
-
 .item-row .active {
     font-weight: bold;
-}
-
-.item-row:hover .img-info {
-    visibility: visible;
 }
 
 .stream-editor-button {

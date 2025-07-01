@@ -59,7 +59,7 @@ const Tab = (p: {
             { p.actionRequired && <img className='img-warning-menu' src='img/warning.png' title={p.actionRequired} /> }
             { showVisibility &&
                 <ImgButton title={visible ? 'click to Hide Tab' : 'click to Show Tab'}
-                    className='img-visible-tab'
+                    className='img-btn-visible-tab'
                     src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                     dispatch={() => setVisible(visibleSelector)(!visible)} />
             }
@@ -86,7 +86,7 @@ const FirstRow = () => {
             { showVisibility &&
                 <ImgButton
                     title={`click to ${menuPinned ? 'Unpin' : 'Pin'} Menu`}
-                    className='img-nav-pin'
+                    className='img-btn-nav-pin'
                     src={menuPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                     dispatch={() => pinMenu(!menuPinned)} />
             }
@@ -110,16 +110,16 @@ const Navigation = () => {
                         <div>
                             <span>{tabSubtitle[tabId]}</span>
                             <ImgButton title={showVisibleToggle ? 'click to Hide Section Visibility Button' : 'click to Show Section Visibility Button'}
-                                className='img-visible-section'
+                                className='img-btn-visible-section'
                                 src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                                 dispatch={() => setShowVisibleToggle(!showVisibleToggle)} />
-                            <ImgButton title='Hide Subtitles' className='img-subtitles' src='img/up.png' dispatch={() => setShowSubtitles(false)} />
+                            <ImgButton title='Hide Subtitles' className='img-btn-subtitles' src='img/up.png' dispatch={() => setShowSubtitles(false)} />
                         </div>
                     </div> :
                     <div className='nav-row'>
                         <FirstRow />
                         <div style={{ flex: 1 }} />
-                        <ImgButton title='Show Subtitles' className='img-subtitles' src='img/down.png' dispatch={() => setShowSubtitles(true)} />
+                        <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' dispatch={() => setShowSubtitles(true)} />
                     </div>
                 }
                 { streamViewPinned && <StreamView /> }
