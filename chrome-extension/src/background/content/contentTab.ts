@@ -31,46 +31,51 @@ class ContentTabManager implements IContentTab {
             await this.onDisconnected()
     }
 
-    public async requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
-        const port = await this.portManager.first()
-        if (port === undefined) {
-            trace(Component.ContentTabManager, 'requestItems port undefined')
-            return STRING_PLEASE_LOG_IN
-        } else {
-            try {
-                const name = MSG_NAME_REFRESH_ITEMS_AJAX
-                trace(Component.ContentTabManager, `requestItems send ${name}`)
-                port.send(name, { tag, waitSeconds, forced })
-                return undefined
-            } catch (e) {
-                if (e.message === 'Attempting to use a disconnected port object') {
-                    // expected fail
-                    trace(Component.ContentTabManager, 'requestItems send failed')
-                } else {
-                    traceError(Component.ContentTabManager, 'requestItems exception:', e)
+    private async _send(logName: string, messageName: string, data?: object): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            chrome.tabs.query({ url: "https://account.entropiauniverse.com/account/my-account/*" }, async (tabs) => {
+                trace(Component.ContentTabManager, `${logName} found ${tabs.length} tabs`)
+                let anyDiscarded = false
+                for (const tab of tabs) {
+                    if (tab.discarded) {
+                        trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
+                        chrome.tabs.reload(tab.id, {}, () => { });
+                        anyDiscarded = true
+                    }
                 }
-                return STRING_CONNECTION_BACKGROUND_TO_CONTENT // STRING_PLEASE_LOG_IN
-            }
-        }
+                if (anyDiscarded) {
+                    resolve(undefined)
+                }
+
+                const port = await this.portManager.first()
+                if (port === undefined) {
+                    trace(Component.ContentTabManager, `${logName} port undefined`)
+                    resolve(STRING_PLEASE_LOG_IN)
+                } else {
+                    try {
+                        trace(Component.ContentTabManager, `${logName} sent message ${messageName}`)
+                        port.send(messageName)
+                        resolve(undefined)
+                    } catch (e) {
+                        if (e.message === 'Attempting to use a disconnected port object') {
+                            // expected fail
+                            trace(Component.ContentTabManager, `${logName} send failed`)
+                        } else {
+                            traceError(Component.ContentTabManager, `${logName} exception:`, e)
+                        }
+                        resolve(STRING_CONNECTION_BACKGROUND_TO_CONTENT) // STRING_PLEASE_LOG_IN
+                    }
+                }
+            })
+        })
+    }
+
+    public async requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
+        return this._send('requestItems', MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds, forced })
     }
 
     public async wakeUp() {
-        const port = await this.portManager.first()
-        if (port === undefined) {
-            trace(Component.ContentTabManager, 'wakeUp port undefined')
-        } else {
-            try {
-                trace(Component.ContentTabManager, `wakeUp sent`)
-                port.send(MSG_NAME_REFRESH_WAKE_UP)
-            } catch (e) {
-                if (e.message === 'Attempting to use a disconnected port object') {
-                    // expected fail
-                    trace(Component.ContentTabManager, 'wakeUp send failed')
-                } else {
-                    traceError(Component.ContentTabManager, 'wakeUp exception:', e)
-                }
-            }
-        }
+        this._send('wakeUp', MSG_NAME_REFRESH_WAKE_UP)
     }
 
     async setStatus(isMonitoring: boolean) {
