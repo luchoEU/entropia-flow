@@ -45,6 +45,7 @@ const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
 const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked'
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
+const STRING_SELECT_ITEMS_TAB = 'please manually select entropia universe items tab to unfreeze it'
 
 // Alarm
 const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
@@ -135,6 +136,7 @@ export {
     STRING_LOADING_PAGE,
     STRING_LOADING_ITEMS,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
+    STRING_SELECT_ITEMS_TAB,
     STRING_NOT_READY,
     STRING_NO_DATA,
     STRING_PLEASE_LOG_IN,

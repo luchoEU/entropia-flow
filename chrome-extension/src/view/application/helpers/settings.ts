@@ -7,7 +7,7 @@ const initialState: SettingsState = {
         googleServiceAccountEmail: undefined,
         googlePrivateKey: undefined
     },
-    features: []
+    features: [Feature.unfreezeTab]
 }
 
 const reduceSetSettingsState = (state: SettingsState, inState: SettingsState) => inState

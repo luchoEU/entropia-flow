@@ -6,9 +6,10 @@ import {
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
     STRING_PLEASE_LOG_IN,
     MSG_NAME_REFRESH_WAKE_UP,
-    URL_MY_ITEMS_PAGE
+    STRING_SELECT_ITEMS_TAB
 } from '../../common/const'
 import { Component, trace, traceError } from '../../common/trace'
+import { isUnfreezeTabEnabled } from '../settings/featureSettings'
 import { IContentTab } from './refreshManager'
 
 //// CONTENT TAB ////
@@ -45,10 +46,17 @@ class ContentTabManager implements IContentTab {
                 return undefined
             }
             if (tab.frozen) {
-                chrome.tabs.update(tab.id, { active: true }, () => {
-                    trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
-                });
-                return undefined
+                isUnfreezeTabEnabled().then(async (enabled) => {
+                    if (!enabled) return
+                    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                    chrome.tabs.update(tab.id, { active: true }, () => {
+                        trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
+                        if (currentTab && currentTab.id !== tab.id) {
+                            chrome.tabs.update(currentTab.id!, { active: true }); // restore the previous tab
+                        }
+                    });
+                })
+                return STRING_SELECT_ITEMS_TAB
             }
 
             try {

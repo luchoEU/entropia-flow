@@ -8,6 +8,7 @@ enum Feature {
     budget,
     ttService,
     actionLink,
+    unfreezeTab,
 }
 
 const featureList: FeatureInfo[] = [
@@ -52,6 +53,11 @@ const featureList: FeatureInfo[] = [
         title: 'Action Link',
         description: 'Show action link',
         development: true,
+    },
+    {
+        id: Feature.unfreezeTab,
+        title: 'Unfreeze Tab',
+        description: 'Briefly activate entropia universe items tab to unfreeze it when needed',
     },
 ]
 

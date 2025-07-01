@@ -38,7 +38,7 @@ function WebDataControl<T>({
             (w.errors ?
                 <>
                     { w.errors.map((e, index) =>
-                        <p key={index}>
+                        <p key={`${e.message}-${index}`}>
                             {e.message} { e.href && <a href={e.href} target='_blank'>link</a> }
                         </p>) }
                     { reload() }
