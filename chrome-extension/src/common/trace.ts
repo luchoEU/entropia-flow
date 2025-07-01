@@ -27,7 +27,6 @@ enum Component {
 const silentComponents = new Set([
     Component.ChromeMessagesClient,
     Component.ChromeMessagesHub,
-    Component.ContentTabManager,
     Component.PortManager,
     Component.WebSocketClient,
     Component.ReduxLogger,
@@ -46,6 +45,7 @@ function _trace(component: Component, message: string) {
 
 function traceId(id: string) {
     _tid = id
+    console.log(`Trace ID: ${_tid}, silent components: ${Array.from(silentComponents).map(n => Component[n]).join(', ')}`)
 }
 
 function trace(component: Component, message: string, data?: any) {
