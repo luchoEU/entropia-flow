@@ -157,8 +157,9 @@ nav .stream-view-section {
     margin: 0px 3px;
 }
 
-.img-btn-nav-pin {
-    float: right;
+.img-btn-nav-pin {    
+    display: inline-flex;
+    justify-content: flex-end;
     flex: 1;
 }
 .img-btn-nav-pin img {
@@ -337,8 +338,13 @@ form label {
 }
 
 .feature-description {
-    margin-left: 5px;
     display: block;
+    margin-left: 5px;
+}
+
+.feature-explanation {
+    display: block;
+    margin: 5px 10px 0px;
 }
 
 // Inventory

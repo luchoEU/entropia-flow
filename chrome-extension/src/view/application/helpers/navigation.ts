@@ -1,5 +1,4 @@
 import { STRING_PLEASE_LOG_IN } from "../../../common/const"
-import { SHOW_SETTINGS_PAGE } from "../../../config"
 import { TabId, tabOrder } from "../state/navigation"
 import { SettingsState, isFeatureEnabled, Feature } from "../state/settings"
 import { Location } from "react-router-dom"
@@ -35,11 +34,11 @@ const tabShow = (id: TabId, anyInventory: boolean, settings: SettingsState): boo
         case TabId.INVENTORY:
         case TabId.TRADE:
         case TabId.CRAFT:
-        case TabId.STREAM: return anyInventory
+        case TabId.STREAM:
+        case TabId.SETTING: return anyInventory
         case TabId.CLIENT: return isFeatureEnabled(settings, Feature.client)
         case TabId.REFINED: return isFeatureEnabled(settings, Feature.refined)
         case TabId.BUDGET: return isFeatureEnabled(settings, Feature.budget)
-        case TabId.SETTING: return SHOW_SETTINGS_PAGE
         default: return true
     }
 }

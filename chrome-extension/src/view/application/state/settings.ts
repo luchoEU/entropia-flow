@@ -23,6 +23,7 @@ const featureList: FeatureInfo[] = [
         id: Feature.streamEditor,
         title: 'Stream Editor',
         description: 'Show stream layout editor',
+        development: true,
     },
     {
         id: Feature.streamBackgroundInDevelopment,
@@ -58,6 +59,10 @@ const featureList: FeatureInfo[] = [
         id: Feature.unfreezeTab,
         title: 'Unfreeze Tab',
         description: 'Briefly activate entropia universe items tab to unfreeze it when needed',
+        explanation: `Since Chrome 132 (released in January 2025), tabs can become frozen after being inactive for some time.
+This feature allows the extension to temporarily activate the tab to unfreeze it when needed.
+You may notice a brief flicker when this happens.
+Alternatively, you can choose to handle this manually by opening the tab yourself.`
     },
 ]
 
@@ -73,6 +78,7 @@ interface FeatureInfo {
     id: Feature
     title: string
     description: string
+    explanation?: string
     development?: boolean
 }
 
