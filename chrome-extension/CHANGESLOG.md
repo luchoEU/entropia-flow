@@ -4,10 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Version 0.5.2 - 2025-07-02
 ### Added
-- Show not owned blueprints in crafting
+- Show not-owned blueprints in crafting
 
 ### Fixes
-- Fix load of items from entropia site when the tab was frozen
+- Fix loading of items from the Entropia site when the tab was frozen
 
 ## Version 0.5.1 - 2025-04-21
 ### Fixes
