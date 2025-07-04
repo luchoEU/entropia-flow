@@ -114,7 +114,30 @@ function renderCssTemplate(template: string, variables: any): string {
     });
 }
 
+function getUsedVariablesInTemplate(template: string): Set<string> {
+    const tokens = Mustache.parse(template);
+    const variables = new Set<string>();
+
+    function recurse(tokens: any[]) {
+        for (const token of tokens) {
+            const [type, value, start, end, subTokens] = token;
+
+            if (type === 'name' || type === '#' || type === '^' || type === '&' || type === '{') {
+                variables.add(value);
+            }
+
+            if (Array.isArray(subTokens)) {
+                recurse(subTokens);
+            }
+        }
+    }
+
+    recurse(tokens);
+    return variables;
+}
+
 export {
     renderHtmlTemplate,
     renderCssTemplate,
+    getUsedVariablesInTemplate,
 }

@@ -1,9 +1,9 @@
 
 import React from "react"
 import { useSelector } from "react-redux"
-import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
+import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamUserVariable } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
-import { getStreamAdvancedEditor, getStreamData, getStreamIn, getStreamLayout } from "../../application/selectors/stream"
+import { getStreamAdvancedEditor, getStreamData, getStreamLayout, getStreamUserVariables } from "../../application/selectors/stream"
 import { addStreamUserVariable, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
@@ -14,6 +14,9 @@ import { useAppDispatch } from "../../application/store"
 import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
+import { StreamRenderLayout } from "../../../stream/data"
+import { getUsedVariablesInTemplate } from "../../../stream/template"
+import { filterUsedVariables } from "../../../stream/formulaCompute"
 
 function StreamLayoutEditor() {
     const { layoutId } = useParams();
@@ -44,6 +47,7 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
     const { layout, id: layoutId } = useSelector(getStreamLayout(parmlayoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
     const data = useSelector(getStreamData);
+    const userVariables = useSelector(getStreamUserVariables)
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     if (!layout) return <></>
@@ -79,10 +83,14 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                 <tr>
                     { InputCells('Name', layout.name, setStreamName(layoutId)) }
                     <td>
-                        <button style={{ float: 'right', visibility: advanced ? 'visible' : 'hidden' }}
+                        <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
                             onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}
                         >Clone</button>
+                        <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
+                            title='Click here to export this layout to a file'
+                            onClick={() => downloadExport(layout, layoutId, userVariables)}
+                        >Export</button>
                     </td>
                 </tr>
                 <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>                
@@ -107,6 +115,34 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
             { advanced && <StreamLayoutEditor /> }
         </div>
     </section>
+}
+
+function downloadExport(layout: StreamRenderLayout, layoutId: string, variables: StreamUserVariable[]) {
+    const usedVariablesHtml = getUsedVariablesInTemplate(layout.htmlTemplate)
+    const usedVariablesCss = getUsedVariablesInTemplate(layout.cssTemplate)
+    const usedVariables = new Set([...usedVariablesHtml, ...usedVariablesCss])
+    const exportableData = {
+        name: layout.name,
+        author: layout.author,
+        htmlTemplate: layout.htmlTemplate,
+        cssTemplate: layout.cssTemplate,
+        variables: filterUsedVariables(variables, usedVariables).map(v => ({
+            name: v.name,
+            value: v.value,
+            description: v.description,
+            isImage: v.isImage
+        }))
+    }
+    const data = JSON.stringify(exportableData);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${layout.name.replace(/\s/g, '_')}.entropiaflow.layout.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 export default StreamEditor

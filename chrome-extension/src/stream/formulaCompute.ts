@@ -1,4 +1,5 @@
 import { TemporalValue } from "../common/state";
+import { StreamUserVariable } from "../view/application/state/stream";
 import { StreamRenderObject } from "./data";
 import { cycleErrorFormula, Formula, parseFormula } from "./formulaParser";
 
@@ -48,6 +49,28 @@ function _computeFormulas(formulas: [string, Formula][], obj: StreamRenderObject
     }, { ...obj }) as StreamRenderObject;
 }
 
+function filterUsedVariables(variables: StreamUserVariable[], usedVariables: Set<string>): StreamUserVariable[] {
+    let formulas = Object.fromEntries(variables
+        .filter((v) => typeof v.value === 'string' && v.value.startsWith('='))
+        .map((v): [string, Formula] => [v.name, parseFormula(v.value.slice(1))]))
+
+    const toFilterList = new Set<string>();
+    function addVariables(vars: Set<string>) {
+        for (const v of vars) {
+            if (!toFilterList.has(v)) {
+                toFilterList.add(v);
+                const f = formulas[v];
+                if (f) {
+                    addVariables(f.usedVariables);
+                }
+            }
+        }
+    }
+    addVariables(usedVariables);
+
+    return variables.filter((v) => toFilterList.has(v.name));
+}
+
 function computeFormulas(obj: StreamRenderObject, temporalVariables?: Record<string, TemporalValue>): StreamRenderObject {
     return _computeFormulas(_parseFormulas(obj), obj, temporalVariables);
 }
@@ -62,4 +85,5 @@ function computeServerFormulas(obj: StreamRenderObject, temporalVariables: Recor
 export {
     computeFormulas,
     computeServerFormulas,
+    filterUsedVariables,
 }
