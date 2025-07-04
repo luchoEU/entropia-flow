@@ -1,5 +1,5 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
-import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
+import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, ERROR_425, FROZEN_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
 import { Inventory, Log, Status } from "../../common/state";
 import { Component, traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
@@ -7,13 +7,15 @@ import AlarmSettings from "../settings/alarmSettings";
 interface IContentTab {
     setStatus(isMonitoring: boolean): Promise<void>
     requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
-    wakeUp(): Promise<void>
+    wakeUp(): Promise<boolean>
+    checkFrozen(): Promise<boolean>
     onConnected: () => Promise<void>
     onDisconnected: () => Promise<void>
 }
 
 class RefreshManager {
     private ajaxAlarm: IAlarmManager
+    private frozenAlarm: IAlarmManager
     private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
     private contentTab: IContentTab
@@ -21,8 +23,9 @@ class RefreshManager {
     public onInventory: (inventory: Inventory) => Promise<void>
     public setViewStatus: (status: Status) => Promise<void>
 
-    constructor(ajaxAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
+    constructor(ajaxAlarm: IAlarmManager, frozenAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
         this.ajaxAlarm = ajaxAlarm
+        this.frozenAlarm = frozenAlarm
         this.tickAlarm = tickAlarm
         this.alarmSettings = alarmSettings
 
@@ -31,7 +34,12 @@ class RefreshManager {
             if (this.stickyStatus?.message !== STRING_LOADING_ITEMS) {
                 await this.contentTab.wakeUp()
             }
+            await this.frozenAlarm?.start(FROZEN_CHECK_WAIT_SECONDS)
             return false;
+        })
+        this.frozenAlarm?.listen(async () => {
+            const frozen = await this.contentTab.checkFrozen()
+            return !frozen; // if not frozen, continue the alarm
         })
         this.tickAlarm?.listen(async () => {
             this._setViewStatus();
@@ -71,6 +79,7 @@ class RefreshManager {
 
     public async handleNewInventory(inventory: Inventory) {
         try {
+            await this.frozenAlarm?.end()
             const logMessage = inventory.log?.message
             if (logMessage === STRING_NOT_READY || logMessage === STRING_PLEASE_LOG_IN || logMessage == ERROR_425) {
                 // Don't start the alarm

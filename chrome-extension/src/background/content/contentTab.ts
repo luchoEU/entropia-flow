@@ -33,6 +33,19 @@ class ContentTabManager implements IContentTab {
             await this.onDisconnected()
     }
 
+    private _unfreezeTab(tab: chrome.tabs.Tab, logName: string) {
+        isUnfreezeTabEnabled().then(async (enabled) => {
+            if (!enabled) return
+            const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            chrome.tabs.update(tab.id, { active: true }, () => {
+                trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
+                if (currentTab && currentTab.id !== tab.id) {
+                    chrome.tabs.update(currentTab.id!, { active: true }); // restore the previous tab
+                }
+            });
+        })
+    }
+
     private async _send(logName: string, messageName: string, data?: object): Promise<string> {
         const port = await this.portManager.first()
         if (port === undefined) {
@@ -46,16 +59,7 @@ class ContentTabManager implements IContentTab {
                 return undefined
             }
             if (tab.frozen) {
-                isUnfreezeTabEnabled().then(async (enabled) => {
-                    if (!enabled) return
-                    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-                    chrome.tabs.update(tab.id, { active: true }, () => {
-                        trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
-                        if (currentTab && currentTab.id !== tab.id) {
-                            chrome.tabs.update(currentTab.id!, { active: true }); // restore the previous tab
-                        }
-                    });
-                })
+                this._unfreezeTab(tab, logName)
                 return STRING_SELECT_ITEMS_TAB
             }
 
@@ -75,15 +79,30 @@ class ContentTabManager implements IContentTab {
         }
     }
 
+    public async checkFrozen(): Promise<boolean> {
+        const port = await this.portManager.first()
+        if (port === undefined) {
+            trace(Component.ContentTabManager, 'checkFrozen port undefined')
+            return true
+        } else {
+            const tab = await chrome.tabs.get(port.getTabId())
+            if (tab.frozen) {
+                this._unfreezeTab(tab, 'checkFrozen')
+                return true
+            }
+            return false
+        }
+    }
+
     public async requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string> {
         return this._send('requestItems', MSG_NAME_REFRESH_ITEMS_AJAX, { tag, waitSeconds, forced })
     }
 
-    public async wakeUp() {
-        this._send('wakeUp', MSG_NAME_REFRESH_WAKE_UP)
+    public async wakeUp(): Promise<boolean> {
+        return (await this._send('wakeUp', MSG_NAME_REFRESH_WAKE_UP)) === undefined
     }
 
-    async setStatus(isMonitoring: boolean) {
+    public async setStatus(isMonitoring: boolean): Promise<void> {
         const ports = await this.portManager.all()
         ports.forEach(port => port.send(MSG_NAME_REFRESH_CONTENT, { isMonitoring }))
     }
