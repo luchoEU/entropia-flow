@@ -2,15 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.5.3 - 2025-07-04
+### Fixed
+- Fix frozen tab after it starts loading the items
+
 ## Version 0.5.2 - 2025-07-02
 ### Added
 - Show not-owned blueprints in crafting
 
-### Fixes
+### Fixed
 - Fix loading of items from the Entropia site when the tab was frozen
 
 ## Version 0.5.1 - 2025-04-21
-### Fixes
+### Fixed
 - Fix the load of blueprints, which were shown as missing the last item
 - Fix the comparison of items with multiple spaces in the name, like some Rocktropia blueprints
 
@@ -27,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - Use URL for navigation (browser back/forward work now)
 
 ## Version 0.4.6 - 2024-12-02
-### Fixes
+### Fixed
 - Fix sorted list, increase scroll space so the values are shown correctly
 
 ## Version 0.4.5 - 2024-12-02
@@ -36,7 +40,7 @@ All notable changes to this project will be documented in this file.
 - Read materials and blueprints from entropianexus.com and entropiawiki.com
 - Show inventory with needed material in crafting
 
-### Fixes
+### Fixed
 - Fix no to lose focus when editing a container name
 
 ## Version 0.4.4 - 2024-11-05
