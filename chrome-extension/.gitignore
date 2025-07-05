@@ -4,3 +4,4 @@ dist.zip
 dist.win/
 dist.win.zip
 node_modules
+src/stream/stream-export-layout.schema.json

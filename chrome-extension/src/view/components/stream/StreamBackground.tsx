@@ -24,6 +24,7 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
         layout: {
             name: 'Entropia Flow Background',
             author: LUCHO,
+            lastModified: new Date('Tue Apr 15 10:25:50 2025 +0200').getTime(),
             backgroundType: background.type,
             htmlTemplate: `
 <div style='display: flex; align-items: start; font-size: 14px; margin: 20px;'>

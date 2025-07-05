@@ -1,11 +1,25 @@
-interface StreamRenderLayout {
+interface StreamBaseLayout {
     name: string,
     author: string,
+    lastModified: number,
     backgroundType: number // BackgroundType
     htmlTemplate?: string
     cssTemplate?: string
+}
+
+interface StreamRenderLayout extends StreamBaseLayout {
     readonly?: boolean
     stared?: boolean
+}
+
+export interface StreamExportLayout extends StreamBaseLayout {
+    schema: number,
+    variables: {
+        name: string,
+        value: string,
+        description: string,
+        isImage: boolean
+    }[]
 }
 
 type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
@@ -30,6 +44,7 @@ type StreamRenderValue = string | number | boolean | StreamRenderObject | Stream
 
 export default StreamRenderData
 export {
+    StreamBaseLayout,
     StreamRenderValue,
     StreamRenderObject,
     StreamRenderSingle,

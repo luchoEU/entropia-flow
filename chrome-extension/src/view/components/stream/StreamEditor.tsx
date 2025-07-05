@@ -15,8 +15,7 @@ import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
 import { StreamRenderLayout } from "../../../stream/data"
-import { getUsedVariablesInTemplate } from "../../../stream/template"
-import { filterUsedVariables } from "../../../stream/formulaCompute"
+import { renderToExportLayout } from "../../application/helpers/stream"
 
 function StreamLayoutEditor() {
     const { layoutId } = useParams();
@@ -89,11 +88,15 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                         >Clone</button>
                         <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title='Click here to export this layout to a file'
-                            onClick={() => downloadExport(layout, layoutId, userVariables)}
+                            onClick={() => downloadExport(layout, userVariables)}
                         >Export</button>
                     </td>
                 </tr>
-                <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>                
+                <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>
+                <tr>
+                    <td><label>Last Modified</label></td>
+                    <td><input type='text' value={new Date(layout.lastModified).toLocaleString()} readOnly /></td>
+                </tr>
             </tbody>
         </table>
         <div className='flex'>
@@ -117,23 +120,9 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
     </section>
 }
 
-function downloadExport(layout: StreamRenderLayout, layoutId: string, variables: StreamUserVariable[]) {
-    const usedVariablesHtml = getUsedVariablesInTemplate(layout.htmlTemplate)
-    const usedVariablesCss = getUsedVariablesInTemplate(layout.cssTemplate)
-    const usedVariables = new Set([...usedVariablesHtml, ...usedVariablesCss])
-    const exportableData = {
-        name: layout.name,
-        author: layout.author,
-        htmlTemplate: layout.htmlTemplate,
-        cssTemplate: layout.cssTemplate,
-        variables: filterUsedVariables(variables, usedVariables).map(v => ({
-            name: v.name,
-            value: v.value,
-            description: v.description,
-            isImage: v.isImage
-        }))
-    }
-    const data = JSON.stringify(exportableData);
+function downloadExport(layout: StreamRenderLayout, variables: StreamUserVariable[]) {
+    const exportableData = renderToExportLayout(layout, variables)
+    const data = JSON.stringify(exportableData, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

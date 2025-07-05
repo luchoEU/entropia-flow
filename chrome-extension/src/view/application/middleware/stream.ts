@@ -7,7 +7,7 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
@@ -40,6 +40,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_AUTHOR:
         case SET_STREAM_STARED:
         case ADD_STREAM_LAYOUT:
+        case IMPORT_STREAM_LAYOUT_FROM_FILE:
         case ADD_STREAM_USER_VARIABLE:
         case REMOVE_STREAM_LAYOUT:
         case REMOVE_STREAM_USER_VARIABLE:
@@ -127,6 +128,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_STARED:
         case SET_STREAM_NAME:
         case ADD_STREAM_LAYOUT:
+        case IMPORT_STREAM_LAYOUT_FROM_FILE:
         case REMOVE_STREAM_LAYOUT:
         case CLONE_STREAM_LAYOUT:
         {

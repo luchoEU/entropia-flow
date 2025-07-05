@@ -45,11 +45,14 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     </>;
 }
 
-function multiDispatch(dispatch: Dispatch<UnknownAction>,
+function multiDispatch(
+    dispatch: Dispatch<UnknownAction>,
     navigate: NavigateFunction,
-    getDispatchAction: (navigate: NavigateFunction) => any
+    getDispatchAction: (navigate: NavigateFunction, dispatch: Dispatch<UnknownAction>) => any
 ) {
-    const action = getDispatchAction(navigate)
+    const action = getDispatchAction(navigate, dispatch)
+    if (!action) return
+
     if (Array.isArray(action)) {
         action.forEach((a) => dispatch(a))
     } else {

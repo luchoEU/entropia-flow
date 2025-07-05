@@ -1,5 +1,6 @@
 import { NavigateFunction } from "react-router-dom";
 import { StreamRenderLayout } from "../../../stream/data";
+import { Dispatch } from "react";
 
 const FONT = '12px system-ui, sans-serif'
 const FONT_BOLD = `bold ${FONT}`
@@ -17,7 +18,7 @@ const COLUMN_PADDING = 3
 type RowValue =
     string |
     RowValue[] |
-    { dispatch?: (navigate: NavigateFunction) => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
+    { dispatch?: (navigate: NavigateFunction, dispatch: Dispatch<any>) => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
         { flex: number } |
         { img: string, title: string, show?: boolean } |
         { button: string } |

@@ -1,6 +1,6 @@
 import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamRenderLayoutSet } from '../../../stream/data'
+import StreamRenderData, { StreamExportLayout, StreamRenderLayoutSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
 import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
@@ -24,6 +24,7 @@ const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
 const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
 const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
+const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -128,6 +129,16 @@ const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDisp
     dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
 }
 
+const importStreamLayoutFromFile = (layout: StreamExportLayout, navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    const layouts = getStreamIn(getState()).layouts;
+    const layoutId = _getUniqueLayoutId(layouts, layout.name);
+    dispatch({
+        type: IMPORT_STREAM_LAYOUT_FROM_FILE,
+        payload: { layoutId, layout }
+    })
+    dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
+}
+
 const removeStreamLayout = (layoutId: string) => ({
     type: REMOVE_STREAM_LAYOUT,
     payload: { layoutId }
@@ -168,6 +179,7 @@ export {
     REMOVE_STREAM_USER_VARIABLE,
     SET_STREAM_USER_VARIABLE_PARTIAL,
     CLONE_STREAM_LAYOUT,
+    IMPORT_STREAM_LAYOUT_FROM_FILE,
     setStreamState,
     setStreamEnabled,
     setStreamAdvanced,
@@ -186,4 +198,5 @@ export {
     removeStreamUserVariable,
     setStreamUserVariablePartial,
     cloneStreamLayout,
+    importStreamLayoutFromFile,
 }
