@@ -4,7 +4,7 @@ import { useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamUserVariable } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
 import { getStreamAdvancedEditor, getStreamData, getStreamLayout, getStreamUserVariables } from "../../application/selectors/stream"
-import { addStreamUserVariable, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
+import { addStreamUserVariable, clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
@@ -43,12 +43,13 @@ function StreamLayoutEditor() {
 }
 
 function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
-    const { layout, id: layoutId } = useSelector(getStreamLayout(parmlayoutId))
+    const { layout, id: layoutId, shouldClearAlias } = useSelector(getStreamLayout(parmlayoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
     const data = useSelector(getStreamData);
     const userVariables = useSelector(getStreamUserVariables)
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    if (shouldClearAlias) dispatch(clearStreamLayoutAlias)
     if (!layout) return <></>
 
     const InputCells = (label: string, value: string, setValueAction: (value: string) => any): React.ReactNode =>

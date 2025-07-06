@@ -25,6 +25,7 @@ const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
 const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
+const CLEAR_STREAM_LAYOUT_ALIAS = "[stream] clear layout alias"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -129,14 +130,13 @@ const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDisp
     dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
 }
 
-const importStreamLayoutFromFile = (layout: StreamExportLayout, navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
+const importStreamLayoutFromFile = (layout: StreamExportLayout) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const layouts = getStreamIn(getState()).layouts;
     const layoutId = _getUniqueLayoutId(layouts, layout.name);
     dispatch({
         type: IMPORT_STREAM_LAYOUT_FROM_FILE,
         payload: { layoutId, layout }
     })
-    dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
 }
 
 const removeStreamLayout = (layoutId: string) => ({
@@ -160,6 +160,10 @@ const setStreamUserVariablePartial = (id: number, partial: Partial<StreamUserVar
     payload: { id, partial }
 })
 
+const clearStreamLayoutAlias = {
+    type: CLEAR_STREAM_LAYOUT_ALIAS
+}
+
 export {
     SET_STREAM_STATE,
     SET_STREAM_ENABLED,
@@ -180,6 +184,7 @@ export {
     SET_STREAM_USER_VARIABLE_PARTIAL,
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
+    CLEAR_STREAM_LAYOUT_ALIAS,
     setStreamState,
     setStreamEnabled,
     setStreamAdvanced,
@@ -199,4 +204,5 @@ export {
     setStreamUserVariablePartial,
     cloneStreamLayout,
     importStreamLayoutFromFile,
+    clearStreamLayoutAlias,
 }

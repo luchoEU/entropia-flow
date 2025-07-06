@@ -217,6 +217,14 @@ const reduceSetStreamName = (state: StreamState, layoutId: string, newLayoutId: 
     }
 }
 
+const reduceClearStreamLayoutAlias = (state: StreamState): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        layoutAlias: undefined
+    }
+})
+
 const reduceSetStreamData = (state: StreamState, data: StreamRenderData): StreamState => ({
     ...state,
     out: {
@@ -388,5 +396,6 @@ export {
     reduceRemoveStreamUserVariable,
     reduceSetStreamUserVariablePartial,
     reduceCloneStreamLayout,
+    reduceClearStreamLayoutAlias,
     renderToExportLayout,
 }

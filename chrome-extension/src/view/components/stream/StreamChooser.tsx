@@ -48,7 +48,7 @@ function handleFileChange(event: Event, n: NavigateFunction, dispatch: Dispatch<
                 const validator = new Validator();
                 const result = validator.validate(data, schema);
                 if (result.valid) {
-                    dispatch(importStreamLayoutFromFile(data, n));
+                    dispatch(importStreamLayoutFromFile(data));
                 } else {
                     console.error("Validation errors:", result.errors);
                 }
