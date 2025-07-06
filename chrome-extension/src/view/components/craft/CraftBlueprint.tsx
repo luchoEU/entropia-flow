@@ -1,6 +1,6 @@
 import React, { Dispatch, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addBlueprint, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, reloadBlueprint, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession } from '../../application/actions/craft'
+import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode, setBlueprintSuggestedMaterials } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
@@ -28,6 +28,7 @@ import { NavigateFunction } from 'react-router-dom'
 import { Feature } from '../../application/state/settings'
 import { selectIsFeatureEnabled } from '../../application/selectors/settings'
 import { useElementSize } from '../common/useElementSize'
+import AutocompleteInput from '../common/AutocompleteInput'
 
 function SessionInfo(p: {
     name: string,
@@ -223,7 +224,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
     bought = undefined
 
     return (
-        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} content={webBp => <>
+        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} showWithErrors={true} content={webBp => <>
             { showBudget && <>
                 <p>Budget Page: { bp.budget.loading ?
                 <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
@@ -241,7 +242,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 e.stopPropagation();
                 dispatch(showBlueprintMaterialData(bp.name, bp.chain === bp.c?.itemName ? undefined : bp.c?.itemName))
             }}>Item: {bp.c?.itemName} <img src={bp.chain === bp.c?.itemName ? 'img/left.png' : 'img/right.png'}/></p>
-            <p>Type: {webBp.type}</p>
+            <p>{webBp && `Type: ${webBp.type}`}</p>
             <table ref={tableRef}>
                 <thead>
                     <tr>
@@ -334,6 +335,37 @@ const CraftSingle = ({ bp, activeSession, message }: {
     )
 }
 
+const CraftEdit = ({bp}: {bp: BlueprintData}) => {
+    const dispatch = useDispatch()
+    return (
+        <>
+            <table className='blueprint-edit'>
+                <thead>
+                    <tr>
+                        <th>Quantity Needed</th>
+                        <th>Material Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {bp.user?.materials?.map((m, i) => (
+                        <tr key={i}>
+                            <td><input type='text' value={m.quantity} onChange={(e) => dispatch(changeBlueprintMaterialQuantity(bp.name, i, e.target.value))}/></td>
+                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} clearSuggestionsAction={() => setBlueprintSuggestedMaterials(bp.name, [])} suggestions={i === bp.c?.suggestedMaterials?.index ? bp.c?.suggestedMaterials?.list : undefined}/></td>
+                            <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bp.name, i)}/></td>
+                            <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bp.name, i, i - 1)}/>}</td>
+                            <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bp.name, i, i + 1)}/>}</td>
+                        </tr>
+                    ))}
+                    <tr>
+                        <td></td>                      
+                        <td><ImgButton src='img/add.png' title='Add Material' className='craft-add-material' afterText='Add Material' dispatch={() => addBlueprintMaterial(bp.name)}/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </>
+    )
+}
+
 const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse<RawMaterialWebData[]>): string => 
     filterExact(
         rawMaterials?.data ?
@@ -422,41 +454,56 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
         chainMaterialName = nextBp?.chain
     }
 
+    const editMode = s.editModeBlueprintName === bp.name
     return (
         <section>
             <div className='inline'>
                 <h1 className='img-container-hover'>
-                    <ImgButton title='Back to list' src='img/left.png' beforeText={bp.name} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
+                    <ImgButton
+                        title='Back to list'
+                        src='img/left.png'
+                        beforeText={bp.name}
+                        dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
                     <StarButton bpName={bp.name} />
+                    <ImgButton
+                        show={editMode}
+                        title={editMode ? 'Finish edit' : 'Edit Blueprint'}
+                        src='img/edit.png'
+                        dispatch={() => editMode ? endBlueprintEditMode : startBlueprintEditMode(bp.name)}/>
                     <CraftPlanet />
                 </h1>
-                <CraftSingle key={bp.name} bp={bp} activeSession={s.activeSession} message={message} />
+                {editMode ?
+                    <CraftEdit bp={bp} /> :
+                    <CraftSingle key={bp.name} bp={bp} activeSession={s.activeSession} message={message} />
+                }
             </div>
-            <div className='inline'>
-                { chainNames.map(name =>
-                    <div className='craft-chain'>
-                        <h2 className='pointer img-container-hover' onClick={(e) => {
+            {!editMode &&
+                <div className='inline'>
+                    { chainNames.map(name =>
+                        <div className='craft-chain'>
+                            <h2 className='pointer img-container-hover' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(name, undefined))
                             }}>
-                            { name }<img src='img/right.png' />
-                        </h2>
-                    </div>
-                )}
-                { lastBpChain &&
-                    <div className='craft-chain'>
-                        <h2 className='pointer img-container-hover' onClick={(e) => {
+                                { name }<img src='img/right.png' />
+                            </h2>
+                        </div>
+                    )}
+                    { lastBpChain &&
+                        <div className='craft-chain'>
+                            <h2 className='pointer img-container-hover' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined))
                             }}>
-                            { lastBpChain.name }<img title='Close blueprint' src='img/left.png' />
-                            <StarButton bpName={lastBpChain.name} />
-                        </h2>
-                        <CraftSingle key={bp.chain} bp={lastBpChain} />
-                    </div>
-                }
-                { afterChainMaterialName && <CraftItemDetails name={afterChainMaterialName} bp={afterBpChain} /> }
-            </div>
+                                { lastBpChain.name }<img title='Close blueprint' src='img/left.png' />
+                                <StarButton bpName={lastBpChain.name} />
+                            </h2>
+                            <CraftSingle key={bp.chain} bp={lastBpChain} />
+                        </div>
+                    }
+                    { afterChainMaterialName && <CraftItemDetails name={afterChainMaterialName} bp={afterBpChain} /> }
+                </div>
+            }
         </section>
     )
 }

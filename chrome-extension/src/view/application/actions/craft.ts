@@ -12,6 +12,7 @@ const SET_BLUEPRINT_PARTIAL_WEB_DATA = '[craft] set blueprint partial web data'
 const SET_CRAFTING_PARTIAL_WEB_DATA = '[craft] set crafting partial web data'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE = '[craft] set blueprint material type and value'
+const SET_BLUEPRINT_SUGGESTED_MATERIALS = '[craft] set blueprint suggested materials'
 const SET_BLUEPRINT_STARED = '[craft] set blueprint stared'
 const SHOW_BLUEPRINT_MATERIAL_DATA = '[craft] show blueprint material data'
 const START_BUDGET_PAGE_LOADING = '[craft] start budget page loading'
@@ -36,6 +37,13 @@ const DONE_CRAFT_SESSION = '[craft] done session'
 const CLEAR_CRAFT_SESSION = '[craft] clear session'
 const SET_CRAFT_ACTIVE_PLANET = '[craft] set active planet'
 const SET_CRAFT_OPTIONS = '[craft] set options'
+const START_BLUEPRINT_EDIT_MODE = '[craft] start blueprint edit mode'
+const END_BLUEPRINT_EDIT_MODE = '[craft] end blueprint edit mode'
+const ADD_BLUEPRINT_MATERIAL = '[craft] add blueprint material'
+const MOVE_BLUEPRINT_MATERIAL = '[craft] move blueprint material'
+const REMOVE_BLUEPRINT_MATERIAL = '[craft] remove blueprint material'
+const CHANGE_BLUEPRINT_MATERIAL_QUANTITY = '[craft] change blueprint material quantity'
+const CHANGE_BLUEPRINT_MATERIAL_NAME = '[craft] change blueprint material name'
 
 const BUDGET_BUY = 'Buy'
 const BUDGET_SELL = 'Sell'
@@ -112,6 +120,14 @@ const setBlueprintMaterialTypeAndValue = (list: ItemWebData[]) => ({
     }
 })
 
+const setBlueprintSuggestedMaterials = (name: string, list: string[]) => ({
+    type: SET_BLUEPRINT_SUGGESTED_MATERIALS,
+    payload: {
+        name,
+        list
+    }
+})
+
 const setBlueprintStared = (name: string, stared: boolean) => ({
     type: SET_BLUEPRINT_STARED,
     payload: {
@@ -127,6 +143,17 @@ const showBlueprintMaterialData = (name: string, materialName: string) => ({
         materialName
     }
 })
+
+const startBlueprintEditMode = (name: string) => ({
+    type: START_BLUEPRINT_EDIT_MODE,
+    payload: {
+        name
+    }
+})
+
+const endBlueprintEditMode = {
+    type: END_BLUEPRINT_EDIT_MODE
+}
 
 const startBudgetPageLoading = (name: string) => ({
     type: START_BUDGET_PAGE_LOADING,
@@ -295,6 +322,48 @@ const setCraftOptions = (change: Partial<CraftOptions>) => ({
     }
 })
 
+const changeBlueprintMaterialQuantity = (name: string, materialIndex: number, quantity: string) => ({
+    type: CHANGE_BLUEPRINT_MATERIAL_QUANTITY,
+    payload: {
+        name,
+        materialIndex,
+        quantity
+    }
+})
+
+const changeBlueprintMaterialName = (name: string, materialIndex: number, materialName: string) => ({
+    type: CHANGE_BLUEPRINT_MATERIAL_NAME,
+    payload: {
+        name,
+        materialIndex,
+        materialName
+    }
+})
+
+const addBlueprintMaterial = (name: string) => ({
+    type: ADD_BLUEPRINT_MATERIAL,
+    payload: {
+        name
+    }
+})
+
+const moveBlueprintMaterial = (name: string, materialIndex: number, newIndex: number) => ({
+    type: MOVE_BLUEPRINT_MATERIAL,
+    payload: {
+        name,
+        materialIndex,
+        newIndex
+    }
+})
+
+const removeBlueprintMaterial = (name: string, materialIndex: number) => ({
+    type: REMOVE_BLUEPRINT_MATERIAL,
+    payload: {
+        name,
+        materialIndex
+    }
+})
+
 export {
     SET_CRAFT_STATE,
     REMOVE_BLUEPRINT,
@@ -306,6 +375,7 @@ export {
     SET_BLUEPRINT_PARTIAL_WEB_DATA,
     SET_BLUEPRINT_QUANTITY,
     SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE,
+    SET_BLUEPRINT_SUGGESTED_MATERIALS,
     SET_BLUEPRINT_STARED,
     SHOW_BLUEPRINT_MATERIAL_DATA,
     START_BUDGET_PAGE_LOADING,
@@ -333,6 +403,13 @@ export {
     BUDGET_MOVE,
     SET_CRAFT_ACTIVE_PLANET,
     SET_CRAFT_OPTIONS,
+    START_BLUEPRINT_EDIT_MODE,
+    END_BLUEPRINT_EDIT_MODE,
+    ADD_BLUEPRINT_MATERIAL,
+    MOVE_BLUEPRINT_MATERIAL,
+    REMOVE_BLUEPRINT_MATERIAL,
+    CHANGE_BLUEPRINT_MATERIAL_QUANTITY,
+    CHANGE_BLUEPRINT_MATERIAL_NAME,
     setCraftState,
     removeBlueprint,
     reloadBlueprint,
@@ -343,6 +420,7 @@ export {
     setCraftingPartialWebData,
     setBlueprintQuantity,
     setBlueprintMaterialTypeAndValue,
+    setBlueprintSuggestedMaterials,
     setBlueprintStared,
     showBlueprintMaterialData,
     startBudgetPageLoading,
@@ -367,4 +445,11 @@ export {
     clearCraftingSession,
     setCraftActivePlanet,
     setCraftOptions,
+    startBlueprintEditMode,
+    endBlueprintEditMode,
+    changeBlueprintMaterialQuantity,
+    changeBlueprintMaterialName,
+    addBlueprintMaterial,
+    moveBlueprintMaterial,
+    removeBlueprintMaterial
 }

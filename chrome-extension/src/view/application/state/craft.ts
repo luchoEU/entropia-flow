@@ -7,6 +7,7 @@ interface CraftState {
     activeSession?: string
     activePlanet?: string
     blueprints: { [ name: string ]: BlueprintData }
+    editModeBlueprintName?: string
     stared: {
         expanded: boolean
         sortType: number
@@ -15,6 +16,7 @@ interface CraftState {
     }
     options: CraftOptions
     web?: CraftingWebData
+    user?: CraftingUserData
     c: { // calculated from previous
         filteredStaredBlueprints: Array<BlueprintData>
         residues: { [ name: string ]: number } // available in Inventory
@@ -29,6 +31,10 @@ interface CraftingWebData {
     blueprintList: WebLoadResponse<string[]>
 }
 
+interface CraftingUserData {
+    materials: { name: string, quantity: number }[]
+}
+
 interface BlueprintStateWebData {
     blueprint: WebLoadResponse<BlueprintWebData>
 }
@@ -40,12 +46,14 @@ interface BlueprintData {
     chain?: string
 
     web?: BlueprintStateWebData
+    user?: CraftingUserData
 
     c?: { // calculated
         itemName: string
         owned?: boolean
         clicks?: BlueprintClicks
         materials?: BlueprintMaterial[]
+        suggestedMaterials?: { index: number, list: string[] }
     }
 }
 
@@ -115,6 +123,7 @@ export {
     CraftState,
     CraftOptions,
     CraftingWebData,
+    CraftingUserData,
     BlueprintData,
     BlueprintSession,
     BlueprintSessionDiff,

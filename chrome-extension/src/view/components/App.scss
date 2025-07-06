@@ -842,6 +842,43 @@ button:active {
     font-size: 12px;
 }
 
+.craft-add-material {
+    display: flex;
+    align-items: center;
+    border-radius: 15px;
+    background-color: green;
+    color: white;
+    padding: 5px 15px 5px 10px;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: white;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.autocomplete-suggestions div {
+    padding: 0px 10px;
+}
+
+.autocomplete-suggestion-highlight {
+    background-color: blue;
+    color: white;
+}
+
+.blueprint-edit td:nth-child(1) input {
+    width: 70px;
+    text-align: end;
+}
+
+.blueprint-edit td:nth-child(2) input {
+    width: 400px;
+}
+
 .input-budget-buy {
     margin: 0px 5px;
     width: 40px;

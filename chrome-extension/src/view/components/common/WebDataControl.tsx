@@ -9,12 +9,14 @@ function WebDataControl<T>({
     w,
     name,
     dispatchReload,
+    showWithErrors,
     content
 }: {
     w: WebLoadResponse<T>,
     name: string,
     dispatchReload: () => any,
-    content: (data: T) => JSX.Element
+    showWithErrors?: boolean,
+    content: (data: T) => JSX.Element,
 }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -42,6 +44,7 @@ function WebDataControl<T>({
                             {e.message} { e.href && <a href={e.href} target='_blank'>link</a> }
                         </p>) }
                     { reload() }
+                    { showWithErrors && content(undefined) }
                 </> :
                 <>
                     <p>{ w.data.link && <a href={w.data.link.href} target='_blank'>{`${name} in ${w.data.link.text}`}</a> }{ reload() }</p>
