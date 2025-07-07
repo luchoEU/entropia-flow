@@ -261,12 +261,15 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
         blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
             if (!bp.c?.materials) return [n, bp];
 
-            const materials: BlueprintMaterial[] = bp.c.materials.map(m => ({
-                ...m,
-                type: map[m.name]?.type ?? m.type,
-                value: map[m.name]?.value ?? m.value
-            }));
-            
+            const materials: BlueprintMaterial[] = bp.c.materials.map(m => {
+                let type = map[m.name]?.type;
+                return {
+                    ...m,
+                    type: !type || type.toString().trim() === '' ? 'Material' : type,
+                    value: map[m.name]?.value ?? m.value
+                }
+            });
+
             const metalResidueIndex = materials.findIndex(m => m.name === 'Metal Residue');
             if (metalResidueIndex !== -1) {
                 materials.splice(metalResidueIndex)

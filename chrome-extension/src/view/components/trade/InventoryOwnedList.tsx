@@ -6,10 +6,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { INVENTORY_TABULAR_OWNED, ItemOwned, TradeBlueprintLineData, TradeItemData } from '../../application/state/inventory'
 import SortableTabularSection from '../common/SortableTabularSection'
 import WebDataControl from '../common/WebDataControl';
-import { loadItemUsageData, loadItemData, itemReserveValueChanged } from '../../application/actions/items';
+import { loadItemUsageData, loadItemData, itemReserveValueChanged, changeMaterialValue, changeMaterialType, startMaterialEditMode, endMaterialEditMode } from '../../application/actions/items';
 import { ItemUsageWebData, ItemWebData } from '../../../web/state';
 import { setBlueprintStared } from '../../application/actions/craft';
-import { getItem } from '../../application/selectors/items';
+import { getItem, getItems, getItemsEditModeMaterialName } from '../../application/selectors/items';
 import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftBlueprint';
 import ItemNotes from '../item/ItemNotes';
@@ -20,13 +20,15 @@ import { Field } from '../common/Field';
 import { getTTService } from '../../application/selectors/ttService';
 import { loadTTService } from '../../application/actions/ttService';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
-import { RowValue } from '../common/SortableTabularSection.data';
 import { NavigateFunction } from 'react-router-dom';
 import { filterExact } from '../../../common/filter';
 import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation';
 import { Feature } from '../../application/state/settings';
 import { selectIsFeatureEnabled } from '../../application/selectors/settings';
 import { getSwitchButton } from '../common/SortableTabularSection.control';
+import AutocompleteInput from '../common/AutocompleteInput';
+import { ItemsState } from '../../application/state/items';
+import ImgButton from '../common/ImgButton';
 
 const getBlueprintsTableData = (type: string, stared: boolean | undefined): TableData2<TradeBlueprintLineData> => ({
     sortRow: [
@@ -66,6 +68,7 @@ const getBlueprintsTableData = (type: string, stared: boolean | undefined): Tabl
 
 const TradeItemDetailsChain = () => {
     const dispatch = useDispatch()
+    const matEditModeMaterialName = useSelector(getItemsEditModeMaterialName)
     const tradeItemDataChain = useSelector(getTradeItemDataChain)
     const tabularItems = useSelector(getTabularData(INVENTORY_TABULAR_OWNED)).items;
     if (!tradeItemDataChain)
@@ -78,9 +81,11 @@ const TradeItemDetailsChain = () => {
     return <>
         { tradeItemDataChain.map((tradeItemData, chainIndex) => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
+            const editMode = tradeItemData.name && tradeItemData.name === matEditModeMaterialName
             return <div key={tradeItemData.name} className='trade-item-data'>
                 <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
+                    { tradeItemData.name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(tradeItemData.name)}/> }
                 </h2>
                 { !chainNext && <TradeItemDetails
                     key={tradeItemData.name}
@@ -95,6 +100,7 @@ const TradeItemDetailsChain = () => {
 
 const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemData: TradeItemData, chainIndex: number, chainNext: string }) => {
     const dispatch = useDispatch()
+    const mat: ItemsState = useSelector(getItems)
     const item = useSelector(getItem(tradeItemData.name))
     const ttService = useSelector(getTTService)
     const showTTService = useSelector(selectIsFeatureEnabled(Feature.ttService));
@@ -141,16 +147,24 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     if (ownedTableData)
         ownedTableData.columnsWidth = columnsWidth
 
+    const name = tradeItemData.name
+    const editMode = name && name === mat.editModeMaterialName
     return <>
-        <WebDataControl w={item?.web?.item} name='Basic Information' dispatchReload={() => loadItemData(tradeItemData.name)} content={(webItem: ItemWebData) =>
-            <>
-                <p>Type: { webItem.type }</p>
-                <p>Value: { addZeroes(webItem.value) }</p>
+        <WebDataControl w={item?.web?.item} name='Basic Information' dispatchReload={() => loadItemData(tradeItemData.name)} showWithErrors={true} content={(webItem: ItemWebData) => {
+            const user = mat.map[name]?.user
+            return <>
+                { editMode ? <>
+                    <p><label>Type:</label> <AutocompleteInput value={user?.type?.toString() ?? ''} getChangeAction={(v) => changeMaterialType(name, v)} suggestions={user?.suggestedTypes ?? []}/></p>
+                    <p><label>Value:</label> <input type='text' value={user?.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
+                </> : (user ?? webItem) && <>
+                    <p>Type: { user?.type ?? webItem.type }</p>
+                    <p>Value: { addZeroes(user?.value ?? webItem.value) }</p>
+                </>}
                 { reserve && <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={itemReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
                 <ItemMarkup name={tradeItemData.name} />
                 <ItemCalculator name={tradeItemData.name} />
             </>
-        } />
+        }} />
         <ItemNotes name={tradeItemData.name} />
         { showTTService && <>
             <p style={{ height: '5px' }} />

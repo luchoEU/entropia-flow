@@ -1,14 +1,14 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 
-export default function AutocompleteInput({ value, getChangeAction, clearSuggestionsAction, suggestions }: {
+export default function AutocompleteInput({ value, getChangeAction, suggestions }: {
     value: string,
     getChangeAction: (v: string) => any,
-    clearSuggestionsAction: () => any,
     suggestions?: string[]
 }) {
     const dispatch = useDispatch()
     const [highlightIndex, setHighlightIndex] = React.useState(-1);
+    const [hideSuggestions, setHideSuggestions] = React.useState(false);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!suggestions || suggestions.length === 0) return;
@@ -30,36 +30,39 @@ export default function AutocompleteInput({ value, getChangeAction, clearSuggest
                 e.preventDefault();
                 if (highlightIndex >= 0 && highlightIndex < suggestions.length) {
                     dispatch(getChangeAction(suggestions[highlightIndex]));
+                    setHideSuggestions(true);
                     setHighlightIndex(-1);
                 }
                 break;
             case 'Escape':
                 e.preventDefault();
-                dispatch(clearSuggestionsAction());
+                setHideSuggestions(true);
                 setHighlightIndex(-1);
                 break;
         }
     };
 
     return (
-        <div style={{ position: 'relative' }}>
+        <span className='autocomplete-container'>
             <input value={value} onChange={(e) => {
                 dispatch(getChangeAction(e.target.value))
+                setHideSuggestions(false)
             }} onBlur={() => {
-                dispatch(clearSuggestionsAction())
+                setHideSuggestions(true)
             }} onKeyDown={handleKeyDown} />
-            {suggestions && suggestions.length > 0 && (
+            {!hideSuggestions && suggestions && suggestions.length > 0 && (
                 <div className='autocomplete-suggestions'>
                     {suggestions.map((s, i) => (
                         <div key={i} className={highlightIndex === i ? 'autocomplete-suggestion-highlight' : ''} onClick={() => {
                             dispatch(getChangeAction(s));
-                            dispatch(clearSuggestionsAction());
+                            setHideSuggestions(true);
+                            setHighlightIndex(-1);
                         }}>
                             {s}
                         </div>
                     ))}
                 </div>
             )}
-        </div>
+        </span>
     );
 }

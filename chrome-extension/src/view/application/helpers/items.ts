@@ -229,10 +229,10 @@ const reduceEndMaterialEditMode = (state: ItemsState): ItemsState => _itemChange
     { ...state, editModeMaterialName: undefined }, state.editModeMaterialName, s => {
         const web = s.web?.item.data?.value;
         let user = s.user;
-        if (user && user.type === '' && user.valueOnEdit === '') {
+        if (user && (!user.type || user.type.toString().trim() === '') && user.value === 0) {
             user = undefined; // cleared
         }
-        if (user && web && user.type === web.type && user.value === web.value) {
+        if (user && web && user.type.toString().trim() === (web.type ?? '') && user.value === web.value) {
             user = undefined; // same as web
         }
         if (user) {

@@ -853,6 +853,11 @@ button:active {
     width: fit-content;
 }
 
+.autocomplete-container {
+    display: inline-block;
+    position: relative;
+}
+
 .autocomplete-suggestions {
     position: absolute;
     border: 1px solid #ccc;

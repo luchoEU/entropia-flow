@@ -57,7 +57,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const itemName: string = action.payload.item
             const type: string = action.payload.type
             const map = getItemsMap(getState())
-            const list = Array.from(new Set(Object.values(map).map(m => m.web?.item?.data?.value.type).filter(t => t)))
+            const list = Array.from(new Set(Object.values(map).map(m => m.web?.item?.data?.value.type.toString()).filter(t => t)))
                 .filter(t => t.startsWith(type)).sort()
             dispatch(setMaterialSuggestedTypes(itemName, list))
             break

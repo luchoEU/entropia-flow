@@ -40,11 +40,11 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
         },
         [CLICKS]: {
             style: { justifyContent: 'center' },
-            dispatch: !d.web?.blueprint.loading && (() => reloadBlueprint(d.name)),
-            sub: !d.web ? reloadSub([]) :
-                    (d.web.blueprint.loading ?
+            dispatch: !d.web?.blueprint.loading && !d.user && (() => reloadBlueprint(d.name)),
+            sub: !d.web && !d.user ? reloadSub([]) :
+                    (d.web?.blueprint.loading ?
                         [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
-                        (d.web.blueprint.errors ?
+                        (d.web?.blueprint.errors && !d.user ?
                             reloadSub(d.web.blueprint.errors) :
                             [{ itemText: d.c.clicks?.available?.toString() }]))
         },

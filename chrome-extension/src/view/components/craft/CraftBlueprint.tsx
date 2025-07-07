@@ -1,6 +1,6 @@
 import React, { Dispatch, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode, setBlueprintSuggestedMaterials } from '../../application/actions/craft'
+import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
@@ -12,7 +12,7 @@ import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
 import { getItems, getItemsMap } from '../../application/selectors/items'
 import { BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
-import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, setMaterialSuggestedTypes, startMaterialEditMode } from '../../application/actions/items'
+import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, startMaterialEditMode } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
 import ItemNotes from '../item/ItemNotes'
@@ -242,7 +242,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 e.stopPropagation();
                 dispatch(showBlueprintMaterialData(bp.name, bp.chain === bp.c?.itemName ? undefined : bp.c?.itemName))
             }}>Item: {bp.c?.itemName} <img src={bp.chain === bp.c?.itemName ? 'img/left.png' : 'img/right.png'}/></p>
-            <p>{webBp && `Type: ${webBp.type}`}</p>
+            <p>{webBp && `Type: ${webBp.type.toString()}`}</p>
             <table ref={tableRef}>
                 <thead>
                     <tr>
@@ -274,7 +274,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                                     {name}
                                     <img src={bp.chain === m.name ? 'img/left.png' : 'img/right.png'}/>
                                 </td>
-                                <td data-text={m.type}>{m.type}</td>
+                                <td data-text={m.type.toString()}>{m.type.toString()}</td>
                                 { m.available ? <td data-text-right={m.available}>{m.available}</td> : <td/> }
                                 { m.clicks !== undefined ? <td data-text-right={m.clicks}>{m.clicks}</td> : <td/> }
                                 { markupMap && <td align='right'>{markupMap[m.name] && markupMap[m.name] !== 1 ? `${(markupMap[m.name] * 100).toFixed(2)}%` : ''}</td> }
@@ -350,7 +350,7 @@ const CraftEdit = ({bp}: {bp: BlueprintData}) => {
                     {bp.user?.materials?.map((m, i) => (
                         <tr key={i}>
                             <td><input type='text' value={m.quantity} onChange={(e) => dispatch(changeBlueprintMaterialQuantity(bp.name, i, e.target.value))}/></td>
-                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} clearSuggestionsAction={() => setBlueprintSuggestedMaterials(bp.name, [])} suggestions={i === bp.c?.suggestedMaterials?.index ? bp.c?.suggestedMaterials?.list : undefined}/></td>
+                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} suggestions={i === bp.c?.suggestedMaterials?.index ? bp.c?.suggestedMaterials?.list : undefined}/></td>
                             <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bp.name, i)}/></td>
                             <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bp.name, i, i - 1)}/>}</td>
                             <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bp.name, i, i + 1)}/>}</td>
@@ -385,14 +385,14 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
         <div className='craft-chain'>
             <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
-                {name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/>}
+                { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/> }
             </h2>
             <div>
                 { editMode ? <>
-                    <p>Type: <AutocompleteInput value={mat.map[name].user.type} getChangeAction={(v) => changeMaterialType(name, v)} clearSuggestionsAction={() => setMaterialSuggestedTypes(name, [])} suggestions={mat.map[name].user?.suggestedTypes ?? []}/></p>
-                    <p>Value: <input type='text' value={mat.map[name].user.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
+                    <p><label>Type:</label> <AutocompleteInput value={mat.map[name].user.type?.toString() ?? ''} getChangeAction={(v) => changeMaterialType(name, v)} suggestions={mat.map[name].user?.suggestedTypes ?? []}/></p>
+                    <p><label>Value:</label> <input type='text' value={mat.map[name].user.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
                 </> : afterChainMat && <>
-                    <p>Type: { afterChainMat.type }</p>
+                    <p>Type: { afterChainMat.type?.toString() ?? '' }</p>
                     <p>Value: { addZeroes(afterChainMat.value) }</p>
                 </>}
                 <ItemMarkup name={name} />

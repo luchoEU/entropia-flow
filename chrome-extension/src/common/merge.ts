@@ -30,15 +30,17 @@ function _mergeOverride(target: any, ...sources: any[]) {
 
     if (isObject(target) && isObject(source)) {
         for (const key in source) {
-            if (target[key] !== undefined &&
+            if (target[key] &&
                 (isObject(source[key]) !== isObject(target[key])
                 || isArray(source[key]) !== isArray(target[key]))) {
                 // structure type changed, don't use saved value
+            } else if (source[key] === null) {
+                target[key] = null
             } else if (isObject(source[key])) {
-                if (target[key] === undefined) Object.assign(target, { [key]: {} });
+                if (!target[key]) Object.assign(target, { [key]: {} });
                 _mergeOverride(target[key], source[key]);
             } else if (isArray(source[key])) {
-                if (target[key] === undefined) Object.assign(target, { [key]: [] });
+                if (!target[key]) Object.assign(target, { [key]: [] });
                 _mergeArray(target[key], source[key])
             } else {
                 Object.assign(target, { [key]: source[key] });

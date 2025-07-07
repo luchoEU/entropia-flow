@@ -28,8 +28,16 @@ import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { setTabularDefinitions } from '../helpers/tabular'
 import { craftTabularData, craftTabularDefinitions } from '../tabular/craft'
 import { setTabularData } from '../actions/tabular'
+import { getItemList } from '../helpers/inventory'
+import { ItemData } from '../../../common/state'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
+    let editModeBlueprintName: string | undefined;
+    if (action.type === END_BLUEPRINT_EDIT_MODE) {
+        const state: CraftState = getCraft(getState());
+        editModeBlueprintName = state.editModeBlueprintName;
+    }
+
     await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
@@ -196,40 +204,78 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     loadBudget(action.payload.name)
                     break
             }
-
-            if (action.type === SET_BLUEPRINT_PARTIAL_WEB_DATA) {
-                const bp: WebLoadResponse<BlueprintWebData> = action.payload.change.blueprint
-                const bpValue = bp?.data?.value
-                if (bpValue) {
-                    const mat: ItemsMap = getItemsMap(getState())
-                    const list: ItemWebData[] = []
-                    bpValue.materials.concat(bpValue.item).forEach((m: BlueprintWebMaterial) => {
-                        const material = mat[m.name]?.web?.item;
-                        if (!material) {
-                            // load missing materials
-                            dispatch(loadItemData(m.name, m));
-                        } else if (mat[m.name]?.user) {
-                            list.push(mat[m.name]?.user)
-                        } else if (material.data?.value) {
-                            list.push(material.data.value);
-                        }
-                    })
-                    dispatch(setBlueprintMaterialTypeAndValue(list));
-                }
-            }
-
-            break;
+            break
         }
     }
 
     switch (action.type) {
-        case SET_ITEMS_STATE:
+        case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case END_BLUEPRINT_EDIT_MODE: {
+            let materials: { name: string, m?: BlueprintWebMaterial }[];
+            if (action.type === SET_BLUEPRINT_PARTIAL_WEB_DATA) {
+                const bp: WebLoadResponse<BlueprintWebData> = action.payload.change.blueprint
+                const bpValue = bp?.data?.value
+                if (bpValue) {
+                    materials = bpValue.materials.concat(bpValue.item).map(m => ({ name: m.name, m }))
+                }
+            }
+            else if (action.type === END_BLUEPRINT_EDIT_MODE) {
+                const state: CraftState = getCraft(getState());
+                if (editModeBlueprintName) {
+                    const bp = state.blueprints[editModeBlueprintName];
+                    if (bp?.user) {
+                        materials = bp.user.materials.map(m => ({ name: m.name })).concat({ name: bp.c.itemName });
+                    }
+                }
+            }
+
+            if (materials) {
+                const inv: ItemData[] = getItemList(getInventory(getState()))
+                const mat: ItemsMap = getItemsMap(getState())
+                const list: ItemWebData[] = []
+                materials.forEach(({ name, m }: { name: string, m?: BlueprintWebMaterial }) => {
+                    let item: ItemWebData | undefined
+                    const material = mat[name]?.web?.item;
+                    if (!material) {
+                        // load missing materials
+                        dispatch(loadItemData(name, m));
+                    } else if (mat[name]?.user) {
+                        item = mat[name]?.user
+                    } else if (material.data?.value) {
+                        item = material.data.value;
+                    }
+                    if (!item) {
+                        const invItem = inv.find(i => i.n === name)
+                        if (invItem) {
+                            item = {
+                                name: invItem.n,
+                                type: undefined,
+                                value: Number(invItem.v) / Number(invItem.q)
+                            }
+                        }
+                    }
+                    if (item) {
+                        list.push(item)
+                    }
+                })
+                dispatch(setBlueprintMaterialTypeAndValue(list));
+            }
+
+            break;
+        }
+        case SET_ITEMS_STATE:
+        case SET_CURRENT_INVENTORY: {
+            const inv: ItemData[] = getItemList(getInventory(getState()))
             const mat: ItemsMap = getItemsMap(getState());
-            const list: ItemWebData[] = Object.values(mat)
+            const matList = Object.values(mat)
                 .map(m => m.user ?? m.web?.item?.data?.value)
                 .filter(t => t);
-            dispatch(setBlueprintMaterialTypeAndValue(list));
+            const invList: ItemWebData[] = inv.filter(i => !matList.some(m => m.name === i.n)).map(i => ({
+                name: i.n,
+                type: undefined,
+                value: Number(i.v) / Number(i.q)
+            }))
+            dispatch(setBlueprintMaterialTypeAndValue([...matList, ...invList]));
             break;
         }
         case CHANGE_BLUEPRINT_MATERIAL_NAME: {
