@@ -9,10 +9,10 @@ import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
-import { ItemsMap } from '../../application/state/items'
-import { getItemsMap } from '../../application/selectors/items'
+import { ItemsMap, ItemsState } from '../../application/state/items'
+import { getItems, getItemsMap } from '../../application/selectors/items'
 import { BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
-import { loadItemData, loadItemRawMaterials } from '../../application/actions/items'
+import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, setMaterialSuggestedTypes, startMaterialEditMode } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
 import ItemNotes from '../item/ItemNotes'
@@ -374,19 +374,24 @@ const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse
 
 const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     const dispatch = useDispatch()
-    const mat: ItemsMap = useSelector(getItemsMap)
+    const mat: ItemsState = useSelector(getItems)
 
-    const raw = name && mat[name]?.web?.rawMaterials
+    const raw = name && mat.map[name]?.web?.rawMaterials
     const afterChainBpMat = name && bp.web?.blueprint?.data?.value.materials.find(m => m.name === name)
-    const afterChainMat = name && (mat[name]?.web?.item?.data?.value ?? afterChainBpMat)
+    const afterChainMat = name && (mat.map[name]?.user ?? mat.map[name]?.web?.item?.data?.value ?? afterChainBpMat)
 
+    const editMode = name && name === mat.editModeMaterialName
     return (
         <div className='craft-chain'>
             <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
+                {name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/>}
             </h2>
             <div>
-                { afterChainMat && <>
+                { editMode ? <>
+                    <p>Type: <AutocompleteInput value={mat.map[name].user.type} getChangeAction={(v) => changeMaterialType(name, v)} clearSuggestionsAction={() => setMaterialSuggestedTypes(name, [])} suggestions={mat.map[name].user?.suggestedTypes ?? []}/></p>
+                    <p>Value: <input type='text' value={mat.map[name].user.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
+                </> : afterChainMat && <>
                     <p>Type: { afterChainMat.type }</p>
                     <p>Value: { addZeroes(afterChainMat.value) }</p>
                 </>}

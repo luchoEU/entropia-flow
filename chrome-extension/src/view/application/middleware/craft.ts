@@ -20,7 +20,7 @@ import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
 import { ItemsMap } from '../state/items'
 import { getItemsMap } from '../selectors/items'
-import { loadItemData, loadItemRawMaterials, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from '../actions/items'
+import { CHANGE_MATERIAL_TYPE, CHANGE_MATERIAL_VALUE, loadItemData, loadItemRawMaterials, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from '../actions/items'
 import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
 import { BlueprintWebData, BlueprintWebMaterial, ItemWebData } from '../../../web/state'
@@ -208,6 +208,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         if (!material) {
                             // load missing materials
                             dispatch(loadItemData(m.name, m));
+                        } else if (mat[m.name]?.user) {
+                            list.push(mat[m.name]?.user)
                         } else if (material.data?.value) {
                             list.push(material.data.value);
                         }
@@ -225,7 +227,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case END_BLUEPRINT_EDIT_MODE: {
             const mat: ItemsMap = getItemsMap(getState());
             const list: ItemWebData[] = Object.values(mat)
-                .map(m => m.web?.item?.data?.value)
+                .map(m => m.user ?? m.web?.item?.data?.value)
                 .filter(t => t);
             dispatch(setBlueprintMaterialTypeAndValue(list));
             break;
@@ -247,6 +249,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const change: WebLoadResponse<ItemWebData> = action.payload.change.item
             if (change?.data)
                 dispatch(setBlueprintMaterialTypeAndValue([change.data.value]));
+            break;
+        }
+        case CHANGE_MATERIAL_TYPE:
+        case CHANGE_MATERIAL_VALUE: {
+            const mat: ItemsMap = getItemsMap(getState());
+            dispatch(setBlueprintMaterialTypeAndValue([mat[action.payload.item].user]));
             break;
         }
         case RELOAD_BLUEPRINT: {

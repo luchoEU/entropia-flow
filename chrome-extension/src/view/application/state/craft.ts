@@ -32,7 +32,7 @@ interface CraftingWebData {
 }
 
 interface CraftingUserData {
-    materials: { name: string, quantity: number }[]
+    materials: { name: string, quantity: string }[]
 }
 
 interface BlueprintStateWebData {

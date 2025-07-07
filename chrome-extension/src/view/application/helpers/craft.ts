@@ -125,12 +125,16 @@ function _addItemBlueprint(bpName: string, item: { name: string, value: number }
 const _materialsFromUserAndWeb = (bpName: string, user?: CraftingUserData, web?: BlueprintWebData): BlueprintMaterial[] => {
     if (!user && !web) return undefined;
 
-    const materials: BlueprintMaterial[] = user?.materials.map(m => ({
-        name: m.name,
-        type: 'Material',
-        quantity: m.quantity,
-        value: 0
-    })) ?? web.materials.map(m => ({ ...m }))
+    const materials: BlueprintMaterial[] = user?.materials.map(m => {
+        let quantity = parseInt(m.quantity)
+        if (isNaN(quantity)) quantity = 0
+        return {
+            name: m.name,
+            type: 'Material',
+            quantity,
+            value: 0
+        }
+    }) ?? web.materials.map(m => ({ ...m }))
     if (web) {
         _addItemBlueprint(web.name, web.item, materials)
     } else {
@@ -252,7 +256,7 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
         return state;
 
     const map = Object.fromEntries(list.map(m => [m.name, m]))
-    const s ={
+    const s = {
         ...state,
         blueprints: Object.fromEntries(Object.entries(state.blueprints).map(([n, bp]) => {
             if (!bp.c?.materials) return [n, bp];
@@ -260,7 +264,7 @@ const reduceSetBlueprintMaterialTypeAndValue = (state: CraftState, list: ItemWeb
             const materials: BlueprintMaterial[] = bp.c.materials.map(m => ({
                 ...m,
                 type: map[m.name]?.type ?? m.type,
-                value: m.value === 0 ? map[m.name]?.value ?? 0 : m.value
+                value: map[m.name]?.value ?? m.value
             }));
             
             const metalResidueIndex = materials.findIndex(m => m.name === 'Metal Residue');
@@ -498,7 +502,7 @@ const reduceStartBlueprintEditMode = (state: CraftState, name: string): CraftSta
     const web = bp.web?.blueprint?.data?.value
     return _changeBlueprint({ ...state, editModeBlueprintName: name }, name, bp => ({
         ...bp,
-        user: bp.user ?? { materials: web?.materials.map(m => ({ name: m.name, quantity: m.quantity })) ?? [] }
+        user: bp.user ?? { materials: web?.materials.map(m => ({ name: m.name, quantity: m.quantity.toString() })) ?? [] }
     }))
 }
 
@@ -512,7 +516,7 @@ const reduceEndBlueprintEditMode = (state: CraftState): CraftState => {
         if (user && web &&
             user.materials.length !== web.materials.length &&
             user.materials.every((item, index) => 
-                item.name === web.materials[index].name && item.quantity === web.materials[index].quantity
+                item.name === web.materials[index].name && parseInt(item.quantity) === web.materials[index].quantity
             )
         ) {
             user = undefined // same as web
@@ -533,7 +537,7 @@ const reduceEndBlueprintEditMode = (state: CraftState): CraftState => {
 const reduceAddBlueprintMaterial = (state: CraftState, name: string): CraftState => _changeBlueprint(state, name, bp => ({
     ...bp,
     user: {
-        materials: [ ...bp.user?.materials ?? [], { name: "", quantity: 0 } ]
+        materials: [ ...bp.user?.materials ?? [], { name: '', quantity: '0' } ]
     }
 }))
 
@@ -547,7 +551,7 @@ const reduceRemoveBlueprintMaterial = (state: CraftState, name: string, material
 const reduceChangeBlueprintMaterialQuantity = (state: CraftState, name: string, materialIndex: number, quantity: string): CraftState => _changeBlueprint(state, name, bp => ({
     ...bp,
     user: {
-        materials: bp.user?.materials.map((m, i) => i === materialIndex ? { ...m, quantity: parseInt(quantity) } : m)
+        materials: bp.user?.materials.map((m, i) => i === materialIndex ? { ...m, quantity } : m)
     }
 }))
 

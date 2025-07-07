@@ -3,6 +3,7 @@ import { ItemUsageWebData, ItemWebData, RawMaterialWebData } from "../../../web/
 
 interface ItemsState {
     map: ItemsMap
+    editModeMaterialName?: string
 }
 
 type ItemsMap = { [name: string] : ItemState }
@@ -20,7 +21,13 @@ interface ItemState {
     notes?: string
     calc?: ItemStateCalcData
     web?: ItemStateWebData
+    user?: ItemStateUserData
     refined?: ItemStateRefinedData
+}
+
+type ItemStateUserData = ItemWebData & {
+    valueOnEdit: string
+    suggestedTypes?: string[]
 }
 
 interface ItemStateMarkupData {

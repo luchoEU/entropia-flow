@@ -214,6 +214,50 @@ const reduceSetItemCalculatorTotal = (state: ItemsState, item: string, total: st
 const reduceSetItemCalculatorTotalMU = (state: ItemsState, item: string, totalMU: string): ItemsState =>
     _itemChangedCalc(state, item, totalMU, { totalMU }, (n, v, mu) => ({ quantity: (n / v / mu).toFixed(0), total: (n / mu).toFixed(2), totalMU }))
 
+const reduceStartMaterialEditMode = (state: ItemsState, item: string): ItemsState => _itemChangedMod(
+    { ...state, editModeMaterialName: item }, item, s => ({
+        ...s,
+        user: s.user ?? {
+            name: item,
+            type: s.web?.item.data?.value.type ?? '',
+            value: s.web?.item.data?.value.value ?? 0,
+            valueOnEdit: s.web?.item.data?.value.value.toString() ?? '0' }
+    })
+)
+
+const reduceEndMaterialEditMode = (state: ItemsState): ItemsState => _itemChangedMod(
+    { ...state, editModeMaterialName: undefined }, state.editModeMaterialName, s => {
+        const web = s.web?.item.data?.value;
+        let user = s.user;
+        if (user && user.type === '' && user.valueOnEdit === '') {
+            user = undefined; // cleared
+        }
+        if (user && web && user.type === web.type && user.value === web.value) {
+            user = undefined; // same as web
+        }
+        if (user) {
+            user.suggestedTypes = undefined;
+        }
+        return { ...s, user }
+    }
+)
+
+function _parseFloatOrZero(value: any): number {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+const reduceChangeMaterialType = (state: ItemsState, item: string, type: string): ItemsState =>
+    _itemChangedMod(state, item, s => ({ user: { ...s?.user, type } }))
+
+const reduceChangeMaterialValue = (state: ItemsState, item: string, value: string): ItemsState =>
+    _itemChangedMod(state, item, s => ({ user: { ...s?.user, value: _parseFloatOrZero(value), valueOnEdit: value } }))
+
+const reduceSetMaterialSuggestedTypes = (state: ItemsState, item: string, types: string[]): ItemsState => _itemChangedMod(
+    state, item, s => ({
+        user: { ...s?.user, suggestedTypes: types }
+    }))
+
 const cleanWeb = (state: ItemsState): ItemsState => {
     const cState: ItemsState = JSON.parse(JSON.stringify(state))
     Object.values(cState.map).forEach(v => {
@@ -301,6 +345,11 @@ export {
     reduceSetItemCalculatorTotal,
     reduceSetItemCalculatorTotalMU,
     reduceSetItemMarkupUnit,
+    reduceStartMaterialEditMode,
+    reduceEndMaterialEditMode,
+    reduceChangeMaterialType,
+    reduceChangeMaterialValue,
+    reduceSetMaterialSuggestedTypes,
     cleanWeb,
     cleanForSaveMain,
     cleanForSaveCache,

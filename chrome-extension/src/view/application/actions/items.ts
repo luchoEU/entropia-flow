@@ -18,6 +18,11 @@ const SET_ITEM_CALCULATOR_QUANTITY = '[item] set calculator quantity'
 const SET_ITEM_CALCULATOR_TOTAL = '[item] set calculator total'
 const SET_ITEM_CALCULATOR_TOTAL_MU = '[item] set calculator total mu'
 const SET_ITEM_MARKUP_UNIT = '[item] set markup unit'
+const START_MATERIAL_EDIT_MODE = '[item] start material edit mode'
+const END_MATERIAL_EDIT_MODE = '[item] end material edit mode'
+const CHANGE_MATERIAL_TYPE = '[item] change material type'
+const CHANGE_MATERIAL_VALUE = '[item] change material value'
+const SET_MATERIAL_SUGGESTED_TYPES = '[item] set material suggested types'
 
 const setItemsState = (state: ItemsState) => ({
     type: SET_ITEMS_STATE,
@@ -152,6 +157,41 @@ const setItemMarkupUnit = (item: string, unit: MarkupUnit) => ({
     }
 })
 
+const startMaterialEditMode = (item: string) => ({
+    type: START_MATERIAL_EDIT_MODE,
+    payload: {
+        item
+    }
+})
+
+const endMaterialEditMode = {
+    type: END_MATERIAL_EDIT_MODE
+}
+
+const changeMaterialType = (item: string, type: string) => ({
+    type: CHANGE_MATERIAL_TYPE,
+    payload: {
+        item,
+        type
+    }
+})
+
+const changeMaterialValue = (item: string, value: string) => ({
+    type: CHANGE_MATERIAL_VALUE,
+    payload: {
+        item,
+        value
+    }
+})
+
+const setMaterialSuggestedTypes = (item: string, types: string[]) => ({
+    type: SET_MATERIAL_SUGGESTED_TYPES,
+    payload: {
+        item,
+        types
+    }
+})
+
 export {
     SET_ITEMS_STATE,
     ITEM_BUY_MARKUP_CHANGED,
@@ -170,6 +210,11 @@ export {
     SET_ITEM_CALCULATOR_TOTAL,
     SET_ITEM_CALCULATOR_TOTAL_MU,
     SET_ITEM_MARKUP_UNIT,
+    START_MATERIAL_EDIT_MODE,
+    END_MATERIAL_EDIT_MODE,
+    CHANGE_MATERIAL_TYPE,
+    CHANGE_MATERIAL_VALUE,
+    SET_MATERIAL_SUGGESTED_TYPES,
     setItemsState,
     itemBuyMarkupChanged,
     itemOrderMarkupChanged,
@@ -187,4 +232,9 @@ export {
     setItemCalculatorTotal,
     setItemCalculatorTotalMU,
     setItemMarkupUnit,
+    startMaterialEditMode,
+    endMaterialEditMode,
+    changeMaterialType,
+    changeMaterialValue,
+    setMaterialSuggestedTypes
 }
