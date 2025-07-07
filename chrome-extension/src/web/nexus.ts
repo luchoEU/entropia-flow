@@ -21,6 +21,19 @@ export class EntropiaNexus implements IWebSource {
         } else {
             const url = _apiUrl(`items/${itemName}`)
             item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(itemName))
+            if (!item.ok) {
+                const searchUrl = _apiUrl(`search/items?query=${itemName}`)
+                const searchResult = await mapResponse(fetchJson<EntropiaSearchItem[]>(searchUrl), _extractItemName(itemName))
+                if (searchResult.ok) {
+                    const nexusItemName = searchResult.data.find(name => name.toLowerCase() === itemName.toLowerCase())
+                    if (!nexusItemName || nexusItemName === itemName) {
+                        return item
+                    }
+                    // try again with correct case
+                    const url = _apiUrl(`items/${nexusItemName}`)
+                    item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(nexusItemName))
+                }
+            }
         }
         if (item.ok && item.data.type === 'Material') {
             const r = await fetchJson<EntropiaNexusItem>(item.url)
@@ -87,6 +100,12 @@ const _extractItem = (itemName: string) => async (m: EntropiaNexusItem): Promise
         value: m.Properties.Economy.Value,
     },
     url: _apiUrl(m.Links.$Url)
+})
+
+const _extractItemName = (itemName: string) => async (m: EntropiaSearchItem[]): Promise<SourceLoadResponse<string[]>> => ({
+    ok: true,
+    data: m.map(m => m.Name),
+    url: undefined
 })
 
 const _extractUsage = (itemName: string) => async (u: EntropiaNexusUsage): Promise<SourceLoadResponse<ItemUsageWebData>> => ({
@@ -157,6 +176,12 @@ interface EntropiaNexusItem {
         }
     },
     Links: EntropiaNexusLinks
+}
+
+interface EntropiaSearchItem {
+    Name: string,
+    Type: string,
+    SubType: string
 }
 
 interface EntropiaNexusUsage extends EntropiaNexusAcquisition {
