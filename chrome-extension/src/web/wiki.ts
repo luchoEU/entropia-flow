@@ -21,10 +21,6 @@ export class EntropiaWiki implements IWebSource {
     public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
         return NOT_IMPLEMENTED
     }
-
-    public async loadBlueprintList(): Promise<SourceLoadResponse<string[]>> {
-        return NOT_IMPLEMENTED
-    }
 }
 
 async function _loadFromSearch<T>(text: string, mapper: (html: string) => Promise<SourceLoadResponse<T>>): Promise<SourceLoadResponse<T>> {

@@ -1,7 +1,7 @@
 import { Component, traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
-import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_CRAFT_STATE, setCraftingPartialWebData, SET_CRAFTING_PARTIAL_WEB_DATA, SET_CRAFT_OPTIONS, ADD_BLUEPRINT_MATERIAL, REMOVE_BLUEPRINT_MATERIAL, CHANGE_BLUEPRINT_MATERIAL_QUANTITY, CHANGE_BLUEPRINT_MATERIAL_NAME, MOVE_BLUEPRINT_MATERIAL, START_BLUEPRINT_EDIT_MODE, END_BLUEPRINT_EDIT_MODE, setBlueprintSuggestedMaterials } from '../actions/craft'
+import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_CRAFT_STATE, SET_CRAFT_OPTIONS, ADD_BLUEPRINT_MATERIAL, REMOVE_BLUEPRINT_MATERIAL, CHANGE_BLUEPRINT_MATERIAL_QUANTITY, CHANGE_BLUEPRINT_MATERIAL_NAME, MOVE_BLUEPRINT_MATERIAL, START_BLUEPRINT_EDIT_MODE, END_BLUEPRINT_EDIT_MODE, setBlueprintSuggestedMaterials, SET_BLUEPRINT_LIST } from '../actions/craft'
 import { SET_HISTORY_LIST } from '../actions/history'
 import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
@@ -462,15 +462,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     }
 
     switch (action.type) {
-        case AppAction.INITIALIZE:
-            for await (const r of loadFromWeb(s => s.loadBlueprintList())) {
-                dispatch(setCraftingPartialWebData({ blueprintList: r }))
-            }
-            break
         case SET_CRAFT_STATE:
         case LOAD_INVENTORY_STATE:
         case SET_CURRENT_INVENTORY:
-        case SET_CRAFTING_PARTIAL_WEB_DATA:
+        case SET_BLUEPRINT_LIST:
         case SET_CRAFT_OPTIONS:
             const state: CraftState = getCraft(getState())
             const inventory: InventoryState = getInventory(getState())

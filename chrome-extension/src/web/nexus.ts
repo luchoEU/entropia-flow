@@ -1,5 +1,6 @@
 import { fetchJson, fetchText } from "./fetch";
 import { mapResponse } from "./loader";
+import { NEXUS_API_BASE_URL, nexusApiUrl, nexusWwwUrl } from "./nexus.url";
 import { IWebSource, SourceLoadResponse } from "./sources";
 import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, RawMaterialWebData } from "./state";
 
@@ -8,7 +9,7 @@ export class EntropiaNexus implements IWebSource {
 
     public async loadItem(itemName: string, bpMaterial?: BlueprintWebMaterial): Promise<SourceLoadResponse<ItemWebData>> {
         let item: SourceLoadResponse<ItemWebData>
-        if (bpMaterial?.url?.startsWith(API_BASE_URL) && bpMaterial?.value) {
+        if (bpMaterial?.url?.startsWith(NEXUS_API_BASE_URL) && bpMaterial?.value) {
             item = {
                 ok: true,
                 data: {
@@ -19,10 +20,10 @@ export class EntropiaNexus implements IWebSource {
                 url: bpMaterial.url
             }
         } else {
-            const url = _apiUrl(`items/${itemName}`)
+            const url = nexusApiUrl(`items/${itemName}`)
             item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(itemName))
             if (!item.ok) {
-                const searchUrl = _apiUrl(`search/items?query=${itemName}`)
+                const searchUrl = nexusApiUrl(`search/items?query=${itemName}`)
                 const searchResult = await mapResponse(fetchJson<EntropiaSearchItem[]>(searchUrl), _extractItemName(itemName))
                 if (searchResult.ok) {
                     const nexusItemName = searchResult.data.find(name => name.toLowerCase() === itemName.toLowerCase())
@@ -30,7 +31,7 @@ export class EntropiaNexus implements IWebSource {
                         return item
                     }
                     // try again with correct case
-                    const url = _apiUrl(`items/${nexusItemName}`)
+                    const url = nexusApiUrl(`items/${nexusItemName}`)
                     item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(nexusItemName))
                 }
             }
@@ -40,45 +41,25 @@ export class EntropiaNexus implements IWebSource {
             if (r.ok) {
                 item.data.type = r.result.Properties.Type
             }
-            item.url = _wwwUrl(`items/materials/${itemName}`)
+            item.url = nexusWwwUrl(`items/materials/${itemName}`)
         }
         return item
     }
 
     public async loadRawMaterials(materialName: string): Promise<SourceLoadResponse<RawMaterialWebData[]>> {
-        const url = _apiUrl(`acquisition/${materialName}`)
+        const url = nexusApiUrl(`acquisition/${materialName}`)
         return await mapResponse(fetchJson<EntropiaNexusAcquisition>(url), _extractRawMaterials(materialName))
     }
 
     public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
-        const url = _apiUrl(`usage/${itemName}`)
+        const url = nexusApiUrl(`usage/${itemName}`)
         return await mapResponse(fetchJson<EntropiaNexusUsage>(url), _extractUsage(itemName))
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
         bpName = bpName.replace('(C) ', '')
-        const url = _apiUrl(`blueprints/${bpName}`)
+        const url = nexusApiUrl(`blueprints/${bpName}`)
         return await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpName))
-    }
-
-    public async loadBlueprintList(): Promise<SourceLoadResponse<string[]>> {
-        const url = _wwwUrl(`items/blueprints`)
-        return await mapResponse(fetchText(url), _extractBlueprintList(url))
-    }
-}
-
-const API_BASE_URL = 'https://api.entropianexus.com';
-const _encodeURI = (href: string) => href.replace(/\(/g, '%28').replace(/\)/g, '%29');
-const _apiUrl = (href: string) => href && _encodeURI(new URL(href, API_BASE_URL).href);
-const _wwwUrl = (href: string) => href && new URL(href.replace(/ /g, '~'), 'https://entropianexus.com').href;
-
-const _extractBlueprintList = (url: string) => async (page: string): Promise<SourceLoadResponse<string[]>> => {
-    const regex = /<a href="\/items\/blueprints\/[^<]+"><!-- HTML_TAG_START -->([^<]+)<!-- HTML_TAG_END --><\/a>/g;
-    const matches = Array.from(page.matchAll(regex));
-    return {
-        ok: true,
-        data: matches.map(([_, bpName]) => bpName.trim()),
-        url
     }
 }
 
@@ -89,7 +70,7 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
             name: ingredient.Item.Name,
             quantity: ingredient.Amount,
         })),
-    url: acq.RefiningRecipes.length > 0 && _wwwUrl(`items/materials/${materialName}`) // maybe it is not a material if no RefiningRecipes
+    url: acq.RefiningRecipes.length > 0 && nexusWwwUrl(`items/materials/${materialName}`) // maybe it is not a material if no RefiningRecipes
 })
 
 const _extractItem = (itemName: string) => async (m: EntropiaNexusItem): Promise<SourceLoadResponse<ItemWebData>> => ({
@@ -99,7 +80,7 @@ const _extractItem = (itemName: string) => async (m: EntropiaNexusItem): Promise
         type: m.Properties.Type,
         value: m.Properties.Economy.Value,
     },
-    url: _apiUrl(m.Links.$Url)
+    url: nexusApiUrl(m.Links.$Url)
 })
 
 const _extractItemName = (itemName: string) => async (m: EntropiaSearchItem[]): Promise<SourceLoadResponse<string[]>> => ({
@@ -123,7 +104,7 @@ const _extractUsage = (itemName: string) => async (u: EntropiaNexusUsage): Promi
             }
         }))
     },
-    url: _wwwUrl(`items/materials/${itemName}`)
+    url: nexusWwwUrl(`items/materials/${itemName}`)
 })
 
 const _extractBlueprintData = (bp: EntropiaNexusBlueprint): BlueprintWebData => ({
@@ -136,21 +117,21 @@ const _extractBlueprintData = (bp: EntropiaNexusBlueprint): BlueprintWebData => 
         type: bp.Product.Properties.Type,
         quantity: undefined,
         value: bp.Product.Properties.Economy?.MaxTT ?? 0,
-        url: _apiUrl(bp.Product.Links.$Url)
+        url: nexusApiUrl(bp.Product.Links.$Url)
     },
     materials: bp.Materials.map(m => ({
         name: m.Item.Name,
         type: m.Item.Properties.Type,
         quantity: m.Amount,
         value: m.Item.Properties.Economy.MaxTT,
-        url: _apiUrl(m.Item.Links.$Url)
+        url: nexusApiUrl(m.Item.Links.$Url)
     }))
 })
 
 const _extractBlueprint = (bpName: string) => async (bp: EntropiaNexusBlueprint): Promise<SourceLoadResponse<BlueprintWebData>> => ({
     ok: true,
     data: _extractBlueprintData(bp),
-    url: _wwwUrl(`items/blueprints/${bpName}`)
+    url: nexusWwwUrl(`items/blueprints/${bpName}`)
 })
 
 interface EntropiaNexusAcquisition {

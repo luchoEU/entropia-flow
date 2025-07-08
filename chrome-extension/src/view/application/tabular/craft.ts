@@ -16,7 +16,7 @@ const craftTabularData = (state: CraftState, inventoryState: InventoryState): Ta
     const groupedMap = new Map<string, { name: string; stared: boolean; quantity: number }>();
 
     if (!state.options.owned) {
-        for (const bpName of state.web?.blueprintList.data?.value ?? []) {
+        for (const bpName of state.web?.simpleBlueprintList ?? []) {
             const stared = state.stared.list.includes(bpName);
             groupedMap.set(bpName, { name: bpName, stared, quantity: 0 });
         }

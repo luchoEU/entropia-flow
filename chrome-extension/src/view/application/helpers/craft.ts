@@ -164,11 +164,11 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
     }
 }
 
-const reduceSetCraftingPartialWebData = (state: CraftState, change: Partial<CraftingWebData>): CraftState => ({
+const reduceSetBlueprintList = (state: CraftState, list: string[]): CraftState => ({
     ...state,
     web: {
         ...state.web,
-        ...change
+        simpleBlueprintList: list
     }
 })
 
@@ -619,7 +619,7 @@ export {
     reduceSetStaredBlueprintsFilter,
     reduceAddBlueprint,
     reduceSetBlueprintPartialWebData,
-    reduceSetCraftingPartialWebData,
+    reduceSetBlueprintList,
     reduceSetBlueprintQuantity,
     reduceSetBlueprintMaterialTypeAndValue,
     reduceSetBlueprintSuggestedMaterials,

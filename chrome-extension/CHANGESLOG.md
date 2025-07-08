@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 0.5.4 - unreleased
+### Added
+- Add support to edit blueprints and materials
+
+### Fixed
+- Fix not-owned blueprints load so it is optional and avoids unintended requests
+
 ## Version 0.5.3 - 2025-07-04
 ### Fixed
 - Fix frozen tab after it starts loading the items

@@ -1,5 +1,5 @@
 import { STRING_WAIT_3_MINUTES } from '../../../common/const'
-import { ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
+import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
@@ -17,6 +17,7 @@ import { isAppLoaded } from '../slice/app'
 import { HistoryState } from '../state/history'
 import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
+import { setBlueprintList } from '../actions/craft'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions = [];
@@ -50,6 +51,10 @@ const notificationViewHandler = (dispatch: AppDispatch) => async (m: ViewNotific
     dispatch(onNotificationClicked(m.notificationId, m.buttonIndex));
 }
 
+const blueprintListHandler = (dispatch: AppDispatch) => async (m: ViewBlueprintList) => {
+    dispatch(setBlueprintList(m.blueprints));
+}
+
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
     switch (action.type) {
@@ -62,7 +67,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         await Promise.resolve(dispatch(action));
                     }
                     resolve();
-                }, actionViewHandler(dispatch), notificationViewHandler(dispatch))
+                }, actionViewHandler(dispatch), notificationViewHandler(dispatch), blueprintListHandler(dispatch))
             })
             break
         }

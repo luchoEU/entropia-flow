@@ -1,17 +1,18 @@
 import { ChromeMessagesClient } from "../../../chrome/chromeMessages"
 import { PortHandler } from "../../../chrome/IPort"
-import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW, MSG_NAME_SEND_WEB_SOCKET_MESSAGE, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW } from "../../../common/const"
+import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW, MSG_NAME_SEND_WEB_SOCKET_MESSAGE, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW, MSG_NAME_BLUEPRINT_LIST } from "../../../common/const"
 import { traceId } from "../../../common/trace"
 
 let messagesClient: ChromeMessagesClient
 
-function initMessageClient(refreshViewHandler: PortHandler, dispatchHandler: PortHandler, notificationHandler: PortHandler) {
+function initMessageClient(refreshViewHandler: PortHandler, dispatchHandler: PortHandler, notificationHandler: PortHandler, blueprintListHandler: PortHandler) {
     messagesClient = new ChromeMessagesClient(
         MSG_NAME_REGISTER_VIEW,
         PORT_NAME_BACK_VIEW, {
             [MSG_NAME_REFRESH_VIEW]: refreshViewHandler,
             [MSG_NAME_ACTION_VIEW]: dispatchHandler,
             [MSG_NAME_NOTIFICATION_VIEW]: notificationHandler,
+            [MSG_NAME_BLUEPRINT_LIST]: blueprintListHandler
         }
     )
 }

@@ -59,6 +59,10 @@ interface ViewNotification {
     buttonIndex?: number
 }
 
+interface ViewBlueprintList {
+    blueprints: string[]
+}
+
 let mockDate = undefined
 
 function setMockDate(date: number) {
@@ -128,6 +132,7 @@ export {
     ViewState,
     ViewDispatch,
     ViewNotification,
+    ViewBlueprintList,
     setMockDate,
     getNowDate,
     makeLogInventory,

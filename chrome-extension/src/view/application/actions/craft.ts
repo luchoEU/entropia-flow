@@ -9,7 +9,7 @@ const SORT_BLUEPRINTS_BY = '[craft] sort blueprints by'
 const SET_STARED_BLUEPRINTS_FILTER = '[craft] set stared blueprints filter'
 const ADD_BLUEPRINT = '[craft] add blueprint'
 const SET_BLUEPRINT_PARTIAL_WEB_DATA = '[craft] set blueprint partial web data'
-const SET_CRAFTING_PARTIAL_WEB_DATA = '[craft] set crafting partial web data'
+const SET_BLUEPRINT_LIST = '[craft] set blueprint list'
 const SET_BLUEPRINT_QUANTITY = '[craft] set blueprint quantity'
 const SET_BLUEPRINT_MATERIAL_TYPE_AND_VALUE = '[craft] set blueprint material type and value'
 const SET_BLUEPRINT_SUGGESTED_MATERIALS = '[craft] set blueprint suggested materials'
@@ -99,10 +99,10 @@ const setBlueprintPartialWebData = (name: string, change: Partial<BlueprintState
     }
 })
 
-const setCraftingPartialWebData = (change: Partial<CraftingWebData>) => ({
-    type: SET_CRAFTING_PARTIAL_WEB_DATA,
+const setBlueprintList = (list: string[]) => ({
+    type: SET_BLUEPRINT_LIST,
     payload: {
-        change
+        list
     }
 })
 
@@ -370,7 +370,7 @@ export {
     RELOAD_BLUEPRINT,
     SORT_BLUEPRINTS_BY,
     SET_STARED_BLUEPRINTS_FILTER,
-    SET_CRAFTING_PARTIAL_WEB_DATA,
+    SET_BLUEPRINT_LIST,
     ADD_BLUEPRINT,
     SET_BLUEPRINT_PARTIAL_WEB_DATA,
     SET_BLUEPRINT_QUANTITY,
@@ -417,7 +417,7 @@ export {
     setStaredBlueprintsFilter,
     addBlueprint,
     setBlueprintPartialWebData,
-    setCraftingPartialWebData,
+    setBlueprintList,
     setBlueprintQuantity,
     setBlueprintMaterialTypeAndValue,
     setBlueprintSuggestedMaterials,

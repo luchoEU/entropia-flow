@@ -28,7 +28,7 @@ interface CraftOptions {
 }
 
 interface CraftingWebData {
-    blueprintList: WebLoadResponse<string[]>
+    simpleBlueprintList: string[]
 }
 
 interface CraftingUserData {
