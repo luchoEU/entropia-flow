@@ -57,9 +57,20 @@ export class EntropiaNexus implements IWebSource {
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {
-        bpName = bpName.replace('(C) ', '')
         const url = nexusApiUrl(`blueprints/${bpName}`)
-        return await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpName))
+        let result = await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpName))
+        if (result.ok) {
+            return result
+        }
+        const bpNameNoColor = bpName.replace('(C) ', '')
+        if (bpNameNoColor !== bpName) {
+            const url = nexusApiUrl(`blueprints/${bpNameNoColor}`)
+            const result = await mapResponse(fetchJson<EntropiaNexusBlueprint>(url), _extractBlueprint(bpNameNoColor))
+            if (result.ok) {
+                return result
+            }
+        }
+        return result
     }
 }
 
