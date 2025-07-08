@@ -31,7 +31,7 @@ class ViewTabManager {
 
     public async onConnect(port: IPort): Promise<void> {
         await this._refreshOne(port)
-        this._blueprintList(port) // don't wait for it
+        await this._blueprintList(port)
     }
 
     public async onDisconnect(port: IPort): Promise<void> {
