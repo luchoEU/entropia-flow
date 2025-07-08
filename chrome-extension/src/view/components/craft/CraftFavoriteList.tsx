@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { reloadBlueprint, setBlueprintStared, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
-import { BUDGET, CASH, CLICKS, getItemAvailable, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition } from '../../application/helpers/craftSort'
+import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCost, getItemType, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition, TYPE } from '../../application/helpers/craftSort'
 import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
 import { BlueprintData, CraftState } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
@@ -15,6 +15,8 @@ const sortRowData: SortRowData = {
     [LIMIT]: { justifyContent: 'start' },
     [CASH]: { justifyContent: 'end' },
     [BUDGET]: { justifyContent: 'end' },
+    [TYPE]: { justifyContent: 'start' },
+    [CLICK_TT_COST]: { justifyContent: 'end' },
 }
 const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
     class: 'clicks-error',
@@ -38,6 +40,9 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
                 }
             }]
         },
+        [TYPE]: {
+            sub: [{ itemText: getItemType(d) }]
+        },
         [CLICKS]: {
             style: { justifyContent: 'center' },
             dispatch: !d.web?.blueprint.loading && !d.user && (() => reloadBlueprint(d.name)),
@@ -56,6 +61,12 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
             sub: [{
                 visible: getItemAvailable(d) > 0,
                 itemText: getItemAvailable(d).toString()
+            }]
+        },
+        [CLICK_TT_COST]: {
+            style: { justifyContent: 'end' },
+            sub: [{
+                itemText: getItemClickTTCost(d) > 0 ? getItemClickTTCost(d).toFixed(2) + ' PED' : ''
             }]
         },
         [CASH]: {
@@ -85,11 +96,15 @@ function CraftFavoriteList() {
     var items = blueprints.some(d => getItemAvailable(d) > 0)
     var budget = blueprints.some(d => d.budget?.sheet?.total !== undefined)
     var cash = blueprints.some(d => d.budget?.sheet?.peds !== undefined)
+    var type = blueprints.some(d => getItemType(d))
+    var clickTTCost = blueprints.some(d => getItemClickTTCost(d) > 0)
 
     const columns: number[] = [NAME]
     if (clicks) columns.push(CLICKS)
     if (limit) columns.push(LIMIT)
+    if (type) columns.push(TYPE)
     if (items) columns.push(ITEMS)
+    if (clickTTCost) columns.push(CLICK_TT_COST)
     if (budget) columns.push(BUDGET)
     if (cash) columns.push(CASH)
 

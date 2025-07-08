@@ -6,6 +6,8 @@ const LIMIT = 2
 const BUDGET = 3
 const CASH = 4
 const ITEMS = 5
+const TYPE = 6
+const CLICK_TT_COST = 7
 
 const SORT_NAME_ASCENDING = 0
 const SORT_NAME_DESCENDING = 1
@@ -19,6 +21,10 @@ const SORT_CASH_ASCENDING = 8
 const SORT_CASH_DESCENDING = 9
 const SORT_ITEMS_ASCENDING = 10
 const SORT_ITEMS_DESCENDING = 11
+const SORT_TYPE_ASCENDING = 12
+const SORT_TYPE_DESCENDING = 13
+const SORT_CLICK_TT_COST_ASCENDING = 14
+const SORT_CLICK_TT_COST_DESCENDING = 15
 
 const defaultSort = [
     SORT_NAME_ASCENDING,
@@ -27,6 +33,8 @@ const defaultSort = [
     SORT_BUDGET_DESCENDING,
     SORT_CASH_ASCENDING,
     SORT_ITEMS_ASCENDING,
+    SORT_TYPE_ASCENDING,
+    SORT_CLICK_TT_COST_ASCENDING,
 ]
 
 const contrarySort = [
@@ -36,6 +44,8 @@ const contrarySort = [
     SORT_BUDGET_ASCENDING,
     SORT_CASH_DESCENDING,
     SORT_ITEMS_DESCENDING,
+    SORT_TYPE_DESCENDING,
+    SORT_CLICK_TT_COST_DESCENDING,
 ]
 
 const sortColumnDefinition = {
@@ -68,7 +78,17 @@ const sortColumnDefinition = {
         text: 'Cash',
         up: SORT_CASH_ASCENDING,
         down: SORT_CASH_DESCENDING
-    }
+    },
+    [TYPE]: {
+        text: 'Type',
+        up: SORT_TYPE_ASCENDING,
+        down: SORT_TYPE_DESCENDING
+    },
+    [CLICK_TT_COST]: {
+        text: 'Click TT Cost',
+        up: SORT_CLICK_TT_COST_ASCENDING,
+        down: SORT_CLICK_TT_COST_DESCENDING
+    },
 }
 
 const getLimitText = (d: BlueprintData): string =>
@@ -78,6 +98,12 @@ const getLimitText = (d: BlueprintData): string =>
 
 const getItemAvailable = (d: BlueprintData): number =>
     d.c?.materials?.find(m => m.name === d.c.itemName)?.available ?? 0;
+
+const getItemType = (d: BlueprintData): string =>
+    d.web?.blueprint.data?.value.type ?? '';
+
+const getItemClickTTCost = (d: BlueprintData): number =>
+    d.c?.clicks?.ttCost ?? 0;
 
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
@@ -152,6 +178,28 @@ const comparer = [
             return c
         return a.name.localeCompare(b.name)
     },
+    (a: BlueprintData, b: BlueprintData) => {
+        // SORT_TYPE_ASCENDING
+        return getItemType(a).localeCompare(getItemType(b))
+    },
+    (a: BlueprintData, b: BlueprintData) => {
+        // SORT_TYPE_DESCENDING
+        return -getItemType(a).localeCompare(getItemType(b))
+    },
+    (a: BlueprintData, b: BlueprintData) => {
+        // SORT_CLICK_TT_COST_ASCENDING
+        const c = getItemClickTTCost(a) - getItemClickTTCost(b)
+        if (c != 0)
+            return c
+        return a.name.localeCompare(b.name)
+    },
+    (a: BlueprintData, b: BlueprintData) => {
+        // SORT_CLICK_TT_COST_DESCENDING
+        const c = - getItemClickTTCost(a) + getItemClickTTCost(b)
+        if (c != 0)
+            return c
+        return a.name.localeCompare(b.name)
+    },
 ]
 
 const nextSortType = (part: number, currentSortType: number): number =>
@@ -174,6 +222,8 @@ export {
     BUDGET,
     CASH,
     ITEMS,
+    TYPE,
+    CLICK_TT_COST,
     SORT_NAME_ASCENDING,
     sortColumnDefinition,
     nextSortType,
@@ -181,4 +231,6 @@ export {
     sortList,
     getItemAvailable,
     getLimitText,
+    getItemType,
+    getItemClickTTCost,
 }

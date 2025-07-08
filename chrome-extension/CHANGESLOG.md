@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Version 0.5.4 - unreleased
 ### Added
 - Add support to edit blueprints and materials
+- Add type and click tt cost columns to favorite blueprint list
 
 ### Fixed
 - Fix not-owned blueprints load so it is optional and avoids unintended requests
