@@ -34,8 +34,8 @@ function TradePage() {
                 <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
                     list={s.available} isFavorite={() => true} classMap={toAuction} sort={sortAvailableBy} />
                 { isFeatureEnabled(settings, Feature.client) && <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
-                    afterSearch={ gameLogTrade ? [ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(gameLogTrade?.filter) } ] : [] }
-                    beforeTable={ t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:
+                    afterSearch={ () => gameLogTrade ? [ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => addTradeMessageNotification(gameLogTrade?.filter) } ] : [] }
+                    beforeTable={ () => t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:
                         t.notifications.map(n => ({ class: 'notification-item', style: { display: 'inline-flex', width: 'auto' }, sub:
                             [
                                 { text: n.filter, dispatch: () => setTabularFilter(GAME_LOG_TABULAR_TRADE)(n.filter) },

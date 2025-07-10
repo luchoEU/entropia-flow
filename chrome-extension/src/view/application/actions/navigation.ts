@@ -7,11 +7,13 @@ const navigateTo = (navigate: NavigateFunction, url: string, options?: NavigateO
 const navigateToTab = (navigate: NavigateFunction, tab: TabId) => async () => navigate(getLocationFromTabId(tab))
 
 const craftBlueprintUrl = (bpName: string): string => `${TabId.CRAFT}/${formatBlueprintToUrl(bpName)}`
-const streamEditorUrl = (layoutId: string): string => `${TabId.STREAM}/${layoutId}`
+const streamEditorUrl = (layoutId: string): string => `${TabId.STREAM}/layout/${layoutId}`
+const streamTrashUrl = (): string => `${TabId.STREAM}/trash`
 
 export {
     navigateTo,
     navigateToTab,
     craftBlueprintUrl,
     streamEditorUrl,
+    streamTrashUrl
 }

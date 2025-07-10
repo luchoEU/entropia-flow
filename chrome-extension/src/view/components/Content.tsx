@@ -19,6 +19,7 @@ import { getSettings } from '../application/selectors/settings'
 import { getAnyInventory } from '../application/selectors/last'
 import { getExpandable } from '../application/selectors/expandable'
 import { getShowVisibility, getStreamViewPinned } from '../application/selectors/mode'
+import StreamTrashPage from './stream/StreamTrashPage'
 
 function ContentPage() {
     const anyInventory = useSelector(getAnyInventory)
@@ -42,7 +43,8 @@ function ContentPage() {
         { id: TabId.BUDGET, routes: [ { path: TabId.BUDGET, component: BudgetPage } ] },
         { id: TabId.STREAM, routes: [
             { path: TabId.STREAM, component: StreamPage },
-            { path: `${TabId.STREAM}/:layoutId`, component: StreamPage }
+            { path: `${TabId.STREAM}/layout/:layoutId`, component: StreamPage },
+            { path: `${TabId.STREAM}/trash`, component: StreamTrashPage }
         ] },
         { id: TabId.CLIENT, routes: [ { path: TabId.CLIENT, component: ClientPage } ] },
         { id: TabId.SETTING, routes: [ { path: TabId.SETTING, component: SettingsPage } ] },

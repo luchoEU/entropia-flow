@@ -9,6 +9,7 @@ export const getStreamAdvancedEditor = (state: any): boolean => getStreamIn(stat
 export const getStreamUserVariables = (state: any): StreamUserVariable[] => getStreamIn(state).userVariables
 
 export const getStreamLayouts = (state: any): StreamRenderLayoutSet => getStreamIn(state).layouts
+export const getStreamTrashLayouts = (state: any): StreamRenderLayoutSet => getStreamIn(state).trashLayouts
 export const getStreamLayout = (layoutId: string) => (state: any): { layout: StreamRenderLayout | undefined, id: string, shouldClearAlias } => {
     const inState = getStreamIn(state);
     const realLayoutId = inState.layoutAlias?.urlLayoutId === layoutId ? inState.layoutAlias.realLayoutId : layoutId;

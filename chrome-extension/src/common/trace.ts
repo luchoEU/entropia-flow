@@ -20,6 +20,7 @@ enum Component {
     RefreshItem,
     RefreshManager,
     SheetMiddleware,
+    StreamBackground,
     ViewTabManager,
     WebSocketClient,
 }

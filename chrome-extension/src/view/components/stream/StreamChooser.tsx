@@ -1,6 +1,6 @@
 import React from "react"
 import { Dispatch } from "react"
-import { addStreamLayout, importStreamLayoutFromFile } from "../../application/actions/stream"
+import { addStreamLayout, goToTrash, importStreamLayoutFromFile } from "../../application/actions/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
 import LayoutRowValueRender from "../common/SortableTabularSection.layoutRender"
@@ -12,9 +12,10 @@ import { Validator } from "jsonschema"
 function StreamLayoutChooser() {
     return <SortableTabularSection
         selector={STREAM_TABULAR_CHOOSER}
-        afterSearch={[
+        afterSearch={(data) => [
             { button: 'Add', dispatch: (n: NavigateFunction) => addStreamLayout(n) },
-            { button: 'Import', dispatch: (n: NavigateFunction, d: Dispatch<any>) => { openFileSelector(n, d); return undefined } }
+            { button: 'Import', dispatch: (n: NavigateFunction, d: Dispatch<any>) => { openFileSelector(n, d); return undefined } },
+            { img: 'img/trash.png', title: data?.hasTrash ? 'Go to Trash' : 'Empty Trash', class: `img-btn-trash ${data?.hasTrash ? '' : 'disabled'}`, dispatch: (n: NavigateFunction) => data?.hasTrash ? goToTrash(n) : undefined }
         ]}
         itemHeight={64}
         useTable={true}

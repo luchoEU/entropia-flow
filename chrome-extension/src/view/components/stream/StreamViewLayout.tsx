@@ -5,6 +5,7 @@ import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
 import { useDispatch } from "react-redux"
 import { getStreamClickAction } from "../../application/actions/stream.click"
+import { Component, traceError } from "../../../common/trace"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {
     id: string
@@ -60,7 +61,13 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         return () => clearTimeout(timeout);
     }, [shadowReady, single, scale]);
 
-    useBackground(single.layout.backgroundType, id, shadowRootRef.current?.shadowRoot, size);
+    useBackground(single.layout?.backgroundType, id, shadowRootRef.current?.shadowRoot, size);
+
+    if (!single.layout) {
+        traceError(Component.StreamBackground, `Layout not found for layoutId: ${layoutId}`);
+        return <div>Layout not found</div>;
+    }
+
     const children = <StreamViewDiv id={id} size={size} single={single} scale={scale} />
 
     return (

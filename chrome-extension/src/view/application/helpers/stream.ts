@@ -96,7 +96,8 @@ const initialStateIn: StreamStateIn = {
             [TEAM_LAYOUT_ID]: _teamLootLayout,
         } : {}
     },
-    userVariables: []
+    userVariables: [],
+    trashLayouts: {},
 }
 
 const initialState: StreamState = {
@@ -299,10 +300,37 @@ const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamS
         in: {
             ...state.in,
             layouts: Object.fromEntries(Object.entries(state.in.layouts).filter(([k, v]) => k !== layoutId)),
-            view: state.in.view.filter(w => w !== layoutId)
+            view: state.in.view.filter(w => w !== layoutId),
+            trashLayouts: {
+                ...state.in.trashLayouts,
+                [layoutId]: {
+                    ...state.in.layouts[layoutId],
+                    stared: false
+                }
+            }
         }
     }
 }
+
+const reduceRestoreStreamLayout = (state: StreamState, layoutId: string): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        layouts: {
+            ...state.in.layouts,
+            [layoutId]: state.in.trashLayouts[layoutId]
+        },
+        trashLayouts: Object.fromEntries(Object.entries(state.in.trashLayouts).filter(([k, v]) => k !== layoutId))
+    }
+})
+
+const reduceEmptyTrashLayouts = (state: StreamState): StreamState => ({
+    ...state,
+    in: {
+        ...state.in,
+        trashLayouts: {}
+    }
+})
 
 const _nextUserVariableId = (state: StreamState): number => state.in.userVariables?.length ? Math.max(...state.in.userVariables.map(v => v.id)) + 1 : 1
 
@@ -393,6 +421,8 @@ export {
     reduceImportStreamLayoutFromFile,
     reduceAddStreamUserVariable,
     reduceRemoveStreamLayout,
+    reduceRestoreStreamLayout,
+    reduceEmptyTrashLayouts,
     reduceRemoveStreamUserVariable,
     reduceSetStreamUserVariablePartial,
     reduceCloneStreamLayout,

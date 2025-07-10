@@ -592,7 +592,7 @@ input:read-only, textarea:read-only {
 }
 
 // buttons
-button {
+button, .img-btn-trash {
     border: none;
     background-color: green;
     color: white;
@@ -601,7 +601,7 @@ button {
     margin: 0px 5px;
 }
 
-button:disabled {
+button:disabled, .img-btn-trash.disabled {
     background-color: lightgrey;
 }
 
@@ -609,9 +609,21 @@ button:active {
     background-color: grey;
 }
 
+.img-btn-trash {
+    height: 20px;
+}
+
+.img-btn-recycle {
+    height: 16px !important;
+}
+
 .button-plus {
     display: inline-block;
     width: 11px;
+}
+
+.button-empty-trash {
+    background-color: red;
 }
 
 .requested {

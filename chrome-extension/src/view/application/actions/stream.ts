@@ -4,7 +4,7 @@ import StreamRenderData, { StreamExportLayout, StreamRenderLayoutSet } from '../
 import { getStreamIn } from '../selectors/stream'
 import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
-import { navigateTo, streamEditorUrl } from './navigation'
+import { navigateTo, streamEditorUrl, streamTrashUrl } from './navigation'
 
 const SET_STREAM_STATE = "[stream] set state"
 const SET_STREAM_ENABLED = "[stream] set enabled"
@@ -21,7 +21,9 @@ const SET_STREAM_AUTHOR = "[stream] set author"
 const ADD_STREAM_LAYOUT = "[stream] add layout"
 const ADD_STREAM_USER_VARIABLE = "[stream] add user variable"
 const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
+const RESTORE_STREAM_LAYOUT = "[stream] restore layout"
 const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
+const EMPTY_TRASH_LAYOUTS = "[stream] empty trash layouts"
 const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
@@ -51,9 +53,9 @@ const _getUnique = (used: string[], base: string, noNumberName: string = undefin
     return name;
 }
 
-const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, name: string): string => {
+const _getUniqueLayoutId = (layouts: StreamRenderLayoutSet, trashLayouts: StreamRenderLayoutSet, name: string): string => {
     const baseId = (name.startsWith('entropiaflow.') ? `user.${name}` : name).replace(' ', '_');
-    return _getUnique(Object.keys(layouts), `${baseId}_`, baseId);
+    return _getUnique(Object.keys(layouts).concat(Object.keys(trashLayouts)), `${baseId}_`, baseId);
 }
 
 const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet, base: string, noNumberName?: string): string =>
@@ -61,9 +63,10 @@ const _getUniqueLayoutName = (layouts: StreamRenderLayoutSet, base: string, noNu
 
 const cloneStreamLayout = (navigate: NavigateFunction, layoutId: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const layouts = getStreamIn(getState()).layouts;
+    const trashLayouts = getStreamIn(getState()).trashLayouts;
     const baseName = `${layouts[layoutId].name} copy`;
     const newName = _getUniqueLayoutName(layouts, `${baseName} `, baseName);
-    const newLayoutId = _getUniqueLayoutId(layouts, newName);
+    const newLayoutId = _getUniqueLayoutId(layouts, trashLayouts, newName);
     dispatch({
         type: CLONE_STREAM_LAYOUT,
         payload: { layoutId, newLayoutId, newName }
@@ -97,7 +100,7 @@ const setStreamCssTemplate = (layoutId: string) => (template: string) => ({
 })
 
 const setStreamName = (layoutId: string) => (name: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
-    const newLayoutId = _getUniqueLayoutId(getStreamIn(getState()).layouts, name);
+    const newLayoutId = _getUniqueLayoutId(getStreamIn(getState()).layouts, getStreamIn(getState()).trashLayouts, name);
     dispatch({
         type: SET_STREAM_NAME,
         payload: { layoutId, newLayoutId, name }
@@ -121,8 +124,9 @@ const setStreamTemporalVariables = (source: string, variables: StreamTemporalVar
 
 const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const layouts = getStreamIn(getState()).layouts;
+    const trashLayouts = getStreamIn(getState()).trashLayouts;
     const name = _getUniqueLayoutName(layouts, 'Layout ');
-    const layoutId = _getUniqueLayoutId(layouts, name);
+    const layoutId = _getUniqueLayoutId(layouts, trashLayouts, name);
     dispatch({
         type: ADD_STREAM_LAYOUT,
         payload: { layoutId, name }
@@ -130,9 +134,14 @@ const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDisp
     dispatch(navigateTo(navigate, streamEditorUrl(layoutId)))
 }
 
+const goToTrash = (navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    dispatch(navigateTo(navigate, streamTrashUrl()))
+}
+
 const importStreamLayoutFromFile = (layout: StreamExportLayout) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const layouts = getStreamIn(getState()).layouts;
-    const layoutId = _getUniqueLayoutId(layouts, layout.name);
+    const trashLayouts = getStreamIn(getState()).trashLayouts;
+    const layoutId = _getUniqueLayoutId(layouts, trashLayouts, layout.name);
     dispatch({
         type: IMPORT_STREAM_LAYOUT_FROM_FILE,
         payload: { layoutId, layout }
@@ -141,6 +150,11 @@ const importStreamLayoutFromFile = (layout: StreamExportLayout) => async (dispat
 
 const removeStreamLayout = (layoutId: string) => ({
     type: REMOVE_STREAM_LAYOUT,
+    payload: { layoutId }
+})
+
+const restoreStreamLayout = (layoutId: string) => ({
+    type: RESTORE_STREAM_LAYOUT,
     payload: { layoutId }
 })
 
@@ -154,6 +168,10 @@ const removeStreamUserVariable = (id: number) => ({
     type: REMOVE_STREAM_USER_VARIABLE,
     payload: { id }
 })
+
+const emptyTrashLayouts = {
+    type: EMPTY_TRASH_LAYOUTS
+}
 
 const setStreamUserVariablePartial = (id: number, partial: Partial<StreamUserVariable>) => ({
     type: SET_STREAM_USER_VARIABLE_PARTIAL,
@@ -180,7 +198,9 @@ export {
     ADD_STREAM_LAYOUT,
     ADD_STREAM_USER_VARIABLE,
     REMOVE_STREAM_LAYOUT,
+    RESTORE_STREAM_LAYOUT,
     REMOVE_STREAM_USER_VARIABLE,
+    EMPTY_TRASH_LAYOUTS,
     SET_STREAM_USER_VARIABLE_PARTIAL,
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
@@ -200,9 +220,12 @@ export {
     addStreamLayout,
     addStreamUserVariable,
     removeStreamLayout,
+    restoreStreamLayout,
     removeStreamUserVariable,
+    emptyTrashLayouts,
     setStreamUserVariablePartial,
     cloneStreamLayout,
     importStreamLayoutFromFile,
+    goToTrash,
     clearStreamLayoutAlias,
 }

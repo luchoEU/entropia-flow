@@ -7,13 +7,13 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamIn, getStreamLayouts, getStreamOut } from "../selectors/stream"
+import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts } from "../selectors/stream"
 import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
@@ -43,6 +43,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case IMPORT_STREAM_LAYOUT_FROM_FILE:
         case ADD_STREAM_USER_VARIABLE:
         case REMOVE_STREAM_LAYOUT:
+        case RESTORE_STREAM_LAYOUT:
+        case EMPTY_TRASH_LAYOUTS:
         case REMOVE_STREAM_USER_VARIABLE:
         case SET_STREAM_USER_VARIABLE_PARTIAL:
         case CLONE_STREAM_LAYOUT: {
@@ -131,9 +133,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case IMPORT_STREAM_LAYOUT_FROM_FILE:
         case REMOVE_STREAM_LAYOUT:
         case CLONE_STREAM_LAYOUT:
+        case EMPTY_TRASH_LAYOUTS:
+        case RESTORE_STREAM_LAYOUT:
         {
             const layouts: StreamRenderLayoutSet = getStreamLayouts(getState())
-            dispatch(setTabularData(streamTabularDataFromLayouts(layouts)));
+            const trashLayouts: StreamRenderLayoutSet = getStreamTrashLayouts(getState())
+            dispatch(setTabularData(streamTabularDataFromLayouts(layouts, trashLayouts)));
             break;
         }
     }

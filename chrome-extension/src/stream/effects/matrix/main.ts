@@ -1,5 +1,6 @@
 // Derived from https://codepen.io/pavi2410/pen/oNjGVgM Copyright (c) 2024 Pavitra Golchha (MIT License)
 
+import { Component, trace } from "../../../common/trace";
 import { AnimatedBackground } from "../baseBackground";
 
 const state = {

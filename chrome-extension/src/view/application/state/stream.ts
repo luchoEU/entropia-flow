@@ -4,6 +4,7 @@ import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue } from '../.
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
 const STREAM_TABULAR_IMAGES = '[stream] images'
+const STREAM_TABULAR_TRASH = '[stream] trash'
 
 interface StreamStateIn {
     advanced: boolean // show advanced editor
@@ -12,6 +13,7 @@ interface StreamStateIn {
     layouts: StreamRenderLayoutSet
     userVariables: StreamUserVariable[]
     layoutAlias?: { urlLayoutId: string, realLayoutId: string } // so the layout can change Id without changing the url while editing it
+    trashLayouts: StreamRenderLayoutSet
 }
 
 interface StreamStateOut {
@@ -57,6 +59,7 @@ export {
     STREAM_TABULAR_CHOOSER,
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
+    STREAM_TABULAR_TRASH,
     StreamStateVariable,
     StreamUserVariable,
     StreamComputedVariable,

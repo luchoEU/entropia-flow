@@ -240,7 +240,7 @@ const InventoryVisibleList = () => {
     const hasAnyHideCriteria = c.name.length > 0 || c.container.length > 0 || c.value >= 0
     return <SortableTabularSection
         selector={INVENTORY_TABULAR_OWNED}
-        afterSearch={ hasAnyHideCriteria && [
+        afterSearch={ () => hasAnyHideCriteria && [
             c.show && { button: 'Unhide All', class: 'show-all', title: 'Clear all hide filters and show all items', dispatch: showAll },
             {
                 img: c.show ? 'img/eyeClose.png' : 'img/eyeOpen.png',
@@ -249,7 +249,7 @@ const InventoryVisibleList = () => {
                 dispatch: () => showHiddenItems(!c.show)
             }
         ]}
-        beforeTable={[
+        beforeTable={ () => [
             { flex: 1 },
             getSwitchButton('R', 'Add Reserve to items', opt.reserve, () => setOwnedOptions({ reserve: !opt.reserve })),
             getSwitchButton('A', 'Hide items on auction', opt.auction, () => setOwnedOptions({ auction: !opt.auction })),

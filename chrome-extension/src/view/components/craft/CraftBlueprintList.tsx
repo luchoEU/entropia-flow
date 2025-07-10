@@ -20,7 +20,7 @@ function CraftBlueprintList() {
 
     return <SortableTabularSection
         selector={CRAFT_TABULAR_BLUEPRINTS}
-        beforeTable={[
+        beforeTable={ () => [
             { flex: 1 },
             getSwitchButton('O', 'Show only owned blueprints', opt.owned, () => setCraftOptions({ owned: !opt.owned })),
         ]}

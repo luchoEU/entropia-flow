@@ -192,9 +192,9 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
     )
 }
 
-const SortableFixedTable = <TItem extends any>({ selector, rowValueRender, useWidthFromAll, itemHeight }: {
+const SortableTabularFixedTable = <TItem extends any>({ selector, rowValueRender, useWidthFromAll, itemHeight }: {
     selector: string
-    rowValueRender: RowValueRender
+    rowValueRender?: RowValueRender
     useWidthFromAll?: boolean
     itemHeight?: number
 }) => {
@@ -211,21 +211,21 @@ const SortableFixedTable = <TItem extends any>({ selector, rowValueRender, useWi
         getRowClass,
         itemSelector: getTabularDataItem(selector),
         itemHeight,
-        rowValueRender
+        rowValueRender: rowValueRender ?? BaseRowValueRender
     }
 
     return <_SortableFixedSizeTable data={table} />
 }
 
-const SortableTable = ({ selector, rowValueRender, useWidthFromAll }: {
+const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
     selector: string,
-    rowValueRender: RowValueRender,
+    rowValueRender?: RowValueRender,
     useWidthFromAll?: boolean
 }) => {
     const s: TabularStateData = useSelector(getTabularData(selector))
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
-    const RowValueRenderComponent = rowValueRender
+    const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
     const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, getItemRow)
@@ -254,6 +254,32 @@ const SortableTable = ({ selector, rowValueRender, useWidthFromAll }: {
     </div>
 }
 
+const SortableTabularSearch = ({
+    selector,
+    afterSearch,
+    rowValueRender,
+}: {
+    selector: string,
+    afterSearch?: (data: any) => RowValue[],
+    rowValueRender?: RowValueRender
+}) => {
+    const s: TabularStateData = useSelector(getTabularData(selector))
+    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined, undefined)
+    const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
+    const stats = s.items.stats
+
+    return <div className='search-container'>
+        <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
+            <span> {stats.count} </span>
+            <span> {definition.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
+        </p>
+        <p className='search-input-container'>
+            <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
+            { afterSearch && <RowValueRenderComponent v={afterSearch(s.data)} /> }
+        </p>
+    </div>
+}
+
 const SortableTabularSection = ({
     selector,
     afterSearch,
@@ -265,8 +291,8 @@ const SortableTabularSection = ({
     children
 }: {
     selector: string,
-    afterSearch?: RowValue[],
-    beforeTable?: RowValue[],
+    afterSearch?: (data: any) => RowValue[],
+    beforeTable?: (data: any) => RowValue[],
     itemHeight?: number,
     useTable?: boolean,
     rowValueRender?: RowValueRender,
@@ -281,25 +307,15 @@ const SortableTabularSection = ({
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
     const { title, subtitle } = definition
-    const stats = s.items.stats
 
     return <ExpandableSection selector={`TabularSection.${selector}`} title={title} subtitle={subtitle}>
         <div className='inline'>
-            <div className='search-container'>
-                <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
-                    <span> {stats.count} </span>
-                    <span> {definition.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
-                </p>
-                <p className='search-input-container'>
-                    <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
-                    { afterSearch && <RowValueRenderComponent v={afterSearch} /> }
-                </p>
-            </div>
-            { beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={beforeTable} /></div> }
+            <SortableTabularSearch selector={selector} afterSearch={afterSearch} rowValueRender={rowValueRender} />
+            { beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={beforeTable(s.data)} /></div> }
             {
                 useTable ?
-                    <SortableTable selector={selector} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} /> :
-                    <SortableFixedTable selector={selector} itemHeight={itemHeight} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} />
+                    <SortableTabularTable selector={selector} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} /> :
+                    <SortableTabularFixedTable selector={selector} itemHeight={itemHeight} rowValueRender={RowValueRenderComponent} useWidthFromAll={useWidthFromAll} />
             }
         </div>
         <div className='inline'>
@@ -309,3 +325,4 @@ const SortableTabularSection = ({
 }
 
 export default SortableTabularSection
+export { SortableTabularSearch, SortableTabularTable, SortableTabularFixedTable }

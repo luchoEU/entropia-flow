@@ -105,12 +105,12 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
             { advanced && <>
                 <SortableTabularSection
                     selector={STREAM_TABULAR_VARIABLES}
-                    afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
+                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
                 />
                 <SortableTabularSection
                     selector={STREAM_TABULAR_IMAGES}
                     itemHeight={50}
-                    afterSearch={[ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
+                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
                 />
             </>}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>

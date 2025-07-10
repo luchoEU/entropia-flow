@@ -1,5 +1,5 @@
-import { ADD_STREAM_LAYOUT, ADD_STREAM_USER_VARIABLE, CLEAR_STREAM_LAYOUT_ALIAS, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, REMOVE_STREAM_LAYOUT, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CSS_TEMPLATE, SET_STREAM_DATA, SET_STREAM_ENABLED, SET_STREAM_HTML_TEMPLATE, SET_STREAM_NAME, SET_STREAM_STARED, SET_STREAM_STATE, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_VARIABLES } from "../actions/stream"
-import { initialState, reduceAddStreamLayout, reduceAddStreamUserVariable, reduceClearStreamLayoutAlias, reduceCloneStreamLayout, reduceImportStreamLayoutFromFile, reduceRemoveStreamLayout, reduceRemoveStreamUserVariable, reduceSetStreamAdvanced, reduceSetStreamAuthor, reduceSetStreamBackgroundSelected, reduceSetStreamCssTemplate, reduceSetStreamData, reduceSetStreamEnabled, reduceSetStreamHtmlTemplate, reduceSetStreamName, reduceSetStreamStared, reduceSetStreamState, reduceSetStreamTemporalVariables, reduceSetStreamUserVariablePartial, reduceSetStreamVariables } from "../helpers/stream"
+import { ADD_STREAM_LAYOUT, ADD_STREAM_USER_VARIABLE, CLEAR_STREAM_LAYOUT_ALIAS, CLONE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, IMPORT_STREAM_LAYOUT_FROM_FILE, REMOVE_STREAM_LAYOUT, REMOVE_STREAM_USER_VARIABLE, RESTORE_STREAM_LAYOUT, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_CSS_TEMPLATE, SET_STREAM_DATA, SET_STREAM_ENABLED, SET_STREAM_HTML_TEMPLATE, SET_STREAM_NAME, SET_STREAM_STARED, SET_STREAM_STATE, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_VARIABLES } from "../actions/stream"
+import { initialState, reduceAddStreamLayout, reduceAddStreamUserVariable, reduceClearStreamLayoutAlias, reduceCloneStreamLayout, reduceEmptyTrashLayouts, reduceImportStreamLayoutFromFile, reduceRemoveStreamLayout, reduceRemoveStreamUserVariable, reduceRestoreStreamLayout, reduceSetStreamAdvanced, reduceSetStreamAuthor, reduceSetStreamBackgroundSelected, reduceSetStreamCssTemplate, reduceSetStreamData, reduceSetStreamEnabled, reduceSetStreamHtmlTemplate, reduceSetStreamName, reduceSetStreamStared, reduceSetStreamState, reduceSetStreamTemporalVariables, reduceSetStreamUserVariablePartial, reduceSetStreamVariables } from "../helpers/stream"
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -19,6 +19,8 @@ export default (state = initialState, action) => {
         case IMPORT_STREAM_LAYOUT_FROM_FILE: return reduceImportStreamLayoutFromFile(state, action.payload.layoutId, action.payload.layout)
         case ADD_STREAM_USER_VARIABLE: return reduceAddStreamUserVariable(state, action.payload.isImage)
         case REMOVE_STREAM_LAYOUT: return reduceRemoveStreamLayout(state, action.payload.layoutId)
+        case RESTORE_STREAM_LAYOUT: return reduceRestoreStreamLayout(state, action.payload.layoutId)
+        case EMPTY_TRASH_LAYOUTS: return reduceEmptyTrashLayouts(state)
         case REMOVE_STREAM_USER_VARIABLE: return reduceRemoveStreamUserVariable(state, action.payload.id)
         case SET_STREAM_USER_VARIABLE_PARTIAL: return reduceSetStreamUserVariablePartial(state, action.payload.id, action.payload.partial)
         case CLONE_STREAM_LAYOUT: return reduceCloneStreamLayout(state, action.payload.layoutId, action.payload.newLayoutId, action.payload.newName)

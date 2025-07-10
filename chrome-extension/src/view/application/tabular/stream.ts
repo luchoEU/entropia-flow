@@ -3,8 +3,8 @@ import { StreamRenderLayout, StreamRenderLayoutSet } from "../../../stream/data"
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { removeStreamLayout, removeStreamUserVariable, setStreamStared, setStreamUserVariablePartial } from "../actions/stream";
-import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
+import { removeStreamLayout, removeStreamUserVariable, restoreStreamLayout, setStreamStared, setStreamUserVariablePartial } from "../actions/stream";
+import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { navigateTo, streamEditorUrl } from "../actions/navigation";
 
@@ -16,13 +16,29 @@ interface StreamChooserLine {
     layout: StreamRenderLayout
 }
 
-const streamTabularDataFromLayouts = (layouts: StreamRenderLayoutSet): TabularRawData<StreamChooserLine> => ({
+interface StreamTrashLine {
+    id: string,
+    name: string,
+    layout: StreamRenderLayout
+}
+
+const streamTabularDataFromLayouts = (layouts: StreamRenderLayoutSet, trashLayouts: StreamRenderLayoutSet): TabularRawData<StreamChooserLine | StreamTrashLine> => ({
     [STREAM_TABULAR_CHOOSER]: {
         items: Object.entries(layouts).map(([id, layout]) => ({
             id,
             name: layout.name,
             readonly: !!layout.readonly,
             stared: !!layout.stared,
+            layout
+        })),
+        data: {
+            hasTrash: Object.keys(trashLayouts).length > 0
+        }
+    },
+    [STREAM_TABULAR_TRASH]: {
+        items: Object.entries(trashLayouts).map(([id, layout]) => ({
+            id,
+            name: layout.name,
             layout
         }))
     }
@@ -99,13 +115,26 @@ const streamTabularDefinitions: TabularDefinitions = {
             [ g.name,
                 { flex: 1 },
                 { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => setStreamStared(g.id)(!g.stared) },
-                { img: 'img/edit.png', title: 'Edit', dispatch: (n: NavigateFunction) => navigateTo(n, streamEditorUrl(g.id)) },
-                { img: 'img/cross.png', title: 'Remove', dispatch: () => removeStreamLayout(g.id), visible: !g.readonly },
+                { img: 'img/edit.png', title: 'Edit layout', dispatch: (n: NavigateFunction) => navigateTo(n, streamEditorUrl(g.id)) },
+                { img: 'img/cross.png', title: 'Remove layout', dispatch: () => removeStreamLayout(g.id), visible: !g.readonly },
             ], {
                 layout: g.layout, layoutId: g.id, id: `stream-chooser-${i}`, scale: 0.4, width: 200
             }],
         getRowForSort: (g: StreamChooserLine) => [g.name, ''],
-    }
+    },
+    [STREAM_TABULAR_TRASH]: {
+        title: 'Trash',
+        subtitle: 'Trash layouts',
+        columns: [ 'Name', 'Preview' ],
+        getRow: (g: StreamTrashLine, i: number) => [ 
+            [ g.name,
+                { flex: 1 },
+                { img: 'img/recycle.png', title: 'Restore layout', show: true, class: 'img-btn-recycle', dispatch: () => restoreStreamLayout(g.id) },
+            ], {
+                layout: g.layout, layoutId: g.id, id: `stream-trash-${i}`, scale: 0.4, width: 200
+            }],
+        getRowForSort: (g: StreamTrashLine) => [g.name, ''],
+    },
 }
 
 export {
