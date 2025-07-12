@@ -1,6 +1,6 @@
 import { Inventory, ItemData } from "../../../common/state";
 import { multiIncludes } from "../../../common/filter";
-import { BlueprintData, CraftState } from "../state/craft";
+import { BlueprintData, CraftingUserData, CraftState } from "../state/craft";
 import {
   InventoryState,
   InventoryList,
@@ -324,26 +324,37 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
   }
   return {
     ...state,
-    tradeItemDataChain: state.tradeItemDataChain.map((d, i) => {
-      const usageBPs = usage[i]?.data?.value.blueprints
-      const w = (list: BlueprintData[]): BlueprintWebData[] => list
-        .map(bp => bp.web?.blueprint.data?.value ?? usageBPs?.find(b => b.name === bp.name))
+    tradeItemDataChain: state.tradeItemDataChain.map((itemData, index) => {
+      const usageBPs = usage[index]?.data?.value.blueprints
+      const userToWebBp = (bp: BlueprintData): BlueprintWebData | undefined => {
+        if (!bp.user) return undefined
+        return {
+          name: bp.name,
+          type: undefined,
+          level: undefined,
+          profession: undefined,
+          item: undefined,
+          materials: bp.user.materials.map(m => ({ name: m.name, quantity: Number(m.quantity), type: undefined, value: undefined })),
+        }
+      }
+      const getWebBp = (list: BlueprintData[]): BlueprintWebData[] => list
+        .map(bp => userToWebBp(bp) ?? bp.web?.blueprint.data?.value ?? usageBPs?.find(b => b.name === bp.name))
         .filter(bp => bp)
-      const fav: BlueprintWebData[] = w(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
-      const own: BlueprintWebData[] = w(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
+      const fav: BlueprintWebData[] = getWebBp(craftState.stared.list.map(name => craftState.blueprints[name]).filter(bp => bp))
+      const own: BlueprintWebData[] = getWebBp(Object.values(craftState.blueprints).filter(bp => !craftState.stared.list.includes(bp.name)))
       if (usageBPs) // add owned blueprints that were never opened in crafting tab
         own.push(...usageBPs.filter(bp => getBlueprintList(state).find(b => b.n === bp.name) && !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)))
       const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
       const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
-        .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === d.name)?.quantity }))
+        .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === itemData.name)?.quantity }))
         .filter(bp => bp.quantity);
 
       return {
-        ...d,
+        ...itemData,
         c: {
-          favoriteBlueprints: cloneAndSort(m(fav), d.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
-          ownedBlueprints: cloneAndSort(m(own), d.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
-          otherBlueprints: cloneAndSort(m(oth), d.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
+          favoriteBlueprints: cloneAndSort(m(fav), itemData.sortSecuence?.favoriteBlueprints, _tradeSortColumnDefinition),
+          ownedBlueprints: cloneAndSort(m(own), itemData.sortSecuence?.ownedBlueprints, _tradeSortColumnDefinition),
+          otherBlueprints: cloneAndSort(m(oth), itemData.sortSecuence?.otherBlueprints, _tradeSortColumnDefinition),
         }
       }
     })

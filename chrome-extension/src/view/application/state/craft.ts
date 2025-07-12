@@ -16,7 +16,6 @@ interface CraftState {
     }
     options: CraftOptions
     web?: CraftingWebData
-    user?: CraftingUserData
     c: { // calculated from previous
         filteredStaredBlueprints: Array<BlueprintData>
         residues: { [ name: string ]: number } // available in Inventory
