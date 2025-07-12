@@ -19,6 +19,9 @@ import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 import { computeServerFormulas } from "../../../stream/formulaCompute"
+import { SET_CURRENT_INVENTORY } from "../actions/inventory"
+import { Inventory } from "../../../common/state"
+import { getInventory } from "../selectors/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -74,11 +77,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case EXCLUDE_WARNINGS:
         case APPLY_MARKUP_TO_LAST:
         {
-            const { c: { delta } } = getLast(getState())
+            const { c: { delta, diff } } = getLast(getState())
             dispatch(setStreamVariables('last', [
                 { name: 'delta', value: (delta || 0).toFixed(2) },
                 { name: 'deltaBackColor', value: "=IF(delta > 0, 'green', delta < 0, 'red', 'black')", description: 'delta background color' },
-                { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss')", description: 'delta word' }
+                { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss')", description: 'delta word' },
+                { name: 'deltaItems', value: diff?.filter(d => !d.e).map(d => ({ name: d.n, quantity: Number(d.q), value: Number(d.v), container: d.c })) ?? [], description: 'delta items' }
+            ]))
+            break
+        }
+        case SET_CURRENT_INVENTORY:
+        {
+            const inventory: Inventory = action.payload.inventory
+            dispatch(setStreamVariables('inventory', [
+                { name: 'inventoryTime', value: inventory.meta.date, description: 'time of the last inventory update' }
             ]))
             break
         }

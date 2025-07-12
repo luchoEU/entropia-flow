@@ -28,7 +28,7 @@ function StreamLayoutEditor() {
                 language='html'
                 readOnly={c.readonly}
                 value={c.htmlTemplate}
-                dispatchChange={setStreamHtmlTemplate}
+                dispatchChange={setStreamHtmlTemplate(layoutId)}
             />
         </ExpandableSection>
         <ExpandableSection selector='StreamEditor-layout-css' title='CSS Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
@@ -36,7 +36,7 @@ function StreamLayoutEditor() {
                 language='css'
                 readOnly={c.readonly}
                 value={c.cssTemplate}
-                dispatchChange={setStreamCssTemplate}
+                dispatchChange={setStreamCssTemplate(layoutId)}
             />
         </ExpandableSection>
     </>

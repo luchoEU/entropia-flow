@@ -126,6 +126,9 @@ class GameLogParser {
                         quantity: parseInt(youLootMatch[2]),
                         value: parseFloat(youLootMatch[3])
                     }
+                    if (!line.data.stats)
+                        line.data.stats = {}
+                    line.data.stats["lootStats"] = line.data.loot.value
                 }
                 const tierMatch = tierRegex.exec(line.message);
                 if (tierMatch !== null) {

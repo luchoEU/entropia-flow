@@ -1,5 +1,7 @@
 import { getNowDate, TemporalValue } from "../common/state";
 import { StreamRenderObject, StreamRenderValue } from "./data";
+import Interpreter from 'js-interpreter';
+import * as Babel from '@babel/standalone';
 
 const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRenderValue> = {
     IF: (args) => {
@@ -38,11 +40,11 @@ const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRende
 }
 
 const _clientHighOrderFormulas: Record<string, { p: number[], f: (data: FormulaValue, args: IFormula[]) => FormulaValue }> = {
-    SELECT: {
+    MAP: {
         p: [1], // high order parameters
         f: (data, args) => {
-            _parameterCountCheck('SELECT', args, 2);
-            const list =_parameterSingleCheck('SELECT', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
+            _parameterCountCheck('MAP', args, 2);
+            const list =_parameterSingleCheck('MAP', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
             return { v: list.map(x => args[1].evaluate({v: x}).v) };
         }
     }
@@ -74,6 +76,14 @@ const _serverFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> = 
             seconds--;
         }
         return { v: list }
+    },
+    AFTER: (args) => {
+        const [{t:temporalValue}, {v:argTime}] = _parametersCheck('AFTER', args, [_temporalCheck, _valueCheck(_numberCheck)]) as [{t:TemporalValue}, {v:number}]
+        return { v: temporalValue.history.filter(v => v.time >= argTime).map(v => v.value) }
+    },
+    BEFORE: (args) => {
+        const [{t:temporalValue}, {v:argTime}] = _parametersCheck('BEFORE', args, [_temporalCheck, _valueCheck(_numberCheck)]) as [{t:TemporalValue}, {v:number}]
+        return { v: temporalValue.history.filter(v => v.time < argTime).map(v => v.value) }
     }
 }
 
@@ -158,6 +168,7 @@ enum ExprType {
     unknown,
     number,
     string,
+    javascript,
     function,
     identifier,
     symbol,
@@ -171,7 +182,9 @@ interface Token {
 
 const formulaHelp = `Formulas start with =
 Valid operators: ${_operatorByPrecedence.map(v => Object.keys(v.op)).flat().join(', ')}
-Valid functions: ${[ ...Object.keys(_clientFormulas), ...Object.keys(_clientHighOrderFormulas), ...Object.keys(_serverFormulas) ].join(', ')}`
+Valid functions: ${[ ...Object.keys(_clientFormulas), ...Object.keys(_clientHighOrderFormulas) ].join(', ')}
+Valid functions for temporal variables: ${Object.keys(_serverFormulas).join(', ')}
+You can also use Javascript expressions inside backticks (e.g. \`a + b\`).`
 
 type FormulaValue = { v: StreamRenderValue, t?: Record<string, TemporalValue> | TemporalValue }
 
@@ -218,6 +231,76 @@ const _errorFormula = (text: string): IFormula => ({
 
 const cycleErrorFormula = (variables: string[]) =>
     _errorFormula(`ECYC: Cycle reference${variables.length !== 1 ? 's' : ''} ${variables.map(s => `'${s}'`).join(', ')}`)
+
+// Helper for dependency tracking. This is a "good enough" heuristic for cycle detection.
+const JS_KEYWORDS = new Set(['break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof', 'new', 'null', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield', 'enum', 'implements', 'interface', 'let', 'package', 'private', 'protected', 'public', 'static', 'await', 'undefined', 'map', 'filter', 'reduce', 'forEach', 'find', 'some', 'every']);
+
+function _extractIdentifiers(code: string): Set<string> {
+    const identifierRegex = /[a-zA-Z_$][a-zA-Z0-9_$]*/g;
+    const matches = new Set(code.match(identifierRegex) || []);
+    const used = new Set<string>();
+    for (const match of matches) {
+        if (!JS_KEYWORDS.has(match)) {
+            used.add(match);
+        }
+    }
+    return used;
+}
+
+/**
+ * Creates a formula from a full Javascript expression string (e.g. `myList.filter(...)`).
+ * This implementation uses the 'JS-Interpreter' library to safely execute the code
+ * in a sandboxed environment, making it compliant with strict Content Security Policies (CSP).
+ */
+const _javascriptFormula = (jsCodeWithBackticks: string): IFormula => {
+    const jsCode = jsCodeWithBackticks.slice(1, -1);
+    const usedVariables = _extractIdentifiers(jsCode);
+
+    // Transpile the modern JS code to ES5 at parse time
+    let es5Code;
+    try {
+        es5Code = Babel.transform(jsCode, { presets: ['env'] }).code;
+    } catch (e) {
+        // If Babel fails to parse, it's a syntax error in the user's code.
+        return _errorFormula(`ESYN: Syntax error in JS expression: ${e.message}`);
+    }
+
+    return {
+        // Evaluate is now SYNCHRONOUS again, so you can undo the 'async' refactoring.
+        // This will simplify your whole codebase significantly.
+        evaluate: (d) => {
+            if (typeof d.v !== 'object' || d.v === null) {
+                throw new Error(`EJSC: Javascript expressions require an object context, but got ${typeof d.v}`);
+            }
+            const context = d.v as object;
+
+            try {
+                // The init function to set up the interpreter's global scope.
+                const initFunction = (interpreter: any, globalObject: any) => {
+                    for (const key in context) {
+                        if (Object.prototype.hasOwnProperty.call(context, key)) {
+                            const value = interpreter.nativeToPseudo(context[key]);
+                            interpreter.setProperty(globalObject, key, value);
+                        }
+                    }
+                };
+                
+                // Use the transpiled ES5 code
+                const interpreter = new Interpreter(es5Code, initFunction);
+                interpreter.run();
+
+                const result = interpreter.pseudoToNative(interpreter.value);
+                return { v: result };
+
+            } catch (e) {
+                throw new Error(`EJSR: Error in JS expression '${jsCode}': ${e.message}`);
+            }
+        },
+        text: jsCodeWithBackticks,
+        isServer: false,
+        usedVariables: usedVariables,
+    };
+};
 
 const _baseFormula = (name: string, args: IFormula[], hasTarget?: boolean) => {
     const parameters = hasTarget ? args.slice(1) : args
@@ -346,6 +429,7 @@ class FormulaParser {
             {regex: /[A-Za-z][A-Za-z0-9]*/, type: ExprType.identifier},
             {regex: /[-+/*(),.{}:\[\]]/, type: ExprType.symbol}, // 1 char symbols
             {regex: /[><=!]+/, type: ExprType.symbol}, // 1 or more char symbols
+            {regex: /`[^`]*`/, type: ExprType.javascript},
             {regex: /'[^']+'/, type: ExprType.string},
             {regex: /"[^"]+"/, type: ExprType.string},
             {regex: /\s+/, type: ExprType.space},
@@ -354,7 +438,7 @@ class FormulaParser {
         const regex = new RegExp(m.map(v => v.regex.source).join('|'), 'g');
         const getExprType = (token: string): ExprType =>
             m.find(v => new RegExp(`^${v.regex.source}$`).test(token))?.type || ExprType.unknown
-        return formula.match(regex).map((text) => ({text, type: getExprType(text)})) || [];
+        return formula.match(regex)?.map((text) => ({text, type: getExprType(text)})) || [];
     }
     
     private static _parseExpression(tokens: Token[], level: number): IFormula {
@@ -439,7 +523,8 @@ class FormulaParser {
     private static _evaluateToken(token: Token | IFormula): IFormula {
         const fMap: Record<number, (text: string) => IFormula> = {
             [ExprType.number]: t => _constantFormula(parseFloat(t)),
-            [ExprType.string]: t => _constantFormula(t.slice(1, -1)), // remove quotes
+            [ExprType.string]: t => _constantFormula(t.slice(1, -1)),
+            [ExprType.javascript]: t => _javascriptFormula(t),
             [ExprType.identifier]: t =>
                 t === 'false' ? _constantFormula(false) : (t === 'true' ? _constantFormula(true) : _variableFormula(t)),
         }
