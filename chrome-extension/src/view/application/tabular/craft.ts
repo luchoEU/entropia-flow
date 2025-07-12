@@ -35,9 +35,15 @@ const craftTabularData = (state: CraftState, inventoryState: InventoryState): Ta
         }
     }
 
+    let bps = Array.from(groupedMap.values());
+
+    if (state.options.custom) {
+        bps = bps.filter(bp => state.blueprints[bp.name]?.user)
+    }
+
     return {
         [CRAFT_TABULAR_BLUEPRINTS]: {
-            items: Array.from(groupedMap.values()),
+            items: bps,
         },
     };
 };

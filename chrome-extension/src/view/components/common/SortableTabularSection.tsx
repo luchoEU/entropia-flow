@@ -288,6 +288,7 @@ const SortableTabularSection = ({
     useTable,
     rowValueRender,
     useWidthFromAll,
+    afterTitle,
     children
 }: {
     selector: string,
@@ -297,6 +298,7 @@ const SortableTabularSection = ({
     useTable?: boolean,
     rowValueRender?: RowValueRender,
     useWidthFromAll?: boolean,
+    afterTitle?: JSX.Element
     children?: any
 }) => {
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
@@ -308,7 +310,7 @@ const SortableTabularSection = ({
 
     const { title, subtitle } = definition
 
-    return <ExpandableSection selector={`TabularSection.${selector}`} title={title} subtitle={subtitle}>
+    return <ExpandableSection selector={`TabularSection.${selector}`} title={title} subtitle={subtitle} afterTitle={afterTitle}>
         <div className='inline'>
             <SortableTabularSearch selector={selector} afterSearch={afterSearch} rowValueRender={rowValueRender} />
             { beforeTable && <div className='sortable-before-table'><RowValueRenderComponent v={beforeTable(s.data)} /></div> }

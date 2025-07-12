@@ -23,6 +23,7 @@ interface CraftState {
 }
 
 interface CraftOptions {
+    custom: boolean // show only custom edited blueprints
     owned: boolean // show only owned blueprints
 }
 

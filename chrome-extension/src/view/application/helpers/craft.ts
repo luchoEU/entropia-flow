@@ -16,6 +16,7 @@ const initialState: CraftState = {
         list: []
     },
     options: {
+        custom: false,
         owned: false
     },
     c: {
