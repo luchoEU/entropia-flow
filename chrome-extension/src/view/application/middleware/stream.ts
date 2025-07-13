@@ -90,7 +90,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         {
             const inventory: Inventory = action.payload.inventory
             dispatch(setStreamVariables('inventory', [
-                { name: 'inventoryTime', value: inventory.meta.date, description: 'time of the last inventory update' }
+                { name: 'inventoryTime', value: inventory.meta.date, description: 'time of the last inventory update' },
+                { name: 'items', value: inventory.itemlist.map(i => ({ name: i.n, quantity: Number(i.q), value: Number(i.v), container: i.c })), description: 'items' }
             ]))
             break
         }
