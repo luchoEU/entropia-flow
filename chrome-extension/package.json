@@ -7,6 +7,10 @@
     "scripts": {
         "build:schema": "npx ts-json-schema-generator --path src/stream/data.ts --type StreamExportLayout --no-top-ref --expose all > src/stream/stream-export-layout.schema.json",
         "prebuild": "npm run build:schema",
+        "predev": "npm run build:schema",
+        "prewatch": "npm run build:schema",
+        "prestream": "npm run build:schema",
+        "prestream-dev": "npm run build:schema",
         "build": "webpack --config webpack.prod.js",
         "dev": "webpack --config webpack.dev.js",
         "watch": "webpack -w --config webpack.dev.js",
@@ -38,6 +42,7 @@
         "ts-loader": "^9.5.1",
         "typescript": "^5.7.2",
         "url-loader": "^4.1.1",
+        "vm-browserify": "^1.1.2",
         "webpack": "^5.97.1",
         "webpack-cli": "^6.0.1",
         "webpack-merge": "^6.0.1",

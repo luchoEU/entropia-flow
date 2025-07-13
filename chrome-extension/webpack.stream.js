@@ -32,7 +32,8 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"],
     fallback: {
       fs: false,
-      child_process: false
+      child_process: false,
+      vm: require.resolve("vm-browserify")
     }
   }
 };
