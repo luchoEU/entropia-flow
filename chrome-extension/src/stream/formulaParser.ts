@@ -36,6 +36,18 @@ const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRende
     NUMBER: (args) => {
         const [string] = _parametersCheck('NUMBER', args, [_stringCheck]) as [string]
         return Number.parseFloat(string);
+    },
+    OR: (args) => {
+        const list = _parametersCheck('OR', args, args.map(_ => _booleanCheck)) as boolean[]
+        return list.some(v => v);
+    },
+    AND: (args) => {
+        const list = _parametersCheck('AND', args, args.map(_ => _booleanCheck)) as boolean[]
+        return list.every(v => v);
+    },
+    NOT: (args) => {
+        const [value] = _parametersCheck('NOT', args, [_booleanCheck]) as [boolean]
+        return !value;
     }
 }
 
@@ -92,6 +104,7 @@ const _typeCheck = (type: string): CheckFunction<StreamRenderValue> => v => type
 const _numberCheck = _typeCheck('number');
 const _stringCheck = _typeCheck('string');
 const _positiveNumberCheck = (v: StreamRenderValue) => typeof v !== 'number' ? 'a number' : (v < 0 ? '>= 0' : undefined);
+const _booleanCheck = (v: StreamRenderValue) => typeof v !== 'boolean' ? 'a boolean' : undefined;
 const _arrayCheck = (elementCheck?: CheckFunction<StreamRenderValue>): CheckFunction<StreamRenderValue> => v => {
     if (!Array.isArray(v))
         return 'a list';
