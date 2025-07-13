@@ -1,6 +1,6 @@
 ﻿function setDraggableRegion() {
     // exclude areas in css with --neu-non-draggable-region: true;
-    Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area', { alwaysCapture: true });
+    Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area');
 }
 
 Neutralino.init();

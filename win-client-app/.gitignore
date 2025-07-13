@@ -12,3 +12,7 @@ neutralino.js
 
 # Entropia flow code
 EntropiaFlowStream.js
+
+# WebSocket relay
+go-websocket-relay.exe
+rust-websocket-relay/target

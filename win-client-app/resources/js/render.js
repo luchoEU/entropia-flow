@@ -27,20 +27,24 @@ let _lastData = {
                 #entropia-flow-client-menu, #entropia-flow-client-next {
                     display: none !important;
                 }
+                #copyButton {
+                    --neu-non-draggable-region: true;
+                    cursor: pointer;
+                }
             `,
             action: () => {
                 const copyButton = document.getElementById("copyButton");
                 copyButton?.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    /*if (await chrome.webview?.hostObjects.clipboard.Copy(_lastData.data.uri)) {
-                        const popup = document.getElementById('copyPopup');
-                        popup.style.display = 'block'
-                        setTimeout(() => { popup.style.display = 'none' }, 1000)
-                    }*/
-                });
+                    const copied = await copyTextToClipboard(_lastData.data.uri);
+                    const popup = document.getElementById('copyPopup');
+                    popup.style.display = 'block';
+                    popup.innerText = copied ? 'Copied!' : 'Failed!';
+                    setTimeout(() => { popup.style.display = 'none' }, 1000);
+                })
             }
         },
-        /*[MENU_LAYOUT_ID]: {
+        [MENU_LAYOUT_ID]: {
             name: 'Entropia Flow Menu',
             htmlTemplate: `
                 {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
@@ -83,12 +87,12 @@ let _lastData = {
                 for (const layoutDiv of layoutRoot.children) {
                     layoutDiv.addEventListener("click", (e) => {
                         e.stopPropagation();
-                        chrome.webview?.hostObjects.layout.SelectLayout(e.currentTarget.dataset.layout);
+                        //chrome.webview?.hostObjects.layout.SelectLayout(e.currentTarget.dataset.layout);
                     });
                 }
             }
         },
-        [OCR_LAYOUT_ID]: {
+        /*[OCR_LAYOUT_ID]: {
             name: 'Entropia Flow Scanner',
             htmlTemplate: `
                 <div class='root'>
@@ -254,13 +258,20 @@ function _setupButtons() {
     });
 }*/
 
-function renderWaiting() {
-    receive({ data: { uri: '123', img: { logo: '/img/flow128.png', copy: '/img/copy.png' } } });
+async function renderWaiting() {
+    const ip = await getLocalIpAddress()
+    const port = 6522
+    receive({ data: { uri: `ws://${ip ?? 'localhost'}:${port}`, img: { logo: '/img/flow128.png', copy: '/img/copy.png' } } });
     render({ layoutId: WAITING_LAYOUT_ID });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+function messageReceived(payload) {
+    receive(payload)
+    render({ layoutId: MENU_LAYOUT_ID })
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
     //_setupButtons();
     //chrome.webview?.hostObjects.lifecycle.OnLoaded();
-    renderWaiting();
+    await renderWaiting();
 });

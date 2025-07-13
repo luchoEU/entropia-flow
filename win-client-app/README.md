@@ -26,3 +26,17 @@ Planned features:
 1. `neu build --release`
 
 1. `dist\entropia-flow\entropia-flow-win_x64.exe`
+
+## Rust
+
+1. https://www.rust-lang.org/tools/install
+
+1. `cargo build --release`
+
+## Go
+
+1. https://go.dev/dl/
+
+1. `go run .`
+
+1. `go build -ldflags="-s -w" .`
