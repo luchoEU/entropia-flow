@@ -430,8 +430,8 @@ class FormulaParser {
             {regex: /[-+/*(),.{}:\[\]]/, type: ExprType.symbol}, // 1 char symbols
             {regex: /[><=!]+/, type: ExprType.symbol}, // 1 or more char symbols
             {regex: /`[^`]*`/, type: ExprType.javascript},
-            {regex: /'[^']+'/, type: ExprType.string},
-            {regex: /"[^"]+"/, type: ExprType.string},
+            {regex: /'[^']*'/, type: ExprType.string},
+            {regex: /"[^"]*"/, type: ExprType.string},
             {regex: /\s+/, type: ExprType.space},
             {regex: /./, type: ExprType.unknown},
         ]
