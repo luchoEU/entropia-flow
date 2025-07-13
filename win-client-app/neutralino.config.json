@@ -1,27 +1,51 @@
 {
+  "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "com.entropia.flow",
+  "version": "1.0.0",
   "defaultMode": "window",
   "port": 0,
-  "url": "/resources/index.html",
-  "enableServer": false,
+  "documentRoot": "/resources/",
+  "url": "/streamView.html",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
   "logging": {
-    "enabled": true
+    "enabled": true,
+    "writeToLogFile": true
   },
-  "window": {
-    "title": "Entropia Flow",
-    "width": 1024,
-    "height": 720,
-    "minWidth": 400,
-    "minHeight": 300,
-    "icon": "/resources/icon.png",
-    "resizable": true,
-    "exitProcessOnClose": true,
-    "fullScreen": false,
-    "alwaysOnTop": false,
-    "enableInspector": true
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "window.*",
+    "debug.log"
+  ],
+  "modes": {
+    "window": {
+      "title": "entropia-flow",
+      "width": 250,
+      "height": 70,
+      "minWidth": 30,
+      "minHeight": 30,
+      "center": true,
+      "fullScreen": false,
+      "alwaysOnTop": false,
+      "icon": "/resources/icons/appIcon.png",
+      "enableInspector": true,
+      "borderless": true,
+      "transparent": true,
+      "frameless": true,
+      "maximize": false,
+      "hidden": false,
+      "resizable": true,
+      "exitProcessOnClose": false
+    }
   },
   "cli": {
-    "binaryName": "entropia-flow",
-    "resourcesPath": "/resources"
+    "binaryName": "EntropiaFlowClient",
+    "resourcesPath": "/resources/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/resources/js/neutralino.js",
+    "binaryVersion": "6.1.0",
+    "clientVersion": "6.1.0"
   }
 }

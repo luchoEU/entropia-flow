@@ -1,0 +1,89 @@
+body {
+    background-color: transparent;
+    font-family: system-ui;
+    margin: 0px;
+    overflow: hidden;
+}
+#entropia-flow-client-hover-area {
+    border-radius: 5px;
+    overflow: hidden;
+    width: 100%;
+    height: 100vh;
+}
+.entropia-flow-client-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(173, 216, 230, 0.8); /* light blue */
+    width: 250px;
+    height: 70px;
+}
+#entropia-flow-client-nav {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+#entropia-flow-client-nav > div {
+    display: flex;
+    margin: 4px;
+}
+#entropia-flow-client-nav > div:nth-child(1) {
+    gap: 3px;
+}
+#entropia-flow-client-nav > div:nth-child(2) {
+    align-items: end;
+}
+#entropia-flow-client-nav .entropia-flow-client-control {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    padding: 1px;
+    pointer-events: auto;
+}
+#entropia-flow-client-minimize,
+#entropia-flow-client-menu,
+#entropia-flow-client-next {
+    width: 20px;
+    height: 20px;
+}
+#entropia-flow-client-resize,
+#entropia-flow-client-close {
+    width: 10px;
+    height: 10px;
+}
+#entropia-flow-client-layout {
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#entropia-flow-client-nav .entropia-flow-client-control {
+    display: none;
+}
+#entropia-flow-client-hover-area:hover > #entropia-flow-client-nav .entropia-flow-client-control {
+    display: block;
+}
+#entropia-flow-client-hover-area.entropia-flow-client-minimized:hover #entropia-flow-client-nav .entropia-flow-client-control {
+    display: none;
+}
+#entropia-flow-client-hover-area.entropia-flow-client-minimized #entropia-flow-client-minimize {
+    display: block !important;
+}
+.entropia-flow-client-error {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    width: 100%;
+    height: 100vh;
+}
+.entropia-flow-client-error > p {
+    color: red;
+    text-align: center;
+}

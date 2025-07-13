@@ -1,3 +1,28 @@
-# Entropia Flow
+# Windows Client for extension
 
-Lightweight Neutralino.js app template.
+This is a Windows client to enable more features for the extension. It is optional to have it installed.
+
+_This is still a Work in Progress, it is not working yet._
+
+Planned features:
+- Read game log to get loot in real time
+- Show extension Stream View as overlay
+
+
+## Setup
+
+1. `npm install -g @neutralinojs/neu`
+
+1. `neu update`
+
+1. `buildStream.bat`
+
+## Execute for testing
+
+1. `neu run`
+
+## Build binary
+
+1. `neu build --release`
+
+1. `dist\entropia-flow\entropia-flow-win_x64.exe`
