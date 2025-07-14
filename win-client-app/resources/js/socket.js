@@ -1,7 +1,7 @@
 // A global variable to hold our WebSocket connection
 let ws;
 const clientId = 'entropia-flow-client';
-const clientVersion = '0.0.0';
+const clientVersion = '0.0.1';
 
 // Function to establish and manage the WebSocket connection
 function connectWebSocket() {
@@ -14,7 +14,7 @@ function connectWebSocket() {
      * We must immediately identify our app to the relay server.
      */
     ws.onopen = () => {
-        console.log('Neutralino: Connected to WebSocket relay server!');
+        console.log('Connected to WebSocket relay server!');
         // Identify this client so the server knows who we are
         ws.send(JSON.stringify({
             type: 'identify',
@@ -43,7 +43,7 @@ function connectWebSocket() {
                 sendToExtension("version", clientVersion); // reply with client version
                 break;
             case "stream":
-                messageReceived(message.data);
+                messageReceived?.(message.data);
                 break;
         }
     };
@@ -53,7 +53,7 @@ function connectWebSocket() {
      * We'll implement a simple auto-reconnect logic.
      */
     ws.onclose = () => {
-        console.log('Neutralino: Disconnected from WebSocket server. Reconnecting in 3 seconds...');
+        console.log('Disconnected from WebSocket server. Reconnecting in 3 seconds...');
         // Try to reconnect after a delay
         setTimeout(connectWebSocket, 3000);
     };
@@ -62,7 +62,7 @@ function connectWebSocket() {
      * 4. ON ERROR: Handle any connection errors.
      */
     ws.onerror = (error) => {
-        console.error('Neutralino: WebSocket Error:', error);
+        console.error('WebSocket Error:', error);
         // Closing the socket will trigger the 'onclose' event, which handles reconnection.
         ws.close();
     };
@@ -74,19 +74,19 @@ function connectWebSocket() {
 function sendToExtension(type, payload) {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
-            type: 'message',
+            type: type,
             from: clientId, // We are the sender
             to: 'chrome-extension', // The ID of our target
             data: payload
         }));
-        console.log('Neutralino: Sent message to extension:', payload);
+        console.log('Sent message to extension:', payload);
     } else {
-        console.error('Neutralino: Cannot send message, WebSocket is not open.');
+        console.error('Cannot send message, WebSocket is not open.');
     }
 }
 
 connectWebSocket();
 
 setTimeout(() => {
-    sendToExtension({ greeting: 'Hello from Neutralino on Windows!' });
+    sendToExtension("version", clientVersion); // this will request all data for layouts
 }, 5000);

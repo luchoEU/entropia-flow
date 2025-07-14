@@ -51,7 +51,7 @@ let _lastData = {
             `,
             cssTemplate: `
                 .layout-root {
-                    background-color: rgba(173, 216, 230, 0.8); /* light blue * /
+                    background-color: rgba(173, 216, 230, 0.8); /* light blue */
                 }
                 #entropia-flow-client-minimize,
                 #entropia-flow-client-layout,
@@ -65,6 +65,7 @@ let _lastData = {
                     position: relative;
                 }
                 .layout-root div:hover {
+                    --neu-non-draggable-region: true;
                     font-weight: bold;
                     cursor: pointer;
                 }
@@ -87,7 +88,7 @@ let _lastData = {
                 for (const layoutDiv of layoutRoot.children) {
                     layoutDiv.addEventListener("click", (e) => {
                         e.stopPropagation();
-                        //chrome.webview?.hostObjects.layout.SelectLayout(e.currentTarget.dataset.layout);
+                        selectLayout(e.currentTarget.dataset.layout);
                     });
                 }
             }
@@ -166,25 +167,6 @@ function dispatch(action) {
     //chrome.webview?.hostObjects.dispatcher.Send(action);
 }
 
-async function forceContentSize(size) {
-  // Set an initial guess
-  await Neutralino.window.setSize(size);
-
-  // Wait a moment for the resize to settle
-  setTimeout(() => {
-    const contentWidth = window.innerWidth;
-    const contentHeight = window.innerHeight;
-
-    const deltaW = size.width - contentWidth;
-    const deltaH = size.height - contentHeight;
-
-    Neutralino.window.setSize({
-      width: size.width + deltaW,
-      height: size.height + deltaH
-    });
-  }, 100);
-}
-
 let _disableRender = false
 async function render(s) {
     if (_disableRender) return; // for debugging
@@ -202,7 +184,7 @@ async function render(s) {
 
     let size = entropiaFlowStream.render({ data: d.data, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
-        forceContentSize(size);
+        setContentSize(size);
 
         size = { width: Math.floor(size.width), height: Math.floor(size.height) };
         const style = document.getElementById('entropia-flow-client-nav').style;
@@ -258,6 +240,16 @@ function _setupButtons() {
     });
 }*/
 
+/// Controller ///
+
+//const _sLastWindowId;
+const _windowId = 1;
+//const _initialData;
+let _layoutId = MENU_LAYOUT_ID;
+//let _scale = 1;
+//const _minimized = false;
+//const _waiting = false;
+
 async function renderWaiting() {
     const ip = await getLocalIpAddress()
     const port = 6522
@@ -267,7 +259,13 @@ async function renderWaiting() {
 
 function messageReceived(payload) {
     receive(payload)
-    render({ layoutId: MENU_LAYOUT_ID })
+    render({ layoutId: _layoutId })
+}
+
+function selectLayout(layoutId) {
+    _layoutId = layoutId;
+    render({ layoutId: _layoutId });
+    onWindowLayoutChanged(_windowId, _layoutId);
 }
 
 document.addEventListener("DOMContentLoaded", async function () {

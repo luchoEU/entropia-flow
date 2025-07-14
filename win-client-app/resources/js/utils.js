@@ -67,3 +67,28 @@ async function getLocalIpAddress() {
         return null;
     }
 }
+
+let _deltaW = 0
+let _deltaH = 0
+
+async function setContentSize(size) {
+    if (window.innerWidth === size.width && window.innerHeight === size.height) return;
+
+    // Set an initial guess    
+    const initialGuessSize = { width: size.width + _deltaW, height: size.height + _deltaH };
+    await Neutralino.window.setSize(initialGuessSize);
+
+    // Wait a moment for the resize to settle
+    setTimeout(() => {
+        const contentWidth = window.innerWidth;
+        const contentHeight = window.innerHeight;
+
+        if (contentWidth === size.width && contentHeight === size.height) return;
+
+        _deltaW = initialGuessSize.width - contentWidth;
+        _deltaH = initialGuessSize.height - contentHeight;
+
+        const adjustedSize = { width: size.width + _deltaW, height: size.height + _deltaH };
+        Neutralino.window.setSize(adjustedSize);
+    }, 100);
+}
