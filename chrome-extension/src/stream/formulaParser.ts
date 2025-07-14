@@ -3,15 +3,7 @@ import { StreamRenderObject, StreamRenderValue } from "./data";
 import Interpreter from 'js-interpreter';
 import * as Babel from '@babel/standalone';
 
-const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRenderValue> = {
-    IF: (args) => {
-        let i = 1;
-        while (i < args.length) {
-            if (args[i - 1]) return args[i]
-            i += 2;
-        }
-        return i - 1 < args.length ? args[i - 1] : ''
-    },
+const _simpleFormulas: Record<string, (args: StreamRenderValue[]) => StreamRenderValue> = {
     SUM: (args) => {
         const [list] = _parametersCheck('SUM', args, [_arrayCheck(_numberCheck)]) as [number[]]
         return list.reduce((a, b) => a + b, 0);
@@ -51,18 +43,31 @@ const _clientFormulas: Record<string, (args: StreamRenderValue[]) => StreamRende
     }
 }
 
-const _clientHighOrderFormulas: Record<string, { p: number[], f: (data: FormulaValue, args: IFormula[]) => FormulaValue }> = {
+const _lazyFormulas: Record<string, { p?: number[], f: (data: FormulaValue, args: IFormula[]) => FormulaValue }> = {
     MAP: {
-        p: [1], // high order parameters
+        p: [1], // parameters with used variables
         f: (data, args) => {
             _parameterCountCheck('MAP', args, 2);
             const list =_parameterSingleCheck('MAP', args[0].evaluate(data).v, 0, _arrayCheck()) as any[];
             return { v: list.map(x => args[1].evaluate({v: x}).v) };
         }
+    },
+    IF: {
+        f: (data, args) => {
+            let i = 1;
+            while (i < args.length) {
+                const condition = _parameterSingleCheck('IF', args[i - 1].evaluate(data).v, i - 1, _booleanCheck);
+                if (condition) {
+                    return { v: args[i].evaluate(data).v };
+                }
+                i += 2;
+            }
+            return { v: i - 1 < args.length ? args[i - 1].evaluate(data).v : '' }
+        }
     }
 }
 
-const _serverFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> = {
+const _temporalFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> = {
     LAST: (args) => {
         const [{t:temporalValue}, {v:argSeconds}] = _parametersCheck('LAST', args, [_temporalCheck, _valueCheck(_numberCheck)]) as [{t:TemporalValue}, {v:number}]
 
@@ -195,8 +200,8 @@ interface Token {
 
 const formulaHelp = `Formulas start with =
 Valid operators: ${_operatorByPrecedence.map(v => Object.keys(v.op)).flat().join(', ')}
-Valid functions: ${[ ...Object.keys(_clientFormulas), ...Object.keys(_clientHighOrderFormulas) ].join(', ')}
-Valid functions for temporal variables: ${Object.keys(_serverFormulas).join(', ')}
+Valid functions: ${[ ...Object.keys(_simpleFormulas), ...Object.keys(_lazyFormulas) ].join(', ')}
+Valid functions for temporal variables: ${Object.keys(_temporalFormulas).join(', ')}
 You can also use Javascript expressions inside backticks (e.g. \`a + b\`).`
 
 type FormulaValue = { v: StreamRenderValue, t?: Record<string, TemporalValue> | TemporalValue }
@@ -330,29 +335,29 @@ interface IFunctionFormula extends IFormula {
     function: (target: IFormula) => IFunctionFormula
 }
 
-const _clientFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
+const _simpleFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
     ..._baseFormula(name, args, hasTarget),
-    evaluate: (d) => ({ v: _clientFormulas[name](args.map(v => v.evaluate(d).v)) }),
+    evaluate: (d) => ({ v: _simpleFormulas[name](args.map(v => v.evaluate(d).v)) }),
     isServer: args.some(v => v.isServer),
-    function: (target: IFormula) => _clientFunctionFormula(name, [target, ...args], true)
+    function: (target: IFormula) => _simpleFunctionFormula(name, [target, ...args], true)
 })
 
-const _clientHighOrderFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => {
-    const definition = _clientHighOrderFormulas[name]
+const _lazyFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => {
+    const definition = _lazyFormulas[name]
     return {
         ..._baseFormula(name, args, hasTarget),
         evaluate: (d) => definition.f(d, args),
         isServer: args.some(v => v.isServer),
-        usedVariables: new Set(args.filter((_,i) => !definition.p.includes(i)).flatMap(v => Array.from(v.usedVariables))),
-        function: (target: IFormula) => _clientHighOrderFunctionFormula(name, [target, ...args], true)
+        usedVariables: new Set((definition.p ? args.filter((_, i) => definition.p!.includes(i)) : args).flatMap(v => Array.from(v.usedVariables))),
+        function: (target: IFormula) => _lazyFunctionFormula(name, [target, ...args], true)
     }
 }
 
-const _serverFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
+const _temporalFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
     ..._baseFormula(name, args, hasTarget),
-    evaluate: (d) => _serverFormulas[name](args.map(v => v.evaluate(d))),
+    evaluate: (d) => _temporalFormulas[name](args.map(v => v.evaluate(d))),
     isServer: true,
-    function: (target: IFormula) => _serverFunctionFormula(name, [target, ...args], true)
+    function: (target: IFormula) => _temporalFunctionFormula(name, [target, ...args], true)
 })
 
 function _evaluateOperand(op: string, d: FormulaValue, formula: IFormula): string | number {
@@ -490,12 +495,12 @@ class FormulaParser {
             } else if (token.type === ExprType.function) {
                 const value = this._parseParameters(tokens, level + 1);
                 const fName = token.text.slice(0, -1).toUpperCase(); // remove trailing '('
-                if (_clientFormulas[fName]) {
-                    stack.push(_clientFunctionFormula(fName, value));
-                } else if (_clientHighOrderFormulas[fName]) {
-                    stack.push(_clientHighOrderFunctionFormula(fName, value));
-                } else if (_serverFormulas[fName]) {
-                    stack.push(_serverFunctionFormula(fName, value));
+                if (_simpleFormulas[fName]) {
+                    stack.push(_simpleFunctionFormula(fName, value));
+                } else if (_lazyFormulas[fName]) {
+                    stack.push(_lazyFunctionFormula(fName, value));
+                } else if (_temporalFormulas[fName]) {
+                    stack.push(_temporalFunctionFormula(fName, value));
                 } else {
                     throw new Error(`EFUN: Unknown function '${fName}'`);
                 }
