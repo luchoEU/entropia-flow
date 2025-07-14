@@ -22,6 +22,9 @@ function CraftBlueprintList() {
         selector={CRAFT_TABULAR_BLUEPRINTS}
         beforeTable={ () => [
             { flex: 1 },
+            getSwitchButton('C', 'Show only custom edited blueprints', opt.custom, () => setCraftOptions({ custom: !opt.custom }), [
+                { img: 'img/export.png', title: 'Export custom edited blueprints' },
+            ]),
             getSwitchButton('O', 'Show only owned blueprints', opt.owned, () => setCraftOptions({ owned: !opt.owned })),
         ]}
     />
