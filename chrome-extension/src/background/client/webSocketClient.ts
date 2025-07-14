@@ -52,6 +52,7 @@ class WebSocketClient implements IWebSocketClient {
             };
 
             this._setState(WebSocketStateCode.connected, `connected to ${url}`)
+            this.send('identify', null)
             this.send('version', VERSION)
             for (const json in this.pendingJson)
                 this.socket.send(json)
@@ -64,7 +65,7 @@ class WebSocketClient implements IWebSocketClient {
     }
 
     public async send(type: string, data: any): Promise<void> {
-        const json = JSON.stringify({ type, data })
+        const json = JSON.stringify({ type, data, from: 'chrome-extension', to: 'entropia-flow-client' })
         if (!this.socket) {
             this.pendingJson.push(json);
         } else if (this.socket.readyState == WebSocket.OPEN) {
