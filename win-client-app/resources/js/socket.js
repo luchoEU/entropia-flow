@@ -68,7 +68,6 @@ function connectWebSocket() {
     };
 }
 
-
 // A helper function to send data TO the extension
 // This is the "sender" part of the loop
 function sendToExtension(type, payload) {
@@ -85,8 +84,78 @@ function sendToExtension(type, payload) {
     }
 }
 
-connectWebSocket();
+const RELAY_EXE = 'EntropiaFlowClient-relay.exe';
+const RELAY_LOG = 'relay.log';
+let relayPath = null;
 
-setTimeout(() => {
-    sendToExtension("version", clientVersion); // this will request all data for layouts
-}, 5000);
+async function resolveRelayPath() {
+    const exeName = RELAY_EXE;
+    const fs = Neutralino.filesystem;
+
+    try {
+        // Check in current directory
+        await fs.readFile(exeName);
+        relayPath = exeName;
+        console.log(`Using relay from current directory: ${relayPath}`);
+    } catch {
+        // Check in fallback directory
+        const fallbackPath = `go-websocket-relay/${exeName}`;
+        try {
+            await fs.readFile(fallbackPath);
+            relayPath = fallbackPath;
+            console.log(`Using relay from fallback: ${relayPath}`);
+        } catch {
+            console.error("Relay executable not found in either location.");
+        }
+    }
+}
+
+async function startRelayIfNotRunning() {
+    try {
+        const baseExeName = RELAY_EXE.replace('.exe', '');
+        // Check if it's running
+        let check = await Neutralino.os.execCommand(
+            `tasklist | findstr /i "${baseExeName}"`
+        );
+
+        if (check.stdOut.trim() === "") {
+            if (!relayPath) {
+                await resolveRelayPath();
+                if (!relayPath) return; // Stop if not found
+            }
+
+            console.log("Relay is not running. Starting it...");
+        
+            // Start the process without waiting
+            await Neutralino.os.execCommand(`powershell -WindowStyle Hidden -Command "Start-Process '${relayPath}' -WindowStyle Hidden"`);
+            console.log("Relay launched.");
+        } else {
+            console.log("Relay is already running.");
+        }
+    } catch (err) {
+        if (err.message && err.message.includes("Command failed")) {
+            console.log("Relay is not running. Starting it...");
+            await Neutralino.os.execCommand(`start "" /B "${RELAY_EXE}"`);
+        } else {
+            console.error("Error checking or starting relay:", err);
+        }
+    }
+}
+
+Neutralino.events.on("windowClose", async () => {
+    try {
+        console.log("Terminating relay process...");
+        await Neutralino.os.execCommand(`taskkill /IM ${RELAY_EXE} /F`);
+    } catch (err) {
+        console.warn("Relay termination failed or was already closed.");
+    }
+    Neutralino.app.exit();
+});
+
+startRelayIfNotRunning().then(() => {
+    connectWebSocket();
+
+    setTimeout(() => {
+        sendToExtension("version", clientVersion); // this will request all data for layouts
+    }, 5000);    
+})

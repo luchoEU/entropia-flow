@@ -16,6 +16,7 @@
   "nativeAllowList": [
     "app.*",
     "os.*",
+    "filesystem.*",
     "window.*",
     "debug.log"
   ],
@@ -30,7 +31,7 @@
       "fullScreen": false,
       "alwaysOnTop": false,
       "icon": "/resources/icons/appIcon.png",
-      "enableInspector": false,
+      "enableInspector": true,
       "borderless": true,
       "transparent": true,
       "frameless": true,

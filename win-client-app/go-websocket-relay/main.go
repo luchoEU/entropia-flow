@@ -1,5 +1,3 @@
-// main.go
-
 package main
 
 import (
@@ -7,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -115,6 +114,15 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Open (or create) the log file
+	logFile, err := os.OpenFile("relay.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("Could not open relay.log:", err)
+	}
+
+	// Redirect the standard logger to this file
+	log.SetOutput(logFile)
+
 	log.Println("Starting Go WebSocket Relay Server...")
 	server := NewServer()
 
