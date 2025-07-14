@@ -1,8 +1,4 @@
 import { IBackground, SimpleBackground, SolidBackground } from './effects/baseBackground';
-import AshfallBackground from './effects/ashfall/main'
-import MatrixBackground from './effects/matrix/main'
-import FirefliesBackground from './effects/fireflies/main';
-import ColorOrbsBackground from './effects/color-orbs/main';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
 import { Feature, isFeatureEnabled, SettingsState } from '../view/application/state/settings';
@@ -24,14 +20,18 @@ interface BackgroundSpec {
     extra?: any
 }
 
-const factories = new Map<BackgroundType, (new (container: HTMLElement, extra?: any) => IBackground)>([
-    [BackgroundType.Light, SolidBackground],
-    [BackgroundType.Dark, SolidBackground],
-    [BackgroundType.Ashfall, AshfallBackground],
-    [BackgroundType.Matrix, MatrixBackground],
-    [BackgroundType.Fireflies, FirefliesBackground],
-    [BackgroundType.ColorOrbs, ColorOrbsBackground],
-    [BackgroundType.Transparent, SimpleBackground],
+const factories = new Map<BackgroundType, () => Promise<any>>([
+    // For simple, non-dynamic backgrounds, we wrap them in a resolved promise
+    // to keep the interface consistent.
+    [BackgroundType.Light, () => Promise.resolve({ default: SolidBackground })],
+    [BackgroundType.Dark, () => Promise.resolve({ default: SolidBackground })],
+    [BackgroundType.Transparent, () => Promise.resolve({ default: SimpleBackground })],
+    
+    // For heavy backgrounds, we use dynamic import()
+    [BackgroundType.Ashfall, () => import(/* webpackChunkName: "ashfall-effect" */ './effects/ashfall/main')],
+    [BackgroundType.Matrix, () => import(/* webpackChunkName: "matrix-effect" */ './effects/matrix/main')],
+    [BackgroundType.Fireflies, () => import(/* webpackChunkName: "fireflies-effect" */ './effects/fireflies/main')],
+    [BackgroundType.ColorOrbs, () => import(/* webpackChunkName: "color-orbs-effect" */ './effects/color-orbs/main')],
 ]);
 
 let instances: { [id: string]: IBackground } = { }
@@ -49,49 +49,77 @@ function animate(delta: number) {
 }
 
 // each container must have an unique id
-function loadBackground(type: BackgroundType, container: HTMLElement, oldContainer: HTMLElement) {
-    if (type < 0 || type > factories.size - 1)
-        type = BackgroundType.Light
-    
-    const id = container.id
-    let i = instances[id]
-    if (i && i.type == type && !i.ready)
-        return // loading
+async function loadBackground(type: BackgroundType, container: HTMLElement, oldContainer: HTMLElement) {
+    if (type < 0 || !factories.has(type)) {
+        type = BackgroundType.Light;
+    }
+
+    const id = container.id;
+    let i = instances[id];
+    if (i && i.type == type && !i.ready) {
+        return; // loading
+    }
     
     if (i && i.type != type) {
-        i.cleanUp()
-        delete instances[id]
-        i = undefined
+        i.cleanUp();
+        delete instances[id];
+        i = undefined;
     }
-    
+
     if (type === undefined) {
-        container.style.color = ''
+        container.style.color = '';
     }
     
-    if (type === undefined || container.querySelector('canvas'))
-        return
+    // Prevent re-creating if canvas already exists from a previous background
+    if (type === undefined || container.querySelector('canvas')) {
+        return;
+    }
+
+    // --- START OF MAJOR CHANGES ---
+
+    // Add a loading state to the UI so the user knows something is happening
+    container.classList.add('background-loading');
     
-    const { dark, extra } = getBackgroundSpec(type)
-    container.style.color = dark ? 'white' : 'black'
-    
+    const { dark, extra } = getBackgroundSpec(type);
+    container.style.color = dark ? 'white' : 'black';
+
     if (oldContainer) {
         if (i && i.container == oldContainer) {
-            i.container = container
+            i.container = container;
         }
-        const canvas = oldContainer.querySelector('canvas')
+        const canvas = oldContainer.querySelector('canvas');
         if (canvas) {
-            container.append(canvas)
-            return
+            container.append(canvas);
+            // We moved the canvas, but we still need to create the new logic controller
         }
     }
-    
-    const newBackground: IBackground = new (factories.get(type))(container, extra)
-    newBackground.type = type
-    instances[id] = newBackground
-    
-    if (!animating && newBackground.isAnimated) {
-        animate(0);
-        animating = true
+
+    try {
+        // 1. Get the importer function from our map
+        const importer = factories.get(type);
+        if (!importer) throw new Error(`No importer for background type ${type}`);
+        
+        // 2. Await the dynamic import(). This is where the network request happens!
+        const backgroundModule = await importer();
+        
+        // 3. Get the class from the 'default' export of the module
+        const BackgroundClass = backgroundModule.default;
+        
+        // 4. Create the new instance
+        const newBackground: IBackground = new BackgroundClass(container, extra);
+        newBackground.type = type;
+        instances[id] = newBackground;
+        
+        if (!animating && newBackground.isAnimated) {
+            animate(0);
+            animating = true;
+        }
+    } catch (error) {
+        console.error("Failed to load background:", error);
+        // Handle the error, maybe fall back to a simple background
+    } finally {
+        // Always remove the loading state
+        container.classList.remove('background-loading');
     }
 }
 

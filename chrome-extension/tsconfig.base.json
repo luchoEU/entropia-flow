@@ -9,8 +9,6 @@
       "es2019",
       "dom"
     ],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "outDir": "dist/js",
     "rootDir": "src",
     "sourceMap": true,

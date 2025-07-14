@@ -1,8 +1,6 @@
 import React, { JSX } from 'react';
 import { StreamRenderSingle } from './data';
-import { getBackgroundSpec } from './background';
 import { renderHtmlTemplate, renderCssTemplate } from './template';
-import { computeFormulas } from './formulaCompute';
 
 const MIN_SIZE = 30
 
@@ -13,8 +11,7 @@ const StreamViewDiv = ({ id, single: { data, layout }, size, scale }: {
     scale?: number
 }): JSX.Element => {
 
-    const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
-    const variables = computeFormulas({ ...data, backDark });
+    const variables = data
     const html = layout.htmlTemplate && renderHtmlTemplate(layout.htmlTemplate, variables);
     const css = layout.cssTemplate && renderCssTemplate(layout.cssTemplate, variables);
 

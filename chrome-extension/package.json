@@ -16,6 +16,7 @@
         "watch": "webpack -w --config webpack.dev.js",
         "stream": "webpack --config webpack.stream.prod.js",
         "stream-dev": "webpack --config webpack.stream.dev.js",
+        "stream-single": "webpack --config webpack.stream.singlefile.js",
         "test": "jest"
     },
     "devDependencies": {
@@ -34,6 +35,7 @@
         "net": "^1.0.2",
         "node-polyfill-webpack-plugin": "^4.1.0",
         "pkg-dir": "^8.0.0",
+        "process": "^0.11.10",
         "sass-loader": "^16.0.4",
         "style-loader": "^4.0.0",
         "tls": "^0.0.1",
@@ -44,6 +46,7 @@
         "url-loader": "^4.1.1",
         "vm-browserify": "^1.1.2",
         "webpack": "^5.97.1",
+        "webpack-bundle-analyzer": "^4.10.2",
         "webpack-cli": "^6.0.1",
         "webpack-merge": "^6.0.1",
         "webpack-shell-plugin-next": "^2.3.2"
@@ -62,7 +65,6 @@
         "mustache": "^4.2.0",
         "pako": "^2.1.0",
         "prismjs": "^1.29.0",
-        "process": "^0.11.10",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-redux": "^9.2.0",
