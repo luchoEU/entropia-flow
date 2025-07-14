@@ -10,6 +10,8 @@ neutralino.js
 .storage
 *.log
 
-# Entropia flow code
-EntropiaFlowStream.js
-go-websocket-relay.exe
+# Entropia flow stream render code
+/resources/stream
+
+# Web Socket Relay
+EntropiaFlowClient-relay.exe

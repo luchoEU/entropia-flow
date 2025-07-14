@@ -150,7 +150,7 @@ const _emptyLayout = {
 };
 
 function receive(delta) {
-    _lastData = entropiaFlowStream.applyDelta(_lastData, delta);
+    _lastData = clientStream.applyDelta(_lastData, delta);
     _lastData.data.layouts = Object.entries(_lastData.layouts)
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
@@ -177,7 +177,7 @@ function render(s) {
         scale = 1;
     }
 
-    let size = entropiaFlowStream.render({ data: d.data, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    let size = clientStream.render({ data: d.data, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
         chrome.webview?.hostObjects.resize.OnRendered(size.width, size.height);
 

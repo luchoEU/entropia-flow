@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\chrome-extension\dist.win\EntropiaFlowStream.js" Link="GameWindow\EntropiaFlowStream.js" />
+    <EmbeddedResource Include="..\chrome-extension\dist.single\clientStream.bundle.js" Link="GameWindow\EntropiaFlowStream.js" />
   </ItemGroup>
 
   <ItemGroup>

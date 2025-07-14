@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;

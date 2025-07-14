@@ -1,7 +1,6 @@
 ﻿using EntropiaFlowClient.Data;
 using EntropiaFlowClient.UI;
 using Helpers;
-using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Windows;

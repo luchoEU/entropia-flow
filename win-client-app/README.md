@@ -25,13 +25,10 @@ Planned features:
 
 1. `neu build --release`
 
-1. `dist\entropia-flow\entropia-flow-win_x64.exe`
-
-## Rust
-
-1. https://www.rust-lang.org/tools/install
-
-1. `cargo build --release`
+1. Files
+    `dist\EntropiaFlowClient\EntropiaFlowClient-win_x64.exe`
+    `dist\EntropiaFlowClient\resources.neu`
+    `go-websocket-relay\EntropiaFlowClient-relay.exe`
 
 ## Go
 

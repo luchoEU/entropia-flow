@@ -1,4 +1,4 @@
-module go-websocket-relay
+module EntropiaFlowClient-relay
 
 go 1.24.5
 

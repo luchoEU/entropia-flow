@@ -1,5 +1,5 @@
 @echo off
 cd ..\chrome-extension\
 call npm run stream-dev
-copy dist.win\EntropiaFlowStream.js ..\win-client-app\resources\js\
+robocopy dist.win ..\win-client-app\resources\stream /E /COPY:DAT /R:0 /W:0
 cd ..\win-client-app\

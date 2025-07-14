@@ -2,6 +2,6 @@ dist/*.js
 dist/*.js.LICENSE.txt
 dist.zip
 dist.win/
-dist.win.zip
+dist.single/
 node_modules
 src/stream/stream-export-layout.schema.json
