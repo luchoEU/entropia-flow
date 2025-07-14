@@ -75,15 +75,7 @@ function computeFormulas(obj: StreamRenderObject, temporalVariables?: Record<str
     return _computeFormulas(_parseFormulas(obj), obj, temporalVariables);
 }
 
-function computeServerFormulas(obj: StreamRenderObject, temporalVariables: Record<string, TemporalValue>): StreamRenderObject {
-    const formulas = _parseFormulas(obj)
-    const computed = _computeFormulas(formulas, obj, temporalVariables);
-    const isServer = Object.fromEntries(formulas.map(([key, formula]) => [key, formula.isServer]))
-    return Object.fromEntries(Object.entries(obj).map(([key, v]) => [key, isServer[key] ? computed[key] : v]))
-}
-
 export {
     computeFormulas,
-    computeServerFormulas,
     filterUsedVariables,
 }

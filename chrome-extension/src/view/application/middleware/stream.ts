@@ -18,10 +18,9 @@ import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
-import { computeServerFormulas } from "../../../stream/formulaCompute"
+import { computeFormulas } from "../../../stream/formulaCompute"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
-import { getInventory } from "../selectors/inventory"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -166,7 +165,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
             const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
-            const renderData: StreamRenderData = { data: computeServerFormulas(data, tObj), layouts };
+            const renderData: StreamRenderData = { data: computeFormulas(data, tObj), layouts };
             dispatch(setStreamData(renderData));
             break;
         }

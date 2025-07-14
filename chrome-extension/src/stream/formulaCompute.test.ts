@@ -1,8 +1,8 @@
-import { computeFormulas, computeServerFormulas } from "./formulaCompute"
+import { computeFormulas } from "./formulaCompute"
 
-describe('formula compute server', () => {
+describe('formula compute', () => {
     test('keep base values', async () => {
-        expect(computeServerFormulas({t: 1}, {})).toEqual({t: 1})
+        expect(computeFormulas({t: 1}, {})).toEqual({t: 1})
     })
 })
 

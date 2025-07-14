@@ -47,7 +47,7 @@ describe('formula parser', () => {
             .toEqual(4)
     })
     test('select', async () => {
-        expect(parseFormula("a.select(c)")
+        expect(parseFormula("a.map(c)")
             .evaluate({ a: [{ b: 1, c: 2 }, { b: 3, c: 4 }] }))
             .toEqual([2, 4])
     })

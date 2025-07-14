@@ -210,7 +210,6 @@ interface IFormula { // internal formula
     evaluate: (data: FormulaValue) => FormulaValue
     text: string,
     usedVariables: Set<string>,
-    isServer: boolean
 }
 
 class Formula {
@@ -219,7 +218,6 @@ class Formula {
         this.formula = formula
         this.text = formula.text
         this.usedVariables = formula.usedVariables
-        this.isServer = formula.isServer
     }
 
     evaluate(data: StreamRenderObject, temporalData?: Record<string, TemporalValue>): StreamRenderValue {
@@ -228,7 +226,6 @@ class Formula {
 
     text: string
     usedVariables: Set<string>
-    isServer: boolean // the formula needs to be evaluated in the server
 }
 
 function parseFormula(formula: string): Formula {
@@ -238,7 +235,6 @@ function parseFormula(formula: string): Formula {
 const _constantFormula = (value: StreamRenderValue): IFormula => ({
     evaluate: () => ({ v: value }),
     text: JSON.stringify(value),
-    isServer: false,
     usedVariables: new Set(),
 })
 
@@ -315,7 +311,6 @@ const _javascriptFormula = (jsCodeWithBackticks: string): IFormula => {
             }
         },
         text: jsCodeWithBackticks,
-        isServer: false,
         usedVariables: usedVariables,
     };
 };
@@ -338,7 +333,6 @@ interface IFunctionFormula extends IFormula {
 const _simpleFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
     ..._baseFormula(name, args, hasTarget),
     evaluate: (d) => ({ v: _simpleFormulas[name](args.map(v => v.evaluate(d).v)) }),
-    isServer: args.some(v => v.isServer),
     function: (target: IFormula) => _simpleFunctionFormula(name, [target, ...args], true)
 })
 
@@ -347,7 +341,6 @@ const _lazyFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => 
     return {
         ..._baseFormula(name, args, hasTarget),
         evaluate: (d) => definition.f(d, args),
-        isServer: args.some(v => v.isServer),
         usedVariables: new Set((definition.p ? args.filter((_, i) => definition.p!.includes(i)) : args).flatMap(v => Array.from(v.usedVariables))),
         function: (target: IFormula) => _lazyFunctionFormula(name, [target, ...args], true)
     }
@@ -356,7 +349,6 @@ const _lazyFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => 
 const _temporalFunctionFormula: FunctionFormulaFactory = (name, args, hasTarget) => ({
     ..._baseFormula(name, args, hasTarget),
     evaluate: (d) => _temporalFormulas[name](args.map(v => v.evaluate(d))),
-    isServer: true,
     function: (target: IFormula) => _temporalFunctionFormula(name, [target, ...args], true)
 })
 
@@ -381,14 +373,12 @@ function _evaluateOperand(op: string, d: FormulaValue, formula: IFormula): strin
 const _unaryOperatorFormula = (op: string, formula: IFormula): IFormula => ({
     evaluate: (d) => ({ v: _unaryOperatorFunction[op](_evaluateOperand(op, d, formula)) }),
     text: `${op}${formula.text}`,
-    isServer: formula.isServer,
     usedVariables: formula.usedVariables
 })
 
 const _binaryOperatorFormula = (op: string, left: IFormula, right: IFormula): IFormula => ({
     evaluate: (d) => ({ v: _binaryOperatorFunction[op](_evaluateOperand(op, d, left), _evaluateOperand(op, d, right)) }),
     text: `${left.text} ${op} ${right.text}`,
-    isServer: left.isServer || right.isServer,
     usedVariables: new Set([...left.usedVariables, ...right.usedVariables])
 })
 
@@ -401,7 +391,6 @@ const _propertyFormula = (f: IFormula, name: string): IFormula => ({
             throw new Error(`EPROP: Property '${name}' not found`)
     },
     text: `${f.text}.${name}`,
-    isServer: f.isServer,
     usedVariables: f.usedVariables
 })
 
@@ -415,7 +404,6 @@ const _variableFormula = (name: string): IFormula => ({
             throw new Error( `EVAR: Variable '${name}' not found`)        
     },
     text: name,
-    isServer: false,
     usedVariables: new Set([name])
 })
 
