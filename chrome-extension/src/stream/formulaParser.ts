@@ -74,7 +74,7 @@ const _temporalFormulas: Record<string, (args: FormulaValue[]) => FormulaValue> 
         let seconds = argSeconds
         let last: number = 0
         let from = getNowDate() - 1000
-        const list = [ ]
+        const list: number[] = []
         for (const v of temporalValue.history) {
             while (v.time <= from && seconds > 0) {
                 list.push(last);
@@ -261,6 +261,17 @@ function _extractIdentifiers(code: string): Set<string> {
     return used;
 }
 
+// The init function to set up the interpreter's global scope.
+const interpreterLoadContext = (context?: any) => (interpreter: any, globalObject: any) => {
+    if (!context) return;
+    for (const key in context) {
+        if (Object.prototype.hasOwnProperty.call(context, key)) {
+            const value = interpreter.nativeToPseudo(context[key]);
+            interpreter.setProperty(globalObject, key, value);
+        }
+    }
+};
+
 /**
  * Creates a formula from a full Javascript expression string (e.g. `myList.filter(...)`).
  * This implementation uses the 'JS-Interpreter' library to safely execute the code
@@ -271,7 +282,7 @@ const _javascriptFormula = (jsCodeWithBackticks: string): IFormula => {
     const usedVariables = _extractIdentifiers(jsCode);
 
     // Transpile the modern JS code to ES5 at parse time
-    let es5Code;
+    let es5Code: string;
     try {
         es5Code = Babel.transform(jsCode, { presets: ['env'] }).code;
     } catch (e) {
@@ -280,8 +291,6 @@ const _javascriptFormula = (jsCodeWithBackticks: string): IFormula => {
     }
 
     return {
-        // Evaluate is now SYNCHRONOUS again, so you can undo the 'async' refactoring.
-        // This will simplify your whole codebase significantly.
         evaluate: (d) => {
             if (typeof d.v !== 'object' || d.v === null) {
                 throw new Error(`EJSC: Javascript expressions require an object context, but got ${typeof d.v}`);
@@ -289,18 +298,8 @@ const _javascriptFormula = (jsCodeWithBackticks: string): IFormula => {
             const context = d.v as object;
 
             try {
-                // The init function to set up the interpreter's global scope.
-                const initFunction = (interpreter: any, globalObject: any) => {
-                    for (const key in context) {
-                        if (Object.prototype.hasOwnProperty.call(context, key)) {
-                            const value = interpreter.nativeToPseudo(context[key]);
-                            interpreter.setProperty(globalObject, key, value);
-                        }
-                    }
-                };
-                
                 // Use the transpiled ES5 code
-                const interpreter = new Interpreter(es5Code, initFunction);
+                const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
                 interpreter.run();
 
                 const result = interpreter.pseudoToNative(interpreter.value);
@@ -458,7 +457,7 @@ class FormulaParser {
     private static _parseNesting(tokens: Token[], level: number, returnParameters: boolean): IFormula | IFormula[] {
         let stack: (Token | IFormula)[] = [];
         const parameters: IFormula[] = [];
-        let jsonMode: { open: string, close: string, count: number, text: string } = undefined;
+        let jsonMode: { open: string, close: string, count: number, text: string } | undefined = undefined;
         let endsWithParenthesis = false
 
         while (tokens.length > 0) {
@@ -542,7 +541,7 @@ class FormulaParser {
 
     static Pending = class {
         private _pending: Record<string, { result: IFormula, operator: string }> = { };
-        eval(result: IFormula, kIn: string = undefined): IFormula {
+        eval(result: IFormula, kIn: string | undefined = undefined): IFormula {
             for (const p of _operatorByPrecedence) {
                 const prev = this._pending[p.k];
                 if (prev) {
@@ -607,6 +606,7 @@ class FormulaParser {
 export {
     parseFormula,
     cycleErrorFormula,
+    interpreterLoadContext,
     Formula,
     formulaHelp
 }

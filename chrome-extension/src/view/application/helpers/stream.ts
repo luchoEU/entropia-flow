@@ -1,6 +1,7 @@
+import { TemporalValue } from '../../../common/state';
 import { ADD_CLIENT_INITIAL_LAYOUTS } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamBaseLayout, StreamExportLayout, StreamRenderLayout } from '../../../stream/data';
+import StreamRenderData, { StreamBaseLayout, StreamExportLayout, StreamRenderLayout, StreamRenderValue } from '../../../stream/data';
 import { filterUsedVariables } from '../../../stream/formulaCompute';
 import { getUsedVariablesInTemplate } from '../../../stream/template';
 import { LUCHO } from '../../components/about/AboutPage';
@@ -88,7 +89,7 @@ const TEAM_LAYOUT_ID = 'entropiaflow.team'
 
 const initialStateIn: StreamStateIn = {
     advanced: false,
-    defaultAuthor: undefined,
+    defaultAuthor: undefined!,
     view: [ DEFAULT_LAYOUT_ID ],
     layouts: {
         [DEFAULT_LAYOUT_ID]: _defaultLayout,
@@ -104,7 +105,8 @@ const initialState: StreamState = {
     in: initialStateIn,
     variables: { },
     temporalVariables: { },
-    out: undefined
+    ui: {},
+    out: undefined!
 }
 
 const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): StreamState => ({
@@ -117,7 +119,8 @@ const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): St
     },
     variables: state.variables,
     temporalVariables: state.temporalVariables,
-    out: undefined
+    ui: {},
+    out: undefined!
 })
 
 const reduceSetStreamEnabled = (state: StreamState, enabled: boolean) => ({
@@ -181,11 +184,21 @@ const reduceSetStreamTemporalVariables = (state: StreamState, source: string, va
     ...state,
     variables: {
         ...state.variables,
-        [source]: variables.map(v => ({ name: v.name, value: { total: v.value.total.toFixed(v.decimals ?? 0), count: v.value.count }}))
+        [source]: variables as any
     },
     temporalVariables: {
         ...state.temporalVariables,
         [source]: variables
+    }
+})
+
+const reduceSetStreamFormulaJavaScript = (state: StreamState, layoutId: string, formulaJavaScript: string): StreamState => _changeStreamLayout(state, layoutId, { formulaJavaScript })
+
+const reduceSetStreamFormulaShowLayoutId = (state: StreamState, layoutId: string): StreamState => ({
+    ...state,
+    ui: {
+        ...state.ui,
+        formulaShowLayoutId: layoutId
     }
 })
 
@@ -245,6 +258,7 @@ const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: strin
                 lastModified: Date.now(),
                 author: state.in.defaultAuthor,
                 backgroundType: _defaultLayout.backgroundType,
+                formulaJavaScript: _defaultLayout.formulaJavaScript,
                 htmlTemplate: _defaultLayout.htmlTemplate,
                 cssTemplate: _defaultLayout.cssTemplate,
             }
@@ -365,8 +379,8 @@ const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, part
 })
 
 function renderToExportLayout(layout: StreamRenderLayout, variables: StreamUserVariable[]): StreamExportLayout {
-    const usedVariablesHtml = getUsedVariablesInTemplate(layout.htmlTemplate)
-    const usedVariablesCss = getUsedVariablesInTemplate(layout.cssTemplate)
+    const usedVariablesHtml = getUsedVariablesInTemplate(layout.htmlTemplate ?? '')
+    const usedVariablesCss = getUsedVariablesInTemplate(layout.cssTemplate ?? '')
     const usedVariables = new Set([...usedVariablesHtml, ...usedVariablesCss])
     const exportableData: StreamExportLayout = {
         schema: 1,
@@ -374,8 +388,8 @@ function renderToExportLayout(layout: StreamRenderLayout, variables: StreamUserV
         variables: filterUsedVariables(variables, usedVariables).map(v => ({
             name: v.name,
             value: v.value,
-            description: v.description,
-            isImage: v.isImage
+            description: v.description ?? '',
+            isImage: v.isImage ?? false
         }))
     }
     return exportableData
@@ -386,6 +400,7 @@ const copyBaseLayout = (layout: StreamBaseLayout): StreamBaseLayout => ({
     author: layout.author,
     lastModified: layout.lastModified,
     backgroundType: layout.backgroundType,
+    formulaJavaScript: layout.formulaJavaScript,
     htmlTemplate: layout.htmlTemplate,
     cssTemplate: layout.cssTemplate,
 })
@@ -411,6 +426,8 @@ export {
     reduceSetStreamBackgroundSelected,
     reduceSetStreamVariables,
     reduceSetStreamTemporalVariables,
+    reduceSetStreamFormulaJavaScript,
+    reduceSetStreamFormulaShowLayoutId,
     reduceSetStreamHtmlTemplate,
     reduceSetStreamCssTemplate,
     reduceSetStreamStared,

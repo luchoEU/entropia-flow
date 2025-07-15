@@ -7,6 +7,7 @@ export const getStreamOut = (state: any): StreamStateOut => getStream(state).out
 export const getStreamData = (state: any): StreamRenderObject | undefined => getStreamOut(state).data.data
 export const getStreamAdvancedEditor = (state: any): boolean => getStreamIn(state).advanced
 export const getStreamUserVariables = (state: any): StreamUserVariable[] => getStreamIn(state).userVariables
+export const getStreamFormulaShowLayoutId = (state: any): string | undefined => getStream(state).ui.formulaShowLayoutId
 
 export const getStreamLayouts = (state: any): StreamRenderLayoutSet => getStreamIn(state).layouts
 export const getStreamTrashLayouts = (state: any): StreamRenderLayoutSet => getStreamIn(state).trashLayouts

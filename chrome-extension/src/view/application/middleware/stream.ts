@@ -7,20 +7,23 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_VARIABLE, REMOVE_STREAM_USER_VARIABLE, SET_STREAM_USER_VARIABLE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_FORMULA_SHOW_LAYOUT_ID } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
 import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts } from "../selectors/stream"
-import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
+import { StreamState, StreamStateIn, StreamStateOut, StreamStateVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 import { computeFormulas } from "../../../stream/formulaCompute"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
+import Interpreter from 'js-interpreter';
+import * as Babel from '@babel/standalone';
+import { interpreterLoadContext } from "../../../stream/formulaParser"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -36,6 +39,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_ENABLED:
         case SET_STREAM_ADVANCED:
         case SET_STREAM_BACKGROUND_SELECTED:
+        case SET_STREAM_FORMULA_JAVASCRIPT:
         case SET_STREAM_HTML_TEMPLATE:
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_NAME:
@@ -90,7 +94,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const inventory: Inventory = action.payload.inventory
             dispatch(setStreamVariables('inventory', [
                 { name: 'inventoryTime', value: inventory.meta.date, description: 'time of the last inventory update' },
-                { name: 'items', value: inventory.itemlist.map(i => ({ name: i.n, quantity: Number(i.q), value: Number(i.v), container: i.c })), description: 'items' }
+                { name: 'items', value: inventory.itemlist?.map(i => ({ name: i.n, quantity: Number(i.q), value: Number(i.v), container: i.c })) ?? [], description: 'items' }
             ]))
             break
         }
@@ -114,7 +118,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const { layouts } = getStreamIn(getState())
             const t = layouts[action.payload?.layoutId]?.backgroundType
             dispatch(setStreamVariables('background', [
-                { name: 'backDark', value: t ? getBackgroundSpec(t).dark : false, description: 'background is dark' },
+                { name: 'backDark', value: t ? getBackgroundSpec(t)?.dark ?? false : false, description: 'background is dark' },
                 { name: 'logoUrl', value: '=IF(backDark, img.logoWhite, img.logoBlack)', description: 'logo url' },
                 { name: 'logoWhite', value: getLogoUrl(true), isImage: true },
                 { name: 'logoBlack', value: getLogoUrl(false), isImage: true }
@@ -137,6 +141,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     switch (action.type) {
         case AppAction.INITIALIZE:
         case SET_STREAM_BACKGROUND_SELECTED:
+        case SET_STREAM_FORMULA_JAVASCRIPT:
         case SET_STREAM_HTML_TEMPLATE:
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_STARED:
@@ -156,16 +161,42 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     }
 
     switch (action.type) {
+        case SET_STREAM_FORMULA_SHOW_LAYOUT_ID:
+        case SET_STREAM_FORMULA_JAVASCRIPT:
         case SET_STREAM_HTML_TEMPLATE:
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
-            const { in: { layouts }, variables, temporalVariables } = getStream(getState());
+            const { in: { layouts }, ui: { formulaShowLayoutId }, variables, temporalVariables } = getStream(getState());
             const vars = Object.values(variables).flat();
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
             const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
             const renderData: StreamRenderData = { data: computeFormulas(data, tObj), layouts };
+
+            if (action.type !== SET_STREAM_VARIABLES || action.payload.source !== 'formula') {
+                const baseContext = renderData.data ?? {};
+                const oldVars = variables['formula']?.map(v => v.name) ?? [];
+                const userVars = variables['user']?.map(v => v.name) ?? [];
+                const context = Object.fromEntries(Object.entries(baseContext).filter(([k, v]) => !oldVars.includes(k) && !userVars.includes(k)));
+                const jsCode = formulaShowLayoutId ? layouts[formulaShowLayoutId]?.formulaJavaScript : undefined
+                let definedVars: StreamStateVariable[] = [];
+                if (jsCode && jsCode.trim() !== '') {
+                    try {
+                        const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
+                        const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
+                        interpreter.run();
+                        definedVars = Object.entries(interpreter.globalScope.object.properties)
+                            .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
+                            .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
+                            .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value));
+                    } catch (e) {
+                        definedVars = [{name: '!error', value: e.message, description: 'error in formula javascript'}];
+                    }
+                }
+                dispatch(setStreamVariables('formula', definedVars));
+            }
+
             dispatch(setStreamData(renderData));
             break;
         }
@@ -193,7 +224,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     }
 }
 
-let _dataInClient: StreamRenderData = undefined
+let _dataInClient: StreamRenderData | undefined = undefined
 
 export default [
     requests

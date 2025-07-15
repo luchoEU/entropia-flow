@@ -3,8 +3,8 @@ import React from "react"
 import { useSelector } from "react-redux"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamUserVariable } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
-import { getStreamAdvancedEditor, getStreamData, getStreamLayout, getStreamUserVariables } from "../../application/selectors/stream"
-import { addStreamUserVariable, clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
+import { getStreamAdvancedEditor, getStreamData, getStreamFormulaShowLayoutId, getStreamLayout, getStreamUserVariables } from "../../application/selectors/stream"
+import { addStreamUserVariable, clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamFormulaShowLayoutId, setStreamFormulaJavaScript, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
@@ -17,25 +17,32 @@ import ImgButton from "../common/ImgButton"
 import { StreamRenderLayout } from "../../../stream/data"
 import { renderToExportLayout } from "../../application/helpers/stream"
 
-function StreamLayoutEditor() {
-    const { layoutId } = useParams();
+function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))
     if (!c) return <></>
 
     return <>
+        <ExpandableSection selector='StreamEditor-layout-formula' title='Formulas JavaScript' subtitle='Custom variables calculation' className='stream-layout'>
+            <CodeEditor
+                language='javascript'
+                readOnly={c.readonly ?? false}
+                value={c.formulaJavaScript ?? ''}
+                dispatchChange={setStreamFormulaJavaScript(layoutId)}
+            />
+        </ExpandableSection>
         <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
             <CodeEditor
                 language='html'
-                readOnly={c.readonly}
-                value={c.htmlTemplate}
+                readOnly={c.readonly ?? false}
+                value={c.htmlTemplate ?? ''}
                 dispatchChange={setStreamHtmlTemplate(layoutId)}
             />
         </ExpandableSection>
         <ExpandableSection selector='StreamEditor-layout-css' title='CSS Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
             <CodeEditor
                 language='css'
-                readOnly={c.readonly}
-                value={c.cssTemplate}
+                readOnly={c.readonly ?? false}
+                value={c.cssTemplate ?? ''}
                 dispatchChange={setStreamCssTemplate(layoutId)}
             />
         </ExpandableSection>
@@ -45,13 +52,18 @@ function StreamLayoutEditor() {
 function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
     const { layout, id: layoutId, shouldClearAlias } = useSelector(getStreamLayout(parmlayoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
-    const data = useSelector(getStreamData);
+    const data = useSelector(getStreamData) ?? {};
     const userVariables = useSelector(getStreamUserVariables)
+    const formulaShowLayoutId = useSelector(getStreamFormulaShowLayoutId)
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     if (shouldClearAlias) dispatch(clearStreamLayoutAlias)
     if (!layout) return <></>
 
+    if (formulaShowLayoutId !== layoutId) {
+        dispatch(setStreamFormulaShowLayoutId(layoutId))
+    }
+    
     const InputCells = (label: string, value: string, setValueAction: (value: string) => any): React.ReactNode =>
         <>
             <td><label htmlFor={`stream-layout-${label}`}>{label}</label></td>
@@ -116,7 +128,7 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
                 <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data, layout}} />
             </ExpandableSection>
-            { advanced && <StreamLayoutEditor /> }
+            { advanced && <StreamLayoutEditor layoutId={layoutId} /> }
         </div>
     </section>
 }

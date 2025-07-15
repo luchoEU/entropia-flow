@@ -16,10 +16,10 @@ const mustache = {
 Prism.languages.insertBefore('css', 'selector', { mustache });
 Prism.languages.insertBefore('markup', 'tag', { mustache });
 
-const CodeEditor = (p: { language: 'html'|'css', readOnly: boolean, value: string, dispatchChange: (value: string) => any }) => {
+const CodeEditor = (p: { language: 'html'|'css'|'javascript', readOnly: boolean, value: string, dispatchChange: (value: string) => any }) => {
     const dispatch = useDispatch()
 
-    const prismLanguage = p.language === 'css' ? 'css' : 'markup';
+    const prismLanguage = p.language === 'css' ? 'css' : p.language === 'javascript' ? 'javascript' : 'markup';
     const highlightCode = (code: string) => code && Prism.highlight(code, Prism.languages[prismLanguage], prismLanguage)
 
     return (

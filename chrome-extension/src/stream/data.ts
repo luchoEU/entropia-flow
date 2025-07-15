@@ -3,6 +3,7 @@ interface StreamBaseLayout {
     author: string,
     lastModified: number,
     backgroundType: number // BackgroundType
+    formulaJavaScript?: string
     htmlTemplate?: string
     cssTemplate?: string
 }

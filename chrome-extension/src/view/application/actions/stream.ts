@@ -12,6 +12,8 @@ const SET_STREAM_ADVANCED = "[stream] set advanced"
 const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
 const SET_STREAM_TEMPORAL_VARIABLES = "[stream] set temporal variables"
+const SET_STREAM_FORMULA_JAVASCRIPT = "[stream] set formula javascript"
+const SET_STREAM_FORMULA_SHOW_LAYOUT_ID = "[stream] set formula show layout id"
 const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
 const SET_STREAM_CSS_TEMPLATE = "[stream] set css template"
 const SET_STREAM_DATA = "[stream] set data"
@@ -44,9 +46,9 @@ const setStreamAdvanced = (advanced: boolean) => ({
     payload: { advanced }
 })
 
-const _getUnique = (used: string[], base: string, noNumberName: string = undefined): string => {
+const _getUnique = (used: string[], base: string, noNumberName?: string): string => {
     let n = 1;
-    let name = noNumberName;
+    let name = noNumberName ?? '';
     while (!name || used.includes(name)) {
         name = `${base}${n++}`;
     }
@@ -87,6 +89,16 @@ const setStreamData = (data: StreamRenderData) => ({
 const setStreamStared = (layoutId: string) => (stared: boolean) => ({
     type: SET_STREAM_STARED,
     payload: { layoutId, stared }
+})
+
+const setStreamFormulaJavaScript = (layoutId: string) => (code: string) => ({
+    type: SET_STREAM_FORMULA_JAVASCRIPT,
+    payload: { layoutId, code }
+})
+
+const setStreamFormulaShowLayoutId = (layoutId: string) => ({
+    type: SET_STREAM_FORMULA_SHOW_LAYOUT_ID,
+    payload: { layoutId }
 })
 
 const setStreamHtmlTemplate = (layoutId: string) => (template: string) => ({
@@ -189,6 +201,8 @@ export {
     SET_STREAM_BACKGROUND_SELECTED,
     SET_STREAM_VARIABLES,
     SET_STREAM_TEMPORAL_VARIABLES,
+    SET_STREAM_FORMULA_JAVASCRIPT,
+    SET_STREAM_FORMULA_SHOW_LAYOUT_ID,
     SET_STREAM_HTML_TEMPLATE,
     SET_STREAM_CSS_TEMPLATE,
     SET_STREAM_DATA,
@@ -211,6 +225,8 @@ export {
     setStreamBackgroundSelected,
     setStreamVariables,
     setStreamTemporalVariables,
+    setStreamFormulaJavaScript,
+    setStreamFormulaShowLayoutId,
     setStreamHtmlTemplate,
     setStreamCssTemplate,
     setStreamData,

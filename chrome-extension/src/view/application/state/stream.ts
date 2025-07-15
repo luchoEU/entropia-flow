@@ -24,6 +24,9 @@ interface StreamState {
     in: StreamStateIn
     variables: Record<string, StreamStateVariable[]> // source => variables
     temporalVariables: Record<string, StreamTemporalVariable[]> // source => variables
+    ui: {
+        formulaShowLayoutId?: string
+    }
     out: StreamStateOut
 }
 

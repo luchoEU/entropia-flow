@@ -72,7 +72,7 @@ function filterUsedVariables(variables: StreamUserVariable[], usedVariables: Set
 }
 
 function computeFormulas(obj: StreamRenderObject, temporalVariables?: Record<string, TemporalValue>): StreamRenderObject {
-    return _computeFormulas(_parseFormulas(obj), obj, temporalVariables);
+    return _computeFormulas(_parseFormulas(obj), obj, temporalVariables ?? {});
 }
 
 export {
