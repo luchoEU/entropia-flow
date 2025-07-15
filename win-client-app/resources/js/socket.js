@@ -40,10 +40,13 @@ function connectWebSocket() {
 
         switch (message.type) {
             case "version":
-                sendToExtension("version", clientVersion); // reply with client version
+                sendMessage("version", clientVersion); // reply with client version
                 break;
             case "stream":
                 messageReceived?.(message.data);
+                break;
+            case "screens_response":
+                screensReceived?.(message.data);
                 break;
         }
     };
@@ -70,17 +73,18 @@ function connectWebSocket() {
 
 // A helper function to send data TO the extension
 // This is the "sender" part of the loop
-function sendToExtension(type, payload) {
+function sendMessage(type, payload, to = "chrome-extension") {
     if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
+        const message = {
             type: type,
-            from: clientId, // We are the sender
-            to: 'chrome-extension', // The ID of our target
+            from: clientId,
+            to: to,
             data: payload
-        }));
-        console.log('Sent message to extension:', payload);
+        };
+        ws.send(JSON.stringify(message));
+        console.log(`Sent '${type}' to '${to}':`, payload);
     } else {
-        console.error('Cannot send message, WebSocket is not open.');
+        console.error('WebSocket is not open.');
     }
 }
 
@@ -156,6 +160,7 @@ startRelayIfNotRunning().then(() => {
     connectWebSocket();
 
     setTimeout(() => {
-        sendToExtension("version", clientVersion); // this will request all data for layouts
+        sendMessage("version", clientVersion); // this will request all data for layouts
+        sendMessage("get_screens", null, "screens");
     }, 5000);    
 })

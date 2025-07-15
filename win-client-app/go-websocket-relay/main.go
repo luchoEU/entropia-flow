@@ -21,6 +21,7 @@ type RelayMessage struct {
 // Server holds the shared state, protected by a mutex for concurrent access.
 type Server struct {
 	clients map[string]*websocket.Conn
+	internalHandlers map[string]func(RelayMessage)
 	mutex   sync.Mutex
 }
 
@@ -28,7 +29,14 @@ type Server struct {
 func NewServer() *Server {
 	return &Server{
 		clients: make(map[string]*websocket.Conn),
+		internalHandlers: make(map[string]func(RelayMessage)),
 	}
+}
+
+var internalRegistrars = make(map[string]func(*Server))
+
+func registerInternal(name string, registrar func(*Server)) {
+    internalRegistrars[name] = registrar
 }
 
 // upgrader is used to upgrade an HTTP connection to a WebSocket connection.
@@ -107,7 +115,12 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 					log.Printf("Failed to send to '%s': %v", msg.To, err)
 				}
 			} else {
-				log.Printf("Recipient '%s' not found.", msg.To)
+				// Check if it's an internal handler
+				if handler, ok := s.internalHandlers[msg.To]; ok {
+					go handler(msg) // handle in goroutine
+				} else {
+					log.Printf("Recipient '%s' not found.", msg.To)
+				}
 			}
 		}
 	}
@@ -125,6 +138,11 @@ func main() {
 
 	log.Println("Starting Go WebSocket Relay Server...")
 	server := NewServer()
+
+	for name, fn := range internalRegistrars {
+		log.Printf("Registering internal node: %s", name)
+		fn(server)
+	}
 
 	// All requests to "/" will be handled by our WebSocket handler.
 	http.HandleFunc("/", server.handleWebSocket)
