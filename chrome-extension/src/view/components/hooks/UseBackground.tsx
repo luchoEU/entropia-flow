@@ -7,7 +7,7 @@ const defaultDeps: DependencyList = []; // use a constant so it is always the sa
 const useBackground = (
     type: BackgroundType,
     containerId: string,
-    root: ShadowRoot | Document = document,
+    root: ShadowRoot | Document | null = document,
     size: StreamRenderSize | undefined,
     deps: DependencyList = defaultDeps
 ) => {

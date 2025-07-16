@@ -55,7 +55,7 @@ async function loadBackground(type: BackgroundType, container: HTMLElement, oldC
     }
 
     const id = container.id;
-    let i = instances[id];
+    let i: IBackground | undefined = instances[id];
     if (i && i.type == type && !i.ready) {
         return; // loading
     }
@@ -80,8 +80,10 @@ async function loadBackground(type: BackgroundType, container: HTMLElement, oldC
     // Add a loading state to the UI so the user knows something is happening
     container.classList.add('background-loading');
     
-    const { dark, extra } = getBackgroundSpec(type);
-    container.style.color = dark ? 'white' : 'black';
+    const spec = getBackgroundSpec(type);
+    if (spec) {
+        container.style.color = spec.dark ? 'white' : 'black';
+    }
 
     if (oldContainer) {
         if (i && i.container == oldContainer) {
@@ -106,7 +108,7 @@ async function loadBackground(type: BackgroundType, container: HTMLElement, oldC
         const BackgroundClass = backgroundModule.default;
         
         // 4. Create the new instance
-        const newBackground: IBackground = new BackgroundClass(container, extra);
+        const newBackground: IBackground = new BackgroundClass(container, spec?.extra);
         newBackground.type = type;
         instances[id] = newBackground;
         
@@ -123,7 +125,7 @@ async function loadBackground(type: BackgroundType, container: HTMLElement, oldC
     }
 }
 
-const backgroundList = (settings: SettingsState): BackgroundSpec[] => [
+const backgroundList = (settings?: SettingsState): BackgroundSpec[] => [
     {
         type: BackgroundType.Light,
         title: 'Light',

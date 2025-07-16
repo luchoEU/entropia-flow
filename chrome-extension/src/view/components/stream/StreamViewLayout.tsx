@@ -39,9 +39,9 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         };
 
         const clickableElements = shadowRootRef.current?.shadowRoot?.querySelectorAll('[data-click]');
-        clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
+        clickableElements?.forEach((el: Element) => (el as HTMLElement).addEventListener('click', handleClick));
         return () => {
-            clickableElements?.forEach((el: HTMLElement) => el.removeEventListener('click', handleClick));
+            clickableElements?.forEach((el: Element) => (el as HTMLElement).removeEventListener('click', handleClick));
         };
     }, [shadowReady, id, layoutId, single, scale]);
 
