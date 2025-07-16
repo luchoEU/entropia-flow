@@ -22,26 +22,26 @@ const _getSortRow = (selector: string, columns: string[], columnHeaderAfterName?
             title: sortSecuence?.[0].ascending ? 'Sorted Ascending' : 'Sorted Descending',
             visible: sortSecuence?.[0].column === i
         },
-        columnHeaderAfterName?.[i]
+        columnHeaderAfterName?.[i] ?? ''
     ]
 }))
 
 const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
 
-const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[], getItemRow: (item: TItem, index: number) => RowValue[]): TableWidths => {
+const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[], data: any, getItemRow: (item: TItem, index: number, data: any) => RowValue[]): TableWidths => {
     const getSubColumnsWidth = (d: RowValue[], imgWidth: number): number[][] =>
         d.map(c => getRowValueWidth(c, imgWidth));
     
-    const addPadding = (padding: number, d: number[][]): number[][] =>
+    const addPadding = (padding: number, d: number[][] | undefined): number[][] | undefined =>
         d?.map((w, i) => i < d.length - 1 ? w.map(v => v + padding) : w)
 
     const itemsSubColumnsWidth = addPadding(COLUMN_PADDING, items.reduce((acc, item, index) => {
-        const cw = getSubColumnsWidth(getItemRow(item, index), IMG_WIDTH)
+        const cw = getSubColumnsWidth(getItemRow(item, index, data), IMG_WIDTH)
         return acc ? acc.map((w, i) => {
             const maxLength = Math.max(w.length, cw[i].length)
             return Array.from({ length: maxLength }, (_, j) => Math.max(w[j] ?? 0, cw[i][j] ?? 0))
         }) : cw
-    }, undefined as number[][]))
+    }, undefined as number[][] | undefined))
 
     const sortSubColumnsWidth = getSubColumnsWidth(sortRow, IMG_SORT_WIDTH)
 
@@ -50,7 +50,7 @@ const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[]
         sortSubColumnsWidth.map(w => _sum(w))
     
     return {
-        itemsSubColumns: itemsSubColumnsWidth,
+        itemsSubColumns: itemsSubColumnsWidth ?? [],
         sortSubColumns: sortSubColumnsWidth,
         columns: columnsWidth
     }
@@ -66,10 +66,11 @@ interface TableParameters<TItem> {
     itemCount: number,
     width: TableWidths,
     sortRow: RowValue[],
-    getItemRow: (item: TItem, index?: number) => RowValue[],
-    getRowClass: (item: TItem, index?: number) => string | undefined,
+    getItemRow: (item: TItem, index: number, data: any) => RowValue[],
+    getRowClass?: (item: TItem, index: number, data: any) => string | undefined,
     itemSelector: (index: number) => (state: any) => TItem,
     itemHeight?: number,
+    data: any,
     rowValueRender: RowValueRender
 }
 
@@ -116,22 +117,23 @@ const _ItemRowRender = (p: {
 </>
 
 const _ItemRow = <T extends any>(
-    { index, style, getRow, getRowClass, itemSelector, columns, height, rowValueRender } : {
+    { index, style, getRow, getRowClass, itemSelector, columns, height, data,rowValueRender } : {
     index: number;
     style: React.CSSProperties;
-    getRow: (item: T, index?: number) => RowValue[];
-    getRowClass: (item: T, index?: number) => string | undefined;
+    getRow: (item: T, index: number, data: any) => RowValue[];
+    getRowClass?: (item: T, index: number, data: any) => string | undefined;
     itemSelector: (index: number) => (state: any) => T;
     columns: ColumnWidthData[];
     height: number;
+    data: any,
     rowValueRender: RowValueRender;
 }) => {
     const item: T = useSelector(itemSelector(index));
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
-    const row = getRow(item, index);
+    const row = getRow(item, index, data);
     let className = 'item-row' + ('dispatch' in row ? ' pointer' : '');
-    const rowClass = getRowClass?.(item, index);
+    const rowClass = getRowClass?.(item, index, data);
     if (rowClass) className += ` ${rowClass}`
 
     return (
@@ -169,6 +171,7 @@ const _SortableFixedSizeTable = <TItem extends any>(p: {
                 itemSelector={d.itemSelector}
                 columns={getColumnsWidthData(stableItemsSubColumnsWidth)}
                 height={itemHeight}
+                data={d.data}
                 rowValueRender={d.rowValueRender}
             />, [stableItemsSubColumnsWidth]);
 
@@ -204,13 +207,14 @@ const SortableTabularFixedTable = <TItem extends any>({ selector, rowValueRender
     const { columns, columnHeaderAfterName, getRow: getItemRow, getRowClass } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const table: TableParameters<TItem> = {
-        width: _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, getItemRow),
+        width: _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, s.data, getItemRow),
         itemCount: s.items.show.length,
         sortRow,
         getItemRow,
         getRowClass,
         itemSelector: getTabularDataItem(selector),
         itemHeight,
+        data: s.data,
         rowValueRender: rowValueRender ?? BaseRowValueRender
     }
 
@@ -228,7 +232,7 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
     const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
-    const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, getItemRow)
+    const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, s.data, getItemRow)
 
     return <div style={{ maxHeight: LIST_TOTAL_HEIGHT, overflowX: 'hidden', overflowY: 'auto' }}>
         <table className='sort-table' style={{ font: FONT }}>
@@ -243,7 +247,7 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
             <tbody>
                 {s.items.show.map((r, i) =>
                     <tr key={i} className='item-row'>
-                        {getItemRow(r, i).map((v, j) =>
+                        {getItemRow(r, i, s.data).map((v, j) =>
                             <td key={j}>
                                 <div><RowValueRenderComponent v={v} /></div>
                             </td>)}
@@ -264,9 +268,9 @@ const SortableTabularSearch = ({
     rowValueRender?: RowValueRender
 }) => {
     const s: TabularStateData = useSelector(getTabularData(selector))
-    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined, undefined)
+    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined!, undefined)
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
-    const stats = s.items.stats
+    const stats = s.items?.stats ?? { count: 0 }
 
     return <div className='search-container'>
         <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
@@ -302,7 +306,7 @@ const SortableTabularSection = ({
     children?: any
 }) => {
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
-    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined, undefined)
+    const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined!, undefined)
     const s: TabularStateData = useSelector(getTabularData(selector))
 
     if (!definition) return <p>{selector} is not defined</p>

@@ -2,7 +2,7 @@ import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamExportLayout, StreamRenderLayoutSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
-import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream"
+import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
 import { navigateTo, streamEditorUrl, streamTrashUrl } from './navigation'
 
@@ -13,7 +13,7 @@ const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
 const SET_STREAM_TEMPORAL_VARIABLES = "[stream] set temporal variables"
 const SET_STREAM_FORMULA_JAVASCRIPT = "[stream] set formula javascript"
-const SET_STREAM_FORMULA_SHOW_LAYOUT_ID = "[stream] set formula show layout id"
+const SET_STREAM_SHOWING_LAYOUT_ID = "[stream] set showing layout id"
 const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
 const SET_STREAM_CSS_TEMPLATE = "[stream] set css template"
 const SET_STREAM_DATA = "[stream] set data"
@@ -21,12 +21,12 @@ const SET_STREAM_STARED = "[stream] set stared"
 const SET_STREAM_NAME = "[stream] set name"
 const SET_STREAM_AUTHOR = "[stream] set author"
 const ADD_STREAM_LAYOUT = "[stream] add layout"
-const ADD_STREAM_USER_VARIABLE = "[stream] add user variable"
+const ADD_STREAM_USER_IMAGE = "[stream] add user image"
 const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
 const RESTORE_STREAM_LAYOUT = "[stream] restore layout"
-const REMOVE_STREAM_USER_VARIABLE = "[stream] remove user variable"
+const REMOVE_STREAM_USER_IMAGE = "[stream] remove user image"
 const EMPTY_TRASH_LAYOUTS = "[stream] empty trash layouts"
-const SET_STREAM_USER_VARIABLE_PARTIAL = "[stream] set user variable partial"
+const SET_STREAM_USER_IMAGE_PARTIAL = "[stream] set user image partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
 const CLEAR_STREAM_LAYOUT_ALIAS = "[stream] clear layout alias"
@@ -96,8 +96,8 @@ const setStreamFormulaJavaScript = (layoutId: string) => (code: string) => ({
     payload: { layoutId, code }
 })
 
-const setStreamFormulaShowLayoutId = (layoutId: string) => ({
-    type: SET_STREAM_FORMULA_SHOW_LAYOUT_ID,
+const setStreamShowingLayoutId = (layoutId: string) => ({
+    type: SET_STREAM_SHOWING_LAYOUT_ID,
     payload: { layoutId }
 })
 
@@ -170,24 +170,23 @@ const restoreStreamLayout = (layoutId: string) => ({
     payload: { layoutId }
 })
 
-const addStreamUserVariable = (isImage: boolean) => ({
-    type: ADD_STREAM_USER_VARIABLE,
-    payload: { isImage }
+const addStreamUserImage = (layoutId: string) => ({
+    type: ADD_STREAM_USER_IMAGE,
+    payload: { layoutId }
 })
 
-
-const removeStreamUserVariable = (id: number) => ({
-    type: REMOVE_STREAM_USER_VARIABLE,
-    payload: { id }
+const removeStreamUserImage = (layoutId: string, id: number) => ({
+    type: REMOVE_STREAM_USER_IMAGE,
+    payload: { layoutId, id }
 })
 
 const emptyTrashLayouts = {
     type: EMPTY_TRASH_LAYOUTS
 }
 
-const setStreamUserVariablePartial = (id: number, partial: Partial<StreamUserVariable>) => ({
-    type: SET_STREAM_USER_VARIABLE_PARTIAL,
-    payload: { id, partial }
+const setStreamUserImagePartial = (layoutId: string, id: number, partial: Partial<StreamUserImageVariable>) => ({
+    type: SET_STREAM_USER_IMAGE_PARTIAL,
+    payload: { layoutId, id, partial }
 })
 
 const clearStreamLayoutAlias = {
@@ -202,7 +201,7 @@ export {
     SET_STREAM_VARIABLES,
     SET_STREAM_TEMPORAL_VARIABLES,
     SET_STREAM_FORMULA_JAVASCRIPT,
-    SET_STREAM_FORMULA_SHOW_LAYOUT_ID,
+    SET_STREAM_SHOWING_LAYOUT_ID,
     SET_STREAM_HTML_TEMPLATE,
     SET_STREAM_CSS_TEMPLATE,
     SET_STREAM_DATA,
@@ -210,12 +209,12 @@ export {
     SET_STREAM_NAME,
     SET_STREAM_AUTHOR,
     ADD_STREAM_LAYOUT,
-    ADD_STREAM_USER_VARIABLE,
+    ADD_STREAM_USER_IMAGE,
     REMOVE_STREAM_LAYOUT,
     RESTORE_STREAM_LAYOUT,
-    REMOVE_STREAM_USER_VARIABLE,
+    REMOVE_STREAM_USER_IMAGE,
     EMPTY_TRASH_LAYOUTS,
-    SET_STREAM_USER_VARIABLE_PARTIAL,
+    SET_STREAM_USER_IMAGE_PARTIAL,
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
     CLEAR_STREAM_LAYOUT_ALIAS,
@@ -226,7 +225,7 @@ export {
     setStreamVariables,
     setStreamTemporalVariables,
     setStreamFormulaJavaScript,
-    setStreamFormulaShowLayoutId,
+    setStreamShowingLayoutId,
     setStreamHtmlTemplate,
     setStreamCssTemplate,
     setStreamData,
@@ -234,12 +233,12 @@ export {
     setStreamName,
     setStreamAuthor,
     addStreamLayout,
-    addStreamUserVariable,
+    addStreamUserImage,
     removeStreamLayout,
     restoreStreamLayout,
-    removeStreamUserVariable,
+    removeStreamUserImage,
     emptyTrashLayouts,
-    setStreamUserVariablePartial,
+    setStreamUserImagePartial,
     cloneStreamLayout,
     importStreamLayoutFromFile,
     goToTrash,

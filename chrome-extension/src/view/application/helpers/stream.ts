@@ -1,13 +1,10 @@
-import { TemporalValue } from '../../../common/state';
 import { ADD_CLIENT_INITIAL_LAYOUTS } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamBaseLayout, StreamExportLayout, StreamRenderLayout, StreamRenderValue } from '../../../stream/data';
-import { filterUsedVariables } from '../../../stream/formulaCompute';
-import { getUsedVariablesInTemplate } from '../../../stream/template';
+import StreamRenderData, { StreamCommonLayout, StreamExportLayout, StreamRenderLayout, StreamSavedLayout } from '../../../stream/data';
 import { LUCHO } from '../../components/about/AboutPage';
-import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserVariable } from "../state/stream";
+import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream";
 
-const _defaultLayout: StreamRenderLayout = {
+const _defaultLayout: StreamSavedLayout = {
     name: 'Entropia Flow Default',
     author: LUCHO,
     lastModified: new Date('Sat Jan 18 10:27:20 2025 +0100').getTime(),
@@ -53,7 +50,7 @@ const _defaultLayout: StreamRenderLayout = {
 }`.trimStart(),
 }
 
-const _teamLootLayout: StreamRenderLayout = {
+const _teamLootLayout: StreamSavedLayout = {
     name: 'Entropia Flow Team',
     author: LUCHO,
     lastModified: new Date('Mon Jan 6 19:04:52 2025 +0100').getTime(),
@@ -97,7 +94,6 @@ const initialStateIn: StreamStateIn = {
             [TEAM_LAYOUT_ID]: _teamLootLayout,
         } : {}
     },
-    userVariables: [],
     trashLayouts: {},
 }
 
@@ -139,7 +135,7 @@ const reduceSetStreamAdvanced = (state: StreamState, advanced: boolean) => ({
     }
 })
 
-const _changeStreamLayout = (state: StreamState, layoutId: string, partial: Partial<StreamRenderLayout>): StreamState => ({
+const _changeStreamLayout = (state: StreamState, layoutId: string, partial: Partial<StreamSavedLayout>): StreamState => ({
     ...state,
     in: {
         ...state.in,
@@ -194,11 +190,11 @@ const reduceSetStreamTemporalVariables = (state: StreamState, source: string, va
 
 const reduceSetStreamFormulaJavaScript = (state: StreamState, layoutId: string, formulaJavaScript: string): StreamState => _changeStreamLayout(state, layoutId, { formulaJavaScript })
 
-const reduceSetStreamFormulaShowLayoutId = (state: StreamState, layoutId: string): StreamState => ({
+const reduceSetStreamShowingLayoutId = (state: StreamState, layoutId: string): StreamState => ({
     ...state,
     ui: {
         ...state.ui,
-        formulaShowLayoutId: layoutId
+        showingLayoutId: layoutId
     }
 })
 
@@ -273,9 +269,8 @@ const reduceImportStreamLayoutFromFile = (state: StreamState, layoutId: string, 
             ...state.in,
             layouts: {
                 ...state.in.layouts,
-                [layoutId]: exportToRenderLayout(layout)
-            },
-            userVariables: state.in.userVariables
+                [layoutId]: exportToSavedLayout(layout)
+            }
         }
     }
 }
@@ -346,56 +341,55 @@ const reduceEmptyTrashLayouts = (state: StreamState): StreamState => ({
     }
 })
 
-const _nextUserVariableId = (state: StreamState): number => state.in.userVariables?.length ? Math.max(...state.in.userVariables.map(v => v.id)) + 1 : 1
-
-const reduceAddStreamUserVariable = (state: StreamState, isImage: boolean): StreamState => ({
-    ...state,
-    in: {
-        ...state.in,
-        userVariables: [ ...state.in.userVariables, {
-            id: _nextUserVariableId(state),
+const reduceAddStreamUserImage = (state: StreamState, layoutId: string): StreamState => {
+    const vars = state.in.layouts[layoutId].images ?? []
+    const nextId = vars?.length ? Math.max(...vars.map(v => v.id)) + 1 : 1
+    return _changeStreamLayout(state, layoutId, {
+        images: [ ...vars, {
+            id: nextId,
             name: '',
             value: '',
-            description: '',
-            isImage
+            description: ''
         } ]
-    }
-})
-
-const reduceRemoveStreamUserVariable = (state: StreamState, id: number): StreamState => ({
-    ...state,
-    in: {
-        ...state.in,
-        userVariables: state.in.userVariables.filter(v => v.id !== id)
-    }
-})
-
-const reduceSetStreamUserVariablePartial = (state: StreamState, id: number, partial: Partial<StreamUserVariable>): StreamState => ({
-    ...state,
-    in: {
-        ...state.in,
-        userVariables: state.in.userVariables.map(v => v.id === id ? { ...v, ...partial } : v)
-    }
-})
-
-function renderToExportLayout(layout: StreamRenderLayout, variables: StreamUserVariable[]): StreamExportLayout {
-    const usedVariablesHtml = getUsedVariablesInTemplate(layout.htmlTemplate ?? '')
-    const usedVariablesCss = getUsedVariablesInTemplate(layout.cssTemplate ?? '')
-    const usedVariables = new Set([...usedVariablesHtml, ...usedVariablesCss])
-    const exportableData: StreamExportLayout = {
-        schema: 1,
-        ...copyBaseLayout(layout),
-        variables: filterUsedVariables(variables, usedVariables).map(v => ({
-            name: v.name,
-            value: v.value,
-            description: v.description ?? '',
-            isImage: v.isImage ?? false
-        }))
-    }
-    return exportableData
+    })
 }
 
-const copyBaseLayout = (layout: StreamBaseLayout): StreamBaseLayout => ({
+const reduceRemoveStreamUserImage = (state: StreamState, layoutId: string, id: number): StreamState => _changeStreamLayout(state, layoutId, {
+    images: state.in.layouts[layoutId].images?.filter(v => v.id !== id)
+})
+
+const reduceSetStreamUserImagePartial = (state: StreamState, layoutId: string, id: number, partial: Partial<StreamUserImageVariable>): StreamState => _changeStreamLayout(state, layoutId, {
+    images: state.in.layouts[layoutId].images?.map(v => v.id === id ? { ...v, ...partial } : v)
+})
+
+const savedToExportLayout = (layout: StreamSavedLayout): StreamExportLayout => ({
+    schema: 1,
+    ...copyCommonLayout(layout),
+    images: layout.images?.map(v => ({
+        name: v.name,
+        value: v.value,
+        description: v.description?.length ? v.description : undefined
+    }))
+})
+
+const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => ({
+    ...copyCommonLayout(layout),
+    images: layout.images?.map((v, i) => ({
+        id: i,
+        name: v.name,
+        value: v.value,
+        description: v.description
+    }))
+})
+
+const savedToRenderLayout = (layout: StreamSavedLayout): StreamRenderLayout => ({
+    name: layout.name,
+    backgroundType: layout.backgroundType,
+    htmlTemplate: layout.htmlTemplate,
+    cssTemplate: layout.cssTemplate,
+})
+
+const copyCommonLayout = (layout: StreamCommonLayout): StreamCommonLayout => ({
     name: layout.name,
     author: layout.author,
     lastModified: layout.lastModified,
@@ -404,17 +398,6 @@ const copyBaseLayout = (layout: StreamBaseLayout): StreamBaseLayout => ({
     htmlTemplate: layout.htmlTemplate,
     cssTemplate: layout.cssTemplate,
 })
-
-const exportToRenderLayout = copyBaseLayout
-
-const exportToUserVariables = (layout: StreamExportLayout, id: number): StreamUserVariable[] => {
-    const variables: StreamUserVariable[] = []
-    for (const v of layout.variables) {
-        variables.push({ ...v, id })
-        id++
-    }
-    return variables
-}
 
 export {
     initialState,
@@ -427,7 +410,7 @@ export {
     reduceSetStreamVariables,
     reduceSetStreamTemporalVariables,
     reduceSetStreamFormulaJavaScript,
-    reduceSetStreamFormulaShowLayoutId,
+    reduceSetStreamShowingLayoutId,
     reduceSetStreamHtmlTemplate,
     reduceSetStreamCssTemplate,
     reduceSetStreamStared,
@@ -436,13 +419,14 @@ export {
     reduceSetStreamAuthor,
     reduceAddStreamLayout,
     reduceImportStreamLayoutFromFile,
-    reduceAddStreamUserVariable,
+    reduceAddStreamUserImage,
     reduceRemoveStreamLayout,
+    reduceSetStreamUserImagePartial,
     reduceRestoreStreamLayout,
     reduceEmptyTrashLayouts,
-    reduceRemoveStreamUserVariable,
-    reduceSetStreamUserVariablePartial,
+    reduceRemoveStreamUserImage,
     reduceCloneStreamLayout,
     reduceClearStreamLayoutAlias,
-    renderToExportLayout,
+    savedToRenderLayout,
+    savedToExportLayout,
 }

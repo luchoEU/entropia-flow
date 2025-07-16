@@ -2,11 +2,10 @@ import React, { JSX } from "react";
 import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background";
 import ExpandableSection from "../common/ExpandableSection2";
 import { useDispatch, useSelector } from "react-redux";
-import { getStreamLayout, getStreamLayouts } from "../../application/selectors/stream";
+import { getStreamLayout } from "../../application/selectors/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
-import { LUCHO } from "../about/AboutPage";
 import { getSettings } from "../../application/selectors/settings";
 
 const StreamBackground = ({ background, layoutId, isSelected }: {
@@ -23,8 +22,6 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
         },
         layout: {
             name: 'Entropia Flow Background',
-            author: LUCHO,
-            lastModified: new Date('Tue Apr 15 10:25:50 2025 +0200').getTime(),
             backgroundType: background.type,
             htmlTemplate: `
 <div style='display: flex; align-items: start; font-size: 14px; margin: 20px;'>

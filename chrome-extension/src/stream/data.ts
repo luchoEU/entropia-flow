@@ -1,29 +1,31 @@
-interface StreamBaseLayout {
+import { StreamUserImageVariable } from "../view/application/state/stream"
+
+interface StreamRenderLayout {
     name: string,
-    author: string,
-    lastModified: number,
     backgroundType: number // BackgroundType
-    formulaJavaScript?: string
     htmlTemplate?: string
     cssTemplate?: string
 }
 
-interface StreamRenderLayout extends StreamBaseLayout {
+interface StreamCommonLayout extends StreamRenderLayout {
+    author: string,
+    lastModified: number,
+    formulaJavaScript?: string
+}
+
+interface StreamSavedLayout extends StreamCommonLayout {
+    images?: StreamUserImageVariable[]
     readonly?: boolean
     stared?: boolean
 }
 
-export interface StreamExportLayout extends StreamBaseLayout {
-    schema: number,
-    variables: {
-        name: string,
-        value: string,
-        description: string,
-        isImage: boolean
-    }[]
+interface StreamExportLayout extends StreamCommonLayout {
+    images?: Omit<StreamUserImageVariable, 'id'>[]
+    schema: number
 }
 
 type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
+type StreamSavedLayoutSet = Record<string, StreamSavedLayout> // id => layout
 
 interface StreamRenderData {
     data: StreamRenderObject
@@ -45,11 +47,14 @@ type StreamRenderValue = string | number | boolean | StreamRenderObject | Stream
 
 export default StreamRenderData
 export {
-    StreamBaseLayout,
+    StreamRenderLayout,
+    StreamCommonLayout,
+    StreamSavedLayout,
+    StreamExportLayout,
     StreamRenderValue,
     StreamRenderObject,
     StreamRenderSingle,
     StreamRenderSize,
-    StreamRenderLayout,
-    StreamRenderLayoutSet
+    StreamRenderLayoutSet,
+    StreamSavedLayoutSet
 }

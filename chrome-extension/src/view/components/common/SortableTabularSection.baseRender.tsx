@@ -2,8 +2,8 @@ import React, { JSX, useRef, useState } from 'react'
 import { FONT, FONT_BOLD, IMG_WIDTH, INPUT_PADDING, INPUT_WIDTH, ITEM_TEXT_PADDING, RowValue, RowValueRender } from './SortableTabularSection.data'
 import { useDispatch } from 'react-redux'
 import ItemText from './ItemText'
-import { useNavigate } from 'react-router-dom';
-import { multiDispatch } from './ImgButton';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
+import ImgButton, { multiDispatch } from './ImgButton';
 
 const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] => {
     const padding: number =
@@ -15,9 +15,9 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
 
     let valueWidth: number[]
     if (typeof v === 'object' && 'width' in v) {
-        valueWidth = [v.width]
+        valueWidth = [v.width!]
     } else if (typeof v === 'object' && 'maxWidth' in v) {
-        valueWidth = [v.maxWidth]
+        valueWidth = [v.maxWidth!]
     } else {
         valueWidth = v === undefined ? [] :
             (typeof v === 'string' ? [_getTextWidth(v, FONT_BOLD)] :
@@ -34,7 +34,7 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
             []
         )))))))))));
         if (typeof v === 'object' && 'maxWidth' in v) {
-            valueWidth = valueWidth.map(w => Math.min(w, v.maxWidth))
+            valueWidth = valueWidth.map(w => Math.min(w, v.maxWidth!))
         }
     }
     return [ ...valueWidth, padding ]
@@ -59,7 +59,7 @@ const BaseRowValueRender: RowValueRender = (p) => {
         ...className && { className },
         ...style && { style },
         ...'dispatch' in v && {
-            onClick: (e: React.MouseEvent) => { e.stopPropagation(); multiDispatch(dispatch, navigate, v.dispatch) },
+            onClick: (e: React.MouseEvent) => { e.stopPropagation(); multiDispatch(dispatch, navigate, v.dispatch!) },
             className: className ? className + ' pointer' : 'pointer'
         },
     }
@@ -69,7 +69,9 @@ const BaseRowValueRender: RowValueRender = (p) => {
         (Array.isArray(v) ? <>{ v.map((w, i) => <BaseRowValueRender key={i} v={w} />) }</> :
         typeof v === 'object' ? (
             ('flex' in v ? <div style={{ flex: v.flex }} /> :
-            ('img' in v ? <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
+            ('img' in v ? 'clickPopup' in v ?
+                <ImgButton src={v.img} clickPopup={v.clickPopup} dispatch={(n: NavigateFunction) => v.dispatch!(n, dispatch)} {...v.show && { 'data-show': true }} {...extra} /> :
+                <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
             ('button' in v ? <button {...extra}>{v.button}</button> :
             ('text' in v ? <ItemText text={v.text} extra={extra} /> :
             ('strong' in v ? <strong {...extra}>{v.strong}</strong> :
@@ -116,8 +118,8 @@ const _File = (p: { value: string, dispatchChange: (value: string) => any }): JS
         };
   
         reader.onerror = (err) => {
-          console.error("Error reading file:", err);
-          dispatch(p.dispatchChange(null));
+            console.error("Error reading file:", err);
+            dispatch(p.dispatchChange(''));
         };
   
         reader.readAsDataURL(file);

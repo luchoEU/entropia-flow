@@ -20,13 +20,13 @@ interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = 
     subtitle: string,
     itemTypeName?: string,
     columns: string[],
-    getRow: (item: TItem, rowIndex: number) => RowValue[],
-    getRowClass?: (item: TItem, rowIndex: number) => string | undefined,
-    getRowForSort?: (item: TItem, rowIndex: number) => TValueForSort[], // if not defined it uses getRow
-    getRowForFilter?: (item: TItem, rowIndex: number) => TValueForFilter[], // if not defined it uses getRowForSort
+    getRow: (item: TItem, rowIndex: number, data: TData) => RowValue[],
+    getRowClass?: (item: TItem, rowIndex: number, data: TData) => string | undefined,
+    getRowForSort?: (item: TItem, rowIndex: number, data: TData) => TValueForSort[], // if not defined it uses getRow
+    getRowForFilter?: (item: TItem, rowIndex: number, data: TData) => TValueForFilter[], // if not defined it uses getRowForSort
     columnComparer?: ((a: TValueForSort, b: TValueForSort) => number)[], // if not defined it uses byTypeComparer
-    columnVisible?: (items?: TItem[], data?: TData) => boolean[], // if not defined all are visible
-    columnHeaderAfterName?: (data?: TData) => RowValue[],
+    columnVisible?: (items: TItem[], data: TData) => boolean[], // if not defined all are visible
+    columnHeaderAfterName?: (data: TData) => RowValue[],
     justifiyContent?: ('start' | 'end' | 'center')[], // if not defined it uses right for numbers and left for others
     getPedValue?: (item: TItem) => number, // to calculate the ped total
 }

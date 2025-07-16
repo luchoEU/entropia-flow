@@ -1,5 +1,5 @@
 import { TemporalValue } from '../../../common/state'
-import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue } from '../../../stream/data'
+import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue, StreamSavedLayoutSet } from '../../../stream/data'
 
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
@@ -10,10 +10,9 @@ interface StreamStateIn {
     advanced: boolean // show advanced editor
     defaultAuthor: string
     view: string[]
-    layouts: StreamRenderLayoutSet
-    userVariables: StreamUserVariable[]
+    layouts: StreamSavedLayoutSet
     layoutAlias?: { urlLayoutId: string, realLayoutId: string } // so the layout can change Id without changing the url while editing it
-    trashLayouts: StreamRenderLayoutSet
+    trashLayouts: StreamSavedLayoutSet
 }
 
 interface StreamStateOut {
@@ -25,7 +24,7 @@ interface StreamState {
     variables: Record<string, StreamStateVariable[]> // source => variables
     temporalVariables: Record<string, StreamTemporalVariable[]> // source => variables
     ui: {
-        formulaShowLayoutId?: string
+        showingLayoutId?: string
     }
     out: StreamStateOut
 }
@@ -36,9 +35,8 @@ interface StreamBaseVariable<T> {
     description?: string
 }
 
-interface StreamUserVariable extends StreamBaseVariable<string> {
-    id: number,
-    isImage?: boolean
+interface StreamUserImageVariable extends StreamBaseVariable<string> {
+    id: number
 }
 
 interface StreamStateVariable extends StreamBaseVariable<StreamRenderValue> {
@@ -49,10 +47,11 @@ interface StreamTemporalVariable extends StreamBaseVariable<TemporalValue> {
     decimals?: number
 }
 
-type StreamComputedVariable = (StreamUserVariable | StreamStateVariable) & {
+type StreamComputedVariable = (StreamUserImageVariable | StreamStateVariable) & {
     source: string
     id?: number
     computed?: StreamRenderValue
+    isImage?: boolean
 }
 
 export {
@@ -64,7 +63,7 @@ export {
     STREAM_TABULAR_IMAGES,
     STREAM_TABULAR_TRASH,
     StreamStateVariable,
-    StreamUserVariable,
+    StreamUserImageVariable,
     StreamComputedVariable,
     StreamTemporalVariable,
 }

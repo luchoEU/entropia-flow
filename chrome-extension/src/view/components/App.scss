@@ -585,6 +585,7 @@ h3:hover .hide {
 
 .popup-container {
     position: relative;
+    overflow: unset !important;
 }
 
 input:read-only, textarea:read-only {

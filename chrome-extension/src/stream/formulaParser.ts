@@ -243,8 +243,8 @@ const _errorFormula = (text: string): IFormula => ({
     evaluate: () => { throw new Error(text) }
 })
 
-const cycleErrorFormula = (variables: string[]) =>
-    _errorFormula(`ECYC: Cycle reference${variables.length !== 1 ? 's' : ''} ${variables.map(s => `'${s}'`).join(', ')}`)
+const cycleErrorFormula = (variables: string[]): Formula =>
+    new Formula(_errorFormula(`ECYC: Cycle reference${variables.length !== 1 ? 's' : ''} ${variables.map(s => `'${s}'`).join(', ')}`))
 
 // Helper for dependency tracking. This is a "good enough" heuristic for cycle detection.
 const JS_KEYWORDS = new Set(['break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof', 'new', 'null', 'return', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield', 'enum', 'implements', 'interface', 'let', 'package', 'private', 'protected', 'public', 'static', 'await', 'undefined', 'map', 'filter', 'reduce', 'forEach', 'find', 'some', 'every']);
@@ -566,7 +566,7 @@ class FormulaParser {
 
     private static _evaluateStack(stack: (Token | IFormula)[]): IFormula {
         if (stack.length === 0) {
-            return undefined;
+            return undefined!;
         }
 
         const pending = new FormulaParser.Pending();
@@ -579,7 +579,7 @@ class FormulaParser {
         let result: IFormula = this._evaluateToken(first);
         while (stack.length > 0) {
             const operator = stack.shift() as Token
-            const nextValue = stack.shift();
+            const nextValue = stack.shift()!;
             if (operator.text === '.') {
                 if ('function' in nextValue) {
                     result = (nextValue as IFunctionFormula).function(result);

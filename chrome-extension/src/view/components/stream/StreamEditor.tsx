@@ -1,10 +1,10 @@
 
 import React from "react"
 import { useSelector } from "react-redux"
-import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES, StreamUserVariable } from "../../application/state/stream"
+import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
-import { getStreamAdvancedEditor, getStreamData, getStreamFormulaShowLayoutId, getStreamLayout, getStreamUserVariables } from "../../application/selectors/stream"
-import { addStreamUserVariable, clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamFormulaShowLayoutId, setStreamFormulaJavaScript, setStreamHtmlTemplate, setStreamName } from "../../application/actions/stream"
+import { getStreamAdvancedEditor, getStreamData, getStreamLayout, getStreamShowingLayoutId } from "../../application/selectors/stream"
+import { clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamFormulaJavaScript, setStreamHtmlTemplate, setStreamName, addStreamUserImage, setStreamShowingLayoutId } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
@@ -14,8 +14,8 @@ import { useAppDispatch } from "../../application/store"
 import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
-import { StreamRenderLayout } from "../../../stream/data"
-import { renderToExportLayout } from "../../application/helpers/stream"
+import { StreamSavedLayout } from "../../../stream/data"
+import { savedToExportLayout } from "../../application/helpers/stream"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))
@@ -53,15 +53,14 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
     const { layout, id: layoutId, shouldClearAlias } = useSelector(getStreamLayout(parmlayoutId))
     const advanced = useSelector(getStreamAdvancedEditor)
     const data = useSelector(getStreamData) ?? {};
-    const userVariables = useSelector(getStreamUserVariables)
-    const formulaShowLayoutId = useSelector(getStreamFormulaShowLayoutId)
+    const showingLayoutId = useSelector(getStreamShowingLayoutId)
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     if (shouldClearAlias) dispatch(clearStreamLayoutAlias)
     if (!layout) return <></>
 
-    if (formulaShowLayoutId !== layoutId) {
-        dispatch(setStreamFormulaShowLayoutId(layoutId))
+    if (showingLayoutId !== layoutId) {
+        dispatch(setStreamShowingLayoutId(layoutId))
     }
     
     const InputCells = (label: string, value: string, setValueAction: (value: string) => any): React.ReactNode =>
@@ -101,7 +100,7 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                         >Clone</button>
                         <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title='Click here to export this layout to a file'
-                            onClick={() => downloadExport(layout, userVariables)}
+                            onClick={() => downloadExport(layout)}
                         >Export</button>
                     </td>
                 </tr>
@@ -117,12 +116,11 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
             { advanced && <>
                 <SortableTabularSection
                     selector={STREAM_TABULAR_VARIABLES}
-                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserVariable(false) } ]}
                 />
                 <SortableTabularSection
                     selector={STREAM_TABULAR_IMAGES}
                     itemHeight={50}
-                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserVariable(true) } ]}
+                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserImage(layoutId) } ]}
                 />
             </>}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
@@ -133,8 +131,8 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
     </section>
 }
 
-function downloadExport(layout: StreamRenderLayout, variables: StreamUserVariable[]) {
-    const exportableData = renderToExportLayout(layout, variables)
+function downloadExport(layout: StreamSavedLayout) {
+    const exportableData = savedToExportLayout(layout)
     const data = JSON.stringify(exportableData, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

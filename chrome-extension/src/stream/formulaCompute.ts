@@ -1,21 +1,21 @@
 import { TemporalValue } from "../common/state";
-import { StreamUserVariable } from "../view/application/state/stream";
+import { StreamUserImageVariable } from "../view/application/state/stream";
 import { StreamRenderObject } from "./data";
 import { cycleErrorFormula, Formula, parseFormula } from "./formulaParser";
 
 function _parseFormulas(obj: StreamRenderObject): [string, Formula][] {
-    let formulas = Object.entries(obj)
+    let formulas: [string, Formula][] = Object.entries(obj)
         .filter(([, value]) => typeof value === 'string' && value.startsWith('='))
-        .map(([key, value]: [string, string]): [string, Formula] => [key, parseFormula(value.slice(1))]);
+        .map(([key, value]: [string, any]): [string, Formula] => [key, parseFormula(value.slice(1))]);
 
-    const sortedFromulas = [];
+    const sortedFromulas: [string, Formula][] = [];
     while (formulas.length) {
         const usedVariables = formulas.reduce((s, [, formula]) => s.size === 0 ? formula.usedVariables : new Set([...s, ...formula.usedVariables]), new Set());
         const notUsedFormulas = formulas.filter(([key]) => !usedVariables.has(key));
         if (notUsedFormulas.length === 0) {
             // circular references
             const keys = new Set(formulas.map(([key,]) => key));
-            sortedFromulas.unshift(...formulas.map(([key, formula]) =>
+            sortedFromulas.unshift(...formulas.map(([key, formula]): [string, Formula] =>
                 [key, cycleErrorFormula(Array.from(formula.usedVariables).filter(s => keys.has(s)))]));
             break
         } else {
@@ -27,7 +27,7 @@ function _parseFormulas(obj: StreamRenderObject): [string, Formula][] {
 }
 
 function _computeFormulas(formulas: [string, Formula][], obj: StreamRenderObject, temporalData: Record<string, TemporalValue>): StreamRenderObject {
-    const formulaWithError = []
+    const formulaWithError: string[] = []
     return formulas.reduce((v, [key, formula]) => {
         const usedVariableWithError = formulaWithError.filter(k => formula.usedVariables.has(k)).map(k => `'${k}'`);
         if (usedVariableWithError.length) {
@@ -49,7 +49,7 @@ function _computeFormulas(formulas: [string, Formula][], obj: StreamRenderObject
     }, { ...obj }) as StreamRenderObject;
 }
 
-function filterUsedVariables(variables: StreamUserVariable[], usedVariables: Set<string>): StreamUserVariable[] {
+function filterUsedVariables(variables: StreamUserImageVariable[], usedVariables: Set<string>): StreamUserImageVariable[] {
     let formulas = Object.fromEntries(variables
         .filter((v) => typeof v.value === 'string' && v.value.startsWith('='))
         .map((v): [string, Formula] => [v.name, parseFormula(v.value.slice(1))]))

@@ -20,7 +20,7 @@ type RowValue =
     RowValue[] |
     { dispatch?: (navigate: NavigateFunction, dispatch: Dispatch<any>) => any, class?: string, style?: any, visible?: boolean, width?: number, maxWidth?: number } & (
         { flex: number } |
-        { img: string, title: string, show?: boolean } |
+        { img: string, title: string, show?: boolean, clickPopup?: string } |
         { button: string } |
         { text: string, title?: string } |
         { strong: string } |

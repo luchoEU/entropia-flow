@@ -45,7 +45,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     break
 
                 for (const n of state.notifications) {
-                    if (itemMatchesFilter(t, GAME_LOG_TABULAR_TRADE, n.filter)) {
+                    if (itemMatchesFilter(t, 0, null, GAME_LOG_TABULAR_TRADE, n.filter)) {
                         if (!linesByFilter[n.filter])
                             linesByFilter[n.filter] = []
                         linesByFilter[n.filter].push(t)
