@@ -17,6 +17,8 @@ const useBackground = (
         if (!size) return; // Wait for size to be defined
 
         const container = root?.getElementById(containerId);
+        if (!container) return;
+
         const applyBackground = () => loadBackground(type, container, undefined);
         const clearBackground = () => loadBackground(undefined, container, undefined);
 

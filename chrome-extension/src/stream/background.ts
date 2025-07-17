@@ -1,7 +1,7 @@
 import { IBackground, SimpleBackground, SolidBackground } from './effects/baseBackground';
+import { Feature, isFeatureEnabled, SettingsState } from '../view/application/state/settings';
 import flow128_png from './img/flow128.png';
 import flow128w_png from './img/flow128w.png';
-import { Feature, isFeatureEnabled, SettingsState } from '../view/application/state/settings';
 
 enum BackgroundType {
     Light,
@@ -49,9 +49,9 @@ function animate(delta: number) {
 }
 
 // each container must have an unique id
-async function loadBackground(type: BackgroundType, container: HTMLElement, oldContainer: HTMLElement) {
-    if (type < 0 || !factories.has(type)) {
-        type = BackgroundType.Light;
+async function loadBackground(type: BackgroundType | undefined, container: HTMLElement, oldContainer?: HTMLElement) {
+    if (type && (type < 0 || !factories.has(type))) {
+        type = undefined;
     }
 
     const id = container.id;
