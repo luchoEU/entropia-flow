@@ -2,25 +2,15 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>NeutralinoJs sample app</title>
-    <link rel="stylesheet" href="/styles.css">
+    <title>App Logic</title>
   </head>
   <body>
-    <div id="neutralinoapp">
-      <h1>NeutralinoJs</h1>
-      <div id="info"></div>
-      <br/>
-      <img src="/icons/logo.gif" alt="Neutralinojs" />
-      <div>
-        <button onclick="openTransparentWindow()">Open Overlay</button>
-      </div>
-    </div>
-    <!-- Neutralino.js client. This file is gitignored, 
-        because `neu update` typically downloads it.
-        Avoid copy-pasting it. 
-        -->
+    <h1>This window is hidden. The application logic is in main.js.</h1>
+    <script src="/stream/clientStream.js"></script>
     <script src="/js/neutralino.js"></script>
-    <!-- Your app's source files -->
+    <script src="/js/socket.js"></script>
+    <script src="/js/windows.js"></script>
+    <script src="/js/tray.js"></script>
     <script src="/js/main.js"></script>
   </body>
 </html>

@@ -38,17 +38,19 @@ async function keepWindowOnScreen(screens) {
     }
 }
 
-function screensReceived(payload) {
-    const screens = payload;
-    document.addEventListener('mouseup', () => {
-        setTimeout(async () => {
-            keepWindowOnScreen(screens);
-        }, 50); // Wait a bit to allow the move to complete
-    });
-}
+let screens = undefined;
+function screensChanged(_screens) {
+    screens = _screens;
+};
 
-Neutralino.init();
 setDraggableRegion();
+
+document.addEventListener('mouseup', () => {
+    if (!screens) return;
+    setTimeout(async () => {
+        keepWindowOnScreen(screens);
+    }, 50); // Wait a bit to allow the move to complete
+});
 
 // Disable right-click context menu
 document.addEventListener('contextmenu', event => event.preventDefault());

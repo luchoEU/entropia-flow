@@ -3,11 +3,20 @@ let ws;
 const clientId = 'entropia-flow-client';
 const clientVersion = '0.0.1';
 
+async function sendData(name, version, data) {
+    await Neutralino.storage.setData(name, JSON.stringify(data));
+    await Neutralino.storage.setData(`${name}Ver`, version.toString());
+}
+
+let closeWebSocket;
 // Function to establish and manage the WebSocket connection
 function connectWebSocket() {
     // Replace with your Rust server's address (use localhost for local testing)
     // The endpoint is /relay as defined in our Rust server
     ws = new WebSocket('ws://localhost:6522');
+    closeWebSocket = async () => {
+        await ws.close();
+    }
 
     /**
      * 1. ON CONNECTION: The 'onopen' event fires once the connection is successful.
@@ -28,6 +37,9 @@ function connectWebSocket() {
      * 2. ON MESSAGE: This is the core of your question.
      * The 'onmessage' event fires EVERY time the server sends a message to this client.
      */
+    let _screensVer = 0;
+    let _streamVer = 0;
+    let _lastData = {};
     ws.onmessage = (event) => {
         // The data from the server is in 'event.data' and is a JSON string.
         console.log('Raw message received from server:', event.data);
@@ -42,14 +54,28 @@ function connectWebSocket() {
             case "version":
                 sendMessage("version", clientVersion); // reply with client version
                 break;
-            case "stream":
-                messageReceived?.(message.data);
-                break;
             case "screens_response":
-                screensReceived?.(message.data);
+                _screensVer++;
+                sendData('screens', _screensVer, message.data);
+                break;
+            case "stream":
+                _streamVer++;
+                _lastData = clientStream.applyDelta(_lastData, message.data);
+                sendData('stream', _streamVer, _lastData);
+                break;
+            case "disconnect":
+                _streamVer++;
+                _lastData = {};
+                sendData('stream', _streamVer, _lastData);
+                break;
+            default:
+                console.error(`Unknown message type ${message.type}`);
                 break;
         }
     };
+
+    sendData('screens', 0, {});
+    sendData('stream', 0, {});
 
     /**
      * 3. ON CLOSE: This event fires if the connection is lost.
@@ -88,8 +114,9 @@ function sendMessage(type, payload, to = "chrome-extension") {
     }
 }
 
+const CLIENT_EXE = 'EntropiaFlowClient-win_x64.exe'
 const RELAY_EXE = 'EntropiaFlowClient-relay.exe';
-const RELAY_LOG = 'relay.log';
+const RELAY_LOG = 'EntropiaFlowClient-relay.log';
 let relayPath = null;
 
 async function resolveRelayPath() {
@@ -146,14 +173,21 @@ async function startRelayIfNotRunning() {
     }
 }
 
-Neutralino.events.on("windowClose", async () => {
+async function exitApplication() {
+    await closeWebSocket();
+    await sendData('stream', Infinity, { kill: true });
     try {
-        console.log("Terminating relay process...");
+        console.log("Terminating relay process...");        
         await Neutralino.os.execCommand(`taskkill /IM ${RELAY_EXE} /F`);
     } catch (err) {
         console.warn("Relay termination failed or was already closed.");
     }
     Neutralino.app.exit();
+};
+
+// Proxy for the backend
+Neutralino.events.on('sendMessageToBackend', (evt) => {
+    sendMessage(evt.detail.type, evt.detail.payload, evt.detail.to);
 });
 
 startRelayIfNotRunning().then(() => {
@@ -162,5 +196,6 @@ startRelayIfNotRunning().then(() => {
     setTimeout(() => {
         sendMessage("version", clientVersion); // this will request all data for layouts
         sendMessage("get_screens", null, "screens");
+        sendMessage("start", null, "logwatcher");
     }, 5000);    
 })

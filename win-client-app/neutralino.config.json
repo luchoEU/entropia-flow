@@ -5,7 +5,7 @@
   "defaultMode": "window",
   "port": 0,
   "documentRoot": "/resources/",
-  "url": "/streamView.html",
+  "url": "/",
   "enableServer": true,
   "enableNativeAPI": true,
   "tokenSecurity": "one-time",
@@ -18,27 +18,16 @@
     "os.*",
     "filesystem.*",
     "window.*",
-    "debug.log"
+    "debug.log",
+    "events.*",
+    "storage.*"
   ],
   "modes": {
     "window": {
-      "title": "entropia-flow",
-      "width": 250,
-      "height": 70,
-      "minWidth": 30,
-      "minHeight": 30,
-      "center": true,
-      "fullScreen": false,
-      "alwaysOnTop": false,
-      "icon": "/resources/icons/appIcon.png",
+      "title": "Entropia Flow Client Logic (Hidden)",
+      "hidden": true,
       "enableInspector": true,
-      "borderless": true,
-      "transparent": true,
-      "frameless": true,
-      "maximize": false,
-      "hidden": false,
-      "resizable": true,
-      "exitProcessOnClose": false
+      "exitProcessOnClose": true
     }
   },
   "cli": {

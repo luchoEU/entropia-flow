@@ -5,11 +5,16 @@ This is a Windows client to enable more features for the extension. It is option
 _This is still a Work in Progress, it is not working yet._
 
 Planned features:
+
 - Read game log to get loot in real time
 - Show extension Stream View as overlay
 
+## Neutralino: client frontend
 
-## Setup
+- Provides the UI for stream view and settings
+- Adds a tray icon.
+
+### Client Setup
 
 1. `npm install -g @neutralinojs/neu`
 
@@ -17,23 +22,40 @@ Planned features:
 
 1. `buildStream.bat`
 
-## Execute for testing
+### Build Client for testing
 
 1. `neu run`
 
-## Build binary
+### Build Client For production
 
 1. `neu build --release`
 
-1. Files
-    `dist\EntropiaFlowClient\EntropiaFlowClient-win_x64.exe`
-    `dist\EntropiaFlowClient\resources.neu`
-    `go-websocket-relay\EntropiaFlowClient-relay.exe`
+## Go: client backend
 
-## Go
+- Relays messages from Client to Extension and back
+- Reads the game log
+- Get the screen sizes on the system
 
-1. https://go.dev/dl/
+### Relay Setup
+
+1. [https://go.dev/dl/]
+
+1. `cd go-websocket-relay`
+
+1. `go install github.com/akavel/rsrc@latest`
+
+1. `rsrc -ico app.ico`
+
+### Relay for testing
 
 1. `go run .`
 
+### Relay for production
+
 1. `go build -ldflags="-s -w" .`
+
+## Files to distribute
+
+- `dist\EntropiaFlowClient\EntropiaFlowClient-win_x64.exe`
+- `dist\EntropiaFlowClient\resources.neu`
+- `go-websocket-relay\EntropiaFlowClient-relay.exe`

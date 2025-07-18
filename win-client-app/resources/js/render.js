@@ -257,9 +257,13 @@ async function renderWaiting() {
     render({ layoutId: WAITING_LAYOUT_ID });
 }
 
-function messageReceived(payload) {
-    receive(payload)
-    render({ layoutId: _layoutId })
+function streamChanged(payload) {
+    if (typeof payload !== 'object' || Object.keys(payload).length === 0) {
+        renderWaiting();
+    } else {
+        receive(payload);
+        render({ layoutId: _layoutId })
+    }
 }
 
 function selectLayout(layoutId) {
