@@ -53,7 +53,7 @@ const ExpandableSection = ({
         return <></>
 
     return (
-        <section ref={ref} className={className}>
+        <section ref={ref} className={expanded ? className : undefined}>
             <div>
                 <h1>
                     <span title={expanded && showSubtitles ? subtitle : undefined} onClick={(e) => {

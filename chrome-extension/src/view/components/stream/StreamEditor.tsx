@@ -14,13 +14,15 @@ import { useAppDispatch } from "../../application/store"
 import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
-import { StreamSavedLayout } from "../../../stream/data"
+import StreamRenderData, { StreamSavedLayout } from "../../../stream/data"
 import { savedToExportLayout } from "../../application/helpers/stream"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))
+    const data: StreamRenderData | undefined = useSelector(getStreamData)
     if (!c) return <></>
 
+    const error = data?.layoutData[layoutId]?.['!error'] as string | undefined;
     return <>
         <ExpandableSection selector='StreamEditor-layout-formula' title='Formulas JavaScript' subtitle='Custom variables calculation' className='stream-layout'>
             <CodeEditor
@@ -29,6 +31,7 @@ function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
                 value={c.formulaJavaScript ?? ''}
                 dispatchChange={setStreamFormulaJavaScript(layoutId)}
             />
+            {error && <p>{error}</p>}
         </ExpandableSection>
         <ExpandableSection selector='StreamEditor-layout-html' title='HTML Template' subtitle='Variables are available, this a {{mustache}} template' className='stream-layout'>
             <CodeEditor

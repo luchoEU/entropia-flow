@@ -200,7 +200,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 const layoutVariables = getLayoutVariables(backComputed, layout);
                 const layoutObj = {
                     ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
-                    backDark, 
+                    backDark,
                     ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k)))
                 };
                 return [id, layoutVariables, layoutObj];
@@ -245,21 +245,20 @@ let _dataInClient: StreamRenderData | undefined = undefined
 
 function getLayoutVariables(context: any, layout?: StreamSavedLayout): StreamStateVariable[] {
     const jsCode = layout?.formulaJavaScript
-    let definedVars: StreamStateVariable[] = [];
-    if (jsCode && jsCode.trim() !== '') {
-        try {
-            const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
-            const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
-            interpreter.run();
-            definedVars = Object.entries(interpreter.globalScope.object.properties)
-                .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
-                .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
-                .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value));
-        } catch (e) {
-            definedVars = [{name: '!error', value: e.message, description: 'error in formula javascript'}];
-        }
+    if (!jsCode || jsCode.trim() === '')
+        return []
+
+    try {
+        const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
+        const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
+        interpreter.run();
+        return Object.entries(interpreter.globalScope.object.properties)
+            .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
+            .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
+            .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value))
+    } catch (e) {
+        return [{ name: '!error', value: e.message }]
     }
-    return definedVars;
 }
 
 export default [
