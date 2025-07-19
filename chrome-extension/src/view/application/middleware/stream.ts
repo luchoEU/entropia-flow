@@ -23,7 +23,7 @@ import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
 import Interpreter from 'js-interpreter';
 import * as Babel from '@babel/standalone';
-import { interpreterLoadContext } from "../../../stream/formulaParser"
+import { interpreterLoadContext, parseFormula } from "../../../stream/formulaParser"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -190,13 +190,26 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const userVars = variables['user']?.map(v => v.name) ?? [];
             const vObj = Object.fromEntries(Object.entries(data).filter(([k, v]) => !oldVars.includes(k) && !userVars.includes(k)));
 
-            const commonData: StreamRenderObject = computeFormulas(vObj, tObj);
-            const layoutVars: [string, StreamStateVariable[]][] = Object.entries(layouts).map(([id, layout]) => [id, getLayoutVariables(commonData, layout)]);
-            const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutVars.map(([id, vars]) => [id, Object.fromEntries(vars.map(v => [v.name, v.value]))]));
+            const backDarkFormulaObj: object = Object.fromEntries(Object.entries(vObj)
+                .filter(([, value]) => typeof value === 'string' && value.startsWith('=') && parseFormula(value.slice(1)).usedVariables.has('backDark')));
+            const vObjNoBackDark = Object.fromEntries(Object.entries(vObj).filter(([k]) => !Object.keys(backDarkFormulaObj).includes(k)));
+            const commonData: StreamRenderObject = computeFormulas(vObjNoBackDark, tObj);
+            const layoutTuple: [string, StreamStateVariable[], StreamRenderObject][] = Object.entries(layouts).map(([id, layout]) => {
+                const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
+                const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj }, tObj);
+                const layoutVariables = getLayoutVariables(backComputed, layout);
+                const layoutObj = {
+                    ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
+                    backDark, 
+                    ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k)))
+                };
+                return [id, layoutVariables, layoutObj];
+            });
+            const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));
             const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
 
             if (showingLayoutId) { 
-                dispatch(setStreamVariables('formula', layoutVars.find(([id]) => id === showingLayoutId)?.[1] ?? []));
+                dispatch(setStreamVariables('formula', layoutTuple.find(([id]) => id === showingLayoutId)?.[1] ?? []));
             }
 
             dispatch(setStreamData(renderData));

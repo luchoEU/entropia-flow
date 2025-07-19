@@ -6,8 +6,6 @@ import useBackground from "../hooks/UseBackground"
 import { useDispatch } from "react-redux"
 import { getStreamClickAction } from "../../application/actions/stream.click"
 import { Component, traceError } from "../../../common/trace"
-import { getBackgroundSpec } from "../../../stream/background"
-import { computeFormulas } from "../../../stream/formulaCompute"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {
     id: string
@@ -70,10 +68,7 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         return <div>Layout not found</div>;
     }
 
-    const backDark = getBackgroundSpec(single.layout.backgroundType)?.dark ?? false;
-    const variables = computeFormulas({ ...single.data, backDark });
-
-    const children = <StreamViewDiv id={id} size={size} single={{ ...single, data: variables }} scale={scale} />
+    const children = <StreamViewDiv id={id} size={size} single={{ ...single, data: single.data }} scale={scale} />
 
     return (
         <div {...(!size && { style: { visibility: 'hidden' }})} ref={shadowRootRef}>

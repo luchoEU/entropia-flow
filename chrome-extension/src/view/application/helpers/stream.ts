@@ -1,4 +1,3 @@
-import { ADD_CLIENT_INITIAL_LAYOUTS } from '../../../config';
 import { BackgroundType } from '../../../stream/background'
 import StreamRenderData, { StreamCommonLayout, StreamExportLayout, StreamRenderLayout, StreamSavedLayout } from '../../../stream/data';
 import { LUCHO } from '../../components/about/AboutPage';
@@ -90,9 +89,7 @@ const initialStateIn: StreamStateIn = {
     view: [ DEFAULT_LAYOUT_ID ],
     layouts: {
         [DEFAULT_LAYOUT_ID]: _defaultLayout,
-        ...ADD_CLIENT_INITIAL_LAYOUTS ? {
-            [TEAM_LAYOUT_ID]: _teamLootLayout,
-        } : {}
+        [TEAM_LAYOUT_ID]: _teamLootLayout,
     },
     trashLayouts: {},
 }
