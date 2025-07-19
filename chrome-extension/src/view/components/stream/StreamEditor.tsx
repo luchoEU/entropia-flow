@@ -15,7 +15,7 @@ import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
 import StreamRenderData, { StreamSavedLayout } from "../../../stream/data"
-import { savedToExportLayout } from "../../application/helpers/stream"
+import { savedToExportLayout } from "../../../stream/data.convert"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))

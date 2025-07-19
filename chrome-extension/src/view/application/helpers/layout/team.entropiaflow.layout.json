@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "name": "Entropia Flow Team",
+  "author": "Lucho MUCHO Ireton",
+  "lastModified": 1736186692000,
+  "backgroundType": 3,
+  "htmlTemplate": "<table>\n  <thead><tr>\n    <th></th>\n    {{#team.players}}<th>{{.}}</th>{{/team.players}}\n  </tr></thead>\n  <tbody>\n    {{#team.loot}}<tr>\n      <td>{{name}}</td>\n      {{#quantity}}<td>{{.}}</td>{{/quantity}}\n  </tr>{{/team.loot}}</tbody>\n</table>",
+  "cssTemplate": "table {\n  border-collapse: collapse;\n}\ntd, th {\n  padding: 2px 5px;\n  text-align: end;\n}\ntd:nth-child(even), th:nth-child(even) {\n  background-color: rgba(255,255,255,.15);\n}"
+}

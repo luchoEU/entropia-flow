@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "name": "Entropia Flow Default",
+  "author": "Lucho MUCHO Ireton",
+  "lastModified": 1752954977870,
+  "backgroundType": 2,
+  "htmlTemplate": "<div class='root'>\n  <img src='{{logoUrl}}' alt='Logo'></img>\n  <div class='flexColumn column1'>\n    <div class='title'>Entropia Flow</div>\n    <div class='subtitle'>Chrome Extension</div>\n  </div>\n  <div class='flexColumn column2'>\n    <div class='delta'>{{delta}} PED {{deltaWord}}</div>\n    <div class='message'>{{message}}</div>\n  </div>\n</div>",
+  "cssTemplate": ".root {\n  display: flex;\n  align-items: start;\n  font-size: 14px;\n  margin: 30px;\n}\n.root > img { width: 50px; }\n.flexColumn { display: flex; flex-direction: column; }\n.column1 { margin: 0px 10px; }\n.column2 { margin-left: 5px; width: 180px; }\n.title { font-size: 20px; font-weight: bold; }\n.subtitle { margin-left: 10px; }\n.delta {\n  background-color: {{deltaBackColor}};\n  color: white;\n  padding: 8px;\n  border-radius: 8px;\n  text-align: center;\n}\n.message {\n  margin-top: 5px;\n  font-size: 12px;\n  text-align: center;\n}"
+}

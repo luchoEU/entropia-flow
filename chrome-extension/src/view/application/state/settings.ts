@@ -2,7 +2,6 @@ import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
 
 enum Feature {
     client,
-    streamEditor,
     streamBackgroundInDevelopment,
     refined,
     budget,
@@ -18,12 +17,6 @@ const featureList: FeatureInfo[] = [
         description: 'Integration with Entropia Flow Client',
         development: true,
         // related flag ADD_CLIENT_INITIAL_LAYOUTS
-    },
-    {
-        id: Feature.streamEditor,
-        title: 'Stream Editor',
-        description: 'Show stream layout editor',
-        development: true,
     },
     {
         id: Feature.streamBackgroundInDevelopment,

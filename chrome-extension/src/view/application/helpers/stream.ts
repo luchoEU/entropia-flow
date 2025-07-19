@@ -1,95 +1,27 @@
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamCommonLayout, StreamExportLayout, StreamRenderLayout, StreamSavedLayout } from '../../../stream/data';
-import { LUCHO } from '../../components/about/AboutPage';
+import StreamRenderData, { StreamExportLayout, StreamSavedLayout } from '../../../stream/data';
+import { exportToSavedLayout } from '../../../stream/data.convert';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream";
+import defaultLayout from './layout/default.entropiaflow.layout.json'
+import huntLayout from './layout/hunt.entropiaflow.layout.json'
+import teamLayout from './layout/team.entropiaflow.layout.json'
 
-const _defaultLayout: StreamSavedLayout = {
-    name: 'Entropia Flow Default',
-    author: LUCHO,
-    lastModified: new Date('Sat Jan 18 10:27:20 2025 +0100').getTime(),
-    backgroundType: BackgroundType.Ashfall,
-    readonly: true,
-    stared: true,
-    htmlTemplate: `
-<div class='root'>
-  <img src='{{logoUrl}}' alt='Logo'></img>
-  <div class='flexColumn column1'>
-    <div class='title'>Entropia Flow</div>
-    <div class='subtitle'>Chrome Extension</div>
-  </div>
-  <div class='flexColumn column2'>
-    <div class='delta'>{{delta}} PED {{deltaWord}}</div>
-    <div class='message'>{{message}}</div>
-  </div>
-</div>`.trimStart(),
-    cssTemplate: `
-.root {
-  display: flex;
-  align-items: start;
-  font-size: 14px;
-  margin: 30px;
+function loadBuiltinLayout(layout: StreamExportLayout, stared: boolean = false): StreamSavedLayout {
+    return {
+        ...exportToSavedLayout(layout),
+        readonly: true,
+        stared,
+    }
 }
-.root > img { width: 50px; }
-.flexColumn { display: flex; flex-direction: column; }
-.column1 { margin: 0px 10px; }
-.column2 { margin-left: 5px; width: 180px; }
-.title { font-size: 20px; font-weight: bold; }
-.subtitle { margin-left: 10px; }
-.delta {
-  background-color: {{deltaBackColor}};
-  color: white;
-  padding: 8px;
-  border-radius: 8px;
-  text-align: center;
-}
-.message {
-  margin-top: 5px;
-  font-size: 12px;
-  text-align: center;
-}`.trimStart(),
-}
-
-const _teamLootLayout: StreamSavedLayout = {
-    name: 'Entropia Flow Team',
-    author: LUCHO,
-    lastModified: new Date('Mon Jan 6 19:04:52 2025 +0100').getTime(),
-    backgroundType: BackgroundType.Matrix,
-    readonly: true,
-    htmlTemplate: `
-<table>
-  <thead><tr>
-    <th></th>
-    {{#team.players}}<th>{{.}}</th>{{/team.players}}
-  </tr></thead>
-  <tbody>
-    {{#team.loot}}<tr>
-      <td>{{name}}</td>
-      {{#quantity}}<td>{{.}}</td>{{/quantity}}
-  </tr>{{/team.loot}}</tbody>
-</table>`.trimStart(),
-    cssTemplate: `
-table {
-  border-collapse: collapse;
-}
-td, th {
-  padding: 2px 5px;
-  text-align: end;
-}
-td:nth-child(even), th:nth-child(even) {
-  background-color: rgba(255,255,255,.15);
-}`.trimStart(),
-}
-
-const DEFAULT_LAYOUT_ID = 'entropiaflow.default'
-const TEAM_LAYOUT_ID = 'entropiaflow.team'
 
 const initialStateIn: StreamStateIn = {
     advanced: false,
     defaultAuthor: undefined!,
-    view: [ DEFAULT_LAYOUT_ID ],
+    view: [ 'entropiaflow.default' ],
     layouts: {
-        [DEFAULT_LAYOUT_ID]: _defaultLayout,
-        [TEAM_LAYOUT_ID]: _teamLootLayout,
+        ['entropiaflow.default']: loadBuiltinLayout(defaultLayout),
+        ['entropiaflow.team']: loadBuiltinLayout(teamLayout),
+        ['entropiaflow.hunt']: loadBuiltinLayout(huntLayout),
     },
     trashLayouts: {},
 }
@@ -250,10 +182,9 @@ const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: strin
                 name,
                 lastModified: Date.now(),
                 author: state.in.defaultAuthor,
-                backgroundType: _defaultLayout.backgroundType,
-                formulaJavaScript: _defaultLayout.formulaJavaScript,
-                htmlTemplate: _defaultLayout.htmlTemplate,
-                cssTemplate: _defaultLayout.cssTemplate,
+                backgroundType: defaultLayout.backgroundType,
+                htmlTemplate: defaultLayout.htmlTemplate,
+                cssTemplate: defaultLayout.cssTemplate,
             }
         }
     }
@@ -359,47 +290,9 @@ const reduceSetStreamUserImagePartial = (state: StreamState, layoutId: string, i
     images: state.in.layouts[layoutId].images?.map(v => v.id === id ? { ...v, ...partial } : v)
 })
 
-const savedToExportLayout = (layout: StreamSavedLayout): StreamExportLayout => ({
-    schema: 1,
-    ...copyCommonLayout(layout),
-    images: layout.images?.map(v => ({
-        name: v.name,
-        value: v.value,
-        description: v.description?.length ? v.description : undefined
-    }))
-})
-
-const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => ({
-    ...copyCommonLayout(layout),
-    images: layout.images?.map((v, i) => ({
-        id: i,
-        name: v.name,
-        value: v.value,
-        description: v.description
-    }))
-})
-
-const savedToRenderLayout = (layout: StreamSavedLayout): StreamRenderLayout => ({
-    name: layout.name,
-    backgroundType: layout.backgroundType,
-    htmlTemplate: layout.htmlTemplate,
-    cssTemplate: layout.cssTemplate,
-})
-
-const copyCommonLayout = (layout: StreamCommonLayout): StreamCommonLayout => ({
-    name: layout.name,
-    author: layout.author,
-    lastModified: layout.lastModified,
-    backgroundType: layout.backgroundType,
-    formulaJavaScript: layout.formulaJavaScript,
-    htmlTemplate: layout.htmlTemplate,
-    cssTemplate: layout.cssTemplate,
-})
-
 export {
     initialState,
     initialStateIn,
-    DEFAULT_LAYOUT_ID,
     reduceSetStreamState,
     reduceSetStreamEnabled,
     reduceSetStreamAdvanced,
@@ -424,6 +317,4 @@ export {
     reduceRemoveStreamUserImage,
     reduceCloneStreamLayout,
     reduceClearStreamLayoutAlias,
-    savedToRenderLayout,
-    savedToExportLayout,
 }
