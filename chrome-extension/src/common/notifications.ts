@@ -34,7 +34,11 @@ function createListNotification({ notificationId, title, items }: {
     title: string,
     items: { title: string, message: string }[]
 }) {
-    _create(notificationId, { title, message: `Hover for details\n${items.map(i => `- ${i.title}\n   ${i.message}`).join('\n')}` })
+    if (items.length == 0) return;
+    const str = (item: { title: string, message: string }) => `- ${item.title}\n   ${item.message}`;
+    const message = items.length === 1 ? str(items[0]) :
+        `Expand or hover for details\n${items.map(str).join('\n')}`
+    _create(notificationId, { title, message })
 }
 
 export { createBasicNotification, createListNotification }
