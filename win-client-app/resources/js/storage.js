@@ -1,1 +1,0 @@
-function onWindowLayoutChanged(windowId, LayoutId) { }

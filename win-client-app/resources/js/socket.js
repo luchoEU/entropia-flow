@@ -119,7 +119,17 @@ setInterval(async () => {
         const messageJson = await Neutralino.storage.getData('message');
         await Neutralino.storage.setData('message', null);
         const message = JSON.parse(messageJson);
-        sendMessage(message.type, message.payload, message.to);
+        if (message.to === clientId) {
+            switch (message.type) {
+                case "menu":
+                    openGameWindow();
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            sendMessage(message.type, message.payload, message.to);
+        }
     } catch { } // it is normal that message is not there
 }, 100);
 

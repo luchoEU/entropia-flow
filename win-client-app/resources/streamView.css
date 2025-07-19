@@ -91,3 +91,7 @@ body {
     color: red;
     text-align: center;
 }
+.clickable {
+    --neu-non-draggable-region: true;
+    cursor: pointer;
+}

@@ -14,7 +14,7 @@ let _lastData = {
                         <div style="font-size: 20px; font-weight: bold;">Entropia Flow</div>
                         <div style="font-size: 14px; margin-left: 10px;">Waiting for connection...</div>
                     </div>
-                    <span id="copyButton" style="position: relative;">
+                    <span id="copyButton" style="position: relative;" class="clickable">
                         <img src="{{img.copy}}" alt="Copy" style="width: 20px;" title="{{uri}}">
                         <span id="copyPopup" style="display: none; font-size: 12px; position: absolute; top: -8px; right: -8px; z-index: 1; background-color: lavender; padding: 10px; border-radius: 13px;">Copied!</span>
                     </span>
@@ -26,10 +26,6 @@ let _lastData = {
                 }
                 #entropia-flow-client-menu, #entropia-flow-client-next {
                     display: none !important;
-                }
-                #copyButton {
-                    --neu-non-draggable-region: true;
-                    cursor: pointer;
                 }
             `,
             action: () => {
@@ -198,6 +194,8 @@ async function render(s) {
             style.height = `${size.height}px`;
             style.removeProperty('transform');
         }
+
+        keepWindowOnScreen();
     }
 
     document.getElementById('entropia-flow-client-hover-area').className = s.minimized ? 'entropia-flow-client-minimized' : '';
@@ -205,50 +203,39 @@ async function render(s) {
 
     layout?.action?.();
 }
-/*
-function nextLayout(layoutId) {
-    const layouts = _lastData.layoutIdList;
-    const index = layouts?.indexOf(layoutId) ?? -1;
-    if (index !== -1) {
-        return index + 1 === layouts.length ? layouts[0] : layouts[index + 1];
-    }
-}
 
 function _setupButtons() {
     const minimize = document.getElementById('entropia-flow-client-minimize');
     minimize.addEventListener('click', (e) => {
         e.stopPropagation();
-        chrome.webview?.hostObjects.layout.MinimizeCliked();
+        switchMinimized();
     });
 
     const menu = document.getElementById('entropia-flow-client-menu');
     menu.addEventListener('click', (e) => {
         e.stopPropagation();
-        chrome.webview?.hostObjects.layout.MenuClicked();
+        sendMessage('menu', '', 'entropia-flow-client');
     });
 
     const next = document.getElementById('entropia-flow-client-next');
     next.addEventListener('click', (e) => {
         e.stopPropagation();
-        chrome.webview?.hostObjects.layout.NextClicked();
+        nextLayout();
     });
 
     const close = document.getElementById('entropia-flow-client-close');
     close.addEventListener('click', (e) => {
         e.stopPropagation();
-        chrome.webview?.hostObjects.layout.CloseClicked();
+        Neutralino.app.exit(); // close only this window
     });
-}*/
+}
 
 /// Controller ///
 
 //const _sLastWindowId;
-const _windowId = 1;
-//const _initialData;
 let _layoutId = MENU_LAYOUT_ID;
 //let _scale = 1;
-//const _minimized = false;
-//const _waiting = false;
+let _minimized = false;
 
 async function renderWaiting() {
     const ip = await getLocalIpAddress()
@@ -262,18 +249,30 @@ function streamChanged(payload) {
         renderWaiting();
     } else {
         receive(payload);
-        render({ layoutId: _layoutId })
+        render({ layoutId: _layoutId, minimized: _minimized })
     }
 }
 
 function selectLayout(layoutId) {
     _layoutId = layoutId;
-    render({ layoutId: _layoutId });
-    onWindowLayoutChanged(_windowId, _layoutId);
+    render({ layoutId: _layoutId, minimized: _minimized });
+}
+
+function switchMinimized() {
+    _minimized = !_minimized;
+    render({ layoutId: _layoutId, minimized: _minimized });
+}
+
+function nextLayout() {
+    const layouts = _lastData.layoutIdList;
+    const index = layouts?.indexOf(_layoutId) ?? -1;
+    if (index !== -1) {
+        _layoutId = index + 1 === layouts.length ? layouts[0] : layouts[index + 1];
+        render({ layoutId: _layoutId, minimized: _minimized });
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-    //_setupButtons();
-    //chrome.webview?.hostObjects.lifecycle.OnLoaded();
+    _setupButtons();
     await renderWaiting();
 });

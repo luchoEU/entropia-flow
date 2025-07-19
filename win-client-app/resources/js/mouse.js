@@ -3,7 +3,17 @@
     Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area');
 }
 
-async function keepWindowOnScreen(screens) {
+let screens = undefined;
+function screensChanged(_screens) {
+    screens = _screens;
+};
+
+async function keepWindowOnScreen() {
+    if (!screens.find) {
+        console.log('No screens information');
+        return;
+    }
+
     const windowSize = await Neutralino.window.getSize();
     const windowPos = await Neutralino.window.getPosition();
 
@@ -39,20 +49,11 @@ async function keepWindowOnScreen(screens) {
     }
 }
 
-let screens = undefined;
-function screensChanged(_screens) {
-    screens = _screens;
-};
-
 setDraggableRegion();
 
 document.addEventListener('mouseup', () => {
-    if (!screens.find) {
-        console.log('No screens information');
-        return;
-    }
     setTimeout(async () => {
-        keepWindowOnScreen(screens);
+        keepWindowOnScreen();
     }, 50); // Wait a bit to allow the move to complete
 });
 
