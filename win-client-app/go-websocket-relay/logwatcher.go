@@ -199,13 +199,17 @@ func (lw *LogWatcher) processNewLines(filePath string) {
 	}
 	defer file.Close()
 
-	file.Seek(lw.lastPosition, io.SeekStart)
+	if _, err := file.Seek(lw.lastPosition, io.SeekStart); err != nil {
+		log.Printf("[logwch] Error seeking in log file: %v", err)
+		return
+	}
 
+	var newLines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line != "" {
-			lw.sendToExtension(line)
+			newLines = append(newLines, line)
 		}
 	}
 
@@ -213,9 +217,18 @@ func (lw *LogWatcher) processNewLines(filePath string) {
 		log.Printf("[logwch] Error scanning log file: %v", err)
 	}
 
+	// If we found any new lines, join them with \n and send as a single message.
+	if len(newLines) > 0 {
+		allNewLines := strings.Join(newLines, "\n")
+		lw.sendToExtension(allNewLines)
+	}
+
+	// Update the position to the end of what was just read.
 	newPosition, err := file.Seek(0, io.SeekCurrent)
 	if err == nil {
 		lw.lastPosition = newPosition
+	} else {
+		log.Printf("[logwch] Error getting current position after reading: %v", err)
 	}
 }
 

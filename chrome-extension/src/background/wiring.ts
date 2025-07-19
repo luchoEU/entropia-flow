@@ -34,6 +34,7 @@ import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
 import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
+import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 
 async function wiring(
