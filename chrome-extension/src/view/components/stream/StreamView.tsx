@@ -24,14 +24,14 @@ function StreamView() {
 
     return d && (
         <ExpandableSection selector='StreamView' title='' subtitle='Stream View' hideExpandableArrow className='stream-view-section'
-            afterTitle={showVisibility && <ImgButton
+            afterTitle={showVisibility ? <ImgButton
                 title={`click to ${streamViewPinned ? 'Unpin' : 'Pin'} Stream View`}
                 className='img-btn-stream-view-pin'
                 src={streamViewPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                 dispatch={() => pinStreamView(!streamViewPinned)}
-            />}
+            /> : undefined}
         >
-            {view.map((w, i) => <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: d.data, layout: d.layouts[w] }} />)}
+            {view.map((w, i) => <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}
         </ExpandableSection>
     )
 }

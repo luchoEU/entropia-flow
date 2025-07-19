@@ -158,6 +158,7 @@ export {
     GameLogLoot,
     GameLogTier,
     GameLogGlobal,
+    GameLogPosition,
     GameLogTrade,
     GameLogSkill,
     GameLogEnhancerBroken,

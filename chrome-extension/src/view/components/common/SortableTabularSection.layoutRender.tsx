@@ -8,8 +8,8 @@ import BaseRowValueRender from './SortableTabularSection.baseRender'
 const _LayoutRowValueRender = (next: RowValueRender): RowValueRender => (p) => {
     const { v } = p
     if (typeof v === 'object' && 'layout' in v) {
-        const { out: { data: { data } } } = useSelector(getStream)
-        return <StreamViewLayout single={{ data, layout: v.layout}} layoutId={v.layoutId} id={v.id} scale={v.scale} />
+        const { out: { data: { commonData, layoutData } } } = useSelector(getStream)
+        return <StreamViewLayout single={{ data: { ...commonData, ...layoutData[v.layoutId] }, layout: v.layout}} layoutId={v.layoutId} id={v.id} scale={v.scale} />
     }
     const RowValueRenderComponent = next;
     return <RowValueRenderComponent v={v} />;

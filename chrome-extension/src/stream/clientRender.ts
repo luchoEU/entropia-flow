@@ -25,38 +25,47 @@ export function render(single: StreamRenderSingle, dispatch: (action: string) =>
         }
 
         // render
-        let streamElement: HTMLElement = document.getElementById(STREAM_ID);
-        const vNode: VNode = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
+        let streamElement: HTMLElement | null = document.getElementById(STREAM_ID);
+        const vNode: VNode | null = reactElementToVNode(StreamViewDiv({ id: STREAM_ID, size: undefined, single, scale }));
+        if (!streamElement || !vNode) {
+            throw new Error('Failed to render stream!');
+        }
+
         if (streamElement.children.length > 0) {
             // patch root element manually to preserve canvas
-            if (vNode.data.style) {
+            if (vNode.data?.style) {
                 Object.entries(vNode.data.style)
-                    .forEach(([k, v]) => streamElement.style[k] = v);
+                    .forEach(([k, v]) => streamElement!.style[k] = v);
                 Array.from(streamElement.style)
-                    .filter(s => s !== 'color' && !vNode.data.style[toCamelCase(s)]) // color is handled by background
-                    .forEach(s => streamElement.style.removeProperty(s));
+                    .filter(s => s !== 'color' && !vNode.data!.style![toCamelCase(s)]) // color is handled by background
+                    .forEach(s => streamElement!.style.removeProperty(s));
             } else {
                 streamElement.removeAttribute('style');
             }
-            for (let i = 0; i < streamElement.children.length && i < vNode.children.length; i++) {
-                patch(streamElement.children[i], vNode.children[i] as VNode);
+            if (vNode.children) {
+                for (let i = 0; i < streamElement.children.length && i < vNode.children.length; i++) {
+                    patch(streamElement.children[i], vNode.children[i] as VNode);
+                }
             }
         } else {
             patch(streamElement, vNode);
         }
         streamElement = document.getElementById(STREAM_ID); // get it again after patch
+        if (!streamElement) {
+            throw new Error('Failed to render stream!');
+        }
 
         // add click handlers
-        const handleClick = (e) => dispatch(e.target.dataset.click);
+        const handleClick = (e: Event) => dispatch((e.target as HTMLElement).dataset.click ?? '');
         const clickableElements = streamElement.querySelectorAll('[data-click]');
-        clickableElements?.forEach((el: HTMLElement) => el.addEventListener('click', handleClick));
+        clickableElements?.forEach((el: Element) => el.addEventListener('click', handleClick));
 
         // load background
         loadBackground(single.layout.backgroundType, streamElement, streamElement)
 
         // calculate and set size
-        let size: StreamRenderSize = null;
-        const contentElement: HTMLElement  = streamElement.querySelector('.layout-root');
+        let size: StreamRenderSize | null = null;
+        const contentElement: HTMLElement | null = streamElement.querySelector('.layout-root');
         if (contentElement) {
             const calc = (v: number, min?: number): number => Math.max(min ?? 0, scale ? v * scale : v);
             size = {

@@ -1,7 +1,7 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
-import StreamRenderData, { StreamRenderLayoutSet, StreamSavedLayoutSet } from "../../../stream/data"
+import StreamRenderData, { StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
@@ -13,7 +13,7 @@ import { AppAction } from "../slice/app"
 import { initialStateIn, savedToRenderLayout } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts } from "../selectors/stream"
+import { getStream, getStreamData, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts } from "../selectors/stream"
 import { StreamState, StreamStateIn, StreamStateOut, StreamStateVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
@@ -176,42 +176,36 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
+            if (action.type === SET_STREAM_VARIABLES && action.payload.source === 'formula') // avoid infinite loop
+                break;
+
             const { in: { layouts }, ui: { showingLayoutId }, variables, temporalVariables } = getStream(getState());
             const vars = Object.values(variables).flat();
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
             const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
             const layoutsToRender: StreamRenderLayoutSet = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, savedToRenderLayout(v)]));
-            const renderData: StreamRenderData = { data: computeFormulas(data, tObj), layouts: layoutsToRender };
 
-            if (action.type !== SET_STREAM_VARIABLES || action.payload.source !== 'formula') {
-                const baseContext = renderData.data ?? {};
-                const oldVars = variables['formula']?.map(v => v.name) ?? [];
-                const userVars = variables['user']?.map(v => v.name) ?? [];
-                const context = Object.fromEntries(Object.entries(baseContext).filter(([k, v]) => !oldVars.includes(k) && !userVars.includes(k)));
-                const jsCode = showingLayoutId ? layouts[showingLayoutId]?.formulaJavaScript : undefined
-                let definedVars: StreamStateVariable[] = [];
-                if (jsCode && jsCode.trim() !== '') {
-                    try {
-                        const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
-                        const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
-                        interpreter.run();
-                        definedVars = Object.entries(interpreter.globalScope.object.properties)
-                            .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
-                            .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
-                            .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value));
-                    } catch (e) {
-                        definedVars = [{name: '!error', value: e.message, description: 'error in formula javascript'}];
-                    }
-                }
-                dispatch(setStreamVariables('formula', definedVars));
+            const oldVars = variables['formula']?.map(v => v.name) ?? [];
+            const userVars = variables['user']?.map(v => v.name) ?? [];
+            const vObj = Object.fromEntries(Object.entries(data).filter(([k, v]) => !oldVars.includes(k) && !userVars.includes(k)));
+
+            const commonData: StreamRenderObject = computeFormulas(vObj, tObj);
+            const layoutVars: [string, StreamStateVariable[]][] = Object.entries(layouts).map(([id, layout]) => [id, getLayoutVariables(commonData, layout)]);
+            const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutVars.map(([id, vars]) => [id, Object.fromEntries(vars.map(v => [v.name, v.value]))]));
+            const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
+
+            if (showingLayoutId) { 
+                dispatch(setStreamVariables('formula', layoutVars.find(([id]) => id === showingLayoutId)?.[1] ?? []));
             }
 
             dispatch(setStreamData(renderData));
             break;
         }
         case SET_STREAM_DATA: {
-            const { data }: StreamStateOut = getStreamOut(getState())
+            const data: StreamRenderData | undefined = getStreamData(getState())
+            if (!data)
+                break
 
             const delta = getDelta(_dataInClient, data)
             if (!delta)
@@ -235,6 +229,25 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 }
 
 let _dataInClient: StreamRenderData | undefined = undefined
+
+function getLayoutVariables(context: any, layout?: StreamSavedLayout): StreamStateVariable[] {
+    const jsCode = layout?.formulaJavaScript
+    let definedVars: StreamStateVariable[] = [];
+    if (jsCode && jsCode.trim() !== '') {
+        try {
+            const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
+            const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
+            interpreter.run();
+            definedVars = Object.entries(interpreter.globalScope.object.properties)
+                .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
+                .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
+                .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value));
+        } catch (e) {
+            definedVars = [{name: '!error', value: e.message, description: 'error in formula javascript'}];
+        }
+    }
+    return definedVars;
+}
 
 export default [
     requests

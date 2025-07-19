@@ -28,7 +28,8 @@ type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
 type StreamSavedLayoutSet = Record<string, StreamSavedLayout> // id => layout
 
 interface StreamRenderData {
-    data: StreamRenderObject
+    commonData: StreamRenderObject
+    layoutData: Record<string, StreamRenderObject>
     layouts: StreamRenderLayoutSet
 }
 

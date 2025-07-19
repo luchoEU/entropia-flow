@@ -26,7 +26,7 @@ const _getSortRow = (selector: string, columns: string[], columnHeaderAfterName?
     ]
 }))
 
-const _sum = (d: number[]): number => d.reduce((acc, n) => acc + n, 0)
+const _sum = (d: number[]): number => d?.reduce((acc, n) => acc + n, 0) ?? 0
 
 const _calculateWidths = <TItem extends any>(items: TItem[], sortRow: RowValue[], data: any, getItemRow: (item: TItem, index: number, data: any) => RowValue[]): TableWidths => {
     const getSubColumnsWidth = (d: RowValue[], imgWidth: number): number[][] =>

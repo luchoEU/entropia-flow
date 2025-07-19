@@ -1,7 +1,7 @@
 //// GAME LOG PARSER ////
 // Receives and processes game chat log messages
 
-import { GameLogGlobal, GameLogLine, GameLogStats } from "./gameLogData"
+import { GameLogGlobal, GameLogLine, GameLogPosition, GameLogStats } from "./gameLogData"
 
 const lineRegex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(.*?)\] \[(.*?)\] (.*)/
 const youLootRegex = /You received (.+) x \((.+)\) Value: (.+) PED/
@@ -192,12 +192,12 @@ class GameLogParser {
                 Object.entries(globalRegex).forEach(([key, regex]) => {
                     const match = regex. exec(msg);
                     if (match !== null) {
-                        const { player, name, value, valueLocation } = match.groups;
+                        const { player, name, value, valueLocation } = match.groups as any;
                         const global: GameLogGlobal = {
                             time: line.time,
                             player,
                             name,
-                            value: undefined,
+                            value: undefined!,
                             type: key,
                             isHoF,
                             isATH
@@ -237,8 +237,8 @@ class GameLogParser {
                 break;
         }
 
-        const positions = [];
-        const items = [];
+        const positions: GameLogPosition[] = [];
+        const items: string[] = [];
         for (const match of Array.from(line.message.matchAll(braketRegex))) {
             const positionMatch = positionRegex.exec(match[1]);
             if (positionMatch) {

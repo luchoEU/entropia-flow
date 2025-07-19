@@ -46,7 +46,7 @@ class GameLogHistory implements IGameLogHistory {
         _unshiftWithMax(this.gameLog.raw, line)
 
         if (line.data.loot) {
-            const existing = this.gameLog.loot.find(l => l.name === line.data.loot.name);
+            const existing = this.gameLog.loot.find(l => l.name === line.data.loot!.name);
             if (existing) {
                 existing.value += line.data.loot.value;
                 existing.quantity += line.data.loot.quantity;
@@ -63,16 +63,16 @@ class GameLogHistory implements IGameLogHistory {
                     this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
                     _unshiftWithMax(this.gameLog.stats.kills.history, { time: lineDateTime, value: 1 });
                 }
-                this.lastLootDateTime = lineDateTime
+                this.lastLootDateTime = lineDateTime;
             }
         }
 
         if (line.data.team) {
-            const existing = this.gameLog.team.find(l => l.player === line.data.team.player && l.name === line.data.team.name)
+            const existing = this.gameLog.team.find(l => l.player === line.data.team!.player && l.name === line.data.team!.name)
             if (existing) {
-                existing.quantity += line.data.team.quantity
+                existing.quantity += line.data.team!.quantity
             } else {
-                this.gameLog.team.unshift(line.data.team)
+                this.gameLog.team.unshift(line.data.team!)
             }
         }
 
@@ -94,20 +94,20 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.tier) {
-            const existing = this.gameLog.tier.find(t => t.name === line.data.tier.name)
+            const existing = this.gameLog.tier.find(t => t.name === line.data.tier!.name)
             if (existing) {
-                existing.tier = line.data.tier.tier
+                existing.tier = line.data.tier!.tier
             } else {
-                this.gameLog.tier.unshift(line.data.tier)
+                this.gameLog.tier.unshift(line.data.tier!)
             }
         }
 
         if (line.data.skill) {
-            const existing = this.gameLog.skill.find(s => s.name === line.data.skill.name)
+            const existing = this.gameLog.skill.find(s => s.name === line.data.skill!.name)
             if (existing) {
-                existing.value += line.data.skill.value
+                existing.value += line.data.skill!.value
             } else {
-                this.gameLog.skill.unshift(line.data.skill)
+                this.gameLog.skill.unshift(line.data.skill!)
             }
         }
 
@@ -122,8 +122,8 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.trade) {
-            this.gameLog.trade = this.gameLog.trade.filter(t => t.player !== line.data.trade.player || t.message !== line.data.trade.message);
-            _unshiftWithMax(this.gameLog.trade, line.data.trade)
+            this.gameLog.trade = this.gameLog.trade.filter(t => t.player !== line.data.trade!.player || t.message !== line.data.trade!.message);
+            _unshiftWithMax(this.gameLog.trade, line.data.trade!)
         }
 
         if (this.onChange)
