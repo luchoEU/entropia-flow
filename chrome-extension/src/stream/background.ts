@@ -10,7 +10,8 @@ enum BackgroundType {
     Matrix,
     Fireflies,
     ColorOrbs,
-    Transparent,
+    Transparent_Black,
+    Transparent_White,
 }
 
 interface BackgroundSpec {
@@ -25,7 +26,8 @@ const factories = new Map<BackgroundType, () => Promise<any>>([
     // to keep the interface consistent.
     [BackgroundType.Light, () => Promise.resolve({ default: SolidBackground })],
     [BackgroundType.Dark, () => Promise.resolve({ default: SolidBackground })],
-    [BackgroundType.Transparent, () => Promise.resolve({ default: SimpleBackground })],
+    [BackgroundType.Transparent_Black, () => Promise.resolve({ default: SimpleBackground })],
+    [BackgroundType.Transparent_White, () => Promise.resolve({ default: SimpleBackground })],
     
     // For heavy backgrounds, we use dynamic import()
     [BackgroundType.Ashfall, () => import(/* webpackChunkName: "ashfall-effect" */ './effects/ashfall/main')],
@@ -154,9 +156,14 @@ const backgroundList = (settings?: SettingsState): BackgroundSpec[] => [
         dark: true,
     },
     {
-        type: BackgroundType.Transparent,
-        title: 'Transparent',
+        type: BackgroundType.Transparent_Black,
+        title: 'Transparent (black)',
         dark: false,
+    },
+    {
+        type: BackgroundType.Transparent_White,
+        title: 'Transparent (white)',
+        dark: true,
     },
     ...(!settings || isFeatureEnabled(settings, Feature.streamBackgroundInDevelopment) ? [
         {
