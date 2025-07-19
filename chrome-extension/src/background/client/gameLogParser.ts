@@ -101,9 +101,20 @@ const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) en
 
 class GameLogParser {
     private _serial: number = 1
-    public onLine: (s: GameLogLine) => void
+    public onLines: (lines: GameLogLine[]) => void
 
     public async onMessage(msg: string): Promise<void> {
+        const lines = msg.split('\n')
+        const parsedLines: GameLogLine[] = []
+        for (const line of lines) {
+            const parsedLine = this.parseLine(line)
+            if (parsedLine)
+                parsedLines.push(parsedLine)
+        }
+        this.onLines?.(parsedLines)
+    }
+
+    private parseLine(msg: string): GameLogLine | undefined {
         var match = lineRegex.exec(msg)
         if (match === null)
             return
@@ -273,7 +284,7 @@ class GameLogParser {
             }
         }
 
-        this.onLine?.(line)
+        return line
     }
 }
 

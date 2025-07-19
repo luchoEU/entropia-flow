@@ -34,6 +34,7 @@ import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
 import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
+import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 
 async function wiring(
@@ -106,7 +107,7 @@ async function wiring(
         }
     }
     webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)
-    gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
+    gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
     const gameLog = await gameLogStorage.get()
     if (gameLog)
         await gameLogHistory.setGameLog(gameLog)

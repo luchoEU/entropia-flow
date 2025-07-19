@@ -10,7 +10,7 @@ describe('formula parser', () => {
     beforeEach(() => {
         gameLogParser = new GameLogParser()
         gameLogHistory = new GameLogHistory()
-        gameLogParser.onLine = (s) => gameLogHistory.onLine(s)
+        gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
     })
 
     async function parseExpect(lines: string, expected: Partial<GameLogData>) {

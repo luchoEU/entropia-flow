@@ -8,7 +8,7 @@ import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 const MAX_LOG_LINES = 1000
 
 interface IGameLogHistory {
-    onLine(line: GameLogLine): Promise<void>
+    onLines(lines: GameLogLine[]): Promise<void>
     clearSession(): Promise<void>
     getGameLog(): GameLogData
     onChange: (gameLog: GameLogData) => Promise<void>
@@ -42,7 +42,15 @@ class GameLogHistory implements IGameLogHistory {
         await this.setGameLog({ ...emptyGameLogData(), trade: this.gameLog.trade || [] });
     }
 
-    public async onLine(line: GameLogLine): Promise<void> {
+    public async onLines(lines: GameLogLine[]): Promise<void> {
+        for (const line of lines)
+            await this.processLine(line)
+
+        if (this.onChange)
+            await this.onChange(this.gameLog)
+    }
+
+    private async processLine(line: GameLogLine) {
         _unshiftWithMax(this.gameLog.raw, line)
 
         if (line.data.loot) {
@@ -125,9 +133,6 @@ class GameLogHistory implements IGameLogHistory {
             this.gameLog.trade = this.gameLog.trade.filter(t => t.player !== line.data.trade!.player || t.message !== line.data.trade!.message);
             _unshiftWithMax(this.gameLog.trade, line.data.trade!)
         }
-
-        if (this.onChange)
-            await this.onChange(this.gameLog)
     }
 
     private removeFromKillCount(time: string) {
