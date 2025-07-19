@@ -92,3 +92,7 @@ async function setContentSize(size) {
         Neutralino.window.setSize(adjustedSize);
     }, 100);
 }
+
+async function setWindowPosition(x, y) {
+    await Neutralino.window.move({ x, y });
+}

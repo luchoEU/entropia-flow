@@ -9,27 +9,6 @@ Planned features:
 - Read game log to get loot in real time
 - Show extension Stream View as overlay
 
-## Neutralino: client frontend
-
-- Provides the UI for stream view and settings
-- Adds a tray icon.
-
-### Client Setup
-
-1. `npm install -g @neutralinojs/neu`
-
-1. `neu update`
-
-1. `buildStream.bat`
-
-### Build Client for testing
-
-1. `neu run`
-
-### Build Client For production
-
-1. `neu build --release`
-
 ## Go: client backend
 
 - Relays messages from Client to Extension and back
@@ -53,6 +32,27 @@ Planned features:
 ### Relay for production
 
 1. `go build -ldflags="-s -w" .`
+
+## Neutralino: client frontend
+
+- Provides the UI for stream view and settings
+- Adds a tray icon.
+
+### Client Setup
+
+1. `npm install -g @neutralinojs/neu`
+
+1. `neu update`
+
+1. `buildStream.bat`
+
+### Build Client for testing
+
+1. `neu run`
+
+### Build Client For production
+
+1. `neu build --release`
 
 ## Files to distribute
 

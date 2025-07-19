@@ -27,3 +27,7 @@ Neutralino.events.on('ready', () => {
         }
     }, 5000);
 });
+
+function sendMessage(type, payload, to = "chrome-extension") {
+    Neutralino.storage.setData('message', JSON.stringify({ type, payload, to }));
+}

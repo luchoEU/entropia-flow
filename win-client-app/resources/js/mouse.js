@@ -34,7 +34,8 @@ async function keepWindowOnScreen(screens) {
     if (y > maxY) y = maxY;
 
     if (x !== windowPos.x || y !== windowPos.y) {
-        await Neutralino.window.move(x, y);
+        console.log(`Position corrected, screen (${targetScreen.x}, ${targetScreen.y}, ${targetScreen.width}, ${targetScreen.height}) window (${windowPos.x}, ${windowPos.y}) => (${x}, ${y}, ${windowSize.width}, ${windowSize.height})`)
+        setWindowPosition(x, y);
     }
 }
 
@@ -46,7 +47,10 @@ function screensChanged(_screens) {
 setDraggableRegion();
 
 document.addEventListener('mouseup', () => {
-    if (!screens) return;
+    if (!screens.find) {
+        console.log('No screens information');
+        return;
+    }
     setTimeout(async () => {
         keepWindowOnScreen(screens);
     }, 50); // Wait a bit to allow the move to complete

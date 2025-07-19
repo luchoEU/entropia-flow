@@ -8,7 +8,7 @@ async function openGameWindow() {
         minHeight: 30,
         center: true,
         fullScreen: false,
-        alwaysOnTop: false,
+        alwaysOnTop: true,
         icon: "/resources/img/appIcon.png",
         borderless: true,
         transparent: true,

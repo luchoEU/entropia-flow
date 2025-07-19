@@ -13,7 +13,7 @@ const patch = init([
 const STREAM_ID = 'stream'
 
 let isRendering = false;
-export function render(single: StreamRenderSingle, dispatch: (action: string) => void, scale?: number, minSize?: StreamRenderSize): StreamRenderSize | null {
+export async function render(single: StreamRenderSingle, dispatch: (action: string) => void, scale?: number, minSize?: StreamRenderSize): Promise<StreamRenderSize | null> {
     if (isRendering) {
         return null;
     }
@@ -61,7 +61,7 @@ export function render(single: StreamRenderSingle, dispatch: (action: string) =>
         clickableElements?.forEach((el: Element) => el.addEventListener('click', handleClick));
 
         // load background
-        loadBackground(single.layout.backgroundType, streamElement, streamElement)
+        await loadBackground(single.layout.backgroundType, streamElement, streamElement)
 
         // calculate and set size
         let size: StreamRenderSize | null = null;

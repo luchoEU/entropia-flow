@@ -1,7 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "com.entropia.flow",
+  "applicationName": "Entropia Flow Client",
   "version": "1.0.0",
+  "author": "Lucho MUCHO Ireton",
   "defaultMode": "window",
   "port": 0,
   "documentRoot": "/resources/",
@@ -32,6 +34,7 @@
   },
   "cli": {
     "binaryName": "EntropiaFlowClient",
+    "copyItems": ["/go-websocket-relay/EntropiaFlowClient-relay.exe"],
     "resourcesPath": "/resources/",
     "extensionsPath": "/extensions/",
     "clientLibrary": "/resources/js/neutralino.js",

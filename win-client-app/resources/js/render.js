@@ -36,7 +36,7 @@ let _lastData = {
                 const copyButton = document.getElementById("copyButton");
                 copyButton?.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    const copied = await copyTextToClipboard(_lastData.data.uri);
+                    const copied = await copyTextToClipboard(_lastData.commonData.uri);
                     const popup = document.getElementById('copyPopup');
                     popup.style.display = 'block';
                     popup.innerText = copied ? 'Copied!' : 'Failed!';
@@ -156,15 +156,15 @@ const _emptyLayout = {
 
 function receive(delta) {
     _lastData = clientStream.applyDelta(_lastData, delta);
-    _lastData.data.layouts = Object.entries(_lastData.layouts)
+    _lastData.commonData.layouts = Object.entries(_lastData.layouts)
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
-    _lastData.layoutIdList = _lastData.data.layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+    _lastData.layoutIdList = _lastData.commonData.layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
 }
 
 function dispatch(action) {
-    //chrome.webview?.hostObjects.dispatcher.Send(action);
+    sendMessage('dispatch', action);
 }
 
 let _disableRender = false
@@ -182,9 +182,9 @@ async function render(s) {
         scale = 1;
     }
 
-    let size = clientStream.render({ data: d.data, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    let size = await clientStream.render({ data: { ...d.commonData, ...d.layoutData?.[s.layoutId] }, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
-        setContentSize(size);
+        await setContentSize(size);
 
         size = { width: Math.floor(size.width), height: Math.floor(size.height) };
         const style = document.getElementById('entropia-flow-client-nav').style;
@@ -253,7 +253,7 @@ let _layoutId = MENU_LAYOUT_ID;
 async function renderWaiting() {
     const ip = await getLocalIpAddress()
     const port = 6522
-    receive({ data: { uri: `ws://${ip ?? 'localhost'}:${port}`, img: { logo: '/img/flow128.png', copy: '/img/copy.png' } } });
+    receive({ commonData: { uri: `ws://${ip ?? 'localhost'}:${port}`, img: { logo: '/img/flow128.png', copy: '/img/copy.png' } } });
     render({ layoutId: WAITING_LAYOUT_ID });
 }
 

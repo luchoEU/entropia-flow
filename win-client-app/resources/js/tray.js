@@ -54,7 +54,7 @@ function onTrayMenuItemClicked(event) {
             openGameWindow();
             break;
         case "VERSION":
-            Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nAuthor: Lucho MUCHO Ireton\nYear: 2025`);
+            Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025 Lucho MUCHO Ireton`);
             break;
         case "QUIT":
             exitApplication();

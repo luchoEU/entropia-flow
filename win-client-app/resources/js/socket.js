@@ -8,6 +8,9 @@ async function sendData(name, version, data) {
     await Neutralino.storage.setData(`${name}Ver`, version.toString());
 }
 
+sendData('screens', 0, {});
+sendData('stream', 0, {});
+
 let closeWebSocket;
 // Function to establish and manage the WebSocket connection
 function connectWebSocket() {
@@ -74,9 +77,6 @@ function connectWebSocket() {
         }
     };
 
-    sendData('screens', 0, {});
-    sendData('stream', 0, {});
-
     /**
      * 3. ON CLOSE: This event fires if the connection is lost.
      * We'll implement a simple auto-reconnect logic.
@@ -113,6 +113,15 @@ function sendMessage(type, payload, to = "chrome-extension") {
         console.error('WebSocket is not open.');
     }
 }
+
+setInterval(async () => {
+    try {
+        const messageJson = await Neutralino.storage.getData('message');
+        await Neutralino.storage.setData('message', null);
+        const message = JSON.parse(messageJson);
+        sendMessage(message.type, message.payload, message.to);
+    } catch { } // it is normal that message is not there
+}, 100);
 
 const CLIENT_EXE = 'EntropiaFlowClient-win_x64.exe'
 const RELAY_EXE = 'EntropiaFlowClient-relay.exe';

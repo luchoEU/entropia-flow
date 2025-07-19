@@ -11,11 +11,11 @@ import (
 func main() {
 	// 1. Set up lumberjack logger
 	logFile := &lumberjack.Logger{
-		Filename:   "relay.log", // Log file name
+		Filename:   "EntropiaFlowClient-relay.log", // Log file name
 		MaxSize:    5,           // Max size in MB before rotation
 		MaxBackups: 0,           // Max number of old log files to keep
 		MaxAge:     30,          // Max age in days to keep a log file
-		Compress:   true,        // Compress the old log files
+		Compress:   false,       // Compress the old log files
 	}
 
 	// 2. Create a multi-writer that directs log output to both the file and standard out.
