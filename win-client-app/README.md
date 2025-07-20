@@ -1,13 +1,12 @@
-# Windows Client for extension
+# Windows Client for Entropia Flow extension
 
 This is a Windows client to enable more features for the extension. It is optional to have it installed.
 
-_This is still a Work in Progress, it is not working yet._
+## Features
 
-Planned features:
-
-- Read game log to get loot in real time
-- Show extension Stream View as overlay
+- Reads game log in real time and sends it to the extension
+- Shows 1 or more Stream View as overlay
+- It has a tray icon
 
 ## Go: client backend
 

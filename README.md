@@ -18,7 +18,7 @@ This project includes both a Chrome Extension and a Windows Client to enhance yo
 ## Repository Structure
 
 - [Chrome Extension](chrome-extension/README.md)
-- [Windows Client](win-client/README.md)
+- [Windows Client](win-client-app/README.md)
 
 ## Getting Started
 

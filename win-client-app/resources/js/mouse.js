@@ -9,7 +9,7 @@ function screensChanged(_screens) {
 };
 
 async function keepWindowOnScreen() {
-    if (!screens.find) {
+    if (!screens?.find) {
         console.log('No screens information');
         return;
     }
