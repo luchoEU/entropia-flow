@@ -178,11 +178,11 @@ setInterval(async () => {
                     openGameWindow();
                     break;
                 case "set-settings":
-                    const logPath = message.data.logPath;
+                    const logPath = message.payload.logPath;
                     if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {
                         sendMessage("set-path", { filePath: logPath }, 'logwatcher');
                     }
-                    const wsPort = parseInt(message.data.wsPort);
+                    const wsPort = parseInt(message.payload.wsPort);
                     if (!isNaN(wsPort) && _settingsData.ws && _settingsData.ws.port !== wsPort) {
                         sendMessage("set-port", { port: wsPort }, 'server-node');
                         await Neutralino.storage.setData('wsPort', wsPort.toString());

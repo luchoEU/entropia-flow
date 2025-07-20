@@ -196,7 +196,19 @@ async function render(s) {
         scale = 1;
     }
 
-    let size = await clientStream.render({ data: { ...d.commonData, ...d.layoutData?.[s.layoutId] }, layout }, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    const layoutData = d.layoutData?.[s.layoutId];
+    const single = {
+        data: layoutData ? {
+            ...d.commonData,
+            ...layoutData,
+            img: {
+                ...d.commonData.img,
+                ...layoutData.img
+            }
+        } : d.commonData,
+        layout
+    };
+    let size = await clientStream.render(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
         await setContentSize(size);
 

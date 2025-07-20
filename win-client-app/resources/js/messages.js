@@ -25,6 +25,6 @@ function receiveUpdates(key, interval, callback) {
 }
 
 function sendMessage(type, payload, to = 'chrome-extension') {
-    Neutralino.storage.setData('message', JSON.stringify({ type, data: payload, to }));
+    Neutralino.storage.setData('message', JSON.stringify({ type, payload, to }));
     console.log(`Sent message ${type} to ${to}:`, payload);
 }

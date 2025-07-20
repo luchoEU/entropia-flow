@@ -48,7 +48,7 @@ func (r *Router) Route(msg RelayMessage, rawMessage []byte, messageType int) {
 				continue
 			}
 			if err := conn.WriteMessage(messageType, jsonMessage); err != nil {
-				log.Printf("[router] Failed to broadcast to client '%s': %v", id, err)
+				log.Printf("[router] Failed to broadcast to '%s': %v", id, err)
 			}
 		}
 		return
@@ -60,7 +60,7 @@ func (r *Router) Route(msg RelayMessage, rawMessage []byte, messageType int) {
 
 	if isClient {
 		if err := recipientConn.WriteMessage(messageType, rawMessage); err != nil {
-			log.Printf("[router] Failed to send to client '%s': %v", msg.To, err)
+			log.Printf("[router] Failed to send to '%s': %v", msg.To, err)
 		}
 		return
 	}
