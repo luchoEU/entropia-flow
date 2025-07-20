@@ -5,6 +5,7 @@ import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable
 import defaultLayout from './layout/default.entropiaflow.layout.json'
 import huntLayout from './layout/hunt.entropiaflow.layout.json'
 import teamLayout from './layout/team.entropiaflow.layout.json'
+import lootLayout from './layout/loot.entropiaflow.layout.json'
 
 function loadBuiltinLayout(layout: StreamExportLayout, stared: boolean = false): StreamSavedLayout {
     return {
@@ -20,8 +21,9 @@ const initialStateIn: StreamStateIn = {
     view: [ 'entropiaflow.default' ],
     layouts: {
         ['entropiaflow.default']: loadBuiltinLayout(defaultLayout),
-        ['entropiaflow.team']: loadBuiltinLayout(teamLayout),
         ['entropiaflow.hunt']: loadBuiltinLayout(huntLayout),
+        ['entropiaflow.team']: loadBuiltinLayout(teamLayout),
+        ['entropiaflow.loot']: loadBuiltinLayout(lootLayout),
     },
     trashLayouts: {},
 }

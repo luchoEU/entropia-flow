@@ -199,11 +199,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
                 const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj }, tObj);
                 const layoutVariables = getLayoutVariables(backComputed, layout);
-                const layoutObj = {
+                const layoutObj: StreamRenderObject = {
                     ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
                     backDark,
                     ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k)))
                 };
+                if (layout.images)
+                    layoutObj.img = Object.fromEntries(layout.images.map(v => [v.name, v.value]))
                 return [id, layoutVariables, layoutObj];
             });
             const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));

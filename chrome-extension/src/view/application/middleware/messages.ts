@@ -20,7 +20,7 @@ import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
 
 const refreshViewHandler = (m: ViewState): any[] => {
-    const actions = [];
+    const actions: any[] = [];
     if (m.list) {
         m.list.reverse() // newer first
         actions.push(setHistoryList(m.list, m.last))
@@ -44,7 +44,9 @@ const refreshViewHandler = (m: ViewState): any[] => {
 }
 
 const actionViewHandler = (dispatch: AppDispatch) => async (m: ViewDispatch) => {
-    dispatch(getStreamClickAction(m.action));
+    const action = getStreamClickAction(m.action);
+    if (action)
+        dispatch(action);
 }
 
 const notificationViewHandler = (dispatch: AppDispatch) => async (m: ViewNotification) => {

@@ -37,6 +37,7 @@ const gameLogStatsKeys = [
     "kills",
     "lootStats",
     "mineralResource",
+    "playerWasKilled",
     "reducedCritical",
     "reducedPiercingDamage",
     "selfHeal",

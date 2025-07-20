@@ -32,7 +32,9 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             if (target?.dataset?.click) {
-                dispatch(getStreamClickAction(target.dataset.click));
+                const action = getStreamClickAction(target.dataset.click);
+                if (action)
+                    dispatch(action);
             }
         };
 

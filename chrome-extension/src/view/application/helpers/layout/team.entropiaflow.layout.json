@@ -2,8 +2,9 @@
   "schema": 1,
   "name": "Entropia Flow Team",
   "author": "Lucho MUCHO Ireton",
-  "lastModified": 1736186692000,
+  "lastModified": 1753036078282,
   "backgroundType": 3,
-  "htmlTemplate": "<table>\n  <thead><tr>\n    <th></th>\n    {{#team.players}}<th>{{.}}</th>{{/team.players}}\n  </tr></thead>\n  <tbody>\n    {{#team.loot}}<tr>\n      <td>{{name}}</td>\n      {{#quantity}}<td>{{.}}</td>{{/quantity}}\n  </tr>{{/team.loot}}</tbody>\n</table>",
-  "cssTemplate": "table {\n  border-collapse: collapse;\n}\ntd, th {\n  padding: 2px 5px;\n  text-align: end;\n}\ntd:nth-child(even), th:nth-child(even) {\n  background-color: rgba(255,255,255,.15);\n}"
+  "formulaJavaScript": "const sum = team.loot.map(x => x.quantity).reduce((acc,list) => acc.map((q,index) => q+list[index]));\nconst total = sum.reduce((a,x) => a+x);\nconst split = sum.map(x => (x / total * 100).toFixed(1));",
+  "htmlTemplate": "<table>\n  <thead><tr>\n    <th></th>\n    {{#team.players}}<th>{{.}}</th>{{/team.players}}\n  </tr></thead>\n  <tbody>\n    {{#team.loot}}<tr>\n      <td>{{name}}</td>\n      {{#quantity}}<td>{{.}}</td>{{/quantity}}\n    </tr>{{/team.loot}}\n    <tr>\n      <td></td>\n      {{#split}}<td>{{.}}%</td>{{/split}}\n    </tr>\n  </tbody>\n</table>",
+  "cssTemplate": "table {\n  border-collapse: collapse;\n  margin: 0px 6px;\n}\ntd, th {\n  padding: 2px 5px;\n  text-align: end;\n}\ntd:nth-child(even), th:nth-child(even) {\n  background-color: rgba(255,255,255,.15);\n}"
 }

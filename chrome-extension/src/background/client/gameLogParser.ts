@@ -21,6 +21,7 @@ const statsRegex: GameLogStats<RegExp> = {
     damageTaken: /You took (.+) points of damage/,
     energyMatterResource: /You received Energy Matter Resource Deed x \(\d+\) Value: (.+) PED/,
     mineralResource: /You received Mineral Resource Deed x \(\d+\) Value: (.+) PED/,
+    playerWasKilled: /(.+) was killed/,
     reducedCritical: /Reduced (.+) points of critical damage/,
     reducedPiercingDamage: /Reduced (.+) points of armor piercing damage/,
     selfHeal: /You healed yourself (.+) points/,

@@ -6,7 +6,7 @@ const SET_HISTORY_INTERVAL_ID = "[hist] set interval id"
 const SORT_BY = "[hist] sort by"
 const EXPORT_TO_FILE = "[hist] export to file"
 
-const setHistoryList = (list: Array<Inventory>, last: number) => ({
+const setHistoryList = (list: Array<Inventory>, last?: number) => ({
     type: SET_HISTORY_LIST,
     payload: {
         list,
