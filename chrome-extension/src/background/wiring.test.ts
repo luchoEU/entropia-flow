@@ -51,6 +51,7 @@ describe('full', () => {
     let messages: MockMessagesHub
     let ajaxAlarm: MockAlarmManager
     let frozenAlarm: MockAlarmManager
+    let deadAlarm: MockAlarmManager
     let tickAlarm: MockAlarmManager
     let tabs: MockTabManager
     let actions: MockActionManager
@@ -83,7 +84,7 @@ describe('full', () => {
         viewPortManager.allMock.mockReturnValue([viewPort])
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
-        await wiring(messages, undefined, ajaxAlarm, frozenAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
+        await wiring(messages, undefined!, ajaxAlarm, frozenAlarm, deadAlarm, tickAlarm, tabs, actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage, tabStorage, settingsStorage)
 
         expect(viewPort.sendMock.mock.calls.length).toBe(1)
         viewPort.sendMock = jest.fn() // clear RefreshManager.SetContentTab in wiring
@@ -94,6 +95,7 @@ describe('full', () => {
         messages = new MockMessagesHub()
         ajaxAlarm = new MockAlarmManager()
         frozenAlarm = new MockAlarmManager()
+        deadAlarm = new MockAlarmManager()
         tickAlarm = new MockAlarmManager()
         tabs = new MockTabManager()
         inventoryStorage = new MockStorageArea()
@@ -356,11 +358,11 @@ describe('full', () => {
 describe('partial', () => {
     test('when request items expect on change', async () => {
         const onChange = jest.fn()
-        const viewState = new ViewStateManager(undefined, undefined, undefined, undefined, undefined)
+        const viewState = new ViewStateManager(undefined!, undefined!, undefined!, undefined!, undefined!)
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager())
-        const refreshManager = new RefreshManager(undefined, undefined, undefined, undefined)
+        const refreshManager = new RefreshManager(undefined!, undefined!, undefined!, undefined!, undefined!)
         await refreshManager.setContentTab(contentTabManager)
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         await refreshManager.manualRefresh()

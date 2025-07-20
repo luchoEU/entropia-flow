@@ -35,7 +35,7 @@ function getText(inventory: Inventory, onlyLastDate?: boolean) {
     }
 }
 
-function getInfo(inventory: Inventory): string {
+function getInfo(inventory: Inventory): string | null {
     if (inventory.log === undefined && inventory.tag !== undefined) {
         if (inventory.tag.requested)
             return "this was a manual refresh (italic)" + (inventory.tag.last ? ' and a reset as last (bold)' : '')
@@ -45,11 +45,11 @@ function getInfo(inventory: Inventory): string {
     return null
 }
 
-function getClass(inventory: Inventory): string {
+function getClass(inventory: Inventory): string | null {
     if (inventory.log !== undefined) {
         return inventory.log.class
     } else if (inventory.tag !== undefined) {
-        const list = []
+        const list: string[] = []
         if (inventory.tag.requested)
             list.push(CLASS_REQUESTED)
         if (inventory.tag.last)
@@ -87,8 +87,8 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
     return {
         key: inventory.meta.date,
         text: getText(inventory),
-        info: getInfo(inventory),
-        class: getClass(inventory),
+        info: getInfo(inventory)!,
+        class: getClass(inventory)!,
         expanded,
         diff,
         sortType,
@@ -98,11 +98,11 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
     }
 }
 
-function setHistoryList(state: HistoryState, list: Array<Inventory>, last: number): HistoryState {
+function reduceSetHistoryList(state: HistoryState, list: Array<Inventory>, last: number): HistoryState {
     const viewList: Array<ViewInventory> = []
     for (let n = 0; n < list.length; n++) {
         const inv = list[n]
-        let prev = undefined
+        let prev: Inventory | undefined = undefined
         let m = n + 1
         while (prev === undefined && m < list.length) {
             if (list[m].itemlist !== undefined)
@@ -119,7 +119,7 @@ function setHistoryList(state: HistoryState, list: Array<Inventory>, last: numbe
             sortType = oldItem.sortType
         }
 
-        viewList.push(getViewInventory(inv, prev, expanded, sortType, last === inv.meta.date))
+        viewList.push(getViewInventory(inv, prev!, expanded, sortType, last === inv.meta.date))
     }
     return {
         ...state,
@@ -128,14 +128,14 @@ function setHistoryList(state: HistoryState, list: Array<Inventory>, last: numbe
     }
 }
 
-function getHiddenError(list: Array<ViewInventory>): string {
+function getHiddenError(list: Array<ViewInventory>): string | undefined {
     if (list.length > 0 && !list[0].canBeLast)
         return list[0].text
     else
         return undefined
 }
 
-function setItemExpanded(state: HistoryState, key: number, expanded: boolean): HistoryState {
+function reduceSetItemExpanded(state: HistoryState, key: number, expanded: boolean): HistoryState {
     return {
         ...state,
         list: state.list.map(
@@ -145,7 +145,7 @@ function setItemExpanded(state: HistoryState, key: number, expanded: boolean): H
     }
 }
 
-function setHistoryIntervalId(state: HistoryState, intervalId: NodeJS.Timeout): HistoryState {
+function reduceSetHistoryIntervalId(state: HistoryState, intervalId: number): HistoryState {
     return {
         ...state,
         intervalId
@@ -161,7 +161,7 @@ function sortByPart(state: ViewInventory, part: number) {
     }
 }
 
-function sortBy(state: HistoryState, key: number, part: number): HistoryState {
+function reduceHistorySortBy(state: HistoryState, key: number, part: number): HistoryState {
     return {
         ...state,
         list: state.list.map(inv => inv.key === key ? sortByPart(inv, part) : inv)
@@ -173,8 +173,8 @@ export {
     getText,
     getLatestFromInventoryList,
     getLatestFromHistory,
-    setHistoryList,
-    setItemExpanded,
-    setHistoryIntervalId,
-    sortBy
+    reduceSetHistoryList,
+    reduceSetItemExpanded,
+    reduceSetHistoryIntervalId,
+    reduceHistorySortBy
 }

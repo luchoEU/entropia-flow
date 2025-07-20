@@ -22,7 +22,7 @@ const setItemExpanded = (key: number) => (expanded: boolean) => ({
     }
 })
 
-const setHistoryIntervalId = (intervalId: NodeJS.Timer) => ({
+const setHistoryIntervalId = (intervalId: number) => ({
     type: SET_HISTORY_INTERVAL_ID,
     payload: {
         intervalId

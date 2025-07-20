@@ -15,7 +15,7 @@ function EntropiaFlowClient() {
             <ExpandableSection selector='ClientSettings' title='Entropia Flow Client' subtitle='Status of the connection with Client' actionRequired={!s.client.status.startsWith('connected') ? 'Disconnected' : undefined}>
                 <div className="form-settings">
                     <Field
-                        label='WebSocket'
+                        label='URI'
                         value={s.client.webSocket}
                         getChangeAction={webSocketConnectionChanged} />
                 </div>

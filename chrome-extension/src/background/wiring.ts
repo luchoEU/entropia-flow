@@ -42,6 +42,7 @@ async function wiring(
     notifications: INotificationManager,
     refreshItemAjaxAlarm: IAlarmManager,
     refreshItemFrozenAlarm: IAlarmManager,
+    refreshItemDeadAlarm: IAlarmManager,
     refreshItemTickAlarm: IAlarmManager,
     tabs: ITabManager,
     actions: IActionManager,
@@ -71,7 +72,7 @@ async function wiring(
     const gameLogHistory = new GameLogHistory()
     
     // state
-    const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemTickAlarm, alarmSettings)
+    const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
     const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
     

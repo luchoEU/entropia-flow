@@ -39,9 +39,9 @@ interface ViewInventory {
 }
 
 interface HistoryState {
-    hiddenError: string
     list: Array<ViewInventory>
-    intervalId: NodeJS.Timeout
+    hiddenError?: string
+    intervalId?: number
 }
 
 export {

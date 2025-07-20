@@ -51,6 +51,7 @@ const STRING_SELECT_ITEMS_TAB = 'please manually select entropia universe items 
 // Alarm
 const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
 const FROZEN_ALARM_NAME = 'refreshItemsFrozenAlarm'
+const DEAD_ALARM_NAME = 'refreshItemsDeadAlarm'
 const TICK_ALARM_NAME = 'refreshItemsTickAlarm'
 
 // Storage
@@ -103,6 +104,7 @@ const FIRST_HTML_CHECK_WAIT_SECONDS = 5 // read items from html after 5 seconds
 const NEXT_HTML_CHECK_WAIT_SECONDS = 2 // if they weren't ready check again every 2 seconds
 const NORMAL_WAIT_SECONDS = 3 * 60 // minimum wait to avoid ERROR_429
 const FROZEN_CHECK_WAIT_SECONDS = 10 // check if tab is frozen every 10 seconds
+const DEAD_CHECK_WAIT_SECONDS = 5 * 60 // consider tab dead if it doesn't respond for 5 minutes
 const FIRST_WAIT_SECONDS = 6 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
 const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
 const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
@@ -147,6 +149,7 @@ export {
     STRING_WAIT_3_MINUTES,
     AJAX_ALARM_NAME,
     FROZEN_ALARM_NAME,
+    DEAD_ALARM_NAME,
     TICK_ALARM_NAME,
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,
@@ -191,6 +194,7 @@ export {
     NEXT_HTML_CHECK_WAIT_SECONDS,
     NORMAL_WAIT_SECONDS,
     FROZEN_CHECK_WAIT_SECONDS,
+    DEAD_CHECK_WAIT_SECONDS,
     FIRST_WAIT_SECONDS,
     AFTER_MANUAL_WAIT_SECONDS,
     TOO_MANY_WAIT_SECONDS,

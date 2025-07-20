@@ -26,10 +26,10 @@ describe('view state', () => {
         const alarm = new MockAlarmManager()
         const alarmStorage = new MockStorageArea();
         const alarmSettings = new AlarmSettings(alarmStorage);
-        const refreshManager = new RefreshManager(alarm, undefined, undefined, alarmSettings)
+        const refreshManager = new RefreshManager(alarm, undefined!, undefined!, undefined!, alarmSettings)
         const contentPortManager = new MockPortManager()
         contentPortManager.allMock.mockReturnValue([])
-        const viewState = new ViewStateManager(refreshManager, undefined, undefined, undefined, undefined)
+        const viewState = new ViewStateManager(refreshManager, undefined!, undefined!, undefined!, undefined!)
         viewState.onChange = onChange
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         alarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)

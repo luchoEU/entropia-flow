@@ -5,7 +5,7 @@ import { getStatus } from "../selectors/status"
 import { HistoryState } from "../state/history"
 
 const INTERVAL_MILLISECONDS = 10 * 60 * 1000  // it should update at least every 10 minutes or an error notification is shown to notify the user
-const NOTIFICATION_TIMES = 3
+const NOTIFICATION_TIMES = 2
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -14,17 +14,17 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const state: HistoryState = getHistory(getState())
 
             if (state.intervalId !== undefined)
-                clearInterval(state.intervalId)
+                window.clearInterval(state.intervalId)
 
             var notificationTimes = 0
-            const intervalId = setInterval(
+            const intervalId = window.setInterval(
                 () => {
                     const { isMonitoring } = getStatus(getState());
                     notificationTimes++
                     if (isMonitoring && notificationTimes < NOTIFICATION_TIMES) {
                         createBasicNotification({ message: "Failed to refresh items from entropia universe page" });
                     } else {
-                        clearInterval(state.intervalId)
+                        window.clearInterval(state.intervalId)
                     }
                 },
                 INTERVAL_MILLISECONDS
