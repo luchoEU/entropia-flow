@@ -1,28 +1,29 @@
 async function openGameWindow() {
-    await Neutralino.window.create('/streamView.html', {
-        id: 'streamView',
+    const w = await Neutralino.window.create('/streamView.html', {
         title: 'Entropia Flow Client',
-        width: 250,
-        height: 70,
         minWidth: 30,
         minHeight: 30,
-        center: true,
-        fullScreen: false,
-        alwaysOnTop: true,
         icon: "/resources/img/appIcon.png",
-        borderless: true,
+        center: true,
+        alwaysOnTop: true,
         transparent: true,
-        frameless: true,
-        maximize: false,
-        resizable: true,
+        borderless: true,
         hidden: false,
+        exitProcessOnClose: true,
     });
+    //await Neutralino.storage.setData(`init-${w.pid}`, await getInitData());
 }
 
 async function openSettingsWindow() {
     await Neutralino.window.create('/settings.html', {
-        title: 'Settings',
-        width: 500,
-        height: 400
+        title: 'Entropia Flow Client Settings',
+        icon: "/resources/img/appIcon.png",
+        width: 700,
+        height: 370,
+        minWidth: 200,
+        minHeight: 100,
+        center: true,
+        hidden: false,
+        exitProcessOnClose: true,
     });
 }

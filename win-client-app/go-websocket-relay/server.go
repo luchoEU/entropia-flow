@@ -34,7 +34,25 @@ func (r *Router) Route(msg RelayMessage, rawMessage []byte, messageType int) {
 		log.Printf("[server] Missing 'to' field in '%s' message from '%s'. Discarding.", msg.MessageType, msg.From)
 		return
 	}
-	log.Printf("[server] Routing message '%s' from '%s' to '%s'", msg.MessageType, msg.From, msg.To)
+	log.Printf("[router] Routing message '%s' from '%s' to '%s'", msg.MessageType, msg.From, msg.To)
+
+	// Special handling for broadcasting to all clients.
+	if msg.To == "*ALL" {
+		r.server.mutex.Lock()
+		defer r.server.mutex.Unlock()
+		for id, conn := range r.server.clients {
+			msg.To = id
+			jsonMessage, err := json.Marshal(msg)
+			if err != nil {
+				log.Printf("[router] Error marshalling message for '%s': %v", id, err)
+				continue
+			}
+			if err := conn.WriteMessage(messageType, jsonMessage); err != nil {
+				log.Printf("[router] Failed to broadcast to client '%s': %v", id, err)
+			}
+		}
+		return
+	}
 
 	r.server.mutex.Lock()
 	recipientConn, isClient := r.server.clients[msg.To]
@@ -42,7 +60,7 @@ func (r *Router) Route(msg RelayMessage, rawMessage []byte, messageType int) {
 
 	if isClient {
 		if err := recipientConn.WriteMessage(messageType, rawMessage); err != nil {
-			log.Printf("[server] Failed to send to client '%s': %v", msg.To, err)
+			log.Printf("[router] Failed to send to client '%s': %v", msg.To, err)
 		}
 		return
 	}
@@ -52,15 +70,17 @@ func (r *Router) Route(msg RelayMessage, rawMessage []byte, messageType int) {
 		return
 	}
 
-	log.Printf("[server] Recipient '%s' not found.", msg.To)
+	log.Printf("[router] Recipient '%s' not found.", msg.To)
 }
 
+// RouteMessage marshals a RelayMessage struct and sends it via the main Route method.
 func (r *Router) RouteMessage(msg RelayMessage) {
 	jsonData, err := json.Marshal(msg)
 	if err != nil {
-		log.Printf("[server] Error marshalling internal message for '%s': %v", msg.To, err)
+		log.Printf("[router] Error marshalling internal message for '%s': %v", msg.To, err)
 		return
 	}
+	// We always send internal messages as Text messages.
 	r.Route(msg, jsonData, websocket.TextMessage)
 }
 
@@ -99,24 +119,18 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var clientID string
+
 	defer func() {
+		conn.Close() // Ensure the connection is closed.
 		s.mutex.Lock()
 		if clientID != "" {
 			delete(s.clients, clientID)
 			log.Printf("[server] Client '%s' disconnected. Cleaning up.", clientID)
 		}
 		s.mutex.Unlock()
-
-		// Broadcast disconnect to all other clients
-		for otherID := range s.clients {
-			s.router.RouteMessage(RelayMessage{
-				MessageType: "disconnect",
-				From:        clientID,
-				To:          otherID,
-				Payload:     nil,
-			})
-		}
+		s.sendStatusUpdate("*ALL")
 	}()
+
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
@@ -138,34 +152,118 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			s.clients[clientID] = conn
 			log.Printf("[server] Client '%s' connected and identified.", clientID)
 			s.mutex.Unlock()
+			s.sendStatusUpdate("*ALL")
 		default:
 			s.router.Route(msg, p, messageType)
 		}
 	}
 }
 
+// handleServerNodeMessage is the dispatcher for commands sent to the "server-node" itself.
+func (s *Server) handleServerNodeMessage(msg RelayMessage) {
+	log.Printf("[s-node] Received command: '%s' from '%s'", msg.MessageType, msg.From)
+	switch msg.MessageType {
+	case "get-status":
+		s.sendStatusUpdate(msg.From)
+	case "set-port":
+		s.handleSetPort(msg)
+	default:
+		log.Printf("[s-node] Unknown command '%s'", msg.MessageType)
+	}
+}
+
+// handleSetPort updates the configuration with a new port.
+func (s *Server) handleSetPort(msg RelayMessage) {
+	payloadMap, ok := msg.Payload.(map[string]interface{})
+	if !ok {
+		log.Printf("[s-node] Invalid payload format for set-port.")
+		return
+	}
+	// JSON decodes numbers into float64, so we must handle that type.
+	portFloat, ok := payloadMap["port"].(float64)
+	if !ok || portFloat < 1 || portFloat > 65535 {
+		log.Printf("[s-node] 'port' missing or invalid in set-port payload.")
+		return
+	}
+	newPort := int(portFloat)
+
+	err := s.configService.SetWebSocketPort(newPort)
+	if err != nil {
+		log.Printf("[s-node] CRITICAL: Failed to save new port configuration! %v", err)
+		return
+	}
+
+	log.Printf("[s-node] Port updated to %d in config. A RESTART is required for this change to take effect.", newPort)
+
+	// Send a confirmation message back to the client.
+	s.router.RouteMessage(RelayMessage{
+		MessageType: "port-set-ack",
+		From:        "server-node",
+		To:          msg.From,
+		Payload: map[string]interface{}{
+			"newPort": newPort,
+			"message": "Port configuration saved. Please restart the application for the change to take effect.",
+		},
+	})
+}
+
+// sendStatusUpdate gathers server status and sends it to the specified target.
+func (s *Server) sendStatusUpdate(targetID string) {
+	s.mutex.Lock()
+	// Create a list of connected client IDs.
+	var clientIDs []string
+	for id := range s.clients {
+		clientIDs = append(clientIDs, id)
+	}
+	s.mutex.Unlock()
+
+	// Get the port from the authoritative source.
+	currentPort := s.configService.Get().WebSocketPort
+
+	statusPayload := map[string]interface{}{
+		"status":           "Running",
+		"port":             currentPort,
+		"connectedClients": clientIDs,
+	}
+
+	s.router.RouteMessage(RelayMessage{
+		MessageType: "server-status",
+		From:        "server-node",
+		To:          targetID,
+		Payload:     statusPayload,
+	})
+	log.Printf("[s-node] Sent status update to '%s'", targetID)
+}
+
+func registerServerNode(s *Server) {
+	log.Println("[s-node] Initializing...")
+	s.internalHandlers["server-node"] = s.handleServerNodeMessage
+}
+
 // internalRegistrars holds functions that set up internal services.
 var internalRegistrars = make(map[string]func(*Server))
 
-// registerInternal allows services like the logwatcher to register themselves.
+// registerInternal allows services to register themselves.
 func registerInternal(name string, registrar func(*Server)) {
 	internalRegistrars[name] = registrar
 }
 
 // Start registers handlers and begins listening for connections.
-// This function will block until the server fatally errors.
-func (s *Server) Start() error {
-	// Register all the "internal" services that have been defined.
+func (s *Server) Start(argPort int) error {
+	// Register the server's own handler.
+	registerServerNode(s)
+
 	for name, fn := range internalRegistrars {
 		log.Printf("[server] Registering internal node: %s", name)
 		fn(s)
 	}
 
-	// Set the main WebSocket handler.
 	http.HandleFunc("/", s.handleWebSocket)
 
-	// Get the port from our loaded configuration.
-	port := s.configService.Get().WebSocketPort
+	port := argPort
+	if (port == 0) {
+		port = s.configService.Get().WebSocketPort
+	}
 	listenAddr := fmt.Sprintf(":%d", port)
 
 	log.Printf("[server] Server listening on %s", listenAddr)

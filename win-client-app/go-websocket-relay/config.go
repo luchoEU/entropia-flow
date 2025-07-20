@@ -152,3 +152,13 @@ func (cs *ConfigService) SetLogWatcherPath(path string) error {
 	// Call the internal, unlocked save method.
 	return cs.saveInternal()
 }
+
+func (cs *ConfigService) SetWebSocketPort(port int) error {
+	cs.mutex.Lock()
+	defer cs.mutex.Unlock() // Use defer for safety
+
+	cs.config.WebSocketPort = port
+
+	// Call the internal, unlocked save method.
+	return cs.saveInternal()
+}

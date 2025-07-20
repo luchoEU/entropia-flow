@@ -1,2 +1,3 @@
 Neutralino.init();
+clearKillSignal();
 openGameWindow();

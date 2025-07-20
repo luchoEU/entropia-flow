@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/css/settings.css">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Entropia Flow Client Settings</title>
+    </head>
+    <body>
+        <div class='setting'>
+            <label for="logPath">Entropia Universe Game Log</label>
+            <p class="select-p">
+                <button class="select-btn" onclick="selectLogFile()">Select Log File</button>
+                <span id="logPath"/>
+            </p>
+            <p class="info" title="Current path to game log file">
+                Path: <span id="logPathFile">...</span>
+                <span id="copyLogPathButton" class="copy-btn" title="Copy Path">
+                    <img src="/img/copy.png" alt="Copy">
+                    <span id="copyLogPathPopup">Copied!</span>
+                </span>
+            </p>
+            <p class="info" title="Status of the game log file watcher">
+                Log Watcher Status: <span id="logPathStatus">Initializing</span>
+            </p>
+        </div>
+        <div class='setting'>
+            <label for="wsPort">Entropia Flow Client Relay</label>
+            Port: <input type="number" id="wsPort" min="1025" max="65535" placeholder="Port" /></span>
+            <p class="info" title="Current WebSocket URI">
+                URI: <span id="wsUri">...</span>
+                <span id="copyWsUriButton" class="copy-btn" title="Copy URI">
+                    <img src="/img/copy.png" alt="Copy">
+                    <span id="copyWsUriPopup">Copied!</span>
+                </span>
+            </p>
+            <p class="info" title="Status of connection to Relay">
+                Status Client: <span id="wsStatus">Initializing</span>
+            </p>
+            <p class="info" title="Status of connection to Extension">
+                Status Extension: <span id="extStatus">Initializing</span>
+            </p>            
+        </div>
+        <button id="save-btn" onclick="saveSettings()">Loading...</button>
+
+        <script src="/js/neutralino.js"></script>
+        <script src="/js/messages.js"></script>
+        <script src="/js/utils.js"></script>
+        <script src="/js/settings.js"></script>
+    </body>
+</html>

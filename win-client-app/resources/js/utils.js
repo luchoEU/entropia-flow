@@ -2,16 +2,24 @@
  * Copies the given text to the clipboard using the modern browser API.
  * @param {string} text The text to copy.
  */
-async function copyTextToClipboard(text) {
+async function copyTextToClipboard(text, popupId) {
+    let copied = false;
     try {
         await navigator.clipboard.writeText(text);
         console.log(`Text successfully copied to clipboard: "${text}"`);
-        return true
-
+        copied = true
     } catch (err) {
         console.error('Failed to copy text to clipboard:', err);
-        return false
     }
+
+    if (popupId) {
+        const popup = document.getElementById(popupId);
+        popup.style.display = 'block';
+        popup.innerText = copied ? 'Copied!' : 'Failed!';
+        setTimeout(() => { popup.style.display = 'none' }, 1000);
+    }
+
+    return copied;
 }
 
 /**
@@ -66,33 +74,4 @@ async function getLocalIpAddress() {
         console.error(`Error executing command '${command}':`, err);
         return null;
     }
-}
-
-let _deltaW = 0
-let _deltaH = 0
-
-async function setContentSize(size) {
-    if (window.innerWidth === size.width && window.innerHeight === size.height) return;
-
-    // Set an initial guess    
-    const initialGuessSize = { width: size.width + _deltaW, height: size.height + _deltaH };
-    await Neutralino.window.setSize(initialGuessSize);
-
-    // Wait a moment for the resize to settle
-    setTimeout(() => {
-        const contentWidth = window.innerWidth;
-        const contentHeight = window.innerHeight;
-
-        if (contentWidth === size.width && contentHeight === size.height) return;
-
-        _deltaW = initialGuessSize.width - contentWidth;
-        _deltaH = initialGuessSize.height - contentHeight;
-
-        const adjustedSize = { width: size.width + _deltaW, height: size.height + _deltaH };
-        Neutralino.window.setSize(adjustedSize);
-    }, 100);
-}
-
-async function setWindowPosition(x, y) {
-    await Neutralino.window.move(x, y);
 }

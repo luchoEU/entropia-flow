@@ -3,24 +3,57 @@ let ws;
 const clientId = 'entropia-flow-client';
 const clientVersion = '0.0.1';
 
-async function sendData(name, version, data) {
+async function sendDataToWindow(name, version, data) {
     await Neutralino.storage.setData(name, JSON.stringify(data));
     await Neutralino.storage.setData(`${name}Ver`, version.toString());
 }
 
-sendData('screens', 0, {});
-sendData('stream', 0, {});
+sendDataToWindow('screens', 0, {});
+sendDataToWindow('stream', 0, {});
 
-let closeWebSocket;
+let wsData;
+async function initializeWebSocketData() {
+    let port = 6522;
+    try {
+        port = parseInt(await Neutralino.storage.getData('wsPort'));
+    } catch { } // may not exist
+    const ip = await getLocalIpAddress()
+    wsData = { port, uri: `ws://${ip ?? 'localhost'}:${port}` };
+}
+
+function parseAndLogMessage(json, from = 'server') {
+    // The data from the server is in 'event.data' and is a JSON string.
+    console.log(`Raw message received from ${from}:`, json);
+
+    // We MUST parse the JSON string to get a usable JavaScript object.
+    const message = JSON.parse(json);
+
+    // Now we can inspect the message object and act on it.
+    console.log('Parsed message payload:', message.data);
+    return message;
+}
+
+let _screensVer = 0;
+let _screensData = {};
+let _settingsVer = 0;
+let _settingsData = {};
+let _streamVer = 0;
+let _streamData = {};
+
 // Function to establish and manage the WebSocket connection
-function connectWebSocket() {
-    // Replace with your Rust server's address (use localhost for local testing)
-    // The endpoint is /relay as defined in our Rust server
-    ws = new WebSocket('ws://localhost:6522');
+let closeWebSocket;
+async function connectWebSocket() {
+    await initializeWebSocketData();
+
+    ws = new WebSocket(wsData.uri);
     closeWebSocket = async () => {
         await ws.close();
     }
 
+    _settingsVer++;
+    _settingsData.ws = { ...wsData, clientStatus: 'Connecting', extensionStatus: 'Unknown' };
+    sendDataToWindow('settings', _settingsVer, _settingsData);
+    
     /**
      * 1. ON CONNECTION: The 'onopen' event fires once the connection is successful.
      * We must immediately identify our app to the relay server.
@@ -34,42 +67,53 @@ function connectWebSocket() {
             to: null, // 'to' is not needed for identification
             payload: { status: 'online', client: 'Neutralino' }
         }));
+
+        _settingsVer++;
+        _settingsData.ws = { ...wsData, clientStatus: 'Connected', extensionStatus: 'Unknown' };
+        sendDataToWindow('settings', _settingsVer, _settingsData);
+
+        sendMessage("version", clientVersion); // this will request all data for layouts
+        sendMessage("get_screens", null, "screens");
+        sendMessage("start", null, "logwatcher");
     };
 
     /**
      * 2. ON MESSAGE: This is the core of your question.
      * The 'onmessage' event fires EVERY time the server sends a message to this client.
      */
-    let _screensVer = 0;
-    let _streamVer = 0;
-    let _lastData = {};
     ws.onmessage = (event) => {
-        // The data from the server is in 'event.data' and is a JSON string.
-        console.log('Raw message received from server:', event.data);
-
-        // We MUST parse the JSON string to get a usable JavaScript object.
-        const message = JSON.parse(event.data);
-
-        // Now we can inspect the message object and act on it.
-        console.log('Parsed message payload:', message.data);
-
+        const message = parseAndLogMessage(event.data);
         switch (message.type) {
             case "version":
                 sendMessage("version", clientVersion); // reply with client version
                 break;
             case "screens_response":
                 _screensVer++;
-                sendData('screens', _screensVer, message.data);
+                _screensData = message.data;
+                sendDataToWindow('screens', _screensVer, _screensData);
+                break;
+            case "logwatcher_status":
+                _settingsVer++;
+                _settingsData.log = {
+                    path: message.data.filePath,
+                    status: message.data.status === 'Error' ? `Error - ${message.data.error}` : message.data.status
+                };
+                sendDataToWindow('settings', _settingsVer, _settingsData);
                 break;
             case "stream":
                 _streamVer++;
-                _lastData = clientStream.applyDelta(_lastData, message.data);
-                sendData('stream', _streamVer, _lastData);
+                _streamData = clientStream.applyDelta(_streamData, message.data);
+                sendDataToWindow('stream', _streamVer, _streamData);
+                break;
+            case "server-status":
+                _settingsVer++;
+                _settingsData.ws.extensionStatus = message.data.connectedClients.includes('chrome-extension') ? 'Connected' : 'Disconnected';
+                sendDataToWindow('settings', _settingsVer, _settingsData);
                 break;
             case "disconnect":
                 _streamVer++;
-                _lastData = {};
-                sendData('stream', _streamVer, _lastData);
+                _streamData = {};
+                sendDataToWindow('stream', _streamVer, _streamData);
                 break;
             default:
                 console.error(`Unknown message type ${message.type}`);
@@ -81,17 +125,26 @@ function connectWebSocket() {
      * 3. ON CLOSE: This event fires if the connection is lost.
      * We'll implement a simple auto-reconnect logic.
      */
-    ws.onclose = () => {
-        console.log('Disconnected from WebSocket server. Reconnecting in 3 seconds...');
+    ws.onclose = (event) => {
+        console.log(`Disconnected from WebSocket server (code: ${event.code}). Reconnecting in 3 seconds...`, event);
         // Try to reconnect after a delay
         setTimeout(connectWebSocket, 3000);
+
+        if (event.wasClean) {
+            _settingsData.ws = { ...wsData, clientStatus: 'Disconnected', extensionStatus: 'Unknown' };
+        } else if (event.code === 1006) {
+            _settingsData.ws = { ...wsData, clientStatus: 'Error - Connection refused or server not responding', extensionStatus: 'Unknown' };
+        } else {
+            _settingsData.ws = { ...wsData, clientStatus: `Error - Code ${event.code}`, extensionStatus: 'Unknown' };
+        }
+        _settingsVer++;
+        sendDataToWindow('settings', _settingsVer, _settingsData);
     };
 
     /**
      * 4. ON ERROR: Handle any connection errors.
      */
-    ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
+    ws.onerror = () => {
         // Closing the socket will trigger the 'onclose' event, which handles reconnection.
         ws.close();
     };
@@ -118,13 +171,31 @@ setInterval(async () => {
     try {
         const messageJson = await Neutralino.storage.getData('message');
         await Neutralino.storage.setData('message', null);
-        const message = JSON.parse(messageJson);
+        const message = parseAndLogMessage(messageJson, 'window');
         if (message.to === clientId) {
             switch (message.type) {
                 case "menu":
                     openGameWindow();
                     break;
+                case "set-settings":
+                    const logPath = message.data.logPath;
+                    if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {
+                        sendMessage("set-path", { filePath: logPath }, 'logwatcher');
+                    }
+                    const wsPort = parseInt(message.data.wsPort);
+                    if (!isNaN(wsPort) && _settingsData.ws && _settingsData.ws.port !== wsPort) {
+                        sendMessage("set-port", { port: wsPort }, 'server-node');
+                        await Neutralino.storage.setData('wsPort', wsPort.toString());
+
+                        // restart relay
+                        await closeWebSocket();
+                        await killRelay();
+                        await startRelayIfNotRunning();
+                        await connectWebSocket();
+                    }
+                    break;
                 default:
+                    console.error(`Unknown message type ${message.type}`);
                     break;
             }
         } else {
@@ -161,6 +232,7 @@ async function resolveRelayPath() {
 }
 
 async function startRelayIfNotRunning() {
+    await initializeWebSocketData();
     try {
         const baseExeName = RELAY_EXE.replace('.exe', '');
         // Check if it's running
@@ -176,8 +248,10 @@ async function startRelayIfNotRunning() {
 
             console.log("Relay is not running. Starting it...");
         
-            // Start the process without waiting
-            await Neutralino.os.execCommand(`powershell -WindowStyle Hidden -Command "Start-Process '${relayPath}' -WindowStyle Hidden"`);
+            const command = `powershell -WindowStyle Hidden -Command "Start-Process '${relayPath}' -ArgumentList '--port', '${wsData.port}' -WindowStyle Hidden"`;
+            console.log(command);
+            await Neutralino.os.execCommand(command);
+
             console.log("Relay launched.");
         } else {
             console.log("Relay is already running.");
@@ -192,29 +266,26 @@ async function startRelayIfNotRunning() {
     }
 }
 
-async function exitApplication() {
-    await closeWebSocket();
-    await sendData('stream', Infinity, { kill: true });
+async function killRelay() {
     try {
         console.log("Terminating relay process...");        
         await Neutralino.os.execCommand(`taskkill /IM ${RELAY_EXE} /F`);
     } catch (err) {
         console.warn("Relay termination failed or was already closed.");
     }
+}
+
+startRelayIfNotRunning().then(() => connectWebSocket());
+
+async function exitApplication() {
+    await closeWebSocket();
+    await sendDataToWindow('stream', Infinity, { kill: true });
+    await sendDataToWindow('settings', Infinity, { kill: true });
+    await killRelay();
     Neutralino.app.exit();
 };
 
-// Proxy for the backend
-Neutralino.events.on('sendMessageToBackend', (evt) => {
-    sendMessage(evt.detail.type, evt.detail.payload, evt.detail.to);
-});
-
-startRelayIfNotRunning().then(() => {
-    connectWebSocket();
-
-    setTimeout(() => {
-        sendMessage("version", clientVersion); // this will request all data for layouts
-        sendMessage("get_screens", null, "screens");
-        sendMessage("start", null, "logwatcher");
-    }, 5000);    
-})
+function clearKillSignal() {
+    Neutralino.storage.setData('stream', null);
+    Neutralino.storage.setData('settings', null);
+}

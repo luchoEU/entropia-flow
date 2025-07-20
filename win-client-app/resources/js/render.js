@@ -12,12 +12,20 @@ let _lastData = {
                     <img src="{{img.logo}}" alt="Logo" style="width: 50px;">
                     <div style="margin: 10px;">
                         <div style="font-size: 20px; font-weight: bold;">Entropia Flow</div>
-                        <div style="font-size: 14px; margin-left: 10px;">Waiting for connection...</div>
+                        <div style="font-size: 14px; margin-left: 10px;">
+                            {{#uri}}Waiting for connection...{{/uri}}
+                            {{^uri}}Loading...{{/uri}}
+                        </div>
                     </div>
-                    <span id="copyButton" style="position: relative;" class="clickable">
-                        <img src="{{img.copy}}" alt="Copy" style="width: 20px;" title="{{uri}}">
-                        <span id="copyPopup" style="display: none; font-size: 12px; position: absolute; top: -8px; right: -8px; z-index: 1; background-color: lavender; padding: 10px; border-radius: 13px;">Copied!</span>
-                    </span>
+                    {{#uri}}
+                        <span id="copyButton" class="clickable">
+                            <img src="{{img.copy}}" alt="Copy" style="width: 20px;" title="{{uri}}">
+                            <span id="copyPopup">Copied!</span>
+                        </span>
+                    {{/uri}}
+                    {{^uri}}
+                        <img id="copyButton" src="{{img.loading}}" alt="Loading" style="width: 20px;">
+                    {{/uri}}
                 </div>
             `,
             cssTemplate: `
@@ -27,16 +35,26 @@ let _lastData = {
                 #entropia-flow-client-menu, #entropia-flow-client-next {
                     display: none !important;
                 }
+                #copyButton {
+                    position: relative;
+                }
+                #copyPopup {
+                    display: none;
+                    font-size: 12px;
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    z-index: 1;
+                    background-color: lavender;
+                    padding: 10px;
+                    border-radius: 13px;
+                }
             `,
             action: () => {
                 const copyButton = document.getElementById("copyButton");
                 copyButton?.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    const copied = await copyTextToClipboard(_lastData.commonData.uri);
-                    const popup = document.getElementById('copyPopup');
-                    popup.style.display = 'block';
-                    popup.innerText = copied ? 'Copied!' : 'Failed!';
-                    setTimeout(() => { popup.style.display = 'none' }, 1000);
+                    copyTextToClipboard(_lastData.commonData.uri, 'copyPopup');
                 })
             }
         },
@@ -194,8 +212,6 @@ async function render(s) {
             style.height = `${size.height}px`;
             style.removeProperty('transform');
         }
-
-        keepWindowOnScreen();
     }
 
     document.getElementById('entropia-flow-client-hover-area').className = s.minimized ? 'entropia-flow-client-minimized' : '';
@@ -236,18 +252,31 @@ function _setupButtons() {
 let _layoutId = MENU_LAYOUT_ID;
 //let _scale = 1;
 let _minimized = false;
+let _waiting = false;
+let _settings = {};
+
+function settingsChanged(payload) {
+    _settings = payload;
+    if (_waiting || _settings.ws?.extensionStatus !== 'Connected') {
+        renderWaiting();
+    }
+}
 
 async function renderWaiting() {
-    const ip = await getLocalIpAddress()
-    const port = 6522
-    receive({ commonData: { uri: `ws://${ip ?? 'localhost'}:${port}`, img: { logo: '/img/flow128.png', copy: '/img/copy.png' } } });
+    _waiting = true;
+    receive({ commonData: { uri: _settings.ws?.uri, img: { logo: '/img/flow128.png', copy: '/img/copy.png', loading: '/img/loading.gif' } } });
     render({ layoutId: WAITING_LAYOUT_ID });
 }
 
 function streamChanged(payload) {
+    if (payload.kill) {
+        Neutralino.app.exit();
+    }
+
     if (typeof payload !== 'object' || Object.keys(payload).length === 0) {
         renderWaiting();
     } else {
+        _waiting = false;
         receive(payload);
         render({ layoutId: _layoutId, minimized: _minimized })
     }
