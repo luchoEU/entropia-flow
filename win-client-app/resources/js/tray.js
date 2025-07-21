@@ -28,11 +28,12 @@ function setTray() {
     let tray = {
         icon: "/resources/img/appIcon.png",
         menuItems: [
-            {id: "NEW", text: "New window"},
-            {id: "SETTINGS", text: "Settings"},
-            {id: "VERSION", text: "Get version"},
+            {id: "NEW", text: "Create New Window"},
+            {id: "SETTINGS", text: "Open Settings"},
+            {id: "SHORTCUT", text: "Create Desktop Shortcut"},
+            {id: "VERSION", text: "Show Client Version"},
             {id: "SEP", text: "-"},
-            {id: "QUIT", text: "Quit"}
+            {id: "QUIT", text: "Quit Application"}
         ]
     };
 
@@ -53,6 +54,9 @@ function onTrayMenuItemClicked(event) {
         case "NEW":
             openGameWindow();
             break;
+        case "SHORTCUT":
+            createDesktopShortcut();
+            break;
         case "VERSION":
             Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025 Lucho MUCHO Ireton`);
             break;
@@ -60,6 +64,28 @@ function onTrayMenuItemClicked(event) {
             exitApplication();
             break;
     }
+}
+
+async function createDesktopShortcut() {
+    const desktopPath = await Neutralino.os.getEnv('USERPROFILE') + '\\Desktop';
+    const shortcutPath = `${desktopPath}\\Entropia Flow Client.lnk`;
+
+    const currPath = NL_CWD.replace(/\//g, '\\');
+    const appPath = `${currPath}\\${NL_DATAPATH}\\${CLIENT_EXE}`;
+
+    const psScript = `
+    $ws = New-Object -comObject WScript.Shell;
+    $s = $ws.CreateShortcut("${shortcutPath}");
+    $s.TargetPath = "${appPath}";
+    $s.WorkingDirectory = "${currPath}";
+    $s.WindowStyle = 1;
+    $s.IconLocation = "${appPath},0";
+    $s.Save()
+    `
+    const command = `powershell -ExecutionPolicy Bypass -Command "${psScript.replace(/\n/g, '').replace(/"/g, '\\"')}"`;
+    console.log(command);
+    await Neutralino.os.execCommand(command);    
+    await Neutralino.os.showMessageBox("Shortcut created", "Shortcut created successfully");
 }
 
 Neutralino.events.on("trayMenuItemClicked", onTrayMenuItemClicked);

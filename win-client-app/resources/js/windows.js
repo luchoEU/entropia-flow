@@ -1,9 +1,9 @@
 async function openGameWindow() {
     const w = await Neutralino.window.create('/streamView.html', {
         title: 'Entropia Flow Client',
+        icon: '/resources/img/appIcon.png',
         minWidth: 30,
         minHeight: 30,
-        icon: "/resources/img/appIcon.png",
         center: true,
         alwaysOnTop: true,
         transparent: true,
@@ -17,7 +17,7 @@ async function openGameWindow() {
 async function openSettingsWindow() {
     await Neutralino.window.create('/settings.html', {
         title: 'Entropia Flow Client Settings',
-        icon: "/resources/img/appIcon.png",
+        icon: '/resources/img/appIcon.png',
         width: 700,
         height: 370,
         minWidth: 200,

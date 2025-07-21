@@ -1,3 +1,7 @@
+const CLIENT_EXE = 'EntropiaFlowClient-win_x64.exe'
+const RELAY_NAME = 'EntropiaFlowClient-relay';
+const RELAY_PATH = `relay/${RELAY_NAME}.exe`;
+
 /**
  * Copies the given text to the clipboard using the modern browser API.
  * @param {string} text The text to copy.

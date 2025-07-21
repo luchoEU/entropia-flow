@@ -5,22 +5,34 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
+
+func getLogger() *lumberjack.Logger {
+	exePath, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exeDir := filepath.Dir(exePath)
+	logPath := filepath.Join(exeDir, "EntropiaFlowClient-relay.log")
+
+	return &lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    5,  // MB
+		MaxBackups: 0,
+		MaxAge:     30, // days
+		Compress:   false,
+	}
+}
 
 func main() {
 	portPtr := flag.Int("port", 0, "The port for the WebSocket relay server to listen on")
 	flag.Parse()
 	port := *portPtr // Dereference the pointer to get the actual port value
 
-	logFile := &lumberjack.Logger{
-		Filename:   "EntropiaFlowClient-relay.log", // Log file name
-		MaxSize:    5,           // Max size in MB before rotation
-		MaxBackups: 0,           // Max number of old log files to keep
-		MaxAge:     30,          // Max age in days to keep a log file
-		Compress:   false,       // Compress the old log files
-	}
+	logFile := getLogger()
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(multiWriter)
 

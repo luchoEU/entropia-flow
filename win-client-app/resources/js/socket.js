@@ -204,51 +204,18 @@ setInterval(async () => {
     } catch { } // it is normal that message is not there
 }, 100);
 
-const CLIENT_EXE = 'EntropiaFlowClient-win_x64.exe'
-const RELAY_EXE = 'EntropiaFlowClient-relay.exe';
-const RELAY_LOG = 'EntropiaFlowClient-relay.log';
-let relayPath = null;
-
-async function resolveRelayPath() {
-    const exeName = RELAY_EXE;
-    const fs = Neutralino.filesystem;
-
-    try {
-        // Check in current directory
-        await fs.readFile(exeName);
-        relayPath = exeName;
-        console.log(`Using relay from current directory: ${relayPath}`);
-    } catch {
-        // Check in fallback directory
-        const fallbackPath = `go-websocket-relay/${exeName}`;
-        try {
-            await fs.readFile(fallbackPath);
-            relayPath = fallbackPath;
-            console.log(`Using relay from fallback: ${relayPath}`);
-        } catch {
-            console.error("Relay executable not found in either location.");
-        }
-    }
-}
-
 async function startRelayIfNotRunning() {
     await initializeWebSocketData();
     try {
-        const baseExeName = RELAY_EXE.replace('.exe', '');
         // Check if it's running
         let check = await Neutralino.os.execCommand(
-            `tasklist | findstr /i "${baseExeName}"`
+            `tasklist | findstr /i "${RELAY_NAME}"`
         );
 
         if (check.stdOut.trim() === "") {
-            if (!relayPath) {
-                await resolveRelayPath();
-                if (!relayPath) return; // Stop if not found
-            }
-
             console.log("Relay is not running. Starting it...");
         
-            const command = `powershell -WindowStyle Hidden -Command "Start-Process '${relayPath}' -ArgumentList '--port', '${wsData.port}' -WindowStyle Hidden"`;
+            const command = `powershell -WindowStyle Hidden -Command "Start-Process '${RELAY_PATH}' -ArgumentList '--port', '${wsData.port}' -WindowStyle Hidden"`;
             console.log(command);
             await Neutralino.os.execCommand(command);
 
@@ -259,7 +226,7 @@ async function startRelayIfNotRunning() {
     } catch (err) {
         if (err.message && err.message.includes("Command failed")) {
             console.log("Relay is not running. Starting it...");
-            await Neutralino.os.execCommand(`start "" /B "${RELAY_EXE}"`);
+            await Neutralino.os.execCommand(`start "" /B "${RELAY_PATH}"`);
         } else {
             console.error("Error checking or starting relay:", err);
         }
@@ -269,7 +236,7 @@ async function startRelayIfNotRunning() {
 async function killRelay() {
     try {
         console.log("Terminating relay process...");        
-        await Neutralino.os.execCommand(`taskkill /IM ${RELAY_EXE} /F`);
+        await Neutralino.os.execCommand(`taskkill /IM ${RELAY_NAME}.exe /F`);
     } catch (err) {
         console.warn("Relay termination failed or was already closed.");
     }
