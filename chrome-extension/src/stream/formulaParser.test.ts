@@ -33,7 +33,7 @@ describe('formula parser', () => {
             .evaluate({}, { vehicleDamage: { history: [
                     { time: new Date('2025-01-16 07:21:41').getTime(), value: 134.0 },
                     { time: new Date('2025-01-16 07:21:39').getTime(), value: 12.5 }
-                ], total: undefined, count: undefined }}))
+                ], total: undefined!, count: undefined! }}))
             .toEqual([134, 0, 12.5])
     })
     test('object like syntax', async () => {

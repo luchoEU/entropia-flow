@@ -89,10 +89,6 @@ class GameLogHistory implements IGameLogHistory {
         }
 
         if (line.data.event) {
-            if (line.data.event.action == 'missionCompleted') {
-                // remove kill when the mission is completed and gives rewards
-                this.removeFromKillCount(line.time)
-            }
             _unshiftWithMax(this.gameLog.event, line.data.event)
         }
 

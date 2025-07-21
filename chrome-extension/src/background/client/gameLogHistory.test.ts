@@ -17,7 +17,8 @@ describe('formula parser', () => {
         for (const line of lines.split('\n')) {
             await gameLogParser.onMessage(line)
         }
-        expect({ ...gameLogHistory.getGameLog(), raw: [] }).toEqual({ ...emptyGameLogData(), ...expected })
+        const log = gameLogHistory.getGameLog()
+        expect({ ...log, stats: { ...log.stats, lootStats: undefined }, raw: [] }).toEqual({ ...emptyGameLogData(), ...expected })
     }
 
     test('team', async () => await parseExpect(
@@ -182,6 +183,41 @@ describe('formula parser', () => {
         })
     )
 
+    test('kills interrupted', async () => await parseExpect(
+`2025-07-20 19:55:20 [System] [] You received Hyperion Daily Voucher x (1) Value: 0.0000 PED
+2025-07-20 19:55:20 [System] [] Mission completed (ARIS - Daily Hunting 3: Mortirex)
+2025-07-20 19:55:21 [System] [] You received Animal Pancreas Oil x (7) Value: 3.50 PED
+2025-07-20 19:55:21 [System] [] You received Shrapnel x (19222) Value: 1.92 PED`,
+        {
+            event: [{
+                action: "missionCompleted",
+                data: ["ARIS - Daily Hunting 3: Mortirex"],
+                message: "Mission completed (ARIS - Daily Hunting 3: Mortirex)",
+                time: "2025-07-20 19:55:20",
+            }],
+            loot: [{
+                name: 'Shrapnel',
+                quantity: 19222,
+                value: 1.92
+            }, {
+                name: 'Animal Pancreas Oil',
+                quantity: 7,
+                value: 3.5
+            }, {
+                name: 'Hyperion Daily Voucher',
+                quantity: 1,
+                value: 0
+            }],
+            stats: {
+                kills: {
+                    total: 1,
+                    count: 1,
+                    history: [{ time: gameTime('2025-07-20 19:55:20'), value: 1 }]
+                },
+            }
+        }
+    ))
+
     test('repairs', async () => await parseExpect(
 `2025-01-21 07:27:10 [System] [] The vehicle's Structural Integrity restored by 29.6
 2025-01-21 07:27:10 [System] [] Vehicle took 64.6 points of damage
@@ -279,7 +315,7 @@ describe('formula parser', () => {
                 type: 'discover',
                 player: 'Nanashana Nana Itsanai',
                 name: 'Genesis Star Ivaldi III (L) Blueprint (L)',
-                value: undefined,
+                value: undefined!,
                 isHoF: true,
                 isATH: false
             }]
@@ -373,7 +409,8 @@ describe('formula parser', () => {
         }
     ))
 
-    test('ignore complete as loot group', async () => await parseExpect(
+    // It is possible to receive a kill loot and a mission completed at the same time, like in 'kills interrupted'
+    test.failing('ignore complete as loot group', async () => await parseExpect(
 `2025-02-18 07:53:42 [System] [] You received Blazar Fragment x (200) Value: 0.0020 PED
 2025-02-18 07:53:42 [System] [] Mission completed (GenStar Mining Initiative - Asteroids)
 2025-02-18 07:53:42 [System] [] You received Recycling Scrip x (1) Value: 0.0100 PED`,

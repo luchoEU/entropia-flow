@@ -51,7 +51,9 @@ async function wiring(
     inventoryStorageArea: IStorageArea,
     gameLogStorageArea: IStorageArea,
     tabStorageArea: IStorageArea,
-    settingsStorageArea: IStorageArea) {
+    settingsStorageArea: IStorageArea,
+    isUnfreezeTabEnabled: () => Promise<boolean>,
+    loadBlueprintListAtStart: boolean) {
 
     // storage
     const inventoryStorage = new InventoryStorage(inventoryStorageArea)
@@ -77,8 +79,8 @@ async function wiring(
     const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
     
     // tabs
-    const contentTabManager = new ContentTabManager(contentPortManager)
-    const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs)
+    const contentTabManager = new ContentTabManager(contentPortManager, isUnfreezeTabEnabled)
+    const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs, loadBlueprintListAtStart)
 
     // links
     contentPortManager.onConnect = (port) => contentTabManager.onConnect(port)

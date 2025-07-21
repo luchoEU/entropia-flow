@@ -9,6 +9,7 @@ import ChromeTabManager from "../chrome/chromeTab"
 import ITabManager from "../chrome/ITab"
 import { AJAX_ALARM_NAME, DEAD_ALARM_NAME, FROZEN_ALARM_NAME, TICK_ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
+import { isUnfreezeTabEnabled } from "./settings/featureSettings"
 import WebSocketClient from "./client/webSocketClient"
 import TabStorage from "./tabStorage"
 import wiring from "./wiring"
@@ -34,7 +35,7 @@ class BackgroundInitializer {
 
         // wiring
         await wiring(messages, notifications, ajaxAlarm, frozenAlarm, deadAlarm, tickAlarm, tabs, actions, webSocketClient,
-            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE)
+            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, isUnfreezeTabEnabled, true)
 
         async function test() {
             traceOff()

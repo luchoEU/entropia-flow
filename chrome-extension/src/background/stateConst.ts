@@ -72,7 +72,7 @@ const STATE_PLEASE_LOG_IN_MONITORING_OFF: ViewState = {
 const STATE_NO_DATA: ViewState = {
     clientState: undefined,
     gameLog: emptyGameLogData(),
-    last: null,
+    last: null!,
     list: [{
         log: {
             class: CLASS_INFO,

@@ -23,10 +23,11 @@ class ChromeStorageArea implements IStorageArea {
 
     async set(name: string, value: any): Promise<void> {
         this.area.set({ [name]: value }, () => {
-            let error = chrome.runtime.lastError;
+            const error = chrome.runtime.lastError;
             if (error) {
-                traceError(Component.ChromeStorageArea, `set value in '${name}' length ${JSON.stringify(value).length} error ${chrome.runtime.lastError.message}:`, error)
-                throw new Error(chrome.runtime.lastError.message)
+                const errorMessage = error.message || 'Unknown error occurred';
+                traceError(Component.ChromeStorageArea, `set value in '${name}' length ${JSON.stringify(value).length} error ${errorMessage}:`, error)
+                throw new Error(errorMessage)
             }
         })
     }

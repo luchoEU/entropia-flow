@@ -9,7 +9,6 @@ import {
     STRING_SELECT_ITEMS_TAB
 } from '../../common/const'
 import { Component, trace, traceError } from '../../common/trace'
-import { isUnfreezeTabEnabled } from '../settings/featureSettings'
 import { IContentTab } from './refreshManager'
 
 //// CONTENT TAB ////
@@ -19,7 +18,7 @@ class ContentTabManager implements IContentTab {
     public onConnected: () => Promise<void>
     public onDisconnected: () => Promise<void>
 
-    constructor(portManager: IPortManager) {
+    constructor(portManager: IPortManager, private isUnfreezeTabEnabled: () => Promise<boolean>) {
         this.portManager = portManager
     }
 
@@ -34,10 +33,10 @@ class ContentTabManager implements IContentTab {
     }
 
     private _unfreezeTab(tab: chrome.tabs.Tab, logName: string) {
-        isUnfreezeTabEnabled().then(async (enabled) => {
+        this.isUnfreezeTabEnabled().then(async (enabled) => {
             if (!enabled) return
             const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            chrome.tabs.update(tab.id, { active: true }, () => {
+            chrome.tabs.update(tab.id!, { active: true }, () => {
                 trace(Component.ContentTabManager, `${logName} tab activated since it was frozen`);
                 if (currentTab && currentTab.id !== tab.id) {
                     chrome.tabs.update(currentTab.id!, { active: true }); // restore the previous tab
@@ -52,21 +51,23 @@ class ContentTabManager implements IContentTab {
             trace(Component.ContentTabManager, `${logName} port undefined`)
             return STRING_PLEASE_LOG_IN
         } else {
-            const tab = await chrome.tabs.get(port.getTabId())
-            if (tab.discarded) {
-                trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
-                chrome.tabs.reload(tab.id, {}, () => { });
-                return undefined
-            }
-            if (tab.frozen) {
-                this._unfreezeTab(tab, logName)
-                return STRING_SELECT_ITEMS_TAB
+            if (await this.isUnfreezeTabEnabled()) {
+                const tab = await chrome.tabs.get(port.getTabId())
+                if (tab.discarded) {
+                    trace(Component.ContentTabManager, `${logName} reload tab ${tab.id}`)
+                    chrome.tabs.reload(tab.id!, {}, () => { });
+                    return undefined!
+                }
+                if (tab['frozen']) {
+                    this._unfreezeTab(tab, logName)
+                    return STRING_SELECT_ITEMS_TAB
+                }
             }
 
             try {
                 trace(Component.ContentTabManager, `${logName} sent message ${messageName}`)
                 port.send(messageName)
-                return undefined
+                return undefined!
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {
                     // expected fail
@@ -86,7 +87,7 @@ class ContentTabManager implements IContentTab {
             return true
         } else {
             const tab = await chrome.tabs.get(port.getTabId())
-            if (tab.frozen) {
+            if (tab['frozen']) {
                 this._unfreezeTab(tab, 'checkFrozen')
                 return true
             }

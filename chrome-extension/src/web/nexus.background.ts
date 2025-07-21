@@ -1,12 +1,12 @@
 import { nexusWwwUrl } from "./nexus.url";
 
-export async function loadBlueprintList(): Promise<string[]> {
+export async function loadBlueprintList(): Promise<string[] | undefined> {
     const url = nexusWwwUrl(`items/blueprints`);
     const response = await _fetch(url);
     return response ? _extractBlueprintList(url)(response) : undefined;
 }
 
-async function _fetch(url: string): Promise<string> {
+async function _fetch(url: string): Promise<string | undefined> {
     try {
         const response = await fetch(url);
         if (!response.ok) {

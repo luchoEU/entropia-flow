@@ -15,14 +15,11 @@ import { loadBlueprintList } from '../../web/nexus.background'
 //// VIEW ////
 
 class ViewTabManager {
-    private portManager: IPortManager
-    private stateManager: ViewStateManager
-    private tabs: ITabManager
-
-    constructor(portManager: IPortManager, stateManager: ViewStateManager, tabs: ITabManager) {
-        this.portManager = portManager
-        this.stateManager = stateManager
-        this.tabs = tabs
+    constructor(
+        private portManager: IPortManager,
+        private stateManager: ViewStateManager,
+        private tabs: ITabManager,
+        private loadBlueprintList: boolean) {
 
         this.stateManager.onChange = async (state: ViewState) => {
             await this._refreshAll(state)
@@ -31,7 +28,9 @@ class ViewTabManager {
 
     public async onConnect(port: IPort): Promise<void> {
         await this._refreshOne(port)
-        await this._blueprintList(port)
+        if (this.loadBlueprintList) {
+            await this._blueprintList(port)
+        }
     }
 
     public async onDisconnect(port: IPort): Promise<void> {

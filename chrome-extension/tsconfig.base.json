@@ -9,6 +9,7 @@
       "es2019",
       "dom"
     ],
+    "types": ["chrome", "jest", "node"],
     "outDir": "dist/js",
     "rootDir": "src",
     "sourceMap": true,

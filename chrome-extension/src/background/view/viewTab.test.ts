@@ -19,9 +19,9 @@ describe('view tab', () => {
 
         const alarmStorage = new MockStorageArea()
         const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(undefined, undefined, undefined, undefined, undefined)
-        const viewTab = new ViewTabManager(portManager, viewState, undefined)
-        await viewState.setStatus(STATE_LOADING_ITEMS.status)
+        const viewState = new ViewStateManager(undefined!, undefined!, undefined!, undefined!, undefined!)
+        const viewTab = new ViewTabManager(portManager, viewState, undefined!, false)
+        await viewState.setStatus(STATE_LOADING_ITEMS.status!)
 
         expect(portManager.allMock.mock.calls.length).toBe(1)
         expect(port.sendMock.mock.calls.length).toBe(1)
