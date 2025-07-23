@@ -36,7 +36,6 @@
   },
   "cli": {
     "binaryName": "EntropiaFlowClient",
-    "copyItems": ["/relay/EntropiaFlowClient-relay.exe"],
     "resourcesPath": "/resources/",
     "extensionsPath": "/extensions/",
     "clientLibrary": "/resources/js/neutralino.js",

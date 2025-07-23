@@ -1,0 +1,23 @@
+{
+  "name": "entropia-flow-client",
+  "version": "0.0.1",
+  "description": "Entropia Flow Client",
+  "main": "index.js",
+  "scripts": {
+    "build-stream": "cd ..\\chrome-extension\\ && npm install && npm run stream-dev && robocopy dist.win ..\\win-client-app\\resources\\stream /E /COPY:DAT /R:0 /W:0 || exit 0",
+    "build-relay": "cd relay && rsrc -ico app.ico && go build -ldflags=\"-s -w\" .",
+    "build": "webpack",
+    "build-all": "npm run build-stream && npm run build-relay && npm run build && neu build --release",
+    "zip": "node script/zip.js",
+    "pack": "npm run build-all && npm run zip"
+  },
+  "author": "Lucho MUCHO Ireton",
+  "license": "MIT",
+  "devDependencies": {
+    "adm-zip": "^0.5.16",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.100.2",
+    "webpack-cli": "^6.0.1"
+  }
+}

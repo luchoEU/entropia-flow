@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": true,                // Emit .d.ts files
+    "declarationDir": "./dist.win",     // Output directory
+    "emitDeclarationOnly": true,        // Avoid emitting JS
+    "outDir": "./dist.win",             // Match `declarationDir` if needed
+    "module": "ESNext",                 // Important for splitting modules
+    "moduleResolution": "node"
+  },
+  "include": ["src/stream/**/*"]
+}

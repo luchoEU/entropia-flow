@@ -14,8 +14,9 @@
         "build": "webpack --config webpack.prod.js",
         "dev": "webpack --config webpack.dev.js",
         "watch": "webpack -w --config webpack.dev.js",
-        "stream": "webpack --config webpack.stream.prod.js",
-        "stream-dev": "webpack --config webpack.stream.dev.js",
+        "stream-types": "tsc --project tsconfig.stream-types.json",
+        "stream": "npm run stream-types && webpack --config webpack.stream.prod.js",
+        "stream-dev": "npm run stream-types && webpack --config webpack.stream.dev.js",
         "stream-single": "webpack --config webpack.stream.singlefile.js",
         "test": "jest"
     },

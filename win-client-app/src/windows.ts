@@ -10,7 +10,7 @@ async function openGameWindow() {
         borderless: true,
         hidden: false,
         exitProcessOnClose: true,
-    });
+    } as any); // use any since the definition is wrong in center, x, y
     //await Neutralino.storage.setData(`init-${w.pid}`, await getInitData());
 }
 
@@ -25,5 +25,10 @@ async function openSettingsWindow() {
         center: true,
         hidden: false,
         exitProcessOnClose: true,
-    });
+    } as any); // use any since the definition is wrong in center, x, y
+}
+
+export {
+    openGameWindow,
+    openSettingsWindow
 }

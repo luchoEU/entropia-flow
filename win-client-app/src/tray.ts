@@ -1,21 +1,10 @@
-/*
-    Function to display information about the Neutralino app.
-    This function updates the content of the 'info' element in the HTML
-    with details regarding the running Neutralino application, including
-    its ID, port, operating system, and version information.
-*/
-function showInfo() {
-    document.getElementById('info').innerHTML = `
-        ${NL_APPID} is running on port ${NL_PORT} inside ${NL_OS}
-        <br/><br/>
-        <span>server: v${NL_VERSION} . client: v${NL_CVERSION}</span>
-        `;
-}
+import { clientVersion } from "./const";
+import { Socket } from "./socket";
+import { CLIENT_EXE } from "./const";
+import { openGameWindow, openSettingsWindow } from "./windows";
 
 /*
-    Function to set up a system tray menu with options specific to the window mode.
-    This function checks if the application is running in window mode, and if so,
-    it defines the tray menu items and sets up the tray accordingly.
+    Set up a system tray menu with options specific to the window mode.
 */
 function setTray() {
     // Tray menu is only available in window mode
@@ -28,12 +17,12 @@ function setTray() {
     let tray = {
         icon: "/resources/img/appIcon.png",
         menuItems: [
-            {id: "NEW", text: "Create New Window"},
-            {id: "SETTINGS", text: "Open Settings"},
+            {id: "NEW", text: "New Window"},
+            {id: "SETTINGS", text: "Settings"},
             {id: "SHORTCUT", text: "Create Desktop Shortcut"},
-            {id: "VERSION", text: "Show Client Version"},
+            {id: "VERSION", text: "Version"},
             {id: "SEP", text: "-"},
-            {id: "QUIT", text: "Quit Application"}
+            {id: "QUIT", text: "Exit"}
         ]
     };
 
@@ -42,11 +31,11 @@ function setTray() {
 }
 
 /*
-    Function to handle click events on the tray menu items.
-    This function performs different actions based on the clicked item's ID,
+    Handle click events on the tray menu items.
+    Perform different actions based on the clicked item's ID,
     such as displaying version information or exiting the application.
 */
-function onTrayMenuItemClicked(event) {
+async function onTrayMenuItemClicked(event: any) {
     switch(event.detail.id) {
         case "SETTINGS":
             openSettingsWindow();
@@ -61,17 +50,20 @@ function onTrayMenuItemClicked(event) {
             Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025 Lucho MUCHO Ireton`);
             break;
         case "QUIT":
-            exitApplication();
+            await Socket.exit();
+            Neutralino.app.exit();
             break;
     }
 }
 
 async function createDesktopShortcut() {
-    const desktopPath = await Neutralino.os.getEnv('USERPROFILE') + '\\Desktop';
+    const desktopCommand = `powershell -NoProfile -Command "[Environment]::GetFolderPath('Desktop')"`;
+    const desktopResult = await Neutralino.os.execCommand(desktopCommand);
+    const desktopPath = desktopResult.stdOut.trim();
     const shortcutPath = `${desktopPath}\\Entropia Flow Client.lnk`;
 
     const currPath = NL_CWD.replace(/\//g, '\\');
-    const appPath = `${currPath}\\${NL_DATAPATH}\\${CLIENT_EXE}`;
+    const appPath = `${currPath}\\${CLIENT_EXE}`;
 
     const psScript = `
     $ws = New-Object -comObject WScript.Shell;
@@ -84,9 +76,20 @@ async function createDesktopShortcut() {
     `
     const command = `powershell -ExecutionPolicy Bypass -Command "${psScript.replace(/\n/g, '').replace(/"/g, '\\"')}"`;
     console.log(command);
-    await Neutralino.os.execCommand(command);    
-    await Neutralino.os.showMessageBox("Shortcut created", "Shortcut created successfully");
+    const result = await Neutralino.os.execCommand(command);
+    if (result.exitCode === 0) {
+        console.log("Shortcut created successfully.");
+        await Neutralino.os.showMessageBox("Shortcut created", "Shortcut created successfully");
+    } else {
+        console.error("Shortcut creation failed:", result.exitCode, result.stdErr);
+        await Neutralino.os.showMessageBox("Shortcut creation failed", `Shortcut creation failed: ${result.exitCode}\n${result.stdErr}`);
+    }
 }
 
-Neutralino.events.on("trayMenuItemClicked", onTrayMenuItemClicked);
-setTray();
+const Tray = {
+    init: () => {
+        setTray();
+        Neutralino.events.on("trayMenuItemClicked", onTrayMenuItemClicked);
+    }
+}
+export { Tray }

@@ -3,9 +3,6 @@
 /dist
 /.tmp
 
-# Neutralinojs client (minified)
-neutralino.js
-
 # Neutralinojs related files
 .storage
 *.log
@@ -13,6 +10,12 @@ neutralino.js
 # Entropia flow stream render code
 /resources/stream
 
+# Neutralinojs client (minified) and webpacked files
+/resources/js
+
 # Web Socket Relay
 rsrc_windows_amd64.syso
 EntropiaFlowClient-relay.exe
+
+# node
+node_modules

@@ -1,9 +1,13 @@
-// A global variable to hold our WebSocket connection
-let ws;
-const clientId = 'entropia-flow-client';
-const clientVersion = '0.0.1';
+import { applyDelta } from "clientStream";
+import { clientId, clientVersion, RELAY_NAME, RELAY_PATH } from './const';
+import { ScreenData, SettingsData, StreamData } from './data';
+import { openGameWindow } from './windows';
+import { getLocalIpAddress } from "./utils";
 
-async function sendDataToWindow(name, version, data) {
+// A global variable to hold our WebSocket connection
+let ws: WebSocket;
+
+async function sendDataToWindow(name: string, version: number, data: any) {
     await Neutralino.storage.setData(name, JSON.stringify(data));
     await Neutralino.storage.setData(`${name}Ver`, version.toString());
 }
@@ -11,7 +15,7 @@ async function sendDataToWindow(name, version, data) {
 sendDataToWindow('screens', 0, {});
 sendDataToWindow('stream', 0, {});
 
-let wsData;
+let wsData: { port: number, uri: string };
 async function initializeWebSocketData() {
     let port = 6522;
     try {
@@ -21,7 +25,7 @@ async function initializeWebSocketData() {
     wsData = { port, uri: `ws://${ip ?? 'localhost'}:${port}` };
 }
 
-function parseAndLogMessage(json, from = 'server') {
+function parseAndLogMessage(json: string, from = 'server') {
     // The data from the server is in 'event.data' and is a JSON string.
     console.log(`Raw message received from ${from}:`, json);
 
@@ -34,21 +38,19 @@ function parseAndLogMessage(json, from = 'server') {
 }
 
 let _screensVer = 0;
-let _screensData = {};
+let _screensData: ScreenData = {};
 let _settingsVer = 0;
-let _settingsData = {};
+let _settingsData: SettingsData = {};
 let _streamVer = 0;
-let _streamData = {};
+let _streamData: StreamData = {};
 
 // Function to establish and manage the WebSocket connection
-let closeWebSocket;
+let closeWebSocket: () => void;
 async function connectWebSocket() {
     await initializeWebSocketData();
 
     ws = new WebSocket(wsData.uri);
-    closeWebSocket = async () => {
-        await ws.close();
-    }
+    closeWebSocket = () => ws.close(); 
 
     _settingsVer++;
     _settingsData.ws = { ...wsData, clientStatus: 'Connecting', extensionStatus: 'Unknown' };
@@ -102,13 +104,15 @@ async function connectWebSocket() {
                 break;
             case "stream":
                 _streamVer++;
-                _streamData = clientStream.applyDelta(_streamData, message.data);
+                _streamData = applyDelta(_streamData, message.data);
                 sendDataToWindow('stream', _streamVer, _streamData);
                 break;
             case "server-status":
-                _settingsVer++;
-                _settingsData.ws.extensionStatus = message.data.connectedClients.includes('chrome-extension') ? 'Connected' : 'Disconnected';
-                sendDataToWindow('settings', _settingsVer, _settingsData);
+                if (_settingsData.ws) {
+                    _settingsVer++;
+                    _settingsData.ws.extensionStatus = message.data.connectedClients.includes('chrome-extension') ? 'Connected' : 'Disconnected';
+                    sendDataToWindow('settings', _settingsVer, _settingsData);
+                }
                 break;
             case "disconnect":
                 _streamVer++;
@@ -152,7 +156,7 @@ async function connectWebSocket() {
 
 // A helper function to send data TO the extension
 // This is the "sender" part of the loop
-function sendMessage(type, payload, to = "chrome-extension") {
+function sendMessage(type: string, payload: any, to = "chrome-extension") {
     if (ws && ws.readyState === WebSocket.OPEN) {
         const message = {
             type: type,
@@ -170,7 +174,7 @@ function sendMessage(type, payload, to = "chrome-extension") {
 setInterval(async () => {
     try {
         const messageJson = await Neutralino.storage.getData('message');
-        await Neutralino.storage.setData('message', null);
+        await Neutralino.storage.setData('message', null!);
         const message = parseAndLogMessage(messageJson, 'window');
         if (message.to === clientId) {
             switch (message.type) {
@@ -188,7 +192,7 @@ setInterval(async () => {
                         await Neutralino.storage.setData('wsPort', wsPort.toString());
 
                         // restart relay
-                        await closeWebSocket();
+                        closeWebSocket();
                         await killRelay();
                         await startRelayIfNotRunning();
                         await connectWebSocket();
@@ -217,13 +221,17 @@ async function startRelayIfNotRunning() {
         
             const command = `powershell -WindowStyle Hidden -Command "Start-Process '${RELAY_PATH}' -ArgumentList '--port', '${wsData.port}' -WindowStyle Hidden"`;
             console.log(command);
-            await Neutralino.os.execCommand(command);
 
-            console.log("Relay launched.");
+            const result = await Neutralino.os.execCommand(command);
+            if (result.exitCode === 0) {
+                console.log("Relay launched correctly.");
+            } else {
+                console.error("Relay launch failed:", result.exitCode, result.stdErr);
+            }
         } else {
             console.log("Relay is already running.");
         }
-    } catch (err) {
+    } catch (err: any) {
         if (err.message && err.message.includes("Command failed")) {
             console.log("Relay is not running. Starting it...");
             await Neutralino.os.execCommand(`start "" /B "${RELAY_PATH}"`);
@@ -242,17 +250,23 @@ async function killRelay() {
     }
 }
 
-startRelayIfNotRunning().then(() => connectWebSocket());
+const Socket = {
+    init: async () => {
+        // clear kill signal
+        Neutralino.storage.setData('stream', null!);
+        Neutralino.storage.setData('settings', null!);
+        await startRelayIfNotRunning();
+        await connectWebSocket();
+    },
+    exit: async () => {
+        // send kill signal
+        await sendDataToWindow('stream', Infinity, { kill: true });
+        await sendDataToWindow('settings', Infinity, { kill: true });
+        closeWebSocket();
+        await killRelay();
+    }
+}
 
-async function exitApplication() {
-    await closeWebSocket();
-    await sendDataToWindow('stream', Infinity, { kill: true });
-    await sendDataToWindow('settings', Infinity, { kill: true });
-    await killRelay();
-    Neutralino.app.exit();
-};
-
-function clearKillSignal() {
-    Neutralino.storage.setData('stream', null);
-    Neutralino.storage.setData('settings', null);
+export {
+    Socket
 }

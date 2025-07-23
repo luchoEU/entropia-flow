@@ -1,9 +1,32 @@
-﻿const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
+﻿import { render as clientRender, applyDelta } from "clientStream";
+import { StreamRenderSingle } from "../resources/stream/stream/data";
+import { SettingsData } from "./data";
+import { StreamRenderObject } from "../resources/stream/stream/data";
+import { sendMessage } from "./messages";
+import { setContentSize } from "./position";
+import { copyTextToClipboard } from "./utils";
+
+const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
 const MENU_LAYOUT_ID = PREFIX_LAYOUT_ID + 'menu';
 const OCR_LAYOUT_ID = PREFIX_LAYOUT_ID + 'ocr';
 
-let _lastData = {
+interface StreamWindowLayout {
+    name: string;
+    htmlTemplate?: string;
+    cssTemplate?: string;
+    action?: () => void;
+    backgroundType?: number;
+}
+
+interface StreamWindowRenderData {
+    layouts: Record<string, StreamWindowLayout>;
+    layoutIdList: string[];
+    commonData?: StreamRenderObject;
+    layoutData?: Record<string, StreamRenderObject>;
+}
+
+let _lastData: StreamWindowRenderData = {
     layouts: {
         [WAITING_LAYOUT_ID]: {
             name: 'Entropia Flow Waiting',
@@ -54,7 +77,7 @@ let _lastData = {
                 const copyButton = document.getElementById("copyButton");
                 copyButton?.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    copyTextToClipboard(_lastData.commonData.uri, 'copyPopup');
+                    copyTextToClipboard(_lastData.commonData!.uri as string, 'copyPopup');
                 })
             }
         },
@@ -99,10 +122,11 @@ let _lastData = {
             `,
             action: () => {
                 const layoutRoot = document.querySelector(".layout-root");
-                for (const layoutDiv of layoutRoot.children) {
+                for (const layoutDiv of layoutRoot?.children ?? []) {
                     layoutDiv.addEventListener("click", (e) => {
                         e.stopPropagation();
-                        selectLayout(e.currentTarget.dataset.layout);
+                        const layout = (e.currentTarget as HTMLElement)?.dataset?.layout;
+                        if (layout) selectLayout(layout);
                     });
                 }
             }
@@ -151,7 +175,8 @@ let _lastData = {
             `,
             action: () => _setScannerTimeout()
         },*/
-    }
+    },
+    layoutIdList: []
 }
 /*
 function _setScannerTimeout() {
@@ -168,21 +193,22 @@ const _emptyLayout = {
     name: 'Entropia Flow Client Empty',
 };
 
-function receive(delta) {
-    _lastData = clientStream.applyDelta(_lastData, delta);
-    _lastData.commonData.layouts = Object.entries(_lastData.layouts)
+function receive(delta: any) {
+    _lastData = applyDelta(_lastData, delta);
+    const layouts = Object.entries(_lastData.layouts)
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
-    _lastData.layoutIdList = _lastData.commonData.layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+    _lastData.layoutIdList = layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+    _lastData.commonData!.layouts = layouts;
 }
 
-function dispatch(action) {
+function dispatch(action: string) {
     sendMessage('dispatch', action);
 }
 
 let _disableRender = false
-async function render(s) {
+async function render(s: { layoutId: string, scale?: number, minimized?: boolean }) {
     if (_disableRender) return; // for debugging
     const d = _lastData;
 
@@ -197,62 +223,68 @@ async function render(s) {
     }
 
     const layoutData = d.layoutData?.[s.layoutId];
-    const single = {
+    const single: StreamRenderSingle = {
         data: layoutData ? {
             ...d.commonData,
             ...layoutData,
             img: {
-                ...d.commonData.img,
-                ...layoutData.img
+                ...d.commonData?.img as object,
+                ...layoutData.img as object
             }
-        } : d.commonData,
-        layout
+        } : d.commonData!,
+        layout: layout as any
     };
-    let size = await clientStream.render(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    let size = await clientRender(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
         await setContentSize(size);
 
         size = { width: Math.floor(size.width), height: Math.floor(size.height) };
-        const style = document.getElementById('entropia-flow-client-nav').style;
-        if (scale > 1) {
-            style.width = `${size.width / scale}px`;
-            style.height = `${size.height / scale}px`;
-            style.transform = `scale(${scale})`;
-            style.transformOrigin = 'top left';
-        } else {
-            style.width = `${size.width}px`;
-            style.height = `${size.height}px`;
-            style.removeProperty('transform');
+        const clientNav = document.getElementById('entropia-flow-client-nav')
+        if (clientNav) {
+            const style = clientNav.style;
+            if (scale > 1) {
+                style.width = `${size.width / scale}px`;
+                style.height = `${size.height / scale}px`;
+                style.transform = `scale(${scale})`;
+                style.transformOrigin = 'top left';
+            } else {
+                style.width = `${size.width}px`;
+                style.height = `${size.height}px`;
+                style.removeProperty('transform');
+            }
         }
     }
 
-    document.getElementById('entropia-flow-client-hover-area').className = s.minimized ? 'entropia-flow-client-minimized' : '';
-    document.getElementById('entropia-flow-client-layout').innerText = layout?.name ?? '';
+    const hoverArea = document.getElementById('entropia-flow-client-hover-area');
+    if (hoverArea) hoverArea.className = s.minimized ? 'entropia-flow-client-minimized' : '';
+
+    const layoutDiv = document.getElementById('entropia-flow-client-layout');
+    if (layoutDiv) layoutDiv.innerText = layout?.name ?? '';
 
     layout?.action?.();
 }
 
 function _setupButtons() {
     const minimize = document.getElementById('entropia-flow-client-minimize');
-    minimize.addEventListener('click', (e) => {
+    minimize?.addEventListener('click', (e) => {
         e.stopPropagation();
         switchMinimized();
     });
 
     const menu = document.getElementById('entropia-flow-client-menu');
-    menu.addEventListener('click', (e) => {
+    menu?.addEventListener('click', (e) => {
         e.stopPropagation();
         sendMessage('menu', '', 'entropia-flow-client');
     });
 
     const next = document.getElementById('entropia-flow-client-next');
-    next.addEventListener('click', (e) => {
+    next?.addEventListener('click', (e) => {
         e.stopPropagation();
         nextLayout();
     });
 
     const close = document.getElementById('entropia-flow-client-close');
-    close.addEventListener('click', (e) => {
+    close?.addEventListener('click', (e) => {
         e.stopPropagation();
         Neutralino.app.exit(); // close only this window
     });
@@ -265,9 +297,9 @@ let _layoutId = MENU_LAYOUT_ID;
 //let _scale = 1;
 let _minimized = false;
 let _waiting = false;
-let _settings = {};
+let _settings: SettingsData = {};
 
-function settingsChanged(payload) {
+function settingsChanged(payload: SettingsData) {
     _settings = payload;
     if (_waiting || _settings.ws?.extensionStatus !== 'Connected') {
         renderWaiting();
@@ -280,7 +312,7 @@ async function renderWaiting() {
     render({ layoutId: WAITING_LAYOUT_ID });
 }
 
-function streamChanged(payload) {
+function streamChanged(payload: any) {
     if (payload.kill) {
         Neutralino.app.exit();
     }
@@ -294,7 +326,7 @@ function streamChanged(payload) {
     }
 }
 
-function selectLayout(layoutId) {
+function selectLayout(layoutId: string) {
     _layoutId = layoutId;
     render({ layoutId: _layoutId, minimized: _minimized });
 }
@@ -317,3 +349,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     _setupButtons();
     await renderWaiting();
 });
+
+export {
+    streamChanged,
+    settingsChanged
+}

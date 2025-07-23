@@ -11,7 +11,7 @@ module.exports = {
     filename: "[name].js",
     chunkFilename: 'chunks/[name].js',
     assetModuleFilename: 'img/[name].[hash:8].[ext]',
-    library: 'clientStream'
+    library: 'ClientStream'
   },
   module: {
     rules: [

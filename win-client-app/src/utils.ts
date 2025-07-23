@@ -1,12 +1,10 @@
-const CLIENT_EXE = 'EntropiaFlowClient-win_x64.exe'
-const RELAY_NAME = 'EntropiaFlowClient-relay';
-const RELAY_PATH = `relay/${RELAY_NAME}.exe`;
-
 /**
  * Copies the given text to the clipboard using the modern browser API.
  * @param {string} text The text to copy.
  */
-async function copyTextToClipboard(text, popupId) {
+async function copyTextToClipboard(text: string | null | undefined, popupId: string): Promise<boolean> {
+    if (!text) return false;
+
     let copied = false;
     try {
         await navigator.clipboard.writeText(text);
@@ -18,9 +16,11 @@ async function copyTextToClipboard(text, popupId) {
 
     if (popupId) {
         const popup = document.getElementById(popupId);
-        popup.style.display = 'block';
-        popup.innerText = copied ? 'Copied!' : 'Failed!';
-        setTimeout(() => { popup.style.display = 'none' }, 1000);
+        if (popup) {
+            popup.style.display = 'block';
+            popup.innerText = copied ? 'Copied!' : 'Failed!';
+            setTimeout(() => { popup.style.display = 'none' }, 1000);
+        }
     }
 
     return copied;
@@ -78,4 +78,9 @@ async function getLocalIpAddress() {
         console.error(`Error executing command '${command}':`, err);
         return null;
     }
+}
+
+export {
+    copyTextToClipboard,
+    getLocalIpAddress
 }

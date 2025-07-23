@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "types": ["./resources/js/neutralino.d.ts"],
+    "baseUrl": ".",
+    "paths": {
+        "clientStream": ["resources/stream/stream/clientEntry.d.ts"]
+    },
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src", "types"]
+}

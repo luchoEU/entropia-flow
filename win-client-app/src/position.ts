@@ -1,5 +1,12 @@
-let _screens = undefined;
-function screensChanged(screens) {
+interface OneScreen {
+    x: number
+    y: number
+    width: number
+    height: number
+}
+
+let _screens: OneScreen[] = [];
+function screensChanged(screens: OneScreen[]) {
     _screens = screens;
 };
 
@@ -8,7 +15,7 @@ let _snap = {
     bottom: false,
 }
 async function keepWindowOnScreen(updateSnap = true) {
-    if (!_screens?.find) {
+    if (!_screens?.find || _screens.length === 0) {
         console.log('No screens information');
         return;
     }
@@ -22,20 +29,20 @@ async function keepWindowOnScreen(updateSnap = true) {
     // Clamp the window to the nearest screen where it's partially or mostly visible
     let targetScreen = _screens.find(screen => {
         return (
-            x + windowSize.width > screen.x &&
+            x + windowSize.width! > screen.x &&
             x < screen.x + screen.width &&
-            y + windowSize.height > screen.y &&
+            y + windowSize.height! > screen.y &&
             y < screen.y + screen.height
         );
     });
 
     // If not found, fallback to primary screen
     if (!targetScreen) {
-        targetScreen = screens[0];
+        targetScreen = _screens[0];
     }
 
-    const maxX = targetScreen.x + targetScreen.width - windowSize.width;
-    const maxY = targetScreen.y + targetScreen.height - windowSize.height;
+    const maxX = targetScreen.x + targetScreen.width - windowSize.width!;
+    const maxY = targetScreen.y + targetScreen.height - windowSize.height!;
 
     if (x < targetScreen.x) x = targetScreen.x;
     if (y < targetScreen.y) y = targetScreen.y;
@@ -59,7 +66,7 @@ async function keepWindowOnScreen(updateSnap = true) {
 
 let _deltaW = 0
 let _deltaH = 0
-async function setContentSize(size, isRetry = false) {
+async function setContentSize(size: { width: number, height: number }, isRetry = false) {
     const deltaX = window.innerWidth - size.width;
     const deltaY = window.innerHeight - size.height;
     if (deltaX === 0 && deltaY === 0) return;
@@ -88,4 +95,10 @@ async function setContentSize(size, isRetry = false) {
 
         setContentSize(size, true);
     }, 100);
+}
+
+export {
+    screensChanged,
+    setContentSize,
+    keepWindowOnScreen
 }
