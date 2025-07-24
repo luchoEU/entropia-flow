@@ -1,3 +1,4 @@
+import { STORE_SETTINGS } from "./const";
 import { receiveUpdates, sendMessage } from "./messages";
 import { copyTextToClipboard } from "./utils";
 
@@ -57,7 +58,7 @@ async function saveSettings() {
 
 Neutralino.init();
 Neutralino.events.on('ready', () => {
-    receiveUpdates('settings', 500, (payload: any) => {
+    receiveUpdates(STORE_SETTINGS, 500, (payload: any) => {
         if (payload?.kill) {
             Neutralino.app.exit();
         } else {

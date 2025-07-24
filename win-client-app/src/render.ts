@@ -4,7 +4,9 @@ import { SettingsData } from "./data";
 import { StreamRenderObject } from "../resources/stream/stream/data";
 import { sendMessage } from "./messages";
 import { setContentSize } from "./position";
-import { copyTextToClipboard } from "./utils";
+import { copyTextToClipboard, interpolate } from "./utils";
+import { STORE_INIT, STORE_WINDOW } from "./const";
+import { WindowData } from "./windows";
 
 const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
@@ -24,6 +26,7 @@ interface StreamWindowRenderData {
     layoutIdList: string[];
     commonData?: StreamRenderObject;
     layoutData?: Record<string, StreamRenderObject>;
+    canRestore?: boolean;
 }
 
 let _lastData: StreamWindowRenderData = {
@@ -193,6 +196,34 @@ const _emptyLayout = {
     name: 'Entropia Flow Client Empty',
 };
 
+const minimizeButton = document.getElementById('entropia-flow-client-minimize');
+const menuButton = document.getElementById('entropia-flow-client-menu');
+const restoreButton = document.getElementById('entropia-flow-client-restore');
+const closeButton = document.getElementById('entropia-flow-client-close');
+
+function _setupButtons() {
+    minimizeButton?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        switchMinimized();
+    });
+
+    menuButton?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sendMessage('menu', '', 'entropia-flow-client');
+    });
+
+    restoreButton?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sendMessage('restore', '', 'entropia-flow-client');
+    });
+
+    closeButton?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        Neutralino.storage.setData(STORE_WINDOW, null!);
+        Neutralino.app.exit(); // close only this window
+    });
+}
+
 function receive(delta: any) {
     _lastData = applyDelta(_lastData, delta);
     const layouts = Object.entries(_lastData.layouts)
@@ -220,6 +251,10 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
             backgroundType: layout.backgroundType
         };
         scale = 1;
+    }
+
+    if (restoreButton) {
+        restoreButton.style.display = _lastData.canRestore ? 'block' : 'none';
     }
 
     const layoutData = d.layoutData?.[s.layoutId];
@@ -264,32 +299,6 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     layout?.action?.();
 }
 
-function _setupButtons() {
-    const minimize = document.getElementById('entropia-flow-client-minimize');
-    minimize?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        switchMinimized();
-    });
-
-    const menu = document.getElementById('entropia-flow-client-menu');
-    menu?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sendMessage('menu', '', 'entropia-flow-client');
-    });
-
-    const next = document.getElementById('entropia-flow-client-next');
-    next?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        nextLayout();
-    });
-
-    const close = document.getElementById('entropia-flow-client-close');
-    close?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        Neutralino.app.exit(); // close only this window
-    });
-}
-
 /// Controller ///
 
 //const _sLastWindowId;
@@ -326,27 +335,59 @@ function streamChanged(payload: any) {
     }
 }
 
+let _storeIntervalId: number = 0;
+function storeWindowData() {
+    if (_storeIntervalId) window.clearInterval(_storeIntervalId);
+    Neutralino.storage.setData(interpolate(STORE_WINDOW, NL_PID), JSON.stringify({ layoutId: _layoutId, minimized: _minimized, time: Date.now() }));
+    _storeIntervalId = window.setInterval(async () => {
+        const pos = await Neutralino.window.getPosition();
+        const size = await Neutralino.window.getSize();
+        const winData: WindowData = {
+            layoutId: _layoutId,
+            minimized: _minimized,
+            time: Date.now(),
+            x: pos.x,
+            y: pos.y,
+            width: size.width!,
+            height: size.height!
+        };
+        Neutralino.storage.setData(interpolate(STORE_WINDOW, NL_PID), JSON.stringify(winData));
+    }, 40000); // update every 40 seconds to mark as keep alive
+}
+
 function selectLayout(layoutId: string) {
     _layoutId = layoutId;
+    storeWindowData();
     render({ layoutId: _layoutId, minimized: _minimized });
 }
 
 function switchMinimized() {
     _minimized = !_minimized;
+    storeWindowData();
     render({ layoutId: _layoutId, minimized: _minimized });
-}
-
-function nextLayout() {
-    const layouts = _lastData.layoutIdList;
-    const index = layouts?.indexOf(_layoutId) ?? -1;
-    if (index !== -1) {
-        _layoutId = index + 1 === layouts.length ? layouts[0] : layouts[index + 1];
-        render({ layoutId: _layoutId, minimized: _minimized });
-    }
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
     _setupButtons();
+    
+    // Load initialization data
+    const initKey = interpolate(STORE_INIT, NL_PID);
+    let initData: WindowData;
+    try {
+        initData = JSON.parse(await Neutralino.storage.getData(initKey));
+    } catch {
+        initData = { layoutId: MENU_LAYOUT_ID, minimized: false, x: 0, y: 0, width: 0, height: 0, time: Date.now() };
+    }
+    const { layoutId, minimized, x, y, width, height } = initData;
+    _layoutId = layoutId;
+    _minimized = minimized;
+    if (x && y && width && height) {
+        await Neutralino.window.move(x, y);
+        await Neutralino.window.setSize({ width, height });
+    }
+    await Neutralino.storage.setData(initKey, null!);
+    storeWindowData();
+
     await renderWaiting();
 });
 

@@ -1,8 +1,8 @@
 import { Socket } from "./socket";
-import { openGameWindow } from "./windows";
 import { Tray } from "./tray";
+import { openLastGameWindows } from "./windows";
 
 Neutralino.init();
 Socket.init();
 Tray.init();
-openGameWindow();
+openLastGameWindows();

@@ -80,7 +80,12 @@ async function getLocalIpAddress() {
     }
 }
 
+function interpolate(template: string, ...args: string[]): string {
+    return template.replace(/\$(\d+)/g, (_, index) => args[parseInt(index) - 1] ?? '');
+}
+
 export {
     copyTextToClipboard,
-    getLocalIpAddress
+    getLocalIpAddress,
+    interpolate
 }

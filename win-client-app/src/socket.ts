@@ -1,15 +1,15 @@
 import { applyDelta } from "clientStream";
-import { clientId, clientVersion, RELAY_NAME, RELAY_PATH } from './const';
+import { clientId, clientVersion, RELAY_NAME, RELAY_PATH, STORE_MESSAGE, STORE_SETTINGS, STORE_STREAM, STORE_VER, STORE_WS_PORT } from './const';
 import { ScreenData, SettingsData, StreamData } from './data';
 import { openGameWindow } from './windows';
-import { getLocalIpAddress } from "./utils";
+import { getLocalIpAddress, interpolate } from "./utils";
 
 // A global variable to hold our WebSocket connection
 let ws: WebSocket;
 
 async function sendDataToWindow(name: string, version: number, data: any) {
     await Neutralino.storage.setData(name, JSON.stringify(data));
-    await Neutralino.storage.setData(`${name}Ver`, version.toString());
+    await Neutralino.storage.setData(interpolate(STORE_VER, name), version.toString());
 }
 
 sendDataToWindow('screens', 0, {});
@@ -19,7 +19,7 @@ let wsData: { port: number, uri: string };
 async function initializeWebSocketData() {
     let port = 6522;
     try {
-        port = parseInt(await Neutralino.storage.getData('wsPort'));
+        port = parseInt(await Neutralino.storage.getData(STORE_WS_PORT));
     } catch { } // may not exist
     const ip = await getLocalIpAddress()
     wsData = { port, uri: `ws://${ip ?? 'localhost'}:${port}` };
@@ -173,8 +173,8 @@ function sendMessage(type: string, payload: any, to = "chrome-extension") {
 
 setInterval(async () => {
     try {
-        const messageJson = await Neutralino.storage.getData('message');
-        await Neutralino.storage.setData('message', null!);
+        const messageJson = await Neutralino.storage.getData(STORE_MESSAGE);
+        await Neutralino.storage.setData(STORE_MESSAGE, null!);
         const message = parseAndLogMessage(messageJson, 'window');
         if (message.to === clientId) {
             switch (message.type) {
@@ -189,7 +189,7 @@ setInterval(async () => {
                     const wsPort = parseInt(message.payload.wsPort);
                     if (!isNaN(wsPort) && _settingsData.ws && _settingsData.ws.port !== wsPort) {
                         sendMessage("set-port", { port: wsPort }, 'server-node');
-                        await Neutralino.storage.setData('wsPort', wsPort.toString());
+                        await Neutralino.storage.setData(STORE_WS_PORT, wsPort.toString());
 
                         // restart relay
                         closeWebSocket();
@@ -253,15 +253,15 @@ async function killRelay() {
 const Socket = {
     init: async () => {
         // clear kill signal
-        Neutralino.storage.setData('stream', null!);
-        Neutralino.storage.setData('settings', null!);
+        Neutralino.storage.setData(STORE_STREAM, null!);
+        Neutralino.storage.setData(STORE_SETTINGS, null!);
         await startRelayIfNotRunning();
         await connectWebSocket();
     },
     exit: async () => {
         // send kill signal
-        await sendDataToWindow('stream', Infinity, { kill: true });
-        await sendDataToWindow('settings', Infinity, { kill: true });
+        await sendDataToWindow(STORE_STREAM, Infinity, { kill: true });
+        await sendDataToWindow(STORE_SETTINGS, Infinity, { kill: true });
         closeWebSocket();
         await killRelay();
     }
