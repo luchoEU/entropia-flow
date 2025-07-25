@@ -43,7 +43,7 @@ class ItemsReader {
                     var row = rows[i];
                     var cells = row.getElementsByTagName('td');
                     if (cells.length === 4) {
-                        const id = cells[0].getAttribute('id').split('_')[2]
+                        const id = cells[0].getAttribute('id')?.split('_')[2] ?? ''
                         const n = cells[0].innerText
                         const q = cells[1].innerText
                         const v = cells[2].innerText
@@ -52,17 +52,17 @@ class ItemsReader {
                         if (containerChildren.length === 0) {
                             c = cells[3].innerText
                         } else {
-                            c = containerChildren[0].textContent
+                            c = containerChildren[0].textContent ?? ''
                             if (containerChildren.length === 2) {
                                 var anchor = containerChildren[1] as HTMLAnchorElement
                                 if (anchor) {
                                     c += '('
-                                    c += anchor.getAttribute('href').split('_')[2]
+                                    c += anchor.getAttribute('href')?.split('_')[2] ?? ''
                                     c += ')'
                                 }
                             }
                         }
-                        inventory.itemlist.push({ id, n, q, v, c })
+                        inventory.itemlist?.push({ id, n, q, v, c })
                     }
                 }
                 this.loadFromHtml = false // the first time should be from html

@@ -34,7 +34,7 @@ class ContentTimer {
                 const inventory = await this.trigger(false, this.options.firstRequest, 'auto')
                 if (inventory.log?.class !== CLASS_ERROR) {
                     sendInventory(inventory);
-                    setTimeout(checkUpdateItemsLoadTime, inventory.waitSeconds * 1000);
+                    setTimeout(checkUpdateItemsLoadTime, (inventory.waitSeconds ?? NORMAL_WAIT_SECONDS) * 1000);
                 }
             }
         }
@@ -49,13 +49,13 @@ class ContentTimer {
     public get isMonitoring(): boolean { return this.options.isMonitoring; }
     public set isMonitoring(isMonitoring: boolean) { this.options.isMonitoring = isMonitoring; }
 
-    private _getAvatarName(): string {
+    private _getAvatarName(): string | undefined {
         let btnList = document.getElementsByTagName('button')
         for (let i = 0; i < btnList.length; i++) {
             if (btnList[i].innerHTML.trim() == 'Log Out') {
                 const loginButton = btnList[i]
-                const prev = loginButton.parentElement.previousSibling as HTMLElement
-                return prev.innerText.replace('Avatar:', '').trim()
+                const prev = loginButton.parentElement?.previousSibling as HTMLElement
+                return prev?.innerText.replace('Avatar:', '').trim()
             }
         }
         return undefined

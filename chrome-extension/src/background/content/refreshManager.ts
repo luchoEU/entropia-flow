@@ -85,6 +85,12 @@ class RefreshManager {
     }
 
     public async handleNewInventory(inventory: Inventory) {
+        if (inventory.itemlist?.length === 0) {
+            // This happens when the system enters maintenance mode   
+            await this._setViewStatus(CLASS_ERROR, STRING_NO_DATA)            
+            return
+        }
+
         try {
             await this.frozenAlarm?.end()
             await this.deadAlarm?.end()

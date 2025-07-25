@@ -9,7 +9,6 @@ import {
     MSG_NAME_REQUEST_TIMER_ON,
     MSG_NAME_LOADING,
     MSG_NAME_REFRESH_WAKE_UP} from '../common/const'
-import { traceId } from '../common/trace'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
