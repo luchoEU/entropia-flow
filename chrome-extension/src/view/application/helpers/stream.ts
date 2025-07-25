@@ -1,11 +1,12 @@
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamExportLayout, StreamSavedLayout } from '../../../stream/data';
+import { StreamExportLayout, StreamPreRenderData, StreamSavedLayout } from '../../../stream/data';
 import { exportToSavedLayout } from '../../../stream/data.convert';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream";
 import defaultLayout from './layout/default.entropiaflow.layout.json'
 import huntLayout from './layout/hunt.entropiaflow.layout.json'
 import teamLayout from './layout/team.entropiaflow.layout.json'
 import lootLayout from './layout/loot.entropiaflow.layout.json'
+import { getUsedVariablesInTemplateList } from '../../../stream/template';
 
 function loadBuiltinLayout(layout: StreamExportLayout, stared: boolean = false): StreamSavedLayout {
     return {
@@ -33,6 +34,7 @@ const initialState: StreamState = {
     variables: { },
     temporalVariables: { },
     ui: {},
+    client: {},
     out: undefined!
 }
 
@@ -47,6 +49,7 @@ const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): St
     variables: state.variables,
     temporalVariables: state.temporalVariables,
     ui: {},
+    client: {},
     out: undefined!
 })
 
@@ -80,6 +83,25 @@ const _changeStreamLayout = (state: StreamState, layoutId: string, partial: Part
         }
     }
 })
+
+const _computeUsedVariables = (state: StreamState, layoutId: string): StreamState => {
+    const layout = state.in.layouts[layoutId];
+    if (!layout) {
+        return state;
+    }
+    return {
+        ...state,
+        out: {
+            ...state.out,
+            computed: {
+                ...state.out.computed,
+                [layoutId]: {
+                    usedVariables: getUsedVariablesInTemplateList([layout.htmlTemplate, layout.cssTemplate]),
+                }
+            }
+        }
+    }
+}
 
 const reduceSetStreamAuthor = (state: StreamState, layoutId: string, author: string): StreamState => ({
     ...state,
@@ -129,9 +151,9 @@ const reduceSetStreamShowingLayoutId = (state: StreamState, layoutId: string): S
     }
 })
 
-const reduceSetStreamHtmlTemplate = (state: StreamState, layoutId: string, htmlTemplate: string): StreamState => _changeStreamLayout(state, layoutId, { htmlTemplate })
+const reduceSetStreamHtmlTemplate = (state: StreamState, layoutId: string, htmlTemplate: string): StreamState => _computeUsedVariables(_changeStreamLayout(state, layoutId, { htmlTemplate }), layoutId)
 
-const reduceSetStreamCssTemplate = (state: StreamState, layoutId: string, cssTemplate: string): StreamState => _changeStreamLayout(state, layoutId, { cssTemplate })
+const reduceSetStreamCssTemplate = (state: StreamState, layoutId: string, cssTemplate: string): StreamState => _computeUsedVariables(_changeStreamLayout(state, layoutId, { cssTemplate }), layoutId)
 
 const reduceSetStreamStared = (state: StreamState, layoutId: string, stared: boolean): StreamState => ({
     ...state,
@@ -166,7 +188,7 @@ const reduceClearStreamLayoutAlias = (state: StreamState): StreamState => ({
     }
 })
 
-const reduceSetStreamData = (state: StreamState, data: StreamRenderData): StreamState => ({
+const reduceSetStreamData = (state: StreamState, data: StreamPreRenderData): StreamState => ({
     ...state,
     out: {
         ...state.out,
@@ -174,7 +196,7 @@ const reduceSetStreamData = (state: StreamState, data: StreamRenderData): Stream
     }
 })
 
-const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: string): StreamState => ({
+const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: string): StreamState => _computeUsedVariables({
     ...state,
     in: {
         ...state.in,
@@ -190,7 +212,7 @@ const reduceAddStreamLayout = (state: StreamState, layoutId: string, name: strin
             }
         }
     }
-});
+}, layoutId);
 
 const reduceImportStreamLayoutFromFile = (state: StreamState, layoutId: string, layout: StreamExportLayout): StreamState => {
     return {
@@ -292,6 +314,14 @@ const reduceSetStreamUserImagePartial = (state: StreamState, layoutId: string, i
     images: state.in.layouts[layoutId].images?.map(v => v.id === id ? { ...v, ...partial } : v)
 })
 
+const reduceSetStreamUsedLayouts = (state: StreamState, usedLayouts: string[]): StreamState => ({
+    ...state,
+    client: {
+        ...state.client,
+        usedLayouts
+    }
+})
+
 export {
     initialState,
     initialStateIn,
@@ -319,4 +349,5 @@ export {
     reduceRemoveStreamUserImage,
     reduceCloneStreamLayout,
     reduceClearStreamLayoutAlias,
+    reduceSetStreamUsedLayouts
 }

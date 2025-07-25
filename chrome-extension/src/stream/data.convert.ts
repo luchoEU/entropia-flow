@@ -40,5 +40,5 @@ const copyCommonLayout = (layout: StreamCommonLayout): StreamCommonLayout => ({
 export {
     savedToExportLayout,
     exportToSavedLayout,
-    savedToRenderLayout
+    savedToRenderLayout,
 }

@@ -328,7 +328,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                     { sessionTTprofit !== undefined &&
                         <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
                     { sessionMUprofit !== undefined &&
-                        <p>Session MU profit: {sessionMUprofit.toFixed(2)} PED</p>}
+                        <p>Session with markup profit: {sessionMUprofit.toFixed(2)} PED</p>}
                 </>
             }
         </>}/>

@@ -44,8 +44,13 @@ function getUsedVariablesInTemplate(template: string): Set<string> {
     return variables;
 }
 
+function getUsedVariablesInTemplateList(templates: (string | undefined)[]): string[] {
+    return Array.from(getUsedVariablesInTemplate(templates.filter(v => v !== undefined).join('\n')));
+}
+
 export {
     renderHtmlTemplate,
     renderCssTemplate,
     getUsedVariablesInTemplate,
+    getUsedVariablesInTemplateList,
 }

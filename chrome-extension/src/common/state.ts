@@ -54,6 +54,10 @@ interface ViewDispatch {
     action: string
 }
 
+interface ViewUsedLayouts {
+    usedLayouts: string[]
+}
+
 interface ViewNotification {
     notificationId: string
     buttonIndex?: number
@@ -63,8 +67,7 @@ interface ViewBlueprintList {
     blueprints: string[]
 }
 
-let mockDate = undefined
-
+let mockDate: number | undefined = undefined
 function setMockDate(date: number) {
     mockDate = date
 }
@@ -131,6 +134,7 @@ export {
     Status,
     ViewState,
     ViewDispatch,
+    ViewUsedLayouts,
     ViewNotification,
     ViewBlueprintList,
     setMockDate,

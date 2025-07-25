@@ -1,5 +1,5 @@
 import { TemporalValue } from '../../../common/state'
-import StreamRenderData, { StreamRenderLayoutSet, StreamRenderValue, StreamSavedLayoutSet } from '../../../stream/data'
+import { StreamComputedLayoutDataSet, StreamPreRenderData, StreamRenderValue, StreamSavedLayoutSet } from '../../../stream/data'
 
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
@@ -16,7 +16,8 @@ interface StreamStateIn {
 }
 
 interface StreamStateOut {
-    data: StreamRenderData
+    computed: StreamComputedLayoutDataSet
+    data: StreamPreRenderData
 }
 
 interface StreamState {
@@ -25,6 +26,9 @@ interface StreamState {
     temporalVariables: Record<string, StreamTemporalVariable[]> // source => variables
     ui: {
         showingLayoutId?: string
+    }
+    client: {
+        usedLayouts?: string[]
     }
     out: StreamStateOut
 }

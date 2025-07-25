@@ -1,5 +1,5 @@
 import { STRING_WAIT_3_MINUTES } from '../../../common/const'
-import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
+import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState, ViewUsedLayouts } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
@@ -18,6 +18,7 @@ import { HistoryState } from '../state/history'
 import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
+import { setStreamUsedLayouts } from '../actions/stream'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -57,6 +58,10 @@ const blueprintListHandler = (dispatch: AppDispatch) => async (m: ViewBlueprintL
     dispatch(setBlueprintList(m.blueprints));
 }
 
+const usedLayoutsHandler = (dispatch: AppDispatch) => async (m: ViewUsedLayouts) => {
+    dispatch(setStreamUsedLayouts(m.usedLayouts));
+}
+
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
     switch (action.type) {
@@ -69,7 +74,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         await Promise.resolve(dispatch(action));
                     }
                     resolve();
-                }, actionViewHandler(dispatch), notificationViewHandler(dispatch), blueprintListHandler(dispatch))
+                }, actionViewHandler(dispatch), usedLayoutsHandler(dispatch), notificationViewHandler(dispatch), blueprintListHandler(dispatch))
             })
             break
         }

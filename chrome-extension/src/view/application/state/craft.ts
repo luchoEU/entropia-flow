@@ -11,7 +11,7 @@ interface CraftState {
     stared: {
         expanded: boolean
         sortType: number
-        filter: string
+        filter?: string
         list: Array<string>
     }
     options: CraftOptions

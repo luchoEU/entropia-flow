@@ -1,7 +1,7 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
-import StreamRenderData, { StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
+import { StreamPreRenderData, StreamRenderData, StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
@@ -13,7 +13,7 @@ import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamData, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts } from "../selectors/stream"
+import { getStream, getStreamData, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts, getStreamUsedLayouts } from "../selectors/stream"
 import { StreamState, StreamStateIn, StreamStateOut, StreamStateVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
@@ -209,7 +209,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 return [id, layoutVariables, layoutObj];
             });
             const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));
-            const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
+            const renderData: StreamPreRenderData = { commonData, layoutData, layouts: layoutsToRender };
 
             if (showingLayoutId) { 
                 dispatch(setStreamVariables('formula', layoutTuple.find(([id]) => id === showingLayoutId)?.[1] ?? []));
@@ -219,11 +219,25 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break;
         }
         case SET_STREAM_DATA: {
-            const data: StreamRenderData | undefined = getStreamData(getState())
-            if (!data)
+            const out: StreamStateOut = getStreamOut(getState())
+            if (!out.data)
                 break
 
-            const delta = getDelta(_dataInClient, data)
+            const usedLayouts: string[] = getStreamUsedLayouts(getState());
+            const userVariables = new Set(Object.entries(out.computed).filter(([id]) => usedLayouts.includes(id)).map(([,v]) => v.usedVariables ?? []).flat())
+
+            const renderData: StreamRenderData = {
+                layoutIdList: Object.keys(out.data.layouts),
+                layouts: Object.fromEntries(Object.entries(out.data.layouts).filter(([id]) => usedLayouts.includes(id))),
+                layoutData: Object.fromEntries(Object.entries(out.data.layoutData).map(([id, data]) => {
+                    const usedLayoutVariables = out.computed[id]?.usedVariables
+                    if (!usedLayoutVariables?.length) return [id, {}]
+                    return [id, Object.fromEntries(Object.entries(data).filter(([k]) => usedLayoutVariables.includes(k)))]
+                })),
+                commonData: Object.fromEntries(Object.entries(out.data.commonData).filter(([k]) => userVariables.has(k)))
+            }
+
+            const delta = getDelta(_dataInClient, renderData)
             if (!delta)
                 break
 
@@ -234,10 +248,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case WEB_SOCKET_STATE_CHANGED: {
             const code: WebSocketStateCode = action.payload.code
             if (code === WebSocketStateCode.connected) {
-                // it is a new client, send all current data
-                const { data }: StreamStateOut = getStreamOut(getState())
-                dispatch(sendWebSocketMessage('stream', data))
-                _dataInClient = data
+                // it is a new client, send all data next time
+                _dataInClient = undefined
             }
             break
         }

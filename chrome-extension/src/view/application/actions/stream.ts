@@ -1,6 +1,6 @@
 import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import StreamRenderData, { StreamExportLayout, StreamRenderLayoutSet } from '../../../stream/data'
+import { StreamExportLayout, StreamPreRenderData, StreamRenderLayoutSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
 import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
@@ -30,6 +30,7 @@ const SET_STREAM_USER_IMAGE_PARTIAL = "[stream] set user image partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
 const CLEAR_STREAM_LAYOUT_ALIAS = "[stream] clear layout alias"
+const SET_STREAM_USED_LAYOUTS = "[stream] set used layouts"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -81,7 +82,7 @@ const setStreamBackgroundSelected = (layoutId: string, backgroundType: Backgroun
     payload: { layoutId, backgroundType }
 })
 
-const setStreamData = (data: StreamRenderData) => ({
+const setStreamData = (data: StreamPreRenderData) => ({
     type: SET_STREAM_DATA,
     payload: { data }
 })
@@ -193,6 +194,13 @@ const clearStreamLayoutAlias = {
     type: CLEAR_STREAM_LAYOUT_ALIAS
 }
 
+const setStreamUsedLayouts = (layouts: string[]) => ({
+    type: SET_STREAM_USED_LAYOUTS,
+    payload: {
+        layouts
+    }
+})
+
 export {
     SET_STREAM_STATE,
     SET_STREAM_ENABLED,
@@ -218,6 +226,7 @@ export {
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
     CLEAR_STREAM_LAYOUT_ALIAS,
+    SET_STREAM_USED_LAYOUTS,
     setStreamState,
     setStreamEnabled,
     setStreamAdvanced,
@@ -243,4 +252,5 @@ export {
     importStreamLayoutFromFile,
     goToTrash,
     clearStreamLayoutAlias,
+    setStreamUsedLayouts,
 }

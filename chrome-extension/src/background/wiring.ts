@@ -107,6 +107,9 @@ async function wiring(
             case "dispatch":
                 await viewTabManager.sendDispatch(msg.data)
                 break;
+            case "used-layouts":
+                await viewTabManager.sendUsedLayouts(msg.data)
+                break;
         }
     }
     webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)

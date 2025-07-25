@@ -24,13 +24,22 @@ interface StreamExportLayout extends StreamCommonLayout {
     schema: number
 }
 
+type StreamComputedLayoutData = {
+    usedVariables?: string[]
+}
+
+type StreamComputedLayoutDataSet = Record<string, StreamComputedLayoutData> // id => layout
 type StreamRenderLayoutSet = Record<string, StreamRenderLayout> // id => layout
 type StreamSavedLayoutSet = Record<string, StreamSavedLayout> // id => layout
 
-interface StreamRenderData {
+interface StreamPreRenderData {
     commonData: StreamRenderObject
     layoutData: Record<string, StreamRenderObject>
-    layouts: StreamRenderLayoutSet
+    layouts: StreamRenderLayoutSet,
+}
+
+interface StreamRenderData extends StreamPreRenderData {
+    layoutIdList: string[]
 }
 
 interface StreamRenderSize {
@@ -46,8 +55,9 @@ interface StreamRenderSingle {
 type StreamRenderObject = { [name: string]: StreamRenderValue }
 type StreamRenderValue = string | number | boolean | StreamRenderObject | StreamRenderValue[]
 
-export default StreamRenderData
 export {
+    StreamRenderData,
+    StreamPreRenderData,
     StreamRenderLayout,
     StreamCommonLayout,
     StreamSavedLayout,
@@ -57,5 +67,6 @@ export {
     StreamRenderSingle,
     StreamRenderSize,
     StreamRenderLayoutSet,
+    StreamComputedLayoutDataSet,
     StreamSavedLayoutSet
 }

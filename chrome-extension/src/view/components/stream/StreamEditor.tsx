@@ -14,12 +14,12 @@ import { useAppDispatch } from "../../application/store"
 import { TabId } from "../../application/state/navigation"
 import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
-import StreamRenderData, { StreamSavedLayout } from "../../../stream/data"
+import { StreamPreRenderData, StreamSavedLayout } from "../../../stream/data"
 import { savedToExportLayout } from "../../../stream/data.convert"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))
-    const data: StreamRenderData | undefined = useSelector(getStreamData)
+    const data: StreamPreRenderData | undefined = useSelector(getStreamData)
     if (!c) return <></>
 
     const error = data?.layoutData[layoutId]?.['!error'] as string | undefined;

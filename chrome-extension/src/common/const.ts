@@ -19,6 +19,7 @@ const PORT_NAME_BACK_VIEW = 'EntropiaFlowBackgroundView'
 const MSG_NAME_REGISTER_VIEW = 'RegisterView'
 const MSG_NAME_REFRESH_VIEW = 'RefreshView'
 const MSG_NAME_ACTION_VIEW = 'ActionView'
+const MSG_NAME_USED_LAYOUTS_VIEW = 'UsedLayoutsView'
 const MSG_NAME_NOTIFICATION_VIEW = 'NotificationView'
 const MSG_NAME_BLUEPRINT_LIST = 'BlueprintList'
 const MSG_NAME_REQUEST_NEW = 'RequestNewInventory'
@@ -123,6 +124,7 @@ export {
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REFRESH_VIEW,
     MSG_NAME_ACTION_VIEW,
+    MSG_NAME_USED_LAYOUTS_VIEW,
     MSG_NAME_NOTIFICATION_VIEW,
     MSG_NAME_BLUEPRINT_LIST,
     MSG_NAME_REQUEST_NEW,
