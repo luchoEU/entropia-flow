@@ -29,6 +29,7 @@ function _unshiftWithMax<T>(list: T[], item: T) {
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
     private lastLootDateTime: number
+    private timeout: NodeJS.Timeout
     public onChange: (gameLog: GameLogData) => Promise<void>
 
     public getGameLog(): GameLogData { return this.gameLog }
@@ -43,11 +44,17 @@ class GameLogHistory implements IGameLogHistory {
     }
 
     public async onLines(lines: GameLogLine[]): Promise<void> {
+        if (this.timeout)
+            clearTimeout(this.timeout)
+
         for (const line of lines)
             await this.processLine(line)
 
-        if (this.onChange)
-            await this.onChange(this.gameLog)
+        this.timeout = setTimeout(() => { // use timeout to process all lines in websocket queue before sending to view
+            this.timeout = undefined
+            if (this.onChange)
+                this.onChange(this.gameLog)
+        }, 100)
     }
 
     private async processLine(line: GameLogLine) {

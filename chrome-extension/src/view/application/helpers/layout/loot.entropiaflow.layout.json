@@ -4,7 +4,7 @@
     "author": "Lucho MUCHO Ireton",
     "lastModified": 1753036824832,
     "backgroundType": 3,
-    "formulaJavaScript": "const total = loot.reduce((a,x) => a+x.value, 0);\nconst totalStr = total.toFixed(2);\nconst lootTable = loot.map(x => ({\n  ...x,\n  value: x.value.toFixed(2),\n  percentage: (x.value / total * 100).toFixed(1)\n}));",
+    "formulaJavaScript": "const total = loot.reduce((a,x) => a+x.value, 0);\nconst totalStr = total.toFixed(2);\nconst lootTable = loot.map(x => ({\n  ...x,\n  value: x.value.toFixed(2),\n  percentage: (x.value / total * 100).toFixed(1)\n})).sort((x,y) => y.percentage - x.percentage);",
     "htmlTemplate": "<table>\n  <thead><tr>\n    <th></th>\n    <th>Qty</th>\n    <th>PED</th>\n    <th>%</th>\n  </tr></thead>\n  <tbody>\n    {{#lootTable}}<tr>\n      <td>{{name}}</td>\n      <td>{{quantity}}</td>\n      <td>{{value}}</td>\n      <td>{{percentage}}</td>\n    </tr>{{/lootTable}}\n    <tr>\n      <td><b>Total</b></td>\n      <td></td>\n      <td>{{totalStr}}</td>\n    </tr>\n  </tbody>\n</table>",
     "cssTemplate": "table {\n  border-collapse: collapse;\n  margin: 0px 6px;\n}\ntd, th {\n  padding: 2px 5px;\n  text-align: end;\n}\ntd:nth-child(even), th:nth-child(even) {\n  background-color: rgba(255,255,255,.15);\n}"
 }

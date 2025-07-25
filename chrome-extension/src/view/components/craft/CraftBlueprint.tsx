@@ -322,7 +322,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                     </p>
                     <p>Click TT cost: {bp.c.clicks.ttCost.toFixed(2)} PED</p>
                     { clickMUCost &&
-                        <p>Click with MU cost: {clickMUCost.toFixed(2)} PED</p> }
+                        <p>Click with markup cost: {clickMUCost.toFixed(2)} PED</p> }
                     { bp.c.clicks.residueNeeded > 0 &&
                         <p>Residue needed per click: {bp.c.clicks.residueNeeded.toFixed(2)} PED</p> }
                     { sessionTTprofit !== undefined &&
