@@ -1,6 +1,7 @@
 //// GAME LOG PARSER ////
 // Receives and processes game chat log messages
 
+import { gameTime } from "../../common/date"
 import { GameLogGlobal, GameLogLine, GameLogPosition, GameLogStats } from "./gameLogData"
 
 const lineRegex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(.*?)\] \[(.*?)\] (.*)/
@@ -50,6 +51,7 @@ const globalRegex = {
     tier: /(?<player>.+) is the first colonist to reach tier (?<value>\d+) for (?<name>.+)!/,
     discover: /(?<player>.+) is the first colonist to discover (?<name>.+)!/,
     defeated: /(?<player>.+) defeated (?<value>\d+) others as a (?<name>.+?)\s*!/,
+    examined: /(?<player>.+) examined (?<name>.+?) in (?<location>.+) and found something with a value of (?<value>.+)!/,    
 }
 const skillRegex = /You have gained (\d+(?:.\d+)) (experience in your )?(.+?)( skill)?$/
 const attributeRegex = /Your (.*) has improved by (.*)/
@@ -88,6 +90,7 @@ const eventRegex = {
     playerKilled: /(.+) killed (.+) using a (.+)/,
     resourceDepleted: /This resource is depleted/,
     requestSent: /Request sent/,
+    retrieved: /(.+) was retrieved successfully from the auctioneer and placed in your carried Inventory/,
     savedByDivine: /You have been saved from certain death by divine intervention/,
     sessionTime: /Session time: (.+)/,
     takenControl: /(.+?) has taken control of the land area (.+?)!/,
@@ -122,7 +125,7 @@ class GameLogParser {
 
         const line: GameLogLine = {
             serial: this._serial++,
-            time: match[1],
+            time: gameTime(match[1]),
             channel: match[2],
             player: match[3],
             message: match[4],
@@ -204,7 +207,7 @@ class GameLogParser {
                 Object.entries(globalRegex).forEach(([key, regex]) => {
                     const match = regex. exec(msg);
                     if (match !== null) {
-                        const { player, name, value, valueLocation } = match.groups as any;
+                        const { player, name, value, location, valueLocation } = match.groups as any;
                         const global: GameLogGlobal = {
                             time: line.time,
                             player,
@@ -223,6 +226,7 @@ class GameLogParser {
                             }
                         } else {
                             global.value = value && parseInt(value);
+                            global.location = location;
                             line.data.global = global
                         }
                     }

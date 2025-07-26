@@ -8,6 +8,7 @@ import { setTabularDefinitions } from "../../application/helpers/tabular";
 import { GameLogGlobal } from "../../../background/client/gameLogData";
 import { gameLogTabularDefinitions } from "../../application/tabular/log";
 import { GAME_LOG_TABULAR_GLOBAL } from "../../application/state/log";
+import { gameTime } from "../../../common/date";
 
 const _toState = (list: any[]): TabularStateData => ({
     filter: '',
@@ -79,7 +80,7 @@ describe.skip("SortableTabularSection", () => {
     });
     it("empty cell value", () => {
         const data: GameLogGlobal[] = [{
-            time: '2025-01-11 12:38:08',
+            time: gameTime('2025-01-11 12:38:08'),
             player: 'High Looter Elite',
             name: 'Maffoid Warlord',
             type: 'hunt',

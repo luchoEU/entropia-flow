@@ -1,6 +1,6 @@
 import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import { StreamExportLayout, StreamPreRenderData, StreamRenderLayoutSet } from '../../../stream/data'
+import { StreamExportLayout, StreamRenderData, StreamRenderLayoutSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
 import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
@@ -82,7 +82,7 @@ const setStreamBackgroundSelected = (layoutId: string, backgroundType: Backgroun
     payload: { layoutId, backgroundType }
 })
 
-const setStreamData = (data: StreamPreRenderData) => ({
+const setStreamData = (data: StreamRenderData) => ({
     type: SET_STREAM_DATA,
     payload: { data }
 })

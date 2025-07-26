@@ -75,7 +75,7 @@ describe('formula parser', () => {
 `2025-01-11 12:38:08 [Globals] [] Lucho MUCHO Ireton killed a creature (Merry Annihilation Daikiba 08) with a value of 57 PED!`,
         {
             global: [{
-                time: '2025-01-11 12:38:08',
+                time: gameTime('2025-01-11 12:38:08'),
                 player: 'Lucho MUCHO Ireton',
                 name: 'Merry Annihilation Daikiba 08',
                 type: 'hunt',
@@ -90,7 +90,7 @@ describe('formula parser', () => {
 `2025-01-11 12:38:08 [Globals] [] High Looter Elite killed a creature (Maffoid Warlord) with a value of 808 PED! A record has been added to the Hall of Fame!`,
         {
             global: [{
-                time: '2025-01-11 12:38:08',
+                time: gameTime('2025-01-11 12:38:08'),
                 player: 'High Looter Elite',
                 name: 'Maffoid Warlord',
                 type: 'hunt',
@@ -193,7 +193,7 @@ describe('formula parser', () => {
                 action: "missionCompleted",
                 data: ["ARIS - Daily Hunting 3: Mortirex"],
                 message: "Mission completed (ARIS - Daily Hunting 3: Mortirex)",
-                time: "2025-07-20 19:55:20",
+                time: gameTime('2025-07-20 19:55:20'),
             }],
             loot: [{
                 name: 'Shrapnel',
@@ -264,7 +264,7 @@ describe('formula parser', () => {
 `2025-01-21 08:56:10 [System] [] Top Right Gunner entered the vehicle`,
         {
             event: [{
-                time: '2025-01-21 08:56:10',
+                time: gameTime('2025-01-21 08:56:10'),
                 action: 'enteredVehicle',
                 data: ['Top Right Gunner'],
                 message: 'Top Right Gunner entered the vehicle'
@@ -301,7 +301,7 @@ describe('formula parser', () => {
             event: [{
                 action: 'newRank',
                 data: ['Mining Laser Operator'],
-                time: '2025-01-28 19:56:15',
+                time: gameTime('2025-01-28 19:56:15'),
                 message: 'You have gained a new rank in Mining Laser Operator!'
             }]
         }
@@ -311,7 +311,7 @@ describe('formula parser', () => {
 `2025-01-28 21:20:43 [Globals] [] Nanashana Nana Itsanai is the first colonist to discover Genesis Star Ivaldi III (L) Blueprint (L)! A record has been added to the Hall of Fame!`,
         {
             global: [{
-                time: '2025-01-28 21:20:43',
+                time: gameTime('2025-01-28 21:20:43'),
                 type: 'discover',
                 player: 'Nanashana Nana Itsanai',
                 name: 'Genesis Star Ivaldi III (L) Blueprint (L)',
@@ -326,7 +326,7 @@ describe('formula parser', () => {
 `2025-01-29 06:55:35 [System] [] That person isn't wounded`,
         {
             event: [{
-                time: '2025-01-29 06:55:35',
+                time: gameTime('2025-01-29 06:55:35'),
                 action: 'personNotWounded',
                 data: [],
                 message: 'That person isn\'t wounded'
@@ -338,7 +338,7 @@ describe('formula parser', () => {
 `2025-01-29 07:56:23 [System] [] Quad-Wing Interceptor (L) was destroyed by the tough Pirate Shank Outcast`,
         {
             event: [{
-                time: '2025-01-29 07:56:23',
+                time: gameTime('2025-01-29 07:56:23'),
                 action: 'destroyed',
                 data: ['Quad-Wing Interceptor (L)', 'Pirate Shank Outcast'],
                 message: 'Quad-Wing Interceptor (L) was destroyed by the tough Pirate Shank Outcast'
@@ -350,7 +350,7 @@ describe('formula parser', () => {
 `2025-01-29 07:54:24 [Globals] [] Kathrynn Katy Simmons defeated 15 others as a Yule Daudaormur ! A record has been added to the Hall of Fame!`,
         {
             global: [{
-                time: '2025-01-29 07:54:24',
+                time: gameTime('2025-01-29 07:54:24'),
                 type: 'defeated',
                 player: 'Kathrynn Katy Simmons',
                 name: 'Yule Daudaormur',
@@ -365,7 +365,7 @@ describe('formula parser', () => {
 `2025-01-29 16:31:00 [System] [] The item is damaged`,
         {
             event: [{
-                time: '2025-01-29 16:31:00',
+                time: gameTime('2025-01-29 16:31:00'),
                 action: 'itemDamaged',
                 data: [],
                 message: 'The item is damaged'
@@ -377,7 +377,7 @@ describe('formula parser', () => {
 `2025-02-13 18:56:50 [System] [] Congratulations, you have acquired a new skill; Integrity Analysis`,
         {
             event: [{
-                time: '2025-02-13 18:56:50',
+                time: gameTime('2025-02-13 18:56:50'),
                 action: 'newSkill',
                 data: [ 'Integrity Analysis' ],
                 message: 'Congratulations, you have acquired a new skill; Integrity Analysis'
@@ -389,7 +389,7 @@ describe('formula parser', () => {
 `2025-02-15 16:13:30 [System] [] Auction successfully created`,
         {
             event: [{
-                time: '2025-02-15 16:13:30',
+                time: gameTime('2025-02-15 16:13:30'),
                 action: 'auctionCreated',
                 data: [ ],
                 message: 'Auction successfully created'
@@ -401,7 +401,7 @@ describe('formula parser', () => {
 `2025-02-15 17:18:15 [System] [] The vehicle (Scavenged Skyripper (L)) is returned to planet storage, where you can recover it`,
         {
             event: [{
-                time: '2025-02-15 17:18:15',
+                time: gameTime('2025-02-15 17:18:15'),
                 action: 'vehicleRecovered',
                 data: [ 'Scavenged Skyripper (L)' ],
                 message: 'The vehicle (Scavenged Skyripper (L)) is returned to planet storage, where you can recover it'
@@ -420,7 +420,7 @@ describe('formula parser', () => {
                 {name:"Blazar Fragment",quantity:200,value:0.002}
             ],
             event: [{
-                time: '2025-02-18 07:53:42',
+                time: gameTime('2025-02-18 07:53:42'),
                 action: 'missionCompleted',
                 data: [ 'GenStar Mining Initiative - Asteroids' ],
                 message: 'Mission completed (GenStar Mining Initiative - Asteroids)'
@@ -455,7 +455,7 @@ describe('formula parser', () => {
                 item: "ArMatrix BP-65 (L)",
                 received: 0.8,
                 remaining: 4,
-                time: "2025-03-02 07:20:50",
+                time: gameTime('2025-03-02 07:20:50'),
             }],
             loot: [
                 {name:"Shrapnel",quantity:8000,value:0.8}
@@ -476,7 +476,7 @@ describe('formula parser', () => {
 `2025-03-04 21:26:22 [System] [] Request sent`,
         {
             event: [{
-                time: '2025-03-04 21:26:22',
+                time: gameTime('2025-03-04 21:26:22'),
                 action: 'requestSent',
                 data: [ ],
                 message: 'Request sent'
@@ -488,7 +488,7 @@ describe('formula parser', () => {
 `2025-03-09 06:36:59 [System] [] Healing was decreased by 10.0% by an Effect Over Time`,
         {
             event: [{
-                time: '2025-03-09 06:36:59',
+                time: gameTime('2025-03-09 06:36:59'),
                 action: 'healingDecreased',
                 data: [ '10.0%' ],
                 message: 'Healing was decreased by 10.0% by an Effect Over Time'
@@ -500,7 +500,7 @@ describe('formula parser', () => {
 `2025-03-15 08:56:53 [System] [] Mindforce concentration was affected due to being hit`,
         {
             event: [{
-                time: '2025-03-15 08:56:53',
+                time: gameTime('2025-03-15 08:56:53'),
                 action: 'concentrationAffected',
                 data: [ ],
                 message: 'Mindforce concentration was affected due to being hit'
@@ -512,7 +512,7 @@ describe('formula parser', () => {
 `2025-03-15 08:53:19 [System] [] You are not wounded`,
         {
             event: [{
-                time: '2025-03-15 08:53:19',
+                time: gameTime('2025-03-15 08:53:19'),
                 action: 'youNotWounded',
                 data: [ ],
                 message: 'You are not wounded'
@@ -534,12 +534,12 @@ describe('formula parser', () => {
 2025-03-15 20:03:07 [System] [] Nicholas Looser EnterGate destroyed Scavenged Skyripper (L)`,
         {
             event: [{
-                time: '2025-03-15 20:03:07',
+                time: gameTime('2025-03-15 20:03:07'),
                 action: 'playerDestroyed',
                 data: ['Nicholas Looser EnterGate', 'Scavenged Skyripper (L)'],
                 message: 'Nicholas Looser EnterGate destroyed Scavenged Skyripper (L)'
             }, {
-                time: '2025-03-15 20:03:10',
+                time: gameTime('2025-03-15 20:03:10'),
                 action: 'playerKilled',
                 data: ['Nicholas Looser EnterGate', 'Lucho MUCHO Ireton', 'A&P Series Mayhem LP-100, Modified'],
                 message: 'Nicholas Looser EnterGate killed Lucho MUCHO Ireton using a A&P Series Mayhem LP-100, Modified'
@@ -551,13 +551,30 @@ describe('formula parser', () => {
 `2025-03-27 12:32:37 [Globals] [] Daniel Danutu07 Ionut killed a creature (Sampling: TZ-15) with a value of 67638 PED! A record has been added to the Hall of Fame ALL TIME HIGH. Congratulations!`,
         {
             global: [{
-                time: '2025-03-27 12:32:37',
+                time: gameTime('2025-03-27 12:32:37'),
                 player: 'Daniel Danutu07 Ionut',
                 name: 'Sampling: TZ-15',
                 type: 'hunt',
                 value: 67638,
                 isHoF: false,
                 isATH: true
+            }]
+        }
+    ))
+
+    // TODO: fix test case
+    test.skip('examined', async () => await parseExpect(
+`2025-07-26 18:08:15 [System] [] hijacker hijacker27 inferno examined Storage Container in Akbal - Sector 3 and found something with a value of 81 PED!`,
+        {
+            global: [{
+                time: gameTime('2025-07-26 18:08:15'),
+                player: 'hijacker hijacker27 inferno',
+                name: 'Storage Container',
+                type: 'examined',
+                value: 81,
+                location: 'Akbal - Sector 3',
+                isHoF: false,
+                isATH: false
             }]
         }
     ))

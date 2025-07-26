@@ -70,7 +70,7 @@ const gameLogStatsDecimals: GameLogStats<number> = {
 }
 
 interface GameLogGlobal {
-    time: string
+    time: number
     player: string
     name: string
     type: string
@@ -82,7 +82,7 @@ interface GameLogGlobal {
 
 interface GameLogLine {
     serial: number
-    time: string
+    time: number
     channel: string
     player: string
     message: string
@@ -103,7 +103,7 @@ interface GameLogLine {
 
 interface GameLogTrade {
     serial: number
-    time: string
+    time: number
     channel: string
     player: string
     message: string
@@ -132,7 +132,7 @@ interface GameLogSkill {
 }
 
 interface GameLogEnhancerBroken {
-    time: string
+    time: number
     enhancer: string
     item: string
     remaining: number,
@@ -148,7 +148,7 @@ interface GameLogPosition {
 }
 
 interface GameLogEvent {
-    time: string
+    time: number
     action: string
     data: string[]
     message: string

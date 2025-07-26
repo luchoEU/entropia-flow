@@ -1,5 +1,5 @@
 import { BackgroundType } from '../../../stream/background'
-import { StreamExportLayout, StreamPreRenderData, StreamSavedLayout } from '../../../stream/data';
+import { StreamExportLayout, StreamRenderData, StreamSavedLayout } from '../../../stream/data';
 import { exportToSavedLayout } from '../../../stream/data.convert';
 import { StreamState, StreamStateIn, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream";
 import defaultLayout from './layout/default.entropiaflow.layout.json'
@@ -38,20 +38,23 @@ const initialState: StreamState = {
     out: undefined!
 }
 
-const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): StreamState => ({
-    in: {
-        ...newStateIn,
-        layouts: {
-            ...Object.fromEntries(Object.entries(newStateIn.layouts).map(([k, v]) => [k, { ...v, readonly: false }])),
-            ...Object.fromEntries(Object.entries(initialStateIn.layouts).map(([k, v]) => [k, { ...v, backgroundType: newStateIn.layouts[k].backgroundType ?? v.backgroundType }])),
+const reduceSetStreamState = (state: StreamState, newStateIn: StreamStateIn): StreamState => {
+    const layouts = {
+        ...Object.fromEntries(Object.entries(newStateIn.layouts).map(([k, v]) => [k, { ...v, readonly: false }])),
+        ...Object.fromEntries(Object.entries(initialStateIn.layouts).map(([k, v]) => [k, { ...v, backgroundType: newStateIn.layouts[k].backgroundType ?? v.backgroundType }])),
+    }
+    return {
+        in: { ...newStateIn, layouts },
+        variables: state.variables,
+        temporalVariables: state.temporalVariables,
+        ui: {},
+        client: {},
+        out: {
+            computed: Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, { usedVariables: getUsedVariablesInTemplateList([v.htmlTemplate, v.cssTemplate]) }])),
+            data: undefined!
         }
-    },
-    variables: state.variables,
-    temporalVariables: state.temporalVariables,
-    ui: {},
-    client: {},
-    out: undefined!
-})
+    }
+}
 
 const reduceSetStreamEnabled = (state: StreamState, enabled: boolean) => ({
     ...state,
@@ -188,7 +191,7 @@ const reduceClearStreamLayoutAlias = (state: StreamState): StreamState => ({
     }
 })
 
-const reduceSetStreamData = (state: StreamState, data: StreamPreRenderData): StreamState => ({
+const reduceSetStreamData = (state: StreamState, data: StreamRenderData): StreamState => ({
     ...state,
     out: {
         ...state.out,

@@ -1,7 +1,7 @@
 import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
-import { StreamPreRenderData, StreamRenderData, StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
+import { StreamRenderData, StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
 import { applyDelta, getDelta } from "../../../stream/delta"
 import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
@@ -209,7 +209,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 return [id, layoutVariables, layoutObj];
             });
             const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));
-            const renderData: StreamPreRenderData = { commonData, layoutData, layouts: layoutsToRender };
+            const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
 
             if (showingLayoutId) { 
                 dispatch(setStreamVariables('formula', layoutTuple.find(([id]) => id === showingLayoutId)?.[1] ?? []));
@@ -227,13 +227,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const userVariables = new Set(Object.entries(out.computed).filter(([id]) => usedLayouts.includes(id)).map(([,v]) => v.usedVariables ?? []).flat())
 
             const renderData: StreamRenderData = {
-                layoutIdList: Object.keys(out.data.layouts),
-                layouts: Object.fromEntries(Object.entries(out.data.layouts).filter(([id]) => usedLayouts.includes(id))),
-                layoutData: Object.fromEntries(Object.entries(out.data.layoutData).map(([id, data]) => {
-                    const usedLayoutVariables = out.computed[id]?.usedVariables
-                    if (!usedLayoutVariables?.length) return [id, {}]
-                    return [id, Object.fromEntries(Object.entries(data).filter(([k]) => usedLayoutVariables.includes(k)))]
-                })),
+                layouts: out.data.layouts,
+                layoutData: Object.fromEntries(Object.entries(out.data.layoutData)
+                    .filter(([id]) => usedLayouts.includes(id))
+                    .map(([id, data]) => {
+                        const usedLayoutVariables = out.computed[id]?.usedVariables
+                        if (!usedLayoutVariables?.length) return [id, {}]
+                        return [id, Object.fromEntries(Object.entries(data).filter(([k]) => usedLayoutVariables.includes(k)))]
+                    })),
                 commonData: Object.fromEntries(Object.entries(out.data.commonData).filter(([k]) => userVariables.has(k)))
             }
 

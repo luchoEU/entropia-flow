@@ -1,7 +1,6 @@
 //// GAME LOG HISTORY ////
 // Keep the log history and summary from game log
 
-import { gameTime } from "../../common/date"
 import { emptyTemporalValue } from "../../common/state"
 import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 
@@ -70,15 +69,14 @@ class GameLogHistory implements IGameLogHistory {
             }
 
             if (!ignoreLootForKill.includes(line.data.loot.name)) {
-                const lineDateTime: number = gameTime(line.time);
-                if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime > 1000) {
+                if (!this.lastLootDateTime || line.time - this.lastLootDateTime > 1000) {
                     if (!this.gameLog.stats.kills)
                         this.gameLog.stats.kills = emptyTemporalValue();
                     this.gameLog.stats.kills.count++;
                     this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
-                    _unshiftWithMax(this.gameLog.stats.kills.history, { time: lineDateTime, value: 1 });
+                    _unshiftWithMax(this.gameLog.stats.kills.history, { time: line.time, value: 1 });
                 }
-                this.lastLootDateTime = lineDateTime;
+                this.lastLootDateTime = line.time;
             }
         }
 
@@ -128,7 +126,7 @@ class GameLogHistory implements IGameLogHistory {
                     this.gameLog.stats[key] = emptyTemporalValue()
                 this.gameLog.stats[key].count++
                 this.gameLog.stats[key].total += value
-                _unshiftWithMax(this.gameLog.stats[key].history, { time: gameTime(line.time), value })
+                _unshiftWithMax(this.gameLog.stats[key].history, { time: line.time, value })
             })
         }
 
@@ -138,12 +136,11 @@ class GameLogHistory implements IGameLogHistory {
         }
     }
 
-    private removeFromKillCount(time: string) {
+    private removeFromKillCount(time: number) {
         if (!this.gameLog.stats.kills)
             return;
 
-        const lineDateTime: number = gameTime(time);
-        if (!this.lastLootDateTime || lineDateTime - this.lastLootDateTime <= 1000) { // 1 second
+        if (!this.lastLootDateTime || time - this.lastLootDateTime <= 1000) { // 1 second
             if (this.gameLog.stats.kills.count == 1) {
                 this.gameLog.stats.kills = undefined
             } else {
@@ -152,7 +149,7 @@ class GameLogHistory implements IGameLogHistory {
                 this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
             }
         }
-        this.lastLootDateTime = lineDateTime
+        this.lastLootDateTime = time
     }
 }
 
