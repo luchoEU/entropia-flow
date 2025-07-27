@@ -16,6 +16,7 @@ import { navigateToTab } from "../../application/actions/navigation"
 import ImgButton from "../common/ImgButton"
 import { StreamRenderData, StreamSavedLayout } from "../../../stream/data"
 import { savedToExportLayout } from "../../../stream/data.convert"
+import { getTabularData } from "../../application/selectors/tabular"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
     const { layout: c } = useSelector(getStreamLayout(layoutId))
@@ -124,6 +125,7 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                     selector={STREAM_TABULAR_IMAGES}
                     itemHeight={50}
                     afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserImage(layoutId) } ]}
+                    useTable={true} // use table since it support getRowKey, needed to visually delete the correct one
                 />
             </>}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>

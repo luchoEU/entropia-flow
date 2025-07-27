@@ -93,6 +93,7 @@ const streamTabularDefinitions: TabularDefinitions = {
                 _field(g, layoutId, 'description', 300),
             ];
         },
+        getRowKey: (g: StreamComputedVariable) => g.id,
         getRowForSort: (g: StreamComputedVariable) => [, g.name, g.value, g.description],
     },
     [STREAM_TABULAR_VARIABLES]: {

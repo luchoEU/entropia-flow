@@ -21,6 +21,7 @@ interface TabularDefinition<TItem = any, TValueForSort = any, TValueForFilter = 
     itemTypeName?: string,
     columns: string[],
     getRow: (item: TItem, rowIndex: number, data: TData) => RowValue[],
+    getRowKey?: (item: TItem, rowIndex: number, data: TData) => any,
     getRowClass?: (item: TItem, rowIndex: number, data: TData) => string | undefined,
     getRowForSort?: (item: TItem, rowIndex: number, data: TData) => TValueForSort[], // if not defined it uses getRow
     getRowForFilter?: (item: TItem, rowIndex: number, data: TData) => TValueForFilter[], // if not defined it uses getRowForSort

@@ -230,7 +230,7 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
-    const { columns, columnHeaderAfterName, getRow: getItemRow } = getTabularDefinition(selector, s.items?.show, s.data)
+    const { columns, columnHeaderAfterName, getRow: getItemRow, getRowKey: getItemRowKey } = getTabularDefinition(selector, s.items?.show, s.data)
     const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, s.data, getItemRow)
 
@@ -246,7 +246,7 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
             </thead>
             <tbody>
                 {s.items.show.map((r, i) =>
-                    <tr key={i} className='item-row'>
+                    <tr key={getItemRowKey?.(r, i, s.data) ?? i} className='item-row'>
                         {getItemRow(r, i, s.data).map((v, j) =>
                             <td key={j}>
                                 <div><RowValueRenderComponent v={v} /></div>
