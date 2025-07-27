@@ -16,7 +16,7 @@ const Mouse = {
         });
         
         // Disable right-click context menu
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        //document.addEventListener('contextmenu', event => event.preventDefault());
     }
 }
 

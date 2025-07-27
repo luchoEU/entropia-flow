@@ -2,7 +2,7 @@
 import { StreamRenderSingle } from "../resources/stream/stream/data";
 import { SettingsData } from "./data";
 import { StreamRenderObject } from "../resources/stream/stream/data";
-import { sendMessage } from "./messages";
+import { sendMessageToMain } from "./messages";
 import { setContentSize } from "./position";
 import { copyTextToClipboard, interpolate } from "./utils";
 import { STORE_INIT, STORE_WINDOW } from "./const";
@@ -23,12 +23,11 @@ interface StreamWindowLayout {
 
 interface StreamWindowRenderData {
     layouts: Record<string, StreamWindowLayout>;
-    layoutIdList: string[];
     commonData?: StreamRenderObject;
     layoutData?: Record<string, StreamRenderObject>;
-    canRestore?: boolean;
 }
 
+let _layoutIdList: string[] = [];
 let _lastData: StreamWindowRenderData = {
     layouts: {
         [WAITING_LAYOUT_ID]: {
@@ -178,8 +177,7 @@ let _lastData: StreamWindowRenderData = {
             `,
             action: () => _setScannerTimeout()
         },*/
-    },
-    layoutIdList: []
+    }
 }
 /*
 function _setScannerTimeout() {
@@ -198,7 +196,7 @@ const _emptyLayout = {
 
 const minimizeButton = document.getElementById('entropia-flow-client-minimize');
 const menuButton = document.getElementById('entropia-flow-client-menu');
-const restoreButton = document.getElementById('entropia-flow-client-restore');
+const nextButton = document.getElementById('entropia-flow-client-next');
 const closeButton = document.getElementById('entropia-flow-client-close');
 
 function _setupButtons() {
@@ -209,12 +207,12 @@ function _setupButtons() {
 
     menuButton?.addEventListener('click', (e) => {
         e.stopPropagation();
-        sendMessage('menu', '', 'entropia-flow-client');
+        sendMessageToMain('menu', '');
     });
 
-    restoreButton?.addEventListener('click', (e) => {
+    nextButton?.addEventListener('click', (e) => {
         e.stopPropagation();
-        sendMessage('restore', '', 'entropia-flow-client');
+        nextLayout();
     });
 
     closeButton?.addEventListener('click', (e) => {
@@ -230,19 +228,34 @@ function receive(delta: any) {
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
-    _lastData.layoutIdList = layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
-    _lastData.commonData!.layouts = layouts;
+    if (!_lastData.layoutData) _lastData.layoutData = {};
+    _lastData.layoutData![MENU_LAYOUT_ID] = { layouts };
+    _layoutIdList = layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+}
+
+function nextLayout() {
+    const index = _layoutIdList.indexOf(_layoutId);
+    if (index === -1) return;
+    const nextIndex = (index + 1) % _layoutIdList.length;
+    const nextLayoutId = _layoutIdList[nextIndex];
+    _layoutId = nextLayoutId;
+    render({ layoutId: nextLayoutId });
 }
 
 function dispatch(action: string) {
-    sendMessage('dispatch', action);
+    sendMessageToMain('dispatch', action, 'chrome-extension');
 }
 
+let _requestedLayout: string | undefined = undefined;
 let _disableRender = false
 async function render(s: { layoutId: string, scale?: number, minimized?: boolean }) {
     if (_disableRender) return; // for debugging
-    const d = _lastData;
+    if (_requestedLayout !== s.layoutId) {
+        _requestedLayout = s.layoutId;
+        sendMessageToMain('layout-changed', { pid: NL_PID, layoutId: s.layoutId });
+    }
 
+    const d = _lastData;
     let layout = d.layouts[s.layoutId];
     let scale = s.scale ?? 1;
     if (s.minimized) {
@@ -251,10 +264,6 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
             backgroundType: layout.backgroundType
         };
         scale = 1;
-    }
-
-    if (restoreButton) {
-        restoreButton.style.display = _lastData.canRestore ? 'block' : 'none';
     }
 
     const layoutData = d.layoutData?.[s.layoutId];
@@ -336,10 +345,8 @@ function streamChanged(payload: any) {
 }
 
 let _storeIntervalId: number = 0;
-function storeWindowData() {
-    if (_storeIntervalId) window.clearInterval(_storeIntervalId);
-    Neutralino.storage.setData(interpolate(STORE_WINDOW, NL_PID), JSON.stringify({ layoutId: _layoutId, minimized: _minimized, time: Date.now() }));
-    _storeIntervalId = window.setInterval(async () => {
+async function storeWindowData() {
+    async function _storeIt() {
         const pos = await Neutralino.window.getPosition();
         const size = await Neutralino.window.getSize();
         const winData: WindowData = {
@@ -352,7 +359,22 @@ function storeWindowData() {
             height: size.height!
         };
         Neutralino.storage.setData(interpolate(STORE_WINDOW, NL_PID), JSON.stringify(winData));
-    }, 40000); // update every 40 seconds to mark as keep alive
+        console.log('Stored window data:', winData);
+    }
+
+    if (_storeIntervalId) window.clearInterval(_storeIntervalId);
+    await _storeIt();
+    _storeIntervalId = window.setInterval(_storeIt, 40000); // update every 40 seconds to mark as keep alive
+}
+
+async function setInitData(initData: WindowData) {
+    _layoutId = initData.layoutId;
+    _minimized = initData.minimized;
+    await Neutralino.window.move(initData.x, initData.y);
+    await Neutralino.window.setSize({ width: initData.width, height: initData.height });
+    if (!_waiting) {
+        render({ layoutId: _layoutId, minimized: _minimized });
+    }
 }
 
 function selectLayout(layoutId: string) {
@@ -393,5 +415,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 export {
     streamChanged,
-    settingsChanged
+    settingsChanged,
+    setInitData
 }

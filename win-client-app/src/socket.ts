@@ -1,7 +1,7 @@
 import { applyDelta } from "clientStream";
 import { clientId, clientVersion, RELAY_NAME, RELAY_PATH, STORE_MESSAGE, STORE_SETTINGS, STORE_STREAM, STORE_VER, STORE_WS_PORT } from './const';
 import { ScreenData, SettingsData, StreamData } from './data';
-import { openGameWindow } from './windows';
+import { identifyWindow, layoutChanged, openGameWindow, sendUsedLayouts } from './windows';
 import { getLocalIpAddress, interpolate } from "./utils";
 
 // A global variable to hold our WebSocket connection
@@ -33,7 +33,7 @@ function parseAndLogMessage(json: string, from = 'server') {
     const message = JSON.parse(json);
 
     // Now we can inspect the message object and act on it.
-    console.log('Parsed message payload:', message.data);
+    console.log('Parsed message payload:', message.data ?? message.payload);
     return message;
 }
 
@@ -74,9 +74,10 @@ async function connectWebSocket() {
         _settingsData.ws = { ...wsData, clientStatus: 'Connected', extensionStatus: 'Unknown' };
         sendDataToWindow('settings', _settingsVer, _settingsData);
 
-        sendMessage("version", clientVersion); // this will request all data for layouts
-        sendMessage("get_screens", null, "screens");
-        sendMessage("start", null, "logwatcher");
+        sendMessageToRelay("version", clientVersion); // this will request all data for layouts
+        sendMessageToRelay("get_screens", null, "screens");
+        sendMessageToRelay("start", null, "logwatcher");
+        sendUsedLayouts();
     };
 
     /**
@@ -87,7 +88,8 @@ async function connectWebSocket() {
         const message = parseAndLogMessage(event.data);
         switch (message.type) {
             case "version":
-                sendMessage("version", clientVersion); // reply with client version
+                sendMessageToRelay("version", clientVersion); // reply with client version
+                sendUsedLayouts();
                 break;
             case "screens_response":
                 _screensVer++;
@@ -156,7 +158,7 @@ async function connectWebSocket() {
 
 // A helper function to send data TO the extension
 // This is the "sender" part of the loop
-function sendMessage(type: string, payload: any, to = "chrome-extension") {
+function sendMessageToRelay(type: string, payload: any, to = "chrome-extension") {
     if (ws && ws.readyState === WebSocket.OPEN) {
         const message = {
             type: type,
@@ -171,41 +173,51 @@ function sendMessage(type: string, payload: any, to = "chrome-extension") {
     }
 }
 
-setInterval(async () => {
+const messageKeyStart = interpolate(STORE_MESSAGE, '');
+setInterval(async () => {    
     try {
-        const messageJson = await Neutralino.storage.getData(STORE_MESSAGE);
-        await Neutralino.storage.setData(STORE_MESSAGE, null!);
-        const message = parseAndLogMessage(messageJson, 'window');
-        if (message.to === clientId) {
-            switch (message.type) {
-                case "menu":
-                    openGameWindow();
-                    break;
-                case "set-settings":
-                    const logPath = message.payload.logPath;
-                    if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {
-                        sendMessage("set-path", { filePath: logPath }, 'logwatcher');
-                    }
-                    const wsPort = parseInt(message.payload.wsPort);
-                    if (!isNaN(wsPort) && _settingsData.ws && _settingsData.ws.port !== wsPort) {
-                        sendMessage("set-port", { port: wsPort }, 'server-node');
-                        await Neutralino.storage.setData(STORE_WS_PORT, wsPort.toString());
+        const msgKeys = await Neutralino.storage.getKeys();
+        msgKeys.filter(key => key.startsWith(messageKeyStart)).forEach(async key => {
+            const messageJson = await Neutralino.storage.getData(key);
+            await Neutralino.storage.setData(key, null!);
+            const message = parseAndLogMessage(messageJson, 'window');
+            if (message.to === clientId) {
+                switch (message.type) {
+                    case "menu":
+                        openGameWindow();
+                        break;
+                    case 'identify':
+                        identifyWindow(message.payload.pid);
+                        break;
+                    case 'layout-changed':
+                        layoutChanged(message.payload.pid, message.payload.layoutId);
+                        break;
+                    case "set-settings":
+                        const logPath = message.payload.logPath;
+                        if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {
+                            sendMessageToRelay("set-path", { filePath: logPath }, 'logwatcher');
+                        }
+                        const wsPort = parseInt(message.payload.wsPort);
+                        if (!isNaN(wsPort) && _settingsData.ws && _settingsData.ws.port !== wsPort) {
+                            sendMessageToRelay("set-port", { port: wsPort }, 'server-node');
+                            await Neutralino.storage.setData(STORE_WS_PORT, wsPort.toString());
 
-                        // restart relay
-                        closeWebSocket();
-                        await killRelay();
-                        await startRelayIfNotRunning();
-                        await connectWebSocket();
-                    }
-                    break;
-                default:
-                    console.error(`Unknown message type ${message.type}`);
-                    break;
+                            // restart relay
+                            closeWebSocket();
+                            await killRelay();
+                            await startRelayIfNotRunning();
+                            await connectWebSocket();
+                        }
+                        break;
+                    default:
+                        console.error(`Unknown message type ${message.type}`);
+                        break;
+                }
+            } else {
+                sendMessageToRelay(message.type, message.payload, message.to);
             }
-        } else {
-            sendMessage(message.type, message.payload, message.to);
-        }
-    } catch { } // it is normal that message is not there
+        });
+    } catch {} // fails when there are no keys
 }, 100);
 
 async function startRelayIfNotRunning() {
@@ -268,5 +280,6 @@ const Socket = {
 }
 
 export {
-    Socket
+    Socket,
+    sendMessageToRelay
 }

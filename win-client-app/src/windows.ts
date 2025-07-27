@@ -1,11 +1,12 @@
-import { STORE_INIT, STORE_WINDOW } from "./const";
-import { sendMessage } from "./messages";
+import { STORE_WINDOW } from "./const";
+import { sendInitMessageToWindow } from "./messages";
+import { sendMessageToRelay } from "./socket";
 import { interpolate } from "./utils";
 
-const usedLayouts: string[] = [];
+const usedLayouts: Record<number, string> = {};
 
 function sendUsedLayouts() {
-    sendMessage("used-layouts", { usedLayouts: Array.from(new Set(usedLayouts)) });
+    sendMessageToRelay("used-layouts", Array.from(new Set(Object.values(usedLayouts))));
 }
 
 type WindowData = {
@@ -18,8 +19,13 @@ type WindowData = {
     height: number;
 }
 
-async function openGameWindow(initData?: WindowData) {
-    const w = await Neutralino.window.create('/streamView.html', {
+async function layoutChanged(pid: number, layoutId: string) {
+    usedLayouts[pid] = layoutId;
+    sendUsedLayouts();
+}
+
+async function openGameWindow() {
+    await Neutralino.window.create('/streamView.html', {
         title: 'Entropia Flow Client',
         icon: '/resources/img/appIcon.png',
         minWidth: 30,
@@ -31,37 +37,6 @@ async function openGameWindow(initData?: WindowData) {
         hidden: false,
         exitProcessOnClose: true,
     } as any); // use any since the definition is wrong in center, x, y
-    const pid = (w as any).pid;
-    if (initData) {
-        await Neutralino.storage.setData(interpolate(STORE_INIT, pid), JSON.stringify(initData));
-    }
-    const intervalId = window.setInterval(async () => {
-        try {
-            const data = await Neutralino.storage.getData(interpolate(STORE_WINDOW, pid));
-            const parsed: WindowData = JSON.parse(data);
-            usedLayouts.push(parsed.layoutId);
-            sendUsedLayouts();
-            window.clearInterval(intervalId);
-        } catch {}
-    }, 100);
-
-    const keyStart = interpolate(STORE_WINDOW, '');
-    window.setInterval(async () => {
-        try {
-            const winKeys = await Neutralino.storage.getKeys();
-            winKeys.filter(key => key.startsWith(keyStart))
-                .forEach(async key => {
-                    const data = await Neutralino.storage.getData(key);
-                    const parsed: WindowData = JSON.parse(data);
-                    if (Date.now() - parsed.time > 60000) {
-                        await Neutralino.storage.setData(key, null!);
-                        usedLayouts.splice(usedLayouts.indexOf(parsed.layoutId), 1);
-                        sendUsedLayouts();
-                        return null;
-                    }
-                });
-        } catch {}
-    }, 60000); // garbage collect old windows every 60 seconds
 }
 
 async function openSettingsWindow() {
@@ -78,10 +53,17 @@ async function openSettingsWindow() {
     } as any); // use any since the definition is wrong in center, x, y
 }
 
+let _initWindowData: WindowData[] = [];
+async function identifyWindow(pid: number) {
+    const initData = _initWindowData.pop();
+    sendInitMessageToWindow(pid, initData);
+}
+
 async function openLastGameWindows() {
-    const keyStart = interpolate(STORE_WINDOW, '');
+    // restore windows from last time
+    const storeWindowKeyStart = interpolate(STORE_WINDOW, '');
     const winKeys = await Neutralino.storage.getKeys();
-    const windowData = (await Promise.all(winKeys.filter(key => key.startsWith(keyStart))
+    _initWindowData = (await Promise.all(winKeys.filter(key => key.startsWith(storeWindowKeyStart))
         .map(async key => {
             const data = await Neutralino.storage.getData(key);
             await Neutralino.storage.setData(key, null!);
@@ -90,18 +72,44 @@ async function openLastGameWindows() {
         })))
         .sort((a, b) => a.time - b.time);
 
-    if (windowData.length === 0) {
+    if (_initWindowData.length > 0) {
+        // open last 60 seconds, they send keep alive every 40 seconds
+        _initWindowData = _initWindowData.filter(d => d.time > _initWindowData[0].time - 60000);
+    }
+    if (_initWindowData.length === 0) {
         openGameWindow();
     } else {
-        windowData.filter(data => data.time > windowData[0].time - 60000).forEach(data => { // open last 60 seconds, they update every 40 seconds
-            openGameWindow(data);
+        _initWindowData.forEach(d => {
+            openGameWindow();
         });
     }
+
+    // garbage collect old windows every 60 seconds
+    window.setInterval(async () => {
+        try {
+            const winKeys = await Neutralino.storage.getKeys();
+            winKeys.filter(key => key.startsWith(storeWindowKeyStart))
+                .forEach(async key => {
+                    const data = await Neutralino.storage.getData(key);
+                    const parsed: WindowData = JSON.parse(data);
+                    if (Date.now() - parsed.time > 60000) {
+                        await Neutralino.storage.setData(key, null!);
+                        const pid = parseInt(key.split('-')[1]);
+                        delete usedLayouts[pid];
+                        sendUsedLayouts();
+                        return null;
+                    }
+                });
+        } catch {} // fails when there are no keys
+    }, 60000);
 }
 
 export {
     openGameWindow,
     openSettingsWindow,
     openLastGameWindows,
+    sendUsedLayouts,
+    identifyWindow,
+    layoutChanged,
     WindowData
 }

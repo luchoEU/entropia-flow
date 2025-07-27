@@ -3,13 +3,6 @@
 import { STORE_INIT, STORE_MESSAGE, STORE_VER } from "./const";
 import { interpolate } from "./utils";
 
-async function getInitializationData() {
-    const key = interpolate(STORE_INIT, NL_PID);
-    const d = await Neutralino.storage.getData(key);
-    await Neutralino.storage.setData(key, null!);
-    return d ? JSON.parse(d) : null;
-}
-
 function receiveUpdates(key: string, interval: number, callback: (data: any) => void) {
     let ver: string | null = null;
     setInterval(async () => {
@@ -27,13 +20,18 @@ function receiveUpdates(key: string, interval: number, callback: (data: any) => 
     }, interval);
 }
 
-function sendMessage(type: string, payload: any, to: string = 'chrome-extension') {
-    Neutralino.storage.setData(STORE_MESSAGE, JSON.stringify({ type, payload, to }));
+function sendMessageToMain(type: string, payload: any, to: string = 'entropia-flow-client') {
+    Neutralino.storage.setData(interpolate(STORE_MESSAGE, Math.floor(Math.random() * 1000000).toString()), JSON.stringify({ type, payload, to }));
     console.log(`Sent message ${type} to ${to}:`, payload);
 }
 
+function sendInitMessageToWindow(pid: number, payload?: any) {
+    Neutralino.storage.setData(interpolate(STORE_INIT, pid.toString()), payload ? JSON.stringify(payload) : '');
+    console.log(`Sent init message to window ${pid}:`, payload);
+}
+
 export {
-    getInitializationData,
     receiveUpdates,
-    sendMessage
+    sendMessageToMain,
+    sendInitMessageToWindow
 }

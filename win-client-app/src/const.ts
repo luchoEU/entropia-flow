@@ -6,7 +6,7 @@ const RELAY_NAME = 'EntropiaFlowClient-relay';
 const RELAY_PATH = `relay\\${RELAY_NAME}.exe`;
 
 const STORE_INIT = `init-$1`;         // get initialization data from main process
-const STORE_MESSAGE = `message`;      // send message to relay
+const STORE_MESSAGE = `message-$1`;   // send message to relay
 const STORE_VER = `$1Ver`;            // signal that the value has changed
 const STORE_WS_PORT = `wsPort`;       // store websocket port from next run
 const STORE_STREAM = `stream`;        // get stream data from main process

@@ -1,5 +1,5 @@
 import { STORE_SETTINGS } from "./const";
-import { receiveUpdates, sendMessage } from "./messages";
+import { receiveUpdates, sendMessageToMain } from "./messages";
 import { copyTextToClipboard } from "./utils";
 
 const logPathElement = document.getElementById('logPath');
@@ -51,7 +51,7 @@ async function saveSettings() {
     if (saveDisable) return;
     const logPath = logPathElement?.textContent?.trim();
     const wsPort = wsPortElement?.value?.trim();
-    sendMessage('set-settings', { logPath, wsPort }, 'entropia-flow-client');
+    sendMessageToMain('set-settings', { logPath, wsPort });
     if (saveButtonElement) saveButtonElement.textContent = 'Saving...';
     saveDisable = true;
 }
