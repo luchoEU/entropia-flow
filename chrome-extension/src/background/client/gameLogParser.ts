@@ -61,6 +61,7 @@ const tierRegex = /Your (.+) has reached tier (.+)/
 const eventRegex = {
     auctionCreated: /Auction successfully created/,
     blueprintImproved: /Your blueprint Quality Rating has improved/,
+    challenged: /The (.+) has been challenged!/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
     concentrationAffected: /Mindforce concentration was affected due to being hit/,
     destroyed: /(.+) was destroyed by the \w+ (.+)/,

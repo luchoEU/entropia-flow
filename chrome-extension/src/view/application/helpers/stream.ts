@@ -236,7 +236,7 @@ const reduceCloneStreamLayout = (state: StreamState, layoutId: string, newLayout
         return state;
     }
 
-    return {
+    return _computeUsedVariables({
         ...state,
         in: {
             ...state.in,
@@ -252,7 +252,7 @@ const reduceCloneStreamLayout = (state: StreamState, layoutId: string, newLayout
                 }
             }
         }
-    }
+    }, newLayoutId)
 }
 
 const reduceRemoveStreamLayout = (state: StreamState, layoutId: string): StreamState => {
