@@ -7,6 +7,5 @@
 
 # Next release
 
-- Fix performance issue with formula javascript execution
 - Download link on client
 - 2 tutorial videos, hunting overlay and settings

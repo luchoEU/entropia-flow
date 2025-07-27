@@ -281,21 +281,44 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
 let _dataInClient: StreamRenderData | undefined = undefined
 
+const transpileCache = new Map<string, string>();
+function getTranspiledCode(jsCode: string): string {
+    if (!transpileCache.has(jsCode)) {
+        // Transpile the modern JS code to ES5
+        transpileCache.set(jsCode, Babel.transform(jsCode, { presets: ['env'] }).code!);
+    }
+    return transpileCache.get(jsCode)!;
+}
+
+function deepEqual(a: any, b: any): boolean {
+    if (a === b) return true;
+    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+    const aKeys = Object.keys(a), bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every(key => deepEqual(a[key], b[key]));
+}
+
 function getLayoutVariables(context: any, layout?: StreamSavedLayout): StreamStateVariable[] {
-    const jsCode = layout?.formulaJavaScript
-    if (!jsCode || jsCode.trim() === '')
-        return []
+    const jsCode = layout?.formulaJavaScript;
+    if (!jsCode?.trim()) return [];
 
     try {
-        const es5Code = Babel.transform(jsCode, { presets: ['env'] }).code; // Transpile the modern JS code to ES5 at parse time
+        const es5Code = getTranspiledCode(jsCode);
         const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
         interpreter.run();
+
         return Object.entries(interpreter.globalScope.object.properties)
-            .filter(([name, value]) => !name.startsWith('__') && name !== 'self' && name !== 'window' && value !== undefined && (value as any)?.class !== 'Function')
-            .map(([name, value]) => ({name, value: interpreter.pseudoToNative(value)}))
-            .filter(({name, value}) => JSON.stringify(context[name]) !== JSON.stringify(value))
+            .filter(([name, value]) =>
+                !name.startsWith('__') &&
+                name !== 'self' &&
+                name !== 'window' &&
+                value !== undefined &&
+                (value as any)?.class !== 'Function'
+            )
+            .map(([name, value]) => ({ name, value: interpreter.pseudoToNative(value) }))
+            .filter(({ name, value }) => !deepEqual(context[name], value));
     } catch (e) {
-        return [{ name: '!error', value: e.message }]
+        return [{ name: '!error', value: e.message }];
     }
 }
 
