@@ -223,8 +223,30 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             if (!out.data)
                 break
 
+            function buildKeyTree(used: Set<string>) {
+                const tree: any = {};
+                for (const key of used) {
+                    const parts = key.split('.');
+                    let current = tree;
+                    for (const part of parts) {
+                        current = current[part] ??= {};
+                    }
+                }
+                return tree;
+            }
+            function filterObject(data: any, keyTree: any): any {
+                if (typeof data !== 'object' || data === null) return data;
+            
+                return Object.fromEntries(
+                    Object.entries(keyTree)
+                        .filter(([k]) => k in data)
+                        .map(([k, subTree]) => [k, filterObject(data[k], subTree)])
+                );
+            }
+
             const usedLayouts: string[] = getStreamUsedLayouts(getState());
-            const userVariables = new Set(Object.entries(out.computed).filter(([id]) => usedLayouts.includes(id)).map(([,v]) => v.usedVariables ?? []).flat())
+            const usedVariables = new Set(Object.entries(out.computed).filter(([id]) => usedLayouts.includes(id)).map(([,v]) => v.usedVariables ?? []).flat())
+            const keyTree = buildKeyTree(usedVariables);
 
             const renderData: StreamRenderData = {
                 layouts: out.data.layouts,
@@ -233,11 +255,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     .map(([id, data]) => {
                         const usedLayoutVariables = out.computed[id]?.usedVariables
                         if (!usedLayoutVariables?.length) return [id, {}]
-                        return [id, Object.fromEntries(Object.entries(data).filter(([k]) => usedLayoutVariables.includes(k)))]
+                        return [id, filterObject(data, keyTree)]
                     })),
-                commonData: Object.fromEntries(Object.entries(out.data.commonData).filter(([k]) => userVariables.has(k)))
+                commonData: filterObject(out.data.commonData, keyTree)
             }
-
+            
             const delta = getDelta(_dataInClient, renderData)
             if (!delta)
                 break
