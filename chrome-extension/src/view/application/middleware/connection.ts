@@ -27,9 +27,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case WEB_SOCKET_CHANGED: {
             const state: ConnectionState = getConnection(getState())
             await api.storage.saveConnection(cleanForSave(state))
-
-            if (action.type === WEB_SOCKET_CHANGED)
-                dispatch(setWebSocketUrl(state.client.webSocket))
+            dispatch(setWebSocketUrl(state.client.webSocket))
             break
         }
         case WEB_SOCKET_RETRY: {

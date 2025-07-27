@@ -8,6 +8,7 @@ enum Feature {
     ttService,
     actionLink,
     unfreezeTab,
+    commaDecimalSeparator,
 }
 
 const featureList: FeatureInfo[] = [
@@ -56,6 +57,11 @@ const featureList: FeatureInfo[] = [
 This feature allows the extension to temporarily activate the tab to unfreeze it when needed.
 You may notice a brief flicker when this happens.
 Alternatively, you can choose to handle this manually by opening the tab yourself.`
+    },
+    {
+        id: Feature.commaDecimalSeparator,
+        title: 'Comma Decimal Separator',
+        description: 'Use comma as separator instead of dot when copy to clipboard',
     },
 ]
 

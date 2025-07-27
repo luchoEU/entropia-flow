@@ -19,6 +19,8 @@ import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
 import { setStreamUsedLayouts } from '../actions/stream'
+import { Feature, isFeatureEnabled } from '../state/settings'
+import { getSettings } from '../selectors/settings'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -94,7 +96,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case COPY_LAST: {
             const { c: { diff } }: LastRequiredState = getLast(getState())
             if (diff) {
-                const text = diff.map(d => `${d.n}\t${d.q}\t${d.v}`).join('\n')
+                const settings = getSettings(getState())
+                const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
+                const text = diff.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
                 navigator.clipboard.writeText(text).catch(err => console.error('Failed to copy text: ', err));
             }
             break

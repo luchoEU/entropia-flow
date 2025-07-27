@@ -19,9 +19,6 @@ class WebSocketClient implements IWebSocketClient {
     }
 
     public async start(url: string): Promise<void> {
-        if (this.url === url && this.socket?.readyState == WebSocket.OPEN)
-            return // don't reconnect to the same place since it will fail because the client needs a few seconds to be available again
-
         if (this.socket)
             this.socket.close()
 
@@ -76,9 +73,9 @@ class WebSocketClient implements IWebSocketClient {
         }
     }
 
-    private _setState(code: WebSocketStateCode, message: string): void {
+    private async _setState(code: WebSocketStateCode, message: string): Promise<void> {
         this.state = { code, message }
-        this.onStateChanged?.(this.state)
+        await this.onStateChanged?.(this.state)
     }
 
     public getState(): WebSocketState { return this.state }

@@ -294,7 +294,7 @@ const setCraftingSessionStage = (name: string, stage: number) => ({
     }
 })
 
-const doneCraftingSession = (name: string) => ({
+const doneCraftingSession = (name: string | undefined) => ({
     type: DONE_CRAFT_SESSION,
     payload: {
         name

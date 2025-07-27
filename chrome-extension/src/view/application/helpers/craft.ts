@@ -334,16 +334,16 @@ const _applyFilter = (state: CraftState): CraftState => {
     }
 }
 
-const _changeBlueprint = (state: CraftState, name: string, f: (bp: BlueprintData) => BlueprintData): CraftState => _applyFilter({
+const _changeBlueprint = (state: CraftState, name: string | undefined, f: (bp: BlueprintData) => BlueprintData): CraftState => name ?_applyFilter({
     ...state,
     blueprints: {
         ...state.blueprints,
         [name]: f(state.blueprints[name])
     }
-})
+}) : state
 
 const _changeBudget = (state: CraftState, name: string, change: Partial<BlueprintBudget>): CraftState => 
-    _changeBlueprint(state, name, bp => ({ ...bp, budget: { ...bp.budget, change }}))
+    _changeBlueprint(state, name, bp => ({ ...bp, budget: { ...bp.budget, ...change }}))
 
 const _changeBudgetMaterial = (state: CraftState, name: string, materialName: string, change: Partial<BlueprintBudgetMaterial>): CraftState =>
     _changeBlueprint(state, name, bp => ({
@@ -363,7 +363,7 @@ const _changeBudgetMaterial = (state: CraftState, name: string, materialName: st
         }
     }))
 
-const _changeSession = (state: CraftState, name: string, newSession: (bp: BlueprintData) => BlueprintSession): CraftState =>
+const _changeSession = (state: CraftState, name: string | undefined, newSession: (bp: BlueprintData) => BlueprintSession): CraftState =>
     _changeBlueprint(state, name, bp => ({ ...bp, session: newSession(bp) }))
 
 const reduceStartBudgetLoading = (state: CraftState, name: string): CraftState => 
@@ -475,7 +475,7 @@ const reduceSaveCraftSession = (state: CraftState, name: string): CraftState =>
 const reduceSetCraftSaveStage = (state: CraftState, name: string, stage: number): CraftState =>
     _changeSession(state, name, (bp) => ({ ...bp.session, stage }))
 
-const reduceDoneCraftSession = (state: CraftState, name: string): CraftState => ({
+const reduceDoneCraftSession = (state: CraftState, name: string | undefined): CraftState => ({
     ...state,
     ..._changeSession(state, name, (bp) => ({ ...bp.session, step: STEP_DONE })),
     activeSession: undefined

@@ -9,9 +9,7 @@
 
 # Next release
 
-- Fix C button in Blueprints List
 - Fix performance issue with formula javascript execution
-- Fix next button and size button on client
 - Download link on client
-- Make client work without extension view
+- Make client work with the extension's background
 - 2 tutorial videos, hunting overlay and settings

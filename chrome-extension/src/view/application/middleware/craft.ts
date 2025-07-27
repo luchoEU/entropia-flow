@@ -380,8 +380,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
-                const activeSessionBp = state.blueprints[state.activeSession]
-                if (activeSessionBp.session.diffMaterials !== undefined) {
+
+                const activeSessionBp = state.blueprints[state.activeSession ?? '']
+                if (activeSessionBp.session?.diffMaterials !== undefined) {
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp))
                     const d: BudgetLineData = {
@@ -467,6 +468,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_CURRENT_INVENTORY:
         case SET_BLUEPRINT_LIST:
         case SET_CRAFT_OPTIONS:
+        case END_BLUEPRINT_EDIT_MODE:
             const state: CraftState = getCraft(getState())
             const inventory: InventoryState = getInventory(getState())
             dispatch(setTabularData(craftTabularData(state, inventory)))
