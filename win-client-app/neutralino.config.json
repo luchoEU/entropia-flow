@@ -30,7 +30,7 @@
       "title": "Entropia Flow Client Logic (Hidden)",
       "icon": "/resources/img/appIcon.png",
       "hidden": true,
-      "enableInspector": true,
+      "enableInspector": false,
       "exitProcessOnClose": true
     }
   },

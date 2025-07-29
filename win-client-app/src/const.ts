@@ -1,5 +1,5 @@
 const clientId = 'entropia-flow-client';
-const clientVersion = '0.0.1';
+const clientVersion = '0.1.0';
 
 const CLIENT_EXE = 'EntropiaFlowClient.exe'
 const RELAY_NAME = 'EntropiaFlowClient-relay';
