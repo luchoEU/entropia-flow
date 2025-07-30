@@ -1,15 +1,16 @@
 // Derived from https://codepen.io/pavi2410/pen/oNjGVgM Copyright (c) 2024 Pavitra Golchha (MIT License)
 
-import { Component, trace } from "../../../common/trace";
 import { AnimatedBackground } from "../baseBackground";
 
 const state = {
-    fullFallTime: 3.0,
     color: "#0f0",
     charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ@#$%^&*()_+-=[]{}|;:',.<>/?`~",
     verticalLength: 25,
     minDistance: 3,
-    opacity: 0.05
+    opacity: 0.05,
+    fallSpeed: 100, // pixels per second,
+    fontSize: 6, // fixed size in pixels
+    fps: 8
 };
 
 class MatrixBackground extends AnimatedBackground {
@@ -33,9 +34,8 @@ class MatrixBackground extends AnimatedBackground {
     protected override onContainerResize(width: number, height: number) {
         this.width = width;
         this.height = height;
-        const fontSize = this.height / state.verticalLength;
-        this.heightInCharacters = Math.floor(this.height / fontSize);
-        this.positions = Array(Math.ceil(this.width / fontSize));
+        this.heightInCharacters = Math.floor(this.height / state.fontSize);
+        this.positions = Array(Math.ceil(this.width / state.fontSize));
         let lastM = 0;
         for (let i = 0; i < this.positions.length; i++) {
             let m = Math.floor(Math.random() * this.heightInCharacters);
@@ -43,7 +43,7 @@ class MatrixBackground extends AnimatedBackground {
                 m = Math.floor(Math.random() * this.heightInCharacters);
             }
             lastM = m;
-            this.positions[i] = Math.floor(m) * fontSize;
+            this.positions[i] = Math.floor(m) * state.fontSize;
         }
 
         const canvas = this.container.querySelector("canvas") as HTMLCanvasElement;
@@ -56,8 +56,8 @@ class MatrixBackground extends AnimatedBackground {
         }
     }
     
-    private draw(ctx: CanvasRenderingContext2D) {
-        if (!this.positions) return // onContainerResize not called yet
+    private draw(ctx: CanvasRenderingContext2D | null) {
+        if (!this.positions || !ctx) return // onContainerResize not called yet
 
         const random = (items: string) => items[Math.floor(Math.random() * items.length)];
 
@@ -65,12 +65,11 @@ class MatrixBackground extends AnimatedBackground {
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.fillStyle = state.color;
 
-        const fontSize = this.height / state.verticalLength;
-        ctx.font = fontSize + "px monospace";
+        ctx.font = `${state.fontSize}px monospace`;
         for (let i = 0; i < this.positions.length; i++) {
             let v = this.positions[i];
-            ctx.fillText(random(state.charset), i * fontSize, v);
-            this.positions[i] = v >= this.height ? 0 : v + fontSize;
+            ctx.fillText(random(state.charset), i * state.fontSize, v);
+            this.positions[i] = v >= this.height ? 0 : v + state.fontSize;
         }
     }
 
@@ -86,9 +85,8 @@ class MatrixBackground extends AnimatedBackground {
             if (this.elapsed === 0)
                 this.elapsed = delta - 1
 
-            const fps = this.heightInCharacters / state.fullFallTime
             while (this.elapsed < delta) {
-                this.elapsed += 1000 / fps
+                this.elapsed += 1000 / state.fps
                 this.draw(ctx)
             }
         }

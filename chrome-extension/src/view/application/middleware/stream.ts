@@ -240,7 +240,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 return Object.fromEntries(
                     Object.entries(keyTree)
                         .filter(([k]) => k in data)
-                        .map(([k, subTree]) => [k, filterObject(data[k], subTree)])
+                        .map(([k, subTree]) => [k, typeof subTree === 'object' && Object.keys(subTree as object).length === 0 ? data[k] : filterObject(data[k], subTree)])
                 );
             }
 

@@ -11,7 +11,7 @@ namespace EntropiaFlowClient
     {
         private readonly WebSocketServer _webSocket;
 
-        private const int WEB_SOCKET_PORT = 6521;
+        private const int WEB_SOCKET_PORT = 6522;
 
         public WebSocketChat()
         {

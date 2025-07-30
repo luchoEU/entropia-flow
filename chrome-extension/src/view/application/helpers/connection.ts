@@ -1,6 +1,6 @@
 import { ConnectionState } from "../state/connection"
 
-const DEFAULT_WEB_SOCKET_URL = 'ws://localhost:6521'
+const DEFAULT_WEB_SOCKET_URL = 'ws://localhost:6522'
 
 const initialState: ConnectionState = {
     client: {
@@ -31,7 +31,7 @@ const cleanForSave = (state: ConnectionState): ConnectionState => ({
     ...state,
     client: {
         ...state.client,
-        status: undefined
+        status: undefined!
     }
 })
 

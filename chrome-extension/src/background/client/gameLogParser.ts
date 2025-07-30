@@ -64,6 +64,7 @@ const eventRegex = {
     challenged: /The (.+) has been challenged!/,
     claimedResource: /You have claimed a resource! \((.*)\)/,
     concentrationAffected: /Mindforce concentration was affected due to being hit/,
+    creatureCondition: /This creature is in a condition where it cannot be damaged or sweated/,
     destroyed: /(.+) was destroyed by the \w+ (.+)/,
     effectEquip: /Equip Effect: (.+)/,
     effectOverTime: /Received Effect Over Time: (.+)/ , 
