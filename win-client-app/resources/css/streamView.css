@@ -51,7 +51,7 @@ body {
     pointer-events: auto;
 }
 #entropia-flow-client-minimize,
-#entropia-flow-client-menu,
+#entropia-flow-client-menu img,
 #entropia-flow-client-next {
     width: 20px;
     height: 20px;
@@ -66,6 +66,20 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+#entropia-flow-client-menu {
+    position: relative;
+}
+#entropia-flow-client-menu-popup {
+    display: none;
+    font-size: 12px;
+    position: absolute;
+    top: -4px;
+    z-index: 1;
+    background-color: lavender;
+    padding: 10px;
+    border-radius: 13px;
+    text-wrap-mode: nowrap;
 }
 #entropia-flow-client-nav .entropia-flow-client-control {
     display: none;

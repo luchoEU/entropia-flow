@@ -173,6 +173,7 @@ function sendMessageToRelay(type: string, payload: any, to = "chrome-extension")
     }
 }
 
+let waitingForIdentify = false;
 const messageKeyStart = interpolate(STORE_MESSAGE, '');
 setInterval(async () => {    
     try {
@@ -184,10 +185,16 @@ setInterval(async () => {
             if (message.to === clientId) {
                 switch (message.type) {
                     case "menu":
+                        if (waitingForIdentify) {
+                            console.log('Waiting for identify, skipping menu');
+                            return;
+                        }
+                        waitingForIdentify = true;
                         openGameWindow();
                         break;
                     case 'identify':
                         identifyWindow(message.payload.pid);
+                        waitingForIdentify = false;
                         break;
                     case 'layout-changed':
                         layoutChanged(message.payload.pid, message.payload.layoutId);

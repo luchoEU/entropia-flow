@@ -87,6 +87,7 @@ let _lastData: StreamWindowRenderData = {
             name: 'Entropia Flow Menu',
             htmlTemplate: `
                 {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
+                {{^layouts}}No layouts found{{/layouts}}
             `,
             cssTemplate: `
                 .layout-root {
@@ -196,6 +197,7 @@ const _emptyLayout = {
 
 const minimizeButton = document.getElementById('entropia-flow-client-minimize');
 const menuButton = document.getElementById('entropia-flow-client-menu');
+const menuPopup = document.getElementById('entropia-flow-client-menu-popup');
 const nextButton = document.getElementById('entropia-flow-client-next');
 const closeButton = document.getElementById('entropia-flow-client-close');
 
@@ -208,6 +210,10 @@ function _setupButtons() {
     menuButton?.addEventListener('click', (e) => {
         e.stopPropagation();
         sendMessageToMain('menu', '');
+        if (menuPopup) {
+            menuPopup.style.display = 'block';
+            setTimeout(() => { menuPopup.style.display = 'none' }, 3000);
+        }
     });
 
     nextButton?.addEventListener('click', (e) => {

@@ -10,15 +10,18 @@
             </div>
             <div id="entropia-flow-client-nav">
                 <div>
-                    <img id="entropia-flow-client-minimize" class="entropia-flow-client-control clickable" src="/img/flow128.png">
-                    <img id="entropia-flow-client-menu" class="entropia-flow-client-control clickable" src="/img/up.png">
-                    <img id="entropia-flow-client-next" class="entropia-flow-client-control clickable" src="/img/right.png">
-                    <img id="entropia-flow-client-resize" class="entropia-flow-client-control clickable" style="display: none;" src="/img/resize.png">
+                    <img id="entropia-flow-client-minimize" alt="Minimize" class="entropia-flow-client-control clickable" src="/img/flow128.png" title="minimize window">
+                    <span id="entropia-flow-client-menu" class="entropia-flow-client-control clickable" title="open a new window with the layout menu">
+                        <img src="/img/up.png" alt="Menu">
+                        <span id="entropia-flow-client-menu-popup">Opening, please wait</span>
+                    </span>
+                    <img id="entropia-flow-client-next" alt="Next" class="entropia-flow-client-control clickable" src="/img/right.png" title="use next layout">
+                    <img id="entropia-flow-client-resize" alt="Resize" class="entropia-flow-client-control clickable" style="display: none;" src="/img/resize.png" title="resize window">
                     <div style="flex: 1"></div>
-                    <img id="entropia-flow-client-close" class="entropia-flow-client-control clickable" src="/img/cross.png">
+                    <img id="entropia-flow-client-close" alt="Close" class="entropia-flow-client-control clickable" src="/img/cross.png" title="close window">
                 </div>
                 <div>
-                    <span id="entropia-flow-client-layout" class="entropia-flow-client-control"></span>
+                    <span id="entropia-flow-client-layout" class="entropia-flow-client-control" title="current layout name"></span>
                 </div>
             </div>
         </div>

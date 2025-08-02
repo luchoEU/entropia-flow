@@ -73,15 +73,14 @@ async function openLastGameWindows() {
         .sort((a, b) => a.time - b.time);
 
     if (_initWindowData.length > 0) {
-        // open last 60 seconds, they send keep alive every 40 seconds
-        _initWindowData = _initWindowData.filter(d => d.time > _initWindowData[0].time - 60000);
+        _initWindowData = _initWindowData
+            .filter(d => d.time > _initWindowData[0].time - 60000)  // open last 60 seconds, they send keep alive every 40 seconds
+            .slice(-5);                                             // open up to 5, in case there was a problem in last run that opened too many windows
     }
     if (_initWindowData.length === 0) {
         openGameWindow();
     } else {
-        _initWindowData.forEach(d => {
-            openGameWindow();
-        });
+        _initWindowData.forEach(openGameWindow);
     }
 
     // garbage collect old windows every 60 seconds
