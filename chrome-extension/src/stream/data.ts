@@ -1,4 +1,4 @@
-import { StreamUserImageVariable } from "../view/application/state/stream"
+import { StreamUserImageVariable, StreamUserParameterVariable } from "../view/application/state/stream"
 
 interface StreamRenderLayout {
     name: string,
@@ -15,12 +15,14 @@ interface StreamCommonLayout extends StreamRenderLayout {
 
 interface StreamSavedLayout extends StreamCommonLayout {
     images?: StreamUserImageVariable[]
+    parameters?: StreamUserParameterVariable[]
     readonly?: boolean
     stared?: boolean
 }
 
 interface StreamExportLayout extends StreamCommonLayout {
     images?: Omit<StreamUserImageVariable, 'id'>[]
+    parameters?: Omit<StreamUserParameterVariable, 'id'>[]
     schema: number
 }
 

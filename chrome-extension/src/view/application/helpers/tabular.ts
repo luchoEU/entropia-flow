@@ -15,7 +15,7 @@ const reduceSetTabularFilter = (state: TabularState, selector: string, filter: s
 })
 
 const itemMatchesFilter = (d: any, index: number, data: any, selector: string, filter: string): boolean =>
-    _tabularDefinitions[selector].getRowForFilter?.(d, index, data).some((t: any) => t && typeof t === 'string' && multiIncludes(filter, t)) ?? false
+    _tabularDefinitions[selector].getRowForFilter?.(d, index, data).some((t: any) => t !== undefined && typeof t === 'string' && multiIncludes(filter, t)) ?? false
 
 const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularStateData => {
     const sortDefinition = _getTabularSortDefinition(selector);

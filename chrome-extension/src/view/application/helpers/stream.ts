@@ -296,12 +296,17 @@ const reduceEmptyTrashLayouts = (state: StreamState): StreamState => ({
     }
 })
 
+const _nextId = (layout: StreamSavedLayout): number =>
+    Math.max(...(layout.images?.map(v => v.id) ?? []), ...(layout.parameters?.map(v => v.id) ?? []), 0) + 1
+
 const reduceAddStreamUserImage = (state: StreamState, layoutId: string): StreamState => {
-    const vars = state.in.layouts[layoutId].images ?? []
-    const nextId = vars?.length ? Math.max(...vars.map(v => v.id)) + 1 : 1
+    const layout = state.in.layouts[layoutId]
+    if (!layout) {
+        return state
+    }
     return _changeStreamLayout(state, layoutId, {
-        images: [ ...vars, {
-            id: nextId,
+        images: [ ...layout.images ?? [], {
+            id: _nextId(layout),
             name: '',
             value: '',
             description: ''
@@ -309,12 +314,29 @@ const reduceAddStreamUserImage = (state: StreamState, layoutId: string): StreamS
     })
 }
 
-const reduceRemoveStreamUserImage = (state: StreamState, layoutId: string, id: number): StreamState => _changeStreamLayout(state, layoutId, {
-    images: state.in.layouts[layoutId].images?.filter(v => v.id !== id)
+const reduceAddStreamUserParameter = (state: StreamState, layoutId: string): StreamState => {
+    const layout = state.in.layouts[layoutId]
+    if (!layout) {
+        return state
+    }
+    return _changeStreamLayout(state, layoutId, {
+        parameters: [ ...layout.parameters ?? [], {
+            id: _nextId(layout),
+            name: '',
+            value: '',
+            description: ''
+        } ]
+    })
+}
+
+const reduceRemoveStreamUser = (state: StreamState, layoutId: string, id: number): StreamState => _changeStreamLayout(state, layoutId, {
+    images: state.in.layouts[layoutId].images?.filter(v => v.id !== id),
+    parameters: state.in.layouts[layoutId].parameters?.filter(v => v.id !== id)
 })
 
-const reduceSetStreamUserImagePartial = (state: StreamState, layoutId: string, id: number, partial: Partial<StreamUserImageVariable>): StreamState => _changeStreamLayout(state, layoutId, {
-    images: state.in.layouts[layoutId].images?.map(v => v.id === id ? { ...v, ...partial } : v)
+const reduceSetStreamUserPartial = (state: StreamState, layoutId: string, id: number, partial: Partial<StreamUserImageVariable>): StreamState => _changeStreamLayout(state, layoutId, {
+    images: state.in.layouts[layoutId].images?.map(v => v.id === id ? { ...v, ...partial } : v),
+    parameters: state.in.layouts[layoutId].parameters?.map(v => v.id === id ? { ...v, ...partial } : v)
 })
 
 const reduceSetStreamUsedLayouts = (state: StreamState, usedLayouts: string[]): StreamState => ({
@@ -345,11 +367,12 @@ export {
     reduceAddStreamLayout,
     reduceImportStreamLayoutFromFile,
     reduceAddStreamUserImage,
+    reduceAddStreamUserParameter,
     reduceRemoveStreamLayout,
-    reduceSetStreamUserImagePartial,
+    reduceSetStreamUserPartial,
     reduceRestoreStreamLayout,
     reduceEmptyTrashLayouts,
-    reduceRemoveStreamUserImage,
+    reduceRemoveStreamUser,
     reduceCloneStreamLayout,
     reduceClearStreamLayoutAlias,
     reduceSetStreamUsedLayouts

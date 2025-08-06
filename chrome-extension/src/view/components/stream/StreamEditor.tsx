@@ -1,10 +1,10 @@
 
 import React from "react"
 import { useSelector } from "react-redux"
-import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
+import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
 import { getStreamAdvancedEditor, getStreamData, getStreamLayout, getStreamShowingLayoutId } from "../../application/selectors/stream"
-import { clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamFormulaJavaScript, setStreamHtmlTemplate, setStreamName, addStreamUserImage, setStreamShowingLayoutId } from "../../application/actions/stream"
+import { clearStreamLayoutAlias, cloneStreamLayout, setStreamAdvanced, setStreamAuthor, setStreamCssTemplate, setStreamFormulaJavaScript, setStreamHtmlTemplate, setStreamName, addStreamUserImage, setStreamShowingLayoutId, addStreamUserParameter } from "../../application/actions/stream"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
@@ -124,10 +124,15 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                 <SortableTabularSection
                     selector={STREAM_TABULAR_IMAGES}
                     itemHeight={50}
-                    afterSearch={ () => [ { button: 'Add', dispatch: () => addStreamUserImage(layoutId) } ]}
+                    afterSearch={ () => layout.readonly ? [] : [ { button: 'Add', dispatch: () => addStreamUserImage(layoutId) } ]}
                     useTable={true} // use table since it support getRowKey, needed to visually delete the correct one
                 />
             </>}
+            { (advanced || (layout.parameters?.length ?? 0) > 0) && <SortableTabularSection
+                selector={STREAM_TABULAR_PARAMETERS}
+                afterSearch={ () => layout.readonly ? [] : [ { button: 'Add', dispatch: () => addStreamUserParameter(layoutId) } ]}
+                useTable={true} // use table since it support getRowKey, needed to visually delete the correct one
+            />}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
                 <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: { ...commonData, ...layoutData[layoutId] }, layout}} />
             </ExpandableSection>

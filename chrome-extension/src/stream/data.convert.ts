@@ -7,18 +7,31 @@ const savedToExportLayout = (layout: StreamSavedLayout): StreamExportLayout => (
         name: v.name,
         value: v.value,
         description: v.description?.length ? v.description : undefined
+    })),
+    parameters: layout.parameters?.map(v => ({
+        name: v.name,
+        value: v.value,
+        description: v.description?.length ? v.description : undefined
     }))
 })
 
-const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => ({
-    ...copyCommonLayout(layout),
-    images: layout.images?.map((v, i) => ({
-        id: i,
+const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => {
+    const savedLayout: StreamSavedLayout = copyCommonLayout(layout);
+    savedLayout.images = layout.images?.map((v, i) => ({
+        id: i + 1,
         name: v.name,
         value: v.value,
         description: v.description
-    }))
-})
+    }));
+    const firstParameterId = (savedLayout.images?.length ?? 0) + 1;
+    savedLayout.parameters = layout.parameters?.map((v, i) => ({
+        id: i + firstParameterId,
+        name: v.name,
+        value: v.value,
+        description: v.description
+    }));
+    return savedLayout;
+}
 
 const savedToRenderLayout = (layout: StreamSavedLayout): StreamRenderLayout => ({
     name: layout.name,

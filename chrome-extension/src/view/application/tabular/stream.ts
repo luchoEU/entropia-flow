@@ -3,8 +3,8 @@ import { StreamRenderLayout, StreamSavedLayoutSet } from "../../../stream/data";
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { removeStreamLayout, removeStreamUserImage, restoreStreamLayout, setStreamStared, setStreamUserImagePartial } from "../actions/stream";
-import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
+import { removeStreamLayout, removeStreamUser, restoreStreamLayout, setStreamStared, setStreamUserPartial } from "../actions/stream";
+import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { navigateTo, streamEditorUrl } from "../actions/navigation";
 
@@ -44,11 +44,17 @@ const streamTabularDataFromLayouts = (layouts: StreamSavedLayoutSet, trashLayout
     }
 });
 
-const streamTabularDataFromVariables = (layoutId: string, variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>): TabularRawData<StreamComputedVariable> => {
+interface StreamTabularVariablesFromVariablesData {
+    layoutId: string,
+    readonly: boolean
+}
+
+const streamTabularDataFromVariables = (variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>, data: StreamTabularVariablesFromVariablesData): TabularRawData<StreamComputedVariable> => {
     const d: StreamComputedVariable[] =
         Object.entries(variables).map(([source, data]) => data.map(v => ({ source, ...v }))).flat()
     const noImages = d.filter(v => !v.isImage)
     const images = d.filter(v => v.isImage)
+    const parameters = d.filter(v => v.isParameter)
 
     const obj = Object.fromEntries(noImages.map(v => [v.name, v.value]))
     obj.img = Object.fromEntries(images.map(v => [v.name, `img.${v.name}`]))
@@ -56,16 +62,17 @@ const streamTabularDataFromVariables = (layoutId: string, variables: Record<stri
     const computedObj = computeFormulas(obj, tObj)
     const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }));
     return {
-        [STREAM_TABULAR_VARIABLES]: { items: tVariables, data: { layoutId } },
-        [STREAM_TABULAR_IMAGES]: { items: images, data: { layoutId } }
+        [STREAM_TABULAR_VARIABLES]: { items: tVariables, data },
+        [STREAM_TABULAR_IMAGES]: { items: images, data },
+        [STREAM_TABULAR_PARAMETERS]: { items: parameters, data },
     }
 }
 
 const _field = (g: StreamComputedVariable, layoutId: string, selector: string, maxWidth: number, flag: Record<string, boolean> = {}): RowValue => {
-    if (!flag.readonly && g.source === 'user') {
-        const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserImagePartial(layoutId, g.id!, { [selector]: v }) }
+    if (!flag.readonly && g.source === 'layout') {
+        const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserPartial(layoutId, g.id!, { [selector]: v }) }
         const img: RowValue =
-            flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUserImage(layoutId, g.id!) } ||
+            flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUser(layoutId, g.id!) } ||
             flag.formulaHelp && { text: 'i', class: 'img-txt-info', title: formulaHelp, width: 16 } || ''
         return img ? { sub: [ w, img ] } : w;
     } else if (maxWidth) {
@@ -81,20 +88,35 @@ const streamTabularDefinitions: TabularDefinitions = {
         title: 'Images',
         subtitle: 'Available images ot use on template',
         columns: ['Source', 'Name', 'Image', 'Description'],
-        getRow: (g: StreamComputedVariable, rowIndex: number, data: { layoutId: string }): RowValue[] => {
+        getRow: (g: StreamComputedVariable, rowIndex: number, data: StreamTabularVariablesFromVariablesData): RowValue[] => {
             const layoutId = data?.layoutId ?? ''
             const img: RowValue = { img: g.value as string, title: `${g.name} image`, show: true, maxWidth: 100, style: { height: '90%', objectFit: 'contain', flex: 1 } }
             return [
                 g.source,
-                _field(g, layoutId, 'name', 100, { addRemove: true }),
-                g.source === 'user' ? [ img, {
-                    file: 'img/edit.png', dispatchChange: (value: string) => setStreamUserImagePartial(layoutId, g.id!, {value})
+                _field(g, layoutId, 'name', 100, { addRemove: true, readonly: data.readonly }),
+                g.source === 'layout' && !data.readonly ? [ img, {
+                    file: 'img/edit.png', dispatchChange: (value: string) => setStreamUserPartial(layoutId, g.id!, {value})
                 }] : img,
-                _field(g, layoutId, 'description', 300),
+                _field(g, layoutId, 'description', 300, { readonly: data.readonly }),
             ];
         },
         getRowKey: (g: StreamComputedVariable) => g.id,
         getRowForSort: (g: StreamComputedVariable) => [, g.name, g.value, g.description],
+    },
+    [STREAM_TABULAR_PARAMETERS]: {
+        title: 'Parameters',
+        subtitle: 'Available parameters of the layout',
+        columns: ['Name', 'Value', 'Description'],
+        getRow: (g: StreamComputedVariable, rowIndex: number, data: StreamTabularVariablesFromVariablesData): RowValue[] => {
+            const layoutId = data?.layoutId ?? ''
+            return [
+                _field(g, layoutId, 'name', 100, { addRemove: true, readonly: data.readonly }),
+                _field(g, layoutId, 'value', 100),
+                _field(g, layoutId, 'description', 300, { readonly: data.readonly }),
+            ]
+        },
+        getRowKey: (g: StreamComputedVariable) => g.id,
+        getRowForSort: (g: StreamComputedVariable) => [g.name, g.value, g.description],
     },
     [STREAM_TABULAR_VARIABLES]: {
         title: 'Variables',

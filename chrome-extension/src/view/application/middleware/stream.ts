@@ -7,13 +7,13 @@ import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER_IMAGE, SET_STREAM_USER_IMAGE_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER, SET_STREAM_USER_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID, ADD_STREAM_USER_PARAMETER } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamData, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts, getStreamUsedLayouts } from "../selectors/stream"
+import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts, getStreamUsedLayouts } from "../selectors/stream"
 import { StreamState, StreamStateIn, StreamStateOut, StreamStateVariable } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
@@ -49,25 +49,33 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case ADD_STREAM_LAYOUT:
         case IMPORT_STREAM_LAYOUT_FROM_FILE:
         case ADD_STREAM_USER_IMAGE:
+        case ADD_STREAM_USER_PARAMETER:
         case REMOVE_STREAM_LAYOUT:
         case RESTORE_STREAM_LAYOUT:
         case EMPTY_TRASH_LAYOUTS:
-        case REMOVE_STREAM_USER_IMAGE:
-        case SET_STREAM_USER_IMAGE_PARTIAL:
+        case REMOVE_STREAM_USER:
+        case SET_STREAM_USER_PARTIAL:
         case CLONE_STREAM_LAYOUT: {
             const state: StreamStateIn = getStreamIn(getState())
             await api.storage.saveStream(state)
             break
         }
+    }
+
+    switch (action.type) {
+        case SET_STREAM_ADVANCED:
         case SET_STREAM_SHOWING_LAYOUT_ID:
         case SET_STREAM_VARIABLES:
         case SET_STREAM_TEMPORAL_VARIABLES: {
             const { variables: beforeVariables }: StreamState = beforeState
-            const { variables, temporalVariables, ui: { showingLayoutId } }: StreamState = getStream(getState())
-            if (isEqual(beforeVariables, variables))
+            const { variables, temporalVariables, ui: { showingLayoutId }, in: { advanced, layouts } }: StreamState = getStream(getState())
+            if (action.type === SET_STREAM_VARIABLES && isEqual(beforeVariables, variables))
                 break
 
-            dispatch(setTabularData(streamTabularDataFromVariables(showingLayoutId ?? '', variables, temporalVariables)))
+            const layoutId = showingLayoutId ?? ''
+            const layout = layouts[layoutId]
+            const readonly = !!layout?.readonly || !advanced
+            dispatch(setTabularData(streamTabularDataFromVariables(variables, temporalVariables, { layoutId, readonly })))
             break
         }
     }
@@ -133,17 +141,32 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case AppAction.INITIALIZE:
         case SET_STREAM_SHOWING_LAYOUT_ID:
         case ADD_STREAM_USER_IMAGE:
-        case REMOVE_STREAM_USER_IMAGE:
-        case SET_STREAM_USER_IMAGE_PARTIAL: {
+        case REMOVE_STREAM_USER:
+        case ADD_STREAM_USER_PARAMETER:
+        case SET_STREAM_USER_PARTIAL: {
             const { in: { layouts }, ui: { showingLayoutId } } = getStream(getState());
-            const vars = showingLayoutId ? layouts[showingLayoutId]?.images?.map(v => ({
+            if (!showingLayoutId) {
+                dispatch(setStreamVariables('layout', []));
+                break;
+            }
+
+            const images = layouts[showingLayoutId]?.images?.map(v => ({
                 name: v.name,
                 value: v.value,
                 description: v.description,
                 id: v.id,
                 isImage: true
-            })) : undefined
-            dispatch(setStreamVariables('user', vars ?? []));
+            })) ?? []
+
+            const parameters = layouts[showingLayoutId]?.parameters?.map(v => ({
+                name: v.name,
+                value: v.value,
+                description: v.description,
+                id: v.id,
+                isParameter: true
+            })) ?? []
+
+            dispatch(setStreamVariables('layout', [...images, ...parameters]));
             break;
         }
     }
@@ -184,12 +207,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const vars = Object.values(variables).flat();
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
+            const parameters = Object.fromEntries(vars.filter(v => v.isParameter).map(v => [v.name, v.value]));
             const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
             const layoutsToRender: StreamRenderLayoutSet = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, savedToRenderLayout(v)]));
 
             const oldVars = variables['formula']?.map(v => v.name) ?? [];
-            const userVars = variables['user']?.map(v => v.name) ?? [];
-            const vObj = Object.fromEntries(Object.entries(data).filter(([k, v]) => !oldVars.includes(k) && !userVars.includes(k)));
+            const layoutVars = variables['layout']?.map(v => v.name) ?? [];
+            const vObj = Object.fromEntries(Object.entries(data).filter(([k, v]) => !oldVars.includes(k) && !layoutVars.includes(k)));
 
             const backDarkFormulaObj: object = Object.fromEntries(Object.entries(vObj)
                 .filter(([, value]) => typeof value === 'string' && value.startsWith('=') && parseFormula(value.slice(1)).usedVariables.has('backDark')));
@@ -197,12 +221,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const commonData: StreamRenderObject = computeFormulas(vObjNoBackDark, tObj);
             const layoutTuple: [string, StreamStateVariable[], StreamRenderObject][] = Object.entries(layouts).map(([id, layout]) => {
                 const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
-                const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj }, tObj);
+                const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj, ...parameters }, tObj);
                 const layoutVariables = getLayoutVariables(backComputed, layout);
                 const layoutObj: StreamRenderObject = {
                     ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
                     backDark,
-                    ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k)))
+                    ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k))),
+                    ...parameters
                 };
                 if (layout.images)
                     layoutObj.img = Object.fromEntries(layout.images.map(v => [v.name, v.value]))

@@ -2,7 +2,7 @@ import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
 import { StreamExportLayout, StreamRenderData, StreamRenderLayoutSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
-import { StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
+import { StreamBaseVariable, StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
 import { navigateTo, streamEditorUrl, streamTrashUrl } from './navigation'
 
@@ -22,11 +22,12 @@ const SET_STREAM_NAME = "[stream] set name"
 const SET_STREAM_AUTHOR = "[stream] set author"
 const ADD_STREAM_LAYOUT = "[stream] add layout"
 const ADD_STREAM_USER_IMAGE = "[stream] add user image"
+const ADD_STREAM_USER_PARAMETER = "[stream] add user parameter"
 const REMOVE_STREAM_LAYOUT = "[stream] remove layout"
 const RESTORE_STREAM_LAYOUT = "[stream] restore layout"
-const REMOVE_STREAM_USER_IMAGE = "[stream] remove user image"
+const REMOVE_STREAM_USER = "[stream] remove user"
 const EMPTY_TRASH_LAYOUTS = "[stream] empty trash layouts"
-const SET_STREAM_USER_IMAGE_PARTIAL = "[stream] set user image partial"
+const SET_STREAM_USER_PARTIAL = "[stream] set user partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
 const CLEAR_STREAM_LAYOUT_ALIAS = "[stream] clear layout alias"
@@ -176,8 +177,13 @@ const addStreamUserImage = (layoutId: string) => ({
     payload: { layoutId }
 })
 
-const removeStreamUserImage = (layoutId: string, id: number) => ({
-    type: REMOVE_STREAM_USER_IMAGE,
+const addStreamUserParameter = (layoutId: string) => ({
+    type: ADD_STREAM_USER_PARAMETER,
+    payload: { layoutId }
+})
+
+const removeStreamUser = (layoutId: string, id: number) => ({
+    type: REMOVE_STREAM_USER,
     payload: { layoutId, id }
 })
 
@@ -185,8 +191,8 @@ const emptyTrashLayouts = {
     type: EMPTY_TRASH_LAYOUTS
 }
 
-const setStreamUserImagePartial = (layoutId: string, id: number, partial: Partial<StreamUserImageVariable>) => ({
-    type: SET_STREAM_USER_IMAGE_PARTIAL,
+const setStreamUserPartial = (layoutId: string, id: number, partial: Partial<StreamBaseVariable<string>>) => ({
+    type: SET_STREAM_USER_PARTIAL,
     payload: { layoutId, id, partial }
 })
 
@@ -218,11 +224,12 @@ export {
     SET_STREAM_AUTHOR,
     ADD_STREAM_LAYOUT,
     ADD_STREAM_USER_IMAGE,
+    ADD_STREAM_USER_PARAMETER,
     REMOVE_STREAM_LAYOUT,
     RESTORE_STREAM_LAYOUT,
-    REMOVE_STREAM_USER_IMAGE,
+    REMOVE_STREAM_USER,
     EMPTY_TRASH_LAYOUTS,
-    SET_STREAM_USER_IMAGE_PARTIAL,
+    SET_STREAM_USER_PARTIAL,
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
     CLEAR_STREAM_LAYOUT_ALIAS,
@@ -243,11 +250,12 @@ export {
     setStreamAuthor,
     addStreamLayout,
     addStreamUserImage,
+    addStreamUserParameter,
     removeStreamLayout,
     restoreStreamLayout,
-    removeStreamUserImage,
+    removeStreamUser,
     emptyTrashLayouts,
-    setStreamUserImagePartial,
+    setStreamUserPartial,
     cloneStreamLayout,
     importStreamLayoutFromFile,
     goToTrash,

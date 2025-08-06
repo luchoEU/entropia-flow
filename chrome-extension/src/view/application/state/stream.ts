@@ -4,6 +4,7 @@ import { StreamComputedLayoutDataSet, StreamRenderData, StreamRenderValue, Strea
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
 const STREAM_TABULAR_IMAGES = '[stream] images'
+const STREAM_TABULAR_PARAMETERS = '[stream] parameters'
 const STREAM_TABULAR_TRASH = '[stream] trash'
 
 interface StreamStateIn {
@@ -43,8 +44,13 @@ interface StreamUserImageVariable extends StreamBaseVariable<string> {
     id: number
 }
 
+interface StreamUserParameterVariable extends StreamBaseVariable<string> {
+    id: number
+}
+
 interface StreamStateVariable extends StreamBaseVariable<StreamRenderValue> {
     isImage?: boolean
+    isParameter?: boolean
 }
 
 interface StreamTemporalVariable extends StreamBaseVariable<TemporalValue> {
@@ -56,6 +62,7 @@ type StreamComputedVariable = (StreamUserImageVariable | StreamStateVariable) & 
     id?: number
     computed?: StreamRenderValue
     isImage?: boolean
+    isParameter?: boolean
 }
 
 export {
@@ -65,9 +72,12 @@ export {
     STREAM_TABULAR_CHOOSER,
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
+    STREAM_TABULAR_PARAMETERS,
     STREAM_TABULAR_TRASH,
     StreamStateVariable,
+    StreamBaseVariable,
     StreamUserImageVariable,
+    StreamUserParameterVariable,
     StreamComputedVariable,
     StreamTemporalVariable,
 }
