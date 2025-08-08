@@ -29,7 +29,7 @@ import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
-import IWebSocketClient from './client/webSocketInterface'
+import IWebSocketClient, { WebSocketStateCode } from './client/webSocketInterface'
 import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
 import GameLogParser from './client/gameLogParser'
@@ -42,6 +42,7 @@ async function wiring(
     notifications: INotificationManager,
     refreshItemAjaxAlarm: IAlarmManager,
     refreshItemFrozenAlarm: IAlarmManager,
+    refreshItemSleepAlarm: IAlarmManager,
     refreshItemDeadAlarm: IAlarmManager,
     refreshItemTickAlarm: IAlarmManager,
     tabs: ITabManager,
@@ -74,7 +75,7 @@ async function wiring(
     const gameLogHistory = new GameLogHistory()
     
     // state
-    const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
+    const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
     const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
     
@@ -103,6 +104,7 @@ async function wiring(
             case "log":
                 const dataUnescaped = decodeHTML(msg.data) // it is saved escaped in log, i.e &apos;
                 await gameLogParser.onMessage(dataUnescaped)
+                await refreshManager.onLogMessageReceived()
                 break;
             case "dispatch":
                 await viewTabManager.sendDispatch(msg.data)
@@ -112,7 +114,10 @@ async function wiring(
                 break;
         }
     }
-    webSocketClient.onStateChanged = (state) => viewStateManager.setClientState(state)
+    webSocketClient.onStateChanged = async (state) => {
+        await viewStateManager.setClientState(state)
+        await refreshManager.onWebSocketStateChanged(state.code === WebSocketStateCode.connected)
+    }
     gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
     const gameLog = await gameLogStorage.get()
     if (gameLog)

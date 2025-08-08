@@ -8,7 +8,9 @@ import {
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
     MSG_NAME_LOADING,
-    MSG_NAME_REFRESH_WAKE_UP} from '../common/const'
+    MSG_NAME_REFRESH_WAKE_UP,
+    AFTER_MANUAL_WAIT_SECONDS,
+    MSG_NAME_REFRESH_SET_SLEEP_MODE} from '../common/const'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
@@ -48,12 +50,15 @@ class ContentInitializer {
                 await timer.wakeUp()
             },
             [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
-                const inventory = await timer.trigger(m.forced, false, 'ajax', m.waitSeconds, m.tag);
+                const inventory = await timer.trigger(m.forced, false, 'ajax', AFTER_MANUAL_WAIT_SECONDS, m.tag);
                 return { name: MSG_NAME_NEW_INVENTORY, inventory }
             },
             [MSG_NAME_REFRESH_CONTENT]: async (m) => {
                 timer.isMonitoring = m.isMonitoring
                 contentUI.refreshButton(m.isMonitoring)
+            },
+            [MSG_NAME_REFRESH_SET_SLEEP_MODE]: async (m) => {
+                timer.sleepMode = m.sleepMode
             }
         }
 

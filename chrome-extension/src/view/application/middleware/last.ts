@@ -10,6 +10,7 @@ import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 import { AppAction } from "../slice/app"
 import { createBasicNotification } from "../../../common/notifications"
+import { ViewItemData } from "../state/history"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -42,7 +43,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
             if (state.c.diff !== null) {
-                const reduced = state.c.diff.reduce((list, d) => d.a === undefined ? list : [ ...list, d.a.message ], [])
+                const reduced: string[] = state.c.diff.reduce((list: string[], d: ViewItemData) => d.a === undefined ? list : [ ...list, d.a.message ], [])
 
                 state.notificationsDone.forEach(m => {
                     const index = reduced.indexOf(m);
@@ -52,7 +53,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 })
 
                 if (reduced.length > 0) {
-                    createBasicNotification({ message: reduced.join('\n') });
+                    createBasicNotification('actions', reduced.join('\n'));
                     dispatch(addNotificationsDone(reduced))
                 }
             }

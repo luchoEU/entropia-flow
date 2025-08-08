@@ -12,6 +12,11 @@ async function isUnfreezeTabEnabled(): Promise<boolean> {
     return isFeatureEnabled(await _getSettings(), Feature.unfreezeTab)
 }
 
+async function isNotificationEnabled(): Promise<boolean> {
+    return isFeatureEnabled(await _getSettings(), Feature.notification)
+}
+
 export {
-    isUnfreezeTabEnabled
+    isUnfreezeTabEnabled,
+    isNotificationEnabled
 }

@@ -55,11 +55,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             for (const filter in linesByFilter) {
                 const lines = linesByFilter[filter]
                 if (lines.length > 0) {
-                    createListNotification({
-                        notificationId: `${NOTIFICATION_ID}-${filter}`,
-                        title: `New Trade Matches: ${filter}`,
-                        items: lines.map(l => ({ title: `[${l.channel}] ${l.player}`, message: l.message }))
-                    })
+                    createListNotification(`${NOTIFICATION_ID}-${filter}`, `New Trade Matches: ${filter}`, lines.map(l => ({ title: `[${l.channel}] ${l.player}`, message: l.message })))
                 }
             }
 

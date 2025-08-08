@@ -9,6 +9,7 @@ enum Feature {
     actionLink,
     unfreezeTab,
     commaDecimalSeparator,
+    notification,
 }
 
 const featureList: FeatureInfo[] = [
@@ -62,6 +63,11 @@ Alternatively, you can choose to handle this manually by opening the tab yoursel
         id: Feature.commaDecimalSeparator,
         title: 'Comma Decimal Separator',
         description: 'Use comma as separator instead of dot when copy to clipboard',
+    },
+    {
+        id: Feature.notification,
+        title: 'Notification',
+        description: 'Show notifications or disable all of them',
     },
 ]
 

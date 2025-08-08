@@ -1,12 +1,13 @@
 import IAlarmManager from "../../chrome/IAlarmManager";
-import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, CLASS_INFO, DEAD_CHECK_WAIT_SECONDS, ERROR_425, FROZEN_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
+import { CLASS_ERROR, CLASS_INFO, DEAD_CHECK_WAIT_SECONDS, ERROR_425, FROZEN_CHECK_WAIT_SECONDS, START_SLEEP_MODE_AFTER_SECONDS, STRING_LOADING_ITEMS, STRING_LOADING_PAGE, STRING_NO_DATA, STRING_NOT_READY, STRING_PLEASE_LOG_IN, TICK_SECONDS } from "../../common/const";
 import { Inventory, Log, Status } from "../../common/state";
 import { Component, traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
 interface IContentTab {
     setStatus(isMonitoring: boolean): Promise<void>
-    requestItems(tag?: any, waitSeconds?: number, forced?: boolean): Promise<string>
+    requestItems(tag?: any, forced?: boolean): Promise<string>
+    setSleepMode(sleepMode: boolean): Promise<string>
     wakeUp(): Promise<boolean>
     checkFrozen(): Promise<boolean>
     onConnected: () => Promise<void>
@@ -16,20 +17,24 @@ interface IContentTab {
 class RefreshManager {
     private ajaxAlarm: IAlarmManager
     private frozenAlarm: IAlarmManager
+    private sleepAlarm: IAlarmManager
     private deadAlarm: IAlarmManager
     private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
     private contentTab: IContentTab
     private stickyStatus: Log | undefined
+    private sleepMode: boolean
     public onInventory: (inventory: Inventory) => Promise<void>
     public setViewStatus: (status: Status) => Promise<void>
 
-    constructor(ajaxAlarm: IAlarmManager, frozenAlarm: IAlarmManager, deadAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings ) {
+    constructor(ajaxAlarm: IAlarmManager, frozenAlarm: IAlarmManager, sleepAlarm: IAlarmManager, deadAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings) {
         this.ajaxAlarm = ajaxAlarm;
         this.frozenAlarm = frozenAlarm;
+        this.sleepAlarm = sleepAlarm;
         this.deadAlarm = deadAlarm;
         this.tickAlarm = tickAlarm;
         this.alarmSettings = alarmSettings;
+        this.sleepMode = false
 
         // prepare alarms
         this.ajaxAlarm?.listen(async () => {
@@ -43,6 +48,10 @@ class RefreshManager {
         this.frozenAlarm?.listen(async () => {
             const frozen = await this.contentTab.checkFrozen();
             return !frozen; // if not frozen, continue the alarm
+        })
+        this.sleepAlarm?.listen(async () => {
+            await this.setSleepMode(true);
+            return false;
         })
         this.deadAlarm?.listen(async () => {
             await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN);
@@ -104,7 +113,7 @@ class RefreshManager {
                 // Don't start the alarm either, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message
             } else {
                 this.stickyStatus = undefined
-                await this.ajaxAlarm.start(inventory.waitSeconds ?? NORMAL_WAIT_SECONDS)
+                await this.ajaxAlarm.start(inventory.waitSeconds!)
                 if (this.onInventory) {
                     await this.onInventory(inventory)
                 }
@@ -147,7 +156,7 @@ class RefreshManager {
 
     public async manualRefresh(tag?: any, forced?: boolean) {
         await this.ajaxAlarm?.end()
-        const message = await this.contentTab.requestItems(tag, AFTER_MANUAL_WAIT_SECONDS, forced)
+        const message = await this.contentTab.requestItems(tag, forced)
         if (message !== undefined) {
             await this._setViewStatus(CLASS_ERROR, message)
         }
@@ -170,6 +179,24 @@ class RefreshManager {
 
         const message = `${isMonitoring ? 'updates' : 'safe to refresh'} ${when}`;
         return { class: CLASS_INFO, message, isMonitoring }
+    }
+
+    private async setSleepMode(sleepMode: boolean) {
+        if (this.sleepMode === sleepMode) return
+        this.sleepMode = sleepMode
+        await this.contentTab?.setSleepMode(sleepMode)
+    }
+
+    public async onLogMessageReceived() {
+        if (this.sleepMode) return;
+        this.sleepAlarm?.end()
+        this.sleepAlarm?.start(START_SLEEP_MODE_AFTER_SECONDS)
+    }
+
+    public async onWebSocketStateChanged(connected: boolean) {
+        if (connected) {
+            await this.setSleepMode(false)
+        }
     }
 }
 

@@ -11,6 +11,7 @@ const MSG_NAME_REGISTER_CONTENT = 'RegisterContent'
 const MSG_NAME_REFRESH_CONTENT = 'RefreshContent'
 const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
 const MSG_NAME_REFRESH_WAKE_UP = 'RefreshWakeUp'
+const MSG_NAME_REFRESH_SET_SLEEP_MODE = 'RefreshSetSleepMode'
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
 const MSG_NAME_LOADING = 'Loading'
 
@@ -52,6 +53,7 @@ const STRING_SELECT_ITEMS_TAB = 'please manually select entropia universe items 
 // Alarm
 const AJAX_ALARM_NAME = 'refreshItemsAjaxAlarm'
 const FROZEN_ALARM_NAME = 'refreshItemsFrozenAlarm'
+const SLEEP_ALARM_NAME = 'refreshItemsSleepAlarm'
 const DEAD_ALARM_NAME = 'refreshItemsDeadAlarm'
 const TICK_ALARM_NAME = 'refreshItemsTickAlarm'
 
@@ -108,8 +110,10 @@ const FROZEN_CHECK_WAIT_SECONDS = 10 // check if tab is frozen every 10 seconds
 const DEAD_CHECK_WAIT_SECONDS = 5 * 60 // consider tab dead if it doesn't respond for 5 minutes
 const FIRST_WAIT_SECONDS = 6 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
 const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
+const SLEEP_WAIT_SECONDS = 15 * 60 // wait when the game is not running
 const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
 const ACCESS_BLOCKED_WAIT_SECONDS = 365 * 24 * 60 * 60 // contect support to unblock ERROR_425
+const START_SLEEP_MODE_AFTER_SECONDS = 15 * 60 // start sleep mode after 15 minutes of inactivity
 
 export {
     INVENTORY_LIMIT,
@@ -118,6 +122,7 @@ export {
     MSG_NAME_REFRESH_CONTENT,
     MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_WAKE_UP,
+    MSG_NAME_REFRESH_SET_SLEEP_MODE,
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_LOADING,
     PORT_NAME_BACK_VIEW,
@@ -151,6 +156,7 @@ export {
     STRING_WAIT_3_MINUTES,
     AJAX_ALARM_NAME,
     FROZEN_ALARM_NAME,
+    SLEEP_ALARM_NAME,
     DEAD_ALARM_NAME,
     TICK_ALARM_NAME,
     STORAGE_INVENTORY_,
@@ -199,6 +205,8 @@ export {
     DEAD_CHECK_WAIT_SECONDS,
     FIRST_WAIT_SECONDS,
     AFTER_MANUAL_WAIT_SECONDS,
+    SLEEP_WAIT_SECONDS,
     TOO_MANY_WAIT_SECONDS,
-    ACCESS_BLOCKED_WAIT_SECONDS
+    ACCESS_BLOCKED_WAIT_SECONDS,
+    START_SLEEP_MODE_AFTER_SECONDS
 }

@@ -22,7 +22,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const { isMonitoring } = getStatus(getState());
                     notificationTimes++
                     if (isMonitoring && notificationTimes < NOTIFICATION_TIMES) {
-                        createBasicNotification({ message: "Failed to refresh items from entropia universe page" });
+                        createBasicNotification('history', 'Failed to refresh items from entropia universe page');
                     } else {
                         window.clearInterval(state.intervalId)
                     }

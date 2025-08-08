@@ -1,6 +1,11 @@
+/// <reference types="chrome"/>
 import { Component, trace, traceError } from "./trace";
+import { isNotificationEnabled } from "../background/settings/featureSettings";
 
-function _create(notificationId: string, options: { message: string } & Partial<chrome.notifications.NotificationOptions<true>>) {
+async function _create(notificationId: string, options: { message: string } & Partial<chrome.notifications.NotificationOptions<true>>) {
+    if (!await isNotificationEnabled())
+        return;
+
     chrome.notifications.create(
         notificationId, {
             type: "basic",
@@ -22,23 +27,16 @@ function _create(notificationId: string, options: { message: string } & Partial<
     )
 }
 
-function createBasicNotification({ notificationId, message }: {
-    notificationId?: string
-    message: string
-}) {
-    _create(notificationId, { message })
+async function createBasicNotification(notificationId: string, message: string) {
+    await _create(notificationId, { message })
 }
 
-function createListNotification({ notificationId, title, items }: {
-    notificationId?: string
-    title: string,
-    items: { title: string, message: string }[]
-}) {
+async function createListNotification(notificationId: string, title: string, items: { title: string, message: string }[]) {
     if (items.length == 0) return;
     const str = (item: { title: string, message: string }) => `- ${item.title}\n   ${item.message}`;
     const message = items.length === 1 ? str(items[0]) :
         `Expand or hover for details\n${items.map(str).join('\n')}`
-    _create(notificationId, { title, message })
+    await _create(notificationId, { title, message })
 }
 
 export { createBasicNotification, createListNotification }

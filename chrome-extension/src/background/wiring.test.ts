@@ -48,6 +48,7 @@ describe('full', () => {
     let messages: MockMessagesHub
     let ajaxAlarm: MockAlarmManager
     let frozenAlarm: MockAlarmManager
+    let sleepAlarm: MockAlarmManager
     let deadAlarm: MockAlarmManager
     let tickAlarm: MockAlarmManager
     let tabs: MockTabManager
@@ -81,7 +82,7 @@ describe('full', () => {
         viewPortManager.allMock.mockReturnValue([viewPort])
         viewPortManager.firstMock.mockReturnValue(viewPort)
         viewPortManager.isEmptyMock.mockReturnValue(false)
-        await wiring(messages, undefined!, ajaxAlarm, frozenAlarm, deadAlarm, tickAlarm, tabs,
+        await wiring(messages, undefined!, ajaxAlarm, frozenAlarm, sleepAlarm, deadAlarm, tickAlarm, tabs,
             actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage,
             tabStorage, settingsStorage, () => Promise.resolve(false), false);
 
@@ -94,6 +95,7 @@ describe('full', () => {
         messages = new MockMessagesHub()
         ajaxAlarm = new MockAlarmManager()
         frozenAlarm = new MockAlarmManager()
+        sleepAlarm = new MockAlarmManager()
         deadAlarm = new MockAlarmManager()
         tickAlarm = new MockAlarmManager()
         tabs = new MockTabManager()
@@ -366,7 +368,7 @@ describe('partial', () => {
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager(), () => Promise.resolve(false))
-        const refreshManager = new RefreshManager(undefined!, undefined!, undefined!, undefined!, undefined!)
+        const refreshManager = new RefreshManager(undefined!, undefined!, undefined!, undefined!, undefined!, undefined!)
         await refreshManager.setContentTab(contentTabManager)
         refreshManager.setViewStatus = (status) => viewState.setStatus(status)
         await refreshManager.manualRefresh()

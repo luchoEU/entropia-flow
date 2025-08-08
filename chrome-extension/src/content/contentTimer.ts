@@ -1,4 +1,4 @@
-import { CLASS_ERROR, FIRST_HTML_CHECK_WAIT_SECONDS, NEXT_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, STRING_PLEASE_LOG_IN, STRING_WAIT_3_MINUTES } from "../common/const";
+import { CLASS_ERROR, FIRST_HTML_CHECK_WAIT_SECONDS, NORMAL_WAIT_SECONDS, SLEEP_WAIT_SECONDS, STRING_WAIT_3_MINUTES } from "../common/const";
 import { Inventory, makeLogInventory } from "../common/state";
 import { Component, trace, traceEnd, traceStart } from "../common/trace";
 
@@ -6,6 +6,7 @@ interface ContentTimerOptions {
     isMonitoring: boolean;
     firstRequest: boolean;
     waitSeconds: number;
+    sleepMode: boolean;
     itemsLoadedTime: number;
     itemsLoadingTime?: number;
 }
@@ -27,14 +28,15 @@ class ContentTimer {
             isMonitoring: false,
             firstRequest: true,
             waitSeconds: FIRST_HTML_CHECK_WAIT_SECONDS,
+            sleepMode: false,
             itemsLoadedTime: new Date().getTime()
         }
         const checkUpdateItemsLoadTime = async () => {
             if (!this.options.itemsLoadingTime && (this.options.isMonitoring || this.options.firstRequest)) {
-                const inventory = await this.trigger(false, this.options.firstRequest, 'auto')
+                const inventory = await this.trigger(false, this.options.firstRequest, 'auto', this.options.sleepMode ? SLEEP_WAIT_SECONDS : NORMAL_WAIT_SECONDS)
                 if (inventory.log?.class !== CLASS_ERROR) {
                     sendInventory(inventory);
-                    setTimeout(checkUpdateItemsLoadTime, (inventory.waitSeconds ?? NORMAL_WAIT_SECONDS) * 1000);
+                    setTimeout(checkUpdateItemsLoadTime, inventory.waitSeconds! * 1000);
                 }
             }
         }
@@ -48,6 +50,9 @@ class ContentTimer {
 
     public get isMonitoring(): boolean { return this.options.isMonitoring; }
     public set isMonitoring(isMonitoring: boolean) { this.options.isMonitoring = isMonitoring; }
+
+    public get sleepMode(): boolean { return this.options.sleepMode; }
+    public set sleepMode(sleepMode: boolean) { this.options.sleepMode = sleepMode; }
 
     private _getAvatarName(): string | undefined {
         let btnList = document.getElementsByTagName('button')
@@ -65,7 +70,7 @@ class ContentTimer {
         trace(Component.RefreshItem, 'wakeUp received');
     }
 
-    public async trigger(forced: boolean, fromHtml: boolean, source: string, waitSeconds?: number, tag?: any): Promise<Inventory> {
+    public async trigger(forced: boolean, fromHtml: boolean, source: string, waitSeconds: number, tag?: any): Promise<Inventory> {
         if (!forced) {
             const now = new Date().getTime()
             const time = now - this.options.itemsLoadedTime;
@@ -83,7 +88,7 @@ class ContentTimer {
         traceStart(Component.RefreshItem, `request start {source: ${source}, fromHtml: ${fromHtml}}`)
         const inventory = await this.requestItems(fromHtml);
         inventory.avatarName = this._getAvatarName()
-        inventory.waitSeconds ??= waitSeconds ?? NORMAL_WAIT_SECONDS;
+        inventory.waitSeconds ??= waitSeconds;
         inventory.tag = tag;
         traceEnd(Component.RefreshItem, `request end {inventory items: ${inventory.itemlist?.length ?? 'error'}}`)
         this.sendLoading(false)

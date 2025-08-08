@@ -7,7 +7,7 @@ import PortManager from "../chrome/portManager"
 import { LOCAL_STORAGE } from "../chrome/chromeStorageArea"
 import ChromeTabManager from "../chrome/chromeTab"
 import ITabManager from "../chrome/ITab"
-import { AJAX_ALARM_NAME, DEAD_ALARM_NAME, FROZEN_ALARM_NAME, TICK_ALARM_NAME } from "../common/const"
+import { AJAX_ALARM_NAME, DEAD_ALARM_NAME, FROZEN_ALARM_NAME, SLEEP_ALARM_NAME, TICK_ALARM_NAME } from "../common/const"
 import { traceId, traceOff } from "../common/trace"
 import { isUnfreezeTabEnabled } from "./settings/featureSettings"
 import WebSocketClient from "./client/webSocketClient"
@@ -22,6 +22,7 @@ class BackgroundInitializer {
         const messages = new ChromeMessagesHub()
         const ajaxAlarm = new ChromeAlarmManager(AJAX_ALARM_NAME)
         const frozenAlarm = new ChromeAlarmManager(FROZEN_ALARM_NAME)
+        const sleepAlarm = new ChromeAlarmManager(SLEEP_ALARM_NAME)
         const deadAlarm = new ChromeAlarmManager(DEAD_ALARM_NAME)
         const tickAlarm = new ChromeAlarmManager(TICK_ALARM_NAME)
         const tabs = new ChromeTabManager()
@@ -34,7 +35,7 @@ class BackgroundInitializer {
             new PortManager(storage, messages, tabs, portName)
 
         // wiring
-        await wiring(messages, notifications, ajaxAlarm, frozenAlarm, deadAlarm, tickAlarm, tabs, actions, webSocketClient,
+        await wiring(messages, notifications, ajaxAlarm, frozenAlarm, sleepAlarm, deadAlarm, tickAlarm, tabs, actions, webSocketClient,
             portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, isUnfreezeTabEnabled, true)
 
         async function test() {
