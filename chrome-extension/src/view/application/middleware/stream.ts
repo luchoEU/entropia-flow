@@ -90,9 +90,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case EXCLUDE_WARNINGS:
         case APPLY_MARKUP_TO_LAST:
         {
-            const { c: { delta, diff } } = getLast(getState())
+            const { c: { delta, diff, deltaNoMarkup, deltaWithMarkup } } = getLast(getState())
             dispatch(setStreamVariables('last', [
                 { name: 'delta', value: (delta || 0).toFixed(2) },
+                { name: 'deltaNoMarkup', value: (deltaNoMarkup || 0).toFixed(2) },
+                { name: 'deltaWithMarkup', value: (deltaWithMarkup || 0).toFixed(2) },
                 { name: 'deltaBackColor', value: "=IF(delta > 0, 'green', delta < 0, 'red', 'black')", description: 'delta background color' },
                 { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss')", description: 'delta word' },
                 { name: 'deltaItems', value: diff?.filter(d => !d.e).map(d => ({ name: d.n, quantity: Number(d.q), value: Number(d.v), container: d.c })) ?? [], description: 'delta items' }
@@ -207,7 +209,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const vars = Object.values(variables).flat();
             const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
             data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
-            const parameters = Object.fromEntries(vars.filter(v => v.isParameter).map(v => [v.name, v.value]));
             const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
             const layoutsToRender: StreamRenderLayoutSet = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, savedToRenderLayout(v)]));
 
@@ -220,6 +221,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const vObjNoBackDark = Object.fromEntries(Object.entries(vObj).filter(([k]) => !Object.keys(backDarkFormulaObj).includes(k)));
             const commonData: StreamRenderObject = computeFormulas(vObjNoBackDark, tObj);
             const layoutTuple: [string, StreamStateVariable[], StreamRenderObject][] = Object.entries(layouts).map(([id, layout]) => {
+                const parameters = Object.fromEntries(layout.parameters?.map(v => [v.name, v.value]) ?? []);
                 const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
                 const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj, ...parameters }, tObj);
                 const layoutVariables = getLayoutVariables(backComputed, layout);

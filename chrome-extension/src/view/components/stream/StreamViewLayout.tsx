@@ -72,8 +72,17 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
 
     const children = <StreamViewDiv id={id} size={size} single={{ ...single, data: single.data }} scale={scale} />
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLElement;
+        if (target?.dataset?.click) {
+            const action = getStreamClickAction(target.dataset.click);
+            if (action)
+                dispatch(action);
+        }
+    };
+
     return (
-        <div {...(!size && { style: { visibility: 'hidden' }})} ref={shadowRootRef}>
+        <div {...(!size && { style: { visibility: 'hidden' }})} ref={shadowRootRef} onClick={handleClick}>
             {shadowReady && shadowRootRef.current?.shadowRoot &&
                 ReactDOM.createPortal(children, shadowRootRef.current.shadowRoot)}
         </div>

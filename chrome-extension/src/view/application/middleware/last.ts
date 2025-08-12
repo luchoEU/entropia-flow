@@ -70,13 +70,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_ITEMS_STATE:
         case ITEM_BUY_MARKUP_CHANGED:
         case SET_ITEM_MARKUP_UNIT: {
-            const { showMarkup }: LastRequiredState = getLast(getState())
-            if (showMarkup) {
-                const items = getItemsMap(getState())
-                dispatch(applyMarkupToLast(items))
-            } else if (action.type === SET_LAST_SHOW_MARKUP) {
-                dispatch(applyMarkupToLast({}))
-            }
+            const items = getItemsMap(getState())
+            dispatch(applyMarkupToLast(items))
             break
         }
     }

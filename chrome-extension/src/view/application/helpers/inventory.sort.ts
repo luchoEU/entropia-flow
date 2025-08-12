@@ -144,13 +144,17 @@ function sortListSelect<I extends SortItemData, D>(list: Array<D>, sortType: num
         list.sort((a: D, b: D) => comparer[sortType](select(a), select(b)))
 }
 
-function cloneSortList<I extends SortItemData>(list: Array<I>, sortType: number): Array<I> {
+function cloneSortList<I extends SortItemData>(list: Array<I> | undefined, sortType: number): Array<I> {
+    if (!list)
+        return undefined!
     const newList = [...list]
     sortList(newList, sortType)
     return newList
 }
 
-function cloneSortListSelect<I extends SortItemData, D>(list: Array<D>, sortType: number, select: (d: D) => I): Array<D> {
+function cloneSortListSelect<I extends SortItemData, D>(list: Array<D> | undefined, sortType: number, select: (d: D) => I): Array<D> {
+    if (!list)
+        return undefined!
     const newList = [...list]
     sortListSelect(newList, sortType, select)
     return newList

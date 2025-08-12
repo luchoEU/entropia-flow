@@ -1,4 +1,4 @@
-import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkup, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastState, reduceSortByPart } from "../helpers/last"
+import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkupToLast, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastState, reduceSortByPart } from "../helpers/last"
 import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 
@@ -20,7 +20,7 @@ export default (state = initialState, action) => {
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
         case ADD_ACTIONS: return reduceAddActions(state, action.payload.inventory)
         case ADD_NOTIFICATIONS_DONE: return reduceAddNotificationsDone(state, action.payload.messages)
-        case APPLY_MARKUP_TO_LAST: return reduceApplyMarkup(state, action.payload.items)
+        case APPLY_MARKUP_TO_LAST: return reduceApplyMarkupToLast(state, action.payload.items)
         default: return state
     }
 }

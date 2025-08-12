@@ -10,8 +10,10 @@ interface LastRequiredState {
         anyInventory: boolean,
         text?: string,
         delta?: number,
+        deltaNoMarkup?: number,
+        deltaWithMarkup?: number,
         date: number,
-        diff: Array<ViewItemData>,
+        diff?: Array<ViewItemData>,
     }
 
     expanded?: boolean,
