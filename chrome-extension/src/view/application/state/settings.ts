@@ -17,8 +17,6 @@ const featureList: FeatureInfo[] = [
         id: Feature.client,
         title: 'Client',
         description: 'Integration with Entropia Flow Client',
-        development: true,
-        // related flag ADD_CLIENT_INITIAL_LAYOUTS
     },
     {
         id: Feature.streamBackgroundInDevelopment,

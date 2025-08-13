@@ -4,8 +4,3 @@
 - Saving of client data (trade list) is causing an error because they are too frequent
 - Renaming chat.log while it is open doesn't look for new chat.log
 - After using the extension for a while, it takes long to enter stream tab, it is unresponsive for a while
-
-# Next release
-
-- Download link on client
-- 2 tutorial videos, hunting overlay and settings

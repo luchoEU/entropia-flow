@@ -27,6 +27,9 @@ function EntropiaFlowClient() {
                         className='img-btn-delta-zero'
                         dispatch={() => webSocketRetry} />
                 </p>
+                {!s.client.status.startsWith('connected') && <p>
+                    <a href="https://github.com/luchoEU/entropia-flow/releases/download/client-0.1.0/EntropiaFlowClient_v0.1.0.zip" target="_blank">You can download the client from here</a>
+                </p>}
             </ExpandableSection>
         </>
     )
