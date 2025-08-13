@@ -20,6 +20,7 @@ import {
     STORAGE_TAB_VIEWS,
     MSG_NAME_SET_WEB_SOCKET_URL,
     MSG_NAME_LOADING,
+    MSG_NAME_REMAINING_SECONDS,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -151,6 +152,7 @@ async function wiring(
     // port handlers
     contentPortManager.handlers = {
         [MSG_NAME_NEW_INVENTORY]: (m) => refreshManager.handleNewInventory(m.inventory),
+        [MSG_NAME_REMAINING_SECONDS]: (m) => refreshManager.handleRemainingSeconds(m.remainingSeconds),
         [MSG_NAME_LOADING]: (m) => refreshManager.handleLoading(m.loading),
         [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),

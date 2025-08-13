@@ -37,7 +37,7 @@ class ContentUI {
         }
 
         const now = new Date().getTime()
-        const nextRequest = options.itemsLoadedTime + options.waitSeconds * 1000
+        const nextRequest = options.itemsLoadedTime + options.currentWaitSeconds * 1000
         if (div) {
             div.title = `Click icon to open extension. Items loaded ${pad(now - options.itemsLoadedTime)} ago, ` +
                 (options.itemsLoadingTime ? `new request started ${pad(now - options.itemsLoadingTime)} ago` :

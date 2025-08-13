@@ -13,6 +13,7 @@ const MSG_NAME_REFRESH_ITEMS_AJAX = 'RefreshItemsAjax'
 const MSG_NAME_REFRESH_WAKE_UP = 'RefreshWakeUp'
 const MSG_NAME_REFRESH_SET_SLEEP_MODE = 'RefreshSetSleepMode'
 const MSG_NAME_NEW_INVENTORY = 'NewInventory'
+const MSG_NAME_REMAINING_SECONDS = 'RemainingSeconds'
 const MSG_NAME_LOADING = 'Loading'
 
 // Messages with view
@@ -40,13 +41,13 @@ const CLASS_REQUESTED = 'requested'
 const CLASS_LAST = 'last'
 
 // Strings
-const STRING_CONNECTING = 'connecting...'
+const STRING_CONNECTING = 'connecting to extension background worker...'
 const STRING_LOADING_PAGE = 'loading page...'
 const STRING_LOADING_ITEMS = 'loading items...'
 const STRING_NOT_READY = 'not ready' // when items in html are not loaded yet
 const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
-const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked'
+const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked or click again to force a refresh'
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
 const STRING_SELECT_ITEMS_TAB = 'please manually select entropia universe items tab to unfreeze it'
 
@@ -124,6 +125,7 @@ export {
     MSG_NAME_REFRESH_WAKE_UP,
     MSG_NAME_REFRESH_SET_SLEEP_MODE,
     MSG_NAME_NEW_INVENTORY,
+    MSG_NAME_REMAINING_SECONDS,
     MSG_NAME_LOADING,
     PORT_NAME_BACK_VIEW,
     MSG_NAME_REGISTER_VIEW,

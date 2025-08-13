@@ -124,6 +124,11 @@ class RefreshManager {
         }
     }
 
+    public async handleRemainingSeconds(remainingSeconds: number) {
+        await this.ajaxAlarm.end()
+        await this.ajaxAlarm.start(remainingSeconds)
+    }
+
     public async handleLoading(loading: boolean) {
         if (loading) {
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_ITEMS)

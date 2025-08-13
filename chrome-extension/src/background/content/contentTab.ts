@@ -67,7 +67,7 @@ class ContentTabManager implements IContentTab {
 
             try {
                 trace(Component.ContentTabManager, `${logName} sent message ${messageName}`)
-                port.send(messageName)
+                port.send(messageName, data)
                 return undefined!
             } catch (e) {
                 if (e.message === 'Attempting to use a disconnected port object') {

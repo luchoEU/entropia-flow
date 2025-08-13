@@ -82,7 +82,7 @@ function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
 
 function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean): ViewInventory {
     const diff = getDifference(inventory, previous)
-    if (diff !== null)
+    if (diff)
         Sort.sortList(diff, sortType)
     return {
         key: inventory.meta.date,

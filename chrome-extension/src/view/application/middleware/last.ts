@@ -42,7 +42,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
-            if (state.c.diff !== null) {
+            if (state.c.diff) {
                 const reduced: string[] = state.c.diff.reduce((list: string[], d: ViewItemData) => d.a === undefined ? list : [ ...list, d.a.message ], [])
 
                 state.notificationsDone.forEach(m => {

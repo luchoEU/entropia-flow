@@ -10,7 +10,8 @@ import {
     MSG_NAME_LOADING,
     MSG_NAME_REFRESH_WAKE_UP,
     AFTER_MANUAL_WAIT_SECONDS,
-    MSG_NAME_REFRESH_SET_SLEEP_MODE} from '../common/const'
+    MSG_NAME_REFRESH_SET_SLEEP_MODE,
+    MSG_NAME_REMAINING_SECONDS} from '../common/const'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
@@ -59,6 +60,7 @@ class ContentInitializer {
             },
             [MSG_NAME_REFRESH_SET_SLEEP_MODE]: async (m) => {
                 timer.sleepMode = m.sleepMode
+                return { name: MSG_NAME_REMAINING_SECONDS, remainingSeconds: timer.remainingSeconds() }
             }
         }
 

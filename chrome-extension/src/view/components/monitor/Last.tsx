@@ -79,7 +79,7 @@ const Last = () => {
                         className='img-btn-warning'
                         dispatch={() => expanded ? excludeWarnings : setExpanded(true)} />
                 }
-                { diff !== null && craft.activeSession === undefined &&
+                { diff && craft.activeSession === undefined &&
                     <ImgButton
                         title='Set as Session Start'
                         src='img/tick.png'

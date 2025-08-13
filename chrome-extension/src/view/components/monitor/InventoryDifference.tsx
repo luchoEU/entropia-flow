@@ -30,11 +30,10 @@ interface Config {
     movedTitle: string
 }
 
-const ItemRow = (p: {
+const ItemRow = ({ item, c }: {
     item: ViewItemData,
     c: Config
 }) => {
-    const { item, c } = p
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const material = useSelector(getItem(item.n))
@@ -51,7 +50,7 @@ const ItemRow = (p: {
             <td onClick={sortBy(NAME)}>
                 <ItemText text={item.n} />
                 { item.w &&
-                    <ImgButton title='There is already a similar item excluded from the sum' show src='img/warning.png' dispatch={() => c.exclude(item.key)} />
+                    <ImgButton title='There is already a similar item excluded from the sum' show src='img/warning.png' dispatch={() => c.exclude?.(item.key)} />
                 }
             </td>
             <td>
@@ -59,13 +58,13 @@ const ItemRow = (p: {
                     c.allowExclude && hasValue(item) &&
                         (item.e ?
                             (item.x ?
-                                <ImgButton title='Remove permanently exclusion from the sum' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff(item.key)} /> :
+                                <ImgButton title='Remove permanently exclusion from the sum' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff?.(item.key)} /> :
                                 <>
-                                    <ImgButton title='This item is currently excluded from the sum, click to include it again' src='img/cross.png' show dispatch={() => c.include(item.key)} />
-                                    <ImgButton title='Permanently exclude this item from the sum' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn(item.key)} />
+                                    <ImgButton title='This item is currently excluded from the sum, click to include it again' src='img/cross.png' show dispatch={() => c.include?.(item.key)} />
+                                    <ImgButton title='Permanently exclude this item from the sum' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn?.(item.key)} />
                                 </>
                             ) :
-                            <ImgButton title='Exclude this item from the sum' src='img/cross.png' dispatch={() => c.exclude(item.key)} />
+                            <ImgButton title='Exclude this item from the sum' src='img/cross.png' dispatch={() => c.exclude?.(item.key)} />
                         )
                 }
             </td>
@@ -81,11 +80,11 @@ const ItemRow = (p: {
                     { editMarkupMode ?
                         <>
                             <input id='newPedInput' type='text' value={material.markup.value} onChange={(e) => dispatch(itemBuyMarkupChanged(item.n)(e.target.value))} />
-                            <TextButton title={`Unit: ${unitDescription(material.markup.unit)}, click to change`} text={unitText(material.markup.unit)} dispatch={() => setItemMarkupUnit(item.n, nextUnit(material.markup.unit)) } />
+                            <TextButton title={`Unit: ${unitDescription(material.markup.unit ?? UNIT_PERCENTAGE)}, click to change`} text={unitText(material.markup.unit ?? UNIT_PERCENTAGE)} dispatch={() => setItemMarkupUnit(item.n, nextUnit(material.markup.unit ?? UNIT_PERCENTAGE)) } />
                         </> : <>
-                            <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit)}` : ''} />
+                            <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit ?? UNIT_PERCENTAGE)}` : ''} />
                             <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => {
-                                const init = []
+                                const init: any[] = []
                                 if (!material?.markup?.value) {
                                     // ensure that the material is created
                                     const defaultUnit = (): MarkupUnit => {
@@ -103,7 +102,7 @@ const ItemRow = (p: {
                                             case UNIT_PED_K: return '1';
                                  3       }
                                     }
-                                    const unit = material?.markup?.unit || defaultUnit();
+                                    const unit: MarkupUnit = material?.markup?.unit ?? defaultUnit();
                                     if (material?.markup?.unit !== unit) {
                                         init.push(setItemMarkupUnit(item.n, unit))
                                     }
@@ -111,15 +110,15 @@ const ItemRow = (p: {
                                 }
                                 return [
                                     ...init,
-                                    c.setMode(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.markup?.value) // save current value in case of cancel
+                                    c.setMode?.(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.markup?.value) // save current value in case of cancel
                                 ]
                             }} />
                         </> }
                 </td><td style={{paddingLeft: 0}} className={ editMarkupMode ? undefined : 'item-cell-value'}>
                     { editMarkupMode ?
                         <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m.data), c.clearMode(item.key) ]} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode(item.key)} />
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => [ itemBuyMarkupChanged(item.n)(item.m?.data ?? ''), c.clearMode?.(item.key) ]} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode?.(item.key)} />
                         </> : <>
                             { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }
@@ -134,7 +133,7 @@ const ItemRow = (p: {
                         className='button-me-log'
                         onClick={(e) => {
                             e.stopPropagation();
-                            navigate(item.a.navigateTo);
+                            navigate(item.a!.navigateTo);
                         }}>
                         { '>' }
                     </button>
@@ -195,31 +194,31 @@ const PedNewRow = () => {
     )
 }
 
-const InventoryDifference = (p: {
-    diff: Array<ViewItemData>,
+const InventoryDifference = ({ diff, peds, config }: {
+    diff: Array<ViewItemData> | undefined,
     peds: Array<ViewPedData>,
     config: Config
 }) => {
     return (
         <table className='table-diff'>
             <tbody>
-                { p.diff &&
-                    p.diff.map((item: ViewItemData) =>
+                { diff &&
+                    diff.map((item: ViewItemData) =>
                         <ItemRow
                             key={item.key}
                             item={item}
-                            c={p.config} />
+                            c={config} />
                     )
                 }
                 {
-                    p.peds.map((item: ViewPedData) =>
+                    peds.map((item: ViewPedData) =>
                         <PedRow
                             key={item.key}
                             item={item}
-                            c={p.config} />
+                            c={config} />
                     )
                 }
-                { p.config.showPeds && <PedNewRow key='0' /> }
+                { config.showPeds && <PedNewRow key='0' /> }
             </tbody>
         </table>
     )

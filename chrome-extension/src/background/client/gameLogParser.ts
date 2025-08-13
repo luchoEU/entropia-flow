@@ -28,6 +28,7 @@ const statsRegex: GameLogStats<RegExp> = {
     selfHeal: /You healed yourself (.+) points/,
     targetDodgedAttack: /The target Dodged your attack/,
     targetEvadedAttack: /The target Evaded your attack/,
+    targetJammedAttack: /The target Jammed your attack/,
     universalAmmo: /You received Universal Ammo x \(\d+\) Value: (.+) PED/,
     vehicleDamage: /Vehicle took (.+) points of damage/,
     vehicleRepaired: /The vehicle's Structural Integrity restored by (.+)/,

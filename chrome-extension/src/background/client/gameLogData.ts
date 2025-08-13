@@ -43,6 +43,7 @@ const gameLogStatsKeys = [
     "selfHeal",
     "targetDodgedAttack",
     "targetEvadedAttack",
+    "targetJammedAttack",
     "universalAmmo",
     "vehicleDamage",
     "vehicleRepaired",

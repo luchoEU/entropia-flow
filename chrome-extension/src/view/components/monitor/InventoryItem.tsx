@@ -17,7 +17,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
         allowExclude: false,
         showPeds: false,
         showMarkup: false,
-        movedTitle: 'this item was moved by this amount (parenthesis)'
+        movedTitle: 'this item was moved by the amount in parenthesis'
     }
     
     let expandedClass = 'button-diff'

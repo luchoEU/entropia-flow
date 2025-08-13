@@ -213,7 +213,7 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
         } else {
             let d = Number(lastInv.meta.total) - Number(inv.meta.total)
             const diff = getDifference(lastInv, inv)
-            if (diff !== null) {
+            if (diff) {
                 d = _applyExcludes(d, diff, state.c.diff)
                 d = _applyPermanentExclude(d, diff, state.permanentBlacklist)
                 _applyWarning(diff, state.blacklist)
