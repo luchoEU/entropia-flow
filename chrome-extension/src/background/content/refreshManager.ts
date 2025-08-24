@@ -193,7 +193,7 @@ class RefreshManager {
     }
 
     public async onLogMessageReceived() {
-        if (this.sleepMode) return;
+        await this.setSleepMode(false)
         this.sleepAlarm?.end()
         this.sleepAlarm?.start(START_SLEEP_MODE_AFTER_SECONDS)
     }
