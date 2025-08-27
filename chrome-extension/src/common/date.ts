@@ -1,6 +1,6 @@
 import { Inventory } from "./state";
 
-function matchDate(inv: Inventory, date: number): boolean {
+function matchDate(inv: Inventory, date?: number): boolean {
     // date in the range of the inventory
     if (date) {
         if (inv.meta.lastDate === undefined) {

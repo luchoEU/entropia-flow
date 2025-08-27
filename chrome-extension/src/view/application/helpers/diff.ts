@@ -14,7 +14,7 @@ interface SortableItemData {
     c: string
 }
 
-function sortList<T extends SortableItemData>(list: Array<T>): Array<T> {
+function _sortList<T extends SortableItemData>(list: Array<T>): Array<T> {
     list.sort((a: T, b: T) => {
         // first by name
         const cn = a.n.localeCompare(b.n)
@@ -83,7 +83,7 @@ const pos = (i: ItemData, key: number): ViewItemData => ({
     c: i.c
 })
 
-function remainingInPrevious(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function remainingInPrevious(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     if (n === iList.length) {
         return {
             newItems: [neg(pList[m], key)],
@@ -94,7 +94,7 @@ function remainingInPrevious(iList: Array<ItemData>, pList: Array<ItemData>, n: 
     return undefined
 }
 
-function remainingInInventory(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function remainingInInventory(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     if (m === pList.length) {
         return {
             newItems: [pos(iList[n], key)],
@@ -105,12 +105,12 @@ function remainingInInventory(iList: Array<ItemData>, pList: Array<ItemData>, n:
     return undefined
 }
 
-function ignoreSame(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function ignoreSame(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
     if (i.n === p.n && i.q === p.q && i.v === p.v && i.c === p.c) {
         return {
-            newItems: undefined,
+            newItems: undefined!,
             nInc: 1,
             mInc: 1
         }
@@ -248,12 +248,12 @@ const sameName = {
         sameName.moveDifferentContainer(addFunc, iList, pList)
         sameName.addRemaining(addFunc, iList, 1)
         sameName.addRemaining(addFunc, pList, -1)
-        sortList(items)
+        _sortList(items)
         sameName.addKeys(items, key)
         return items
     },
     getArray: (name: string, start: number, list: Array<ItemData>): { inc: number, newList: Array<ItemSameNameData> } => {
-        const newList = []
+        const newList: Array<ItemSameNameData> = []
         let index = start
         while (index < list.length
             && name == list[index].n) {
@@ -268,7 +268,7 @@ const sameName = {
     }
 }
 
-function sameNameMulti(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function sameNameMulti(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
     if (i.n === p.n
@@ -285,7 +285,7 @@ function sameNameMulti(iList: Array<ItemData>, pList: Array<ItemData>, n: number
     }
 }
 
-function sameNameSingle(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function sameNameSingle(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
     if (i.n === p.n) {
@@ -323,7 +323,7 @@ function sameNameSingle(iList: Array<ItemData>, pList: Array<ItemData>, n: numbe
     return undefined
 }
 
-function differentNameInventoryFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function differentNameInventoryFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
     if (i.n.localeCompare(p.n) < 0) {
@@ -336,7 +336,7 @@ function differentNameInventoryFirst(iList: Array<ItemData>, pList: Array<ItemDa
     return undefined
 }
 
-function differentNamePreviousFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult {
+function differentNamePreviousFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
     if (i.n.localeCompare(p.n) > 0) {
@@ -350,7 +350,7 @@ function differentNamePreviousFirst(iList: Array<ItemData>, pList: Array<ItemDat
 }
 
 type PatternMatcherResult = { newItems: Array<ViewItemData>, nInc: number, mInc: number }
-type PatternMatcher = (iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number) => PatternMatcherResult
+type PatternMatcher = (iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number) => PatternMatcherResult | undefined
 
 const patterns: Array<PatternMatcher> = [
     remainingInPrevious,
@@ -362,18 +362,18 @@ const patterns: Array<PatternMatcher> = [
     differentNamePreviousFirst
 ]
 
-function getDifference(inventory: Inventory, previous: Inventory): Array<ViewItemData> {
-    if (previous === undefined || inventory.itemlist === undefined || previous.itemlist === undefined)
+function getDifference(inventory: Inventory | undefined, previous: Inventory | undefined): Array<ViewItemData> | null {
+    if (!inventory?.itemlist || !previous?.itemlist)
         return null
 
-    const iList = sortList(inventory.itemlist)
-    const pList = sortList(previous.itemlist)
+    const iList = _sortList([...inventory.itemlist])
+    const pList = _sortList([...previous.itemlist])
 
     const diff = []
     let n = 0
     let m = 0
-    while (n < inventory.itemlist.length || m < previous.itemlist.length) {
-        let match: PatternMatcherResult = undefined
+    while (n < iList.length || m < pList.length) {
+        let match: PatternMatcherResult | undefined = undefined
         for (let matcher of patterns) {
             match = matcher(iList, pList, n, m, diff.length)
             if (match !== undefined)

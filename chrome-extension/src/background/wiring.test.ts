@@ -364,13 +364,13 @@ describe('full', () => {
 describe('partial', () => {
     test('when request items expect on change', async () => {
         const onChange = jest.fn()
-        const viewState = new ViewStateManager(undefined!, undefined!, undefined!, undefined!, undefined!)
+        const viewState = new ViewStateManager(undefined!, undefined!, undefined!, undefined!, undefined!, undefined!)
         viewState.onChange = onChange
 
         const contentTabManager = new ContentTabManager(new MockPortManager(), () => Promise.resolve(false))
         const refreshManager = new RefreshManager(undefined!, undefined!, undefined!, undefined!, undefined!, undefined!)
         await refreshManager.setContentTab(contentTabManager)
-        refreshManager.setViewStatus = (status) => viewState.setStatus(status)
+        refreshManager.subscribeOnChanged((status) => viewState.setStatus(status))
         await refreshManager.manualRefresh()
 
         expect(onChange.mock.calls.length).toBe(1)

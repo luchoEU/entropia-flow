@@ -1,8 +1,7 @@
 import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLogLine, GameLogLoot, GameLogSkill, GameLogStats, gameLogStatsDecimals, gameLogStatsKeys, GameLogTier, GameLogTrade } from "../../../background/client/gameLogData";
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GAME_LOG_TABULAR_TRADE, GameLogState } from "../state/log"
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
-import { StreamStateVariable, StreamTemporalVariable } from "../state/stream";
-import { emptyTemporalValue, TemporalValue } from "../../../common/state";
+import { TemporalValue } from "../../../common/state";
 import { setTabularFilter } from "../actions/tabular";
 import { filterExact } from "../../../common/filter";
 import { dateToString } from "../../../common/date";
@@ -107,37 +106,7 @@ const gameLogTabularData = (gameLog: GameLogData): TabularRawData => ({
     [GAME_LOG_TABULAR_RAW]: { items: gameLog.raw }
 })
 
-const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {
-    const teamPlayers = Array.from(new Set(gameLog.team.map(d => d.player))).sort()
-    const teamLoot = Object.entries(gameLog.team.reduce((acc, t) => {
-        acc[t.name] = acc[t.name] || new Array(teamPlayers.length).fill(0);
-        acc[t.name][teamPlayers.indexOf(t.player)] += t.quantity;
-        return acc;
-    }, { } as {[name: string]: number[]}))
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([k, v]) => ({ name: k, quantity: v }))
-
-    return [
-        { name: 'loot', value: gameLog.loot },
-        { name: 'tier', value: gameLog.tier },
-        { name: 'skill', value: gameLog.skill },
-        { name: 'enhancerBroken', value: gameLog.enhancerBroken },
-        { name: 'global', value: gameLog.global },
-        { name: 'event', value: gameLog.event as any },
-        { name: 'team', value: { players: teamPlayers, loot: teamLoot } }
-    ]
-}
-
-const gameLogStatsTemporalVariables = (gameLog: GameLogData): StreamTemporalVariable[] =>
-    gameLogStatsKeys.map(k => ({
-        name: k.toString(),
-        value: gameLog.stats?.[k] ?? emptyTemporalValue(),
-        decimals: gameLogStatsDecimals[k]
-    }));
-
 export {
     gameLogTabularDefinitions,
-    gameLogVariables,
-    gameLogStatsTemporalVariables,
     gameLogTabularData,
 }

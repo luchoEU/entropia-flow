@@ -3,8 +3,10 @@ import {
     Status,
     ViewState,
 } from '../../common/state'
+import { StreamRenderData, StreamStateVariablesSet } from '../../stream/data'
 import { GameLogData } from '../client/gameLogData'
 import { IGameLogHistory } from '../client/gameLogHistory'
+import { StreamDataBuilder } from '../client/streamDataBuilder'
 import IWebSocketClient, { WebSocketState } from '../client/webSocketInterface'
 import RefreshManager from '../content/refreshManager'
 import InventoryManager from '../inventory/inventory'
@@ -16,14 +18,16 @@ class ViewStateManager {
     private inventory: InventoryManager
     private gameLogHistory: IGameLogHistory
     private webSocketClient: IWebSocketClient
+    private streamBuilder: StreamDataBuilder
     public onChange: (state: ViewState) => Promise<void>
 
-    constructor(refreshManager: RefreshManager, viewSettings: ViewSettings, inventory: InventoryManager, gameLogHistory: IGameLogHistory, webSocketClient: IWebSocketClient) {
+    constructor(refreshManager: RefreshManager, viewSettings: ViewSettings, inventory: InventoryManager, gameLogHistory: IGameLogHistory, webSocketClient: IWebSocketClient, streamBuilder: StreamDataBuilder) {
         this.refreshManager = refreshManager
         this.viewSettings = viewSettings
         this.inventory = inventory
         this.gameLogHistory = gameLogHistory
         this.webSocketClient = webSocketClient
+        this.streamBuilder = streamBuilder
     }
 
     public async get(): Promise<ViewState> {
@@ -32,7 +36,8 @@ class ViewStateManager {
         const status = await this.refreshManager.getStatus()
         const gameLog = await this.gameLogHistory.getGameLog()
         const clientState = await this.webSocketClient.getState()
-        return { list, last, status, gameLog, clientState }
+        const { variables: streamVariables, renderData: streamData } = await this.streamBuilder.getVariablesAndData()
+        return { list, last, status, gameLog, clientState, streamVariables, streamData }
     }
 
     public async reload(): Promise<void> {
@@ -71,6 +76,12 @@ class ViewStateManager {
     public async setClientVersion(version: string) {
         if (this.onChange) {
             await this.onChange({ clientState: await this.webSocketClient.getState(), clientVersion: version })
+        }
+    }
+
+    public async setStreamVariablesAndData(streamVariables: StreamStateVariablesSet, streamData: StreamRenderData) {
+        if (this.onChange) {
+            await this.onChange({ streamVariables, streamData })
         }
     }
 }

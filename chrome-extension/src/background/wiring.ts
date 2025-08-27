@@ -13,7 +13,6 @@ import {
     MSG_NAME_REQUEST_SET_LAST,
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
-    MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_TAB_CONTENTS,
@@ -21,6 +20,8 @@ import {
     MSG_NAME_SET_WEB_SOCKET_URL,
     MSG_NAME_LOADING,
     MSG_NAME_REMAINING_SECONDS,
+    MSG_NAME_STORAGE_CHANGED,
+    MSG_NAME_SET_SHOWING_LAYOUT_ID,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -37,6 +38,13 @@ import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
+import { StreamDataBuilder } from './client/streamDataBuilder'
+import { LastDeltaVariablesBuilder } from './inventory/lastDeltaVariablesBuilder'
+import { InventoryVariablesBuilder } from './inventory/inventoryVariablesBuilder'
+import { StatusVariablesBuilder } from './content/statusVariablesBuilder'
+import { BackgroundVariablesBuilder } from '../stream/backgroundVariablesBuilder'
+import { LayoutVariablesBuilder } from './client/layoutVariablesBuilder'
+import { GameLogVariablesBuilder } from './client/gameLogVariablesBuilder'
 
 async function wiring(
     messages: IMessagesHub,
@@ -74,12 +82,23 @@ async function wiring(
     // game log
     const gameLogParser = new GameLogParser()
     const gameLogHistory = new GameLogHistory()
-    
+
+    // stream
+    const streamDataBuilder = new StreamDataBuilder()
+
     // state
     const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
-    const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient)
-    
+    const viewStateManager = new ViewStateManager(refreshManager, viewSettings, inventoryManager, gameLogHistory, webSocketClient, streamDataBuilder)
+
+    // stream
+    const lastDeltaBuilder = new LastDeltaVariablesBuilder(viewSettings, inventoryManager)
+    const inventoryBuilder = new InventoryVariablesBuilder(inventoryManager)
+    const statusBuilder = new StatusVariablesBuilder(refreshManager)
+    const backgroundBuilder = new BackgroundVariablesBuilder()
+    const layoutBuilder = new LayoutVariablesBuilder()
+    const gameLogBuilder = new GameLogVariablesBuilder(gameLogHistory)
+
     // tabs
     const contentTabManager = new ContentTabManager(contentPortManager, isUnfreezeTabEnabled)
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs, loadBlueprintListAtStart)
@@ -89,7 +108,7 @@ async function wiring(
     contentPortManager.onDisconnect = (port) => contentTabManager.onDisconnect(port)
     viewPortManager.onConnect = (port) => viewTabManager.onConnect(port)
     viewPortManager.onDisconnect = (port) => viewTabManager.onDisconnect(port)
-    refreshManager.setViewStatus = (status) => viewStateManager.setStatus(status)
+    refreshManager.subscribeOnChanged((status) => viewStateManager.setStatus(status))
     refreshManager.onInventory = async (inventory) => {
         const keepDate = await viewSettings.getLast()
         const list = await inventoryManager.onNew(inventory, keepDate)
@@ -111,22 +130,36 @@ async function wiring(
                 await viewTabManager.sendDispatch(msg.data)
                 break;
             case "used-layouts":
-                await viewTabManager.sendUsedLayouts(msg.data)
+                streamDataBuilder.setUsedLayouts(msg.data)
                 break;
         }
     }
     webSocketClient.onStateChanged = async (state) => {
         await viewStateManager.setClientState(state)
         await refreshManager.onWebSocketStateChanged(state.code === WebSocketStateCode.connected)
+        await streamDataBuilder.clearClientData(state.code)
+    }
+    streamDataBuilder.sendClientData = async (data) => {
+        await webSocketClient.send('stream', data)
+    }
+    streamDataBuilder.addBuilder(lastDeltaBuilder)
+    streamDataBuilder.addBuilder(inventoryBuilder)
+    streamDataBuilder.addBuilder(statusBuilder)
+    streamDataBuilder.addBuilder(backgroundBuilder)
+    streamDataBuilder.addBuilder(layoutBuilder)
+    streamDataBuilder.addBuilder(gameLogBuilder)
+    streamDataBuilder.addTemporalBuilder(gameLogBuilder)
+    streamDataBuilder.onDataChanged = async (variables, renderData) => {
+        await viewStateManager.setStreamVariablesAndData(variables, renderData)
     }
     gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
     const gameLog = await gameLogStorage.get()
     if (gameLog)
         await gameLogHistory.setGameLog(gameLog)
-    gameLogHistory.onChange = async (gameLog) => {
+    gameLogHistory.subscribeOnChanged(async (gameLog) => {
         await gameLogStorage.set(gameLog)
         await viewStateManager.setGameLog(gameLog)
-    }
+    })
     actions.clickListen(() => {
         viewTabManager.createOrOpenView()
     })
@@ -172,13 +205,12 @@ async function wiring(
         },
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff(),
-        [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: async (m: { type: string, data: any }) => {
-            await webSocketClient.send(m.type, m.data)
-        },
-        [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => {
-            await webSocketClient.start(m.url)
-        },
+        [MSG_NAME_SET_SHOWING_LAYOUT_ID]: async (m: { layoutId: string }) => streamDataBuilder.updateShowingLayoutId(m.layoutId),
+        [MSG_NAME_STORAGE_CHANGED]: async (m: { store: string }) => streamDataBuilder.updateState(m.store),
+        [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => webSocketClient.start(m.url)
     }
+
+    streamDataBuilder.loop()
 }
 
 export default wiring

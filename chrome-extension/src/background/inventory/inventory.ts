@@ -1,15 +1,29 @@
 import { CLASS_INFO, STRING_NO_DATA } from '../../common/const'
-import { Inventory, makeLogInventory } from '../../common/state'
+import { Inventory, ItemData, makeLogInventory } from '../../common/state'
 import InventoryStorage from './inventoryStorage'
 
 //// INVENTORY ////
 
 class InventoryManager {
     private storage: InventoryStorage
-    public onChanged: (list: Array<Inventory>) => Promise<void>
+    private listeners: Array<(list: Array<Inventory>) => Promise<void>> = []
 
     constructor(storage: InventoryStorage) {
         this.storage = storage
+    }
+
+    public subscribeOnChanged(callback: (list: Array<Inventory>) => Promise<void>): void {
+        this.listeners.push(callback);
+    }
+
+    public unsubscribeOnChanged(callback: (list: Array<Inventory>) => Promise<void>): void {
+        this.listeners = this.listeners.filter(fn => fn !== callback);
+    }
+
+    private async notifyChanged(list: Array<Inventory>): Promise<void> {
+        for (const listener of this.listeners) {
+            await listener(list);
+        }
     }
 
     public async getList(): Promise<Array<Inventory>> {
@@ -24,7 +38,9 @@ class InventoryManager {
     public async onNew(inventory: Inventory, keepDate: number): Promise<Array<Inventory>> {
         if (inventory.log === undefined)
             this._adjust(inventory)
-        return await this.storage.add(inventory, keepDate)
+        const list = await this.storage.add(inventory, keepDate)
+        this.notifyChanged(list)
+        return list
     }
 
     private _adjust(inventory: Inventory) {
@@ -37,7 +53,7 @@ class InventoryManager {
             item.n = item.n.replace(/\s{2,}/g, ' '); // Some blueprints from Rocktropia have extra spaces
             item.n = item.n.trim(); // Remove extra space at the end of 'Mission Galactica Coin (Green) '
 
-            item.c = item.c.replace(/&#10;/g, '\n'); // The Hub container has '&#10;' in json but an '\n' when read from html
+            item.c = item.c.replace(/\n/g, " "); // The Hub container has '\n' in json but a space when read from html
             item.c = item.c.replace(/&apos;/g, "'"); // Bukin has '&apos;' in json
 
             const c_index = item.c.lastIndexOf('(');
@@ -49,6 +65,7 @@ class InventoryManager {
                 item.r = '0';
             }
         })
+        inventory.itemlist?.sort((a: ItemData, b: ItemData) => Number(a.id) - Number(b.id)) // sort them because they come in a different order from html or ajax
         inventory.meta = {
             date: (new Date()).getTime(),
             total: total.toFixed(2)

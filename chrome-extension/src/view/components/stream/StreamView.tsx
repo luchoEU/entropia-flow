@@ -31,7 +31,7 @@ function StreamView() {
                 dispatch={() => pinStreamView(!streamViewPinned)}
             /> : undefined}
         >
-            {view.map((w, i) => <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}
+            {view.map((w, i) => d.layoutData[w] && <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}
         </ExpandableSection>
     )
 }

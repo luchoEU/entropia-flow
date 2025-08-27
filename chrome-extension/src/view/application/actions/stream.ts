@@ -1,8 +1,8 @@
 import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import { StreamExportLayout, StreamRenderData, StreamRenderLayoutSet } from '../../../stream/data'
+import { StreamBaseVariable, StreamExportLayout, StreamRenderData, StreamRenderLayoutSet, StreamStateVariablesSet } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
-import { StreamBaseVariable, StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
+import { StreamState } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
 import { navigateTo, streamEditorUrl, streamTrashUrl } from './navigation'
 
@@ -11,7 +11,6 @@ const SET_STREAM_ENABLED = "[stream] set enabled"
 const SET_STREAM_ADVANCED = "[stream] set advanced"
 const SET_STREAM_BACKGROUND_SELECTED = "[stream] set background selected"
 const SET_STREAM_VARIABLES = "[stream] set variables"
-const SET_STREAM_TEMPORAL_VARIABLES = "[stream] set temporal variables"
 const SET_STREAM_FORMULA_JAVASCRIPT = "[stream] set formula javascript"
 const SET_STREAM_SHOWING_LAYOUT_ID = "[stream] set showing layout id"
 const SET_STREAM_HTML_TEMPLATE = "[stream] set html template"
@@ -31,7 +30,6 @@ const SET_STREAM_USER_PARTIAL = "[stream] set user partial"
 const CLONE_STREAM_LAYOUT = "[stream] clone layout"
 const IMPORT_STREAM_LAYOUT_FROM_FILE = "[stream] import layout from file"
 const CLEAR_STREAM_LAYOUT_ALIAS = "[stream] clear layout alias"
-const SET_STREAM_USED_LAYOUTS = "[stream] set used layouts"
 
 const setStreamState = (state: StreamState) => ({
     type: SET_STREAM_STATE,
@@ -126,14 +124,9 @@ const setStreamAuthor = (layoutId: string) => (author: string) => ({
     payload: { layoutId, author }
 })
 
-const setStreamVariables = (source: string, variables: StreamStateVariable[]) => ({
+const setStreamVariables = (variables: StreamStateVariablesSet) => ({
     type: SET_STREAM_VARIABLES,
-    payload: { source, variables }
-})
-
-const setStreamTemporalVariables = (source: string, variables: StreamTemporalVariable[]) => ({
-    type: SET_STREAM_TEMPORAL_VARIABLES,
-    payload: { source, variables }
+    payload: { variables }
 })
 
 const addStreamLayout = (navigate: NavigateFunction) => async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -200,20 +193,12 @@ const clearStreamLayoutAlias = {
     type: CLEAR_STREAM_LAYOUT_ALIAS
 }
 
-const setStreamUsedLayouts = (layouts: string[]) => ({
-    type: SET_STREAM_USED_LAYOUTS,
-    payload: {
-        layouts
-    }
-})
-
 export {
     SET_STREAM_STATE,
     SET_STREAM_ENABLED,
     SET_STREAM_ADVANCED,
     SET_STREAM_BACKGROUND_SELECTED,
     SET_STREAM_VARIABLES,
-    SET_STREAM_TEMPORAL_VARIABLES,
     SET_STREAM_FORMULA_JAVASCRIPT,
     SET_STREAM_SHOWING_LAYOUT_ID,
     SET_STREAM_HTML_TEMPLATE,
@@ -233,13 +218,11 @@ export {
     CLONE_STREAM_LAYOUT,
     IMPORT_STREAM_LAYOUT_FROM_FILE,
     CLEAR_STREAM_LAYOUT_ALIAS,
-    SET_STREAM_USED_LAYOUTS,
     setStreamState,
     setStreamEnabled,
     setStreamAdvanced,
     setStreamBackgroundSelected,
     setStreamVariables,
-    setStreamTemporalVariables,
     setStreamFormulaJavaScript,
     setStreamShowingLayoutId,
     setStreamHtmlTemplate,
@@ -260,5 +243,4 @@ export {
     importStreamLayoutFromFile,
     goToTrash,
     clearStreamLayoutAlias,
-    setStreamUsedLayouts,
 }

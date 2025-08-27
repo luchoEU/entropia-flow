@@ -11,7 +11,7 @@ describe('view state', () => {
         const onChange = jest.fn()
         const alarmStorage = new MockStorageArea()
         const alarmSettings = new AlarmSettings(alarmStorage)
-        const viewState = new ViewStateManager(undefined, undefined, undefined, undefined, undefined)
+        const viewState = new ViewStateManager(undefined!, undefined!, undefined!, undefined!, undefined!, undefined!)
         viewState.onChange = onChange
 
         await viewState.setStatus(STATE_LOADING_ITEMS.status)
@@ -29,9 +29,9 @@ describe('view state', () => {
         const refreshManager = new RefreshManager(alarm, undefined!, undefined!, undefined!, undefined!, alarmSettings)
         const contentPortManager = new MockPortManager()
         contentPortManager.allMock.mockReturnValue([])
-        const viewState = new ViewStateManager(refreshManager, undefined!, undefined!, undefined!, undefined!)
+        const viewState = new ViewStateManager(refreshManager, undefined!, undefined!, undefined!, undefined!, undefined!)
         viewState.onChange = onChange
-        refreshManager.setViewStatus = (status) => viewState.setStatus(status)
+        refreshManager.subscribeOnChanged((status) => viewState.setStatus(status))
         alarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
 
         await refreshManager.setTimerOn()

@@ -1,7 +1,6 @@
 import { GameLogData } from "../../../background/client/gameLogData"
 import { mergeDeep } from "../../../common/merge"
 import { SET_CURRENT_GAME_LOG, setGameLogState } from "../actions/log"
-import { setStreamTemporalVariables, setStreamVariables } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialState } from "../helpers/log"
@@ -10,7 +9,7 @@ import { getGameLog } from "../selectors/log"
 import { selectIsFeatureEnabled } from "../selectors/settings"
 import { GameLogState } from "../state/log"
 import { Feature } from "../state/settings"
-import { gameLogStatsTemporalVariables, gameLogTabularData, gameLogTabularDefinitions, gameLogVariables } from "../tabular/log"
+import { gameLogTabularData, gameLogTabularDefinitions } from "../tabular/log"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -31,8 +30,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
             const gameLog: GameLogData = action.payload.gameLog
             dispatch(setTabularData(gameLogTabularData(gameLog)))
-            dispatch(setStreamVariables('gameLog', gameLogVariables(gameLog)))
-            dispatch(setStreamTemporalVariables('gameLogStats', gameLogStatsTemporalVariables(gameLog)))
             break
         }
     }

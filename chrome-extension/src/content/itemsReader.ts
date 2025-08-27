@@ -56,7 +56,8 @@ class ItemsReader {
                     const n = cells[0].innerText
                     const q = cells[1].innerText
                     const v = cells[2].innerText.replace(' PED', '');
-                    const c = cells[3].innerText
+                    let c = cells[3].innerText
+                    c = c.substring(c.lastIndexOf('\n') + 1 || 0) // in case 'Show Container Path' is enabled
                     const refAnchor = cells[3].getElementsByTagName('a');
                     const r = refAnchor.length > 0 ? refAnchor[0].getAttribute('href')?.substring(2) ?? undefined : undefined; // remove the leading '#r'
                     inventory.itemlist?.push({ id, n, q, v, c, r })

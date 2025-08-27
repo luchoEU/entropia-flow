@@ -1,5 +1,4 @@
-import { TemporalValue } from '../../../common/state'
-import { StreamComputedLayoutDataSet, StreamRenderData, StreamRenderValue, StreamSavedLayoutSet } from '../../../stream/data'
+import { StreamComputedLayoutDataSet, StreamRenderData, StreamSavedLayoutSet, StreamStateVariablesSet } from '../../../stream/data'
 
 const STREAM_TABULAR_CHOOSER = '[stream] chooser'
 const STREAM_TABULAR_VARIABLES = '[stream] variables'
@@ -17,52 +16,16 @@ interface StreamStateIn {
 }
 
 interface StreamStateOut {
-    computed: StreamComputedLayoutDataSet
     data: StreamRenderData
 }
 
 interface StreamState {
     in: StreamStateIn
-    variables: Record<string, StreamStateVariable[]> // source => variables
-    temporalVariables: Record<string, StreamTemporalVariable[]> // source => variables
+    variables: StreamStateVariablesSet
     ui: {
         showingLayoutId?: string
     }
-    client: {
-        usedLayouts?: string[]
-    }
     out: StreamStateOut
-}
-
-interface StreamBaseVariable<T> {
-    name: string
-    value: T
-    description?: string
-}
-
-interface StreamUserImageVariable extends StreamBaseVariable<string> {
-    id: number
-}
-
-interface StreamUserParameterVariable extends StreamBaseVariable<string> {
-    id: number
-}
-
-interface StreamStateVariable extends StreamBaseVariable<StreamRenderValue> {
-    isImage?: boolean
-    isParameter?: boolean
-}
-
-interface StreamTemporalVariable extends StreamBaseVariable<TemporalValue> {
-    decimals?: number
-}
-
-type StreamComputedVariable = (StreamUserImageVariable | StreamStateVariable) & {
-    source: string
-    id?: number
-    computed?: StreamRenderValue
-    isImage?: boolean
-    isParameter?: boolean
 }
 
 export {
@@ -73,11 +36,5 @@ export {
     STREAM_TABULAR_VARIABLES,
     STREAM_TABULAR_IMAGES,
     STREAM_TABULAR_PARAMETERS,
-    STREAM_TABULAR_TRASH,
-    StreamStateVariable,
-    StreamBaseVariable,
-    StreamUserImageVariable,
-    StreamUserParameterVariable,
-    StreamComputedVariable,
-    StreamTemporalVariable,
+    STREAM_TABULAR_TRASH
 }

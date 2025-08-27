@@ -41,7 +41,7 @@ function _setListener(port: chrome.runtime.Port, handlersMap: PortHandlers, mess
 
 class ChromeMessagesClient implements IMessageSender {
     private registerName: string
-    private port: chrome.runtime.Port
+    private port?: chrome.runtime.Port
     private pendingMesssage: any
 
     constructor(registerName: string, portName: string, handlersMap: PortHandlers) {
@@ -119,7 +119,7 @@ class ChromeMessagesHub {
     public connect(tabId: number, portName: string, handlers: PortHandlers): IPort {
         const port = chrome.tabs.connect(tabId, { name: portName })
         trace(Component.ChromeMessagesHub, `connected: tab ${tabId} port '${portName}'`)
-        _setListener(port, handlers, undefined, Component.ChromeMessagesHub, `port '${portName}'`)
+        _setListener(port, handlers, undefined!, Component.ChromeMessagesHub, `port '${portName}'`)
         chrome.tabs.update(tabId, { autoDiscardable: false })
         return new ChromePort(tabId, port)
     }

@@ -7,10 +7,11 @@ import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
 const MAX_LOG_LINES = 1000
 
 interface IGameLogHistory {
-    onLines(lines: GameLogLine[]): Promise<void>
-    clearSession(): Promise<void>
-    getGameLog(): GameLogData
-    onChange: (gameLog: GameLogData) => Promise<void>
+    onLines(lines: GameLogLine[]): Promise<void>;
+    clearSession(): Promise<void>;
+    getGameLog(): GameLogData;
+    subscribeOnChanged(callback: (gameLog: GameLogData) => Promise<void>): void;
+    unsubscribeOnChanged(callback: (gameLog: GameLogData) => Promise<void>): void;
 }
 
 const ignoreLootForKill = [
@@ -29,13 +30,26 @@ class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
     private lastLootDateTime: number
     private timeout: NodeJS.Timeout
-    public onChange: (gameLog: GameLogData) => Promise<void>
+    private listeners: ((gameLog: GameLogData) => Promise<void>)[] = []
 
     public getGameLog(): GameLogData { return this.gameLog }
     public async setGameLog(gameLog: GameLogData): Promise<void> {
         this.gameLog = gameLog
-        if (this.onChange)
-            await this.onChange(this.gameLog)
+        await this.notifyChanged()
+    }
+
+    public subscribeOnChanged(callback: (gameLog: GameLogData) => Promise<void>): void {
+        this.listeners.push(callback);
+    }
+
+    public unsubscribeOnChanged(callback: (gameLog: GameLogData) => Promise<void>): void {
+        this.listeners = this.listeners.filter(fn => fn !== callback);
+    }
+
+    private async notifyChanged(): Promise<void> {
+        for (const listener of this.listeners) {
+            await listener(this.gameLog);
+        }
     }
 
     public async clearSession(): Promise<void> {
@@ -49,10 +63,9 @@ class GameLogHistory implements IGameLogHistory {
         for (const line of lines)
             await this.processLine(line)
 
-        this.timeout = setTimeout(() => { // use timeout to process all lines in websocket queue before sending to view
+        this.timeout = setTimeout(async () => { // use timeout to process all lines in websocket queue before sending to view
             this.timeout = undefined
-            if (this.onChange)
-                this.onChange(this.gameLog)
+            await this.notifyChanged()
         }, 100)
     }
 

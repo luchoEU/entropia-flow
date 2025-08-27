@@ -43,7 +43,7 @@ import { RefineState } from "../../application/state/refine";
 import { RefinedState } from "../../application/state/refined";
 import { SettingsState } from "../../application/state/settings";
 import { StackableStateIn } from "../../application/state/stackable";
-import { StreamState } from "../../application/state/stream";
+import { StreamStateIn } from "../../application/state/stream";
 import { SweatStateIn } from "../../application/state/sweat";
 import { TabularState } from "../../application/state/tabular";
 import { TradeState } from "../../application/state/trade";
@@ -169,11 +169,11 @@ async function loadLast(): Promise<LastRequiredState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
 }
 
-async function saveStream(state: StreamState) {
+async function saveStream(state: StreamStateIn) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, state) // TODO: save in SYNC_STORAGE with user images separatetly
 }
 
-async function loadStream(): Promise<StreamState> {
+async function loadStream(): Promise<StreamStateIn> {
     return await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
 }
 

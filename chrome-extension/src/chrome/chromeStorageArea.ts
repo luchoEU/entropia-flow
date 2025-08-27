@@ -3,6 +3,7 @@ import IStorageArea from './IStorageArea'
 
 class ChromeStorageArea implements IStorageArea {
     private area: chrome.storage.StorageArea
+    public onStorageChanged?: (name: string) => void
 
     constructor(area: chrome.storage.StorageArea) {
         this.area = area
@@ -29,15 +30,34 @@ class ChromeStorageArea implements IStorageArea {
                 traceError(Component.ChromeStorageArea, `set value in '${name}' length ${JSON.stringify(value).length} error ${errorMessage}:`, error)
                 throw new Error(errorMessage)
             }
+            if (this.onStorageChanged)
+                this.onStorageChanged(name)
         })
     }
 
     async remove(name: string): Promise<void> {
-        return await this.area.remove(name)
+        this.area.remove(name, () => {
+            const error = chrome.runtime.lastError;
+            if (error) {
+                const errorMessage = error.message || 'Unknown error occurred';
+                traceError(Component.ChromeStorageArea, `remove value in '${name}' error ${errorMessage}:`, error)
+                throw new Error(errorMessage)
+            }
+            if (this.onStorageChanged)
+                this.onStorageChanged(name)
+        })
     }
 
     async clear(): Promise<void> {
-        return await this.area.clear()
+        this.area.clear(() => {
+            const error = chrome.runtime.lastError;
+            if (error) {
+                const errorMessage = error.message || 'Unknown error occurred';
+                traceError(Component.ChromeStorageArea, `clear error ${errorMessage}:`, error)
+                throw new Error(errorMessage)
+            }
+            //this.onStorageChanged() // TODO: call once per name
+        })
     }
 }
 

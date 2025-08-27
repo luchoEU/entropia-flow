@@ -1,10 +1,10 @@
 import { NavigateFunction } from "react-router-dom";
-import { StreamRenderLayout, StreamSavedLayoutSet } from "../../../stream/data";
+import { StreamComputedVariable, StreamRenderLayout, StreamSavedLayoutSet, StreamStateVariablesSet } from "../../../stream/data";
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
 import { removeStreamLayout, removeStreamUser, restoreStreamLayout, setStreamStared, setStreamUserPartial } from "../actions/stream";
-import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
+import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { navigateTo, streamEditorUrl } from "../actions/navigation";
 
@@ -49,16 +49,16 @@ interface StreamTabularVariablesFromVariablesData {
     readonly: boolean
 }
 
-const streamTabularDataFromVariables = (variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>, data: StreamTabularVariablesFromVariablesData): TabularRawData<StreamComputedVariable> => {
+const streamTabularDataFromVariables = (variables: StreamStateVariablesSet, data: StreamTabularVariablesFromVariablesData): TabularRawData<StreamComputedVariable> => {
     const d: StreamComputedVariable[] =
-        Object.entries(variables).map(([source, data]) => data.map(v => ({ source, ...v }))).flat()
+        Object.entries(variables.single).map(([source, data]) => data.map(v => ({ source, ...v }))).flat()
     const noImages = d.filter(v => !v.isImage)
     const images = d.filter(v => v.isImage)
     const parameters = d.filter(v => v.isParameter)
 
     const obj = Object.fromEntries(noImages.map(v => [v.name, v.value]))
     obj.img = Object.fromEntries(images.map(v => [v.name, `img.${v.name}`]))
-    const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
+    const tObj = Object.fromEntries(Object.values(variables.temporal).flat().map(v => [v.name, v.value]))
     const computedObj = computeFormulas(obj, tObj)
     const tVariables = noImages.map(v => ({ ...v, computed: computedObj[v.name] }));
     return {

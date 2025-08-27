@@ -1,14 +1,13 @@
 import { Inventory } from "../../../common/state"
-import { getDifference, getValue, hasValue } from "./diff"
+import { getDifference, getValue } from "./diff"
 import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./inventory.sort"
 import { getLatestFromInventoryList, getText } from "./history"
-import { ViewItemData, ViewItemMode } from "../state/history"
-import { matchDate } from "../../../common/date"
+import { ViewItemMode } from "../state/history"
 import { LastRequiredState, ViewPedData } from "../state/last"
 import { InventoryState } from "../state/inventory"
 import { getItemAction } from "./soldDetector"
 import { ItemsMap } from "../state/items"
-import { getValueWithMarkup } from "./items"
+import { _applyExcludes, _applyPermanentExclude, _applyWarning, _findInventory, _pedSum, _sumDiff } from "../../../background/inventory/lastDeltaVariablesBuilder"
 
 const initialState: LastRequiredState = {
     expanded: false,
@@ -25,62 +24,6 @@ const initialState: LastRequiredState = {
 }
 
 const reduceSetLastState = (state: LastRequiredState, newState: LastRequiredState): LastRequiredState => newState
-
-function _applyExcludes(d: number, diff: Array<ViewItemData> | undefined, last: Array<ViewItemData> | undefined): number {
-    // transfer excluded from previous list
-    if (last) {
-        for (const item of last) {
-            if (item.e) {
-                const i = diff?.find(i => {
-                    return !i.e
-                        && i.n === item.n
-                        && i.q === item.q
-                        && i.v === item.v
-                        && i.c === item.c
-                })
-                if (i !== undefined) {
-                    i.e = true
-                    d -= getValue(i)
-                }
-            }
-        }
-    }
-    // mark auction sells as excluded, unless they are all auction changes
-    if (diff?.find(i => i.c !== 'AUCTION')) {
-        for (const item of diff) {
-            if (item.c === 'AUCTION' && Number(item.q) < 0) { // < 0 are sells
-                const existed = last && last.find(i => {
-                    return i.n === item.n
-                        && i.q === item.q
-                        && i.v === item.v
-                        && i.c === item.c
-                })
-                if (!existed) {
-                    item.e = true
-                    d -= getValue(item)
-                }
-            }
-        }
-    }
-    return d
-}
-
-function _applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBlacklist: Array<string>): number {
-    diff.forEach(item => {
-        if (hasValue(item) && permanentBlacklist.includes(item.n)) {
-            item.x = true
-            if (!item.e) {
-                item.e = true
-                d -= getValue(item)
-            }
-        }
-    })
-    return d
-}
-
-function _applyWarning(diff: Array<ViewItemData> | undefined, blacklist: Array<string>) {
-    diff?.forEach(item => item.w = !item.e && hasValue(item) && blacklist.includes(item.n))
-}
 
 const reduceSetExpanded = (state: LastRequiredState, expanded: boolean) => ({
     ...state,
@@ -174,17 +117,6 @@ const reduceSetLastShowMarkup = (state: LastRequiredState, showMarkup: boolean):
     showMarkup
 })
 
-function _findInventory(list: Array<Inventory>, lastRefresh: number) {
-    if (lastRefresh === undefined)
-        return null
-
-    for (let inv of list) {
-        if (matchDate(inv, lastRefresh))
-            return inv
-    }
-    return list[0]
-}
-
 function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
     const inv = _findInventory(list, last)
     if (inv === null) {
@@ -247,9 +179,6 @@ const reduceSetAsLast = (state: LastRequiredState, last: number): LastRequiredSt
     notificationsDone: [],
 })
 
-const _sumDiff = (diff: ViewItemData[] | undefined, items: ItemsMap): number =>
-    diff?.reduce((p, c) => p + (c.e ? 0 : getValueWithMarkup(c.q, c.v, items[c.n])), 0) ?? 0;
-
 const reduceApplyMarkupToLast = (state: LastRequiredState, items: ItemsMap): LastRequiredState => {
     const deltaPeds = _pedSum(state.peds)
     const deltaNoMarkup = _sumDiff(state.c.diff, {}) + deltaPeds
@@ -259,8 +188,6 @@ const reduceApplyMarkupToLast = (state: LastRequiredState, items: ItemsMap): Las
         c: {
             ...state.c,
             delta: state.showMarkup ? deltaWithMarkup : deltaNoMarkup,
-            deltaNoMarkup,
-            deltaWithMarkup
         }
     }
 }
@@ -280,8 +207,6 @@ const reduceAddNotificationsDone = (state: LastRequiredState, messages: Array<st
     ...state,
     notificationsDone: [ ...state.notificationsDone, ...messages ]
 })
-
-const _pedSum = (peds: Array<ViewPedData>) => peds.reduce((p, c) => p + Number(c.value), 0)
 
 const _reduceSetPeds = (state: LastRequiredState, inState: Array<ViewPedData>): LastRequiredState => ({
     ...state,

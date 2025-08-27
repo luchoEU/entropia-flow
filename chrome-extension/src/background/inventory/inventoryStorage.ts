@@ -84,7 +84,7 @@ class InventoryStorage {
     }
 
     private async _readFromStorage(): Promise<Array<Inventory>> {
-        let list = []
+        let list: Array<Inventory> = []
 
         try {
             const sSplits = await this.area.get(`${STORAGE_INVENTORY_STRINGS_}N`)
@@ -94,7 +94,7 @@ class InventoryStorage {
                     const s = await this.area.get(`${STORAGE_INVENTORY_STRINGS_}${n}`)
                     stringBest = stringBest + s
                 }
-                let stringJson = undefined
+                let stringJson: Array<string>
                 if (stringBest[0] === '[') {
                     stringJson = JSON.parse(stringBest)
                 } else {

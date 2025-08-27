@@ -24,8 +24,8 @@ class RefreshManager {
     private contentTab: IContentTab
     private stickyStatus: Log | undefined
     private sleepMode: boolean
-    public onInventory: (inventory: Inventory) => Promise<void>
-    public setViewStatus: (status: Status) => Promise<void>
+    private listeners: ((status: Status) => Promise<void>)[] = [];
+    public onInventory?: (inventory: Inventory) => Promise<void>
 
     constructor(ajaxAlarm: IAlarmManager, frozenAlarm: IAlarmManager, sleepAlarm: IAlarmManager, deadAlarm: IAlarmManager, tickAlarm: IAlarmManager, alarmSettings: AlarmSettings) {
         this.ajaxAlarm = ajaxAlarm;
@@ -63,6 +63,20 @@ class RefreshManager {
         })
     }
 
+    public subscribeOnChanged(callback: (status: Status) => Promise<void>): void {
+        this.listeners.push(callback);
+    }
+
+    public unsubscribeOnChanged(callback: (status: Status) => Promise<void>): void {
+        this.listeners = this.listeners.filter(listener => listener !== callback);
+    }
+
+    private async notifyChanged(status: Status): Promise<void> {
+        for (const listener of this.listeners) {
+            await listener(status);
+        }
+    }
+
     public async setContentTab(contentTab: IContentTab) {
         this.contentTab = contentTab;
         await this._setViewStatus(CLASS_ERROR, STRING_PLEASE_LOG_IN);
@@ -82,14 +96,12 @@ class RefreshManager {
     }
 
     private async _setViewStatus(_class?: string, message?: string) {
-        if (!this.setViewStatus) return
-
         if (message !== undefined) {
             const isMonitoring = await this.alarmSettings?.isMonitoringOn() ?? true
-            await this.setViewStatus({ class: _class ?? '', message, isMonitoring })
+            await this.notifyChanged({ class: _class ?? '', message, isMonitoring })
             this.stickyStatus = { class: _class ?? '', message }
         } else {
-            await this.setViewStatus(await this.getStatus())
+            await this.notifyChanged(await this.getStatus())
         }
     }
 

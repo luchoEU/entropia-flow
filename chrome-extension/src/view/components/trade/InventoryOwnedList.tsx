@@ -150,15 +150,15 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     const name = tradeItemData.name
     const editMode = name && name === mat.editModeMaterialName
     return <>
-        <WebDataControl w={item?.web?.item} name='Basic Information' dispatchReload={() => loadItemData(tradeItemData.name)} showWithErrors={true} content={(webItem: ItemWebData) => {
+        <WebDataControl w={item?.web?.item} name='Basic Information' dispatchReload={() => loadItemData(tradeItemData.name)} showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
             const user = mat.map[name]?.user
             return <>
                 { editMode ? <>
                     <p><label>Type:</label> <AutocompleteInput value={user?.type?.toString() ?? ''} getChangeAction={(v) => changeMaterialType(name, v)} suggestions={user?.suggestedTypes ?? []}/></p>
                     <p><label>Value:</label> <input type='text' value={user?.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
                 </> : (user ?? webItem) && <>
-                    <p>Type: { user?.type ?? webItem.type }</p>
-                    <p>Value: { addZeroes(user?.value ?? webItem.value) }</p>
+                    <p>Type: { user?.type ?? webItem?.type }</p>
+                    <p>Value: { addZeroes(user?.value ?? webItem?.value ?? 0) }</p>
                 </>}
                 { reserve && <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={itemReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
                 <ItemMarkup name={tradeItemData.name} />
@@ -168,9 +168,9 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
         <ItemNotes name={tradeItemData.name} />
         { showTTService && <>
             <p style={{ height: '5px' }} />
-            <WebDataControl w={ttService?.web?.inventory} name='TT Inventory' dispatchReload={loadTTService} content={(inventory: TTServiceInventoryWebData) => {
-                const list = inventory.filter(d => d.name === tradeItemData.name)
-                return list.length === 0 ?
+            <WebDataControl w={ttService?.web?.inventory} name='TT Inventory' dispatchReload={loadTTService} content={(inventory: TTServiceInventoryWebData | undefined) => {
+                const list = inventory?.filter(d => d.name === tradeItemData.name)
+                return list?.length === 0 ?
                     <p><strong>No entries in TT Service Inventory</strong></p> :
                     <table style={{ marginBottom: '10px' }}>
                         <thead>
@@ -182,7 +182,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                             </tr>
                         </thead>
                         <tbody>
-                            { list.map(d => (
+                            { list?.map(d => (
                                 <tr>
                                     <td>{d.date}</td>
                                     <td>{d.player}</td>
@@ -195,7 +195,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             }} />
         </> }
         <p style={{ height: '5px' }} />
-        <WebDataControl w={item?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData) =>
+        <WebDataControl w={item?.web?.usage} name='Item Usage' dispatchReload={() => loadItemUsageData(tradeItemData.name)} content={(usage: ItemUsageWebData | undefined) =>
             <>
                 { favoriteTableData ?
                     <SortableFixedSizeTable data={favoriteTableData} /> :
@@ -204,7 +204,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                 { ownedTableData && <SortableFixedSizeTable data={ownedTableData} /> }
                 { otherTableData && <SortableFixedSizeTable data={otherTableData} /> }
 
-                { usage.refinings?.length > 0 && 
+                { usage?.refinings && usage.refinings.length > 0 && 
                     <table style={{ marginBottom: '10px' }}>
                         <thead>
                             <tr>

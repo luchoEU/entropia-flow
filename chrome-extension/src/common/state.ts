@@ -2,6 +2,7 @@
 
 import { GameLogData } from "../background/client/gameLogData"
 import { WebSocketState } from "../background/client/webSocketInterface"
+import { StreamRenderData, StreamStateVariable, StreamStateVariablesSet, StreamTemporalVariable } from "../stream/data"
 
 interface ItemData {
     id: string // identifier, number
@@ -48,6 +49,8 @@ interface ViewState {
     gameLog?: GameLogData
     clientState?: WebSocketState
     clientVersion?: string
+    streamVariables?: StreamStateVariablesSet
+    streamData?: StreamRenderData
 }
 
 interface ViewDispatch {

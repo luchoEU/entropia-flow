@@ -4,8 +4,7 @@ import {
     MSG_NAME_ACTION_VIEW,
     MSG_NAME_BLUEPRINT_LIST,
     MSG_NAME_NOTIFICATION_VIEW,
-    MSG_NAME_REFRESH_VIEW,
-    MSG_NAME_USED_LAYOUTS_VIEW
+    MSG_NAME_REFRESH_VIEW
 } from '../../common/const'
 import IPortManager, { IPort } from '../../chrome/IPort'
 import { Component, trace, traceError } from '../../common/trace'
@@ -85,12 +84,6 @@ class ViewTabManager {
         const portList = await this.portManager.all()
         const that = this
         await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_ACTION_VIEW, { action })))
-    }
-
-    public async sendUsedLayouts(usedLayouts: string[]): Promise<void> {
-        const portList = await this.portManager.all()
-        const that = this
-        await Promise.all(portList.map(port => that._sendMessage(port, MSG_NAME_USED_LAYOUTS_VIEW, { usedLayouts })))
     }
 
     public async sendNotificationClicked(notificationId: string, buttonIndex?: number): Promise<void> {
