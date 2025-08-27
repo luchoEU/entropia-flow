@@ -1,4 +1,35 @@
-import { StreamUserImageVariable, StreamUserParameterVariable } from "../view/application/state/stream"
+import { TemporalValue } from "../common/state"
+
+interface StreamBaseVariable<T> {
+    name: string
+    value: T
+    description?: string
+}
+
+interface StreamUserImageVariable extends StreamBaseVariable<string> {
+    id: number
+}
+
+interface StreamUserParameterVariable extends StreamBaseVariable<string> {
+    id: number
+}
+
+interface StreamStateVariable extends StreamBaseVariable<StreamRenderValue> {
+    isImage?: boolean
+    isParameter?: boolean
+}
+
+interface StreamTemporalVariable extends StreamBaseVariable<TemporalValue> {
+    decimals?: number
+}
+
+type StreamComputedVariable = (StreamUserImageVariable | StreamStateVariable) & {
+    source: string
+    id?: number
+    computed?: StreamRenderValue
+    isImage?: boolean
+    isParameter?: boolean
+}
 
 interface StreamRenderLayout {
     name: string,
@@ -54,6 +85,11 @@ type StreamRenderObject = { [name: string]: StreamRenderValue }
 type StreamRenderValue = string | number | boolean | StreamRenderObject | StreamRenderValue[]
 
 export {
+    StreamBaseVariable,
+    StreamStateVariable,
+    StreamUserImageVariable,
+    StreamTemporalVariable,
+    StreamComputedVariable,
     StreamRenderData,
     StreamRenderLayout,
     StreamCommonLayout,

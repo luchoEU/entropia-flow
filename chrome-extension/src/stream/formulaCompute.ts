@@ -1,6 +1,5 @@
 import { TemporalValue } from "../common/state";
-import { StreamUserImageVariable } from "../view/application/state/stream";
-import { StreamRenderObject } from "./data";
+import { StreamRenderObject, StreamUserImageVariable } from "./data";
 import { cycleErrorFormula, Formula, parseFormula } from "./formulaParser";
 
 function _parseFormulas(obj: StreamRenderObject): [string, Formula][] {

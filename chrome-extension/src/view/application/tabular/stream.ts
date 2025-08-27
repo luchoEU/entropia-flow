@@ -1,10 +1,10 @@
 import { NavigateFunction } from "react-router-dom";
-import { StreamRenderLayout, StreamSavedLayoutSet } from "../../../stream/data";
+import { StreamComputedVariable, StreamRenderLayout, StreamSavedLayoutSet, StreamStateVariable, StreamTemporalVariable } from "../../../stream/data";
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
 import { removeStreamLayout, removeStreamUser, restoreStreamLayout, setStreamStared, setStreamUserPartial } from "../actions/stream";
-import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES, StreamComputedVariable, StreamStateVariable, StreamTemporalVariable } from "../state/stream";
+import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { navigateTo, streamEditorUrl } from "../actions/navigation";
 

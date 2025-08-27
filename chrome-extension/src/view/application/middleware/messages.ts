@@ -5,7 +5,7 @@ import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
-import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SEND_WEB_SOCKET_MESSAGE, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
+import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
 import { getStreamClickAction } from '../actions/stream.click'
@@ -13,7 +13,6 @@ import { AppAction } from '../slice/app'
 import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
 import { getLast } from '../selectors/last'
-import { isAppLoaded } from '../slice/app'
 import { HistoryState } from '../state/history'
 import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
@@ -105,11 +104,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case TIMER_ON: { api.messages.requestTimerOn(); break }
         case TIMER_OFF: { api.messages.requestTimerOff(); break }
-        case SEND_WEB_SOCKET_MESSAGE: {
-            if (isAppLoaded(getState()))
-                api.messages.sendWebSocketMessage(action.payload.type, action.payload.data);
-            break
-        }
         case SET_WEB_SOCKET_URL: { api.messages.setWebSocketUrl(action.payload.url); break }
         case RETRY_WEB_SOCKET: { api.messages.retryWebSocket(); break }
     }

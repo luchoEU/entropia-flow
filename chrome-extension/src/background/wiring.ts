@@ -13,7 +13,6 @@ import {
     MSG_NAME_REQUEST_SET_LAST,
     MSG_NAME_REQUEST_TIMER_OFF,
     MSG_NAME_REQUEST_TIMER_ON,
-    MSG_NAME_SEND_WEB_SOCKET_MESSAGE,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_TAB_CONTENTS,
@@ -37,6 +36,7 @@ import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
+import StreamDataBuilder from './client/streamDataBuilder'
 
 async function wiring(
     messages: IMessagesHub,
@@ -74,6 +74,7 @@ async function wiring(
     // game log
     const gameLogParser = new GameLogParser()
     const gameLogHistory = new GameLogHistory()
+    const streamDataBuilder = new StreamDataBuilder()
     
     // state
     const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
@@ -118,6 +119,10 @@ async function wiring(
     webSocketClient.onStateChanged = async (state) => {
         await viewStateManager.setClientState(state)
         await refreshManager.onWebSocketStateChanged(state.code === WebSocketStateCode.connected)
+        await streamDataBuilder.clearClientData(state.code)
+    }
+    streamDataBuilder.sendClientData = async (data) => {
+        await webSocketClient.send('stream', data)
     }
     gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
     const gameLog = await gameLogStorage.get()
@@ -172,9 +177,6 @@ async function wiring(
         },
         [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
         [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff(),
-        [MSG_NAME_SEND_WEB_SOCKET_MESSAGE]: async (m: { type: string, data: any }) => {
-            await webSocketClient.send(m.type, m.data)
-        },
         [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => {
             await webSocketClient.start(m.url)
         },

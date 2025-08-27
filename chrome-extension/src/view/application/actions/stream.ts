@@ -1,8 +1,8 @@
 import { NavigateFunction } from 'react-router-dom'
 import { BackgroundType } from '../../../stream/background'
-import { StreamExportLayout, StreamRenderData, StreamRenderLayoutSet } from '../../../stream/data'
+import { StreamBaseVariable, StreamExportLayout, StreamRenderData, StreamRenderLayoutSet, StreamStateVariable, StreamTemporalVariable } from '../../../stream/data'
 import { getStreamIn } from '../selectors/stream'
-import { StreamBaseVariable, StreamState, StreamStateVariable, StreamTemporalVariable, StreamUserImageVariable } from "../state/stream"
+import { StreamState } from "../state/stream"
 import { AppDispatch, RootState } from '../store'
 import { navigateTo, streamEditorUrl, streamTrashUrl } from './navigation'
 

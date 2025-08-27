@@ -1,30 +1,21 @@
-import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 import { mergeDeep } from "../../../common/merge"
 import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
-import { StreamRenderData, StreamRenderLayoutSet, StreamRenderObject, StreamSavedLayout, StreamSavedLayoutSet } from "../../../stream/data"
-import { applyDelta, getDelta } from "../../../stream/delta"
-import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
+import { StreamSavedLayoutSet } from "../../../stream/data"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
-import { sendWebSocketMessage } from "../actions/messages"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_DATA, setStreamData, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER, SET_STREAM_USER_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID, ADD_STREAM_USER_PARAMETER } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER, SET_STREAM_USER_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID, ADD_STREAM_USER_PARAMETER } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts, getStreamUsedLayouts } from "../selectors/stream"
-import { StreamState, StreamStateIn, StreamStateOut, StreamStateVariable } from "../state/stream"
+import { getStream, getStreamIn, getStreamLayouts, getStreamTrashLayouts } from "../selectors/stream"
+import { StreamState, StreamStateIn } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
-import { computeFormulas } from "../../../stream/formulaCompute"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
-import Interpreter from 'js-interpreter';
-import * as Babel from '@babel/standalone';
-import { interpreterLoadContext, parseFormula } from "../../../stream/formulaParser"
-import { savedToRenderLayout } from "../../../stream/data.convert"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -205,147 +196,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             if (action.type === SET_STREAM_VARIABLES && action.payload.source === 'formula') // avoid infinite loop
                 break;
 
-            const { in: { layouts }, ui: { showingLayoutId }, variables, temporalVariables } = getStream(getState());
-            const vars = Object.values(variables).flat();
-            const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
-            data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
-            const tObj = Object.fromEntries(Object.values(temporalVariables).flat().map(v => [v.name, v.value]))
-            const layoutsToRender: StreamRenderLayoutSet = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, savedToRenderLayout(v)]));
-
-            const oldVars = variables['formula']?.map(v => v.name) ?? [];
-            const layoutVars = variables['layout']?.map(v => v.name) ?? [];
-            const vObj = Object.fromEntries(Object.entries(data).filter(([k, v]) => !oldVars.includes(k) && !layoutVars.includes(k)));
-
-            const backDarkFormulaObj: object = Object.fromEntries(Object.entries(vObj)
-                .filter(([, value]) => typeof value === 'string' && value.startsWith('=') && parseFormula(value.slice(1)).usedVariables.has('backDark')));
-            const vObjNoBackDark = Object.fromEntries(Object.entries(vObj).filter(([k]) => !Object.keys(backDarkFormulaObj).includes(k)));
-            const commonData: StreamRenderObject = computeFormulas(vObjNoBackDark, tObj);
-            const layoutTuple: [string, StreamStateVariable[], StreamRenderObject][] = Object.entries(layouts).map(([id, layout]) => {
-                const parameters = Object.fromEntries(layout.parameters?.map(v => [v.name, v.value]) ?? []);
-                const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
-                const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj, ...parameters }, tObj);
-                const layoutVariables = getLayoutVariables(backComputed, layout);
-                const layoutObj: StreamRenderObject = {
-                    ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
-                    backDark,
-                    ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k))),
-                    ...parameters
-                };
-                if (layout.images)
-                    layoutObj.img = Object.fromEntries(layout.images.map(v => [v.name, v.value]))
-                return [id, layoutVariables, layoutObj];
-            });
-            const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));
-            const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
-
-            if (showingLayoutId) { 
-                dispatch(setStreamVariables('formula', layoutTuple.find(([id]) => id === showingLayoutId)?.[1] ?? []));
-            }
-
-            dispatch(setStreamData(renderData));
+            a
             break;
         }
-        case SET_STREAM_DATA: {
-            const out: StreamStateOut = getStreamOut(getState())
-            if (!out.data || !out.computed)
-                break
-
-            function buildKeyTree(used: Set<string>) {
-                const tree: any = {};
-                for (const key of used) {
-                    const parts = key.split('.');
-                    let current = tree;
-                    for (const part of parts) {
-                        current = current[part] ??= {};
-                    }
-                }
-                return tree;
-            }
-            function filterObject(data: any, keyTree: any): any {
-                if (typeof data !== 'object' || data === null) return data;
-            
-                return Object.fromEntries(
-                    Object.entries(keyTree)
-                        .filter(([k]) => k in data)
-                        .map(([k, subTree]) => [k, typeof subTree === 'object' && Object.keys(subTree as object).length === 0 ? data[k] : filterObject(data[k], subTree)])
-                );
-            }
-
-            const usedLayouts: string[] = getStreamUsedLayouts(getState());
-            const usedVariables = new Set(Object.entries(out.computed).filter(([id]) => usedLayouts.includes(id)).map(([,v]) => v.usedVariables ?? []).flat())
-            const keyTree = buildKeyTree(usedVariables);
-
-            const renderData: StreamRenderData = {
-                layouts: out.data.layouts,
-                layoutData: Object.fromEntries(Object.entries(out.data.layoutData)
-                    .filter(([id]) => usedLayouts.includes(id))
-                    .map(([id, data]) => {
-                        const usedLayoutVariables = out.computed[id]?.usedVariables
-                        if (!usedLayoutVariables?.length) return [id, {}]
-                        return [id, filterObject(data, keyTree)]
-                    })),
-                commonData: filterObject(out.data.commonData, keyTree)
-            }
-            
-            const delta = getDelta(_dataInClient, renderData)
-            if (!delta)
-                break
-
-            _dataInClient = applyDelta(_dataInClient, delta)
-            dispatch(sendWebSocketMessage('stream', delta))
-            break
-        }
-        case WEB_SOCKET_STATE_CHANGED: {
-            const code: WebSocketStateCode = action.payload.code
-            if (code === WebSocketStateCode.connected) {
-                // it is a new client, send all data next time
-                _dataInClient = undefined
-            }
-            break
-        }
-    }
-}
-
-let _dataInClient: StreamRenderData | undefined = undefined
-
-const transpileCache = new Map<string, string>();
-function getTranspiledCode(jsCode: string): string {
-    if (!transpileCache.has(jsCode)) {
-        // Transpile the modern JS code to ES5
-        transpileCache.set(jsCode, Babel.transform(jsCode, { presets: ['env'] }).code!);
-    }
-    return transpileCache.get(jsCode)!;
-}
-
-function deepEqual(a: any, b: any): boolean {
-    if (a === b) return true;
-    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
-    const aKeys = Object.keys(a), bKeys = Object.keys(b);
-    if (aKeys.length !== bKeys.length) return false;
-    return aKeys.every(key => deepEqual(a[key], b[key]));
-}
-
-function getLayoutVariables(context: any, layout?: StreamSavedLayout): StreamStateVariable[] {
-    const jsCode = layout?.formulaJavaScript;
-    if (!jsCode?.trim()) return [];
-
-    try {
-        const es5Code = getTranspiledCode(jsCode);
-        const interpreter = new Interpreter(es5Code, interpreterLoadContext(context));
-        interpreter.run();
-
-        return Object.entries(interpreter.globalScope.object.properties)
-            .filter(([name, value]) =>
-                !name.startsWith('__') &&
-                name !== 'self' &&
-                name !== 'window' &&
-                value !== undefined &&
-                (value as any)?.class !== 'Function'
-            )
-            .map(([name, value]) => ({ name, value: interpreter.pseudoToNative(value) }))
-            .filter(({ name, value }) => !deepEqual(context[name], value));
-    } catch (e) {
-        return [{ name: '!error', value: e.message }];
     }
 }
 
