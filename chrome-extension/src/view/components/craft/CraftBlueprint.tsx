@@ -11,7 +11,7 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
 import { getItems, getItemsMap } from '../../application/selectors/items'
-import { BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial, ItemWebData, RawMaterialWebData } from '../../../web/state'
 import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, startMaterialEditMode } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
@@ -224,14 +224,14 @@ const CraftSingle = ({ bp, activeSession, message }: {
     bought = undefined
 
     return (
-        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} showWithErrors={true} content={webBp => <>
+        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} showWithErrors={true} content={(webBp: BlueprintWebData | undefined) => <>
             { showBudget && <>
-                <p>Budget Page: { bp.budget.loading ?
+                <p>Budget Page: { bp.budget?.loading ?
                 <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
                 <button onClick={(e) => {
                     e.stopPropagation();
                     dispatch(startBudgetPageLoading(bp.name))
-                }}>{bp.budget.hasPage ? 'Refresh' : 'Create'}</button>
+                }}>{bp.budget?.hasPage ? 'Refresh' : 'Create'}</button>
                 }</p>
                 <p>Crafting Session: {
                     activeSession !== undefined && bp.name !== activeSession ? <>{activeSession}</> :
@@ -398,7 +398,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
                 <ItemMarkup name={name} />
                 <WebDataControl w={raw} name='Raw Materials'
                     dispatchReload={() => [loadItemRawMaterials(name), loadItemData(name, afterChainBpMat)]}
-                    content={d => d.length > 0 &&
+                    content={d => d && d.length > 0 &&
                         <table style={{ marginBottom: '10px' }}>
                             <thead>
                                 <tr>

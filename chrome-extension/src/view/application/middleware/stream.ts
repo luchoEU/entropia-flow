@@ -196,7 +196,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             if (action.type === SET_STREAM_VARIABLES && action.payload.source === 'formula') // avoid infinite loop
                 break;
 
-            a
             break;
         }
     }

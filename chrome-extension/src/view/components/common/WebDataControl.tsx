@@ -12,11 +12,11 @@ function WebDataControl<T>({
     showWithErrors,
     content
 }: {
-    w: WebLoadResponse<T>,
+    w: WebLoadResponse<T> | undefined,
     name: string,
     dispatchReload: () => any,
     showWithErrors?: boolean,
-    content: (data: T) => JSX.Element,
+    content: (data: T | undefined) => JSX.Element,
 }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -36,7 +36,10 @@ function WebDataControl<T>({
     return <>
         { !w ? <p>{name}{ reload() }</p> : (
             w.loading ?
-                <p><img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...</p> :
+                <p>
+                    <img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...
+                    { content(w.data?.value) }
+                </p> :
             (w.errors ?
                 <>
                     { w.errors.map((e, index) =>
@@ -47,10 +50,10 @@ function WebDataControl<T>({
                     { showWithErrors && content(undefined) }
                 </> :
                 <>
-                    <p>{ w.data.link && <a href={w.data.link.href} target='_blank'>{`${name} in ${w.data.link.text}`}</a> }{ reload() }</p>
-                    { content(w.data.value) }
-                </>)
-        )}
+                    <p>{ w.data?.link && <a href={w.data.link.href} target='_blank'>{`${name} in ${w.data.link.text}`}</a> }{ reload() }</p>
+                    { content(w.data?.value) }
+                </>
+        ))}
     </>
 }
 
