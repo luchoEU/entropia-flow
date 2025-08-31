@@ -16,7 +16,7 @@ import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
-import StreamDataBuilder from "../../../background/client/streamDataBuilder"
+import { StreamDataBuilder } from "../../../background/client/streamDataBuilder"
 import { sendWebSocketMessage } from "../actions/messages"
 import { Dispatch } from "react"
 

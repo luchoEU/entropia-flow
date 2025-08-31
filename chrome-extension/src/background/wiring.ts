@@ -37,7 +37,7 @@ import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
-import StreamDataBuilder from './client/streamDataBuilder'
+import { StreamDataBuilder } from './client/streamDataBuilder'
 
 async function wiring(
     messages: IMessagesHub,

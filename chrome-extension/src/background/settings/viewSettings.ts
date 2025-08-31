@@ -4,8 +4,8 @@ import { Inventory } from "../../common/state"
 
 class ViewSettings {
     private storage: IStorageArea
-    private last: number
-    private webSocketUrl: string
+    private last: number | null
+    private webSocketUrl: string | null
 
     constructor(storage: IStorageArea) {
         this.storage = storage
@@ -19,7 +19,7 @@ class ViewSettings {
     public async getLast(): Promise<number> {
         if (this.last === undefined)
             await this._load()
-        return this.last
+        return this.last ?? 0
     }
 
     public async setLastIfEqual(list: Array<Inventory>): Promise<void> {
@@ -49,7 +49,7 @@ class ViewSettings {
     public async getWebSocketUrl(): Promise<string> {
         if (this.webSocketUrl === undefined)
             await this._load()
-        return this.webSocketUrl
+        return this.webSocketUrl ?? ''
     }
 
     private async _load(): Promise<void> {

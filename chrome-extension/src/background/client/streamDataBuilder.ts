@@ -147,4 +147,4 @@ function deepEqual(a: any, b: any): boolean {
     return aKeys.every(key => deepEqual(a[key], b[key]));
 }
 
-export default StreamDataBuilder
+export { StreamDataBuilder }
