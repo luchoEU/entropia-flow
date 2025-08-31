@@ -4,6 +4,7 @@ const SET_AS_LAST = "[msg] set as last"
 const COPY_LAST = "[msg] copy last"
 const TIMER_ON = "[msg] timer on"
 const TIMER_OFF = "[msg] timer off"
+const SEND_WEB_SOCKET_MESSAGE = "[msg] send websocket message"
 const SET_WEB_SOCKET_URL = "[msg] set websocket url"
 const RETRY_WEB_SOCKET = "[msg] retry connect websocket"
 
@@ -34,6 +35,15 @@ const timerOff = {
     type: TIMER_OFF
 }
 
+/* LAYOUT_CALC_DELETE */
+const sendWebSocketMessage = (type: string, data: any) => ({
+    type: SEND_WEB_SOCKET_MESSAGE,
+    payload: {
+        type,
+        data
+    }
+})
+
 const setWebSocketUrl = (url: string) => ({
     type: SET_WEB_SOCKET_URL,
     payload: {
@@ -48,6 +58,7 @@ export {
     COPY_LAST,
     TIMER_ON,
     TIMER_OFF,
+    SEND_WEB_SOCKET_MESSAGE,
     SET_WEB_SOCKET_URL,
     RETRY_WEB_SOCKET,
     refresh,
@@ -56,5 +67,6 @@ export {
     copyLast,
     timerOn,
     timerOff,
+    sendWebSocketMessage,
     setWebSocketUrl
 }

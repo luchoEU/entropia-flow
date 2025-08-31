@@ -12,7 +12,7 @@ class StreamDataBuilder {
     private _dataInClient: StreamRenderData | undefined = undefined
     public sendClientData?: (data: any) => Promise<void>
 
-    async calculateData(layouts: StreamSavedLayoutSet, showingLayoutId: string, variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>) {
+    public async calculateData(layouts: StreamSavedLayoutSet, showingLayoutId: string | undefined, variables: Record<string, StreamStateVariable[]>, temporalVariables: Record<string, StreamTemporalVariable[]>): Promise<{ renderData: StreamRenderData, formulaVariables: StreamStateVariable[] | undefined }> {
         const vars = Object.values(variables).flat();
         const data = Object.fromEntries(vars.filter(v => !v.isImage).map(v => [v.name, v.value]));
         data.img = Object.fromEntries(vars.filter(v => v.isImage).map(v => [v.name, v.value]));
@@ -45,11 +45,12 @@ class StreamDataBuilder {
         const layoutData: Record<string, StreamRenderObject> = Object.fromEntries(layoutTuple.map(([id,, obj]) => [id, obj]));
         const renderData: StreamRenderData = { commonData, layoutData, layouts: layoutsToRender };
 
+        let formulaVariables: StreamStateVariable[] | undefined = undefined;
         if (showingLayoutId) {
-            //dispatch(setStreamVariables('formula', layoutTuple.find(([id]) => id === showingLayoutId)?.[1] ?? []));
+            formulaVariables = layoutTuple.find(([id]) => id === showingLayoutId)?.[1];
         }
 
-        //dispatch(setStreamData(renderData));
+        return { renderData, formulaVariables };
     }
 
     private getLayoutVariables(context: any, layout?: StreamSavedLayout): StreamStateVariable[] {

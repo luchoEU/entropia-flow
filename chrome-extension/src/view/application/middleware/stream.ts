@@ -3,19 +3,22 @@ import { getBackgroundSpec, getLogoUrl } from "../../../stream/background"
 import { StreamSavedLayoutSet } from "../../../stream/data"
 import { ADD_PEDS, APPLY_MARKUP_TO_LAST, EXCLUDE, EXCLUDE_WARNINGS, INCLUDE, ON_LAST, REMOVE_PEDS } from "../actions/last"
 import { SET_STATUS } from "../actions/status"
-import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER, SET_STREAM_USER_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID, ADD_STREAM_USER_PARAMETER } from "../actions/stream"
+import { setStreamState, SET_STREAM_BACKGROUND_SELECTED, SET_STREAM_ENABLED, SET_STREAM_VARIABLES, setStreamVariables, SET_STREAM_NAME, ADD_STREAM_LAYOUT, REMOVE_STREAM_LAYOUT, SET_STREAM_HTML_TEMPLATE, SET_STREAM_CSS_TEMPLATE, SET_STREAM_STARED, ADD_STREAM_USER_IMAGE, REMOVE_STREAM_USER, SET_STREAM_USER_PARTIAL, SET_STREAM_TEMPORAL_VARIABLES, SET_STREAM_ADVANCED, SET_STREAM_AUTHOR, CLONE_STREAM_LAYOUT, IMPORT_STREAM_LAYOUT_FROM_FILE, RESTORE_STREAM_LAYOUT, EMPTY_TRASH_LAYOUTS, SET_STREAM_FORMULA_JAVASCRIPT, SET_STREAM_SHOWING_LAYOUT_ID, ADD_STREAM_USER_PARAMETER, setStreamData, SET_STREAM_DATA } from "../actions/stream"
 import { setTabularData } from "../actions/tabular"
 import { AppAction } from "../slice/app"
 import { initialStateIn } from "../helpers/stream"
 import { getLast } from "../selectors/last"
 import { getStatus } from "../selectors/status"
-import { getStream, getStreamIn, getStreamLayouts, getStreamTrashLayouts } from "../selectors/stream"
-import { StreamState, StreamStateIn } from "../state/stream"
+import { getStream, getStreamIn, getStreamLayouts, getStreamOut, getStreamTrashLayouts, getStreamUsedLayouts } from "../selectors/stream"
+import { StreamState, StreamStateIn, StreamStateOut } from "../state/stream"
 import isEqual from 'lodash.isequal';
 import { setTabularDefinitions } from "../helpers/tabular"
 import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTabularDefinitions } from "../tabular/stream"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { Inventory } from "../../../common/state"
+import StreamDataBuilder from "../../../background/client/streamDataBuilder"
+import { sendWebSocketMessage } from "../actions/messages"
+import { Dispatch } from "react"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -193,12 +196,40 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_CSS_TEMPLATE:
         case SET_STREAM_VARIABLES:
         {
+            /* LAYOUT_CALC_DELETE */
             if (action.type === SET_STREAM_VARIABLES && action.payload.source === 'formula') // avoid infinite loop
                 break;
 
+            const { in: { layouts }, ui: { showingLayoutId }, variables, temporalVariables } = getStream(getState());
+            const { renderData, formulaVariables } = await getDataBuilder(dispatch).calculateData(layouts, showingLayoutId, variables, temporalVariables);
+
+            if (formulaVariables) {
+                dispatch(setStreamVariables('formula', formulaVariables));
+            }
+    
+            dispatch(setStreamData(renderData));
             break;
         }
+        case SET_STREAM_DATA: {
+            /* LAYOUT_CALC_DELETE */
+            const out: StreamStateOut = getStreamOut(getState())
+            if (!out.data)
+                break
+
+            const usedLayouts: string[] = getStreamUsedLayouts(getState());
+            getDataBuilder(dispatch).sendDataToClient(out.data, out.computed, usedLayouts)
+            break
+        }
     }
+}
+
+let _dataBuilder: StreamDataBuilder | undefined;
+function getDataBuilder(dispatch: any) {
+    if (!_dataBuilder) {
+        _dataBuilder = new StreamDataBuilder()
+        _dataBuilder.sendClientData = (delta) => dispatch(sendWebSocketMessage('stream', delta))
+    }
+    return _dataBuilder
 }
 
 export default [
