@@ -2,12 +2,11 @@ import { Inventory } from "../../../common/state"
 import { getDifference, getValue } from "./diff"
 import { cloneSortList, nextSortType, sortList, SORT_VALUE_DESCENDING } from "./inventory.sort"
 import { getLatestFromInventoryList, getText } from "./history"
-import { ViewItemData, ViewItemMode } from "../state/history"
+import { ViewItemMode } from "../state/history"
 import { LastRequiredState, ViewPedData } from "../state/last"
 import { InventoryState } from "../state/inventory"
 import { getItemAction } from "./soldDetector"
 import { ItemsMap } from "../state/items"
-import { getValueWithMarkup } from "./items"
 import { _applyExcludes, _applyPermanentExclude, _applyWarning, _findInventory, _pedSum, _sumDiff } from "../../../background/inventory/lastDeltaBuilder"
 
 const initialState: LastRequiredState = {

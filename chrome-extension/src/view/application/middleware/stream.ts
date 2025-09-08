@@ -19,6 +19,7 @@ import { Inventory } from "../../../common/state"
 import { StreamDataBuilder } from "../../../background/client/streamDataBuilder"
 import { sendWebSocketMessage } from "../actions/messages"
 import { Dispatch } from "react"
+import { _getLastVariables } from "../../../background/inventory/lastDeltaBuilder"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -85,23 +86,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case APPLY_MARKUP_TO_LAST:
         {
             const { c: { delta, diff, deltaNoMarkup, deltaWithMarkup } } = getLast(getState())
-            dispatch(setStreamVariables('last', [
-                { name: 'delta', value: (delta || 0).toFixed(2) },
-                { name: 'deltaNoMarkup', value: (deltaNoMarkup || 0).toFixed(2) },
-                { name: 'deltaWithMarkup', value: (deltaWithMarkup || 0).toFixed(2) },
-                { name: 'deltaBackColor', value: "=IF(delta > 0, 'green', delta < 0, 'red', 'black')", description: 'delta background color' },
-                { name: 'deltaWord', value: "=IF(delta > 0, 'Profit', delta < 0, 'Loss')", description: 'delta word' },
-                { name: 'deltaItems', value: diff?.filter(d => !d.e).map(d => ({ name: d.n, quantity: Number(d.q), value: Number(d.v), container: d.c })) ?? [], description: 'delta items' }
-            ]))
+            dispatch(setStreamVariables('last', _getLastVariables(delta, deltaNoMarkup, deltaWithMarkup, diff)))
             break
         }
         case SET_CURRENT_INVENTORY:
         {
             const inventory: Inventory = action.payload.inventory
-            dispatch(setStreamVariables('inventory', [
-                { name: 'inventoryTime', value: inventory.meta.date, description: 'time of the last inventory update' },
-                { name: 'items', value: inventory.itemlist?.map(i => ({ name: i.n, quantity: Number(i.q), value: Number(i.v), container: i.c })) ?? [], description: 'items' }
-            ]))
+            dispatch(setStreamVariables('inventory', _getInventoryVariables(inventory)))
             break
         }
     }

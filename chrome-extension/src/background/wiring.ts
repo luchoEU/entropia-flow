@@ -38,6 +38,7 @@ import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 import { StreamDataBuilder } from './client/streamDataBuilder'
+import { LastDeltaBuilder } from './inventory/lastDeltaBuilder'
 
 async function wiring(
     messages: IMessagesHub,
@@ -75,7 +76,6 @@ async function wiring(
     // game log
     const gameLogParser = new GameLogParser()
     const gameLogHistory = new GameLogHistory()
-    const streamDataBuilder = new StreamDataBuilder()
     
     // state
     const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
@@ -85,6 +85,11 @@ async function wiring(
     // tabs
     const contentTabManager = new ContentTabManager(contentPortManager, isUnfreezeTabEnabled)
     const viewTabManager = new ViewTabManager(viewPortManager, viewStateManager, tabs, loadBlueprintListAtStart)
+
+    // stream
+    const streamDataBuilder = new StreamDataBuilder()
+    const lastDeltaBuilder = new LastDeltaBuilder(viewSettings, inventoryManager)
+    const inventoryBuilder = new InventoryVariablesBuilder(inventoryManager)
 
     // links
     contentPortManager.onConnect = (port) => contentTabManager.onConnect(port)

@@ -7,6 +7,7 @@ import { interpreterLoadContext, parseFormula } from "../../stream/formulaParser
 import { WebSocketStateCode } from "./webSocketInterface";
 import Interpreter from 'js-interpreter';
 import * as Babel from '@babel/standalone';
+import { Inventory } from "../../common/state";
 
 class StreamDataBuilder {
     private _dataInClient: StreamRenderData | undefined = undefined
