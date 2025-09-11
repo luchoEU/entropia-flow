@@ -20,6 +20,7 @@ import { StreamDataBuilder } from "../../../background/client/streamDataBuilder"
 import { sendWebSocketMessage } from "../actions/messages"
 import { Dispatch } from "react"
 import { _getLastVariables } from "../../../background/inventory/lastDeltaBuilder"
+import { _getInventoryVariables } from "../../../background/inventory/inventoryVariablesBuilder"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())

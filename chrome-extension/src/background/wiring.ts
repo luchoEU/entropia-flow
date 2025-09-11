@@ -39,6 +39,7 @@ import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 import { StreamDataBuilder } from './client/streamDataBuilder'
 import { LastDeltaBuilder } from './inventory/lastDeltaBuilder'
+import { InventoryVariablesBuilder } from './inventory/inventoryVariablesBuilder'
 
 async function wiring(
     messages: IMessagesHub,

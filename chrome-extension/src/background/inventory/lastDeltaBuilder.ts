@@ -11,6 +11,7 @@ import AppStorage from "../../view/services/api/storage"
 import ViewSettings from "../settings/viewSettings"
 import InventoryManager from "../inventory/inventory"
 import { StreamStateVariable } from "../../stream/data"
+import { StreamVariablesBuilder } from "../client/streamVariablesBuilder"
 
 class LastDeltaBuilder implements StreamVariablesBuilder {
     private viewSettings: ViewSettings
