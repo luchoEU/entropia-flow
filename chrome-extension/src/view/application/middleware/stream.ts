@@ -21,6 +21,8 @@ import { sendWebSocketMessage } from "../actions/messages"
 import { Dispatch } from "react"
 import { _getLastVariables } from "../../../background/inventory/lastDeltaBuilder"
 import { _getInventoryVariables } from "../../../background/inventory/inventoryVariablesBuilder"
+import { WEB_SOCKET_STATE_CHANGED } from "../actions/connection"
+import { WebSocketStateCode } from "../../../background/client/webSocketInterface"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
@@ -205,11 +207,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_STREAM_DATA: {
             /* LAYOUT_CALC_DELETE */
             const out: StreamStateOut = getStreamOut(getState())
-            if (!out.data)
+            if (!out.data || !out.computed)
                 break
 
             const usedLayouts: string[] = getStreamUsedLayouts(getState());
             getDataBuilder(dispatch).sendDataToClient(out.data, out.computed, usedLayouts)
+            break
+        }
+        case WEB_SOCKET_STATE_CHANGED: {
+            /* LAYOUT_CALC_DELETE */
+            const code: WebSocketStateCode = action.payload.code
+            if (code === WebSocketStateCode.connected) {
+                // it is a new client, send all data next time
+                _dataBuilder = undefined
+            }
             break
         }
     }
