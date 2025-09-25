@@ -146,7 +146,7 @@ const _materialsFromUserAndWeb = (bpName: string, user?: CraftingUserData, web?:
 
 const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, change: Partial<BlueprintStateWebData>): CraftState => {
     const web: BlueprintStateWebData = {
-        ...state.blueprints[bpName].web,
+        ...state.blueprints[bpName]?.web,
         ...change
     }
     return {

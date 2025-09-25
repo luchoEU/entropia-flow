@@ -99,8 +99,8 @@ const ERROR_425 = 'Access blocked, contact MindArk support to unblock'
 const ERROR_429 = 'Too many requests'
 
 // Url
-const URL_MY_ITEMS_PAGE = 'https://account.entropiauniverse.com/account/my-account/my-items/'
-const URL_MY_ITEMS_DATA = URL_MY_ITEMS_PAGE + 'json.xml'
+const URL_MY_ITEMS_PAGE = 'https://account.entropiauniverse.com/account/inventory'
+const URL_MY_ITEMS_DATA = 'https://account.entropiauniverse.com/api/account/myitems'
 
 // Waits
 const TICK_SECONDS = 1 // updates countdown

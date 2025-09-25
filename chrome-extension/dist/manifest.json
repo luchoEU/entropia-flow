@@ -11,7 +11,7 @@
             "content-entropia-flow.js"
         ],
         "matches": [
-            "https://account.entropiauniverse.com/account/my-account/*"
+            "https://account.entropiauniverse.com/account/*"
         ]
     }],
     "background": {

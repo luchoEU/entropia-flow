@@ -26,7 +26,7 @@ export class EntropiaNexus implements IWebSource {
                 const searchUrl = nexusApiUrl(`search/items?query=${itemName}`)
                 const searchResult = await mapResponse(fetchJson<EntropiaSearchItem[]>(searchUrl), _extractItemName(itemName))
                 if (searchResult.ok) {
-                    const nexusItemName = searchResult.data.find(name => name.toLowerCase() === itemName.toLowerCase())
+                    const nexusItemName = searchResult.data?.find(name => name.toLowerCase() === itemName.toLowerCase())
                     if (!nexusItemName || nexusItemName === itemName) {
                         return item
                     }
@@ -36,10 +36,10 @@ export class EntropiaNexus implements IWebSource {
                 }
             }
         }
-        if (item.ok && item.data.type === 'Material') {
+        if (item.ok && item.data?.type === 'Material') {
             const r = await fetchJson<EntropiaNexusItem>(item.url)
             if (r.ok) {
-                item.data.type = r.result.Properties.Type
+                item.data.type = r.result?.Properties.Type
             }
             item.url = nexusWwwUrl(`items/materials/${itemName}`)
         }
@@ -130,7 +130,7 @@ const _extractBlueprintData = (bp: EntropiaNexusBlueprint): BlueprintWebData => 
         value: bp.Product.Properties.Economy?.MaxTT ?? 0,
         url: nexusApiUrl(bp.Product.Links.$Url)
     },
-    materials: bp.Materials.map(m => ({
+    materials: bp.Materials?.map(m => ({
         name: m.Item.Name,
         type: m.Item.Properties.Type,
         quantity: m.Amount,

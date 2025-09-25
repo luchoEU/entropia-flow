@@ -25,7 +25,7 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, it
             if (!m) return d;
             const reserve: number = parseFloat(m.reserveAmount);
             if (isNaN(reserve)) return d;
-            const unitValue = m.web?.item?.data.value.value
+            const unitValue = m.web?.item?.data?.value.value
             const nv = Number(d.data.v) - reserve;
             const v = nv.toFixed(2);
             const q = unitValue ? (nv / unitValue).toFixed(0) : ''; // dont show quantity if unit value is unknown

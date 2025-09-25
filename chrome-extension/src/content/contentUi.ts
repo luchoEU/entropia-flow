@@ -17,10 +17,10 @@ class ContentUI {
         const btn = document.getElementById('EntropiaFlowButton')
         if (div && btn) {
             if (isMonitoring) {
-                btn.innerText = "Stop Automatic Refresh"
+                btn.innerText = "Entropia Flow - Automatic Refresh enabled"
                 div.className = "stop"
             } else {
-                btn.innerText = "Start Automatic Refresh"
+                btn.innerText = "Entropia Flow - Automatic Refresh disabled"
                 div.className = "start"
             }
         }
@@ -49,15 +49,19 @@ class ContentUI {
     private addDiv() {
         let style = document.createElement('style');
         style.innerHTML = `
+            body
+            {
+                display: flex;
+                flex-direction: column;
+            }
             #EntropiaFlowExtension
             {
-                position:fixed;
-                top:10px;
-                right:10px;
-                background:darkblue;
-                padding:5px 10px;
-                border-style:none;
-                border-radius:10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: darkblue;
+                padding: 5px 10px;
+                order: -1;
             }
             #EntropiaFlowExtension.start {
                 background-color: green;
@@ -82,7 +86,7 @@ class ContentUI {
         div.id = 'EntropiaFlowExtension';
         div.innerHTML = `
             <img id='EntropiaFlowIcon' src='https://i.ibb.co/5RxzC2Y/flow128w.png'>
-            <button id='EntropiaFlowButton'>Connecting to Entropia Flow extension...</button>`;
+            <button id='EntropiaFlowButton'>Connecting to Entropia Flow extension...</button>`;        
         document.body.appendChild(div);
         const icon = document.getElementById('EntropiaFlowIcon')
         if (icon) {

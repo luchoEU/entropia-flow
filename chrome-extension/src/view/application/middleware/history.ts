@@ -4,7 +4,7 @@ import { getHistory } from "../selectors/history"
 import { getStatus } from "../selectors/status"
 import { HistoryState } from "../state/history"
 
-const INTERVAL_MILLISECONDS = 10 * 60 * 1000  // it should update at least every 10 minutes or an error notification is shown to notify the user
+const INTERVAL_MILLISECONDS = 20 * 60 * 1000  // it should update at least every 20 minutes or an error notification is shown to notify the user
 const NOTIFICATION_TIMES = 2
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
