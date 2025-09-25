@@ -9,7 +9,7 @@ import { cleanForSave, initialState } from "../helpers/inventory"
 import { cleanForSaveByStore, fillFromLoadByStore } from "../helpers/inventory.byStore"
 import { setTabularDefinitions } from "../helpers/tabular"
 import { getCraft } from "../selectors/craft"
-import { getInventory } from "../selectors/inventory"
+import { getInventory, getTradeItemDataChain } from "../selectors/inventory"
 import { getItem, getItemsMap } from "../selectors/items"
 import { getSettings } from "../selectors/settings"
 import { getTTService } from "../selectors/ttService"
@@ -20,6 +20,7 @@ import { ItemsMap } from "../state/items"
 import { SettingsState } from "../state/settings"
 import { TTServiceState } from "../state/ttService"
 import { inventoryTabularData, inventoryTabularDefinitions } from "../tabular/inventory"
+import { loadBlueprintLoop } from "./craft"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -91,16 +92,33 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_BLUEPRINT_STARED:
         case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case SET_ITEM_PARTIAL_WEB_DATA: {
-            const state: InventoryState = getInventory(getState())
-            if (state.tradeItemDataChain) {
+            const tradeItemDataChain = getTradeItemDataChain(getState())
+            if (tradeItemDataChain) {
                 const craftState: CraftState = getCraft(getState())
-                dispatch(loadTradingItemData(craftState, state.tradeItemDataChain.map((item) => {
+                dispatch(loadTradingItemData(craftState, tradeItemDataChain.map((item) => {
                     const usage = getItem(item.name)(getState())?.web?.usage
                     if (action.type === SHOW_TRADING_ITEM_DATA && !usage) {
                         dispatch(loadItemUsageData(item.name))
                     }
                     return usage
                 })))
+            }
+            break
+        }
+        case LOAD_TRADING_ITEM_DATA: {
+            const tradeItemDataChain = getTradeItemDataChain(getState())
+            if (tradeItemDataChain) {
+                tradeItemDataChain.forEach((item) => {
+                    if (!item.c) return
+                    [ ...item.c.favoriteBlueprints, ...item.c.ownedBlueprints, ...item.c.otherBlueprints ].forEach((bp) => {
+                        if (bp.quantity == -1) {
+                            const bpData = getCraft(getState()).blueprints[bp.bpName]
+                            if (!bpData?.web) { // if not already loading
+                                loadBlueprintLoop(bp.bpName, dispatch)
+                            }
+                        }
+                    })
+                })
             }
             break
         }

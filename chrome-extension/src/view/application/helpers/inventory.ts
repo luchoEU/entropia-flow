@@ -346,8 +346,12 @@ const reduceLoadTradingItemData = (state: InventoryState, craftState: CraftState
         own.push(...usageBPs.filter(bp => getBlueprintList(state).find(b => b.n === bp.name) && !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)))
       const oth: BlueprintWebData[] = usageBPs?.filter(bp => !fav.find(b => b.name === bp.name) && !own.find(b => b.name === bp.name)) ?? []
       const m = (list: BlueprintWebData[]): TradeBlueprintLineData[] => list
-        .map(bp => ({ bpName: bp.name, quantity: bp.materials.find(m => m.name === itemData.name)?.quantity }))
-        .filter(bp => bp.quantity);
+        .map(bp => ({
+          bpName: bp.name,
+          quantity: bp.materials == undefined ? -1 : // if no materials it is from usage, temporary show -1 (loading) so it appears on the list
+            (bp.materials.find(m => m.name === itemData.name)?.quantity ?? 0)
+        }))
+        .filter(bp => bp.quantity != 0);
 
       return {
         ...itemData,

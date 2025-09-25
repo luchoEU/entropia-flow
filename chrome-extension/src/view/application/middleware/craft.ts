@@ -51,7 +51,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
                 const tasks = Object.values(state.blueprints)
                     .filter(bp => bp.web?.blueprint.loading)
-                    .map(bp => loadBlueprint(bp.name, dispatch));
+                    .map(bp => loadBlueprintLoop(bp.name, dispatch));
                 await Promise.race([Promise.all(tasks), new Promise(resolve => setTimeout(resolve, 1000))])
             }
             break
@@ -97,7 +97,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
     }
     if (action.type === ADD_BLUEPRINT) {
-        await loadBlueprint(action.payload.name, dispatch)
+        await loadBlueprintLoop(action.payload.name, dispatch)
     }
     switch (action.type) {
         case SET_BLUEPRINT_STARED: {
@@ -118,7 +118,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 if (bp) {
                     materialName = bp.chain
                     if (!bp.web?.blueprint) {
-                        await loadBlueprint(bp.name, dispatch)
+                        await loadBlueprintLoop(bp.name, dispatch)
                     }
                 } else {
                     const addBpName = bpNameFromItemName(inv, materialName)
@@ -476,7 +476,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     }
 }
 
-async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
+async function loadBlueprintLoop(bpName: string, dispatch: Dispatch<any>) {
     if (!bpName) return; // TODO, why is it not defined?
     for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
         dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
@@ -486,3 +486,4 @@ async function loadBlueprint(bpName: string, dispatch: Dispatch<any>) {
 export default [
     requests
 ]
+export { loadBlueprintLoop}

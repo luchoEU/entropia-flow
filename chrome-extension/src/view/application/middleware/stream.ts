@@ -247,7 +247,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case SET_STREAM_DATA: {
             const out: StreamStateOut = getStreamOut(getState())
-            if (!out.data)
+            if (!out.data || !out.computed)
                 break
 
             function buildKeyTree(used: Set<string>) {

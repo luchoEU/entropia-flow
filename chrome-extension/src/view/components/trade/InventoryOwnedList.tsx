@@ -60,7 +60,7 @@ const getBlueprintsTableData = (type: string, stared: boolean | undefined): Tabl
             },
             { // QUANTITY
                 style: { justifyContent: 'center' },
-                sub: [{ itemText: item.quantity?.toString() }]
+                sub: [{ itemText: item.quantity == -1 ? 'not loaded' : item.quantity?.toString() }]
             }
         ]
     })
