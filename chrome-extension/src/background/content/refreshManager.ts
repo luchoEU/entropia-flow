@@ -96,7 +96,7 @@ class RefreshManager {
     public async handleNewInventory(inventory: Inventory) {
         if (inventory.itemlist?.length === 0) {
             // This happens when the system enters maintenance mode   
-            await this._setViewStatus(CLASS_ERROR, STRING_NO_DATA)            
+            await this._setViewStatus(CLASS_ERROR, STRING_NO_DATA)
             return
         }
 
@@ -107,7 +107,7 @@ class RefreshManager {
             if (logMessage === STRING_NOT_READY || logMessage === STRING_PLEASE_LOG_IN || logMessage == ERROR_425) {
                 // Don't start the alarm
                 await this._setViewStatus(CLASS_ERROR, logMessage)
-            } else if (logMessage == STRING_NO_DATA) {
+            } else if (logMessage == STRING_NOT_READY) {
                 // The page has not load the first item list yet
                 // Don't add no data to history since it is common in my items page reload
                 // Don't start the alarm either, it will be started when the items are loaded in the page and it sends a MSG_NAME_NEW_INVENTORY message

@@ -36,7 +36,7 @@ const reduceSetState = (state: CraftState, inState: CraftState): CraftState => (
     }]))
 })
 
-const itemNameFromBpName = (bpName: string): string => bpName.split('Blueprint')[0].trim()
+const itemNameFromBpName = (bpName: string): string => bpName?.split('Blueprint')[0].trim()
 const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
     getBlueprintList(inv).find(bp => itemNameFromBpName(bp.n) == itemName)?.n
 const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
@@ -47,7 +47,7 @@ const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
     name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c?.itemName ? BP_ITEM_NAME : name
 
-const isLimited = (name: string): boolean => name.endsWith('(L)')
+const isLimited = (name: string): boolean => name?.endsWith('(L)') ?? false
 
 const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
     itemName: bp.c?.itemName,
@@ -123,7 +123,7 @@ function _addItemBlueprint(bpName: string, item: { name: string, value: number }
     })
 }
 
-const _materialsFromUserAndWeb = (bpName: string, user?: CraftingUserData, web?: BlueprintWebData): BlueprintMaterial[] => {
+const _materialsFromUserAndWeb = (bpName: string, user?: CraftingUserData, web?: BlueprintWebData): BlueprintMaterial[] | undefined => {
     if (!user && !web) return undefined;
 
     const materials: BlueprintMaterial[] = user?.materials.map(m => {
@@ -157,8 +157,8 @@ const reduceSetBlueprintPartialWebData = (state: CraftState, bpName: string, cha
                 ...state.blueprints[bpName],
                 web,
                 c: {
-                    ...state.blueprints[bpName].c,
-                    materials: _materialsFromUserAndWeb(bpName, state.blueprints[bpName].user, web?.blueprint.data?.value)
+                    ...state.blueprints[bpName]?.c,
+                    materials: _materialsFromUserAndWeb(bpName, state.blueprints[bpName]?.user, web?.blueprint.data?.value)
                 }
             }
         }
@@ -599,12 +599,12 @@ const cleanForSave = (state: CraftState): CraftState => {
             loading: true,
             stage: STAGE_INITIALIZING
         }
-        if (bp.budget.sheet) {
+        if (bp.budget?.sheet) {
             Object.values(bp.budget.sheet.materials).forEach((m: BlueprintBudgetMaterial) => {
                 delete m.buyDone
             })
         }
-        if (bp.session.step !== STEP_INACTIVE) {
+        if (bp.session && bp.session.step !== STEP_INACTIVE) {
             bp.session.step = STEP_DONE
         }
         delete bp.c

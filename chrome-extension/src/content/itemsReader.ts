@@ -50,14 +50,14 @@ class ItemsReader {
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
                 var cells = row.getElementsByTagName('td');
-                if (cells.length === 5) {
-                    const id = row.getAttribute('id')?.substring(1); // remove the leading 'r'
+                if (cells.length === 4) {
+                    const id = cells[0].getElementsByTagName('div')[0].getAttribute('id')?.substring(1); // remove the leading 'r'
                     if (!id) continue;
                     const n = cells[0].innerText
                     const q = cells[1].innerText
                     const v = cells[2].innerText.replace(' PED', '');
                     const c = cells[3].innerText
-                    const refAnchor = cells[4].getElementsByTagName('a');
+                    const refAnchor = cells[3].getElementsByTagName('a');
                     const r = refAnchor.length > 0 ? refAnchor[0].getAttribute('href')?.substring(2) ?? undefined : undefined; // remove the leading '#r'
                     inventory.itemlist?.push({ id, n, q, v, c, r })
                 }
