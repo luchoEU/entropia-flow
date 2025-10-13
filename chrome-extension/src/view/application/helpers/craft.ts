@@ -29,6 +29,7 @@ const reduceSetState = (state: CraftState, inState: CraftState): CraftState => (
     ...inState,
     blueprints: Object.fromEntries(Object.entries(inState.blueprints).map(([name, bp]) => [name, {
         ...bp,
+        name,
         c: {
             itemName: itemNameFromBpName(bp.name),
             materials: _materialsFromUserAndWeb(bp.name, bp.user, bp.web?.blueprint.data?.value)

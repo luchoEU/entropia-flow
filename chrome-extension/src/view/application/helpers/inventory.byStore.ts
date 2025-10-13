@@ -37,9 +37,17 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
 
 const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
     // get root and children of the tree
+    const mapByName = { }
+    for (const d of list) {
+        mapByName[d.n] = d.id;
+    }
+    
     let nextRootContainerId = -1
     const listContainers = list.reduce((st, d) => {
         let containerId = d.r;
+        if (!containerId || containerId === '0') {
+            containerId = mapByName[d.c];
+        }
         if (!containerId || containerId === '0') {
             if (!st.root[d.c]) {
                 st.root[d.c] = (nextRootContainerId--).toString();
@@ -119,6 +127,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
             while (oldList.length > 0) {
                 let bestMatch: {a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }, distance: number} | undefined;
                 for (const a of oldList) {
+                    if (!a.data) continue;
                     for (const b of toMatch) {
                         const distance = hammingDistance(a, b);
                         if (!bestMatch || distance < bestMatch.distance) {

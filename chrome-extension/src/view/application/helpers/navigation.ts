@@ -60,8 +60,8 @@ const getLocationFromTabId = (id: TabId): string => {
     return tabOrder.includes(id) ? id : TabId.MONITOR;
 }
 
-const formatBlueprintToUrl = (bpName: string) => bpName.replace(/ /g, '_')
-const formatUrlToBlueprint = (bpName: string) => bpName?.replace(/_/g, ' ')
+const formatBlueprintToUrl = (bpName: string | undefined) => bpName?.replace(/ /g, '_')
+const formatUrlToBlueprint = (bpName: string | undefined) => bpName?.replace(/_/g, ' ')
 
 export {
     tabTitle,

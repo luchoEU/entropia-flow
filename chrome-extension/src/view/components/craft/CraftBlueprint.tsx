@@ -128,7 +128,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
     }}
     let showMoveAll = false
 
-    if (bp.session.diffMaterials !== undefined) {
+    if (bp.session?.diffMaterials !== undefined) {
         session = {}
         sessionTTprofit = 0
         if (markupLoaded)
@@ -437,13 +437,13 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     if (!bp) return <></>
 
     const chainNames: string[] = []
-    let afterChainMaterialName: string = undefined
-    let afterBpChain: BlueprintData = undefined
-    let lastBpChain: BlueprintData = undefined
+    let afterChainMaterialName: string | undefined = undefined
+    let afterBpChain: BlueprintData | undefined = undefined
+    let lastBpChain: BlueprintData | undefined = undefined
     let chainMaterialName = bp.chain
     while (chainMaterialName) {
         afterBpChain = lastBpChain ?? bp
-        if (chainMaterialName == afterBpChain.c.itemName) {
+        if (chainMaterialName == afterBpChain?.c?.itemName) {
             afterChainMaterialName = chainMaterialName
             break
         }
