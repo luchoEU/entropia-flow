@@ -46,49 +46,51 @@ function BudgetMaterialList() {
             { Object.keys(m).sort().map(k =>
                 <ExpandableMaterial key={k} name={k} material={m[k]} setExpanded={setBudgetMaterialExpanded(k)}>
                     <table className='table-diff'>
-                        { m[k].budgetList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
-                            <tr key={`${k}_${b.itemName}`}>
-                                <td>{b.itemName} sheet</td>
-                                <td align='right'>{b.quantity}</td>
-                                <td align='right'>{(b.quantity * m[k].unitValue).toFixed(2)} PED</td>
+                        <tbody>
+                            { m[k].budgetList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
+                                <tr key={`${k}_${b.itemName}`}>
+                                    <td>{b.itemName} sheet</td>
+                                    <td align='right'>{b.quantity}</td>
+                                    <td align='right'>{(b.quantity * m[k].unitValue).toFixed(2)} PED</td>
+                                </tr>
+                            )}
+                            { m[k].realList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
+                                <tr key={`${k}_${b.itemName}`}>
+                                    <td>{b.disabled ?
+                                            <ImgButton title='Enable this material' src='img/tick.png' dispatch={() => enableBudgetMaterial(k, b.itemName)} /> :
+                                            <ImgButton title='Disable this material' src='img/cross.png' dispatch={() => disableBudgetMaterial(k, b.itemName)} />
+                                        }
+                                        {b.itemName}
+                                    </td>
+                                    <td align='right'>{b.disabled ? `(${b.quantity})` : b.quantity}</td>
+                                    <td align='right'>{b.disabled ? '' : (b.quantity * m[k].unitValue).toFixed(2) + ' PED'}</td>
+                                </tr>
+                            )}
+
+                            <tr key='total.budget'>
+                                <td>TOTAL in sheets</td>
+                                <td align='right'>{m[k].c.totalBudgetQuantity}</td>
+                                <td align='right'>{m[k].c.totalBudget.toFixed(2)} PED</td>
                             </tr>
-                        )}
-                        { m[k].realList.sort((a, b) => a.itemName.localeCompare(b.itemName)).map(b =>
-                            <tr key={`${k}_${b.itemName}`}>
-                                <td>{b.disabled ?
-                                        <ImgButton title='Enable this material' src='img/tick.png' dispatch={() => enableBudgetMaterial(k, b.itemName)} /> :
-                                        <ImgButton title='Disable this material' src='img/cross.png' dispatch={() => disableBudgetMaterial(k, b.itemName)} />
-                                    }
-                                    {b.itemName}
-                                </td>
-                                <td align='right'>{b.disabled ? `(${b.quantity})` : b.quantity}</td>
-                                <td align='right'>{b.disabled ? '' : (b.quantity * m[k].unitValue).toFixed(2) + ' PED'}</td>
+
+                            <tr key='total.real'>
+                                <td>TOTAL holding</td>
+                                <td align='right'>{m[k].c.totalRealQuantity}</td>
+                                <td align='right'>{m[k].c.totalReal.toFixed(2)} PED</td>
                             </tr>
-                        )}
 
-                        <tr key='total.budget'>
-                            <td>TOTAL in sheets</td>
-                            <td align='right'>{m[k].c.totalBudgetQuantity}</td>
-                            <td align='right'>{m[k].c.totalBudget.toFixed(2)} PED</td>
-                        </tr>
+                            <tr key='balance'>
+                                <td>Balance</td>
+                                <td align='right'>{m[k].c.balanceQuantity}</td>
+                                <td align='right'>{m[k].c.balance.toFixed(2)} PED</td>
+                            </tr>
 
-                        <tr key='total.real'>
-                            <td>TOTAL holding</td>
-                            <td align='right'>{m[k].c.totalRealQuantity}</td>
-                            <td align='right'>{m[k].c.totalReal.toFixed(2)} PED</td>
-                        </tr>
-
-                        <tr key='balance'>
-                            <td>Balance</td>
-                            <td align='right'>{m[k].c.balanceQuantity}</td>
-                            <td align='right'>{m[k].c.balance.toFixed(2)} PED</td>
-                        </tr>
-
-                        <tr key='markup'>
-                            <td>Balance with Markup</td>
-                            <td align='right'>{(m[k].markup * 100).toFixed(2)}%</td>
-                            <td align='right'>{m[k].c.balanceWithMarkup.toFixed(2)} PED</td>
-                        </tr>
+                            <tr key='markup'>
+                                <td>Balance with Markup</td>
+                                <td align='right'>{(m[k].markup * 100).toFixed(2)}%</td>
+                                <td align='right'>{m[k].c.balanceWithMarkup.toFixed(2)} PED</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </ExpandableMaterial>
             )}

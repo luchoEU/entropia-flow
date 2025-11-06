@@ -221,17 +221,17 @@ const CraftSingle = ({ bp, activeSession, message }: {
 
     // temporary hide this columns that I don't use
     budgetMap = undefined
-    bought = undefined
+    bought = undefined!
 
     return (
         <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} showWithErrors={true} content={(webBp: BlueprintWebData | undefined) => <>
             { showBudget && <>
                 <p>Budget Page: { bp.budget?.loading ?
-                <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
-                <button onClick={(e) => {
-                    e.stopPropagation();
-                    dispatch(startBudgetPageLoading(bp.name))
-                }}>{bp.budget?.hasPage ? 'Refresh' : 'Create'}</button>
+                    <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(startBudgetPageLoading(bp.name))
+                    }}>{bp.budget?.hasPage ? 'Refresh' : 'Create'}</button>
                 }</p>
                 <p>Crafting Session: {
                     activeSession !== undefined && bp.name !== activeSession ? <>{activeSession}</> :

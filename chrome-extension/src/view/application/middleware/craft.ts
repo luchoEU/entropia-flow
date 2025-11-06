@@ -7,7 +7,7 @@ import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventor
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh, setLast } from '../actions/messages'
 import { AppAction } from '../slice/app'
-import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
@@ -21,7 +21,7 @@ import { SettingsState } from '../state/settings'
 import { ItemsMap } from '../state/items'
 import { getItemsMap } from '../selectors/items'
 import { CHANGE_MATERIAL_TYPE, CHANGE_MATERIAL_VALUE, loadItemData, loadItemRawMaterials, SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from '../actions/items'
-import { loadFromWeb, WebLoadResponse } from '../../../web/loader'
+import { loadFromWebMultiple, WebLoadResponse } from '../../../web/loader'
 import { Dispatch } from 'react'
 import { BlueprintWebData, BlueprintWebMaterial, ItemWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
@@ -30,6 +30,7 @@ import { craftTabularData, craftTabularDefinitions } from '../tabular/craft'
 import { setTabularData } from '../actions/tabular'
 import { getItemList } from '../helpers/inventory'
 import { ItemData } from '../../../common/state'
+import { IWebSource } from '../../../web/sources'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     let editModeBlueprintName: string | undefined;
@@ -193,7 +194,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             switch (action.type) {
                 case AppAction.INITIALIZE: {
                     Object.values(state.blueprints)
-                        .filter(bp => bp.budget.loading)
+                        .filter(bp => bp.budget?.loading)
                         .forEach(bp => loadBudget(bp.name))
                     break
                 }
@@ -478,7 +479,16 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
 async function loadBlueprintLoop(bpName: string, dispatch: Dispatch<any>) {
     if (!bpName) return; // TODO, why is it not defined?
-    for await (const r of loadFromWeb(s => s.loadBlueprint(bpName))) {
+    
+    // 'T1 Weapon Economy Enhancer Blueprint (L)' to 'Weapon Economy Enhancer 1 Blueprint (L)'
+    const renamedBpName = bpName.replace(/^T(\d+)\s+(.*?)\s+Blueprint(\s+\(L\))?$/, "$2 $1 Blueprint$3");
+    let names: string[] = renamedBpName !== bpName ? [bpName, renamedBpName] : [bpName]
+
+    for await (const r of loadFromWebMultiple(names, (s: IWebSource, n: string) => s.loadBlueprint(n))) {
+        if (renamedBpName !== bpName && r.data?.value.name === renamedBpName) {
+            r.data.value.name = bpName
+            r.data.value.item.name = itemNameFromBpName(bpName)
+        }
         dispatch(setBlueprintPartialWebData(bpName, { blueprint: r }))
     }
 }

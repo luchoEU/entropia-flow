@@ -1,4 +1,4 @@
-import { fetchJson, fetchText } from "./fetch";
+import { fetchJson } from "./fetch";
 import { mapResponse } from "./loader";
 import { NEXUS_API_BASE_URL, nexusApiUrl, nexusWwwUrl } from "./nexus.url";
 import { IWebSource, SourceLoadResponse } from "./sources";
@@ -36,10 +36,10 @@ export class EntropiaNexus implements IWebSource {
                 }
             }
         }
-        if (item.ok && item.data?.type === 'Material') {
+        if (item.ok && item.url && item.data?.type === 'Material') {
             const r = await fetchJson<EntropiaNexusItem>(item.url)
-            if (r.ok) {
-                item.data.type = r.result?.Properties.Type
+            if (r.ok && r.result) {
+                item.data.type = r.result.Properties.Type
             }
             item.url = nexusWwwUrl(`items/materials/${itemName}`)
         }
@@ -81,7 +81,7 @@ const _extractRawMaterials = (materialName: string) => async (acq: EntropiaNexus
             name: ingredient.Item.Name,
             quantity: ingredient.Amount,
         })),
-    url: acq.RefiningRecipes.length > 0 && nexusWwwUrl(`items/materials/${materialName}`) // maybe it is not a material if no RefiningRecipes
+    url: acq.RefiningRecipes.length > 0 ? nexusWwwUrl(`items/materials/${materialName}`) : undefined // maybe it is not a material if no RefiningRecipes
 })
 
 const _extractItem = (itemName: string) => async (m: EntropiaNexusItem): Promise<SourceLoadResponse<ItemWebData>> => ({
@@ -126,7 +126,7 @@ const _extractBlueprintData = (bp: EntropiaNexusBlueprint): BlueprintWebData => 
     item: {
         name: bp.Product.Name,
         type: bp.Product.Properties.Type,
-        quantity: undefined,
+        quantity: undefined!,
         value: bp.Product.Properties.Economy?.MaxTT ?? 0,
         url: nexusApiUrl(bp.Product.Links.$Url)
     },

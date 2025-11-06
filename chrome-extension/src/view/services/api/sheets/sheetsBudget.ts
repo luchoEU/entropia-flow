@@ -61,7 +61,7 @@ class BudgetSheet {
         this.row = await this.getLastRow()
     }
 
-    private addTitle(column: number, title: string, unitValue: number) {
+    private addTitle(column: number, title: string, unitValue?: number) {
         const cell = this.sheet.getCell(TITLE_ROW, column)
         cell.value = title
         cell.backgroundColor = { blue: 1 }
@@ -80,7 +80,7 @@ class BudgetSheet {
     }
 
     public async create(doc: any, data: BudgetInfoData) {
-        this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, TOTAL_ROW + 1, MATERIAL_COLUMN + data.materials.length)
+        this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, TOTAL_ROW + 1, MATERIAL_COLUMN + (data.materials?.length || 0))
 
         this.addTitle(DATE_COLUMN, 'Date', undefined)
         this.addTitle(BUDGET_COLUMN, 'Budget', undefined)
@@ -94,13 +94,15 @@ class BudgetSheet {
         this.addTitle(PED_COLUMN, 'PED', 1)
 
         let column = MATERIAL_COLUMN
-        for (const m of data.materials)
+        for (const m of data.materials || [])
             this.addTitle(column++, m.name, m.unitValue)
 
         const firstLetter = this.sheet.getCell(0, PED_COLUMN).a1Column
         const lastLetter = this.sheet.getCell(0, column-1).a1Column
         this.sheet.getCell(TOTAL_MU_ROW, BUDGET_COLUMN).formula = `=SUM(${firstLetter}${TOTAL_MU_ROW+1}:${lastLetter}${TOTAL_MU_ROW+1})`
         this.sheet.getCell(TOTAL_ROW, BUDGET_COLUMN).formula = `=SUM(${firstLetter}${TOTAL_ROW+1}:${lastLetter}${TOTAL_ROW+1})`
+        this.sheet.getCell(TOTAL_MU_ROW, CHANGE_COLUMN).value = 'SUM of'
+        this.sheet.getCell(TOTAL_ROW, CHANGE_COLUMN).value = 'SUM of'
 
         this.row = START_ROW
         this.sheet.getCell(START_ROW, REASON_COLUMN).value = 'Start'

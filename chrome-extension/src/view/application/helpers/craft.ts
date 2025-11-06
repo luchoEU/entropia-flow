@@ -657,6 +657,7 @@ export {
     reduceChangeBlueprintMaterialName,
     cleanWeb,
     cleanForSave,
+    itemNameFromBpName,
     bpNameFromItemName,
     bpDataFromItemName,
     itemStringFromName,

@@ -6,8 +6,8 @@ import { getSpreadsheet, listBudgetSheet } from './sheetsUtils'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 
 class DocumentCache {
-    private _docId: string
-    private _doc: GoogleSpreadsheet
+    private _docId: string | undefined
+    private _doc: GoogleSpreadsheet | undefined
     private _docIdSelector: (accessInfo: SheetAccessInfo) => string
 
     constructor(docIdSelector: (accessInfo: SheetAccessInfo) => string) {
@@ -16,7 +16,7 @@ class DocumentCache {
         this._docIdSelector = docIdSelector
     }
 
-    async load(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<GoogleSpreadsheet> {
+    async load(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<GoogleSpreadsheet | undefined> {
         const requestedDocId = this._docIdSelector(accessInfo)
         if (this._docId !== requestedDocId) {
             this._doc = await getSpreadsheet(requestedDocId, accessInfo, setStage)
@@ -28,7 +28,7 @@ class DocumentCache {
 const budgetDoc = new DocumentCache(s => s.budgetDocumentId)
 const ttDoc = new DocumentCache(s => s.ttServiceDocumentId)
 
-async function getBudgetSheetList(settings: SettingsState, setStage: SetStage): Promise<string[]> {
+async function getBudgetSheetList(settings: SettingsState, setStage: SetStage): Promise<string[] | undefined> {
     if (!isFeatureEnabled(settings, Feature.budget)) return undefined
 
     const doc = await budgetDoc.load(settings.sheet, setStage)
@@ -38,7 +38,7 @@ async function getBudgetSheetList(settings: SettingsState, setStage: SetStage): 
     return listBudgetSheet(doc)
 }
 
-async function loadBudgetSheet(settings: SettingsState, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet> {
+async function loadBudgetSheet(settings: SettingsState, setStage: SetStage, data: BudgetInfoData, create: boolean): Promise<BudgetSheet | undefined> {
     if (!isFeatureEnabled(settings, Feature.budget)) return undefined
 
     const doc = await budgetDoc.load(settings.sheet, setStage)
@@ -56,7 +56,7 @@ async function loadBudgetSheet(settings: SettingsState, setStage: SetStage, data
     }
 }
 
-async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<TTServiceInventorySheet> {
+async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage: SetStage): Promise<TTServiceInventorySheet | undefined> {
     const doc = await ttDoc.load(accessInfo, setStage)
     if (!doc)
         return undefined

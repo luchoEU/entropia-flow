@@ -36,30 +36,42 @@ async function mapResponse<TF,TR>(fetch: Promise<FetchResponse<TF>>, mapper: (da
     return {
         ...out,
         url: out?.url ?? response.url,
-        errorText: !out.ok && (out?.errorText ?? 'Unknown error')
+        errorText: !out.ok ? (out?.errorText ?? 'Unknown error') : undefined
     }
 }
 
-async function* loadFrom<T, TSource extends ISource>(sources: TSource[], _loadFrom: (source: TSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
+async function* loadFromMultiple<T, TSource extends ISource>(names: string[], sources: TSource[], _loadFrom: (source: TSource, name: string) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
     let errors: { message: string, href: string }[] = [];
     for (const source of sources) {
-        yield { loading: { source: source.name } }
-        const response = await _loadFrom(source)
-        if (response.ok) {
-            errors = undefined
-            yield { data: { value: response.data, link: { text: source.name, href: response.url } } }
-            break
-        } else {
-            errors.push({ message:`Error loading from ${source.name}: ${response.errorText}.`, href: response.url })
+        for (const name of names) {
+            yield { loading: { source: source.name } }
+            const response = await _loadFrom(source, name)
+            if (response.ok) {
+                errors = undefined!
+                yield { data: { value: response.data!, link: { text: source.name, href: response.url! } } }
+                break
+            } else {
+                errors.push({ message:`Error loading from ${source.name}: ${response.errorText}.`, href: response.url! })
+            }
         }
+        if (!errors)
+            break // found in inner loop
     }
     if (errors) {
         yield { errors }
     }
 }
 
+async function* loadFrom<T, TSource extends ISource>(sources: TSource[], _loadFrom: (source: TSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
+    return loadFromMultiple(['dummy'], sources, (source, _) => _loadFrom(source));
+}
+
 async function* loadFromWeb<T>(_loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
     yield* loadFrom(WebSources, _loadFrom);
+}
+
+async function* loadFromWebMultiple<T>(names: string[], _loadFrom: (source: IWebSource, name: string) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
+    yield* loadFromMultiple(names, WebSources, _loadFrom);
 }
 
 export {
@@ -67,4 +79,5 @@ export {
     WebLoadResponse,
     loadFrom,
     loadFromWeb,
+    loadFromWebMultiple
 }

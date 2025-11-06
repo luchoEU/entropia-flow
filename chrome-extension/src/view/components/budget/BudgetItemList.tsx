@@ -1,16 +1,22 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { disableBudgetItem } from '../../application/actions/budget'
+import { disableBudgetItem, refreshBudget } from '../../application/actions/budget'
 import { BudgetItem, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
+import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 
 function BudgetItemList() {
     const s: BudgetState = useSelector(getBudget)
+    const dispatch = useDispatch()
 
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
+            <p>
+                <button onClick={() => dispatch(refreshBudget)}>Refresh</button>
+                { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
+            </p>
             <table className='table-diff'>
                 <thead>
                     <tr>

@@ -95,9 +95,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     }
                     lines[itemName].materials.push({
                         name: materialName,
-                        quantity: -material.c.balanceQuantity
+                        quantity: -(material.c?.balanceQuantity || 0)
                     })
-                    lines[itemName].ped += material.c.balanceWithMarkup
+                    lines[itemName].ped = (lines[itemName].ped || 0) + (material.c?.balanceWithMarkup || 0)
                 }
             }
 
@@ -148,10 +148,10 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
                 expanded: false,
                 selected: false,
                 markup: m.markup,
-                unitValue: matInfo ? matInfo.refined.kValue / 1000 : 0,
+                unitValue: matInfo?.refined ? matInfo.refined.kValue / 1000 : 0,
                 budgetList: [],
                 realList: [],
-                c: undefined
+                c: undefined! // this will be filled when it is added to the state
             }
         }
 
