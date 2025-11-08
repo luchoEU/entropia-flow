@@ -188,7 +188,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     traceError(Component.CraftMiddleware, 'exception loading budget sheet:', e)
                 } finally {
                     dispatch(endBudgetPageLoading(bpName))
-                }    
+                }
             }
 
             switch (action.type) {

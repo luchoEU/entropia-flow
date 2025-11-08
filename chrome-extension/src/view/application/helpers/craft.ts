@@ -595,10 +595,12 @@ const cleanForSave = (state: CraftState): CraftState => {
 
     cState.stared.list = cState.stared.list.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
     Object.values(cState.blueprints).forEach((bp: BlueprintData) => {
-        bp.budget = {
-            ...bp.budget,
-            loading: true,
-            stage: STAGE_INITIALIZING
+        if (bp.budget) {
+            bp.budget = {
+                ...bp.budget,
+                loading: false,
+                stage: STAGE_INITIALIZING
+            }
         }
         if (bp.budget?.sheet) {
             Object.values(bp.budget.sheet.materials).forEach((m: BlueprintBudgetMaterial) => {
