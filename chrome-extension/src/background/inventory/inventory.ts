@@ -56,6 +56,9 @@ class InventoryManager {
             item.c = item.c.replace(/\n/g, " "); // The Hub container has '\n' in json but a space when read from html
             item.c = item.c.replace(/&apos;/g, "'"); // Bukin has '&apos;' in json
 
+            item.v = item.v.replace(/,/g, ""); // remove thousand separator
+            item.v = parseFloat(item.v).toFixed(2);
+
             const c_index = item.c.lastIndexOf('(');
             const res = item.c.match(/.*\(([\d)]+)\)/);
             if (res !== null) {

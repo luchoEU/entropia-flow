@@ -38,7 +38,7 @@ function SessionInfo(p: {
     showMoveAll: boolean
 }) {
     const { dispatch, message, showMoveAll } = p
-    switch (p.session.step) {
+    switch (p.session?.step) {
         case STEP_INACTIVE:
             return <>
                 <button onClick={() => dispatch(startCraftingSession(p.name))}>Start</button>
