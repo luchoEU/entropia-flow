@@ -63,7 +63,7 @@ async function* loadFromMultiple<T, TSource extends ISource>(names: string[], so
 }
 
 async function* loadFrom<T, TSource extends ISource>(sources: TSource[], _loadFrom: (source: TSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
-    return loadFromMultiple(['dummy'], sources, (source, _) => _loadFrom(source));
+    yield* loadFromMultiple(['dummy'], sources, (source, _) => _loadFrom(source));
 }
 
 async function* loadFromWeb<T>(_loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>): AsyncGenerator<WebLoadResponse<T>> {
