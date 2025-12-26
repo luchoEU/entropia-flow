@@ -21,7 +21,8 @@ interface Log {
 interface Meta {
     date: number,
     lastDate?: number,
-    total?: string
+    total?: string,
+    byDays?: boolean
 }
 
 interface Inventory {

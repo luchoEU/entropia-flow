@@ -38,7 +38,7 @@ import GameLogParser from './client/gameLogParser'
 import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
-import { StreamDataBuilder } from './client/streamDataBuilder'
+import { IApiStorage, StreamDataBuilder } from './client/streamDataBuilder'
 import { LastDeltaVariablesBuilder } from './inventory/lastDeltaVariablesBuilder'
 import { InventoryVariablesBuilder } from './inventory/inventoryVariablesBuilder'
 import { StatusVariablesBuilder } from './content/statusVariablesBuilder'
@@ -62,7 +62,9 @@ async function wiring(
     gameLogStorageArea: IStorageArea,
     tabStorageArea: IStorageArea,
     settingsStorageArea: IStorageArea,
+    apiStorage: IApiStorage,
     isUnfreezeTabEnabled: () => Promise<boolean>,
+    getLogoUrl: (darkBackground: boolean) => string,
     loadBlueprintListAtStart: boolean) {
 
     // storage
@@ -84,7 +86,7 @@ async function wiring(
     const gameLogHistory = new GameLogHistory()
 
     // stream
-    const streamDataBuilder = new StreamDataBuilder()
+    const streamDataBuilder = new StreamDataBuilder(apiStorage)
 
     // state
     const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
@@ -95,7 +97,7 @@ async function wiring(
     const lastDeltaBuilder = new LastDeltaVariablesBuilder(viewSettings, inventoryManager)
     const inventoryBuilder = new InventoryVariablesBuilder(inventoryManager)
     const statusBuilder = new StatusVariablesBuilder(refreshManager)
-    const backgroundBuilder = new BackgroundVariablesBuilder()
+    const backgroundBuilder = new BackgroundVariablesBuilder(getLogoUrl)
     const layoutBuilder = new LayoutVariablesBuilder()
     const gameLogBuilder = new GameLogVariablesBuilder(gameLogHistory)
 

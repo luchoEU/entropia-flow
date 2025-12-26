@@ -133,7 +133,7 @@ function serializeInventory(strings: StringTable, list: Array<Inventory>): Array
 
         if (inv.itemlist !== undefined) {
             const { match, notMatch } = inv.itemlist.reduce(
-                (acc, d) => {
+                (acc: { match: ItemData[], notMatch: ItemData[], index: number }, d: ItemData) => {
                     if (Number(d.id) === acc.index + 1) {
                         acc.match.push(d)
                     } else {
@@ -142,7 +142,7 @@ function serializeInventory(strings: StringTable, list: Array<Inventory>): Array
                     acc.index++
                     return acc
                 },
-                { match: [], notMatch: [], index: 0 }
+                { match: [], notMatch: [], index: 0 } as { match: ItemData[], notMatch: ItemData[], index: number }
             )
 
             writter.writeLength(match.length)
@@ -151,18 +151,18 @@ function serializeInventory(strings: StringTable, list: Array<Inventory>): Array
                 writter.writeQuantity(d.q)
                 writter.writeValue(d.v)
                 writter.writeString(d.c)
-                writter.writeReference(d.r)
+                writter.writeReference(d.r || '')
             })
 
             // This is possible, it may return invalid data at the end
             writter.writeLength(notMatch.length)
             notMatch.forEach(d => {
-                writter.writeId(d.id)
+                writter.writeId(Number(d.id))
                 writter.writeString(d.n)
                 writter.writeQuantity(d.q)
                 writter.writeValue(d.v)
                 writter.writeString(d.c)
-                writter.writeReference(d.r)
+                writter.writeReference(d.r || '')
             })
         }
 
@@ -304,7 +304,7 @@ function deserializeInventory(strings: StringTable, invStorage: Array<number>): 
         const reader = new InventoryReader(strings, invStorage, position)
         const type = reader.readType()
 
-        let log: Log = undefined
+        let log: Log | undefined = undefined
         if ((type & INV_STORAGE_TYPE_LOG) !== 0) {
             log = {
                 class: reader.readString(),
@@ -312,12 +312,12 @@ function deserializeInventory(strings: StringTable, invStorage: Array<number>): 
             }
         }
 
-        let total: number = undefined
-        let itemlist: ItemData[] = undefined
+        let total: number | undefined = undefined
+        let itemlist: ItemData[] | undefined = undefined
         if ((type & INV_STORAGE_TYPE_LIST) !== 0) {
             total = 0
             itemlist = []
-            function readList(readId: (m: number, r: InventoryReader) => number) {
+            const readList = (readId: (m: number, r: InventoryReader) => number) => {
                 const len = reader.readLength()
                 for (let m = 1; m <= len; m++) {
                     const d: ItemData = {
@@ -328,8 +328,8 @@ function deserializeInventory(strings: StringTable, invStorage: Array<number>): 
                         c: reader.readString(),
                         r: reader.readReference()
                     }
-                    total += Number(d.v)
-                    itemlist.push(d)
+                    total! += Number(d.v)
+                    itemlist!.push(d)
                 }
             }
             readList((m,_) => m) // implicit id

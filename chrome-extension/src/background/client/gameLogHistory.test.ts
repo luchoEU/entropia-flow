@@ -402,7 +402,7 @@ describe('formula parser', () => {
         {
             event: [{
                 time: gameTime('2025-02-15 17:18:15'),
-                action: 'vehicleRecovered',
+                action: 'vehicleRecoveredStorage',
                 data: [ 'Scavenged Skyripper (L)' ],
                 message: 'The vehicle (Scavenged Skyripper (L)) is returned to planet storage, where you can recover it'
             }]

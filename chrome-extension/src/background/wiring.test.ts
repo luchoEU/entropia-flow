@@ -1,6 +1,7 @@
 import MemoryStorageArea from "../chrome/memoryStorageArea"
 import MockActionManager from "../chrome/mockActionManager"
 import MockAlarmManager from "../chrome/mockAlarmManager"
+import MockApiStorage from "../chrome/mockApiStorage"
 import MockMessagesHub from "../chrome/mockMessages"
 import MockPortManager, { MockPort } from "../chrome/mockPort"
 import MockStorageArea from "../chrome/mockStorageArea"
@@ -63,6 +64,7 @@ describe('full', () => {
     let gameLogStorage: MemoryStorageArea
     let tabStorage: MockStorageArea
     let settingsStorage: MockStorageArea
+    let apiStorage: MockApiStorage
 
     async function doWiring() {
         actions = new MockActionManager()
@@ -84,7 +86,7 @@ describe('full', () => {
         viewPortManager.isEmptyMock.mockReturnValue(false)
         await wiring(messages, undefined!, ajaxAlarm, frozenAlarm, sleepAlarm, deadAlarm, tickAlarm, tabs,
             actions, webSocketClient, portManagerFactory, inventoryStorage, gameLogStorage,
-            tabStorage, settingsStorage, () => Promise.resolve(false), false);
+            tabStorage, settingsStorage, apiStorage, () => Promise.resolve(false), (d: boolean) => `logo ${d ? "white" : "black"}`, false);
 
         expect(viewPort.sendMock.mock.calls.length).toBe(1)
         viewPort.sendMock = jest.fn() // clear RefreshManager.SetContentTab in wiring
@@ -103,6 +105,7 @@ describe('full', () => {
         gameLogStorage = new MemoryStorageArea()
         tabStorage = new MockStorageArea()
         settingsStorage = new MockStorageArea()
+        apiStorage = new MockApiStorage()
     })
 
     test('init', async () => {

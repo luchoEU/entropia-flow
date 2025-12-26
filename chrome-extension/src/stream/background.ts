@@ -1,7 +1,5 @@
 import { IBackground, SimpleBackground, SolidBackground } from './effects/baseBackground';
 import { Feature, isFeatureEnabled, SettingsState } from '../view/application/state/settings';
-import flow128_png from './img/flow128.png';
-import flow128w_png from './img/flow128w.png';
 
 enum BackgroundType {
     Light,
@@ -174,10 +172,6 @@ const backgroundList = (settings?: SettingsState): BackgroundSpec[] => [
     ] : [])
 ]
 
-function getLogoUrl(darkBackground: boolean) {
-    return darkBackground ? flow128w_png : flow128_png
-}
-
 function getBackgroundSpec(type: BackgroundType): BackgroundSpec | undefined {
     return backgroundList(undefined).find(i => i.type == type)
 }
@@ -187,6 +181,5 @@ export {
     BackgroundType,
     BackgroundSpec,
     backgroundList,
-    getLogoUrl,
     getBackgroundSpec,
 }

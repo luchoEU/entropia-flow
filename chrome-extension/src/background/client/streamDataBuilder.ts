@@ -8,9 +8,17 @@ import { WebSocketStateCode } from "./webSocketInterface";
 import Interpreter from 'js-interpreter';
 import * as Babel from '@babel/standalone';
 import { StreamBuilderState, StreamTemporalVariablesBuilder, StreamVariablesBuilder } from "./streamVariablesBuilder";
-import AppStorage from "../../view/services/api/storage";
 import { STORAGE_VIEW_LAST, STORAGE_VIEW_ITEMS, STORAGE_VIEW_STREAM } from "../../common/const";
 import { getUsedVariablesInTemplateList } from "../../stream/template";
+import { ItemsState } from "../../view/application/state/items";
+import { StreamStateIn } from "../../view/application/state/stream";
+import { LastRequiredState } from "../../view/application/state/last";
+
+interface IApiStorage {
+    loadLast(): Promise<LastRequiredState>
+    loadItems(): Promise<ItemsState>
+    loadStream(): Promise<StreamStateIn>
+}
 
 class StreamDataBuilder {
     private _variablesBuilders: StreamVariablesBuilder[] = []
@@ -20,24 +28,24 @@ class StreamDataBuilder {
     private _isDirty: boolean = false
     public sendClientData?: (data: any) => Promise<void>
 
-    public StreamDataBuilder() {
+    constructor(private apiStorage: IApiStorage) {
         this.updateState(undefined!)
     }
 
     public async updateState(name: string) {
         if (name === STORAGE_VIEW_LAST || !this._builderState.last)
         {
-            this._builderState.last = await AppStorage.loadLast()
+            this._builderState.last = await this.apiStorage.loadLast()
             this._isDirty = true
         }
         if (name === STORAGE_VIEW_ITEMS || !this._builderState.items)
         {
-            this._builderState.items = await AppStorage.loadItems()
+            this._builderState.items = await this.apiStorage.loadItems()
             this._isDirty = true
         }
         if (name === STORAGE_VIEW_STREAM || !this._builderState.layouts)
         {
-            const layouts = (await AppStorage.loadStream()).layouts;
+            const layouts = (await this.apiStorage.loadStream())?.layouts;
             this._builderState.layouts = layouts;
             this._builderState.computed = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, { usedVariables: getUsedVariablesInTemplateList([v.htmlTemplate, v.cssTemplate]) }]));
             this._isDirty = true
@@ -241,4 +249,7 @@ function deepEqual(a: any, b: any): boolean {
     return aKeys.every(key => deepEqual(a[key], b[key]));
 }
 
-export { StreamDataBuilder }
+export {
+    IApiStorage,
+    StreamDataBuilder
+}

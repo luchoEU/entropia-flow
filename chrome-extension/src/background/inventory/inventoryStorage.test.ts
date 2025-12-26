@@ -1,3 +1,4 @@
+import '@jest/globals'
 import {
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,
@@ -10,13 +11,14 @@ import { traceOff } from '../../common/trace'
 import { EMPTY_INVENTORY, REAL_INVENTORY_1, SIMPLE_ITEM_DATA } from '../examples'
 import InventoryStorage from './inventoryStorage'
 import IStorageArea from '../../chrome/IStorageArea'
+//import { test, beforeEach, describe, expect } from '@jest/globals'
 
 traceOff()
 
 //// Mock ////
 
 class TestStorageArea implements IStorageArea {
-    storage: object = {}
+    storage: any = {}
 
     async get(name: string): Promise<any> {
         return this.storage[name]
@@ -59,10 +61,22 @@ const INV_STORED = "EAIBAQXDqQDEASM="
 //}
 
 const INV_STRINGS = "[\"chau\",\"hola\"]"
+const DAY = 24 * 60 * 60 * 1000
+const MS = 1 / DAY
+
+function makeInv(day: number, id: string): Inventory {
+    return {
+        itemlist: [{
+            ...SIMPLE_ITEM_DATA,
+            n: `item-${id}`
+        }],
+        meta: { date: day * DAY }
+    };
+}
 
 //// Tests /////
 
-describe('inventory storage', () => {
+describe('inventory storage default limit', () => {
     let area: TestStorageArea
     let inv: InventoryStorage
 
@@ -114,9 +128,9 @@ describe('inventory storage', () => {
             for (let n = 1; n <= INVENTORY_LIMIT; n++) {
                 await inv.add({
                     itemlist: [
-                        ...REAL_INVENTORY_1.itemlist, {
+                        ...REAL_INVENTORY_1.itemlist!, {
                             ...SIMPLE_ITEM_DATA,
-                            id: (REAL_INVENTORY_1.itemlist.length + 1).toString(),
+                            id: (REAL_INVENTORY_1.itemlist!.length + 1).toString(),
                             n: `name${n}`
                         }
                     ],
@@ -154,36 +168,75 @@ describe('inventory storage', () => {
         })
 
         test('limit', async () => {
-            for (let n = 1; n <= INVENTORY_LIMIT * 2; n++) {
-                await inv.add({
-                    itemlist: [{
-                        ...SIMPLE_ITEM_DATA,
-                        n: `name${n}`
-                    }],
-                    meta: {
-                        date: n
-                    }
-                })
+            for (let i = 1; i <= INVENTORY_LIMIT * 2; i++) {
+                await inv.add(makeInv(i, `n${i}`));
             }
             const list = await inv.get()
             expect(list.length).toBe(INVENTORY_LIMIT)
         })
+    })
 
-        test('keep date', async () => {
-            for (let n = 1; n <= INVENTORY_LIMIT * 2; n++) {
-                await inv.add({
-                    itemlist: [{
-                        ...SIMPLE_ITEM_DATA,
-                        n: `name${n}`
-                    }],
-                    meta: {
-                        date: n
-                    }
-                }, 3)
-            }
-            const list = await inv.get()
-            expect(list[0].meta.date).toBe(3)
-            expect(list[1].meta.date).toBe(INVENTORY_LIMIT + 2)
-        })
+    describe('days section tests', () => {
+        test('keeps multiple items for the newest day', async () => {
+            // same day
+            await inv.add(makeInv(10, 'a'));
+            await inv.add(makeInv(10, 'b'));
+            await inv.add(makeInv(10, 'c'));
+
+            const list = await inv.get();
+            expect(list.length).toBe(3);
+            expect(list.every(i => i.meta.date === 10 * DAY)).toBe(true);
+        });
+
+        test('preserves order newest to oldest after prune', async () => {
+            await inv.add(makeInv(.3, 'b'));
+            await inv.add(makeInv(.2, 'c'));
+            await inv.add(makeInv(.1, 'd'));
+
+            const list = await inv.get();
+            const dates = list.map(i => i.meta.date / DAY);
+            expect(dates).toEqual([.1, .2, .3]);
+        });
+    })
+
+    test('date separator', async () => {
+        await inv.add(makeInv(1, 'a'));
+        await inv.add(makeInv(1.1, 'b'));
+        await inv.add(makeInv(2, 'c'));
+        const list = await inv.get()
+        const days = list.map(i => i.meta.date / DAY);
+        expect(days).toEqual([1, 1.1, 1.1 + MS, 2]);
+        expect(list[2].log?.message).toBe(new Date(1 * DAY).toDateString());
+    })
+})
+
+describe('inventory storage custom limit', () => {
+    let area: TestStorageArea
+
+    beforeEach(() => {
+        area = new TestStorageArea()
+    })
+
+    test('does not remove items when exactly at limit', async () => {
+        const inv = new InventoryStorage(area, 3, 0);
+        for (let i = 0; i < 3; i++) {
+            await inv.add(makeInv(i / 10, i.toString()));
+        }
+
+        const list = await inv.get();
+        const days = list.map(i => i.meta.date / DAY);
+
+        expect(days).toEqual([0, .1, .2]);
+    });
+
+    test('keep date', async () => {
+        const inv = new InventoryStorage(area, 5, 2)
+        for (let i = 1; i <= 10; i++) {
+            await inv.add(makeInv(i, i.toString()), 3 * DAY);
+        }
+        const list = await inv.get()
+        const days = list.map(i => i.meta.date / DAY);
+
+        expect(days).toEqual([3, 8, 9, 9+MS, 10]);
     })
 })

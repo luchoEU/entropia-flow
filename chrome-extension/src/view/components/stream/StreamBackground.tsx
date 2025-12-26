@@ -1,5 +1,6 @@
 import React, { JSX } from "react";
-import { backgroundList, BackgroundSpec, getLogoUrl } from "../../../stream/background";
+import { backgroundList, BackgroundSpec } from "../../../stream/background";
+import { getLogoUrl } from "../../../stream/backgroundGetLogo";
 import ExpandableSection from "../common/ExpandableSection2";
 import { useDispatch, useSelector } from "react-redux";
 import { getStreamLayout } from "../../application/selectors/stream";

@@ -3,6 +3,7 @@ import { Inventory, ItemData } from "../../common/state"
 import { getDifference } from "../../view/application/helpers/diff"
 import InventoryManager from "./inventory"
 import InventoryStorage from "./inventoryStorage"
+import { INVENTORY_DAYS_LIMIT, INVENTORY_LIMIT } from "../../common/const"
 
 const _adjust = async (itemlist: Array<ItemData>): Promise<Inventory> => {
     // pass through InventoryManager to clean data

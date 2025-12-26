@@ -102,7 +102,7 @@ const eventRegex = {
     tradedWith: /You have successfully traded with (.+)/,
     transactionCompleted: /The transaction was completed successfully/,
     unequipped: /Your (.+) has been unequipped/,
-    vehicleRecoveredStoraage: /The vehicle \((.+)\) is returned to planet storage, where you can recover it/,
+    vehicleRecoveredStorage: /The vehicle \((.+)\) is returned to planet storage, where you can recover it/,
     vehicleRecoveredInventory: /The vehicle \((.+)\) is returned to your Inventory/,
     wasRevived: /(.+) was revived/,
     wasKilled: /(.+) was killed/,

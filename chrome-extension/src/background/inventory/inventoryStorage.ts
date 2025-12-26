@@ -1,5 +1,6 @@
 import {
     CLASS_NEW_DATE,
+    INVENTORY_DAYS_LIMIT,
     INVENTORY_LIMIT,
     STORAGE_INVENTORY_,
     STORAGE_INVENTORY_STRINGS_,
@@ -14,12 +15,9 @@ import { serializeInventory, deserializeInventory, serializeStrings } from './in
 import { matchDate } from '../../common/date'
 
 class InventoryStorage {
-    private area: IStorageArea
-    private list: Array<Inventory>
+    private list: Array<Inventory> | undefined // sorted by date, oldest first (smallest date first)
 
-    constructor(area: IStorageArea) {
-        this.area = area
-    }
+    constructor(private area: IStorageArea, private limit: number = INVENTORY_LIMIT, private daysLimit: number = INVENTORY_DAYS_LIMIT) { }
 
     public async get(): Promise<Array<Inventory>> {
         if (!this.list) {
@@ -50,11 +48,7 @@ class InventoryStorage {
         const list = await this.get()
         if (list.length > 0) {
             const last = list[list.length - 1]
-            const newDate = new Date()
-            newDate.setTime(inventory.meta.date)
-            const oldDate = new Date()
-            oldDate.setTime(last.meta.date)
-            if (newDate.toDateString() === oldDate.toDateString()) {
+            if (this._toDateString(inventory.meta.date) === this._toDateString(last.meta.date)) {
                 // same day
                 if (areEqualInventoryList(inventory, last)) {
                     last.meta.lastDate = inventory.meta.date
@@ -62,25 +56,79 @@ class InventoryStorage {
                         last.tag = { ...last.tag, ...inventory.tag }
                     pushNew = false
                 }
-            } else {
-                const invNewDate = makeLogInventory(CLASS_NEW_DATE, oldDate.toDateString())
-                invNewDate.meta.date = last.meta.date + 1 // change it else it may be equal to inventor.meta.date
-                list.push(invNewDate)
             }
         }
 
         if (pushNew) {
             list.push(inventory)
-            while (list.length > INVENTORY_LIMIT) {
-                if (matchDate(list[0], keepDate))
-                    list.splice(1, 1)
-                else
-                    list.shift()
-            }
+            this._pruneInventory(list, keepDate)
         }
 
         await this._set(list)
         return list;
+    }
+
+    private _pruneInventory(list: Array<Inventory>, keepDate?: number) {
+        if (list.length < 2) {
+            return;
+        }
+        
+        const keepItems = this.limit - this.daysLimit;
+        const pruned: Inventory[] = [];
+        list.sort((a, b) => b.meta.date - a.meta.date); // Sort most recent first
+
+        let lastDay: string = this._toDateString(list[0].meta.date);
+ 
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+
+            if (item.log?.class === CLASS_NEW_DATE) {
+                // Skip date marker
+                continue;
+            }
+           
+            const currentDay = this._toDateString(item.meta.date);
+            
+            if (pruned.length < keepItems) {
+                if (currentDay !== lastDay) {
+                    const invNewDate = makeLogInventory(CLASS_NEW_DATE, currentDay)
+                    invNewDate.meta.date = item.meta.date + 1 // change it else it may be equal to inventor.meta.date
+                    pruned.push(invNewDate)
+                    lastDay = currentDay;
+                }
+
+                // Always keep the newest items
+                pruned.push(item);
+                item.meta.byDays = false;
+                continue;
+            }
+            else if (pruned.length >= this.limit) {
+                if (matchDate(item, keepDate)) {
+                    pruned.pop();
+                    pruned.push(item);
+                    item.meta.byDays = true;
+                }
+                continue;
+            }
+
+            // Keep only the newest item of a new day or the item to keep
+            if (currentDay !== lastDay || matchDate(item, keepDate)) {
+                pruned.push(item);
+                item.meta.byDays = true;
+                lastDay = currentDay;
+            }
+        }
+        pruned.reverse();
+
+        // Mutate original array to keep references
+        list.length = 0;
+        list.push(...pruned);
+    }
+
+    private _toDateString(date: number): string {
+        const oldDate = new Date();
+        oldDate.setTime(date);
+        return oldDate.toDateString();
     }
 
     private async _readFromStorage(): Promise<Array<Inventory>> {

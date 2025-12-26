@@ -19,20 +19,21 @@ function getText(inventory: Inventory, onlyLastDate?: boolean) {
             return inventory.log.message
         else
             return `${d} - ${inventory.log.message}`
-    } else {
-        let ld = ''
-        if (inventory.meta.lastDate) {
-            let lastDate = new Date();
-            lastDate.setTime(inventory.meta.lastDate);
-            let s = lastDate.toTimeString().slice(0, 8)
-            if (onlyLastDate)
-                d = s
-            else
-                ld = ` ... ${s}`
-        }
-
-        return `${d}${ld} - ${inventory.meta.total} PED (${inventory.itemlist?.length} items)`;
     }
+
+    if (inventory.meta.byDays) {
+        d = `${date.toDateString()} ${d}`
+    } else if (inventory.meta.lastDate) {
+        let lastDate = new Date();
+        lastDate.setTime(inventory.meta.lastDate);
+        let s = lastDate.toTimeString().slice(0, 8)
+        if (onlyLastDate)
+            d = s
+        else
+            d = `${d} ... ${s}`
+    }
+
+    return `${d} - ${inventory.meta.total} PED (${inventory.itemlist?.length} items)`;
 }
 
 function getInfo(inventory: Inventory): string | null {
