@@ -177,12 +177,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
                     
                     // TODO: error 429 (Too Many Requests)
-                    /*const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
                     if (sheet !== undefined) {
                         await sheet.save()
                         const info: BudgetSheetGetInfo = await sheet.getInfo()
                         dispatch(setBudgetPageInfo(bpName, info))
-                    }*/
+                    }
                 } catch (e) {
                     dispatch(setBudgetPageLoadingError(bpName, e.message))
                     traceError(Component.CraftMiddleware, 'exception loading budget sheet:', e)

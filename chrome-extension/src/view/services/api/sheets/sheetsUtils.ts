@@ -15,6 +15,9 @@ const TTServiceSheetName = {
 async function getSpreadsheet(documentId: string, accessInfo: SheetAccessInfo, setStage: SetStage): Promise<GoogleSpreadsheet> {
     setStage(STAGE_LOADING_SPREADSHEET)
 
+    // Can't use the new GoogleSpreadsheet constructor with service account auth in a chrome extension,
+    // it needs a Backend to upgrade google-spreadsheet package over 3.3,
+    // or do it without the library with OAUTH authentication
     const doc: GoogleSpreadsheet = new GoogleSpreadsheet(documentId)
 
     await doc.useServiceAccountAuth({
