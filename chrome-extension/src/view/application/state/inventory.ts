@@ -155,7 +155,7 @@ interface InventoryState {
   byStore: InventoryByStore;
   available: InventoryList<ItemData>;
   availableCriteria: AvailableCriteria; // favorite trade items
-  tradeItemDataChain: TradeItemData[];
+  tradeItemDataChain?: TradeItemData[];
 }
 
 export {

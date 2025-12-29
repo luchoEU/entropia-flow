@@ -6,7 +6,7 @@ function filterOr(filters: string[]): string {
     return filters.join('|')
 }
 
-function multiIncludes(multiSearch: string, mainStr: string): boolean {
+function multiIncludes(multiSearch: string | undefined, mainStr: string): boolean {
     if (!multiSearch || multiSearch.length == 0)
         return true;
 

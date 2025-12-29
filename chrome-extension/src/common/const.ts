@@ -101,6 +101,7 @@ const ERROR_429 = 'Too many requests'
 // Url
 const URL_MY_ITEMS_PAGE = 'https://account.entropiauniverse.com/account/inventory'
 const URL_MY_ITEMS_DATA = 'https://account.entropiauniverse.com/api/account/myitems'
+const URL_MY_BALANCE_DATA = 'https://account.entropiauniverse.com/api/account/getaccountbalance'
 
 // Waits
 const TICK_SECONDS = 1 // updates countdown
@@ -199,6 +200,7 @@ export {
     ERROR_429,
     URL_MY_ITEMS_PAGE,
     URL_MY_ITEMS_DATA,
+    URL_MY_BALANCE_DATA,
     TICK_SECONDS,
     FIRST_HTML_CHECK_WAIT_SECONDS,
     NEXT_HTML_CHECK_WAIT_SECONDS,

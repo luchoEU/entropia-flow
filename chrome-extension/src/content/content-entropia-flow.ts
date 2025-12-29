@@ -11,13 +11,15 @@ import {
     MSG_NAME_REFRESH_WAKE_UP,
     AFTER_MANUAL_WAIT_SECONDS,
     MSG_NAME_REFRESH_SET_SLEEP_MODE,
-    MSG_NAME_REMAINING_SECONDS} from '../common/const'
+    MSG_NAME_REMAINING_SECONDS,
+    CLASS_ERROR} from '../common/const'
 import { ChromeMessagesClient } from '../chrome/chromeMessages'
 import { ItemsReader } from './itemsReader'
 import ContentUI from './contentUi'
 import { ContentTimer } from './contentTimer'
-import { Inventory } from '../common/state'
+import { Inventory, makeLogInventory } from '../common/state'
 import { PortHandlers } from '../chrome/IPort'
+import { BalanceReader } from './balanceReader'
 
 // Main function that runs in Entropia Universe website
 
@@ -36,10 +38,26 @@ class ContentInitializer {
                 return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
         }
         async function requestItems(fromHtml: boolean): Promise<Inventory> {
-            return fromHtml ? await itemReader.requestItemsHtml() : await itemReader.requestItemsAjax()
+            const inventory = fromHtml ? await itemReader.requestItemsHtml() : await itemReader.requestItemsAjax();
+            if (inventory.log)
+                return inventory
+            
+            const balance = fromHtml ? await balanceReader.requestBalanceHtml() : await balanceReader.requestBalanceAjax();
+            if (balance.errorText)
+                return makeLogInventory(CLASS_ERROR, `Balance error: ${balance.errorText}`)
+
+            inventory.itemlist?.push({
+                id: "0",
+                n: "PED Card",
+                q: "",
+                v: balance.accountBalance?.toString() || "0",
+                c: ""
+            });
+            return inventory
         }
 
         const itemReader = new ItemsReader()
+        const balanceReader = new BalanceReader()
         const contentUI = new ContentUI(showView, toggleIsMonitoring)
         const timer = new ContentTimer(requestItems,
                 contentUI.refreshItemsLoadTime,

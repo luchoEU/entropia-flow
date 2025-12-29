@@ -1,6 +1,6 @@
 import { Inventory, ItemData } from "../../../common/state";
 import { multiIncludes } from "../../../common/filter";
-import { BlueprintData, CraftingUserData, CraftState } from "../state/craft";
+import { BlueprintData, CraftState } from "../state/craft";
 import {
   InventoryState,
   InventoryList,
@@ -152,7 +152,7 @@ const reduceSetCurrentInventory = (
   inventory: Inventory,
 ): InventoryState => loadInventory(state, inventory.itemlist);
 
-function applyListFilter<D>(list: InventoryList<D>, filter: string, select: (d: D) => ItemData): InventoryList<D> {
+function applyListFilter<D>(list: InventoryList<D>, filter: string | undefined, select: (d: D) => ItemData): InventoryList<D> {
   const items = list.items
     .filter((d) => multiIncludes(filter, select(d).n));
   const sum = items.reduce(
@@ -292,7 +292,7 @@ const reduceShowAll = (state: InventoryState): InventoryState =>
   _changeHiddenCriteria(state, emptyCriteria);
 
 const reduceShowTradingItemData = (state: InventoryState, name: string, chainIndex: number): InventoryState => {
-  let tradeItemDataChain: TradeItemData[]
+  let tradeItemDataChain: TradeItemData[] | undefined
   if (!name && chainIndex === 0) {
     tradeItemDataChain = undefined
   } else {
