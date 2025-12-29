@@ -114,7 +114,7 @@ class InventoryStorage {
             // Keep only the newest item of a new day or the item to keep
             if (currentDay !== lastDay || matchDate(item, keepDate)) {
                 pruned.push(item);
-                item.meta.byDays = true;
+                item.meta.byDays = currentDay !== lastDay;
                 lastDay = currentDay;
             }
         }

@@ -239,4 +239,19 @@ describe('inventory storage custom limit', () => {
 
         expect(days).toEqual([3, 8, 9, 9+MS, 10]);
     })
+
+    test('no date when keep is at border', async () => {
+        const inv = new InventoryStorage(area, 5, 2)
+        await inv.add(makeInv(1, 'a'))
+        await inv.add(makeInv(2, 'b'))
+        for (let i = 1; i <= 9; i++) {
+            await inv.add(makeInv(2 + i * .1, i.toString()), 2.6 * DAY);
+        }
+        const list = await inv.get()
+        const days = list.map(i => i.meta.date / DAY);
+        const byDays = list.map(i => i.meta.byDays);
+
+        expect(days).toEqual([1, 2.6, 2.7, 2.8, 2.9]);
+        expect(byDays).toEqual([true, false, false, false, false]);
+    })
 })
