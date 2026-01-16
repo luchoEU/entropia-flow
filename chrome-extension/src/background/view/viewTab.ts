@@ -33,8 +33,7 @@ class ViewTabManager {
         }
     }
 
-    public async onDisconnect(port: IPort): Promise<void> {
-    }
+    public async onDisconnect(_port: IPort): Promise<void> { }
 
     public async createOrOpenView(): Promise<void> {
         const isEmpty = await this.portManager.isEmpty()

@@ -21,7 +21,7 @@ class RefreshManager {
     private deadAlarm: IAlarmManager
     private tickAlarm: IAlarmManager
     private alarmSettings: AlarmSettings
-    private contentTab: IContentTab
+    private contentTab: IContentTab | undefined
     private stickyStatus: Log | undefined
     private sleepMode: boolean
     private listeners: ((status: Status) => Promise<void>)[] = [];
@@ -39,14 +39,14 @@ class RefreshManager {
         // prepare alarms
         this.ajaxAlarm?.listen(async () => {
             if (this.stickyStatus?.message !== STRING_LOADING_ITEMS) {
-                await this.contentTab.wakeUp()
+                await this.contentTab?.wakeUp()
             }
             await this.frozenAlarm?.start(FROZEN_CHECK_WAIT_SECONDS);
             await this.deadAlarm?.start(DEAD_CHECK_WAIT_SECONDS);
             return false;
         })
         this.frozenAlarm?.listen(async () => {
-            const frozen = await this.contentTab.checkFrozen();
+            const frozen = await this.contentTab?.checkFrozen();
             return !frozen; // if not frozen, continue the alarm
         })
         this.sleepAlarm?.listen(async () => {
@@ -84,7 +84,7 @@ class RefreshManager {
         contentTab.onConnected = async () => {
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
             const on = await this.alarmSettings.isMonitoringOn();
-            await this.contentTab.setStatus(on);
+            await this.contentTab?.setStatus(on);
             await this.tickAlarm?.start(TICK_SECONDS);
         }
 
@@ -130,7 +130,7 @@ class RefreshManager {
                     await this.onInventory(inventory)
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             traceError(Component.RefreshManager, 'handleNewInventory exception:', e)
             await this._setViewStatus(CLASS_ERROR, e.message)
         }
@@ -173,7 +173,7 @@ class RefreshManager {
 
     public async manualRefresh(tag?: any, forced?: boolean) {
         await this.ajaxAlarm?.end()
-        const message = await this.contentTab.requestItems(tag, forced)
+        const message = await this.contentTab?.requestItems(tag, forced)
         if (message !== undefined) {
             await this._setViewStatus(CLASS_ERROR, message)
         }

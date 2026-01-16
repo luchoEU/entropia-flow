@@ -19,7 +19,7 @@ class ViewStateManager {
     private gameLogHistory: IGameLogHistory
     private webSocketClient: IWebSocketClient
     private streamBuilder: StreamDataBuilder
-    public onChange: (state: ViewState) => Promise<void>
+    public onChange: ((state: ViewState) => Promise<void>) | undefined
 
     constructor(refreshManager: RefreshManager, viewSettings: ViewSettings, inventory: InventoryManager, gameLogHistory: IGameLogHistory, webSocketClient: IWebSocketClient, streamBuilder: StreamDataBuilder) {
         this.refreshManager = refreshManager

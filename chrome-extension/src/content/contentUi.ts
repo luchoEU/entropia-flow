@@ -62,6 +62,7 @@ class ContentUI {
                 background: darkblue;
                 padding: 5px 10px;
                 order: -1;
+                z-index: 1;
             }
             #EntropiaFlowExtension.start {
                 background-color: green;
@@ -80,6 +81,9 @@ class ContentUI {
                 background-color: transparent;
                 color: ghostwhite;
                 vertical-align: middle;
+            }
+            .navbar {
+                position: sticky !important;
             }`;
         document.head.appendChild(style);
         const div = document.createElement('div');
@@ -87,7 +91,7 @@ class ContentUI {
         div.innerHTML = `
             <img id='EntropiaFlowIcon' src='https://i.ibb.co/5RxzC2Y/flow128w.png'>
             <button id='EntropiaFlowButton'>Connecting to Entropia Flow extension...</button>`;        
-        document.body.appendChild(div);
+        document.body.insertBefore(div, document.body.firstChild);
         const icon = document.getElementById('EntropiaFlowIcon')
         if (icon) {
             icon.addEventListener('click', () => this.showView())

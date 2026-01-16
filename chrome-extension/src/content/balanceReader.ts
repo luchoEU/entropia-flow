@@ -10,15 +10,14 @@ interface Balance {
 
 class BalanceReader {
     public async requestBalanceHtml(): Promise<Balance> {
-        const span = document.querySelector("main p span span") as HTMLSpanElement
+        const span = document.querySelector("span.stat-value") as HTMLSpanElement
         if (!span)
-            return { errorText: "Text not found" }
+            return { errorText: "Text not found" } // TODO: this error is not shown
 
         const balance = parseFloat(span.innerText)
         return { accountBalance: balance }
     }
 
-    private loadFromHtml = true
     public async requestBalanceAjax(): Promise<Balance> {
         let json: Balance
         try {

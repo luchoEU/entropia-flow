@@ -49,9 +49,9 @@ class ContentInitializer {
             inventory.itemlist?.push({
                 id: "0",
                 n: "PED Card",
-                q: "",
+                q: "1",
                 v: balance.accountBalance?.toString() || "0",
-                c: ""
+                c: "CARRIED"
             });
             return inventory
         }
