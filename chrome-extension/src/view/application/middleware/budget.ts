@@ -72,6 +72,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
             dispatch(setBudgetFromSheet(map, items, 100))
 
+            const updatedState: BudgetState = getBudget(getState())
+            await api.storage.saveBudget(cleanForSave(updatedState))
+
             setStage(STAGE_INITIALIZING)
             break
         }
@@ -148,7 +151,7 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
                 expanded: false,
                 selected: false,
                 markup: m.markup,
-                unitValue: matInfo?.refined ? matInfo.refined.kValue / 1000 : 0,
+                unitValue: matInfo?.refined ? matInfo.refined.kValue / 1000 : (matInfo?.web?.item?.data?.value.value ?? 0),
                 budgetList: [],
                 realList: [],
                 c: undefined! // this will be filled when it is added to the state
@@ -168,7 +171,8 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
         name: itemName,
         totalMU: info.totalMU,
         total: info.total,
-        peds: info.peds
+        peds: info.peds,
+        url: sheet.getUrl()
     })
 
     return { updatedMap: map, updatedItems: items }

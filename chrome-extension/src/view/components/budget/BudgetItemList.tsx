@@ -32,7 +32,7 @@ function BudgetItemList() {
                             <tr key={i.name}>
                                 <td>
                                     <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(i.name)} />
-                                    {i.name}
+                                    <a href={i.url} target='_blank' rel='noopener noreferrer'>{i.name}</a>
                                 </td>
                                 <td align='right'>{i.peds.toFixed(2)}</td>
                                 <td align='right'>{i.totalMU.toFixed(2)}</td>

@@ -1,5 +1,5 @@
 import { SetStage } from './sheetsStages'
-import { createBudgetSheet, getBudgetSheet, getLastRow, hasBudgetSheet, saveUpdatedCells, setDayDate } from './sheetsUtils'
+import { createBudgetSheet, getBudgetSheet, getLastRow, getSheetUrl, hasBudgetSheet, saveUpdatedCells, setDayDate } from './sheetsUtils'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 
 const DATE_COLUMN = 0
@@ -51,6 +51,7 @@ class BudgetSheet {
     private setStage: SetStage
     private sheet: any
     private row: number
+    private url: string
 
     constructor(setStage: SetStage) {
         this.setStage = setStage
@@ -81,6 +82,7 @@ class BudgetSheet {
 
     public async create(doc: any, data: BudgetInfoData) {
         this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, TOTAL_ROW + 1, MATERIAL_COLUMN + (data.materials?.length || 0))
+        this.url = getSheetUrl(this.sheet)
 
         this.addTitle(DATE_COLUMN, 'Date', undefined)
         this.addTitle(BUDGET_COLUMN, 'Budget', undefined)
@@ -122,9 +124,14 @@ class BudgetSheet {
     public async load(doc: GoogleSpreadsheet, itemName: string): Promise<boolean> {
         this.sheet = await getBudgetSheet(doc, this.setStage, itemName)
         if (this.sheet !== undefined) {
+            this.url = getSheetUrl(this.sheet)
             this.row = await this.getLastRow()
         }
         return this.sheet !== undefined
+    }
+
+    public getUrl(): string {
+        return this.url
     }
 
     public async getInfo(): Promise<BudgetSheetGetInfo> {

@@ -55,6 +55,7 @@ interface BudgetItem {
     totalMU: number
     total: number
     peds: number
+    url: string
 }
 
 export {

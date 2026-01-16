@@ -109,7 +109,8 @@ const reduceEnableBudgetItem = (state: BudgetState, name: string): BudgetState =
                 name,
                 totalMU: 0,
                 total: 0,
-                peds: 0
+                peds: 0,
+                url: ''
             }
         ]
     }
