@@ -21,6 +21,7 @@ interface BudgetMaterials {
 type BudgetMaterialsMap = { [name: string] : BudgetMaterialState }
 
 interface BudgetMaterialState {
+    sheetName: string
     expanded: boolean
     selected: boolean
     unitValue: number // quantity * unitValue = value

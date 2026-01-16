@@ -4,6 +4,7 @@ import { BudgetInfoData, BudgetSheetGetInfo } from '../../services/api/sheets/sh
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages';
 import { BlueprintData, BlueprintSession, BlueprintSessionDiff, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintStateWebData, BlueprintBudgetMaterials, BlueprintBudget, BlueprintBudgetMaterial, BlueprintMaterial, CraftingWebData, CraftOptions, CraftingUserData } from '../state/craft';
 import { InventoryState } from '../state/inventory';
+import { ItemsMap } from '../state/items';
 import * as Sort from "./craftSort"
 import { getBlueprintList } from './inventory';
 
@@ -38,23 +39,26 @@ const reduceSetState = (state: CraftState, inState: CraftState): CraftState => (
 })
 
 const itemNameFromBpName = (bpName: string): string => bpName?.split('Blueprint')[0].trim()
-const bpNameFromItemName = (inv: InventoryState, itemName: string): string =>
+const bpNameFromItemName = (inv: InventoryState, itemName: string): string | undefined =>
     getBlueprintList(inv).find(bp => itemNameFromBpName(bp.n) == itemName)?.n
-const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData =>
+const bpDataFromItemName = (state: CraftState, itemName: string): BlueprintData | undefined =>
     Object.values(state.blueprints).find(bp => bp.c?.itemName == itemName)
 
 const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
     name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c?.itemName ? BP_ITEM_NAME : name
+const nameFromItemString = (itemName: string, name: string): string => // assume limited for blueprint
+    name === BP_BLUEPRINT_NAME ? itemName + ' Blueprint (L)' : name === BP_ITEM_NAME ? itemName : name
 
 const isLimited = (name: string): boolean => name?.endsWith('(L)') ?? false
 
-const budgetInfoFromBp = (bp: BlueprintData): BudgetInfoData => ({
-    itemName: bp.c?.itemName,
-    materials: bp.web?.blueprint.data?.value.materials.map(m => ({
-        name: m.name,
-        unitValue: m.value
+const budgetInfoFromBp = (bp: BlueprintData, mat: ItemsMap): BudgetInfoData => ({
+    itemName: bp.c!.itemName,
+    materials: bp.c!.materials!.map(m => ({
+        name: itemStringFromName(bp, m.name),
+        unitValue: m.value,
+        markup: Number(mat[m.name]?.markup?.value ?? 100) / 100
     }))
 })
 
@@ -105,7 +109,7 @@ const reduceRemoveBlueprint = (state: CraftState, name: string): CraftState => _
             result[key] = state.blueprints[key]
         }
         return result;
-    }, {})
+    }, {} as CraftState['blueprints'])
 })
 
 function _addItemBlueprint(bpName: string, item: { name: string, value: number }, materials: BlueprintMaterial[]) {
@@ -663,6 +667,7 @@ export {
     bpNameFromItemName,
     bpDataFromItemName,
     itemStringFromName,
+    nameFromItemString,
     budgetInfoFromBp,
     isLimited,
 }

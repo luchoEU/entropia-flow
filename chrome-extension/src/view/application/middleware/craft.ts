@@ -170,6 +170,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case AppAction.INITIALIZE: {
             const state: CraftState = getCraft(getState())
             const settings: SettingsState = getSettings(getState())
+            const mat: ItemsMap = getItemsMap(getState())
 
             const loadBudget = async (bpName: string): Promise<void> => {
                 try {
@@ -177,7 +178,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const setStage = (stage: number) => dispatch(setBudgetPageStage(bpName, stage))
                     
                     // TODO: error 429 (Too Many Requests)
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bpInfo), action.type === START_BUDGET_PAGE_LOADING)
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bpInfo, mat), action.type === START_BUDGET_PAGE_LOADING)
                     if (sheet !== undefined) {
                         await sheet.save()
                         const info: BudgetSheetGetInfo = await sheet.getInfo()
@@ -381,11 +382,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
+                const mat: ItemsMap = getItemsMap(getState())
 
                 const activeSessionBp = state.blueprints[state.activeSession ?? '']
                 if (activeSessionBp.session?.diffMaterials !== undefined) {
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
-                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp))
+                    const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp, mat))
                     const d: BudgetLineData = {
                         reason: 'Craft',
                         materials: activeSessionBp.session.diffMaterials.map(m => ({
@@ -414,25 +416,26 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             try {
                 const state: CraftState = getCraft(getState())
                 const settings: SettingsState = getSettings(getState())
+                const mat: ItemsMap = getItemsMap(getState())
                 const activeSessionBp = state.blueprints[bpName]
                 const materialName = action.payload.materialName
 
                 const setStage = (stage: number) => dispatch(setCraftingSessionStage(bpName, stage))
-                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp))
+                const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp, mat))
 
                 let quantity = action.payload.quantity
                 let value = action.payload.value
                 if (action.payload.text === BUDGET_MOVE) {
                     for (var bp of Object.values(state.blueprints)) {
                         if (bp.name !== bpName) {
-                            const m = bp.c.materials[materialName]
-                            const budgetM = bp.budget.sheet.materials[materialName]
-                            if (budgetM?.count && budgetM.count > m.available) {
-                                const q = Math.min(budgetM.count - m.available, quantity)
-                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bp))
+                            const m = bp.c!.materials![materialName]
+                            const budgetM = bp.budget!.sheet!.materials[materialName]
+                            if (budgetM?.count && budgetM.count > m.available!) {
+                                const q = Math.min(budgetM.count - m.available!, quantity)
+                                const sheetFrom: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(bp, mat))
                                 const v = q * m.value * budgetM.markup
-                                await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.c.itemName}`)
-                                await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.c.itemName}`)
+                                await sheetFrom.addBuyMaterial(materialName, -q, v, `Move to ${activeSessionBp.c!.itemName}`)
+                                await sheet.addBuyMaterial(materialName, q, -v, `Move from ${bp.c!.itemName}`)
 
                                 await sheetFrom.save()
                                 const infoFrom: BudgetSheetGetInfo = await sheetFrom.getInfo()
@@ -479,7 +482,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
 async function loadBlueprintLoop(bpName: string, dispatch: Dispatch<any>) {
     if (!bpName) return; // TODO, why is it not defined?
-    
+
     // 'T1 Weapon Economy Enhancer Blueprint (L)' to 'Weapon Economy Enhancer 1 Blueprint (L)'
     const renamedBpName = bpName.replace(/^T(\d+)\s+(.*?)\s+Blueprint(\s+\(L\))?$/, "$2 $1 Blueprint$3");
     let names: string[] = renamedBpName !== bpName ? [bpName, renamedBpName] : [bpName]

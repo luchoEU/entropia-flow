@@ -35,6 +35,7 @@ interface BudgetInfoData {
     materials?: {
         name: string
         unitValue: number
+        markup: number
     }[]
 }
 
@@ -50,8 +51,8 @@ interface BudgetLineData {
 class BudgetSheet {
     private setStage: SetStage
     private sheet: any
-    private row: number
-    private url: string
+    private row: number | undefined
+    private url: string | undefined
 
     constructor(setStage: SetStage) {
         this.setStage = setStage
@@ -62,7 +63,7 @@ class BudgetSheet {
         this.row = await this.getLastRow()
     }
 
-    private addTitle(column: number, title: string, unitValue?: number) {
+    private addTitle(column: number, title: string, unitValue?: number, markup?: number) {
         const cell = this.sheet.getCell(TITLE_ROW, column)
         cell.value = title
         cell.backgroundColor = { blue: 1 }
@@ -70,7 +71,7 @@ class BudgetSheet {
 
         if (unitValue !== undefined) {
             this.sheet.getCell(UNIT_VALUE_ROW, column).value = unitValue
-            this.sheet.getCell(MARKUP_ROW, column).value = 1
+            this.sheet.getCell(MARKUP_ROW, column).value = markup ?? 1
             this.sheet.getCell(MARKUP_ROW, column).numberFormat = { type: 'PERCENT', pattern: '0.00%' }
             this.sheet.getCell(CURRENT_ROW, column).formula = `=SUM(${cell.a1Column}${START_ROW+1}:${cell.a1Column})`
             this.sheet.getCell(TOTAL_MU_ROW, column).formula = `=${cell.a1Column}${UNIT_VALUE_ROW+1}*(${cell.a1Column}${MARKUP_ROW+1}-1)*${cell.a1Column}${CURRENT_ROW+1}`
@@ -84,10 +85,10 @@ class BudgetSheet {
         this.sheet = await createBudgetSheet(doc, this.setStage, data.itemName, TOTAL_ROW + 1, MATERIAL_COLUMN + (data.materials?.length || 0))
         this.url = getSheetUrl(this.sheet)
 
-        this.addTitle(DATE_COLUMN, 'Date', undefined)
-        this.addTitle(BUDGET_COLUMN, 'Budget', undefined)
-        this.addTitle(CHANGE_COLUMN, 'Change', undefined)
-        this.addTitle(REASON_COLUMN, 'Reason', undefined)
+        this.addTitle(DATE_COLUMN, 'Date')
+        this.addTitle(BUDGET_COLUMN, 'Budget')
+        this.addTitle(CHANGE_COLUMN, 'Change')
+        this.addTitle(REASON_COLUMN, 'Reason')
         this.sheet.getCell(UNIT_VALUE_ROW, REASON_COLUMN).value = 'Unit Value'
         this.sheet.getCell(MARKUP_ROW, REASON_COLUMN).value = 'Markup'
         this.sheet.getCell(CURRENT_ROW, REASON_COLUMN).value = 'Current'
@@ -97,7 +98,7 @@ class BudgetSheet {
 
         let column = MATERIAL_COLUMN
         for (const m of data.materials || [])
-            this.addTitle(column++, m.name, m.unitValue)
+            this.addTitle(column++, m.name, m.unitValue, m.markup)
 
         const firstLetter = this.sheet.getCell(0, PED_COLUMN).a1Column
         const lastLetter = this.sheet.getCell(0, column-1).a1Column
@@ -114,7 +115,7 @@ class BudgetSheet {
     }
 
     private addDate() {
-        setDayDate(this.sheet, this.row, DATE_COLUMN, 'A')
+        setDayDate(this.sheet, this.row!, DATE_COLUMN, 'A')
     }
 
     public async hasPage(doc: GoogleSpreadsheet, itemName: string): Promise<boolean> {
@@ -131,7 +132,7 @@ class BudgetSheet {
     }
 
     public getUrl(): string {
-        return this.url
+        return this.url!
     }
 
     public async getInfo(): Promise<BudgetSheetGetInfo> {
@@ -192,8 +193,8 @@ class BudgetSheet {
                 }
             }
         }
-        await this.addBudget(this.row)
-        this.row++
+        await this.addBudget(this.row!)
+        this.row!++
     }
 
     public async addBuyMaterial(materialName: string, materialQuantity: number, ped: number, reason: string): Promise<void> {

@@ -3,6 +3,7 @@ import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_MATERIAL_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/budget"
 import { getItemList } from "../helpers/inventory"
@@ -13,6 +14,7 @@ import { getSettings } from "../selectors/settings"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
+import { nameFromItemString } from "../helpers/craft"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -72,6 +74,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
             dispatch(setBudgetFromSheet(map, items, 100))
 
+            // Load item data for materials with unknown unit value
+            for (const materialName of Object.keys(map)) {
+                if (map[materialName].unitValue === 0) {
+                    dispatch(loadItemData(materialName))
+                }
+            }
+
             const updatedState: BudgetState = getBudget(getState())
             await api.storage.saveBudget(cleanForSave(updatedState))
 
@@ -97,7 +106,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         }
                     }
                     lines[itemName].materials.push({
-                        name: materialName,
+                        name: material.sheetName,
                         quantity: -(material.c?.balanceQuantity || 0)
                     })
                     lines[itemName].ped = (lines[itemName].ped || 0) + (material.c?.balanceWithMarkup || 0)
@@ -134,6 +143,24 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
 
             break
         }
+        case SET_ITEM_PARTIAL_WEB_DATA: {
+            const materialName: string = action.payload.item
+            const budget: BudgetState = getBudget(getState())
+            const material = budget.materials.map[materialName]
+
+            if (material && material.unitValue === 0) {
+                const materials: ItemsState = getItems(getState())
+                const matInfo = materials.map[materialName]
+                const unitValue = matInfo?.web?.item?.data?.value.value ?? 0
+
+                if (unitValue !== 0) {
+                    const map = { ...budget.materials.map }
+                    map[materialName] = { ...map[materialName], unitValue }
+                    dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
+                }
+            }
+            break
+        }
     }
 }
 
@@ -141,13 +168,15 @@ async function processSheetInfo(api: any, setStage: SetStage, settings: Settings
     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, { itemName })
     const info: BudgetSheetGetInfo = await sheet.getInfo()
 
-    for (const name of Object.keys(info.materials)) {
-        var m = info.materials[name]
+    for (const infoName of Object.keys(info.materials)) {
+        var m = info.materials[infoName]
 
+        const name = nameFromItemString(itemName, infoName)
         const matInfo = materials.map[name]
 
         if (map[name] === undefined) {
             map[name] = {
+                sheetName: infoName,
                 expanded: false,
                 selected: false,
                 markup: m.markup,

@@ -23,16 +23,29 @@ export class EntropiaNexus implements IWebSource {
             const url = nexusApiUrl(`items/${itemName}`)
             item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(itemName))
             if (!item.ok) {
-                const searchUrl = nexusApiUrl(`search/items?query=${itemName}`)
-                const searchResult = await mapResponse(fetchJson<EntropiaSearchItem[]>(searchUrl), _extractItemName(itemName))
-                if (searchResult.ok) {
-                    const nexusItemName = searchResult.data?.find(name => name.toLowerCase() === itemName.toLowerCase())
-                    if (!nexusItemName || nexusItemName === itemName) {
-                        return item
+                // 'T1 Weapon Economy Enhancer Blueprint (L)' to 'Weapon Economy Enhancer 1 Blueprint (L)'
+                const renamedItemName = itemName.replace(/^T(\d+) (.*?) Enhancer(.*)?$/, "$2 Enhancer $1$3");
+                if (renamedItemName !== itemName) {
+                    const url = nexusApiUrl(`items/${renamedItemName}`)
+                    item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(renamedItemName))
+                    if (item.data) {
+                        item.data.name = itemName
+                        if (itemName.includes('Blueprint (L)')) {
+                            item.data.value = 0.01 // it returns 1 for blueprints
+                        }
                     }
-                    // try again with correct case
-                    const url = nexusApiUrl(`items/${nexusItemName}`)
-                    item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(nexusItemName))
+                } else {
+                    const searchUrl = nexusApiUrl(`search/items?query=${itemName}`)
+                    const searchResult = await mapResponse(fetchJson<EntropiaSearchItem[]>(searchUrl), _extractItemName(itemName))
+                    if (searchResult.ok) {
+                        const nexusItemName = searchResult.data?.find(name => name.toLowerCase() === itemName.toLowerCase())
+                        if (!nexusItemName || nexusItemName === itemName) {
+                            return item
+                        }
+                        // try again with correct case
+                        const url = nexusApiUrl(`items/${nexusItemName}`)
+                        item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(nexusItemName))
+                    }
                 }
             }
         }

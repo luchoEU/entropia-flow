@@ -14,24 +14,25 @@ const ExpandableMaterial = (p: {
     setExpanded: (expanded: boolean) => any,
     children: any
 }) => {
+    if (p.material.c.balanceWithMarkup === 0) return <></>
+
     const dispatch = useDispatch()
-    const buttonText = Math.abs(p.material.c.balanceWithMarkup) >= SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP ? `${p.material.c.balanceWithMarkup.toFixed(2)} PED !!!` : '+'
+    const balanceText = `${p.material.c.balanceWithMarkup.toFixed(2)} PED`
     return (
         <div className='craft-material'>
             <h3>
-                <div>{p.material.c.totalBudgetQuantity}</div>
+                <div>{balanceText} {Math.abs(p.material.c.balanceWithMarkup) >= SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP ? '!!!' : ''}</div>
                 <div>{p.material.selected ? <strong>{p.name}</strong> : p.name}</div>
                 {
                     (p.material.c.balanceQuantity === 0) ? <></> :
                     (p.material.selected ?
-                        <button onClick={() => dispatch(removeBudgetMaterialSelection(p.name))}>{buttonText} selected</button> :
-                        <button onClick={() => dispatch(addBudgetMaterialSelection(p.name))}>{buttonText}</button>)
+                        <button onClick={() => dispatch(removeBudgetMaterialSelection(p.name))}>- selected</button> :
+                        <button onClick={() => dispatch(addBudgetMaterialSelection(p.name))}>+</button>)
                 }
                 <ExpandableArrowButton expanded={p.material.expanded} setExpanded={p.setExpanded} />
             </h3>
-            {
-                p.material.expanded ? p.children : ''
-            }
+            { p.material.unitValue === 0 && <p>Error: failed to load unit value!</p> }
+            { p.material.expanded ? p.children : '' }
         </div>
     )
 }

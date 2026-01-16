@@ -102,9 +102,9 @@ function calc(state: RefinedCalculatorStateIn, m: ItemsMap): RefinedCalculatorSt
 
     const buyoutValue = Number(state.value) //120
     const markup = Number(m[state.refinedMaterial].markup.value) //119.99
-    const pedMaterial = 1000 / m[state.refinedMaterial].refined.kValue // 10000
-    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined.kValue * getMarkupMultiplier(m[name]), 0) // 11.493
-    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined.kValue, 0) / m[state.refinedMaterial].refined.kValue * 1000 // 100100
+    const pedMaterial = 1000 / m[state.refinedMaterial].refined!.kValue // 10000
+    const costMaterials = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined!.kValue * getMarkupMultiplier(m[name]), 0) // 11.493
+    const kRefined = state.sourceMaterials.reduce((acc, name) => acc + m[name].refined!.kValue, 0) / m[state.refinedMaterial].refined!.kValue * 1000 // 100100
 
     const amount = Math.ceil(buyoutValue / (markup + 0.005) * 100 * pedMaterial) // 100042
     const buyoutFee = auctionFee(buyoutValue - amount / pedMaterial) // 1.48
@@ -176,7 +176,8 @@ function budgetGetCreateParams(state: any, material: string): any[] {
         itemName: material,
         materials: [ calc.refinedMaterial, ...calc.sourceMaterials ].map(m => ({
             name: m,
-            unitValue: getItem(m)(state).refined.kValue / 1000
+            unitValue: getItem(m)(state).refined!.kValue / 1000,
+            markup: Number(getItem(m)(state).markup.value) / 100
         }))
     }
     return [ info, true ]

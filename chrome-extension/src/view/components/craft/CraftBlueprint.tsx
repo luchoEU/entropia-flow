@@ -11,7 +11,7 @@ import { LastRequiredState } from '../../application/state/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
 import { getItems, getItemsMap } from '../../application/selectors/items'
-import { BlueprintWebData, BlueprintWebMaterial, ItemWebData, RawMaterialWebData } from '../../../web/state'
+import { BlueprintWebData, BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
 import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, startMaterialEditMode } from '../../application/actions/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
@@ -58,7 +58,7 @@ function SessionInfo(p: {
         case STEP_READY:
             return <>Ready <button onClick={() => dispatch(endCraftingSession(p.name))}>End</button></>
         case STEP_SAVING:
-            return <>Saving <img className='img-loading' src='img/loading.gif' /> {StageText[p.session.stage]}...</>
+            return <>Saving <img className='img-loading' src='img/loading.gif' /> {StageText[p.session.stage!]}...</>
         case STEP_DONE:
             return <button onClick={() => dispatch(clearCraftingSession(p.name))}>Clear</button>
         default:
@@ -82,13 +82,13 @@ const CraftSingle = ({ bp, activeSession, message }: {
     const showBudget = useSelector(selectIsFeatureEnabled(Feature.budget));
     const { ref: tableRef, size: { width: tableWidth } } = useElementSize<HTMLTableElement>();
 
-    let markupLoaded = bp.budget.sheet?.clickMUCost !== undefined
-    let markupMap: {[name: string]: number}
-    let budgetMap = undefined
-    let clickMUCost: number
+    let markupLoaded = bp.budget?.sheet?.clickMUCost !== undefined
+    let markupMap: {[name: string]: number} | undefined
+    let budgetMap: {[name: string]: number} | undefined
+    let clickMUCost: number | undefined
     if (markupLoaded) {
-        clickMUCost = bp.budget.sheet?.clickMUCost;
-        Object.entries(bp.budget.sheet.materials).forEach(([k, m]) => {
+        clickMUCost = bp.budget!.sheet!.clickMUCost;
+        Object.entries(bp.budget!.sheet!.materials).forEach(([k, m]) => {
             if (m.markup !== 1) {
                 if (markupMap === undefined)
                     markupMap = {}
@@ -105,7 +105,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
         markupMap = Object.fromEntries(bp.c.materials.map((m: BlueprintMaterial) => {
             const nMarkup = Number(mat[m.name]?.markup?.value);
             const markup = isNaN(nMarkup) ? 1 : nMarkup / 100;
-            clickMUCost += m.quantity * m.value * markup;
+            clickMUCost! += m.quantity * m.value * markup;
             return [m.name, markup];
         }))
         if (Object.values(markupMap).every(n => n === 1)) {
@@ -114,9 +114,9 @@ const CraftSingle = ({ bp, activeSession, message }: {
         }
     }
 
-    let session: {[name: string]: number}
-    let sessionTTprofit: number
-    let sessionMUprofit: number
+    let session: {[name: string]: number} | undefined
+    let sessionTTprofit: number | undefined
+    let sessionMUprofit: number | undefined
     let bought: {[name: string]: {
         quantity: number,
         value: string,
@@ -133,18 +133,18 @@ const CraftSingle = ({ bp, activeSession, message }: {
         sessionTTprofit = 0
         if (markupLoaded)
             sessionMUprofit = 0
-        bp.web?.blueprint.data.value.materials.forEach((m: BlueprintWebMaterial) => {
-            const diff = bp.session.diffMaterials.find(x => x.n == m.name)
+        bp.web?.blueprint.data!.value.materials.forEach((m: BlueprintWebMaterial) => {
+            const diff = bp.session!.diffMaterials!.find(x => x.n == m.name)
             if (diff !== undefined) {
-                session[m.name] = diff.q
-                sessionTTprofit += diff.v
+                session![m.name] = diff.q
+                sessionTTprofit! += diff.v
                 if (markupLoaded) {
-                    sessionMUprofit += diff.v * bp.budget.sheet.materials[m.name].markup
+                    sessionMUprofit! += diff.v * bp.budget!.sheet!.materials[m.name].markup
                 }
             }
         })
-    } else if (bp.budget.hasPage) {
-        Object.entries(bp.budget.sheet.materials).forEach(([k, m]) => {
+    } else if (bp.budget!.hasPage) {
+        Object.entries(bp.budget!.sheet!.materials).forEach(([k, m]) => {
             if (budgetMap && budgetMap[k] < 0 && !m.buyDone) {
                 if (bought === undefined) {
                     bought = {}
@@ -165,9 +165,9 @@ const CraftSingle = ({ bp, activeSession, message }: {
 
         const { c: { diff } }: LastRequiredState = useSelector(getLast)
         if (diff) {
-            bp.c.materials?.forEach((m: BlueprintWebMaterial) => {
+            bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
                 const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
-                const budgetM = bp.budget.sheet?.materials[m.name]
+                const budgetM = bp.budget!.sheet?.materials[m.name]
                 if (item !== undefined && budgetM && !budgetM.buyDone) {
                     if (bought === undefined) {
                         bought = {}
@@ -193,7 +193,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
         const { c: { diff } }: LastRequiredState = useSelector(getLast);
         if (diff) {
             let onNeeded = false
-            bp.c.materials?.forEach((m: BlueprintWebMaterial) => {
+            bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
                 const sum = diff.filter(x => x.n == m.name && !x.c.includes('⭢'))
                     .reduce((p, c) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
                 if (sum.v !== 0) {
@@ -204,9 +204,9 @@ const CraftSingle = ({ bp, activeSession, message }: {
                             sessionMUprofit = 0;
                     }
 
-                    session[m.name] = sum.q;
-                    sessionTTprofit += sum.v;
-                    sessionMUprofit += sum.v * (markupMap?.[m.name] ?? 1);
+                    session![m.name] = sum.q;
+                    sessionTTprofit! += sum.v;
+                    sessionMUprofit! += sum.v * (markupMap?.[m.name] ?? 1);
                     onNeeded = onNeeded || m.quantity > 0
                 }
             })
