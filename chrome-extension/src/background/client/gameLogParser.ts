@@ -61,7 +61,7 @@ const attributeRegex = /Your (.*) has improved by (.*)/
 const positionRegex = /^(.*), (\d*), (\d*), (\d*), (.*)$/
 const braketRegex = /\[(.+?)]/g
 const tierRegex = /Your (.+) has reached tier (.+)/
-const eventRegex = {
+const systemEventRegex = {
     auctionCreated: /Auction successfully created/,
     blueprintImproved: /Your blueprint Quality Rating has improved/,
     challenged: /The (.+) has been challenged!/,
@@ -110,11 +110,17 @@ const eventRegex = {
     youNoLongerAway: /You are no longer away from keyboard/,
     youNotWounded: /You are not wounded/,
 }
+const teamEventRegex = {
+    revived: /(.+) was revived/,
+    killed: /(.+) was killed/,
+    reconnected: /(.+) reconnected/,
+    disconnected: /(.+) disconnected/
+}
 const enhancerBroken = /Your enhancer (.+) on your (.*) broke. You have (\d+) enhancers? remaining on the item. You received (.+) PED Shrapnel\./
 
 class GameLogParser {
     private _serial: number = 1
-    public onLines: (lines: GameLogLine[]) => void
+    public onLines: ((lines: GameLogLine[]) => void) | undefined
 
     public async onMessage(msg: string): Promise<void> {
         const lines = msg.split('\n')
@@ -169,7 +175,7 @@ class GameLogParser {
                         line.data.stats[key] = match.length > 1 ? parseFloat(match[1]) : 1;
                     }
                 })
-                Object.entries(eventRegex).forEach(([key, regex]) => {
+                Object.entries(systemEventRegex).forEach(([key, regex]) => {
                     const match = regex.exec(line.message);
                     if (match !== null && line.data.event === undefined) {
                         line.data.event = {
@@ -259,6 +265,17 @@ class GameLogParser {
                         };
                     }
                 }
+                Object.entries(teamEventRegex).forEach(([key, regex]) => {
+                    const match = regex.exec(line.message);
+                    if (match !== null && line.data.event === undefined) {
+                        line.data.event = {
+                            time: line.time,
+                            data: match.slice(1),
+                            message: line.message,
+                            action: key
+                        }
+                    }
+                })
                 break;
         }
 
