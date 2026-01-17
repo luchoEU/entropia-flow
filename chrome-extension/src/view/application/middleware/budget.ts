@@ -109,7 +109,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         name: material.sheetName,
                         quantity: -(material.c?.balanceQuantity || 0)
                     })
-                    lines[itemName].ped = (lines[itemName].ped || 0) + (material.c?.balanceWithMarkup || 0)
+                    const ped = (lines[itemName].ped || 0) + (material.c?.balanceWithMarkup || 0)                    
+                    lines[itemName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
                 }
             }
 
