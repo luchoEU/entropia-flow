@@ -157,13 +157,16 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     const remaining = diff.filter(d => !used.has(d.key))
     if (remaining.length > 0) {
         const itemNames = remaining.map(r => r.n)
-        const displayName = itemNames.length > 3 
+        const displayName = itemNames.length > 3
             ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
             : itemNames.join(', ')
-        
+
+        const totalValue = remaining.reduce((sum, r) => sum + (Number(r.v) || 0), 0)
+
         actions.push({
             type: 'unknown',
             item: displayName,
+            value: totalValue,
             relatedItems: remaining
         })
     }

@@ -30,7 +30,7 @@ function formatActionDescription(action: InferredAction): string {
         case 'sold_auction':
             return `💰 Sold ${action.amount} ${action.item} for ${action.value} PED`
         case 'bought_auction':
-            return `🛒 Bought ${action.amount} ${action.item}${action.value ? ` for ${action.value} PED` : ''}`
+            return `🛒 Bought ${action.amount} ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
         case 'chip_out':
             return `🧠 Extracted ${action.item} from ${action.from}`
         case 'refine':
@@ -49,7 +49,7 @@ function formatActionDescription(action: InferredAction): string {
             return `📤 Lost ${action.amount} ${action.item}`
         case 'unknown':
         default:
-            return `❓ Changes in ${action.item}`
+            return `❓ Changes in ${action.item}}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
     }
 }
 
