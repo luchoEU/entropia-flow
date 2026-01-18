@@ -59,6 +59,25 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
+    // 2.5 Match auction wins without AUCTION container: item gained + PED Card loss
+    if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
+        const gainedItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
+        if (gainedItems.length === 1) {
+            const item = gainedItems[0]
+            const amount = Number(item.q)
+            const value = -Number(pedCard.v)
+            actions.push({
+                type: 'bought_auction',
+                item: item.n,
+                amount,
+                value,
+                relatedItems: [item, pedCard]
+            })
+            used.add(item.key)
+            used.add(pedCard.key)
+        }
+    }
+
     // 3. Match chip_out: item consumed in an Implant Inserter + skill chip gained + inserter decay
     for (const item of diff) {
         if (used.has(item.key)) continue

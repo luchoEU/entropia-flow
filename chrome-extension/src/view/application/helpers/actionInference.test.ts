@@ -99,4 +99,21 @@ describe('inferActions', () => {
             relatedItems: [diff[0], diff[1], diff[2]]
         }])
     })
+
+    it('should infer bought_auction for Diluted Sweat', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'Diluted Sweat', q: '7320', v: '73.20', c: 'CARRIED' },
+            { key: 1, n: 'PED Card', q: '', v: '-79.00', c: 'CARRIED' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'bought_auction',
+            item: 'Diluted Sweat',
+            amount: 7320,
+            value: 79.00,
+            relatedItems: [diff[0], diff[1]]
+        }])
+    })
 })
