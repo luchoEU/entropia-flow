@@ -123,7 +123,7 @@ const refinedUseMaterial = (material: string, amount: string) => {
         payload: {
             operationType: OPERATION_TYPE_REFINED_USE_MATERIAL,
             material,
-            paremeters: [ line ]
+            parameters: [ line ]
         }
     }
 }

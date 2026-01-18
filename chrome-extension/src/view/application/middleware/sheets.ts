@@ -44,7 +44,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const sheetMapKey = sheetFuncName + sheetFuncGetParams === undefined ? '' : '+' + c.material
                     let sheet = sheetMap[sheetMapKey]
                     if (sheet === undefined) {
-                        sheet = await api.sheets[sheetFuncName].call(api.sheets, settings.sheet, setStage, ...sheetFuncGetParams(getState(), c.material))
+                        sheet = await api.sheets[sheetFuncName].call(api.sheets, settings, setStage, ...sheetFuncGetParams(getState(), c.material))
                         sheetMap[sheetMapKey] = sheet
                     }
                     const row = await sheet[operationChangeFunc[c.operationType]].call(sheet, ...c.parameters)
