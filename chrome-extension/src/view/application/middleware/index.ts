@@ -26,6 +26,7 @@ import tabular from './tabular'
 import expandable from './expandable'
 import trade from './trade'
 import mode from './mode'
+import actions from './actions'
 
 export default [
     ...messages,
@@ -56,4 +57,5 @@ export default [
     ...expandable,
     ...trade,
     ...mode,
+    ...actions,
 ]

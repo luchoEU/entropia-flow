@@ -1,9 +1,10 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { sortBy, setItemExpanded, exportToFile } from '../../application/actions/history'
+import { sortBy, setItemExpanded, exportToFile, toggleActionsView } from '../../application/actions/history'
 import { setAsLast } from '../../application/actions/messages'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
+import ActionTree from './ActionTree'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ItemText from '../common/ItemText'
 import ImgButton from '../common/ImgButton'
@@ -61,7 +62,20 @@ const InventoryItem = (p: { item: ViewInventory }) => {
             </td>
         </tr>
         { item.expanded && <tr><td colSpan={2}>
-                <InventoryDifference diff={item.diff} peds={[]} config={config} />
+                { item.actions && item.actions.length > 0 &&
+                    <button
+                        className='button-toggle-view'
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            dispatch(toggleActionsView(item.key))
+                        }}>
+                        {item.showActions ? 'Show Items' : 'Show Actions'}
+                    </button>
+                }
+                { item.showActions && item.actions && item.actions.length > 0 ?
+                    <ActionTree actions={item.actions} /> :
+                    <InventoryDifference diff={item.diff} peds={[]} config={config} />
+                }
             </td></tr>
         }
     </>

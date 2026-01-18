@@ -27,9 +27,10 @@ import expandable from './expandable'
 import trade from './trade'
 import mode from './mode'
 import app from '../slice/app'
+import actions from './actions'
 
 export default combineReducers({
     status, items, history, last, calculator, actives, order, sweat, stackable,
     refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
-    connection, budget, ttService, tabular, expandable, trade, mode, app
+    connection, budget, ttService, tabular, expandable, trade, mode, app, actions
 })

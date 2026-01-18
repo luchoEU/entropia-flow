@@ -10,6 +10,7 @@ enum Feature {
     unfreezeTab,
     commaDecimalSeparator,
     notification,
+    actions,
 }
 
 const featureList: FeatureInfo[] = [
@@ -66,6 +67,12 @@ Alternatively, you can choose to handle this manually by opening the tab yoursel
         id: Feature.notification,
         title: 'Notification',
         description: 'Show notifications or disable all of them',
+    },
+    {
+        id: Feature.actions,
+        title: 'Actions',
+        description: 'Show Actions tab with timeline of inferred activities',
+        development: true,
     },
 ]
 

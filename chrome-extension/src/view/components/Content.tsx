@@ -10,6 +10,7 @@ import StreamView from './stream/StreamView'
 import TradePage from './trade/TradePage'
 import BudgetPage from './budget/BudgetPage'
 import ClientPage from './client/ClientPage'
+import ActionsPage from './actions/ActionsPage'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { TabId } from '../application/state/navigation'
 import { useSelector } from 'react-redux'
@@ -41,6 +42,7 @@ function ContentPage() {
             { path: `${TabId.CRAFT}/:bpName`, component: CraftPage }
         ] },
         { id: TabId.BUDGET, routes: [ { path: TabId.BUDGET, component: BudgetPage } ] },
+        { id: TabId.ACTIONS, routes: [ { path: TabId.ACTIONS, component: ActionsPage } ] },
         { id: TabId.STREAM, routes: [
             { path: TabId.STREAM, component: StreamPage },
             { path: `${TabId.STREAM}/layout/:layoutId`, component: StreamPage },

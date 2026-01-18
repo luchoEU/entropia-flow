@@ -1,6 +1,7 @@
 import { CLASS_LAST, CLASS_NEW_DATE, CLASS_REQUESTED } from "../../../common/const";
 import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
+import { inferActions } from "./actionInference";
 import * as Sort from "./inventory.sort"
 import { HistoryState, ViewInventory } from "../state/history";
 
@@ -81,10 +82,11 @@ function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
     return list[0] // should never happend
 }
 
-function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean): ViewInventory {
+function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean, showActions: boolean): ViewInventory {
     const diff = getDifference(inventory, previous)
     if (diff)
         Sort.sortList(diff, sortType)
+    const actions = diff ? inferActions(diff) : undefined
     return {
         key: inventory.meta.date,
         text: getText(inventory),
@@ -95,7 +97,9 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
         sortType,
         isLast,
         canBeLast: getCanBeLast(inventory),
-        rawInventory: inventory
+        rawInventory: inventory,
+        actions,
+        showActions
     }
 }
 
@@ -114,13 +118,15 @@ function reduceSetHistoryList(state: HistoryState, list: Array<Inventory>, last:
 
         let expanded = false
         let sortType = Sort.SORT_NAME_ASCENDING
+        let showActions = true
         const oldItem = state.list.find(i => i.key === inv.meta.date)
         if (oldItem !== undefined) {
             expanded = oldItem.expanded
             sortType = oldItem.sortType
+            showActions = oldItem.showActions
         }
 
-        viewList.push(getViewInventory(inv, prev!, expanded, sortType, last === inv.meta.date))
+        viewList.push(getViewInventory(inv, prev!, expanded, sortType, last === inv.meta.date, showActions))
     }
     return {
         ...state,
@@ -169,6 +175,15 @@ function reduceHistorySortBy(state: HistoryState, key: number, part: number): Hi
     }
 }
 
+function reduceToggleActionsView(state: HistoryState, key: number): HistoryState {
+    return {
+        ...state,
+        list: state.list.map(inv =>
+            inv.key === key ? { ...inv, showActions: !inv.showActions } : inv
+        )
+    }
+}
+
 export {
     initialState,
     getText,
@@ -177,5 +192,6 @@ export {
     reduceSetHistoryList,
     reduceSetItemExpanded,
     reduceSetHistoryIntervalId,
-    reduceHistorySortBy
+    reduceHistorySortBy,
+    reduceToggleActionsView
 }

@@ -5,6 +5,7 @@ const SET_ITEM_EXPANDED = "[hist] set item expanded"
 const SET_HISTORY_INTERVAL_ID = "[hist] set interval id"
 const SORT_BY = "[hist] sort by"
 const EXPORT_TO_FILE = "[hist] export to file"
+const TOGGLE_ACTIONS_VIEW = "[hist] toggle actions view"
 
 const setHistoryList = (list: Array<Inventory>, last?: number) => ({
     type: SET_HISTORY_LIST,
@@ -44,15 +45,24 @@ const exportToFile = (key: number) => ({
     }
 })
 
+const toggleActionsView = (key: number) => ({
+    type: TOGGLE_ACTIONS_VIEW,
+    payload: {
+        key
+    }
+})
+
 export {
     SET_HISTORY_LIST,
     SET_ITEM_EXPANDED,
     SET_HISTORY_INTERVAL_ID,
     SORT_BY,
     EXPORT_TO_FILE,
+    TOGGLE_ACTIONS_VIEW,
     setHistoryList,
     setItemExpanded,
     setHistoryIntervalId,
     sortBy,
     exportToFile,
+    toggleActionsView,
 }

@@ -7,6 +7,7 @@ enum TabId {
     STREAM = '/stream',
     REFINED = '/refined',
     BUDGET = '/budget',
+    ACTIONS = '/actions',
     SETTING = '/setting',
     ABOUT = '/about'
 }
@@ -20,6 +21,7 @@ const tabOrder: TabId[] = [
     TabId.STREAM,
     TabId.REFINED,
     TabId.BUDGET,
+    TabId.ACTIONS,
     TabId.SETTING,
     TabId.ABOUT
 ]

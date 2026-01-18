@@ -1,4 +1,5 @@
 import { Inventory } from "../../../common/state"
+import { InferredAction } from "./actions"
 
 interface ViewItemData {
     key: number // index
@@ -36,6 +37,8 @@ interface ViewInventory {
     isLast: boolean
     canBeLast: boolean
     rawInventory: Inventory
+    actions?: InferredAction[]
+    showActions: boolean
 }
 
 interface HistoryState {
