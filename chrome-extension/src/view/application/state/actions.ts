@@ -15,6 +15,8 @@ type ActionType =
 
 type ActionSource = 'inventory' | 'chat' | 'screen'
 
+type SessionType = 'unknown' | 'hunt' | 'mine' | 'craft'
+
 interface InferredAction {
     type: ActionType
     item: string
@@ -59,16 +61,28 @@ interface StoredAction extends InferredAction {
     sources: ActionSource[]
 }
 
+interface SessionBoundary {
+    id: string
+    name: string
+    type: SessionType
+    startTime: number
+}
+
 interface ActionsState {
     list: StoredAction[]
     lastProcessedInventoryKey?: number
+    sessions: SessionBoundary[]
+    expandedSessions: string[]
+    expandedActionRows: string[]
 }
 
 export {
     ActionType,
     ActionSource,
+    SessionType,
     InferredAction,
     StoredAction,
+    SessionBoundary,
     ActionsState,
     formatActionDescription
 }

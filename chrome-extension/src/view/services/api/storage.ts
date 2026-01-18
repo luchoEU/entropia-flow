@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea";
+import { ActionsState } from '../../application/state/actions'
 import {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
@@ -23,7 +24,8 @@ import {
     STORAGE_VIEW_EXPANDABLE,
     STORAGE_VIEW_TRADE,
     STORAGE_VIEW_MODE,
-    STORAGE_VIEW_LAST
+    STORAGE_VIEW_LAST,
+    STORAGE_VIEW_ACTIONS
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -169,6 +171,14 @@ async function loadLast(): Promise<LastRequiredState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
 }
 
+async function saveActions(state: ActionsState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_ACTIONS, state)
+}
+
+async function loadActions(): Promise<ActionsState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_ACTIONS)
+}
+
 async function saveStream(state: StreamStateIn) {
     await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, state) // TODO: save in SYNC_STORAGE with user images separatetly
 }
@@ -295,6 +305,8 @@ export default {
     loadExpandable,
     saveLast,
     loadLast,
+    saveActions,
+    loadActions,
     saveStream,
     loadStream,
     saveInventoryState,

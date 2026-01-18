@@ -1,9 +1,12 @@
-import { ActionsState, StoredAction } from "../state/actions"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY } from "../actions/actions"
+import { ActionsState, StoredAction, SessionType } from "../state/actions"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, SET_ACTIONS_STATE } from "../actions/actions"
 
 const initialState: ActionsState = {
     list: [],
-    lastProcessedInventoryKey: undefined
+    lastProcessedInventoryKey: undefined,
+    sessions: [],
+    expandedSessions: [],
+    expandedActionRows: []
 }
 
 interface AddActionsAction {
@@ -20,7 +23,36 @@ interface SetLastProcessedKeyAction {
     payload: { key: number }
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction
+interface CreateNewSessionAction {
+    type: typeof CREATE_NEW_SESSION
+}
+
+interface UpdateSessionNameAction {
+    type: typeof UPDATE_SESSION_NAME
+    payload: { sessionId: string; name: string }
+}
+
+interface UpdateSessionTypeAction {
+    type: typeof UPDATE_SESSION_TYPE
+    payload: { sessionId: string; sessionType: SessionType }
+}
+
+interface UpdateExpandedSessionsAction {
+    type: typeof UPDATE_EXPANDED_SESSIONS
+    payload: { expanded: string[] }
+}
+
+interface UpdateExpandedActionRowsAction {
+    type: typeof UPDATE_EXPANDED_ACTION_ROWS
+    payload: { expanded: string[] }
+}
+
+interface SetActionsStateAction {
+    type: typeof SET_ACTIONS_STATE
+    payload: ActionsState
+}
+
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | SetActionsStateAction
 
 export default (state = initialState, action: ActionsAction): ActionsState => {
     switch (action.type) {
@@ -40,6 +72,43 @@ export default (state = initialState, action: ActionsAction): ActionsState => {
                 ...state,
                 lastProcessedInventoryKey: action.payload.key
             }
+        case CREATE_NEW_SESSION:
+            const nextSessionNumber = state.sessions.length + 1
+            return {
+                ...state,
+                sessions: [...state.sessions, {
+                    id: crypto.randomUUID(),
+                    name: `Session ${nextSessionNumber}`,
+                    type: 'unknown' as const,
+                    startTime: Date.now()
+                }].sort((a, b) => a.startTime - b.startTime)
+            }
+        case UPDATE_SESSION_NAME:
+            return {
+                ...state,
+                sessions: state.sessions.map(s =>
+                    s.id === action.payload.sessionId ? { ...s, name: action.payload.name } : s
+                )
+            }
+        case UPDATE_SESSION_TYPE:
+            return {
+                ...state,
+                sessions: state.sessions.map(s =>
+                    s.id === action.payload.sessionId ? { ...s, type: action.payload.sessionType } : s
+                )
+            }
+        case UPDATE_EXPANDED_SESSIONS:
+            return {
+                ...state,
+                expandedSessions: action.payload.expanded
+            }
+        case UPDATE_EXPANDED_ACTION_ROWS:
+            return {
+                ...state,
+                expandedActionRows: action.payload.expanded
+            }
+        case SET_ACTIONS_STATE:
+            return action.payload
         default:
             return state
     }

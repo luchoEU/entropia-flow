@@ -1,10 +1,16 @@
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import { StoredAction, formatActionDescription } from '../../application/state/actions'
+import { useSelector, useDispatch } from 'react-redux'
+import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/actions'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
+import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows } from '../../application/actions/actions'
 
-const getActions = (state: any): StoredAction[] => state.actions.list
+const getActions = (state: any) => ({
+    list: state.actions.list as StoredAction[],
+    sessions: state.actions.sessions as SessionBoundary[],
+    expandedSessions: state.actions.expandedSessions as string[],
+    expandedActionRows: state.actions.expandedActionRows as string[]
+})
 
 const formatTime = (timestamp: number): string => {
     const date = new Date(timestamp)
@@ -16,14 +22,13 @@ const formatDate = (timestamp: number): string => {
     return date.toDateString()
 }
 
-const ActionRow = ({ action }: { action: StoredAction }) => {
-    const [expanded, setExpanded] = useState(false)
+const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
     return (
         <>
-            <tr className='item-row' onClick={() => setExpanded(!expanded)}>
+            <tr className='item-row' onClick={onToggle}>
                 <td>
                     <span style={{ cursor: 'pointer', marginRight: '5px' }}>
-                        {expanded ? '▼' : '▶'}
+                        {isExpanded ? '▼' : '▶'}
                     </span>
                     <span className='action-time'>{formatTime(action.timestamp)}</span>
                     {' '}
@@ -33,7 +38,7 @@ const ActionRow = ({ action }: { action: StoredAction }) => {
                     {action.sources.join(', ')}
                 </td>
             </tr>
-            {expanded && action.relatedItems.length > 0 &&
+            {isExpanded && action.relatedItems.length > 0 &&
                 <table className='table-diff' style={{ paddingLeft: '40px' }}>
                     <thead>
                         <th>Item</th>
@@ -57,21 +62,62 @@ const ActionRow = ({ action }: { action: StoredAction }) => {
     )
 }
 
-const groupByDate = (actions: StoredAction[]): Map<string, StoredAction[]> => {
+const preSessionKey = 'pre-session'
+const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): Map<string, StoredAction[]> => {
     const groups = new Map<string, StoredAction[]>()
-    for (const action of actions) {
-        const date = formatDate(action.timestamp)
-        if (!groups.has(date)) {
-            groups.set(date, [])
+    // Sort actions chronologically
+    const sortedActions = [...actions].sort((a, b) => a.timestamp - b.timestamp)
+    let sessionIndex = 0
+    for (const action of sortedActions) {
+        if (sessions.length === 0 || action.timestamp < sessions[0].startTime) {
+            // Pre-first session
+            if (!groups.has(preSessionKey)) {
+                groups.set(preSessionKey, [])
+            }
+            groups.get(preSessionKey)!.push(action)
+            continue
         }
-        groups.get(date)!.push(action)
+        // Find session for this action
+        while (sessionIndex < sessions.length - 1 && action.timestamp >= sessions[sessionIndex + 1].startTime) {
+            sessionIndex++
+        }
+        const session = sessions[sessionIndex]
+        const key = session.id
+        if (!groups.has(key)) {
+            groups.set(key, [])
+        }
+        groups.get(key)!.push(action)
     }
     return groups
 }
 
 function ActionsPage() {
-    const actions = useSelector(getActions)
-    const groupedActions = groupByDate(actions)
+    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows } = useSelector(getActions)
+    const dispatch = useDispatch()
+    const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
+    const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
+    const expandedSessions = new Set(expandedArray)
+    const expandedActionRowsSet = new Set(expandedActionRows)
+
+    const toggleSession = (sessionId: string) => {
+        const newSet = new Set(expandedSessions)
+        if (newSet.has(sessionId)) {
+            newSet.delete(sessionId)
+        } else {
+            newSet.add(sessionId)
+        }
+        dispatch(updateExpandedSessions(Array.from(newSet)))
+    }
+
+    const toggleActionRow = (id: string) => {
+        const newSet = new Set(expandedActionRowsSet)
+        if (newSet.has(id)) {
+            newSet.delete(id)
+        } else {
+            newSet.add(id)
+        }
+        dispatch(updateExpandedActionRows(Array.from(newSet)))
+    }
 
     if (actions.length === 0) {
         return (
@@ -84,18 +130,74 @@ function ActionsPage() {
 
     return (
         <section>
-            {Array.from(groupedActions.entries()).map(([date, dateActions]) => (
-                <div key={date} className='actions-group'>
-                    <h4 className='actions-date'>{date}</h4>
-                    <table className='table-diff'>
-                        <tbody>
-                            {dateActions.map((action, idx) => (
-                                <ActionRow key={action.id || idx} action={action} />
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ))}
+            <button onClick={() => dispatch(createNewSession())}>
+                New Session
+            </button>
+            {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
+                const sessionActions = groupedActions.get(session.id) || []
+                const isPreSession = session.id === 'pre-session'
+                const start = isPreSession ? Math.min(...sessionActions.map(a => a.timestamp)) : session.startTime
+                const sessionIndex = isPreSession ? -1 : sessions.findIndex(s => s.id === session.id)
+                const end = isPreSession ? (sessions[0]?.startTime || Date.now()) : (sessions[sessionIndex + 1]?.startTime || Date.now())
+                const typeIcon = { unknown: '❓', hunt: '🏹', mine: '⛏️', craft: '🔨' }[session.type]
+                const isExpanded = expandedSessions.has(session.id)
+                return (
+                    <div key={session.id} className='actions-group'>
+                        <h4 className='actions-date' onClick={sessionActions.length > 0 ? () => toggleSession(session.id) : undefined} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
+                            <span style={{ marginRight: '5px', visibility: sessionActions.length > 0 ? 'visible' : 'hidden' }}>{isExpanded ? '▼' : '▶'}</span>
+                            <>
+                                <input
+                                    value={session.name}
+                                    onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
+                                    disabled={isPreSession}
+                                    style={{ border: 'none', background: 'transparent', fontSize: 'inherit', fontWeight: 'bold' }}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                                ({typeIcon}
+                                <select
+                                    value={session.type}
+                                    onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
+                                    disabled={isPreSession}
+                                    style={{ border: 'none', background: 'transparent' }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <option value="unknown">Unknown</option>
+                                    <option value="hunt">Hunt</option>
+                                    <option value="mine">Mine</option>
+                                    <option value="craft">Craft</option>
+                                </select>)
+                            </>
+                            - {formatDate(start)} {formatTime(start)} to {formatDate(end)} {formatTime(end)}
+                        </h4>
+                        {isExpanded && sessionActions.length > 0 && (
+                            <>
+                                {(() => {
+                                    const dateGroups: Map<string, StoredAction[]> = new Map()
+                                    sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                        const date = formatDate(action.timestamp)
+                                        if (!dateGroups.has(date)) {
+                                            dateGroups.set(date, [])
+                                        }
+                                        dateGroups.get(date)!.push(action)
+                                    })
+                                    return Array.from(dateGroups.entries()).map(([date, dateActions]) => (
+                                        <div key={date}>
+                                            <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
+                                            <table className='table-diff'>
+                                                <tbody>
+                                                {dateActions.map((action, idx) => (
+                                                    <ActionRow key={action.id || idx} action={action} isExpanded={expandedActionRowsSet.has(action.id)} onToggle={() => toggleActionRow(action.id)} />
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ))
+                                })()}
+                            </>
+                        )}
+                    </div>
+                )
+            })}
         </section>
     )
 }

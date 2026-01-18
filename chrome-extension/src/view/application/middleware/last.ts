@@ -1,7 +1,7 @@
 import { mergeDeep } from "../../../common/merge"
 import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
 import { ITEM_BUY_MARKUP_CHANGED, SET_ITEM_MARKUP_UNIT, SET_ITEMS_STATE } from "../actions/items"
-import { SET_AS_LAST, SET_LAST } from "../actions/messages"
+import { SET_AS_LAST, SET_LAST, setLast } from "../actions/messages"
 import { initialState } from "../helpers/last"
 import { getInventory } from "../selectors/inventory"
 import { getLast } from "../selectors/last"
@@ -11,6 +11,7 @@ import { LastRequiredState } from "../state/last"
 import { AppAction } from "../slice/app"
 import { createBasicNotification } from "../../../common/notifications"
 import { ViewItemData } from "../state/history"
+import { CREATE_NEW_SESSION } from "../actions/actions"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -40,6 +41,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case ON_LAST: {
             const inventory: InventoryState = getInventory(getState())
             dispatch(addActionsToLast(inventory))
+            break;
+        }
+        case CREATE_NEW_SESSION: {
+            dispatch(setLast)
+            break;
         }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
