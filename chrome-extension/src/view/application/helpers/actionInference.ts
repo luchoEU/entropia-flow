@@ -28,7 +28,32 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 2. Match chip_out: item consumed in an Implant Inserter + skill chip gained + inserter decay
+    // 2. Match auction wins: item with positive qty from AUCTION + optional PED Card loss
+    for (const item of diff) {
+        if (used.has(item.key)) continue
+        if (item.c === 'AUCTION' && !item.q.startsWith('-')) {
+            const amount = Number(item.q) || 1
+            const value = Number(item.v)
+            const relatedItems: ViewItemData[] = [item]
+            
+            // Include PED Card if present with negative value
+            if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
+                relatedItems.push(pedCard)
+                used.add(pedCard.key)
+            }
+            
+            actions.push({
+                type: 'bought_auction',
+                item: item.n,
+                amount,
+                value,
+                relatedItems
+            })
+            used.add(item.key)
+        }
+    }
+
+    // 3. Match chip_out: item consumed in an Implant Inserter + skill chip gained + inserter decay
     for (const item of diff) {
         if (used.has(item.key)) continue
         // Item consumed in an inserter (container is the inserter name)
@@ -80,7 +105,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 3. Match moves: items with ⟹ or ⭢ in container
+    // 4. Match moves: items with ⟹ or ⭢ in container
     for (const item of diff) {
         if (used.has(item.key)) continue
         const moveMatch = item.c.match(/(.+?) ⟹ (.+)/) || item.c.match(/(.+?) ⭢ (.+)/)
@@ -104,7 +129,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 4. Remaining items go to unknown
+    // 5. Remaining items go to unknown
     const remaining = diff.filter(d => !used.has(d.key))
     if (remaining.length > 0) {
         const itemNames = remaining.map(r => r.n)

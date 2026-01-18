@@ -48,4 +48,37 @@ describe('inferActions', () => {
             }
         ])
     })
+
+    it('should infer bought_auction without PED Card (payment made earlier)', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'T1 Weapon Economy Enhancer Blueprint (L)', q: '24', v: '0.24', c: 'AUCTION' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'bought_auction',
+            item: 'T1 Weapon Economy Enhancer Blueprint (L)',
+            amount: 24,
+            value: 0.24,
+            relatedItems: [diff[0]]
+        }])
+    })
+
+    it('should infer bought_auction with PED Card deduction (payment concurrent)', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'PED Card', q: '', v: '-0.24', c: 'CARRIED' },
+            { key: 1, n: 'T1 Weapon Economy Enhancer Blueprint (L)', q: '24', v: '0.24', c: 'AUCTION' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'bought_auction',
+            item: 'T1 Weapon Economy Enhancer Blueprint (L)',
+            amount: 24,
+            value: 0.24,
+            relatedItems: [diff[1], diff[0]]
+        }])
+    })
 })
