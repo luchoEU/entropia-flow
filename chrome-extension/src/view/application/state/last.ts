@@ -17,6 +17,7 @@ interface LastRequiredState {
     expanded?: boolean,
     sortType: number,
     showMarkup: boolean,
+    showActions: boolean,
     blacklist: Array<string>,
     permanentBlacklist: Array<string>,
     peds: Array<ViewPedData>,

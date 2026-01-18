@@ -449,7 +449,7 @@ form label {
     margin-right: 10px;
 }
 
-.img-btn-delta-zero img, .img-btn-copy img {
+.img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img, .img-btn-lightning img {
     height: 15px;
     margin-left: 10px;
 }
@@ -699,6 +699,11 @@ button:active {
 }
 
 .button-markup {
+    margin-left: 10px;
+    border-color: transparent;
+}
+
+.button-actions {
     margin-left: 10px;
     border-color: transparent;
 }

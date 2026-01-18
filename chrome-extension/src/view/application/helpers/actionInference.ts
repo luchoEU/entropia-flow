@@ -107,9 +107,14 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     // 4. Remaining items go to unknown
     const remaining = diff.filter(d => !used.has(d.key))
     if (remaining.length > 0) {
+        const itemNames = remaining.map(r => r.n)
+        const displayName = itemNames.length > 3 
+            ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
+            : itemNames.join(', ')
+        
         actions.push({
             type: 'unknown',
-            item: remaining[0].n,
+            item: displayName,
             relatedItems: remaining
         })
     }

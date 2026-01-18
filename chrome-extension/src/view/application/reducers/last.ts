@@ -1,5 +1,5 @@
-import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkupToLast, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastState, reduceSortByPart } from "../helpers/last"
-import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
+import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkupToLast, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastShowActions, reduceSetLastState, reduceSortByPart } from "../helpers/last"
+import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 
 export default (state = initialState, action) => {
@@ -16,6 +16,7 @@ export default (state = initialState, action) => {
         case PERMANENT_EXCLUDE: return reducePermanentExclude(state, action.payload.key, action.payload.value)
         case SET_LAST_ITEM_MODE: return reduceSetLastItemMode(state, action.payload.key, action.payload.mode)
         case SET_LAST_SHOW_MARKUP: return reduceSetLastShowMarkup(state, action.payload.showMarkup)
+        case SET_LAST_SHOW_ACTIONS: return reduceSetLastShowActions(state, action.payload.showActions)
         case ADD_PEDS: return reduceAddPeds(state, action.payload.value)
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
         case ADD_ACTIONS: return reduceAddActions(state, action.payload.inventory)

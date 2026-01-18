@@ -12,6 +12,7 @@ const EXCLUDE_WARNINGS = "[last] exclude warnings"
 const PERMANENT_EXCLUDE = "[last] permanent exclude"
 const SET_LAST_ITEM_MODE = "[last] set last item mode"
 const SET_LAST_SHOW_MARKUP = "[last] set last show markup"
+const SET_LAST_SHOW_ACTIONS = "[last] set last show actions"
 const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
@@ -94,6 +95,13 @@ const setLastShowMarkup = (showMarkup: boolean) => ({
     }
 })
 
+const setLastShowActions = (showActions: boolean) => ({
+    type: SET_LAST_SHOW_ACTIONS,
+    payload: {
+        showActions
+    }
+})
+
 const excludeWarnings = {
     type: EXCLUDE_WARNINGS
 }
@@ -150,6 +158,7 @@ export {
     PERMANENT_EXCLUDE,
     SET_LAST_ITEM_MODE,
     SET_LAST_SHOW_MARKUP,
+    SET_LAST_SHOW_ACTIONS,
     SORT_BY,
     ADD_PEDS,
     REMOVE_PEDS,
@@ -169,6 +178,7 @@ export {
     permanentExcludeOff,
     setLastItemMode,
     setLastShowMarkup,
+    setLastShowActions,
     clearLastItemMode,
     addActionsToLast,
     addNotificationsDone,

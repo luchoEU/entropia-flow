@@ -17,6 +17,7 @@ const initialState: LastRequiredState = {
     permanentBlacklist: [],
     notificationsDone: [],
     showMarkup: false,
+    showActions: false,
     c: {
         anyInventory: false,
         date: 0
@@ -115,6 +116,11 @@ const reduceSetLastItemMode = (state: LastRequiredState, key: number, mode: View
 const reduceSetLastShowMarkup = (state: LastRequiredState, showMarkup: boolean): LastRequiredState => ({
     ...state,
     showMarkup
+})
+
+const reduceSetLastShowActions = (state: LastRequiredState, showActions: boolean): LastRequiredState => ({
+    ...state,
+    showActions
 })
 
 function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: number): LastRequiredState {
@@ -248,6 +254,7 @@ export {
     reducePermanentExclude,
     reduceSetLastItemMode,
     reduceSetLastShowMarkup,
+    reduceSetLastShowActions,
     reduceAddNotificationsDone,
     reduceAddPeds,
     reduceRemovePeds,

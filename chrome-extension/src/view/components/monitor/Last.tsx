@@ -1,17 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy, setLastItemMode, clearLastItemMode, setLastShowMarkup } from '../../application/actions/last'
+import { permanentExcludeOff, permanentExcludeOn, exclude, excludeWarnings, include, setExpanded, sortBy, setLastItemMode, clearLastItemMode, setLastShowMarkup, setLastShowActions } from '../../application/actions/last'
 import { copyLast, setLast } from '../../application/actions/messages'
 import { getCraft } from '../../application/selectors/craft'
 import { getLast } from '../../application/selectors/last'
 import { CraftState } from '../../application/state/craft'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
+import ActionTree from './ActionTree'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ImgButton from '../common/ImgButton'
 import ExpandableSection from '../common/ExpandableSection2'
 import { LastRequiredState } from '../../application/state/last'
 import TextButton from '../common/TextButton'
+import { inferActions } from '../../application/helpers/actionInference'
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005)
@@ -35,8 +37,10 @@ const Last = () => {
         },
         expanded,
         peds,
-        showMarkup
+        showMarkup,
+        showActions
     }: LastRequiredState = useSelector(getLast)
+    const actions = diff ? inferActions(diff) : []
 
     const config = {
         sortBy: sortBy,
@@ -99,14 +103,26 @@ const Last = () => {
                             className={ `button-markup ${showMarkup ? 'active' : ''}` }
                             text='%'
                             dispatch={() => setLastShowMarkup(!showMarkup)} />
+                        { actions && actions.length > 0 &&
+                            <ImgButton
+                                title={ showActions ? 'Show items list' : 'Show grouped actions' }
+                                src='img/lightning.png'
+                                className='img-btn-lightning'
+                                dispatch={() => setLastShowActions(!showActions)} />
+                        }
                     </>
                 }
             </p>
             { expanded &&
-                <InventoryDifference
-                    diff={diff}
-                    peds={peds}
-                    config={config} />
+                <>
+                    { showActions && actions && actions.length > 0 ?
+                        <ActionTree actions={actions} /> :
+                        <InventoryDifference
+                            diff={diff}
+                            peds={peds}
+                            config={config} />
+                    }
+                </>
             }
         </ExpandableSection>
     )
