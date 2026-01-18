@@ -33,18 +33,26 @@ const ActionRow = ({ action }: { action: StoredAction }) => {
                     {action.sources.join(', ')}
                 </td>
             </tr>
-            {expanded && action.relatedItems.map((item: ViewItemData, idx: number) => (
-                <tr key={idx} className='item-row'>
-                    <td style={{ paddingLeft: '40px' }}>
-                        <ItemText text={item.n} />
-                    </td>
-                    <td>
-                        {item.q && <span>{item.q} </span>}
-                        {item.v && <span>{item.v} PED </span>}
-                        {item.c && <span className='item-container'>{item.c}</span>}
-                    </td>
-                </tr>
-            ))}
+            {expanded && action.relatedItems.length > 0 &&
+                <table className='table-diff' style={{ paddingLeft: '40px' }}>
+                    <thead>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Value</th>
+                        <th>Container</th>
+                    </thead>
+                    <tbody>
+                        {action.relatedItems.map((item: ViewItemData, idx: number) => (
+                            <tr key={idx} className='item-row'>
+                                <td><ItemText text={item.n} /></td>
+                                <td>{item.q} </td>
+                                <td>{item.v} PED</td>
+                                <td>{item.c}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            }
         </>
     )
 }

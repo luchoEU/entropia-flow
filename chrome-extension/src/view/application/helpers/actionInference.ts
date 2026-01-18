@@ -33,16 +33,22 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         if (used.has(item.key)) continue
         if (item.c === 'AUCTION' && !item.q.startsWith('-')) {
             const amount = Number(item.q) || 1
-            const value = Number(item.v)
+             let value: number | undefined = undefined
             const relatedItems: ViewItemData[] = [item]
             
-            // Include PED Card if present with negative value
-            if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
-                relatedItems.push(pedCard)
-                used.add(pedCard.key)
-            }
-            
-            actions.push({
+             // Include PED Card if present with negative value
+             if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
+                 relatedItems.push(pedCard)
+                 used.add(pedCard.key)
+                 value = -Number(pedCard.v)
+             }
+
+             // If no PED Card deduction, use the item's value as the purchase cost
+             if (value === undefined) {
+                 value = Number(item.v)
+             }
+
+             actions.push({
                 type: 'bought_auction',
                 item: item.n,
                 amount,
@@ -105,7 +111,25 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 4. Match moves: items with ⟹ or ⭢ in container
+    // 4. Match refine: consumed items (negative qty) and produced item (positive qty)
+    const consumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
+    const produced = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
+    if (consumed.length > 0 && produced.length === 1) {
+        const prod = produced[0]
+        const amount = Number(prod.q)
+        const value = Number(prod.v)
+        actions.push({
+            type: 'refine',
+            item: prod.n,
+            amount,
+            value,
+            relatedItems: [...consumed, prod]
+        })
+        consumed.forEach(c => used.add(c.key))
+        used.add(prod.key)
+    }
+
+    // 5. Match moves: items with ⟹ or ⭢ in container
     for (const item of diff) {
         if (used.has(item.key)) continue
         const moveMatch = item.c.match(/(.+?) ⟹ (.+)/) || item.c.match(/(.+?) ⭢ (.+)/)
@@ -129,7 +153,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 5. Remaining items go to unknown
+    // 6. Remaining items go to unknown
     const remaining = diff.filter(d => !used.has(d.key))
     if (remaining.length > 0) {
         const itemNames = remaining.map(r => r.n)

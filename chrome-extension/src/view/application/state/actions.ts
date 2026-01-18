@@ -7,6 +7,7 @@ type ActionType =
     | 'ped_withdrawn'
     | 'moved'
     | 'chip_out'
+    | 'refine'
     | 'decay'
     | 'gained'
     | 'lost'
@@ -29,9 +30,11 @@ function formatActionDescription(action: InferredAction): string {
         case 'sold_auction':
             return `💰 Sold ${action.amount} ${action.item} for ${action.value} PED`
         case 'bought_auction':
-            return `🛒 Bought ${action.amount} ${action.item} for ${action.value} PED`
+            return `🛒 Bought ${action.amount} ${action.item}${action.value ? ` for ${action.value} PED` : ''}`
         case 'chip_out':
             return `🧠 Extracted ${action.item} from ${action.from}`
+        case 'refine':
+            return `🔨 Refined ${action.amount} ${action.item}`
         case 'moved':
             return `📦 Moved ${action.item} from ${action.from} to ${action.to}`
         case 'ped_deposited':
@@ -46,7 +49,7 @@ function formatActionDescription(action: InferredAction): string {
             return `📤 Lost ${action.amount} ${action.item}`
         case 'unknown':
         default:
-            return `❓ Changed ${action.item}`
+            return `❓ Changes in ${action.item}`
     }
 }
 

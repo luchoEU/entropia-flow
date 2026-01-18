@@ -13,15 +13,15 @@ enum TabId {
 }
 
 const tabOrder: TabId[] = [
-    TabId.MONITOR,
+    TabId.ACTIONS,
     TabId.INVENTORY,
     TabId.TRADE,
     TabId.CRAFT,
+    TabId.MONITOR,
     TabId.CLIENT,
     TabId.STREAM,
     TabId.REFINED,
     TabId.BUDGET,
-    TabId.ACTIONS,
     TabId.SETTING,
     TabId.ABOUT
 ]

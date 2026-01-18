@@ -81,4 +81,22 @@ describe('inferActions', () => {
             relatedItems: [diff[1], diff[0]]
         }])
     })
+
+    it('should infer refine of Light Mind Essence', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'Diluted Sweat', q: '-4918', v: '-49.18', c: 'CARRIED' },
+            { key: 1, n: 'Force Nexus', q: '-4918', v: '-49.18', c: 'STORAGE (Calypso)' },
+            { key: 2, n: 'Light Mind Essence', q: '983600', v: '98.36', c: 'CARRIED' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'refine',
+            item: 'Light Mind Essence',
+            amount: 983600,
+            value: 98.36,
+            relatedItems: [diff[0], diff[1], diff[2]]
+        }])
+    })
 })
