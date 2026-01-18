@@ -2,7 +2,7 @@ import { ItemData } from "../../../common/state"
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_MATERIAL_SELECTION, SET_BUDGET_MATERIAL_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/budget"
@@ -31,7 +31,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case ENABLE_BUDGET_MATERIAL:
         case DISABLE_BUDGET_MATERIAL:
         case ADD_BUDGET_MATERIAL_SELECTION:
-        case REMOVE_BUDGET_MATERIAL_SELECTION: {
+        case REMOVE_BUDGET_MATERIAL_SELECTION:
+        case ADD_BUDGET_GROUP:
+        case REMOVE_BUDGET_GROUP:
+        case RENAME_BUDGET_GROUP:
+        case MOVE_ITEM_TO_GROUP:
+        case TOGGLE_BUDGET_GROUP_EXPANDED:
+        case TOGGLE_BUDGET_UNGROUPED_EXPANDED: {
             const state: BudgetState = getBudget(getState())
             await api.storage.saveBudget(cleanForSave(state))
             break

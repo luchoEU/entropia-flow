@@ -5,6 +5,8 @@ interface BudgetState {
     disabledMaterials: BudgetDisabledMaterials
     materials: BudgetMaterials
     list: BudgetList
+    groups: BudgetGroups
+    selection: BudgetSelection
 }
 
 interface BudgetDisabledItems {
@@ -59,9 +61,29 @@ interface BudgetItem {
     url: string
 }
 
+interface BudgetGroup {
+    id: string
+    name: string
+    itemNames: string[]
+    expanded: boolean
+}
+
+interface BudgetGroups {
+    list: BudgetGroup[]
+    ungroupedExpanded: boolean
+}
+
+type BudgetSelection =
+    | { type: 'group'; groupId: string }
+    | { type: 'item'; itemName: string }
+    | null
+
 export {
     BudgetState,
     BudgetMaterialsMap,
     BudgetMaterialState,
-    BudgetItem
+    BudgetItem,
+    BudgetGroup,
+    BudgetGroups,
+    BudgetSelection
 }

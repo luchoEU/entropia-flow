@@ -1031,3 +1031,36 @@ label {
 .budget-loading {
     margin-left: 10px;
 }
+
+.budget-items-table tbody.drop-target {
+    outline: 2px dashed #666;
+    outline-offset: -2px;
+}
+
+.budget-items-table tr.dragging {
+    opacity: 0.5;
+}
+
+.budget-items-table .budget-group-header {
+    background-color: #e8e8e8;
+}
+
+.budget-items-table .budget-group-header td:first-child {
+    padding-left: 5px;
+}
+
+.budget-items-table .budget-empty-group td {
+    padding: 8px 20px;
+}
+
+.budget-items-table tr.selected {
+    background-color: #d4e5f7;
+}
+
+.budget-items-table .budget-group-header.selected {
+    background-color: #b8d4ed;
+}
+
+.budget-total-row {
+    border-top: 2px solid #ccc;
+}

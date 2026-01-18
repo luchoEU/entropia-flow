@@ -1,6 +1,6 @@
 import { objectMap } from "../../../common/object"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
+import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetSelection, BudgetState } from "../state/budget"
 
 const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
@@ -15,7 +15,12 @@ const initialState: BudgetState = {
     },
     list: {
         items: []
-    }
+    },
+    groups: {
+        list: [],
+        ungroupedExpanded: true
+    },
+    selection: null
 }
 
 const setState = (state: BudgetState, inState: BudgetState): BudgetState => ({
@@ -232,6 +237,110 @@ const reduceRemoveBudgetMaterialSelection = (state: BudgetState, materialName: s
     }
 })
 
+const generateGroupId = (): string => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
+}
+
+const reduceAddBudgetGroup = (state: BudgetState, name: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        list: [
+            ...state.groups.list,
+            {
+                id: generateGroupId(),
+                name,
+                itemNames: [],
+                expanded: true
+            }
+        ]
+    }
+})
+
+const reduceRemoveBudgetGroup = (state: BudgetState, groupId: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        list: state.groups.list.filter(g => g.id !== groupId)
+    }
+})
+
+const reduceRenameBudgetGroup = (state: BudgetState, groupId: string, name: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        list: state.groups.list.map(g => g.id === groupId ? { ...g, name } : g)
+    }
+})
+
+const reduceMoveItemToGroup = (state: BudgetState, itemName: string, groupId: string | null): BudgetState => {
+    // Remove item from all groups first
+    const updatedList = state.groups.list.map(g => ({
+        ...g,
+        itemNames: g.itemNames.filter(n => n !== itemName)
+    }))
+
+    // Add to target group if groupId is provided
+    if (groupId !== null) {
+        return {
+            ...state,
+            groups: {
+                ...state.groups,
+                list: updatedList.map(g =>
+                    g.id === groupId
+                        ? { ...g, itemNames: [...g.itemNames, itemName] }
+                        : g
+                )
+            }
+        }
+    }
+
+    return {
+        ...state,
+        groups: {
+            ...state.groups,
+            list: updatedList
+        }
+    }
+}
+
+const reduceToggleBudgetGroupExpanded = (state: BudgetState, groupId: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        list: state.groups.list.map(g =>
+            g.id === groupId ? { ...g, expanded: !g.expanded } : g
+        )
+    }
+})
+
+const reduceToggleBudgetUngroupedExpanded = (state: BudgetState): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        ungroupedExpanded: !state.groups.ungroupedExpanded
+    }
+})
+
+const getGroupTotals = (group: BudgetGroup, items: BudgetItem[]): { peds: number, totalMU: number, total: number } => {
+    const groupItems = items.filter(i => group.itemNames.includes(i.name))
+    return {
+        peds: groupItems.reduce((sum, i) => sum + i.peds, 0),
+        totalMU: groupItems.reduce((sum, i) => sum + i.totalMU, 0),
+        total: groupItems.reduce((sum, i) => sum + i.total, 0)
+    }
+}
+
+const getUngroupedItems = (state: BudgetState): BudgetItem[] => {
+    const groupedItemNames = new Set(state.groups.list.flatMap(g => g.itemNames))
+    return state.list.items.filter(i => !groupedItemNames.has(i.name))
+}
+
+const reduceSetBudgetSelection = (state: BudgetState, selection: BudgetSelection): BudgetState => ({
+    ...state,
+    selection
+})
+
 export {
     initialState,
     SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP,
@@ -245,5 +354,14 @@ export {
     reduceEnableBudgetMaterial,
     reduceDisableBudgetMaterial,
     reduceAddBudgetMaterialSelection,
-    reduceRemoveBudgetMaterialSelection
+    reduceRemoveBudgetMaterialSelection,
+    reduceAddBudgetGroup,
+    reduceRemoveBudgetGroup,
+    reduceRenameBudgetGroup,
+    reduceMoveItemToGroup,
+    reduceToggleBudgetGroupExpanded,
+    reduceToggleBudgetUngroupedExpanded,
+    reduceSetBudgetSelection,
+    getGroupTotals,
+    getUngroupedItems
 }

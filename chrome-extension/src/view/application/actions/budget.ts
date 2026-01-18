@@ -1,6 +1,7 @@
-import { BudgetState, BudgetMaterialsMap, BudgetItem } from "../state/budget"
+import { BudgetState, BudgetMaterialsMap, BudgetItem, BudgetSelection } from "../state/budget"
 
 const SET_BUDGET_STATE = '[budget] set state'
+const SET_BUDGET_SELECTION = '[budget] set selection'
 const SET_BUDGET_FROM_SHEET = '[budget] set from sheet'
 const SET_BUDGET_MATERIAL_EXPANDED = '[budget] set material expanded'
 const SET_BUDGET_STAGE = '[budget] set stage'
@@ -12,6 +13,12 @@ const REFRESH_BUDGET = '[budget] refresh'
 const ADD_BUDGET_MATERIAL_SELECTION = '[budget] add material selection'
 const REMOVE_BUDGET_MATERIAL_SELECTION = '[budget] remove material selection'
 const PROCESS_BUDGET_MATERIAL_SELECTION = '[budget] process material selection'
+const ADD_BUDGET_GROUP = '[budget] add group'
+const REMOVE_BUDGET_GROUP = '[budget] remove group'
+const RENAME_BUDGET_GROUP = '[budget] rename group'
+const MOVE_ITEM_TO_GROUP = '[budget] move item to group'
+const TOGGLE_BUDGET_GROUP_EXPANDED = '[budget] toggle group expanded'
+const TOGGLE_BUDGET_UNGROUPED_EXPANDED = '[budget] toggle ungrouped expanded'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -96,8 +103,43 @@ const processBudgetMaterialSelection = () => ({
     type: PROCESS_BUDGET_MATERIAL_SELECTION
 })
 
+const addBudgetGroup = (name: string) => ({
+    type: ADD_BUDGET_GROUP,
+    payload: { name }
+})
+
+const removeBudgetGroup = (groupId: string) => ({
+    type: REMOVE_BUDGET_GROUP,
+    payload: { groupId }
+})
+
+const renameBudgetGroup = (groupId: string, name: string) => ({
+    type: RENAME_BUDGET_GROUP,
+    payload: { groupId, name }
+})
+
+const moveItemToGroup = (itemName: string, groupId: string | null) => ({
+    type: MOVE_ITEM_TO_GROUP,
+    payload: { itemName, groupId }
+})
+
+const toggleBudgetGroupExpanded = (groupId: string) => ({
+    type: TOGGLE_BUDGET_GROUP_EXPANDED,
+    payload: { groupId }
+})
+
+const toggleBudgetUngroupedExpanded = () => ({
+    type: TOGGLE_BUDGET_UNGROUPED_EXPANDED
+})
+
+const setBudgetSelection = (selection: BudgetSelection) => ({
+    type: SET_BUDGET_SELECTION,
+    payload: { selection }
+})
+
 export {
     SET_BUDGET_STATE,
+    SET_BUDGET_SELECTION,
     SET_BUDGET_FROM_SHEET,
     SET_BUDGET_MATERIAL_EXPANDED,
     SET_BUDGET_STAGE,
@@ -109,7 +151,14 @@ export {
     REMOVE_BUDGET_MATERIAL_SELECTION,
     REFRESH_BUDGET,
     PROCESS_BUDGET_MATERIAL_SELECTION,
+    ADD_BUDGET_GROUP,
+    REMOVE_BUDGET_GROUP,
+    RENAME_BUDGET_GROUP,
+    MOVE_ITEM_TO_GROUP,
+    TOGGLE_BUDGET_GROUP_EXPANDED,
+    TOGGLE_BUDGET_UNGROUPED_EXPANDED,
     setBudgetState,
+    setBudgetSelection,
     setBudgetFromSheet,
     setBudgetMaterialExpanded,
     setBudgetStage,
@@ -120,5 +169,11 @@ export {
     addBudgetMaterialSelection,
     removeBudgetMaterialSelection,
     refreshBudget,
-    processBudgetMaterialSelection
+    processBudgetMaterialSelection,
+    addBudgetGroup,
+    removeBudgetGroup,
+    renameBudgetGroup,
+    moveItemToGroup,
+    toggleBudgetGroupExpanded,
+    toggleBudgetUngroupedExpanded
 }
