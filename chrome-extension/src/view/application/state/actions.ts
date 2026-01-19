@@ -66,6 +66,10 @@ interface SessionBoundary {
     name: string
     type: SessionType
     startTime: number
+    inventory?: {
+        total: number
+        items: number
+    }
 }
 
 interface ActionsState {

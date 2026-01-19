@@ -1,5 +1,5 @@
 import { ActionsState, StoredAction, SessionType } from "../state/actions"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, SET_ACTIONS_STATE } from "../actions/actions"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_ACTIONS_STATE } from "../actions/actions"
 
 const initialState: ActionsState = {
     list: [],
@@ -47,12 +47,17 @@ interface UpdateExpandedActionRowsAction {
     payload: { expanded: string[] }
 }
 
+interface UpdateSessionInventoryAction {
+    type: typeof UPDATE_SESSION_INVENTORY
+    payload: { sessionId: string; inventory?: { total: number; items: number } }
+}
+
 interface SetActionsStateAction {
     type: typeof SET_ACTIONS_STATE
     payload: ActionsState
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | SetActionsStateAction
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | SetActionsStateAction
 
 export default (state = initialState, action: ActionsAction): ActionsState => {
     switch (action.type) {
@@ -74,14 +79,19 @@ export default (state = initialState, action: ActionsAction): ActionsState => {
             }
         case CREATE_NEW_SESSION:
             const nextSessionNumber = state.sessions.length + 1
+            const newSession = {
+                id: crypto.randomUUID(),
+                name: `Session ${nextSessionNumber}`,
+                type: 'unknown' as const,
+                startTime: Date.now()
+            }
+            
+            // Get the latest inventory from history to set initial inventory totals
+            // Note: This will be updated in the middleware when SET_HISTORY_LIST is called
             return {
                 ...state,
-                sessions: [...state.sessions, {
-                    id: crypto.randomUUID(),
-                    name: `Session ${nextSessionNumber}`,
-                    type: 'unknown' as const,
-                    startTime: Date.now()
-                }].sort((a, b) => a.startTime - b.startTime)
+                sessions: [...state.sessions, newSession].sort((a, b) => a.startTime - b.startTime),
+                expandedSessions: [...state.expandedSessions, newSession.id]
             }
         case UPDATE_SESSION_NAME:
             return {
@@ -106,6 +116,13 @@ export default (state = initialState, action: ActionsAction): ActionsState => {
             return {
                 ...state,
                 expandedActionRows: action.payload.expanded
+            }
+        case UPDATE_SESSION_INVENTORY:
+            return {
+                ...state,
+                sessions: state.sessions.map(s =>
+                    s.id === action.payload.sessionId ? { ...s, inventory: action.payload.inventory } : s
+                )
             }
         case SET_ACTIONS_STATE:
             return action.payload

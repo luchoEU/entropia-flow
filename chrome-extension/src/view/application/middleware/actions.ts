@@ -1,5 +1,5 @@
 import { SET_HISTORY_LIST } from '../actions/history'
-import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, setActionsState } from '../actions/actions'
+import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, updateSessionInventory, setActionsState } from '../actions/actions'
 import { ActionsState, StoredAction } from '../state/actions'
 import { HistoryState } from '../state/history'
 import { AppAction } from '../slice/app'
@@ -20,12 +20,36 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         case ADD_ACTIONS:
         case CLEAR_ACTIONS:
         case SET_LAST_PROCESSED_KEY:
-        case CREATE_NEW_SESSION:
         case UPDATE_SESSION_NAME:
         case UPDATE_SESSION_TYPE:
         case UPDATE_EXPANDED_SESSIONS:
-        case UPDATE_EXPANDED_ACTION_ROWS: {
+        case UPDATE_EXPANDED_ACTION_ROWS:
+        case UPDATE_SESSION_INVENTORY: {
             const actionsState = getState().actions
+            await api.storage.saveActions(actionsState)
+            break
+        }
+        case CREATE_NEW_SESSION: {
+            const actionsState = getState().actions
+            const history: HistoryState = getState().history
+
+            // Set inventory for new session from latest history element
+            let inventory = undefined
+            if (history.list.length > 0) {
+                const latestInventory = history.list[history.list.length - 1]
+                if (latestInventory.rawInventory) {
+                    inventory = {
+                        total: Number(latestInventory.rawInventory.meta.total) || 0,
+                        items: latestInventory.rawInventory.itemlist?.length || 0
+                    }
+                }
+            }
+            // Find the newly created session (most recently added)
+            const newSession = actionsState.sessions[actionsState.sessions.length - 1]
+            if (newSession && inventory) {
+                dispatch(updateSessionInventory(newSession.id, inventory))
+            }
+
             await api.storage.saveActions(actionsState)
             break
         }
@@ -67,6 +91,33 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
                 const latestKey = Math.max(...history.list.map(i => i.key))
                 if (prevLastKey === undefined || latestKey > prevLastKey) {
                     dispatch(setLastProcessedKey(latestKey))
+                }
+            }
+
+            // Update session inventory data
+            const actionsState = getState().actions
+            const sessions = actionsState.sessions
+
+            for (const session of sessions) {
+                const endTime = sessions[sessions.indexOf(session) + 1]?.startTime || Date.now()
+
+                // Find the latest inventory within this session's time range
+                let latestInventory: any = null
+                for (let i = history.list.length - 1; i >= 0; i--) {
+                    const item = history.list[i]
+                    if (item.key <= endTime && item.key >= session.startTime) {
+                        latestInventory = item
+                        break
+                    }
+                }
+
+                const inventory = latestInventory && latestInventory.rawInventory ? {
+                    total: Number(latestInventory.rawInventory.meta.total) || 0,
+                    items: latestInventory.rawInventory.itemlist?.length || 0
+                } : undefined
+
+                if (inventory) {
+                    dispatch(updateSessionInventory(session.id, inventory))
                 }
             }
             break

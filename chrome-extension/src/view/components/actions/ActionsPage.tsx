@@ -22,6 +22,18 @@ const formatDate = (timestamp: number): string => {
     return date.toDateString()
 }
 
+function getDeltaClass(delta: number | undefined) {
+    if (delta === undefined || Math.abs(delta) < 0.005)
+        delta = 0
+    if (delta > 0) {
+        return 'positive'
+    } else if (delta < 0) {
+        return 'negative'
+    } else {
+        return ''
+    }
+}
+
 const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
     return (
         <>
@@ -99,6 +111,16 @@ function ActionsPage() {
     const expandedSessions = new Set(expandedArray)
     const expandedActionRowsSet = new Set(expandedActionRows)
 
+    // Compute delta for each virtual session
+    const sessionDeltas = new Map<string, number>()
+    for (const session of virtualSessions) {
+        const sessionActions = groupedActions.get(session.id) || []
+        const delta = sessionActions.reduce((sum, action) => {
+            return sum + action.relatedItems.reduce((itemSum, item) => itemSum + (Number(item.v) || 0), 0)
+        }, 0)
+        sessionDeltas.set(session.id, delta)
+    }
+
     const toggleSession = (sessionId: string) => {
         const newSet = new Set(expandedSessions)
         if (newSet.has(sessionId)) {
@@ -143,8 +165,8 @@ function ActionsPage() {
                 const isExpanded = expandedSessions.has(session.id)
                 return (
                     <div key={session.id} className='actions-group'>
-                        <h4 className='actions-date' onClick={sessionActions.length > 0 ? () => toggleSession(session.id) : undefined} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
-                            <span style={{ marginRight: '5px', visibility: sessionActions.length > 0 ? 'visible' : 'hidden' }}>{isExpanded ? '▼' : '▶'}</span>
+                        <h4 className='actions-date' onClick={() => toggleSession(session.id)} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
+                            <span style={{ marginRight: '5px' }}>{isExpanded ? '▼' : '▶'}</span>
                             <>
                                 <input
                                     value={session.name}
@@ -169,9 +191,15 @@ function ActionsPage() {
                             </>
                             - {formatDate(start)} {formatTime(start)} to {formatDate(end)} {formatTime(end)}
                         </h4>
-                        {isExpanded && sessionActions.length > 0 && (
+                        {isExpanded && (
                             <>
-                                {(() => {
+                                {(session.inventory || sessionDeltas.get(session.id) !== undefined) && (
+                                    <p style={{ margin: '10px 0', fontSize: '14px' }}>
+                                        {session.inventory && <span>Inventory: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>}
+                                        <span className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>
+                                    </p>
+                                )}
+                                {sessionActions.length > 0 && (() => {
                                     const dateGroups: Map<string, StoredAction[]> = new Map()
                                     sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
                                         const date = formatDate(action.timestamp)

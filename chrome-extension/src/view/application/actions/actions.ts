@@ -8,6 +8,7 @@ const UPDATE_SESSION_NAME = "[actions] update session name"
 const UPDATE_SESSION_TYPE = "[actions] update session type"
 const UPDATE_EXPANDED_SESSIONS = "[actions] update expanded sessions"
 const UPDATE_EXPANDED_ACTION_ROWS = "[actions] update expanded action rows"
+const UPDATE_SESSION_INVENTORY = "[actions] update session inventory"
 const SET_ACTIONS_STATE = "[actions] set state"
 
 const addActions = (actions: StoredAction[]) => ({
@@ -48,6 +49,11 @@ const updateExpandedActionRows = (expanded: string[]) => ({
     payload: { expanded }
 })
 
+const updateSessionInventory = (sessionId: string, inventory: { total: number; items: number }) => ({
+    type: UPDATE_SESSION_INVENTORY,
+    payload: { sessionId, inventory }
+})
+
 const setActionsState = (state: ActionsState) => ({
     type: SET_ACTIONS_STATE,
     payload: state
@@ -62,6 +68,7 @@ export {
     UPDATE_SESSION_TYPE,
     UPDATE_EXPANDED_SESSIONS,
     UPDATE_EXPANDED_ACTION_ROWS,
+    UPDATE_SESSION_INVENTORY,
     SET_ACTIONS_STATE,
     addActions,
     clearActions,
@@ -71,5 +78,6 @@ export {
     updateSessionType,
     updateExpandedSessions,
     updateExpandedActionRows,
+    updateSessionInventory,
     setActionsState
 }
