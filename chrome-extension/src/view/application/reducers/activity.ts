@@ -1,5 +1,5 @@
 import { ActivityState, StoredAction, SessionType } from "../state/activity"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_ACTIONS_STATE } from "../actions/activity"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_URL, SET_ACTIONS_STATE } from "../actions/activity"
 
 const initialState: ActivityState = {
     list: [],
@@ -52,12 +52,17 @@ interface UpdateSessionInventoryAction {
     payload: { sessionId: string; inventory?: { total: number; items: number } }
 }
 
+interface UpdateActionBudgetUrlAction {
+    type: typeof UPDATE_ACTION_BUDGET_URL
+    payload: { actionId: string; budgetUrl: string }
+}
+
 interface SetActionsStateAction {
     type: typeof SET_ACTIONS_STATE
     payload: ActivityState
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | SetActionsStateAction
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetUrlAction | SetActionsStateAction
 
 export default (state = initialState, action: ActionsAction): ActivityState => {
     switch (action.type) {
@@ -122,6 +127,13 @@ export default (state = initialState, action: ActionsAction): ActivityState => {
                 ...state,
                 sessions: state.sessions.map(s =>
                     s.id === action.payload.sessionId ? { ...s, inventory: action.payload.inventory } : s
+                )
+            }
+        case UPDATE_ACTION_BUDGET_URL:
+            return {
+                ...state,
+                list: state.list.map(act =>
+                    act.id === action.payload.actionId ? { ...act, budgetUrl: action.payload.budgetUrl } : act
                 )
             }
         case SET_ACTIONS_STATE:

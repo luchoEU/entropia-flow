@@ -43,10 +43,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             dispatch(addActionsToLast(inventory))
             break;
         }
-        case CREATE_NEW_SESSION: {
-            dispatch(setLast)
-            break;
-        }
         case ADD_ACTIONS: {
             const state: LastRequiredState = getLast(getState())
             if (state.c.diff) {

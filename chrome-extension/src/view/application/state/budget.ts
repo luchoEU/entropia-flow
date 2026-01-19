@@ -7,7 +7,6 @@ interface BudgetState {
     list: BudgetList
     groups: BudgetGroups
     selection: BudgetSelection
-    c?: BudgetStateCalc
 }
 
 interface BudgetDisabledItems {
@@ -60,6 +59,7 @@ interface BudgetItem {
     total: number
     peds: number
     url: string
+    pendingLines?: BudgetLineData[]
 }
 
 interface BudgetGroup {
@@ -86,10 +86,6 @@ interface BudgetLineData {
         name: string
         quantity: number
     }[]
-}
-
-interface BudgetStateCalc {
-    pendingLines?: { [itemName: string]: BudgetLineData[] }
 }
 
 export {

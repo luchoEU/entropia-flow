@@ -1,5 +1,5 @@
-import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_FROM_SHEET, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_SELECTION, SET_BUDGET_STAGE, SET_BUDGET_STATE, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED } from "../actions/budget"
-import { reduceAddBudgetGroup, reduceDisableBudgetItem, reduceDisableBudgetMaterial, reduceEnableBudgetItem, reduceEnableBudgetMaterial, initialState, reduceAddBudgetMaterialSelection, reduceMoveItemToGroup, reduceRemoveBudgetGroup, reduceRemoveBudgetMaterialSelection, reduceRenameBudgetGroup, reduceSetBudgetFromSheet, reduceSetBudgetSelection, reduceToggleBudgetGroupExpanded, reduceToggleBudgetUngroupedExpanded, setBudgetMaterialExpanded, setBudgetStage, setState } from "../helpers/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_FROM_SHEET, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_SELECTION, SET_BUDGET_STAGE, SET_BUDGET_STATE, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED } from "../actions/budget"
+import { reduceAddBudgetGroup, reduceAddBudgetItemPendingLines, reduceClearBudgetItemPendingLines, reduceDisableBudgetItem, reduceDisableBudgetMaterial, reduceEnableBudgetItem, reduceEnableBudgetMaterial, initialState, reduceAddBudgetMaterialSelection, reduceMoveItemToGroup, reduceRemoveBudgetGroup, reduceRemoveBudgetMaterialSelection, reduceRenameBudgetGroup, reduceSetBudgetFromSheet, reduceSetBudgetSelection, reduceToggleBudgetGroupExpanded, reduceToggleBudgetUngroupedExpanded, setBudgetMaterialExpanded, setBudgetStage, setState } from "../helpers/budget"
 
 export default (state = initialState, action: any) => {
     switch (action.type) {
@@ -20,6 +20,8 @@ export default (state = initialState, action: any) => {
         case MOVE_ITEM_TO_GROUP: return reduceMoveItemToGroup(state, action.payload.itemName, action.payload.groupId)
         case TOGGLE_BUDGET_GROUP_EXPANDED: return reduceToggleBudgetGroupExpanded(state, action.payload.groupId)
         case TOGGLE_BUDGET_UNGROUPED_EXPANDED: return reduceToggleBudgetUngroupedExpanded(state)
+        case ADD_BUDGET_ITEM_PENDING_LINES: return reduceAddBudgetItemPendingLines(state, action.payload.itemName, action.payload.lines)
+        case CLEAR_BUDGET_ITEM_PENDING_LINES: return reduceClearBudgetItemPendingLines(state, action.payload.itemName)
         default: return state
     }
 }

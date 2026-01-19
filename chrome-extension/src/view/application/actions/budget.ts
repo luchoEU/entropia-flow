@@ -21,6 +21,8 @@ const RENAME_BUDGET_GROUP = '[budget] rename group'
 const MOVE_ITEM_TO_GROUP = '[budget] move item to group'
 const TOGGLE_BUDGET_GROUP_EXPANDED = '[budget] toggle group expanded'
 const TOGGLE_BUDGET_UNGROUPED_EXPANDED = '[budget] toggle ungrouped expanded'
+const ADD_BUDGET_ITEM_PENDING_LINES = '[budget] add item pending lines'
+const CLEAR_BUDGET_ITEM_PENDING_LINES = '[budget] clear item pending lines'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -139,6 +141,16 @@ const toggleBudgetUngroupedExpanded = () => ({
     type: TOGGLE_BUDGET_UNGROUPED_EXPANDED
 })
 
+const addBudgetItemPendingLines = (itemName: string, lines: BudgetLineData[]) => ({
+    type: ADD_BUDGET_ITEM_PENDING_LINES,
+    payload: { itemName, lines }
+})
+
+const clearBudgetItemPendingLines = (itemName: string) => ({
+    type: CLEAR_BUDGET_ITEM_PENDING_LINES,
+    payload: { itemName }
+})
+
 const setBudgetSelection = (selection: BudgetSelection) => ({
     type: SET_BUDGET_SELECTION,
     payload: { selection }
@@ -165,6 +177,8 @@ export {
     MOVE_ITEM_TO_GROUP,
     TOGGLE_BUDGET_GROUP_EXPANDED,
     TOGGLE_BUDGET_UNGROUPED_EXPANDED,
+    ADD_BUDGET_ITEM_PENDING_LINES,
+    CLEAR_BUDGET_ITEM_PENDING_LINES,
     setBudgetState,
     setBudgetSelection,
     setBudgetFromSheet,
@@ -184,5 +198,7 @@ export {
     renameBudgetGroup,
     moveItemToGroup,
     toggleBudgetGroupExpanded,
-    toggleBudgetUngroupedExpanded
+    toggleBudgetUngroupedExpanded,
+    addBudgetItemPendingLines,
+    clearBudgetItemPendingLines
 }

@@ -2,7 +2,8 @@ import { ItemData } from "../../../common/state"
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, sendBudgetPendingLines, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, sendBudgetPendingLines, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, clearBudgetItemPendingLines } from "../actions/budget"
+import { ADD_ACTIONS, updateActionBudgetUrl } from "../actions/activity"
 import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, getBalanceLines, initialState } from "../helpers/budget"
@@ -25,6 +26,28 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 dispatch(setBudgetState(mergeDeep(initialState, state)))
             break
         }
+        case ADD_ACTIONS: {
+            for (const storedAction of action.payload.actions) {
+                if (storedAction.type === 'sold_auction') {
+                    const budget: BudgetState = getBudget(getState())
+                    // Find the budget item for this sold item
+                    const item = budget.list.items.find(item => item.name === storedAction.item)
+                    if (item) {
+                        // Add sold line to item's pending lines
+                        const line = {
+                            reason: 'Sold',
+                            ped: storedAction.value,
+                            materials: [{ name: storedAction.item, quantity: -storedAction.amount! }]
+                        }
+                        dispatch(addBudgetItemPendingLines(storedAction.item, [line]))
+
+                        // Associate budget URL with the action
+                        dispatch(updateActionBudgetUrl(storedAction.id, item.url))
+                    }
+                }
+            }
+            break
+        }
         case SET_BUDGET_MATERIAL_EXPANDED:
         case ENABLE_BUDGET_ITEM:
         case DISABLE_BUDGET_ITEM:
@@ -37,7 +60,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case RENAME_BUDGET_GROUP:
         case MOVE_ITEM_TO_GROUP:
         case TOGGLE_BUDGET_GROUP_EXPANDED:
-        case TOGGLE_BUDGET_UNGROUPED_EXPANDED: {
+        case TOGGLE_BUDGET_UNGROUPED_EXPANDED:
+        case ADD_BUDGET_ITEM_PENDING_LINES:
+        case CLEAR_BUDGET_ITEM_PENDING_LINES: {
             const state: BudgetState = getBudget(getState())
             await api.storage.saveBudget(cleanForSave(state))
             break
@@ -128,6 +153,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 items = updatedItems
 
                 dispatch(setBudgetFromSheet(map, items, ++loaded / Object.keys(lines).length * 99))
+            }
+
+            // Clear pendingLines from items that had lines applied
+            for (const itemName in lines) {
+                dispatch(clearBudgetItemPendingLines(itemName))
             }
 
             for (const materialName in map) {

@@ -39,6 +39,17 @@ const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isE
                     <span className='action-time'>{formatTime(action.timestamp)}</span>
                     {' '}
                     <ItemText text={formatActionDescription(action)} />
+                    {action.budgetUrl && (
+                        <a
+                            href={action.budgetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ marginLeft: '10px', textDecoration: 'none' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            📊
+                        </a>
+                    )}
                 </td>
                 <td className='action-sources'>
                     {action.sources.join(', ')}

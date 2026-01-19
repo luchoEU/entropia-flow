@@ -4,6 +4,7 @@ import { ActivityState, StoredAction } from '../state/activity'
 import { HistoryState } from '../state/history'
 import { AppAction } from '../slice/app'
 import { getActivity } from '../selectors/activity'
+import { getHistory } from '../selectors/history'
 
 const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const prevActionsState = getActivity(getState())
@@ -32,7 +33,7 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         }
         case CREATE_NEW_SESSION: {
             const actionsState = getActivity(getState())
-            const history: HistoryState = getState().history
+            const history = getHistory(getState())
 
             // Set inventory for new session from latest history element
             let inventory = undefined

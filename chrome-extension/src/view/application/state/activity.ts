@@ -59,6 +59,7 @@ interface StoredAction extends InferredAction {
     id: string
     timestamp: number
     sources: ActionSource[]
+    budgetUrl?: string
 }
 
 interface SessionBoundary {

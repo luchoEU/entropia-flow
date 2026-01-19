@@ -69,6 +69,17 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     const balanceLines = getBalanceLines(Object.values(usedMaterialsMap))
     const materials = getMaterials(usedMaterialsMap)
 
+    // Combine balanceLines with pendingLines from items
+    const allPendingLines = { ...balanceLines }
+    items.forEach(item => {
+        if (item?.pendingLines) {
+            if (!allPendingLines[item.name]) {
+                allPendingLines[item.name] = []
+            }
+            allPendingLines[item.name].push(...item.pendingLines)
+        }
+    })
+
     // Calculate totals for the selected items
     const totals = itemNames.reduce((acc, itemName) => {
         const item = s.list.items.find(i => i.name === itemName)
@@ -117,10 +128,10 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
             </table>
         </>}
 
-        {Object.keys(balanceLines).length > 0 && <>
+        {Object.keys(allPendingLines).length > 0 && <>
             <hr />
             <h3>Pending Lines</h3>
-            {Object.entries(balanceLines).map(([itemName, lines]) => (
+            {Object.entries(allPendingLines).map(([itemName, lines]) => (
                 <div key={itemName}>
                     <h4>{itemName}</h4>
                     {lines.map((line, idx) => (
@@ -148,7 +159,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
                 </div>
             ))}
             <br />
-            <button onClick={() => dispatch(sendBudgetPendingLines(balanceLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
+            <button onClick={() => dispatch(sendBudgetPendingLines(allPendingLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
         </>}
     </div>
 }

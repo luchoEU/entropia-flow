@@ -330,6 +330,30 @@ const reduceToggleBudgetUngroupedExpanded = (state: BudgetState): BudgetState =>
     }
 })
 
+const reduceAddBudgetItemPendingLines = (state: BudgetState, itemName: string, lines: BudgetLineData[]): BudgetState => ({
+    ...state,
+    list: {
+        ...state.list,
+        items: state.list.items.map(item =>
+            item.name === itemName
+                ? { ...item, pendingLines: [...(item.pendingLines || []), ...lines] }
+                : item
+        )
+    }
+})
+
+const reduceClearBudgetItemPendingLines = (state: BudgetState, itemName: string): BudgetState => ({
+    ...state,
+    list: {
+        ...state.list,
+        items: state.list.items.map(item =>
+            item.name === itemName
+                ? { ...item, pendingLines: undefined }
+                : item
+        )
+    }
+})
+
 const getGroupTotals = (group: BudgetGroup, items: BudgetItem[]): { peds: number, totalMU: number, total: number } => {
     const groupItems = items.filter(i => group.itemNames.includes(i.name))
     return {
@@ -446,6 +470,8 @@ export {
     reduceMoveItemToGroup,
     reduceToggleBudgetGroupExpanded,
     reduceToggleBudgetUngroupedExpanded,
+    reduceAddBudgetItemPendingLines,
+    reduceClearBudgetItemPendingLines,
     reduceSetBudgetSelection,
     getGroupTotals,
     getUngroupedItems

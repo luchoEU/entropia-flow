@@ -1,5 +1,7 @@
+import { CREATE_NEW_SESSION } from "./activity"
+
 const REFRESH = "[msg] refresh"
-const SET_LAST = "[msg] set last"
+const SET_LAST = CREATE_NEW_SESSION
 const SET_AS_LAST = "[msg] set as last"
 const COPY_LAST = "[msg] copy last"
 const TIMER_ON = "[msg] timer on"
