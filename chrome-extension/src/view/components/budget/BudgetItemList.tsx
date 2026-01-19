@@ -69,6 +69,17 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     }
 
     const materials = getMaterials(itemNames, s.materials.map)
+    
+    // Calculate totals for the selected items
+    const totals = itemNames.reduce((acc, itemName) => {
+        const item = s.list.items.find(i => i.name === itemName)
+        if (item) {
+            acc.peds += item.peds
+            acc.totalMU += item.totalMU
+            acc.total += item.total
+        }
+        return acc
+    }, { peds: 0, totalMU: 0, total: 0 })
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection(null))}>
@@ -76,6 +87,31 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
         </h2>
 
         {url && <p><a href={url} target='_blank' rel='noopener noreferrer'>Open in Google Sheets</a></p>}
+
+        <div className='budget-details-totals'>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PEDs</td>
+                        <td align='right'>{totals.peds.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Total MU</td>
+                        <td align='right'>{totals.totalMU.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Total</td>
+                        <td align='right'>{totals.total.toFixed(2)}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         {materials.length > 0 && <>
             <table>
