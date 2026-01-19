@@ -1,16 +1,10 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/actions'
+import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
-import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows } from '../../application/actions/actions'
-
-const getActions = (state: any) => ({
-    list: state.actions.list as StoredAction[],
-    sessions: state.actions.sessions as SessionBoundary[],
-    expandedSessions: state.actions.expandedSessions as string[],
-    expandedActionRows: state.actions.expandedActionRows as string[]
-})
+import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows } from '../../application/actions/activity'
+import { getActivity } from '../../application/selectors/activity'
 
 const formatTime = (timestamp: number): string => {
     const date = new Date(timestamp)
@@ -103,8 +97,8 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
     return groups
 }
 
-function ActionsPage() {
-    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows } = useSelector(getActions)
+function ActivityPage() {
+    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows } = useSelector(getActivity)
     const dispatch = useDispatch()
     const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
@@ -230,4 +224,4 @@ function ActionsPage() {
     )
 }
 
-export default ActionsPage
+export default ActivityPage

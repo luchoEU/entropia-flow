@@ -1,11 +1,12 @@
 import { SET_HISTORY_LIST } from '../actions/history'
-import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, updateSessionInventory, setActionsState } from '../actions/actions'
-import { ActionsState, StoredAction } from '../state/actions'
+import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, updateSessionInventory, setActionsState } from '../actions/activity'
+import { ActivityState, StoredAction } from '../state/activity'
 import { HistoryState } from '../state/history'
 import { AppAction } from '../slice/app'
+import { getActivity } from '../selectors/activity'
 
 const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    const prevActionsState: ActionsState = getState().actions
+    const prevActionsState = getActivity(getState())
     const prevLastKey = prevActionsState.lastProcessedInventoryKey
 
     await next(action)
@@ -25,12 +26,12 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         case UPDATE_EXPANDED_SESSIONS:
         case UPDATE_EXPANDED_ACTION_ROWS:
         case UPDATE_SESSION_INVENTORY: {
-            const actionsState = getState().actions
+            const actionsState = getActivity(getState())
             await api.storage.saveActions(actionsState)
             break
         }
         case CREATE_NEW_SESSION: {
-            const actionsState = getState().actions
+            const actionsState = getActivity(getState())
             const history: HistoryState = getState().history
 
             // Set inventory for new session from latest history element
@@ -95,7 +96,7 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
             }
 
             // Update session inventory data
-            const actionsState = getState().actions
+            const actionsState = getActivity(getState())
             const sessions = actionsState.sessions
 
             for (const session of sessions) {

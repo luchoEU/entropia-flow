@@ -1,4 +1,4 @@
-import { InferredAction } from '../state/actions'
+import { InferredAction } from '../state/activity'
 import { ViewItemData } from '../state/history'
 
 const PED_CARD = 'PED Card'

@@ -1,7 +1,7 @@
-import { ActionsState, StoredAction, SessionType } from "../state/actions"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_ACTIONS_STATE } from "../actions/actions"
+import { ActivityState, StoredAction, SessionType } from "../state/activity"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_ACTIONS_STATE } from "../actions/activity"
 
-const initialState: ActionsState = {
+const initialState: ActivityState = {
     list: [],
     lastProcessedInventoryKey: undefined,
     sessions: [],
@@ -54,12 +54,12 @@ interface UpdateSessionInventoryAction {
 
 interface SetActionsStateAction {
     type: typeof SET_ACTIONS_STATE
-    payload: ActionsState
+    payload: ActivityState
 }
 
 type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | SetActionsStateAction
 
-export default (state = initialState, action: ActionsAction): ActionsState => {
+export default (state = initialState, action: ActionsAction): ActivityState => {
     switch (action.type) {
         case ADD_ACTIONS:
             return {

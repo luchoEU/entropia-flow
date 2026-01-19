@@ -12,7 +12,7 @@ const tabTitle = {
     [TabId.STREAM]: 'Stream',
     [TabId.REFINED]: 'Refined',
     [TabId.BUDGET]: 'Budget',
-    [TabId.ACTIONS]: 'Actions',
+    [TabId.ACTIVITY]: 'Activity',
     [TabId.SETTING]: 'Settings',
     [TabId.ABOUT]: 'About'
 }
@@ -26,7 +26,7 @@ const tabSubtitle = {
     [TabId.STREAM]: 'Create and configure windows to your game information',
     [TabId.REFINED]: 'Calculators for refined materials',
     [TabId.BUDGET]: 'Budget your different activities',
-    [TabId.ACTIONS]: 'Timeline of actions inferred from your activity',
+    [TabId.ACTIVITY]: 'Timeline of activities inferred from your activity',
     [TabId.SETTING]: 'Settings for Entropia Flow',
     [TabId.ABOUT]: 'Information about Entropia Flow'
 }
@@ -41,7 +41,7 @@ const tabShow = (id: TabId, anyInventory: boolean, settings: SettingsState): boo
         case TabId.CLIENT: return isFeatureEnabled(settings, Feature.client)
         case TabId.REFINED: return isFeatureEnabled(settings, Feature.refined)
         case TabId.BUDGET: return isFeatureEnabled(settings, Feature.budget)
-        case TabId.ACTIONS: return isFeatureEnabled(settings, Feature.actions)
+        case TabId.ACTIVITY: return isFeatureEnabled(settings, Feature.activity)
         default: return true
     }
 }

@@ -72,7 +72,7 @@ interface SessionBoundary {
     }
 }
 
-interface ActionsState {
+interface ActivityState {
     list: StoredAction[]
     lastProcessedInventoryKey?: number
     sessions: SessionBoundary[]
@@ -87,6 +87,6 @@ export {
     InferredAction,
     StoredAction,
     SessionBoundary,
-    ActionsState,
+    ActivityState,
     formatActionDescription
 }

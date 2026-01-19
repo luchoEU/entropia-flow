@@ -11,7 +11,7 @@ import { LastRequiredState } from "../state/last"
 import { AppAction } from "../slice/app"
 import { createBasicNotification } from "../../../common/notifications"
 import { ViewItemData } from "../state/history"
-import { CREATE_NEW_SESSION } from "../actions/actions"
+import { CREATE_NEW_SESSION } from "../actions/activity"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)

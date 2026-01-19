@@ -1,4 +1,4 @@
-import { StoredAction, SessionType, ActionsState } from "../state/actions"
+import { StoredAction, SessionType, ActivityState } from "../state/activity"
 
 const ADD_ACTIONS = "[actions] add actions"
 const CLEAR_ACTIONS = "[actions] clear actions"
@@ -54,7 +54,7 @@ const updateSessionInventory = (sessionId: string, inventory: { total: number; i
     payload: { sessionId, inventory }
 })
 
-const setActionsState = (state: ActionsState) => ({
+const setActionsState = (state: ActivityState) => ({
     type: SET_ACTIONS_STATE,
     payload: state
 })

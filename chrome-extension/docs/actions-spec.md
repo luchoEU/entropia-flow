@@ -61,7 +61,7 @@ interface StoredAction extends InferredAction {
     sources: ActionSource[]  // Sources that detected this action
 }
 
-interface ActionsState {
+interface ActivityState {
     list: StoredAction[]
     lastProcessedInventoryKey?: number  // Track processed inventory keys
 }
@@ -128,7 +128,7 @@ CLEAR_ACTIONS    // Clear all actions and reset key tracking
 SET_LAST_PROCESSED_KEY  // Update the last processed inventory key
 ```
 
-### 3. Actions Middleware (`middleware/actions.ts`)
+### 3. Actions Middleware (`middleware/activity.ts`)
 
 Listens for `SET_HISTORY_LIST` and processes new inventory entries:
 
@@ -164,14 +164,14 @@ Displays actions in a timeline view:
 - **TabId**: `ACTIONS = '/actions'`
 - **Title**: "Actions"
 - **Subtitle**: "Timeline of actions inferred from your activity"
-- **Visibility**: Requires `Feature.actions` to be enabled (toggleable in Settings)
+- **Visibility**: Requires `Feature.activity` to be enabled (toggleable in Settings)
 - **Position**: After Budget, before Settings
 - **Feature Flag**: `development: true` (only visible when `SHOW_FEATURES_IN_DEVELOPMENT` is enabled)
 
 ### Route
 
 ```typescript
-{ id: TabId.ACTIONS, routes: [{ path: TabId.ACTIONS, component: ActionsPage }] }
+{ id: TabId.ACTIVITY, routes: [{ path: TabId.ACTIVITY, component: ActivityPage }] }
 ```
 
 ## Future Extensions
@@ -217,9 +217,9 @@ To add a new action source (e.g., chat log):
 | File | Purpose |
 |------|---------|
 | `state/actions.ts` | Type definitions |
-| `actions/actions.ts` | Redux action creators |
+| `actions/activity.ts` | Redux action creators |
 | `reducers/actions.ts` | Redux reducer |
-| `middleware/actions.ts` | Inventory → Actions processing |
+| `middleware/activity.ts` | Inventory → Actions processing |
 | `helpers/actionInference.ts` | Diff analysis logic |
 | `components/actions/ActionsPage.tsx` | UI component |
 | `state/navigation.ts` | Tab enum and order |

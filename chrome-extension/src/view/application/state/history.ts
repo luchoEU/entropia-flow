@@ -1,5 +1,5 @@
 import { Inventory } from "../../../common/state"
-import { InferredAction } from "./actions"
+import { InferredAction } from "./activity"
 
 interface ViewItemData {
     key: number // index

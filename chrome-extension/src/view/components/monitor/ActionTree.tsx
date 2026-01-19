@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { InferredAction } from '../../application/state/actions'
+import { InferredAction } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
-import { formatActionDescription } from '../../application/state/actions'
+import { formatActionDescription } from '../../application/state/activity'
 
 const ActionRow = ({ action }: { action: InferredAction }) => {
     const [expanded, setExpanded] = useState(false)

@@ -1,5 +1,5 @@
 import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea";
-import { ActionsState } from '../../application/state/actions'
+import { ActivityState } from '../../application/state/activity'
 import {
     STORAGE_VIEW_ABOUT,
     STORAGE_VIEW_ACTIVES,
@@ -25,7 +25,7 @@ import {
     STORAGE_VIEW_TRADE,
     STORAGE_VIEW_MODE,
     STORAGE_VIEW_LAST,
-    STORAGE_VIEW_ACTIONS
+    STORAGE_VIEW_ACTIVITY
 } from "../../../common/const";
 import { AboutState } from "../../application/state/about";
 import { ActivesList } from "../../application/state/actives";
@@ -171,12 +171,12 @@ async function loadLast(): Promise<LastRequiredState> {
     return await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
 }
 
-async function saveActions(state: ActionsState) {
-    await LOCAL_STORAGE.set(STORAGE_VIEW_ACTIONS, state)
+async function saveActions(state: ActivityState) {
+    await LOCAL_STORAGE.set(STORAGE_VIEW_ACTIVITY, state)
 }
 
-async function loadActions(): Promise<ActionsState> {
-    return await LOCAL_STORAGE.get(STORAGE_VIEW_ACTIONS)
+async function loadActions(): Promise<ActivityState> {
+    return await LOCAL_STORAGE.get(STORAGE_VIEW_ACTIVITY)
 }
 
 async function saveStream(state: StreamStateIn) {
