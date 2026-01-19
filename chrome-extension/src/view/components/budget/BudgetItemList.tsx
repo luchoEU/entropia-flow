@@ -373,14 +373,14 @@ function BudgetItemList() {
                             style={{ width: '150px' }}
                         />
                     ) : (
-                        <strong
-                            onDoubleClick={(e) => { e.stopPropagation(); handleStartRename(group) }}
-                            title='Double-click to rename'
-                            style={{ cursor: 'text' }}
-                        >
-                            {group.name}
-                        </strong>
+                        group.name
                     )}
+                    {!isEditing && <ImgButton
+                        title='Rename group'
+                        src='img/edit.png'
+                        dispatch={() => handleStartRename(group)}
+                        style={{ marginLeft: '8px' }}
+                    />}
                     <ImgButton
                         title='Delete group'
                         src='img/cross.png'
@@ -388,10 +388,10 @@ function BudgetItemList() {
                         style={{ marginLeft: '8px' }}
                     />
                 </td>
-                <td align='right'><strong>{totals.peds.toFixed(2)}</strong></td>
-                <td align='right'><strong>{totals.totalMU.toFixed(2)}</strong></td>
-                <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
-                <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
+                <td align='right'>{totals.peds.toFixed(2)}</td>
+                <td align='right'>{totals.totalMU.toFixed(2)}</td>
+                <td align='right'>{totals.total.toFixed(2)}</td>
+                <td align='right'>{materialsBalance.toFixed(2)}</td>
             </tr>
         )
     }
@@ -472,8 +472,8 @@ function BudgetItemList() {
                             <th>Balance</th>
                         </tr>
                     </thead>
-                    {s.groups.list.map(renderGroup)}
-                    {renderUngroupedSection()}
+                     {s.groups.list.map(renderGroup)}
+                     {ungroupedItems.length > 0 && renderUngroupedSection()}
                     </table>
                 </div>
                 <div className='inline'>
