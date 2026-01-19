@@ -349,8 +349,8 @@ const reduceSetBudgetSelection = (state: BudgetState, selection: BudgetSelection
     selection
 })
 
-export function calculateBalanceLines(materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData } {
-    const lines: { [itemName: string]: BudgetLineData } = {}
+export function calculateBalanceLines(materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData[] } {
+    const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
         if (material.balanceQuantity < 0) {
             const needed = -material.balanceQuantity;
@@ -360,18 +360,18 @@ export function calculateBalanceLines(materials: BalanceMaterialData[]): { [item
                 if (remaining <= 0) break;
                 const take = Math.min(budgetValue, remaining);
                 if (!lines[budgetName]) {
-                    lines[budgetName] = {
+                    lines[budgetName] = [{
                         reason: 'Balance',
                         ped: 0,
                         materials: []
-                    }
+                    }]
                 }
-                lines[budgetName].materials.push({
+                lines[budgetName][0].materials.push({
                     name: material.sheetName,
                     quantity: -take
                 })
-                const ped = lines[budgetName].ped! - (material.balanceWithMarkup * (take / needed))
-                lines[budgetName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
+                const ped = lines[budgetName][0].ped! - (material.balanceWithMarkup * (take / needed))
+                lines[budgetName][0].ped = Math.round((ped + Number.EPSILON) * 100) / 100
                 remaining -= take;
             }
         } else if (material.balanceQuantity > 0) {
@@ -379,18 +379,18 @@ export function calculateBalanceLines(materials: BalanceMaterialData[]): { [item
             if (budgets.length > 0) {
                 const [firstBudgetName] = budgets[0];
                 if (!lines[firstBudgetName]) {
-                    lines[firstBudgetName] = {
+                    lines[firstBudgetName] = [{
                         reason: 'Balance',
                         ped: 0,
                         materials: []
-                    }
+                    }]
                 }
-                lines[firstBudgetName].materials.push({
+                lines[firstBudgetName][0].materials.push({
                     name: material.sheetName,
                     quantity: material.balanceQuantity
                 })
-                const ped = lines[firstBudgetName].ped! - material.balanceWithMarkup
-                lines[firstBudgetName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
+                const ped = lines[firstBudgetName][0].ped! - material.balanceWithMarkup
+                lines[firstBudgetName][0].ped = Math.round((ped + Number.EPSILON) * 100) / 100
             }
         }
     }
@@ -415,7 +415,7 @@ export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, sele
     });
 }
 
-export function getBalanceLines(materials: BudgetMaterialState[]): { [itemName: string]: BudgetLineData } {
+export function getBalanceLines(materials: BudgetMaterialState[]): { [itemName: string]: BudgetLineData[] } {
     const balancedData: BalanceMaterialData[] = materials.map(material => ({
         sheetName: material.sheetName,
         balanceQuantity: material.c?.balanceQuantity || 0,

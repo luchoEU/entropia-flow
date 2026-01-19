@@ -2,7 +2,7 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { addBudgetGroup, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
@@ -120,31 +120,35 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
         {Object.keys(balanceLines).length > 0 && <>
             <hr />
             <h3>Pending Lines</h3>
-            {Object.entries(balanceLines).map(([itemName, line]) => (
+            {Object.entries(balanceLines).map(([itemName, lines]) => (
                 <div key={itemName}>
                     <h4>{itemName}</h4>
-                    <table style={{ marginLeft: '20px' }}>
-                        <thead>
-                            <tr>
-                                <th>Reason</th>
-                                <th>PED</th>
-                                {line.materials.map((mat, idx) => (
-                                    <th key={idx}>{mat.name}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{line.reason}</td>
-                                <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
-                                {line.materials.map((mat, idx) => (
-                                    <td key={idx} align='right'>{mat.quantity}</td>
-                                ))}
-                            </tr>
-                        </tbody>
-                    </table>
+                    {lines.map((line, idx) => (
+                        <table key={idx} style={{ marginLeft: '20px' }}>
+                            <thead>
+                                <tr>
+                                    <th>Reason</th>
+                                    <th>PED</th>
+                                    {line.materials.map((mat, idx2) => (
+                                        <th key={idx2}>{mat.name}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{line.reason}</td>
+                                    <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
+                                    {line.materials.map((mat, idx2) => (
+                                        <td key={idx2} align='right'>{mat.quantity}</td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </table>
+                    ))}
                 </div>
             ))}
+            <br />
+            <button onClick={() => dispatch(sendBudgetPendingLines(balanceLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
         </>}
     </div>
 }
@@ -456,7 +460,7 @@ function BudgetItemList() {
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
             <p>
-                <button onClick={() => dispatch(refreshBudget)}>Refresh</button>
+                <button onClick={() => dispatch(refreshBudget)} disabled={s.stage !== STAGE_INITIALIZING}>Refresh</button>
                 <button onClick={handleAddGroup} style={{ marginLeft: '8px' }}>Add Group</button>
                 { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
             </p>

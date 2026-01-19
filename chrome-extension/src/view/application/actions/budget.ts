@@ -1,3 +1,4 @@
+import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 import { BudgetState, BudgetMaterialsMap, BudgetItem, BudgetSelection } from "../state/budget"
 
 const SET_BUDGET_STATE = '[budget] set state'
@@ -13,6 +14,7 @@ const REFRESH_BUDGET = '[budget] refresh'
 const ADD_BUDGET_MATERIAL_SELECTION = '[budget] add material selection'
 const REMOVE_BUDGET_MATERIAL_SELECTION = '[budget] remove material selection'
 const PROCESS_BUDGET_MATERIAL_SELECTION = '[budget] process material selection'
+const SEND_BUDGET_PENDING_LINES = '[budget] send pending lines'
 const ADD_BUDGET_GROUP = '[budget] add group'
 const REMOVE_BUDGET_GROUP = '[budget] remove group'
 const RENAME_BUDGET_GROUP = '[budget] rename group'
@@ -103,6 +105,11 @@ const processBudgetMaterialSelection = () => ({
     type: PROCESS_BUDGET_MATERIAL_SELECTION
 })
 
+const sendBudgetPendingLines = (pendingLines: { [itemName: string]: BudgetLineData[] }) => ({
+    type: SEND_BUDGET_PENDING_LINES,
+    payload: { pendingLines }
+})
+
 const addBudgetGroup = (name: string) => ({
     type: ADD_BUDGET_GROUP,
     payload: { name }
@@ -151,6 +158,7 @@ export {
     REMOVE_BUDGET_MATERIAL_SELECTION,
     REFRESH_BUDGET,
     PROCESS_BUDGET_MATERIAL_SELECTION,
+    SEND_BUDGET_PENDING_LINES,
     ADD_BUDGET_GROUP,
     REMOVE_BUDGET_GROUP,
     RENAME_BUDGET_GROUP,
@@ -170,6 +178,7 @@ export {
     removeBudgetMaterialSelection,
     refreshBudget,
     processBudgetMaterialSelection,
+    sendBudgetPendingLines,
     addBudgetGroup,
     removeBudgetGroup,
     renameBudgetGroup,

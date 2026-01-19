@@ -7,6 +7,7 @@ interface BudgetState {
     list: BudgetList
     groups: BudgetGroups
     selection: BudgetSelection
+    c?: BudgetStateCalc
 }
 
 interface BudgetDisabledItems {
@@ -78,6 +79,19 @@ type BudgetSelection =
     | { type: 'item'; itemName: string; materialName?: string }
     | null
 
+interface BudgetLineData {
+    reason: string
+    ped?: number
+    materials: {
+        name: string
+        quantity: number
+    }[]
+}
+
+interface BudgetStateCalc {
+    pendingLines?: { [itemName: string]: BudgetLineData[] }
+}
+
 export {
     BudgetState,
     BudgetMaterialsMap,
@@ -85,5 +99,6 @@ export {
     BudgetItem,
     BudgetGroup,
     BudgetGroups,
-    BudgetSelection
+    BudgetSelection,
+    BudgetLineData
 }

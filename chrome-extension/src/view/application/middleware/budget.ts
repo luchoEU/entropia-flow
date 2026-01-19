@@ -2,7 +2,7 @@ import { ItemData } from "../../../common/state"
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, sendBudgetPendingLines, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, getBalanceLines, initialState } from "../helpers/budget"
@@ -94,12 +94,18 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
         case PROCESS_BUDGET_MATERIAL_SELECTION: {
-            const settings: SettingsState = getSettings(getState())
             const budget: BudgetState = getBudget(getState())
-            const materials: ItemsState = getItems(getState())
-
             const selectedMaterials = Object.values(budget.materials.map).filter(m => m.selected)
             const lines = getBalanceLines(selectedMaterials)
+            dispatch(sendBudgetPendingLines(lines))
+
+            break
+        }
+        case SEND_BUDGET_PENDING_LINES: {
+            const settings: SettingsState = getSettings(getState())
+            const lines: { [itemName: string]: BudgetLineData[] } = action.payload.pendingLines
+            const budget: BudgetState = getBudget(getState())
+            const materials: ItemsState = getItems(getState())
 
             let map: BudgetMaterialsMap = budget.materials.map
             let items: BudgetItem[] = budget.list.items
@@ -108,7 +114,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             let loaded = 0
             for (const itemName in lines) {
                 const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, { itemName })
-                await sheet.addLine(lines[itemName])
+                for (const line of lines[itemName]) {
+                    await sheet.addLine(line)
+                }
                 await sheet.save()
 
                 for (const materialName in map)
@@ -126,7 +134,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 map[materialName].selected = false;
             }
             dispatch(setBudgetFromSheet(map, items, 100))
-
             setStage(STAGE_INITIALIZING)
 
             break
