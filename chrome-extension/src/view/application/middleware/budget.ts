@@ -71,7 +71,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const realElement = {
                         itemName: invMat.c,
                         disabled: budget.disabledMaterials[invMat.n]?.includes(invMat.c) || false,
-                        quantity: -Number(invMat.q)
+                        quantity: Number(invMat.q)
                     }
 
                     map[invMat.n].realList.push(realElement)

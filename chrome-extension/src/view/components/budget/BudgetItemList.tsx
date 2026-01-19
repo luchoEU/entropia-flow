@@ -2,7 +2,7 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { addBudgetGroup, disableBudgetItem, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
@@ -14,6 +14,7 @@ interface MaterialSummary {
     quantity: number
     value: number
     valueWithMarkup: number
+    balanceWithMarkup: number
 }
 
 function getMaterials(itemNames: string[], materialsMap: BudgetMaterialsMap): MaterialSummary[] {
@@ -34,13 +35,16 @@ function getMaterials(itemNames: string[], materialsMap: BudgetMaterialsMap): Ma
                 name: materialName,
                 quantity,
                 value,
-                valueWithMarkup: value * material.markup
+                valueWithMarkup: value * material.markup,
+                balanceWithMarkup: material.c.balanceWithMarkup
             })
         }
     }
 
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
+
+
 
 const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     const dispatch = useDispatch()
@@ -52,7 +56,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
 
     let title = ''
     let url = undefined
-    let itemNames = []
+    let itemNames: string[] = []
     if (selection.type === 'group') {
         const group = s.groups.list.find(g => g.id === selection.groupId)
         if (!group) return null
@@ -69,7 +73,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     }
 
     const materials = getMaterials(itemNames, s.materials.map)
-    
+
     // Calculate totals for the selected items
     const totals = itemNames.reduce((acc, itemName) => {
         const item = s.list.items.find(i => i.name === itemName)
@@ -83,35 +87,12 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection(null))}>
-            {title} <img src='img/left.png' />
+            Session: {title} <img src='img/left.png' />
         </h2>
 
         {url && <p><a href={url} target='_blank' rel='noopener noreferrer'>Open in Google Sheets</a></p>}
 
-        <div className='budget-details-totals'>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>PEDs</td>
-                        <td align='right'>{totals.peds.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Total MU</td>
-                        <td align='right'>{totals.totalMU.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td>Total</td>
-                        <td align='right'>{totals.total.toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <p>PED Reserve: {totals.peds.toFixed(2)}</p>
 
         {materials.length > 0 && <>
             <table>
@@ -120,22 +101,113 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
                         <th>Material</th>
                         <th>Quantity</th>
                         <th>Value</th>
-                        <th>+MU</th>
+                        <th>with MU</th>
+                        <th>Balance</th>
                     </tr>
                 </thead>
                 <tbody>
                     {materials.map(mat => (
                         <tr key={mat.name}>
-                            <td>{mat.name}</td>
+                            <td className='pointer' onClick={() => dispatch(setBudgetSelection({ ...selection, materialName: mat.name }))}>{mat.name}</td>
                             <td align='right'>{mat.quantity}</td>
-                            <td align='right'>{mat.value.toFixed(2)}</td>
-                            <td align='right'>{mat.valueWithMarkup.toFixed(2)}</td>
+                            <td align='right'>{mat.value.toFixed(2)} PED</td>
+                            <td align='right'>{mat.valueWithMarkup.toFixed(2)} PED</td>
+                            <td align='right'>{mat.balanceWithMarkup.toFixed(2)} PED</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
         </>}
     </div>
+}
+
+const MaterialDetailsPanel = ({ s }: { s: BudgetState }) => {
+    const dispatch = useDispatch()
+    const selection = s.selection
+
+    if (!selection || !selection.materialName) {
+        return null
+    }
+
+    const material = s.materials.map[selection.materialName]
+    if (!material) return null
+
+    // Create a map of itemName to budget and real data
+    const itemMap: { [itemName: string]: { budget?: { quantity: number, value: number }, real?: { quantity: number, value: number, disabled: boolean } } } = {}
+
+    material.budgetList.forEach(b => {
+        if (!itemMap[b.itemName]) itemMap[b.itemName] = {}
+        itemMap[b.itemName].budget = { quantity: b.quantity, value: b.quantity * material.unitValue }
+    })
+
+    material.realList.forEach(r => {
+        if (!itemMap[r.itemName]) itemMap[r.itemName] = {}
+        itemMap[r.itemName].real = { quantity: r.quantity, value: r.quantity * material.unitValue, disabled: r.disabled }
+    })
+
+    const sortedItemNames = Object.keys(itemMap).sort()
+
+    return (
+        <div className='trade-item-data'>
+            <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection({ ...selection, materialName: undefined }))}>
+                Material: {selection.materialName} <img src='img/left.png' />
+            </h2>
+            <p>Markup: {(material.markup * 100).toFixed(2)}%</p>
+            <p>Balance with markup: {(material.c.balanceWithMarkup).toFixed(2)} PED</p>
+            <table className='table-diff' style={{ backgroundColor: 'transparent' }}>
+                <thead>
+                    <tr>
+                        <th>Container</th>
+                        <th>Sheet Qty</th>
+                        <th>Sheet Value</th>
+                        <th>Holding Qty</th>
+                        <th>Holding Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {sortedItemNames.map(itemName => {
+                        const data = itemMap[itemName]
+                        return (
+                            <tr key={itemName}>
+                                <td>
+                                    {data.real ? (
+                                        <>
+                                            {data.real.disabled ? (
+                                                <ImgButton title='Enable this material' src='img/tick.png'
+                                                    dispatch={() => dispatch(enableBudgetMaterial(material.sheetName, itemName))} />
+                                            ) : (
+                                                <ImgButton title='Disable this material' src='img/cross.png'
+                                                    dispatch={() => dispatch(disableBudgetMaterial(material.sheetName, itemName))} />
+                                            )}
+                                            {itemName}
+                                        </>
+                                    ) : (
+                                        `${itemName} sheet`
+                                    )}
+                                </td>
+                                <td align='right'>{data.budget ? data.budget.quantity : ''}</td>
+                                <td align='right'>{data.budget ? data.budget.value.toFixed(2) + ' PED' : ''}</td>
+                                <td align='right'>{data.real ? (data.real.disabled ? `(${data.real.quantity})` : data.real.quantity) : ''}</td>
+                                <td align='right'>{data.real && !data.real.disabled ? data.real.value.toFixed(2) + ' PED' : ''}</td>
+                            </tr>
+                        )
+                    })}
+                    <tr key='total'>
+                        <td><strong>TOTAL</strong></td>
+                        <td align='right'><strong>{material.c.totalBudgetQuantity}</strong></td>
+                        <td align='right'><strong>{material.c.totalBudget.toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{material.c.totalRealQuantity}</strong></td>
+                        <td align='right'><strong>{material.c.totalReal.toFixed(2)} PED</strong></td>
+                    </tr>
+                    <tr key='balance'>
+                        <td>Balance</td>
+                        <td align='right'>{material.c.balanceQuantity}</td>
+                        <td align='right'>{material.c.balance.toFixed(2)} PED</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    )
 }
 
 function BudgetItemList() {
@@ -220,28 +292,35 @@ function BudgetItemList() {
         }
     }
 
-    const renderItemRow = (item: BudgetItem) => (
-        <tr
-            key={item.name}
-            draggable
-            onDragStart={(e) => handleDragStart(e, item.name)}
-            onDragEnd={handleDragEnd}
-            className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''}`}
-            style={{ cursor: 'grab' }}
-            onClick={() => handleItemClick(item.name)}
-        >
-            <td>
-                <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
-                {item.name}
-            </td>
-            <td align='right'>{item.peds.toFixed(2)}</td>
-            <td align='right'>{item.totalMU.toFixed(2)}</td>
-            <td align='right'>{item.total.toFixed(2)}</td>
-        </tr>
-    )
+    const renderItemRow = (item: BudgetItem) => {
+        const itemMaterials = getMaterials([item.name], s.materials.map)
+        const materialsBalance = itemMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
+        return (
+            <tr
+                key={item.name}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item.name)}
+                onDragEnd={handleDragEnd}
+                className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''}`}
+                style={{ cursor: 'grab' }}
+                onClick={() => handleItemClick(item.name)}
+            >
+                <td>
+                    <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
+                    {item.name}
+                </td>
+                <td align='right'>{item.peds.toFixed(2)}</td>
+                <td align='right'>{item.totalMU.toFixed(2)}</td>
+                <td align='right'>{item.total.toFixed(2)}</td>
+                <td align='right'>{materialsBalance.toFixed(2)}</td>
+            </tr>
+        )
+    }
 
     const renderGroupHeader = (group: BudgetGroup) => {
         const totals = getGroupTotals(group, s.list.items)
+        const groupMaterials = getMaterials(group.itemNames, s.materials.map)
+        const materialsBalance = groupMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
         const isEditing = editingGroupId === group.id
 
         return (
@@ -284,6 +363,7 @@ function BudgetItemList() {
                 <td align='right'><strong>{totals.peds.toFixed(2)}</strong></td>
                 <td align='right'><strong>{totals.totalMU.toFixed(2)}</strong></td>
                 <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
+                <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
             </tr>
         )
     }
@@ -302,7 +382,7 @@ function BudgetItemList() {
                 {group.expanded && groupItems.map(renderItemRow)}
                 {group.expanded && groupItems.length === 0 && (
                     <tr className='budget-empty-group'>
-                        <td colSpan={4} style={{ fontStyle: 'italic', color: '#888' }}>
+                        <td colSpan={5} style={{ fontStyle: 'italic', color: '#888' }}>
                             Drag items here
                         </td>
                     </tr>
@@ -317,6 +397,9 @@ function BudgetItemList() {
             totalMU: ungroupedItems.reduce((sum, i) => sum + i.totalMU, 0),
             total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
         }
+        const ungroupedItemNames = ungroupedItems.map(i => i.name)
+        const ungroupedMaterials = getMaterials(ungroupedItemNames, s.materials.map)
+        const materialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.valueWithMarkup, 0)
 
         return (
             <tbody
@@ -335,6 +418,7 @@ function BudgetItemList() {
                     <td align='right'><strong>{totals.peds.toFixed(2)}</strong></td>
                     <td align='right'><strong>{totals.totalMU.toFixed(2)}</strong></td>
                     <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
+                    <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
                 </tr>
                 {s.groups.ungroupedExpanded && ungroupedItems.map(renderItemRow)}
             </tbody>
@@ -356,12 +440,16 @@ function BudgetItemList() {
                             <th>PEDs</th>
                             <th>Total MU</th>
                             <th>Total</th>
+                            <th>Balance</th>
                         </tr>
                     </thead>
                     {s.groups.list.map(renderGroup)}
                     {renderUngroupedSection()}
                 </table>
-                <BudgetDetailsPanel s={s} />
+                <div className='inline'>
+                    <BudgetDetailsPanel s={s} />
+                    {s.selection?.materialName && <MaterialDetailsPanel s={s} />}
+                </div>
             </div>
         </ExpandableSection>
     )

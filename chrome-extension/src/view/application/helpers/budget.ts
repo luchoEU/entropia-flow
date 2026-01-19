@@ -36,7 +36,7 @@ function fillBudgetMaterialCalc(state: BudgetMaterialState): BudgetMaterialState
     const totalRealQuantity = state.realList.reduce((sum, item) => item.disabled ? sum : sum + item.quantity, 0);
     const totalBudget = totalBudgetQuantity * state.unitValue;
     const totalReal = totalRealQuantity * state.unitValue;
-    const balanceQuantity = totalBudgetQuantity + totalRealQuantity
+    const balanceQuantity = totalRealQuantity - totalBudgetQuantity;
     const balance = balanceQuantity * state.unitValue;
     const balanceWithMarkup = balance * state.markup;
     return {

@@ -38,7 +38,7 @@ interface BudgetMaterialCalcState {
     totalRealQuantity: number // sum(realList.quantity)
     totalBudget: number // totalBudgetQuantity * unitValue
     totalReal: number // totalRealQuantity * unitValue
-    balanceQuantity: number // totalBudgetQuantity - totalRealQuantity
+    balanceQuantity: number // totalRealQuantity - totalBudgetQuantity
     balance: number // balanceQuantity * unitValue
     balanceWithMarkup: number // balance * markup
 }
@@ -74,8 +74,8 @@ interface BudgetGroups {
 }
 
 type BudgetSelection =
-    | { type: 'group'; groupId: string }
-    | { type: 'item'; itemName: string }
+    | { type: 'group'; groupId: string; materialName?: string }
+    | { type: 'item'; itemName: string; materialName?: string }
     | null
 
 export {
