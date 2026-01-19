@@ -3,48 +3,43 @@ import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
 import { addBudgetGroup, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
-import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetState } from '../../application/state/budget'
+import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
-import { getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
+import { getBalanceLines, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
 interface MaterialSummary {
     name: string
-    quantity: number
-    value: number
-    valueWithMarkup: number
+    budgetQuantity: number
+    budgetValue: number
+    budgetWithMarkup: number
+    balanceQuantity: number
     balanceWithMarkup: number
 }
 
-function getMaterials(itemNames: string[], materialsMap: BudgetMaterialsMap): MaterialSummary[] {
+function getUsedMaterialsMap(itemNames: string[], materialsMap: BudgetMaterialsMap): Record<string, BudgetMaterialState> {
+    return Object.fromEntries(Object.entries(materialsMap).filter(([_, m]) => m.budgetList.some(b => itemNames.includes(b.itemName))))
+}
+
+function getMaterials(usedMaterialsMap: BudgetMaterialsMap): MaterialSummary[] {
     const result: MaterialSummary[] = []
 
-    for (const [materialName, material] of Object.entries(materialsMap)) {
-        let quantity: number | undefined = undefined
-
-        for (const budget of material.budgetList) {
-            if (itemNames.includes(budget.itemName)) {
-                quantity = (quantity ?? 0) + budget.quantity
-            }
-        }
-
-        if (quantity !== undefined) {
-            const value = quantity * material.unitValue
-            result.push({
-                name: materialName,
-                quantity,
-                value,
-                valueWithMarkup: value * material.markup,
-                balanceWithMarkup: material.c.balanceWithMarkup
-            })
-        }
+    for (const [materialName, material] of Object.entries(usedMaterialsMap)) {
+        const quantity = material.budgetList.reduce((acc, b) => acc + b.quantity, 0)
+        const value = quantity * material.unitValue
+        result.push({
+            name: materialName,
+            budgetQuantity: quantity,
+            budgetValue: value,
+            budgetWithMarkup: value * material.markup,
+            balanceQuantity: material.c.balanceQuantity,
+            balanceWithMarkup: material.c.balanceWithMarkup
+        })
     }
 
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
-
-
 
 const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     const dispatch = useDispatch()
@@ -55,7 +50,6 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     }
 
     let title = ''
-    let url = undefined
     let itemNames: string[] = []
     if (selection.type === 'group') {
         const group = s.groups.list.find(g => g.id === selection.groupId)
@@ -63,16 +57,17 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
         title = group.name
         itemNames = group.itemNames
     } else if (selection.type === 'item') {
-        const item = s.list.items.find(i => i.name === selection.itemName)
-        if (!item) return null
-        title = item.name
-        url = item.url
+        title = selection.itemName
         itemNames = [selection.itemName]
     } else {
         return null
     }
+    const items = itemNames.map(n => s.list.items.find(i => i.name === n))
+    if (items.some(i => !i)) return null
 
-    const materials = getMaterials(itemNames, s.materials.map)
+    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
+    const balanceLines = getBalanceLines(Object.values(usedMaterialsMap))
+    const materials = getMaterials(usedMaterialsMap)
 
     // Calculate totals for the selected items
     const totals = itemNames.reduce((acc, itemName) => {
@@ -87,36 +82,69 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection(null))}>
-            Session: {title} <img src='img/left.png' />
+            Budget: {title} <img src='img/left.png' />
         </h2>
 
-        {url && <p><a href={url} target='_blank' rel='noopener noreferrer'>Open in Google Sheets</a></p>}
+        {items.map(item => item && <p><a href={item.url} target='_blank' rel='noopener noreferrer'>Open {item.name} in Google Sheets</a></p>)}
 
         <p>PED Reserve: {totals.peds.toFixed(2)}</p>
+        <p>Total Balance including Markup: {(materials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)).toFixed(2)} PED</p>
 
         {materials.length > 0 && <>
             <table>
                 <thead>
                     <tr>
                         <th>Material</th>
-                        <th>Quantity</th>
+                        <th>Budget Quantity</th>
                         <th>Value</th>
                         <th>with MU</th>
-                        <th>Balance</th>
+                        <th>Balance Quantity</th>
+                        <th>with MU</th>
                     </tr>
                 </thead>
                 <tbody>
                     {materials.map(mat => (
                         <tr key={mat.name}>
                             <td className='pointer' onClick={() => dispatch(setBudgetSelection({ ...selection, materialName: mat.name }))}>{mat.name}</td>
-                            <td align='right'>{mat.quantity}</td>
-                            <td align='right'>{mat.value.toFixed(2)} PED</td>
-                            <td align='right'>{mat.valueWithMarkup.toFixed(2)} PED</td>
+                            <td align='right'>{mat.budgetQuantity}</td>
+                            <td align='right'>{mat.budgetValue.toFixed(2)} PED</td>
+                            <td align='right'>{mat.budgetWithMarkup.toFixed(2)} PED</td>
+                            <td align='right'>{mat.balanceQuantity}</td>
                             <td align='right'>{mat.balanceWithMarkup.toFixed(2)} PED</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+        </>}
+
+        {Object.keys(balanceLines).length > 0 && <>
+            <hr />
+            <h3>Pending Lines</h3>
+            {Object.entries(balanceLines).map(([itemName, line]) => (
+                <div key={itemName}>
+                    <h4>{itemName}</h4>
+                    <table style={{ marginLeft: '20px' }}>
+                        <thead>
+                            <tr>
+                                <th>Reason</th>
+                                <th>PED</th>
+                                {line.materials.map((mat, idx) => (
+                                    <th key={idx}>{mat.name}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{line.reason}</td>
+                                <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
+                                {line.materials.map((mat, idx) => (
+                                    <td key={idx} align='right'>{mat.quantity}</td>
+                                ))}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            ))}
         </>}
     </div>
 }
@@ -293,7 +321,7 @@ function BudgetItemList() {
     }
 
     const renderItemRow = (item: BudgetItem) => {
-        const itemMaterials = getMaterials([item.name], s.materials.map)
+        const itemMaterials = getMaterials(getUsedMaterialsMap([item.name], s.materials.map))
         const materialsBalance = itemMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
         return (
             <tr
@@ -319,7 +347,7 @@ function BudgetItemList() {
 
     const renderGroupHeader = (group: BudgetGroup) => {
         const totals = getGroupTotals(group, s.list.items)
-        const groupMaterials = getMaterials(group.itemNames, s.materials.map)
+        const groupMaterials = getMaterials(getUsedMaterialsMap(group.itemNames, s.materials.map))
         const materialsBalance = groupMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
         const isEditing = editingGroupId === group.id
 
@@ -398,8 +426,8 @@ function BudgetItemList() {
             total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
         }
         const ungroupedItemNames = ungroupedItems.map(i => i.name)
-        const ungroupedMaterials = getMaterials(ungroupedItemNames, s.materials.map)
-        const materialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.valueWithMarkup, 0)
+        const ungroupedMaterials = getMaterials(getUsedMaterialsMap(ungroupedItemNames, s.materials.map))
+        const materialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.budgetWithMarkup, 0)
 
         return (
             <tbody
@@ -433,7 +461,8 @@ function BudgetItemList() {
                 { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
-                <table className='table-diff budget-items-table'>
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <table className='table-diff budget-items-table'>
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -445,7 +474,8 @@ function BudgetItemList() {
                     </thead>
                     {s.groups.list.map(renderGroup)}
                     {renderUngroupedSection()}
-                </table>
+                    </table>
+                </div>
                 <div className='inline'>
                     <BudgetDetailsPanel s={s} />
                     {s.selection?.materialName && <MaterialDetailsPanel s={s} />}

@@ -5,7 +5,7 @@ import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsSt
 import { ADD_BUDGET_GROUP, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState } from "../actions/budget"
 import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
-import { cleanForSave, initialState } from "../helpers/budget"
+import { cleanForSave, getBalanceLines, initialState } from "../helpers/budget"
 import { getItemList } from "../helpers/inventory"
 import { getBudget } from "../selectors/budget"
 import { getInventory } from "../selectors/inventory"
@@ -98,27 +98,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const budget: BudgetState = getBudget(getState())
             const materials: ItemsState = getItems(getState())
 
-            const lines : { [itemName: string]: BudgetLineData } = { }
-
-            for (var materialName of Object.keys(budget.materials.map)) {
-                const material = budget.materials.map[materialName]
-                if (material.selected) {
-                    const itemName = material.budgetList[0].itemName
-                    if (!lines[itemName]) {
-                        lines[itemName] = {
-                            reason: 'Balance',
-                            ped: 0,
-                            materials: []
-                        }
-                    }
-                    lines[itemName].materials.push({
-                        name: material.sheetName,
-                        quantity: -(material.c?.balanceQuantity || 0)
-                    })
-                    const ped = (lines[itemName].ped || 0) + (material.c?.balanceWithMarkup || 0)                    
-                    lines[itemName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
-                }
-            }
+            const selectedMaterials = Object.values(budget.materials.map).filter(m => m.selected)
+            const lines = getBalanceLines(selectedMaterials)
 
             let map: BudgetMaterialsMap = budget.materials.map
             let items: BudgetItem[] = budget.list.items

@@ -1,6 +1,14 @@
 import { objectMap } from "../../../common/object"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
+import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetSelection, BudgetState } from "../state/budget"
+
+interface BalanceMaterialData {
+  sheetName: string;
+  balanceQuantity: number;
+  balanceWithMarkup: number;
+  budget: Record<string, number>;
+}
 
 const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
@@ -341,9 +349,86 @@ const reduceSetBudgetSelection = (state: BudgetState, selection: BudgetSelection
     selection
 })
 
+export function calculateBalanceLines(materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData } {
+    const lines: { [itemName: string]: BudgetLineData } = {}
+    for (const material of materials) {
+        if (material.balanceQuantity < 0) {
+            const needed = -material.balanceQuantity;
+            let remaining = needed;
+            const budgets = Object.entries(material.budget);
+            for (const [budgetName, budgetValue] of budgets) {
+                if (remaining <= 0) break;
+                const take = Math.min(budgetValue, remaining);
+                if (!lines[budgetName]) {
+                    lines[budgetName] = {
+                        reason: 'Balance',
+                        ped: 0,
+                        materials: []
+                    }
+                }
+                lines[budgetName].materials.push({
+                    name: material.sheetName,
+                    quantity: -take
+                })
+                const ped = lines[budgetName].ped! - (material.balanceWithMarkup * (take / needed))
+                lines[budgetName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
+                remaining -= take;
+            }
+        } else if (material.balanceQuantity > 0) {
+            const budgets = Object.entries(material.budget);
+            if (budgets.length > 0) {
+                const [firstBudgetName] = budgets[0];
+                if (!lines[firstBudgetName]) {
+                    lines[firstBudgetName] = {
+                        reason: 'Balance',
+                        ped: 0,
+                        materials: []
+                    }
+                }
+                lines[firstBudgetName].materials.push({
+                    name: material.sheetName,
+                    quantity: material.balanceQuantity
+                })
+                const ped = lines[firstBudgetName].ped! - material.balanceWithMarkup
+                lines[firstBudgetName].ped = Math.round((ped + Number.EPSILON) * 100) / 100
+            }
+        }
+    }
+    return lines
+}
+
+export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, selectedMaterialNames: string[]): BalanceMaterialData[] {
+    return selectedMaterialNames.map(name => {
+        const material = materialsMap[name];
+        if (!material) {
+            throw new Error(`Material '${name}' not found in materialsMap`);
+        }
+        if (!material.budgetList || material.budgetList.length === 0) {
+            throw new Error(`Material '${name}' has no budgetList entries`);
+        }
+        return {
+            sheetName: material.sheetName,
+            balanceQuantity: material.c?.balanceQuantity || 0,
+            balanceWithMarkup: material.c?.balanceWithMarkup || 0,
+            budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
+        };
+    });
+}
+
+export function getBalanceLines(materials: BudgetMaterialState[]): { [itemName: string]: BudgetLineData } {
+    const balancedData: BalanceMaterialData[] = materials.map(material => ({
+        sheetName: material.sheetName,
+        balanceQuantity: material.c?.balanceQuantity || 0,
+        balanceWithMarkup: material.c?.balanceWithMarkup || 0,
+        budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
+    }));
+    return calculateBalanceLines(balancedData);
+}
+
 export {
     initialState,
     SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP,
+    BalanceMaterialData,
     reduceSetBudgetFromSheet,
     setState,
     cleanForSave,
