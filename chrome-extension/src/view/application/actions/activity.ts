@@ -9,9 +9,11 @@ const UPDATE_SESSION_TYPE = "[actions] update session type"
 const UPDATE_EXPANDED_SESSIONS = "[actions] update expanded sessions"
 const UPDATE_EXPANDED_ACTION_ROWS = "[actions] update expanded action rows"
 const UPDATE_SESSION_INVENTORY = "[actions] update session inventory"
-const UPDATE_ACTION_BUDGET_URL = "[actions] update action budget url"
+const UPDATE_ACTION_BUDGET_NAME = "[actions] update action budget name"
 const SET_SHOW_ACTIONS = "[actions] set show actions"
 const SET_ACTIONS_STATE = "[actions] set state"
+const REINFER_SESSION_ACTIONS = "[actions] re-infer session actions"
+const REMOVE_ACTIONS = "[actions] remove actions"
 
 const addActions = (actions: StoredAction[]) => ({
     type: ADD_ACTIONS,
@@ -56,9 +58,9 @@ const updateSessionInventory = (sessionId: string, inventory: { total: number; i
     payload: { sessionId, inventory }
 })
 
-const updateActionBudgetUrl = (actionId: string, budgetUrl: string) => ({
-    type: UPDATE_ACTION_BUDGET_URL,
-    payload: { actionId, budgetUrl }
+const updateActionBudgetName = (actionId: string, budgetName: string) => ({
+    type: UPDATE_ACTION_BUDGET_NAME,
+    payload: { actionId, budgetName }
 })
 
 const setShowActions = (showActions: boolean) => ({
@@ -71,6 +73,16 @@ const setActionsState = (state: ActivityState) => ({
     payload: state
 })
 
+const reinferSessionActions = (sessionId: string) => ({
+    type: REINFER_SESSION_ACTIONS,
+    payload: { sessionId }
+})
+
+const removeActions = (actionIds: string[]) => ({
+    type: REMOVE_ACTIONS,
+    payload: { actionIds }
+})
+
 export {
     ADD_ACTIONS,
     CLEAR_ACTIONS,
@@ -81,9 +93,11 @@ export {
     UPDATE_EXPANDED_SESSIONS,
     UPDATE_EXPANDED_ACTION_ROWS,
     UPDATE_SESSION_INVENTORY,
-    UPDATE_ACTION_BUDGET_URL,
+    UPDATE_ACTION_BUDGET_NAME,
     SET_SHOW_ACTIONS,
     SET_ACTIONS_STATE,
+    REINFER_SESSION_ACTIONS,
+    REMOVE_ACTIONS,
     addActions,
     clearActions,
     setLastProcessedKey,
@@ -93,7 +107,9 @@ export {
     updateExpandedSessions,
     updateExpandedActionRows,
     updateSessionInventory,
-    updateActionBudgetUrl,
+    updateActionBudgetName,
     setShowActions,
-    setActionsState
+    setActionsState,
+    reinferSessionActions,
+    removeActions
 }

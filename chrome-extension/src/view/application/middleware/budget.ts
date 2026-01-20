@@ -3,7 +3,7 @@ import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { SetStage, STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, sendBudgetPendingLines, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, clearBudgetItemPendingLines } from "../actions/budget"
-import { ADD_ACTIONS, updateActionBudgetUrl } from "../actions/activity"
+import { ADD_ACTIONS, REMOVE_ACTIONS, updateActionBudgetName } from "../actions/activity"
 import { loadItemData, SET_ITEM_PARTIAL_WEB_DATA } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, getBalanceLines, initialState } from "../helpers/budget"
@@ -12,6 +12,7 @@ import { getBudget } from "../selectors/budget"
 import { getInventory } from "../selectors/inventory"
 import { getItems } from "../selectors/items"
 import { getSettings } from "../selectors/settings"
+import { getActivity } from "../selectors/activity"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
@@ -41,9 +42,28 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         }
                         dispatch(addBudgetItemPendingLines(storedAction.item, [line]))
 
-                        // Associate budget URL with the action
-                        dispatch(updateActionBudgetUrl(storedAction.id, item.url))
+                        // Associate budget name with the action
+                        dispatch(updateActionBudgetName(storedAction.id, item.name))
                     }
+                }
+            }
+            break
+        }
+        case REMOVE_ACTIONS: {
+            const budget = getBudget(getState())
+            const activityState = getActivity(getState())
+            for (const actionId of action.payload.actionIds) {
+                const storedAction = activityState.list.find(act => act.id === actionId)
+                if (storedAction && storedAction.budgetName) {
+                    // Remove budgetList entries for this item from all materials
+                    const updatedMap = { ...budget.materials.map }
+                    for (const materialName of Object.keys(updatedMap)) {
+                        updatedMap[materialName] = {
+                            ...updatedMap[materialName],
+                            budgetList: updatedMap[materialName].budgetList.filter(b => b.itemName !== storedAction.budgetName)
+                        }
+                    }
+                    dispatch(setBudgetFromSheet(updatedMap, budget.list.items, budget.loadPercentage))
                 }
             }
             break

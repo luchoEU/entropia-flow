@@ -1,10 +1,11 @@
 import { SET_HISTORY_LIST } from '../actions/history'
-import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_SHOW_ACTIONS, updateSessionInventory, setActionsState } from '../actions/activity'
+import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_SHOW_ACTIONS, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, removeActions, updateSessionInventory, setActionsState } from '../actions/activity'
 import { ActivityState, StoredAction } from '../state/activity'
 import { HistoryState } from '../state/history'
 import { AppAction } from '../slice/app'
 import { getActivity } from '../selectors/activity'
 import { getHistory } from '../selectors/history'
+import { inferActions, reverseInferActions } from '../helpers/actionInference'
 
 const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const prevActionsState = getActivity(getState())
@@ -30,6 +31,60 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         case SET_SHOW_ACTIONS: {
             const actionsState = getActivity(getState())
             await api.storage.saveActions(actionsState)
+            break
+        }
+        case REINFER_SESSION_ACTIONS: {
+            const actionsState = getActivity(getState())
+            const session = actionsState.sessions.find(s => s.id === action.payload.sessionId)
+            if (!session) break
+
+            const sessionIndex = actionsState.sessions.indexOf(session)
+            const nextSession = actionsState.sessions[sessionIndex + 1]
+            const endTime = nextSession ? nextSession.startTime : Date.now()
+
+            // Find actions in this session
+            const sessionActions = actionsState.list.filter(act =>
+                act.timestamp >= session.startTime && act.timestamp < endTime
+            )
+
+            if (sessionActions.length === 0) break
+
+            // Group actions by timestamp
+            const actionsByTimestamp = new Map<number, StoredAction[]>()
+            for (const act of sessionActions) {
+                if (!actionsByTimestamp.has(act.timestamp)) {
+                    actionsByTimestamp.set(act.timestamp, [])
+                }
+                actionsByTimestamp.get(act.timestamp)!.push(act)
+            }
+
+            // Re-infer for each timestamp
+            const newStoredActions: StoredAction[] = []
+            for (const [timestamp, acts] of actionsByTimestamp) {
+                // Reverse infer to get items for this timestamp
+                const items = reverseInferActions(acts)
+
+                // Re-infer actions
+                const newInferredActions = inferActions(items)
+
+                // Create new StoredActions
+                const timestampActions: StoredAction[] = newInferredActions.map(inferred => ({
+                    ...inferred,
+                    id: crypto.randomUUID(), // Use random UUID for new actions
+                    timestamp,
+                    sources: ['inventory'] as const
+                }))
+
+                newStoredActions.push(...timestampActions)
+            }
+
+            // Dispatch remove old actions and add new ones
+            dispatch(removeActions(sessionActions.map(act => act.id)))
+            dispatch(addActions(newStoredActions))
+
+            // Save state after updates
+            const updatedActionsState = getActivity(getState())
+            await api.storage.saveActions(updatedActionsState)
             break
         }
         case CREATE_NEW_SESSION: {
@@ -62,23 +117,23 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
             // Find new inventory items that haven't been processed yet
             const newActions: StoredAction[] = []
 
-            for (const item of history.list) {
+            for (const inventory of history.list) {
                 // Skip if already processed
-                if (prevLastKey !== undefined && item.key <= prevLastKey) {
+                if (prevLastKey !== undefined && inventory.key <= prevLastKey) {
                     continue
                 }
 
                 // Skip if no actions inferred
-                if (!item.actions || item.actions.length === 0) {
+                if (!inventory.actions || inventory.actions.length === 0) {
                     continue
                 }
 
                 // Convert InferredAction to StoredAction
-                for (const inferredAction of item.actions) {
+                for (const inferredAction of inventory.actions) {
                     const storedAction: StoredAction = {
                         ...inferredAction,
-                        id: `${item.key}-${inferredAction.type}-${inferredAction.item}`,
-                        timestamp: item.key, // The inventory key is the timestamp
+                        id: `${inventory.key}-${inferredAction.type}-${inferredAction.item}`,
+                        timestamp: inventory.key, // The inventory key is the timestamp
                         sources: ['inventory']
                     }
                     newActions.push(storedAction)

@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
+import { TabId } from '../../application/state/navigation'
 import ItemText from '../common/ItemText'
 import TextButton from '../common/TextButton'
-import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions } from '../../application/actions/activity'
+import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions, reinferSessionActions } from '../../application/actions/activity'
+import { setBudgetSelection } from '../../application/actions/budget'
 import { getActivity } from '../../application/selectors/activity'
+import { getBudget } from '../../application/selectors/budget'
+import { getLocationFromTabId } from '../../application/helpers/navigation'
 import { reverseInferActions } from '../../application/helpers/actionInference'
 
 const formatTime = (timestamp: number): string => {
@@ -30,56 +35,7 @@ function getDeltaClass(delta: number | undefined) {
     }
 }
 
-const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
-    return (
-        <>
-            <tr className='item-row' onClick={onToggle}>
-                <td>
-                    <span style={{ cursor: 'pointer', marginRight: '5px' }}>
-                        {isExpanded ? '▼' : '▶'}
-                    </span>
-                    <span className='action-time'>{formatTime(action.timestamp)}</span>
-                    {' '}
-                    <ItemText text={formatActionDescription(action)} />
-                    {action.budgetUrl && (
-                        <a
-                            href={action.budgetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ marginLeft: '10px', textDecoration: 'none' }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            📊
-                        </a>
-                    )}
-                </td>
-                <td className='action-sources'>
-                    {action.sources.join(', ')}
-                </td>
-            </tr>
-            {isExpanded && action.relatedItems.length > 0 &&
-                <table className='table-diff' style={{ paddingLeft: '40px' }}>
-                    <thead>
-                        <th>Item</th>
-                        <th>Quantity</th>
-                        <th>Value</th>
-                        <th>Container</th>
-                    </thead>
-                    <tbody>
-                        {action.relatedItems.map((item: ViewItemData, idx: number) => (
-                            <tr key={idx} className='item-row'>
-                                <td><ItemText text={item.n} /></td>
-                                <td>{item.q} </td>
-                                <td>{item.v} PED</td>
-                                <td>{item.c}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            }
-        </>
-    )
-}
+
 
 const preSessionKey = 'pre-session'
 const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): Map<string, StoredAction[]> => {
@@ -112,11 +68,66 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 
 function ActivityPage() {
     const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions } = useSelector(getActivity)
+    const budget = useSelector(getBudget)
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
     const expandedSessions = new Set(expandedArray)
     const expandedActionRowsSet = new Set(expandedActionRows)
+
+    const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
+        return (
+            <>
+                <tr className='item-row' onClick={onToggle}>
+                    <td>
+                        <span style={{ cursor: 'pointer', marginRight: '5px' }}>
+                            {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <span className='action-time'>{formatTime(action.timestamp)}</span>
+                        {' '}
+                        <ItemText text={formatActionDescription(action)} />
+                        {action.budgetName && (
+                            <a
+                                href="#"
+                                style={{ marginLeft: '10px', textDecoration: 'none', cursor: 'pointer' }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    dispatch(setBudgetSelection({ type: 'item', itemName: action.budgetName! }))
+                                    navigate(getLocationFromTabId(TabId.BUDGET))
+                                }}
+                            >
+                                [📊Budget]
+                            </a>
+                        )}
+                    </td>
+                    <td className='action-sources'>
+                        {action.sources.join(', ')}
+                    </td>
+                </tr>
+                {isExpanded && action.relatedItems.length > 0 &&
+                    <table className='table-diff' style={{ paddingLeft: '40px' }}>
+                        <thead>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Value</th>
+                            <th>Container</th>
+                        </thead>
+                        <tbody>
+                            {action.relatedItems.map((item: ViewItemData, idx: number) => (
+                                <tr key={idx} className='item-row'>
+                                    <td><ItemText text={item.n} /></td>
+                                    <td>{item.q} </td>
+                                    <td>{item.v} PED</td>
+                                    <td>{item.c}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                }
+            </>
+        )
+    }
 
     // Compute delta for each virtual session
     const sessionDeltas = new Map<string, number>()
@@ -191,21 +202,28 @@ function ActivityPage() {
                          </h4>
                         {isExpanded && (
                             <>
-                                <p><span>
-                                    <strong>Type:</strong> {typeIcon}
-                                    <select
-                                        value={session.type}
-                                        onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
-                                        disabled={isPreSession}
-                                        style={{ border: 'none', background: 'transparent' }}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <option value="unknown">Unknown</option>
-                                        <option value="hunt">Hunt</option>
-                                        <option value="mine">Mine</option>
-                                        <option value="craft">Craft</option>
-                                    </select>
-                                </span></p>
+                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                     <span>
+                                         <strong>Type:</strong> {typeIcon}
+                                         <select
+                                             value={session.type}
+                                             onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
+                                             disabled={isPreSession}
+                                             style={{ border: 'none', background: 'transparent' }}
+                                             onClick={(e) => e.stopPropagation()}
+                                         >
+                                             <option value="unknown">Unknown</option>
+                                             <option value="hunt">Hunt</option>
+                                             <option value="mine">Mine</option>
+                                             <option value="craft">Craft</option>
+                                         </select>
+                                     </span>
+                                     {!isPreSession && (
+                                         <button onClick={() => dispatch(reinferSessionActions(session.id))}>
+                                             Re-infer Actions
+                                         </button>
+                                     )}
+                                 </div>
                                 {session.inventory && (
                                     <p style={{ margin: '10px 0', fontSize: '14px' }}>
                                         <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>
