@@ -177,87 +177,87 @@ function ActivityPage() {
                 const isExpanded = expandedSessions.has(session.id)
                 return (
                     <div key={session.id} className='actions-group'>
-                        <h4 className='actions-date' onClick={() => toggleSession(session.id)} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
-                            <span style={{ marginRight: '5px' }}>{isExpanded ? '▼' : '▶'}</span>
-                            <>
-                                <input
-                                    value={session.name}
-                                    onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
-                                    disabled={isPreSession}
-                                    style={{ border: 'none', background: 'transparent', fontSize: 'inherit', fontWeight: 'bold' }}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                                ({typeIcon}
-                                <select
-                                    value={session.type}
-                                    onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
-                                    disabled={isPreSession}
-                                    style={{ border: 'none', background: 'transparent' }}
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <option value="unknown">Unknown</option>
-                                    <option value="hunt">Hunt</option>
-                                    <option value="mine">Mine</option>
-                                    <option value="craft">Craft</option>
-                                </select>)
-                            </>
-                            - {formatDate(start)} {formatTime(start)} to {formatDate(end)} {formatTime(end)}
-                        </h4>
+                         <h4 className='actions-date' onClick={() => toggleSession(session.id)} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
+                             <span style={{ marginRight: '5px' }}>{isExpanded ? '▼' : '▶'}</span>
+                            <input
+                                value={session.name}
+                                onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
+                                disabled={isPreSession}
+                                style={{ border: 'none', background: 'transparent', fontSize: 'inherit', fontWeight: 'bold' }}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                            {sessionDeltas.get(session.id) !== undefined && <span style={{ marginRight: '10px' }} className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>}
+                            {formatDate(start)} {formatTime(start)}
+                         </h4>
                         {isExpanded && (
                             <>
-                                {(session.inventory || sessionDeltas.get(session.id) !== undefined) && (
+                                <p><span>
+                                    <strong>Type:</strong> {typeIcon}
+                                    <select
+                                        value={session.type}
+                                        onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
+                                        disabled={isPreSession}
+                                        style={{ border: 'none', background: 'transparent' }}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <option value="unknown">Unknown</option>
+                                        <option value="hunt">Hunt</option>
+                                        <option value="mine">Mine</option>
+                                        <option value="craft">Craft</option>
+                                    </select>
+                                </span></p>
+                                {session.inventory && (
                                     <p style={{ margin: '10px 0', fontSize: '14px' }}>
-                                        {session.inventory && <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>}
-                                        <span className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>
+                                        <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>
                                     </p>
                                 )}
-                                 {sessionActions.length > 0 && (() => {
-                                     if (showActions) {
-                                         const dateGroups: Map<string, StoredAction[]> = new Map()
-                                         sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
-                                             const date = formatDate(action.timestamp)
-                                             if (!dateGroups.has(date)) {
-                                                 dateGroups.set(date, [])
-                                             }
-                                             dateGroups.get(date)!.push(action)
-                                         })
-                                         return Array.from(dateGroups.entries()).map(([date, dateActions]) => (
-                                             <div key={date}>
-                                                 <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
-                                                 <table className='table-diff'>
-                                                     <tbody>
-                                                     {dateActions.map((action, idx) => (
-                                                         <ActionRow key={action.id || idx} action={action} isExpanded={expandedActionRowsSet.has(action.id)} onToggle={() => toggleActionRow(action.id)} />
-                                                     ))}
-                                                     </tbody>
-                                                 </table>
-                                             </div>
-                                         ))
-                                      } else {
-                                        // Show inventory items
-                                        const items = reverseInferActions(sessionActions)
-                                        return (
-                                            <table className='table-diff'>
-                                                <thead>
-                                                    <th>Item</th>
-                                                    <th>Quantity</th>
-                                                    <th>Value</th>
-                                                    <th>Container</th>
-                                                </thead>
-                                                <tbody>
-                                                {items.map((item) => (
-                                                    <tr key={item.key}>
-                                                        <td><ItemText text={item.n} /></td>
-                                                        <td>{item.q}</td>
-                                                        <td>{item.v} PED</td>
-                                                        <td>{item.c}</td>
-                                                    </tr>
-                                                ))}
-                                                </tbody>
-                                            </table>
-                                        )
-                                     }
-                                 })()}
+                                {sessionActions.length > 0 && (() => {
+                                    if (showActions) {
+                                        const dateGroups: Map<string, StoredAction[]> = new Map()
+                                        sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                            const date = formatDate(action.timestamp)
+                                            if (!dateGroups.has(date)) {
+                                                dateGroups.set(date, [])
+                                            }
+                                            dateGroups.get(date)!.push(action)
+                                        })
+                                        return Array.from(dateGroups.entries()).map(([date, dateActions]) => (
+                                            <div key={date}>
+                                                <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
+                                                <table className='table-diff'>
+                                                    <tbody>
+                                                    {dateActions.map((action, idx) => (
+                                                        <ActionRow key={action.id || idx} action={action} isExpanded={expandedActionRowsSet.has(action.id)} onToggle={() => toggleActionRow(action.id)} />
+                                                    ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ))
+                                    } else {
+                                    // Show inventory items
+                                    const items = reverseInferActions(sessionActions)
+                                    return (
+                                        <table className='table-diff'>
+                                            <thead>
+                                                <th>Item</th>
+                                                <th>Quantity</th>
+                                                <th>Value</th>
+                                                <th>Container</th>
+                                            </thead>
+                                            <tbody>
+                                            {items.map((item) => (
+                                                <tr key={item.key}>
+                                                    <td><ItemText text={item.n} /></td>
+                                                    <td>{item.q}</td>
+                                                    <td>{item.v} PED</td>
+                                                    <td>{item.c}</td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    )
+                                    }
+                                })()}
                             </>
                         )}
                     </div>
