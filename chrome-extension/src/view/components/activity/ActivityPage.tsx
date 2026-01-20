@@ -3,8 +3,10 @@ import { useSelector, useDispatch } from 'react-redux'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
-import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows } from '../../application/actions/activity'
+import TextButton from '../common/TextButton'
+import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions } from '../../application/actions/activity'
 import { getActivity } from '../../application/selectors/activity'
+import { reverseInferActions } from '../../application/helpers/actionInference'
 
 const formatTime = (timestamp: number): string => {
     const date = new Date(timestamp)
@@ -109,7 +111,7 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 }
 
 function ActivityPage() {
-    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows } = useSelector(getActivity)
+    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions } = useSelector(getActivity)
     const dispatch = useDispatch()
     const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
@@ -160,6 +162,11 @@ function ActivityPage() {
             <button onClick={() => dispatch(createNewSession())}>
                 New Session
             </button>
+            <TextButton
+                title={ showActions ? 'Show items list' : 'Show grouped actions' }
+                className={ `button-actions ${showActions ? 'active' : ''}` }
+                text={ showActions ? 'Actions' : 'Items' }
+                dispatch={() => dispatch(setShowActions(!showActions))} />
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
                 const sessionActions = groupedActions.get(session.id) || []
                 const isPreSession = session.id === 'pre-session'
@@ -200,32 +207,57 @@ function ActivityPage() {
                             <>
                                 {(session.inventory || sessionDeltas.get(session.id) !== undefined) && (
                                     <p style={{ margin: '10px 0', fontSize: '14px' }}>
-                                        {session.inventory && <span>Inventory: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>}
+                                        {session.inventory && <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>}
                                         <span className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>
                                     </p>
                                 )}
-                                {sessionActions.length > 0 && (() => {
-                                    const dateGroups: Map<string, StoredAction[]> = new Map()
-                                    sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
-                                        const date = formatDate(action.timestamp)
-                                        if (!dateGroups.has(date)) {
-                                            dateGroups.set(date, [])
-                                        }
-                                        dateGroups.get(date)!.push(action)
-                                    })
-                                    return Array.from(dateGroups.entries()).map(([date, dateActions]) => (
-                                        <div key={date}>
-                                            <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
+                                 {sessionActions.length > 0 && (() => {
+                                     if (showActions) {
+                                         const dateGroups: Map<string, StoredAction[]> = new Map()
+                                         sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                             const date = formatDate(action.timestamp)
+                                             if (!dateGroups.has(date)) {
+                                                 dateGroups.set(date, [])
+                                             }
+                                             dateGroups.get(date)!.push(action)
+                                         })
+                                         return Array.from(dateGroups.entries()).map(([date, dateActions]) => (
+                                             <div key={date}>
+                                                 <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
+                                                 <table className='table-diff'>
+                                                     <tbody>
+                                                     {dateActions.map((action, idx) => (
+                                                         <ActionRow key={action.id || idx} action={action} isExpanded={expandedActionRowsSet.has(action.id)} onToggle={() => toggleActionRow(action.id)} />
+                                                     ))}
+                                                     </tbody>
+                                                 </table>
+                                             </div>
+                                         ))
+                                      } else {
+                                        // Show inventory items
+                                        const items = reverseInferActions(sessionActions)
+                                        return (
                                             <table className='table-diff'>
+                                                <thead>
+                                                    <th>Item</th>
+                                                    <th>Quantity</th>
+                                                    <th>Value</th>
+                                                    <th>Container</th>
+                                                </thead>
                                                 <tbody>
-                                                {dateActions.map((action, idx) => (
-                                                    <ActionRow key={action.id || idx} action={action} isExpanded={expandedActionRowsSet.has(action.id)} onToggle={() => toggleActionRow(action.id)} />
+                                                {items.map((item) => (
+                                                    <tr key={item.key}>
+                                                        <td><ItemText text={item.n} /></td>
+                                                        <td>{item.q}</td>
+                                                        <td>{item.v} PED</td>
+                                                        <td>{item.c}</td>
+                                                    </tr>
                                                 ))}
                                                 </tbody>
                                             </table>
-                                        </div>
-                                    ))
-                                })()}
+                                        )
+                                     }
+                                 })()}
                             </>
                         )}
                     </div>

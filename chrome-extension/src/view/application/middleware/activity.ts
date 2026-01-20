@@ -1,5 +1,5 @@
 import { SET_HISTORY_LIST } from '../actions/history'
-import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, updateSessionInventory, setActionsState } from '../actions/activity'
+import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_SHOW_ACTIONS, updateSessionInventory, setActionsState } from '../actions/activity'
 import { ActivityState, StoredAction } from '../state/activity'
 import { HistoryState } from '../state/history'
 import { AppAction } from '../slice/app'
@@ -26,7 +26,8 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         case UPDATE_SESSION_TYPE:
         case UPDATE_EXPANDED_SESSIONS:
         case UPDATE_EXPANDED_ACTION_ROWS:
-        case UPDATE_SESSION_INVENTORY: {
+        case UPDATE_SESSION_INVENTORY:
+        case SET_SHOW_ACTIONS: {
             const actionsState = getActivity(getState())
             await api.storage.saveActions(actionsState)
             break
@@ -56,7 +57,7 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
             break
         }
         case SET_HISTORY_LIST: {
-            const history: HistoryState = getState().history
+            const history = getHistory(getState())
 
             // Find new inventory items that haven't been processed yet
             const newActions: StoredAction[] = []

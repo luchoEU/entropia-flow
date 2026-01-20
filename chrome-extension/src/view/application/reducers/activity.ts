@@ -1,12 +1,13 @@
 import { ActivityState, StoredAction, SessionType } from "../state/activity"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_URL, SET_ACTIONS_STATE } from "../actions/activity"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_URL, SET_SHOW_ACTIONS, SET_ACTIONS_STATE } from "../actions/activity"
 
 const initialState: ActivityState = {
     list: [],
     lastProcessedInventoryKey: undefined,
     sessions: [],
     expandedSessions: [],
-    expandedActionRows: []
+    expandedActionRows: [],
+    showActions: true
 }
 
 interface AddActionsAction {
@@ -57,12 +58,17 @@ interface UpdateActionBudgetUrlAction {
     payload: { actionId: string; budgetUrl: string }
 }
 
+interface SetShowActionsAction {
+    type: typeof SET_SHOW_ACTIONS
+    payload: { showActions: boolean }
+}
+
 interface SetActionsStateAction {
     type: typeof SET_ACTIONS_STATE
     payload: ActivityState
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetUrlAction | SetActionsStateAction
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetUrlAction | SetShowActionsAction | SetActionsStateAction
 
 export default (state = initialState, action: ActionsAction): ActivityState => {
     switch (action.type) {
@@ -135,6 +141,11 @@ export default (state = initialState, action: ActionsAction): ActivityState => {
                 list: state.list.map(act =>
                     act.id === action.payload.actionId ? { ...act, budgetUrl: action.payload.budgetUrl } : act
                 )
+            }
+        case SET_SHOW_ACTIONS:
+            return {
+                ...state,
+                showActions: action.payload.showActions
             }
         case SET_ACTIONS_STATE:
             return action.payload

@@ -79,6 +79,7 @@ interface ActivityState {
     sessions: SessionBoundary[]
     expandedSessions: string[]
     expandedActionRows: string[]
+    showActions: boolean
 }
 
 export {

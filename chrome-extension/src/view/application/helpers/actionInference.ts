@@ -193,6 +193,24 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     return actions
 }
 
+function reverseInferActions(actions: InferredAction[]): ViewItemData[] {
+    const uniqueItems = new Map<number, ViewItemData>()
+    for (const action of actions) {
+        for (const item of action.relatedItems) {
+            if (uniqueItems.has(item.key)) {
+                const existing = uniqueItems.get(item.key)!
+                if (existing.q === "") existing.q = item.q
+                if (existing.v === "") existing.v = item.v
+                if (item.c.length > existing.c.length) existing.c = item.c
+            } else {
+                uniqueItems.set(item.key, item)
+            }
+        }
+    }
+    return Array.from(uniqueItems.values())
+}
+
 export {
-    inferActions
+    inferActions,
+    reverseInferActions
 }

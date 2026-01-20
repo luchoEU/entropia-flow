@@ -10,6 +10,7 @@ const UPDATE_EXPANDED_SESSIONS = "[actions] update expanded sessions"
 const UPDATE_EXPANDED_ACTION_ROWS = "[actions] update expanded action rows"
 const UPDATE_SESSION_INVENTORY = "[actions] update session inventory"
 const UPDATE_ACTION_BUDGET_URL = "[actions] update action budget url"
+const SET_SHOW_ACTIONS = "[actions] set show actions"
 const SET_ACTIONS_STATE = "[actions] set state"
 
 const addActions = (actions: StoredAction[]) => ({
@@ -60,6 +61,11 @@ const updateActionBudgetUrl = (actionId: string, budgetUrl: string) => ({
     payload: { actionId, budgetUrl }
 })
 
+const setShowActions = (showActions: boolean) => ({
+    type: SET_SHOW_ACTIONS,
+    payload: { showActions }
+})
+
 const setActionsState = (state: ActivityState) => ({
     type: SET_ACTIONS_STATE,
     payload: state
@@ -76,6 +82,7 @@ export {
     UPDATE_EXPANDED_ACTION_ROWS,
     UPDATE_SESSION_INVENTORY,
     UPDATE_ACTION_BUDGET_URL,
+    SET_SHOW_ACTIONS,
     SET_ACTIONS_STATE,
     addActions,
     clearActions,
@@ -87,5 +94,6 @@ export {
     updateExpandedActionRows,
     updateSessionInventory,
     updateActionBudgetUrl,
+    setShowActions,
     setActionsState
 }
