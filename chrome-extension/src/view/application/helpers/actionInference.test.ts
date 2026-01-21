@@ -166,4 +166,38 @@ describe('actionInference', () => {
             expect(sortedReversed).toEqual(sortedDiff)
         })
     })
+
+    it('should infer listed_auction for T5 Weapon Economy Enhancer', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'T5 Weapon Economy Enhancer', q: '7', v: '7.00', c: 'CARRIED ⭢ AUCTION' },
+            { key: 1, n: 'PED Card', q: '', v: '-1.19', c: 'CARRIED' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'listed_auction',
+            item: 'T5 Weapon Economy Enhancer',
+            amount: 7,
+            value: 1.19,
+            relatedItems: [diff[0], diff[1]]
+        }])
+    })
+
+    it('should infer listed_auction when user puts T5 Weapon Economy Enhancer in auction', () => {
+        const diff: ViewItemData[] = [
+            { key: 0, n: 'T5 Weapon Economy Enhancer', q: '7', v: '7.00', c: 'CARRIED ⭢ AUCTION' },
+            { key: 1, n: 'PED Card', q: '', v: '-1.19', c: 'CARRIED' }
+        ]
+
+        const actions = inferActions(diff)
+
+        expect(actions).toEqual([{
+            type: 'listed_auction',
+            item: 'T5 Weapon Economy Enhancer',
+            amount: 7,
+            value: 1.19,
+            relatedItems: [diff[0], diff[1]]
+        }])
+    })
 })

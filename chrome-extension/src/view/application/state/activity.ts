@@ -3,6 +3,7 @@ import { ViewItemData } from './history'
 type ActionType =
     | 'sold_auction'
     | 'bought_auction'
+    | 'listed_auction'
     | 'ped_deposited'
     | 'ped_withdrawn'
     | 'moved'
@@ -33,6 +34,8 @@ function formatActionDescription(action: InferredAction): string {
             return `💰 Sold ${action.amount} ${action.item} for ${action.value} PED`
         case 'bought_auction':
             return `🛒 Bought ${action.amount} ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
+        case 'listed_auction':
+            return `🏷️ Listed ${action.amount} ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED fee` : ''}`
         case 'chip_out':
             return `🧠 Extracted ${action.item} from ${action.from}`
         case 'refine':
