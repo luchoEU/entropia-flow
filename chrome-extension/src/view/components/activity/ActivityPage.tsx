@@ -66,6 +66,7 @@ function ActivityPage() {
     const expandedActionRowsSet = new Set(expandedActionRows)
 
     const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
+        const total = action.relatedItems.reduce((sum, item) => sum + (Number(item.v) || 0), 0)
         return (
             <>
                 <tr className='item-row' onClick={onToggle}>
@@ -74,19 +75,19 @@ function ActivityPage() {
                             {isExpanded ? '▼' : '▶'}
                         </span>
                         <span className='action-time'>{formatTime(action.timestamp)}</span>
-                        {' '}
-                         <ItemText text={formatActionDescription(action)} />
-                         {action.budgetName && isBudgetEnabled && (
-                             <span
-                                 style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
-                                 onClick={(e) => {
-                                     e.stopPropagation()
-                                     navigate(budgetItemUrl(action.budgetName!))
-                                 }}
-                             >
-                                 [📊Budget]
-                             </span>
-                         )}
+                        {` ${total.toFixed(2)} PED `}
+                        <ItemText text={formatActionDescription(action)} />
+                        {action.budgetName && isBudgetEnabled && (
+                            <span
+                                style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigate(budgetItemUrl(action.budgetName!))
+                                }}
+                            >
+                                [📊Budget]
+                            </span>
+                        )}
                     </td>
                     <td className='action-sources'>
                         {action.sources.join(', ')}
