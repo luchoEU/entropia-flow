@@ -2,13 +2,14 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { addBudgetGroup, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import { getBalanceLines, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
+import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 
 interface MaterialSummary {
     name: string
@@ -66,19 +67,40 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     const items = itemNames.map(n => s.list.items.find(i => i.name === n))
     if (items.some(i => !i)) return null
 
-    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
-    const balanceLines = getBalanceLines(Date.now(), Object.values(usedMaterialsMap))
-    const materials = getMaterials(usedMaterialsMap)
-
     // Combine balanceLines with pendingLines from items
-    const allPendingLines = { ...balanceLines }
+    const pendingLines: Record<string, BudgetLineData[]> = { }
     items.forEach(item => {
         if (item?.pendingLines) {
-            if (!allPendingLines[item.name]) {
-                allPendingLines[item.name] = []
+            if (!pendingLines[item.name]) {
+                pendingLines[item.name] = []
             }
-            allPendingLines[item.name].push(...item.pendingLines)
+            pendingLines[item.name].push(...item.pendingLines)
         }
+    })
+    Object.values(pendingLines).forEach(lines => {
+        lines.sort((a, b) => a.date - b.date)
+    })
+
+    var pendingLinesQuantity: Record<string, number> = {}
+    Object.values(pendingLines).forEach(lines => {
+        lines.forEach(line => {
+            line.materials.forEach(material => {
+                if (!pendingLinesQuantity[material.name]) {
+                    pendingLinesQuantity[material.name] = 0
+                }
+                pendingLinesQuantity[material.name] += material.quantity
+            })
+        })
+    })
+
+    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
+    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap, pendingLinesQuantity)
+    const materials = getMaterials(usedMaterialsMap)
+    Object.entries(balanceLines).forEach(([itemName, lines]) => {
+        if (!pendingLines[itemName]) {
+            pendingLines[itemName] = []
+        }
+        pendingLines[itemName].push(...lines)
     })
 
     // Calculate totals for the selected items
@@ -92,7 +114,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
         return acc
     }, { peds: 0, totalMU: 0, total: 0 })
 
-    const matNames: string[] = [...new Set(Object.values(allPendingLines).flatMap(lines => (
+    const matNames: string[] = [...new Set(Object.values(pendingLines).flatMap(lines => (
         lines.flatMap(line => line.materials.map(mat => mat.name)
     ))))].sort()
 
@@ -133,13 +155,23 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
             </table>
         </>}
 
-        {Object.keys(allPendingLines).length > 0 && <>
+        {Object.keys(pendingLines).length > 0 && <>
             <hr />
             <h3>Pending Lines</h3>
-            {Object.entries(allPendingLines).map(([itemName, lines]) => (
+            {Object.entries(pendingLines).map(([itemName, lines]) => (
                 <div key={itemName}>
-                    <h4>{itemName}</h4>                    
-                    <table style={{ marginLeft: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h4>{itemName}</h4>
+                        {lines.length > 1 && (
+                            <button 
+                                onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
+                                style={{ fontSize: '12px', padding: '2px 6px' }}
+                            >
+                                Clear All
+                            </button>
+                        )}
+                    </div>                    
+                    <table style={{ marginLeft: '20px' }} className="table-diff">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -151,7 +183,16 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
                         <tbody>
                             {lines.map((line, idx) => (
                                 <tr>
-                                    <td>{formatDateTime(line.date)}</td>
+                                    <td>
+                                        {formatDateTime(line.date)}
+                                        {line.reason !== 'Balance' && (
+                                            <ImgButton 
+                                                title='Delete pending line' 
+                                                src='img/cross.png'
+                                                dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))} 
+                                            />
+                                        )}
+                                    </td>
                                     <td>{line.reason}</td>
                                     <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
                                     {matNames.map((n, idx) => {
@@ -165,7 +206,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
                 </div>
             ))}
             <br />
-            <button onClick={() => dispatch(sendBudgetPendingLines(allPendingLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
+            <button onClick={() => dispatch(sendBudgetPendingLines(pendingLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
         </>}
     </div>
 }
