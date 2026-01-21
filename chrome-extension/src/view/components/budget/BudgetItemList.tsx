@@ -2,7 +2,7 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, setBudgetSelection, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
@@ -10,6 +10,8 @@ import { getBalanceLines, getGroupTotals, getUngroupedItems } from '../../applic
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
+import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
+import { useNavigate } from 'react-router-dom'
 
 interface MaterialSummary {
     name: string
@@ -43,9 +45,9 @@ function getMaterials(usedMaterialsMap: BudgetMaterialsMap): MaterialSummary[] {
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
+const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSelection | null }) => {
     const dispatch = useDispatch()
-    const selection = s.selection
+    const navigate = useNavigate()
 
     if (!selection) {
         return <></>
@@ -119,7 +121,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     ))))].sort()
 
     return <div className='trade-item-data'>
-        <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection(null))}>
+        <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>
             Budget: {title} <img src='img/left.png' />
         </h2>
 
@@ -143,7 +145,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
                 <tbody>
                     {materials.map(mat => (
                         <tr key={mat.name}>
-                            <td className='pointer' onClick={() => dispatch(setBudgetSelection({ ...selection, materialName: mat.name }))}>{mat.name}</td>
+                            <td className='pointer' onClick={() => navigate(budgetItemMaterialUrl(selection!.selectedItem!, mat.name))}>{mat.name}</td>
                             <td align='right'>{mat.budgetQuantity}</td>
                             <td align='right'>{mat.budgetValue.toFixed(2)} PED</td>
                             <td align='right'>{mat.budgetWithMarkup.toFixed(2)} PED</td>
@@ -211,15 +213,15 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     </div>
 }
 
-const MaterialDetailsPanel = ({ s }: { s: BudgetState }) => {
+const MaterialDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSelection | null }) => {
     const dispatch = useDispatch()
-    const selection = s.selection
+    const navigate = useNavigate()
 
-    if (!selection || !selection.materialName) {
+    if (!selection || !selection.selectedMaterial) {
         return null
     }
 
-    const material = s.materials.map[selection.materialName]
+    const material = s.materials.map[selection.selectedMaterial]
     if (!material) return null
 
     // Create a map of itemName to budget and real data
@@ -239,8 +241,8 @@ const MaterialDetailsPanel = ({ s }: { s: BudgetState }) => {
 
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection({ ...selection, materialName: undefined }))}>
-                Material: {selection.materialName} <img src='img/left.png' />
+            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(selection.selectedItem!))}>
+                Material: {selection.selectedMaterial} <img src='img/left.png' />
             </h2>
             <p>Markup: {(material.markup * 100).toFixed(2)}%</p>
             <p>Balance with markup: {(material.c.balanceWithMarkup).toFixed(2)} PED</p>
@@ -300,14 +302,58 @@ const MaterialDetailsPanel = ({ s }: { s: BudgetState }) => {
     )
 }
 
-function BudgetItemList() {
+type UrlSelection = {
+    selectedItem: string | null,
+    selectedMaterial: string | null,
+} & ({
+    type: 'item',
+    itemName: string,
+} | {
+    type: 'group',
+    groupId: string,
+})
+
+function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
     const s: BudgetState = useSelector(getBudget)
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
 
     const ungroupedItems = getUngroupedItems(s)
+
+    // Get selected item and group from URL parameter
+    const getSelectedFromUrl = (): UrlSelection | null => {
+        if (!selectedItem) return null
+
+        // Check if it's an item
+        const allItems = [...ungroupedItems, ...s.groups.list.flatMap(g => g.itemNames.map(name => ({ name, groupId: g.id })))]
+
+        if (allItems.some(item => item.name === selectedItem)) {
+            return {
+                type: 'item',
+                itemName: selectedItem,
+                selectedItem,
+                selectedMaterial
+            }
+        }
+
+        // Check if it's a group
+        const group = s.groups.list.find(g => g.id === selectedItem)
+        if (group) {
+            return {
+                type: 'group',
+                groupId: selectedItem,
+                selectedItem,
+                selectedMaterial
+            }
+        }
+
+        return null
+    }
+
+    const urlSelection = getSelectedFromUrl()
 
     const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemName: string) => {
         setDraggedItem(itemName)
@@ -361,26 +407,22 @@ function BudgetItemList() {
     }
 
     const isItemSelected = (itemName: string) =>
-        s.selection?.type === 'item' && s.selection.itemName === itemName
+        urlSelection?.type === 'item' && urlSelection.itemName === itemName
 
     const isGroupSelected = (groupId: string) =>
-        s.selection?.type === 'group' && s.selection.groupId === groupId
+        urlSelection?.type === 'group' && urlSelection.groupId === groupId
 
-    const handleItemClick = (itemName: string) => {
-        if (isItemSelected(itemName)) {
-            dispatch(setBudgetSelection(null))
-        } else {
-            dispatch(setBudgetSelection({ type: 'item', itemName }))
-        }
+    const isGroupExpanded = (groupId: string) => {
+        const group = s.groups.list.find(g => g.id === groupId)
+        return group?.expanded ||
+               (selectedItem && group?.itemNames.includes(selectedItem)) ||
+               false
     }
 
-    const handleGroupClick = (groupId: string) => {
-        if (isGroupSelected(groupId)) {
-            dispatch(setBudgetSelection(null))
-        } else {
-            dispatch(setBudgetSelection({ type: 'group', groupId }))
-        }
-    }
+    const isUngroupedExpanded = () =>
+        s.groups.ungroupedExpanded ||
+        (selectedItem && ungroupedItems.some(item => item.name === selectedItem)) ||
+        false
 
     const renderItemRow = (item: BudgetItem) => {
         const itemMaterials = getMaterials(getUsedMaterialsMap([item.name], s.materials.map))
@@ -393,7 +435,7 @@ function BudgetItemList() {
                 onDragEnd={handleDragEnd}
                 className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''}`}
                 style={{ cursor: 'grab' }}
-                onClick={() => handleItemClick(item.name)}
+                onClick={() => navigate(budgetItemUrl(item.name))}
             >
                 <td>
                     <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
@@ -416,11 +458,11 @@ function BudgetItemList() {
         return (
             <tr
                 className={`budget-group-header pointer ${isGroupSelected(group.id) ? 'selected' : ''}`}
-                onClick={() => handleGroupClick(group.id)}
+                onClick={() => navigate(budgetItemUrl(group.id))}
             >
                 <td>
                     <ExpandableArrowButton
-                        expanded={group.expanded}
+                        expanded={isGroupExpanded(group.id)}
                         setExpanded={() => toggleBudgetGroupExpanded(group.id)}
                     />
                     {isEditing ? (
@@ -469,8 +511,8 @@ function BudgetItemList() {
                 className={draggedItem ? 'drop-target' : ''}
             >
                 {renderGroupHeader(group)}
-                {group.expanded && groupItems.map(renderItemRow)}
-                {group.expanded && groupItems.length === 0 && (
+                {isGroupExpanded(group.id) && groupItems.map(renderItemRow)}
+                {isGroupExpanded(group.id) && groupItems.length === 0 && (
                     <tr className='budget-empty-group'>
                         <td colSpan={5} style={{ fontStyle: 'italic', color: '#888' }}>
                             Drag items here
@@ -500,7 +542,7 @@ function BudgetItemList() {
                 <tr className='budget-group-header'>
                     <td>
                         <ExpandableArrowButton
-                            expanded={s.groups.ungroupedExpanded}
+                            expanded={isUngroupedExpanded()}
                             setExpanded={() => toggleBudgetUngroupedExpanded()}
                         />
                         <strong>Ungrouped</strong>
@@ -510,7 +552,7 @@ function BudgetItemList() {
                     <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
                     <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
                 </tr>
-                {s.groups.ungroupedExpanded && ungroupedItems.map(renderItemRow)}
+                {isUngroupedExpanded() && ungroupedItems.map(renderItemRow)}
             </tbody>
         )
     }
@@ -539,8 +581,8 @@ function BudgetItemList() {
                     </table>
                 </div>
                 <div className='inline'>
-                    <BudgetDetailsPanel s={s} />
-                    {s.selection?.materialName && <MaterialDetailsPanel s={s} />}
+                    <BudgetDetailsPanel s={s} selection={urlSelection} />
+                    <MaterialDetailsPanel s={s} selection={urlSelection} />
                 </div>
             </div>
         </ExpandableSection>

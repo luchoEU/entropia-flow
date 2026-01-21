@@ -1,7 +1,7 @@
 import { objectMap } from "../../../common/object"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
-import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetSelection, BudgetState } from "../state/budget"
+import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
 
 interface BalanceMaterialData {
   sheetName: string;
@@ -27,8 +27,7 @@ const initialState: BudgetState = {
     groups: {
         list: [],
         ungroupedExpanded: true
-    },
-    selection: null
+    }
 }
 
 const setState = (state: BudgetState, inState: BudgetState): BudgetState => ({
@@ -382,11 +381,6 @@ const getUngroupedItems = (state: BudgetState): BudgetItem[] => {
     return state.list.items.filter(i => !groupedItemNames.has(i.name))
 }
 
-const reduceSetBudgetSelection = (state: BudgetState, selection: BudgetSelection): BudgetState => ({
-    ...state,
-    selection
-})
-
 export function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData[] } {
     const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
@@ -488,7 +482,6 @@ export {
     reduceAddBudgetItemPendingLines,
     reduceClearBudgetItemPendingLines,
     reduceDeleteBudgetPendingLine,
-    reduceSetBudgetSelection,
     getGroupTotals,
     getUngroupedItems
 }

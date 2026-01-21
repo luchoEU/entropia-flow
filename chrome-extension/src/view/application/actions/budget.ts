@@ -1,8 +1,8 @@
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
-import { BudgetState, BudgetMaterialsMap, BudgetItem, BudgetSelection } from "../state/budget"
+import { BudgetState, BudgetMaterialsMap, BudgetItem } from "../state/budget"
 
 const SET_BUDGET_STATE = '[budget] set state'
-const SET_BUDGET_SELECTION = '[budget] set selection'
+
 const SET_BUDGET_FROM_SHEET = '[budget] set from sheet'
 const SET_BUDGET_MATERIAL_EXPANDED = '[budget] set material expanded'
 const SET_BUDGET_STAGE = '[budget] set stage'
@@ -157,14 +157,8 @@ const deleteBudgetPendingLine = (itemName: string, lineIndex: number) => ({
     payload: { itemName, lineIndex }
 })
 
-const setBudgetSelection = (selection: BudgetSelection) => ({
-    type: SET_BUDGET_SELECTION,
-    payload: { selection }
-})
-
 export {
     SET_BUDGET_STATE,
-    SET_BUDGET_SELECTION,
     SET_BUDGET_FROM_SHEET,
     SET_BUDGET_MATERIAL_EXPANDED,
     SET_BUDGET_STAGE,
@@ -187,7 +181,6 @@ export {
     CLEAR_BUDGET_ITEM_PENDING_LINES,
     DELETE_BUDGET_PENDING_LINE,
     setBudgetState,
-    setBudgetSelection,
     setBudgetFromSheet,
     setBudgetMaterialExpanded,
     setBudgetStage,

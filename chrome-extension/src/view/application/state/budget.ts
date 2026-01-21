@@ -8,7 +8,6 @@ interface BudgetState {
     materials: BudgetMaterials
     list: BudgetList
     groups: BudgetGroups
-    selection: BudgetSelection
 }
 
 interface BudgetDisabledItems {
@@ -76,17 +75,11 @@ interface BudgetGroups {
     ungroupedExpanded: boolean
 }
 
-type BudgetSelection =
-    | { type: 'group'; groupId: string; materialName?: string }
-    | { type: 'item'; itemName: string; materialName?: string }
-    | null
-
 export {
     BudgetState,
     BudgetMaterialsMap,
     BudgetMaterialState,
     BudgetItem,
     BudgetGroup,
-    BudgetGroups,
-    BudgetSelection
+    BudgetGroups
 }

@@ -1,18 +1,17 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
-import { TabId } from '../../application/state/navigation'
 import ItemText from '../common/ItemText'
 import TextButton from '../common/TextButton'
 import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions, reinferSessionActions } from '../../application/actions/activity'
-import { setBudgetSelection } from '../../application/actions/budget'
 import { getActivity } from '../../application/selectors/activity'
-import { getBudget } from '../../application/selectors/budget'
-import { getLocationFromTabId } from '../../application/helpers/navigation'
+import { getSettings } from '../../application/selectors/settings'
+import { isFeatureEnabled, Feature } from '../../application/state/settings'
 import { reverseInferActions } from '../../application/helpers/actionInference'
 import { formatDate, formatDateTime, formatTime } from '../../../common/time'
+import { budgetItemUrl } from '../../application/actions/navigation'
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005)
@@ -57,9 +56,10 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 
 function ActivityPage() {
     const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions } = useSelector(getActivity)
-    const budget = useSelector(getBudget)
+    const settings = useSelector(getSettings)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
     const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
     const expandedSessions = new Set(expandedArray)
@@ -75,20 +75,18 @@ function ActivityPage() {
                         </span>
                         <span className='action-time'>{formatTime(action.timestamp)}</span>
                         {' '}
-                        <ItemText text={formatActionDescription(action)} />
-                        {action.budgetName && (
-                            <a
-                                href="#"
-                                style={{ marginLeft: '10px', textDecoration: 'none', cursor: 'pointer' }}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    dispatch(setBudgetSelection({ type: 'item', itemName: action.budgetName! }))
-                                    navigate(getLocationFromTabId(TabId.BUDGET))
-                                }}
-                            >
-                                [📊Budget]
-                            </a>
-                        )}
+                         <ItemText text={formatActionDescription(action)} />
+                         {action.budgetName && isBudgetEnabled && (
+                             <span
+                                 style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
+                                 onClick={(e) => {
+                                     e.stopPropagation()
+                                     navigate(budgetItemUrl(action.budgetName!))
+                                 }}
+                             >
+                                 [📊Budget]
+                             </span>
+                         )}
                     </td>
                     <td className='action-sources'>
                         {action.sources.join(', ')}

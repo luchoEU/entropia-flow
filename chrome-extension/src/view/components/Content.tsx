@@ -41,7 +41,11 @@ function ContentPage() {
             { path: TabId.CRAFT, component: CraftPage },
             { path: `${TabId.CRAFT}/:bpName`, component: CraftPage }
         ] },
-        { id: TabId.BUDGET, routes: [ { path: TabId.BUDGET, component: BudgetPage } ] },
+        { id: TabId.BUDGET, routes: [
+            { path: `${TabId.BUDGET}/:itemName/:materialName`, component: BudgetPage },
+            { path: `${TabId.BUDGET}/:itemName`, component: BudgetPage },
+            { path: TabId.BUDGET, component: BudgetPage }
+        ] },
         { id: TabId.ACTIVITY, routes: [ { path: TabId.ACTIVITY, component: ActivityPage } ] },
         { id: TabId.STREAM, routes: [
             { path: TabId.STREAM, component: StreamPage },
