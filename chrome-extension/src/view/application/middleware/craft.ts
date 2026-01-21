@@ -364,13 +364,13 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         }
                     })
                 }
-                const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web.blueprint.data.value.materials).map((m: BlueprintWebMaterial) => {
+                const newDiff: BlueprintSessionDiff[] = Object.values(activeSessionBp.web?.blueprint.data?.value.materials ?? []).map((m: BlueprintWebMaterial) => {
                     return { n: m.name, q: map[m.name]?.q ?? 0, v: map[m.name]?.v ?? 0 }
                 })
                 dispatch(setNewCraftingSessionDiff(state.activeSession, newDiff))
 
-                if (action.type === ON_LAST && activeSessionBp.session.step === STEP_REFRESH_TO_END) {
-                    if (activeSessionBp.budget.hasPage && newDiff.some((v) => v.q !== 0))
+                if (action.type === ON_LAST && activeSessionBp.session?.step === STEP_REFRESH_TO_END) {
+                    if (activeSessionBp.budget?.hasPage && newDiff.some((v) => v.q !== 0))
                         dispatch(saveCraftingSession(state.activeSession))
                     //else
                     //    dispatch(doneCraftingSession(state.activeSession))
@@ -389,6 +389,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const setStage = (stage: number) => dispatch(setCraftingSessionStage(action.payload.name, stage))
                     const sheet: BudgetSheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfoFromBp(activeSessionBp, mat))
                     const d: BudgetLineData = {
+                        date: Date.now(),
                         reason: 'Craft',
                         materials: activeSessionBp.session.diffMaterials.map(m => ({
                             name: itemStringFromName(activeSessionBp, m.n),

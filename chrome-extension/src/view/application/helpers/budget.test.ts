@@ -46,13 +46,15 @@ describe('calculateBalanceLines', () => {
       }
     ]
 
-    const result = calculateBalanceLines(materials)
+    const date = Date.now()
+    const result = calculateBalanceLines(date, materials)
 
     expect(Object.keys(result)).toHaveLength(2)
     expect(result).toHaveProperty('Mind Essence')
     expect(result).toHaveProperty('Light Mind Essence')
 
     const lineME = result['Mind Essence'][0]
+    expect(lineME.date).toBe(date)
     expect(lineME.reason).toBe('Balance')
     expect(lineME.ped).toBeCloseTo(143.67 * (10005/14085) + 0.54, 2)
     expect(lineME.materials).toHaveLength(2)
@@ -64,6 +66,7 @@ describe('calculateBalanceLines', () => {
     )
 
     const lineLME = result['Light Mind Essence'][0]
+    expect(lineLME.date).toBe(date)
     expect(lineLME.reason).toBe('Balance')
     expect(lineLME.ped).toBeCloseTo(-10.05 + 143.67 * (4080/14085) + 27.53, 2)
     expect(lineLME.materials).toHaveLength(3)

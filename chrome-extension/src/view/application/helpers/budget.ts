@@ -373,7 +373,7 @@ const reduceSetBudgetSelection = (state: BudgetState, selection: BudgetSelection
     selection
 })
 
-export function calculateBalanceLines(materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData[] } {
+export function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[]): { [itemName: string]: BudgetLineData[] } {
     const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
         if (material.balanceQuantity < 0) {
@@ -385,6 +385,7 @@ export function calculateBalanceLines(materials: BalanceMaterialData[]): { [item
                 const take = Math.min(budgetValue, remaining);
                 if (!lines[budgetName]) {
                     lines[budgetName] = [{
+                        date: timestamp,
                         reason: 'Balance',
                         ped: 0,
                         materials: []
@@ -404,6 +405,7 @@ export function calculateBalanceLines(materials: BalanceMaterialData[]): { [item
                 const [firstBudgetName] = budgets[0];
                 if (!lines[firstBudgetName]) {
                     lines[firstBudgetName] = [{
+                        date: timestamp,
                         reason: 'Balance',
                         ped: 0,
                         materials: []
@@ -439,14 +441,14 @@ export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, sele
     });
 }
 
-export function getBalanceLines(materials: BudgetMaterialState[]): { [itemName: string]: BudgetLineData[] } {
+export function getBalanceLines(timestamp: number, materials: BudgetMaterialState[]): { [itemName: string]: BudgetLineData[] } {
     const balancedData: BalanceMaterialData[] = materials.map(material => ({
         sheetName: material.sheetName,
         balanceQuantity: material.c?.balanceQuantity || 0,
         balanceWithMarkup: material.c?.balanceWithMarkup || 0,
         budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
     }));
-    return calculateBalanceLines(balancedData);
+    return calculateBalanceLines(timestamp, balancedData);
 }
 
 export {

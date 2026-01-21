@@ -85,9 +85,8 @@ function getLastRow(sheet: any, column: number): number {
 }
 
 const MAX_DAYS = 1000
-function getDaysSinceLastEntry(sheet: any, row: number, column: number): number {
+function _getDaysSinceLastEntry(sheet: any, row: number, column: number, d: Date): number | undefined {
     let n = 0
-    const d = new Date()
     const p = sheet.getCell(row, column).formattedValue
     while (n < MAX_DAYS) {
         const s = `${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear() % 100}`
@@ -96,14 +95,12 @@ function getDaysSinceLastEntry(sheet: any, row: number, column: number): number 
         n = n + 1
         d.setDate(d.getDate() - 1)
     }
-    if (n === MAX_DAYS)
-        return undefined
-    else
-        return n
+    return n === MAX_DAYS ? undefined : n
 }
 
-function setDayDate(sheet: any, row: number, column: number, letter: string) {
-    const daysSinceLastEntry = getDaysSinceLastEntry(sheet, row - 1, column)
+function setDayDate(sheet: any, row: number, column: number, letter: string, date?: Date) {
+    const d = date ?? new Date()
+    const daysSinceLastEntry = _getDaysSinceLastEntry(sheet, row - 1, column, d)
     if (daysSinceLastEntry === undefined) {
         const d = new Date()
         sheet.getCell(row, column).formula = `=DATEVALUE("${d.getDate()}/${(d.getMonth() + 1)}/${d.getFullYear()}")`

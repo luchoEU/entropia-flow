@@ -1,3 +1,5 @@
+import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
+
 interface BudgetState {
     stage: number
     loadPercentage: number
@@ -79,15 +81,6 @@ type BudgetSelection =
     | { type: 'item'; itemName: string; materialName?: string }
     | null
 
-interface BudgetLineData {
-    reason: string
-    ped?: number
-    materials: {
-        name: string
-        quantity: number
-    }[]
-}
-
 export {
     BudgetState,
     BudgetMaterialsMap,
@@ -95,6 +88,5 @@ export {
     BudgetItem,
     BudgetGroup,
     BudgetGroups,
-    BudgetSelection,
-    BudgetLineData
+    BudgetSelection
 }

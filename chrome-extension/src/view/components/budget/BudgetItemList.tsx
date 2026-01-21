@@ -8,6 +8,7 @@ import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import { getBalanceLines, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
+import { formatDateTime } from '../../../common/time'
 
 interface MaterialSummary {
     name: string
@@ -66,7 +67,7 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
     if (items.some(i => !i)) return null
 
     const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
-    const balanceLines = getBalanceLines(Object.values(usedMaterialsMap))
+    const balanceLines = getBalanceLines(Date.now(), Object.values(usedMaterialsMap))
     const materials = getMaterials(usedMaterialsMap)
 
     // Combine balanceLines with pendingLines from items
@@ -90,6 +91,10 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
         }
         return acc
     }, { peds: 0, totalMU: 0, total: 0 })
+
+    const matNames: string[] = [...new Set(Object.values(allPendingLines).flatMap(lines => (
+        lines.flatMap(line => line.materials.map(mat => mat.name)
+    ))))].sort()
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => dispatch(setBudgetSelection(null))}>
@@ -133,29 +138,30 @@ const BudgetDetailsPanel = ({ s }: { s: BudgetState }) => {
             <h3>Pending Lines</h3>
             {Object.entries(allPendingLines).map(([itemName, lines]) => (
                 <div key={itemName}>
-                    <h4>{itemName}</h4>
-                    {lines.map((line, idx) => (
-                        <table key={idx} style={{ marginLeft: '20px' }}>
-                            <thead>
+                    <h4>{itemName}</h4>                    
+                    <table style={{ marginLeft: '20px' }}>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reason</th>
+                                <th>PED</th>
+                                {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {lines.map((line, idx) => (
                                 <tr>
-                                    <th>Reason</th>
-                                    <th>PED</th>
-                                    {line.materials.map((mat, idx2) => (
-                                        <th key={idx2}>{mat.name}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
+                                    <td>{formatDateTime(line.date)}</td>
                                     <td>{line.reason}</td>
                                     <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
-                                    {line.materials.map((mat, idx2) => (
-                                        <td key={idx2} align='right'>{mat.quantity}</td>
-                                    ))}
+                                    {matNames.map((n, idx) => {
+                                        const m = line.materials.find(m => m.name === n);
+                                        return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
+                                    })}
                                 </tr>
-                            </tbody>
-                        </table>
-                    ))}
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             ))}
             <br />

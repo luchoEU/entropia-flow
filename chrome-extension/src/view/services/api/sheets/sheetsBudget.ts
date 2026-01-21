@@ -40,6 +40,7 @@ interface BudgetInfoData {
 }
 
 interface BudgetLineData {
+    date: number
     reason: string
     ped?: number
     materials: {
@@ -114,8 +115,8 @@ class BudgetSheet {
         await this.sheet.saveUpdatedCells()
     }
 
-    private addDate() {
-        setDayDate(this.sheet, this.row!, DATE_COLUMN, 'A')
+    private addDate(date?: Date) {
+        setDayDate(this.sheet, this.row!, DATE_COLUMN, 'A', date)
     }
 
     public async hasPage(doc: GoogleSpreadsheet, itemName: string): Promise<boolean> {
@@ -175,7 +176,7 @@ class BudgetSheet {
     }
 
     public async addLine(d: BudgetLineData): Promise<void> {
-        this.addDate()
+        this.addDate(new Date(d.date))
         this.sheet.getCell(this.row, REASON_COLUMN).value = d.reason
 
         if (d.ped !== undefined) {
@@ -199,6 +200,7 @@ class BudgetSheet {
 
     public async addBuyMaterial(materialName: string, materialQuantity: number, ped: number, reason: string): Promise<void> {
         await this.addLine({
+            date: Date.now(),
             reason,
             ped,
             materials: [{

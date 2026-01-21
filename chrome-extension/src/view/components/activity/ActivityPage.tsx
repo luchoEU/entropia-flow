@@ -12,16 +12,7 @@ import { getActivity } from '../../application/selectors/activity'
 import { getBudget } from '../../application/selectors/budget'
 import { getLocationFromTabId } from '../../application/helpers/navigation'
 import { reverseInferActions } from '../../application/helpers/actionInference'
-
-const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp)
-    return date.toTimeString().slice(0, 8)
-}
-
-const formatDate = (timestamp: number): string => {
-    const date = new Date(timestamp)
-    return date.toDateString()
-}
+import { formatDate, formatDateTime, formatTime } from '../../../common/time'
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005)
@@ -34,8 +25,6 @@ function getDeltaClass(delta: number | undefined) {
         return ''
     }
 }
-
-
 
 const preSessionKey = 'pre-session'
 const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): Map<string, StoredAction[]> => {
@@ -198,7 +187,7 @@ function ActivityPage() {
                                 onClick={(e) => e.stopPropagation()}
                             />
                             {sessionDeltas.get(session.id) !== undefined && <span style={{ marginRight: '10px' }} className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>}
-                            {formatDate(start)} {formatTime(start)}
+                            {formatDateTime(start)}
                          </h4>
                         {isExpanded && (
                             <>

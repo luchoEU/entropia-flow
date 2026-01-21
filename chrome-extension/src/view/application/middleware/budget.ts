@@ -35,7 +35,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                     const item = budget.list.items.find(item => item.name === storedAction.item)
                     if (item) {
                         // Add sold line to item's pending lines
-                        const line = {
+                        const line: BudgetLineData = {
+                            date: storedAction.timestamp,
                             reason: 'Sold',
                             ped: storedAction.value,
                             materials: [{ name: storedAction.item, quantity: -storedAction.amount! }]
@@ -141,7 +142,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case PROCESS_BUDGET_MATERIAL_SELECTION: {
             const budget: BudgetState = getBudget(getState())
             const selectedMaterials = Object.values(budget.materials.map).filter(m => m.selected)
-            const lines = getBalanceLines(selectedMaterials)
+            const lines = getBalanceLines(Date.now(), selectedMaterials)
             dispatch(sendBudgetPendingLines(lines))
 
             break

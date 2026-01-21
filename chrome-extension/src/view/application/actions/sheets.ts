@@ -33,6 +33,7 @@ const auctionTitle = (material: string): string => `Auction ${refinedMap[materia
 
 const refinedSoldActive = (item: ActivesItem) => {
     const line: BudgetLineData = {
+        date: item.date,
         reason: 'Sold',
         ped: Number(item.buyout) - Number(item.buyoutFee) + Number(item.openingFee),
         materials: [
@@ -56,6 +57,7 @@ const refinedSoldActive = (item: ActivesItem) => {
 
 const refinedAuctionMaterial = (material: string, s: RefinedCalculatorStateOut) => {
     const line: BudgetLineData = {
+        date: Date.now(),
         reason: 'Auction',
         ped: -Number(s.openingFee),
         materials: []
@@ -73,6 +75,7 @@ const refinedAuctionMaterial = (material: string, s: RefinedCalculatorStateOut) 
 
 const refinedBuyMaterial = (pageMaterial: string, buyMaterial: string, amount: string, cost: number) => {    
     const line: BudgetLineData = {
+        date: Date.now(),
         reason: 'Buy',
         ped: -Number(cost),
         materials: [
@@ -94,6 +97,7 @@ const refinedBuyMaterial = (pageMaterial: string, buyMaterial: string, amount: s
 
 const refinedOrderMaterial = (material: string, ttValue: string, markup: string) => {
     const line: BudgetLineData = {
+        date: Date.now(),
         reason: 'Order',
         ped: -Number(1),
         materials: []
@@ -110,6 +114,7 @@ const refinedOrderMaterial = (material: string, ttValue: string, markup: string)
 
 const refinedUseMaterial = (material: string, amount: string) => {
     const line: BudgetLineData = {
+        date: Date.now(),
         reason: 'Use',
         materials: [
             {
@@ -130,6 +135,7 @@ const refinedUseMaterial = (material: string, amount: string) => {
 
 const refinedRefineMaterial = (material: string, materials: { name: string, quantity: number }[]) => {
     const line: BudgetLineData = {
+        date: Date.now(),
         reason: 'Refine',
         materials
     }
