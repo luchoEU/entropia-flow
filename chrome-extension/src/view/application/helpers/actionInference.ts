@@ -149,11 +149,40 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 4. Match refine: consumed items (negative qty) and produced item (positive qty)
+    // 4. Match craft: one consumed item (negative qty) and multiple positive items (crafted item + residues)
     const consumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
-    const produced = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
-    if (consumed.length > 0 && produced.length === 1) {
-        const prod = produced[0]
+    const positiveItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
+    if (consumed.length === 1 && positiveItems.length >= 2) {
+        // Identify the main crafted item - prioritize items that don't sound like residues
+        const craftedItem = positiveItems.reduce((best, current) => {
+            const isBestResidue = best.n.toLowerCase().includes('residue') || best.n.toLowerCase().includes('shrapnel')
+            const isCurrentResidue = current.n.toLowerCase().includes('residue') || current.n.toLowerCase().includes('shrapnel')
+            
+            if (isBestResidue && !isCurrentResidue) return current
+            if (!isBestResidue && isCurrentResidue) return best
+            
+            // If both are residues or both are not residues, use value as tiebreaker
+            return Number(current.v) > Number(best.v) ? current : best
+        })
+        
+        const amount = Number(craftedItem.q)
+        const value = Number(craftedItem.v)
+        actions.push({
+            type: 'craft',
+            item: craftedItem.n,
+            amount,
+            value,
+            relatedItems: [consumed[0], ...positiveItems]
+        })
+        consumed.forEach(c => used.add(c.key))
+        positiveItems.forEach(p => used.add(p.key))
+    }
+
+    // 4.5 Match refine: consumed items (negative qty) and produced item (positive qty)
+    const refineConsumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
+    const refineProduced = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
+    if (refineConsumed.length > 0 && refineProduced.length === 1) {
+        const prod = refineProduced[0]
         const amount = Number(prod.q)
         const value = Number(prod.v)
         actions.push({
@@ -161,9 +190,9 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             item: prod.n,
             amount,
             value,
-            relatedItems: [...consumed, prod]
+            relatedItems: [...refineConsumed, prod]
         })
-        consumed.forEach(c => used.add(c.key))
+        refineConsumed.forEach(c => used.add(c.key))
         used.add(prod.key)
     }
 

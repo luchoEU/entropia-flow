@@ -117,6 +117,25 @@ describe('actionInference', () => {
                 relatedItems: [diff[0], diff[1]]
             }])
         })
+
+        it('should infer craft of Explosive Projectiles', () => {
+            const diff: ViewItemData[] = [
+                { key: 0, n: 'Explosive Projectiles', q: '461', v: '0.04', c: 'CARRIED' },  // crafted product
+                { key: 1, n: 'Metal Residue', q: '3', v: '0.03', c: 'CARRIED' },           // returned residue  
+                { key: 2, n: 'Nanocube', q: '-19', v: '-0.19', c: 'CARRIED' },            // consumed material
+                { key: 3, n: 'Shrapnel', q: '586', v: '0.05', c: 'CARRIED' }              // returned residue
+            ]
+
+            const actions = inferActions(diff)
+
+            expect(actions).toEqual([{
+                type: 'craft',
+                item: 'Explosive Projectiles',  // main crafted item
+                amount: 461,
+                value: 0.04,  // value of crafted item only
+                relatedItems: [diff[2], diff[0], diff[1], diff[3]]  // consumed first, then all positive items
+            }])
+        })
     })
 
     describe('reverseInferActions', () => {
@@ -155,6 +174,23 @@ describe('actionInference', () => {
                 { key: 0, n: 'Diluted Sweat', q: '-4918', v: '-49.18', c: 'CARRIED' },
                 { key: 1, n: 'Force Nexus', q: '-4918', v: '-49.18', c: 'STORAGE (Calypso)' },
                 { key: 2, n: 'Light Mind Essence', q: '983600', v: '98.36', c: 'CARRIED' }
+            ]
+
+            const actions = inferActions(diff)
+            const reversed = reverseInferActions(actions)
+
+            const sortedDiff = [...diff].sort((a, b) => a.key - b.key)
+            const sortedReversed = [...reversed].sort((a, b) => a.key - b.key)
+
+            expect(sortedReversed).toEqual(sortedDiff)
+        })
+
+        it('should reverse craft action', () => {
+            const diff: ViewItemData[] = [
+                { key: 0, n: 'Explosive Projectiles', q: '461', v: '0.04', c: 'CARRIED' },
+                { key: 1, n: 'Metal Residue', q: '3', v: '0.03', c: 'CARRIED' },  
+                { key: 2, n: 'Nanocube', q: '-19', v: '-0.19', c: 'CARRIED' },
+                { key: 3, n: 'Shrapnel', q: '586', v: '0.05', c: 'CARRIED' }
             ]
 
             const actions = inferActions(diff)
