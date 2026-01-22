@@ -599,7 +599,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                      {s.groups.list.map(renderGroup)}
                      {ungroupedItems.length > 0 && renderUngroupedSection()}
                      <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
-                         <td><strong>GRAND TOTAL</strong></td>
+                         <td><strong>TOTAL</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.peds, 0).toFixed(2)}</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.totalMU, 0).toFixed(2)}</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.total, 0).toFixed(2)}</strong></td>
