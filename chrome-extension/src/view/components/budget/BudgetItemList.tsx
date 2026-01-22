@@ -119,9 +119,7 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
         return acc
     }, { peds: 0, totalMU: 0, total: 0 })
 
-    const matNames: string[] = [...new Set(Object.values(pendingLines).flatMap(lines => (
-        lines.flatMap(line => line.materials.map(mat => mat.name)
-    ))))].sort()
+
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>
@@ -163,53 +161,59 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
         {Object.keys(pendingLines).length > 0 && <>
             <hr />
             <h3>Pending Lines</h3>
-            {Object.entries(pendingLines).map(([itemName, lines]) => (
-                <div key={itemName}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h4>{itemName}</h4>
-                        {lines.length > 1 && (
-                            <button 
-                                onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
-                                style={{ fontSize: '12px', padding: '2px 6px' }}
-                            >
-                                Clear All
-                            </button>
-                        )}
-                    </div>                    
-                    <table style={{ marginLeft: '20px' }} className="table-diff">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Reason</th>
-                                <th>PED</th>
-                                {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {lines.map((line, idx) => (
+            {Object.entries(pendingLines).map(([itemName, lines]) => {
+                const matNames: string[] = [...new Set(lines.flatMap(line => 
+                    line.materials.map(mat => mat.name)
+                ))].sort()
+                
+                return (
+                    <div key={itemName}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <h4>{itemName}</h4>
+                            {lines.length > 1 && (
+                                <button 
+                                    onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
+                                    style={{ fontSize: '12px', padding: '2px 6px' }}
+                                >
+                                    Clear All
+                                </button>
+                            )}
+                        </div>                    
+                        <table style={{ marginLeft: '20px' }} className="table-diff">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        {formatDateTime(line.date)}
-                                        {line.reason !== 'Balance' && (
-                                            <ImgButton 
-                                                title='Delete pending line' 
-                                                src='img/cross.png'
-                                                dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))} 
-                                            />
-                                        )}
-                                    </td>
-                                    <td>{line.reason}</td>
-                                    <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
-                                    {matNames.map((n, idx) => {
-                                        const m = line.materials.find(m => m.name === n);
-                                        return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
-                                    })}
+                                    <th>Date</th>
+                                    <th>Reason</th>
+                                    <th>PED</th>
+                                    {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ))}
+                            </thead>
+                            <tbody>
+                                {lines.map((line, idx) => (
+                                    <tr>
+                                        <td>
+                                            {formatDateTime(line.date)}
+                                            {line.reason !== 'Balance' && (
+                                                <ImgButton 
+                                                    title='Delete pending line' 
+                                                    src='img/cross.png'
+                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))} 
+                                                />
+                                            )}
+                                        </td>
+                                        <td>{line.reason}</td>
+                                        <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
+                                        {matNames.map((n, idx) => {
+                                            const m = line.materials.find(m => m.name === n);
+                                            return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )
+            })}
             <br />
             <button onClick={() => dispatch(sendBudgetPendingLines(pendingLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
         </>}
