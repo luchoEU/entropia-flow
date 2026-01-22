@@ -17,6 +17,7 @@ import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
 import { nameFromItemString } from "../helpers/craft"
+import { inferBudgetLinesFromActions } from "../helpers/budgetInference"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -28,25 +29,12 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
         case ADD_ACTIONS: {
-            for (const storedAction of action.payload.actions) {
-                if (storedAction.type === 'sold_auction') {
-                    const budget: BudgetState = getBudget(getState())
-                    // Find the budget item for this sold item
-                    const item = budget.list.items.find(item => item.name === storedAction.item)
-                    if (item) {
-                        // Add sold line to item's pending lines
-                        const line: BudgetLineData = {
-                            date: storedAction.timestamp,
-                            reason: 'Sold',
-                            ped: storedAction.value,
-                            materials: [{ name: storedAction.item, quantity: -storedAction.amount! }]
-                        }
-                        dispatch(addBudgetItemPendingLines(storedAction.item, [line]))
-
-                        // Associate budget name with the action
-                        dispatch(updateActionBudgetName(storedAction.id, item.name))
-                    }
-                }
+            const budget: BudgetState = getBudget(getState())
+            const results = inferBudgetLinesFromActions(action.payload.actions, budget)
+            
+            for (const result of results) {
+                dispatch(addBudgetItemPendingLines(result.budgetName, [result.budgetLine]))
+                dispatch(updateActionBudgetName(result.action.id, result.budgetName))
             }
             break
         }

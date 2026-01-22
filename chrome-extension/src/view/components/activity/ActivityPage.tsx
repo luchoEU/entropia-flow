@@ -200,7 +200,7 @@ function ActivityPage() {
                                              style={{ border: 'none', background: 'transparent' }}
                                              onClick={(e) => e.stopPropagation()}
                                          >
-                                             <option value="unknown">Unknown</option>
+                                             <option value="unknown">Any</option>
                                              <option value="hunt">Hunt</option>
                                              <option value="mine">Mine</option>
                                              <option value="craft">Craft</option>
