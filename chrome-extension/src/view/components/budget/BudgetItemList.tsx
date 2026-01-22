@@ -445,19 +445,50 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const renderItemRow = (item: BudgetItem) => {
         const itemMaterials = getMaterials(getUsedMaterialsMap([item.name], s.materials.map))
         const materialsBalance = itemMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
+        const isLoading = item.refreshStatus === 'loading'
+        const isLoaded = item.refreshStatus === 'loaded'
+        const pendingAmount = item.pendingLines?.length || 0
+        
         return (
             <tr
                 key={item.name}
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.name)}
                 onDragEnd={handleDragEnd}
-                className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''}`}
-                style={{ cursor: 'grab' }}
+                className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''} ${isLoading ? 'budget-item-loading' : ''} ${isLoaded ? 'budget-item-loaded' : ''}`}
+                style={{ 
+                    cursor: 'grab',
+                    opacity: isLoading ? 0.6 : 1
+                }}
                 onClick={() => navigate(budgetItemUrl(item.name))}
             >
+                <td align='center'>
+                    {isLoading && (
+                        <div className="budget-spinner" title="Loading...">
+                            <div className="spinner-small"></div>
+                        </div>
+                    )}
+                    {isLoaded && (
+                        <div className="budget-checkmark" title="Loaded successfully">
+                            ✓
+                        </div>
+                    )}
+                    {!isLoading && !isLoaded && pendingAmount > 0 && (
+                        <div className="budget-pending-indicator" title={`${pendingAmount} pending`}>
+                            <span className="pending-badge">{pendingAmount}</span>
+                        </div>
+                    )}
+                </td>
                 <td>
-                    <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
-                    {item.name}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
+                        <span style={{ 
+                            fontStyle: isLoading ? 'italic' : 'normal',
+                            color: isLoading ? '#666' : 'inherit'
+                        }}>
+                            {item.name}
+                        </span>
+                    </div>
                 </td>
                 <td align='right'>{item.peds.toFixed(2)}</td>
                 <td align='right'>{item.totalMU.toFixed(2)}</td>
@@ -478,6 +509,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 className={`budget-group-header pointer ${isGroupSelected(group.id) ? 'selected' : ''}`}
                 onClick={() => navigate(budgetItemUrl(group.id))}
             >
+                <td></td>
                 <td>
                     <ExpandableArrowButton
                         expanded={isGroupExpanded(group.id)}
@@ -532,7 +564,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 {isGroupExpanded(group.id) && groupItems.map(renderItemRow)}
                 {isGroupExpanded(group.id) && groupItems.length === 0 && (
                     <tr className='budget-empty-group'>
-                        <td colSpan={5} style={{ fontStyle: 'italic', color: '#888' }}>
+                        <td colSpan={6} style={{ fontStyle: 'italic', color: '#888' }}>
                             Drag items here
                         </td>
                     </tr>
@@ -558,6 +590,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 className={draggedItem ? 'drop-target' : ''}
             >
                 <tr className='budget-group-header'>
+                    <td></td>
                     <td>
                         <ExpandableArrowButton
                             expanded={isUngroupedExpanded()}
@@ -587,6 +620,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     <table className='table-diff budget-items-table'>
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>PEDs</th>
                             <th>Total MU</th>
@@ -597,6 +631,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                      {s.groups.list.map(renderGroup)}
                      {ungroupedItems.length > 0 && renderUngroupedSection()}
                      <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
+                         <td></td>
                          <td><strong>TOTAL</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.peds, 0).toFixed(2)}</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.totalMU, 0).toFixed(2)}</strong></td>

@@ -354,13 +354,27 @@ const reduceClearBudgetItemPendingLines = (state: BudgetState, itemName: string)
 })
 
 const reduceDeleteBudgetPendingLine = (state: BudgetState, itemName: string, lineIndex: number): BudgetState => ({
+     ...state,
+     list: {
+         ...state.list,
+         items: state.list.items.map(item => item.name === itemName && item.pendingLines ?
+             { 
+                 ...item, 
+                 pendingLines: item.pendingLines.filter((_, index) => index !== lineIndex)
+             }
+             : item
+         )
+     }
+})
+
+const reduceRemoveBudgetItemPendingLines = (state: BudgetState, itemName: string, lines: BudgetLineData[]): BudgetState => ({
     ...state,
     list: {
         ...state.list,
         items: state.list.items.map(item => item.name === itemName && item.pendingLines ?
             { 
                 ...item, 
-                pendingLines: item.pendingLines.filter((_, index) => index !== lineIndex)
+                pendingLines: item.pendingLines.filter(line => !lines.some(l => l.date === line.date))
             }
             : item
         )
@@ -477,6 +491,7 @@ export {
     reduceToggleBudgetUngroupedExpanded,
     reduceAddBudgetItemPendingLines,
     reduceClearBudgetItemPendingLines,
+    reduceRemoveBudgetItemPendingLines,
     reduceDeleteBudgetPendingLine,
     getGroupTotals,
     getUngroupedItems

@@ -23,6 +23,7 @@ const TOGGLE_BUDGET_GROUP_EXPANDED = '[budget] toggle group expanded'
 const TOGGLE_BUDGET_UNGROUPED_EXPANDED = '[budget] toggle ungrouped expanded'
 const ADD_BUDGET_ITEM_PENDING_LINES = '[budget] add item pending lines'
 const CLEAR_BUDGET_ITEM_PENDING_LINES = '[budget] clear item pending lines'
+const REMOVE_BUDGET_ITEM_PENDING_LINES = '[budget] remove item pending lines'
 const DELETE_BUDGET_PENDING_LINE = '[budget] delete pending line'
 
 const setBudgetState = (state: BudgetState) => ({
@@ -147,6 +148,11 @@ const addBudgetItemPendingLines = (itemName: string, lines: BudgetLineData[]) =>
     payload: { itemName, lines }
 })
 
+const removeBudgetItemPendingLines = (itemName: string, lines: BudgetLineData[]) => ({
+    type: REMOVE_BUDGET_ITEM_PENDING_LINES,
+    payload: { itemName, lines }
+})
+
 const clearBudgetItemPendingLines = (itemName: string) => ({
     type: CLEAR_BUDGET_ITEM_PENDING_LINES,
     payload: { itemName }
@@ -179,6 +185,7 @@ export {
     TOGGLE_BUDGET_UNGROUPED_EXPANDED,
     ADD_BUDGET_ITEM_PENDING_LINES,
     CLEAR_BUDGET_ITEM_PENDING_LINES,
+    REMOVE_BUDGET_ITEM_PENDING_LINES,
     DELETE_BUDGET_PENDING_LINE,
     setBudgetState,
     setBudgetFromSheet,
@@ -201,5 +208,6 @@ export {
     toggleBudgetUngroupedExpanded,
     addBudgetItemPendingLines,
     clearBudgetItemPendingLines,
+    removeBudgetItemPendingLines,
     deleteBudgetPendingLine
 }

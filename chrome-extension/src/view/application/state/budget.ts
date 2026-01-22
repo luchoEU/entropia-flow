@@ -61,6 +61,7 @@ interface BudgetItem {
     peds: number
     url: string
     pendingLines?: BudgetLineData[]
+    refreshStatus?: 'idle' | 'loading' | 'loaded'
 }
 
 interface BudgetGroup {
