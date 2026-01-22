@@ -53,19 +53,22 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
         return <></>
     }
 
-    let title = ''
-    let itemNames: string[] = []
-    if (selection.type === 'group') {
-        const group = s.groups.list.find(g => g.id === selection.groupId)
-        if (!group) return null
-        title = group.name
-        itemNames = group.itemNames
-    } else if (selection.type === 'item') {
-        title = selection.itemName
-        itemNames = [selection.itemName]
-    } else {
-        return null
-    }
+     let title = ''
+     let itemNames: string[] = []
+     if (selection.type === 'group') {
+         const group = s.groups.list.find(g => g.id === selection.groupId)
+         if (!group) return null
+         title = group.name
+         itemNames = group.itemNames
+     } else if (selection.type === 'item') {
+         title = selection.itemName
+         itemNames = [selection.itemName]
+     } else if (selection.type === 'totals') {
+         title = 'Totals'
+         itemNames = s.list.items.map(i => i.name)
+     } else {
+         return null
+     }
     const items = itemNames.map(n => s.list.items.find(i => i.name === n))
     if (items.some(i => !i)) return null
 
@@ -311,6 +314,8 @@ type UrlSelection = {
 } | {
     type: 'group',
     groupId: string,
+} | {
+    type: 'totals',
 })
 
 function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
@@ -345,6 +350,15 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
             return {
                 type: 'group',
                 groupId: selectedItem,
+                selectedItem,
+                selectedMaterial
+            }
+        }
+
+        // Check if it's totals
+        if (selectedItem === 'totals') {
+            return {
+                type: 'totals',
                 selectedItem,
                 selectedMaterial
             }
@@ -411,6 +425,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
     const isGroupSelected = (groupId: string) =>
         urlSelection?.type === 'group' && urlSelection.groupId === groupId
+
+    const isTotalsSelected = urlSelection?.type === 'totals'
 
     const isGroupExpanded = (groupId: string) => {
         const group = s.groups.list.find(g => g.id === groupId)
@@ -578,14 +594,21 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     </thead>
                      {s.groups.list.map(renderGroup)}
                      {ungroupedItems.length > 0 && renderUngroupedSection()}
-                    </table>
-                </div>
-                <div className='inline'>
-                    <BudgetDetailsPanel s={s} selection={urlSelection} />
-                    <MaterialDetailsPanel s={s} selection={urlSelection} />
-                </div>
-            </div>
-        </ExpandableSection>
+                     <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
+                         <td><strong>GRAND TOTAL</strong></td>
+                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.peds, 0).toFixed(2)}</strong></td>
+                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.totalMU, 0).toFixed(2)}</strong></td>
+                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.total, 0).toFixed(2)}</strong></td>
+                         <td align='right'><strong>{getMaterials(getUsedMaterialsMap(s.list.items.map(i => i.name), s.materials.map)).reduce((sum, mat) => sum + mat.balanceWithMarkup, 0).toFixed(2)}</strong></td>
+                     </tr>
+                     </table>
+                 </div>
+                 <div className='inline'>
+                     <BudgetDetailsPanel s={s} selection={urlSelection} />
+                     <MaterialDetailsPanel s={s} selection={urlSelection} />
+                 </div>
+             </div>
+         </ExpandableSection>
     )
 }
 
