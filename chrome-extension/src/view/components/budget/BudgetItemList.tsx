@@ -99,7 +99,7 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
     })
 
     const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
-    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap, pendingLinesQuantity)
+    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap)
     const materials = getMaterials(usedMaterialsMap)
     Object.entries(balanceLines).forEach(([itemName, lines]) => {
         if (!pendingLines[itemName]) {
@@ -118,8 +118,6 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
         }
         return acc
     }, { peds: 0, totalMU: 0, total: 0 })
-
-
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>

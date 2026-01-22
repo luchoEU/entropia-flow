@@ -34,11 +34,11 @@ const setState = (state: BudgetState, inState: BudgetState): BudgetState => ({
     ...inState,
     materials: {
         ...inState.materials,
-        map: objectMap(inState.materials.map, fillBudgetMaterialCalc)
+        map: objectMap(inState.materials.map, (v, k) => fillBudgetMaterialCalc(v))
     }
 })
 
-function fillBudgetMaterialCalc(state: BudgetMaterialState): BudgetMaterialState {
+export function fillBudgetMaterialCalc(state: BudgetMaterialState): BudgetMaterialState {
     const totalBudgetQuantity = state.budgetList.reduce((sum, item) => sum + item.quantity, 0);
     const totalRealQuantity = state.realList.reduce((sum, item) => item.disabled ? sum : sum + item.quantity, 0);
     const totalBudget = totalBudgetQuantity * state.unitValue;
@@ -431,7 +431,7 @@ export function calculateBalanceLines(timestamp: number, materials: BalanceMater
     return lines
 }
 
-export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNames: string[], pendingLinesQuantity: Record<string, number>): BalanceMaterialData[] {
+export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNames: string[]): BalanceMaterialData[] {
     return materialNames.map(name => {
         const material = materialsMap[name];
         if (!material) {
@@ -440,21 +440,17 @@ export function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, mate
         if (!material.budgetList || material.budgetList.length === 0) {
             throw new Error(`Material '${name}' has no budgetList entries`);
         }
-        const quantity = material.c?.balanceQuantity || 0;
-        const balanceQuantity = quantity - (pendingLinesQuantity[name] || 0);
-        const withMarkup = material.c?.balanceWithMarkup || 0;
-        const balanceWithMarkup = withMarkup / quantity * balanceQuantity;
         return {
             sheetName: material.sheetName,
-            balanceQuantity,
-            balanceWithMarkup,
-            budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity + (pendingLinesQuantity[b.itemName] || 0)]))
+            balanceQuantity: material.c?.balanceQuantity || 0,
+            balanceWithMarkup: material.c?.balanceWithMarkup || 0,
+            budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
         };
     });
 }
 
-export function getBalanceLines(timestamp: number, materialsMap: BudgetMaterialsMap, pendingLinesQuantity: Record<string, number>): { [itemName: string]: BudgetLineData[] } {
-    const balancedData = createBalanceMaterialData(materialsMap, Object.keys(materialsMap), pendingLinesQuantity)
+export function getBalanceLines(timestamp: number, materialsMap: BudgetMaterialsMap): { [itemName: string]: BudgetLineData[] } {
+    const balancedData = createBalanceMaterialData(materialsMap, Object.keys(materialsMap))
     return calculateBalanceLines(timestamp, balancedData);
 }
 
