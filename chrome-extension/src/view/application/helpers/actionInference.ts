@@ -149,10 +149,10 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 4. Match craft: one consumed item (negative qty) and multiple positive items (crafted item + residues)
+    // 4. Match craft: one or more consumed items (negative qty) and multiple positive items (crafted item + residues)
     const consumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
     const positiveItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
-    if (consumed.length === 1 && positiveItems.length >= 2) {
+    if (consumed.length >= 1 && positiveItems.length >= 2 && !consumed.some(c => c.c === 'AUCTION')) {
         // Identify the main crafted item - prioritize items that don't sound like residues
         const craftedItem = positiveItems.reduce((best, current) => {
             const isBestResidue = best.n.toLowerCase().includes('residue') || best.n.toLowerCase().includes('shrapnel')

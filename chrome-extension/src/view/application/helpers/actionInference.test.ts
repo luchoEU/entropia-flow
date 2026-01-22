@@ -136,6 +136,40 @@ describe('actionInference', () => {
                 relatedItems: [diff[2], diff[0], diff[1], diff[3]]  // consumed first, then all positive items
             }])
         })
+
+        it('should infer craft of Jester D-1 with multiple consumed materials', () => {
+            const diff: ViewItemData[] = [
+                { key: 0, n: 'Belkar Ingot', q: '-30', v: '-1.80', c: 'STORAGE (Calypso)' },
+                { key: 1, n: 'Belkar Ingot', q: '11', v: '0.66', c: 'CARRIED' },
+                { key: 2, n: 'Energy Matter Residue', q: '66', v: '0.66', c: 'CARRIED' },
+                { key: 3, n: 'Iron Ingot', q: '-30', v: '-11.70', c: 'STORAGE (Calypso)' },
+                { key: 4, n: 'Iron Ingot', q: '4', v: '1.56', c: 'CARRIED' },
+                { key: 5, n: 'Jester D-1', q: '5', v: '7.63', c: 'CARRIED' },
+                { key: 6, n: 'Melchi Crystal', q: '-15', v: '-0.60', c: 'STORAGE (Calypso)' },
+                { key: 7, n: 'Melchi Crystal', q: '5', v: '0.20', c: 'CARRIED' },
+                { key: 8, n: 'Metal Residue', q: '46', v: '0.46', c: 'CARRIED' },
+                { key: 9, n: 'Shrapnel', q: '432', v: '0.04', c: 'CARRIED' }
+            ]
+
+            const actions = inferActions(diff)
+
+            expect(actions).toEqual([{
+                type: 'craft',
+                item: 'Jester D-1',  // Main crafted item (highest value non-residue)
+                amount: 5,
+                value: 7.63,  // Value of crafted item only
+                relatedItems: [
+                    diff[0],  // Belkar Ingot (consumed)
+                    diff[1],  // Belkar Ingot (returned)
+                    diff[2],  // Energy Matter Residue (byproduct)
+                    diff[4],  // Iron Ingot (returned)
+                    diff[5],  // Jester D-1 (crafted)
+                    diff[7],  // Melchi Crystal (returned)
+                    diff[8],  // Metal Residue (byproduct)
+                    diff[9]   // Shrapnel (byproduct)
+                ]
+            }])
+        })
     })
 
     describe('reverseInferActions', () => {
