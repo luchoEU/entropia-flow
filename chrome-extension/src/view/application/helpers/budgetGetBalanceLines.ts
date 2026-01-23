@@ -25,11 +25,12 @@ function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNam
     });
 }
 
-function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[], validBudgetItems?: string[]): { [itemName: string]: BudgetLineData[] } {
+function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[], validBudgetItems?: string[], pendingLines?: { [itemName: string]: BudgetLineData[] }): { [itemName: string]: BudgetLineData[] } {
     const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
-        if (material.balanceQuantity < 0) {
-            const needed = -material.balanceQuantity;
+        const quantity = material.balanceQuantity + (pendingLines ? Object.values(pendingLines).flatMap(lines => lines).flatMap(line => line.materials).reduce((sum, m) => sum + m.quantity, 0) : 0);
+        if (quantity < 0) {
+            const needed = -quantity;
             const budgets = Object.entries(material.budget);
 
             // Check if all valid budget entries have quantity 0
@@ -49,7 +50,7 @@ function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData
                 }
                 lines[budgetName][0].materials.push({
                     name: material.name,
-                    quantity: material.balanceQuantity
+                    quantity: quantity
                 })
                 // ped stays 0 when budget quantity is 0 (no cost allocation)
             } else {
@@ -76,7 +77,7 @@ function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData
                     remaining -= take;
                 }
             }
-        } else if (material.balanceQuantity > 0) {
+        } else if (quantity > 0) {
             const chosenBudget = Object.keys(material.budget).find(name => validBudgetItems?.includes(name) != false);
             if (!chosenBudget) continue; // not in validBudgetItems
             if (!lines[chosenBudget]) {
@@ -89,7 +90,7 @@ function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData
             }
             lines[chosenBudget][0].materials.push({
                 name: material.name,
-                quantity: material.balanceQuantity
+                quantity: quantity
             })
             const ped = lines[chosenBudget][0].ped! - material.balanceWithMarkup
             lines[chosenBudget][0].ped! = Math.round((ped + Number.EPSILON) * 100) / 100

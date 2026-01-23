@@ -4,7 +4,7 @@ import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { ItemsState } from "../state/items"
-import { nameFromItemString } from "../helpers/craft"
+import { itemStringFromNameLimited, nameFromItemStringLimited } from "../helpers/craft"
 
 export interface BudgetSheetInterfaceCallbacks {
     onProgress: (map: BudgetMaterialsMap, items: BudgetItem[], percentage: number) => void
@@ -63,7 +63,7 @@ export async function refreshBudgetData(
         }
     }
 
-    // Set final status
+    // Normalize load status after processing all pending lines
     items = items.map(item => ({
         ...item,
         refreshStatus: 'idle'
@@ -89,13 +89,27 @@ export async function sendBudgetPendingLinesFunc(
     let map: BudgetMaterialsMap = budget.materials.map
     let items: BudgetItem[] = budget.list.items
 
+    // Mark all existing items as loading initially
+    items = budget.list.items.map(item => item.name in lines ? ({
+        ...item,
+        refreshStatus: 'loading'
+    } as BudgetItem) : item)
+    callbacks.onProgress(map, items, 0)
+
     let loaded = 0
     for (const itemName in lines) {
         const sheet: BudgetSheet = await callbacks.loadBudgetSheet(settings, itemName)
 
         // Add all lines to sheet
         for (const line of lines[itemName]) {
-            await sheet.addLine(line)
+            const transformedLine: BudgetLineData = {
+                ...line,
+                materials: line.materials.map(m => ({
+                    ...m,
+                    name: itemStringFromNameLimited(itemName, m.name)
+                }))
+            }
+            await sheet.addLine(transformedLine)
         }
         await sheet.save()
 
@@ -121,6 +135,13 @@ export async function sendBudgetPendingLinesFunc(
     for (const materialName in map) {
         map[materialName].selected = false;
     }
+
+    // Normalize load status after processing all pending lines
+    items = items.map(item => ({
+        ...item,
+        refreshStatus: 'idle'
+    }))
+
     callbacks.onProgress(map, items, 100)
     callbacks.setStage(STAGE_INITIALIZING)
 
@@ -149,7 +170,7 @@ async function _processSheetInfo(
     for (const infoName of Object.keys(info.materials)) {
         var m = info.materials[infoName]
 
-        const name = nameFromItemString(itemName, infoName)
+        const name = nameFromItemStringLimited(itemName, infoName)
         const matInfo = materials.map[name]
 
         if (map[name] === undefined) {

@@ -1,5 +1,5 @@
 import { BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
-import { BalanceMaterialData, getGroupTotals, getUngroupedItems } from "./budget"
+import { BalanceMaterialData } from "./budget"
 import { calculateBalanceLines } from "./budgetGetBalanceLines"
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 
@@ -11,17 +11,19 @@ export interface MaterialSummary extends BalanceMaterialData {
 
 export interface ItemTotals {
     peds: number
-    totalMU: number
+    stored: number
+    markup: number
     total: number
 }
 
 export interface ItemViewData {
     item: BudgetItem
-    materialsBalance: number
     isLoading: boolean
     isLoaded: boolean
     pendingAmount: number
-    detailsPanelViewData: BudgetDetailsPanelViewData | null
+    stored: number
+    balance: number
+    detailsViewData: BudgetDetailsViewData | null
 }
 
 export interface GroupViewData {
@@ -30,24 +32,25 @@ export interface GroupViewData {
     itemNames: string[]
     expanded: boolean
     totals: ItemTotals
-    materialsBalance: number
+    balance: number
     items: ItemViewData[]
-    detailsPanelViewData: BudgetDetailsPanelViewData | null
+    detailsViewData: BudgetDetailsViewData | null
 }
 
 export interface UngroupedViewData {
     expanded: boolean
     totals: ItemTotals
-    materialsBalance: number
+    balance: number
     items: ItemViewData[]
 }
 
 export interface TotalsViewData {
     peds: number
-    totalMU: number
+    stored: number
+    markup: number
     total: number
-    materialsBalance: number
-    detailsPanelViewData: BudgetDetailsPanelViewData | null
+    balance: number
+    detailsViewData: BudgetDetailsViewData | null
 }
 
 export interface BudgetViewData {
@@ -72,11 +75,12 @@ export interface PendingLinesGroupViewData {
     matNames: string[]
 }
 
-export interface BudgetDetailsPanelViewData {
+export interface BudgetDetailsViewData {
     title: string
     items: { name: string, url: string }[]
     totals: ItemTotals
     totalBalanceWithMarkup: number
+    totalBudgetValue: number
     materials: MaterialSummary[]
     pendingLines: PendingLinesGroupViewData[]
     pendingLinesForAction: Record<string, BudgetLineData[]>
@@ -128,43 +132,50 @@ export function getMaterials(usedMaterialsMap: BudgetMaterialsMap, validBudgetIt
 }
 
 function getItemViewData(item: BudgetItem, s: BudgetState): ItemViewData {
-    const detailsPanelViewData = _calculateBudgetDetailsPanelViewData(s, [item.name], item.name, item.name)
+    const detailsViewData = _calculateBudgetDetailsViewData(s, [item.name], item.name, item.name)
 
     return {
         item,
-        materialsBalance: detailsPanelViewData?.totalBalanceWithMarkup || 0,
+        stored: detailsViewData?.totalBudgetValue || 0,
+        balance: detailsViewData?.totalBalanceWithMarkup || 0,
         isLoading: item.refreshStatus === 'loading',
         isLoaded: item.refreshStatus === 'loaded',
         pendingAmount: item.pendingLines?.length || 0,
-        detailsPanelViewData
+        detailsViewData
     }
 }
 
 export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
-    const ungroupedItems = getUngroupedItems(s)
+    const groupedItemNames = new Set(s.groups.list.flatMap(g => g.itemNames))
+    const ungroupedItems = s.list.items.filter(i => !groupedItemNames.has(i.name))
 
     // Calculate groups data
     const groups: GroupViewData[] = s.groups.list.map(group => {
         const groupItems = s.list.items.filter(i => group.itemNames.includes(i.name))
-        const totals = getGroupTotals(group, s.list.items)
-        const detailsPanelViewData = _calculateBudgetDetailsPanelViewData(s, group.itemNames, group.id, group.name)
+        const detailsViewData = _calculateBudgetDetailsViewData(s, group.itemNames, group.id, group.name)
 
         return {
             id: group.id,
             name: group.name,
             itemNames: group.itemNames,
             expanded: group.expanded,
-            totals,
-            materialsBalance: detailsPanelViewData?.totalBalanceWithMarkup || 0,
+            totals: {
+                peds: groupItems.reduce((sum, i) => sum + i.peds, 0),
+                markup: groupItems.reduce((sum, i) => sum + i.totalMU, 0),
+                stored: detailsViewData?.totalBudgetValue || 0,
+                total: groupItems.reduce((sum, i) => sum + i.total, 0)
+            },
+            balance: detailsViewData?.totalBalanceWithMarkup || 0,
             items: groupItems.map(item => getItemViewData(item, s)),
-            detailsPanelViewData
+            detailsViewData
         }
     })
 
     // Calculate ungrouped data
     const ungroupedTotals: ItemTotals = {
         peds: ungroupedItems.reduce((sum, i) => sum + i.peds, 0),
-        totalMU: ungroupedItems.reduce((sum, i) => sum + i.totalMU, 0),
+        markup: ungroupedItems.reduce((sum, i) => sum + i.totalMU, 0),
+        stored: 0,
         total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
     }
     const ungroupedItemNames = ungroupedItems.map(i => i.name)
@@ -174,7 +185,7 @@ export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
     const ungrouped: UngroupedViewData = {
         expanded: s.groups.ungroupedExpanded,
         totals: ungroupedTotals,
-        materialsBalance: ungroupedMaterialsBalance,
+        balance: ungroupedMaterialsBalance,
         items: ungroupedItems.map(item => getItemViewData(item, s))
     }
 
@@ -182,13 +193,16 @@ export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
     const allItemNames = s.list.items.map(i => i.name)
     const allMaterials = getMaterials(getUsedMaterialsMap(allItemNames, s.materials.map))
     const totalMaterialsBalance = allMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
+    const detailsViewData = _calculateBudgetDetailsViewData(s, allItemNames, 'totals', 'Totals')
+    ungroupedTotals.stored = detailsViewData?.totalBudgetValue || 0
 
     const totals: TotalsViewData = {
         peds: s.list.items.reduce((sum, i) => sum + i.peds, 0),
-        totalMU: s.list.items.reduce((sum, i) => sum + i.totalMU, 0),
+        stored: detailsViewData?.totalBudgetValue || 0,
+        markup: s.list.items.reduce((sum, i) => sum + i.totalMU, 0),
         total: s.list.items.reduce((sum, i) => sum + i.total, 0),
-        materialsBalance: totalMaterialsBalance,
-        detailsPanelViewData: _calculateBudgetDetailsPanelViewData(s, allItemNames, 'totals', 'Totals')
+        balance: totalMaterialsBalance,
+        detailsViewData
     }
 
     return {
@@ -213,12 +227,12 @@ export type UrlSelection = {
     type: 'totals',
 })
 
-function _calculateBudgetDetailsPanelViewData(
+function _calculateBudgetDetailsViewData(
     s: BudgetState,
     itemNames: string[],
     selectedItem: string | null,
     title: string
-): BudgetDetailsPanelViewData | null {
+): BudgetDetailsViewData | null {
     if (itemNames.length === 0) return null
 
     const items = itemNames.map(n => s.list.items.find(i => i.name === n))
@@ -250,15 +264,15 @@ function _calculateBudgetDetailsPanelViewData(
     })
 
     // Calculate totals for the selected items
-    const totals = itemNames.reduce((acc, itemName) => {
+    const totals: ItemTotals = itemNames.reduce((acc, itemName) => {
         const item = s.list.items.find(i => i.name === itemName)
         if (item) {
             acc.peds += item.peds
-            acc.totalMU += item.totalMU
+            acc.markup += item.totalMU
             acc.total += item.total
         }
         return acc
-    }, { peds: 0, totalMU: 0, total: 0 })
+    }, { peds: 0, stored: 0, markup: 0, total: 0 })
 
     // Convert pendingLines to view data format
     const pendingLinesViewData: PendingLinesGroupViewData[] = Object.entries(pendingLines).map(([itemName, lines]) => {
@@ -283,6 +297,7 @@ function _calculateBudgetDetailsPanelViewData(
         items: items.filter(i => i !== undefined).map(item => ({ name: item.name, url: item.url })),
         totals,
         totalBalanceWithMarkup: materials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0),
+        totalBudgetValue: materials.reduce((sum, mat) => sum + mat.budgetValue, 0),
         materials,
         pendingLines: pendingLinesViewData,
         pendingLinesForAction: pendingLines,

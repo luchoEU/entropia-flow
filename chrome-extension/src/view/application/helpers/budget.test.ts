@@ -9,6 +9,7 @@ describe('reduceDeleteBudgetPendingLine', () => {
         items: [
           {
             name: 'Test Item',
+            storage: 0,
             totalMU: 0,
             total: 0,
             peds: 0,

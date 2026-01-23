@@ -48,7 +48,9 @@ const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'
 const itemStringFromName = (bp: BlueprintData, name: string): string =>
     name === bp.name ? BP_BLUEPRINT_NAME : name === bp.c?.itemName ? BP_ITEM_NAME : name
-const nameFromItemString = (itemName: string, name: string): string => // assume limited for blueprint
+const itemStringFromNameLimited = (itemName: string, name: string): string =>
+    name === itemName + ' Blueprint (L)' ? BP_BLUEPRINT_NAME : name === itemName ? BP_ITEM_NAME : name
+const nameFromItemStringLimited = (itemName: string, name: string): string =>
     name === BP_BLUEPRINT_NAME ? itemName + ' Blueprint (L)' : name === BP_ITEM_NAME ? itemName : name
 
 const isLimited = (name: string): boolean => name?.endsWith('(L)') ?? false
@@ -667,7 +669,8 @@ export {
     bpNameFromItemName,
     bpDataFromItemName,
     itemStringFromName,
-    nameFromItemString,
+    itemStringFromNameLimited,
+    nameFromItemStringLimited,
     budgetInfoFromBp,
     isLimited,
 }

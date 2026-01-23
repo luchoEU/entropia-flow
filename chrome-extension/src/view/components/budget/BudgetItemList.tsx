@@ -9,9 +9,9 @@ import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
 import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
 import { useNavigate } from 'react-router-dom'
-import { BudgetDetailsPanelViewData, calculateBudgetViewData, calculateMaterialDetailsPanelViewData, GroupViewData, ItemViewData, MaterialDetailsPanelViewData, UrlSelection } from '../../application/helpers/budgetViewData'
+import { BudgetDetailsViewData, calculateBudgetViewData, calculateMaterialDetailsPanelViewData, GroupViewData, ItemViewData, MaterialDetailsPanelViewData, UrlSelection } from '../../application/helpers/budgetViewData'
 
-const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsPanelViewData | null }) => {
+const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | null }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -235,22 +235,22 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const urlSelection = getSelectedFromUrl()
 
     // Get pre-calculated details panel view data from the appropriate row
-    const getBudgetDetailsPanelViewData = (): BudgetDetailsPanelViewData | null => {
+    const getBudgetDetailsPanelViewData = (): BudgetDetailsViewData | null => {
         if (!urlSelection) return null
 
         if (urlSelection.type === 'item') {
             // Find the item in groups or ungrouped
             for (const group of viewData.groups) {
                 const item = group.items.find(i => i.item.name === urlSelection.itemName)
-                if (item) return item.detailsPanelViewData
+                if (item) return item.detailsViewData
             }
             const ungroupedItem = viewData.ungrouped.items.find(i => i.item.name === urlSelection.itemName)
-            if (ungroupedItem) return ungroupedItem.detailsPanelViewData
+            if (ungroupedItem) return ungroupedItem.detailsViewData
         } else if (urlSelection.type === 'group') {
             const group = viewData.groups.find(g => g.id === urlSelection.groupId)
-            if (group) return group.detailsPanelViewData
+            if (group) return group.detailsViewData
         } else if (urlSelection.type === 'totals') {
-            return viewData.totals.detailsPanelViewData
+            return viewData.totals.detailsViewData
         }
 
         return null
@@ -331,7 +331,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         false
 
     const renderItemRow = (itemData: ItemViewData) => {
-        const { item, materialsBalance, isLoading, isLoaded, pendingAmount } = itemData
+        const { item, stored, balance, isLoading, isLoaded, pendingAmount } = itemData
 
         return (
             <tr
@@ -375,9 +375,10 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     </div>
                 </td>
                 <td align='right'>{item.peds.toFixed(2)}</td>
+                <td align='right'>{stored.toFixed(2)}</td>
                 <td align='right'>{item.totalMU.toFixed(2)}</td>
                 <td align='right'>{item.total.toFixed(2)}</td>
-                <td align='right'>{materialsBalance.toFixed(2)}</td>
+                <td align='right'>{balance.toFixed(2)}</td>
             </tr>
         )
     }
@@ -424,9 +425,10 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     />
                 </td>
                 <td align='right'>{groupData.totals.peds.toFixed(2)}</td>
-                <td align='right'>{groupData.totals.totalMU.toFixed(2)}</td>
+                <td align='right'>{groupData.totals.stored.toFixed(2)}</td>
+                <td align='right'>{groupData.totals.markup.toFixed(2)}</td>
                 <td align='right'>{groupData.totals.total.toFixed(2)}</td>
-                <td align='right'>{groupData.materialsBalance.toFixed(2)}</td>
+                <td align='right'>{groupData.balance.toFixed(2)}</td>
             </tr>
         )
     }
@@ -453,7 +455,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     }
 
     const renderUngroupedSection = () => {
-        const { totals, materialsBalance, items } = viewData.ungrouped
+        const { totals, balance, items } = viewData.ungrouped
 
         return (
             <tbody
@@ -471,9 +473,10 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         <strong>Ungrouped</strong>
                     </td>
                     <td align='right'><strong>{totals.peds.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{totals.totalMU.toFixed(2)}</strong></td>
+                    <td align='right'><strong>{totals.stored.toFixed(2)}</strong></td>
+                    <td align='right'><strong>{totals.markup.toFixed(2)}</strong></td>
                     <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
+                    <td align='right'><strong>{balance.toFixed(2)}</strong></td>
                 </tr>
                 {isUngroupedExpanded() && items.map(renderItemRow)}
             </tbody>
@@ -495,7 +498,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                             <th></th>
                             <th>Name</th>
                             <th>PEDs</th>
-                            <th>Total MU</th>
+                            <th>Stored</th>
+                            <th>Markup</th>
                             <th>Total</th>
                             <th>Balance</th>
                         </tr>
@@ -506,9 +510,10 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                          <td></td>
                          <td><strong>TOTAL</strong></td>
                          <td align='right'><strong>{viewData.totals.peds.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.totalMU.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.stored.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.markup.toFixed(2)}</strong></td>
                          <td align='right'><strong>{viewData.totals.total.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.materialsBalance.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.balance.toFixed(2)}</strong></td>
                      </tr>
                      </table>
                  </div>

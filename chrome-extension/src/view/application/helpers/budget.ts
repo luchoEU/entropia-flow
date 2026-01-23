@@ -381,20 +381,6 @@ const reduceRemoveBudgetItemPendingLines = (state: BudgetState, itemName: string
     }
 })
 
-const getGroupTotals = (group: BudgetGroup, items: BudgetItem[]): { peds: number, totalMU: number, total: number } => {
-    const groupItems = items.filter(i => group.itemNames.includes(i.name))
-    return {
-        peds: groupItems.reduce((sum, i) => sum + i.peds, 0),
-        totalMU: groupItems.reduce((sum, i) => sum + i.totalMU, 0),
-        total: groupItems.reduce((sum, i) => sum + i.total, 0)
-    }
-}
-
-const getUngroupedItems = (state: BudgetState): BudgetItem[] => {
-    const groupedItemNames = new Set(state.groups.list.flatMap(g => g.itemNames))
-    return state.list.items.filter(i => !groupedItemNames.has(i.name))
-}
-
 export {
     initialState,
     SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP,
@@ -419,7 +405,5 @@ export {
     reduceAddBudgetItemPendingLines,
     reduceClearBudgetItemPendingLines,
     reduceRemoveBudgetItemPendingLines,
-    reduceDeleteBudgetPendingLine,
-    getGroupTotals,
-    getUngroupedItems
+    reduceDeleteBudgetPendingLine
 }

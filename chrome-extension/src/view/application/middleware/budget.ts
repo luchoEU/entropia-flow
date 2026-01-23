@@ -15,7 +15,7 @@ import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
 import { inferBudgetLinesFromActions } from "../helpers/budgetInference"
-import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetInterface"
+import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { getBalanceLines } from "../helpers/budgetGetBalanceLines"
 
