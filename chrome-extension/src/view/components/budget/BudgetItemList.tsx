@@ -3,136 +3,33 @@ import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
 import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
-import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
-import { getLast } from '../../application/selectors/last'
-import { BalanceMaterialData, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
-import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
 import { useNavigate } from 'react-router-dom'
-import { calculateBalanceLines } from '../../application/helpers/budgetGetBalanceLines'
+import { BudgetDetailsPanelViewData, calculateBudgetViewData, calculateMaterialDetailsPanelViewData, GroupViewData, ItemViewData, MaterialDetailsPanelViewData, UrlSelection } from '../../application/helpers/budgetViewData'
 
-interface MaterialSummary extends BalanceMaterialData {
-    budgetQuantity: number
-    budgetValue: number
-    budgetWithMarkup: number
-}
-
-function _getUsedMaterialsMap(itemNames: string[], materialsMap: BudgetMaterialsMap): Record<string, BudgetMaterialState> {
-    return Object.fromEntries(Object.entries(materialsMap).filter(([_, m]) => m.budgetList.some(b => itemNames.includes(b.itemName))))
-}
-
-function _getMaterials(usedMaterialsMap: BudgetMaterialsMap, validBudgetItems?: string[]): MaterialSummary[] {
-    const result: MaterialSummary[] = []
-
-    for (const [materialName, material] of Object.entries(usedMaterialsMap)) {
-        const quantity = material.budgetList.reduce((acc, b) => validBudgetItems?.includes(b.itemName) ? acc + b.quantity : acc, 0)
-        const value = quantity * material.unitValue
-        const validItems = material.budgetList.filter(b => validBudgetItems?.includes(b.itemName) != false)
-        const balanceQuantity = Math.max(-validItems.reduce((acc, b) => acc + b.quantity, 0), material.c.balanceQuantity)
-        result.push({
-            name: materialName,
-            budgetQuantity: quantity,
-            budgetValue: value,
-            budgetWithMarkup: value * material.markup,
-            balanceQuantity,
-            balanceWithMarkup: material.c.balanceQuantity != 0 ? material.c.balanceWithMarkup * (balanceQuantity / material.c.balanceQuantity) : 0,
-            budget: Object.fromEntries(validItems.map(b => [b.itemName, b.quantity]))
-        })
-    }
-
-    return result.sort((a, b) => a.name.localeCompare(b.name))
-}
-
-const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSelection | null }) => {
+const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsPanelViewData | null }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    if (!selection) {
+    if (!viewData) {
         return <></>
     }
 
-     let title = ''
-     let itemNames: string[] = []
-     if (selection.type === 'group') {
-         const group = s.groups.list.find(g => g.id === selection.groupId)
-         if (!group) return null
-         title = group.name
-         itemNames = group.itemNames
-     } else if (selection.type === 'item') {
-         title = selection.itemName
-         itemNames = [selection.itemName]
-     } else if (selection.type === 'totals') {
-         title = 'Totals'
-         itemNames = s.list.items.map(i => i.name)
-     } else {
-         return null
-     }
-    const items = itemNames.map(n => s.list.items.find(i => i.name === n))
-    if (items.some(i => !i)) return null
-
-    // Combine balanceLines with pendingLines from items
-    const pendingLines: Record<string, BudgetLineData[]> = { }
-    items.forEach(item => {
-        if (item?.pendingLines) {
-            if (!pendingLines[item.name]) {
-                pendingLines[item.name] = []
-            }
-            pendingLines[item.name].push(...item.pendingLines)
-        }
-    })
-    Object.values(pendingLines).forEach(lines => {
-        lines.sort((a, b) => a.date - b.date)
-    })
-
-    var pendingLinesQuantity: Record<string, number> = {}
-    Object.values(pendingLines).forEach(lines => {
-        lines.forEach(line => {
-            line.materials.forEach(material => {
-                if (!pendingLinesQuantity[material.name]) {
-                    pendingLinesQuantity[material.name] = 0
-                }
-                pendingLinesQuantity[material.name] += material.quantity
-            })
-        })
-    })
-
-    const usedMaterialsMap = _getUsedMaterialsMap(itemNames, s.materials.map)
-    const validBudgetItems = itemNames.filter(name => !s.disabledItems.names.includes(name))
-    const materials = _getMaterials(usedMaterialsMap, validBudgetItems)
-    const balanceLines = calculateBalanceLines(Date.now(), materials, validBudgetItems)
-    Object.entries(balanceLines).forEach(([itemName, lines]) => {
-        if (!pendingLines[itemName]) {
-            pendingLines[itemName] = []
-        }
-        pendingLines[itemName].push(...lines)
-    })
-
-    // Calculate totals for the selected items
-    const totals = itemNames.reduce((acc, itemName) => {
-        const item = s.list.items.find(i => i.name === itemName)
-        if (item) {
-            acc.peds += item.peds
-            acc.totalMU += item.totalMU
-            acc.total += item.total
-        }
-        return acc
-    }, { peds: 0, totalMU: 0, total: 0 })
-
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>
-            Budget: {title} <img src='img/left.png' />
+            Budget: {viewData.title} <img src='img/left.png' />
         </h2>
 
-        {items.map(item => item && <p><a href={item.url} target='_blank' rel='noopener noreferrer'>Open {item.name} in Google Sheets</a></p>)}
+        {viewData.items.map(item => <p key={item.name}><a href={item.url} target='_blank' rel='noopener noreferrer'>Open {item.name} in Google Sheets</a></p>)}
 
-        <p>PED Reserve: {totals.peds.toFixed(2)}</p>
-        <p>Total Balance including Markup: {(materials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)).toFixed(2)} PED</p>
+        <p>PED Reserve: {viewData.totals.peds.toFixed(2)}</p>
+        <p>Total Balance including Markup: {viewData.totalBalanceWithMarkup.toFixed(2)} PED</p>
 
-        {materials.length > 0 && <>
+        {viewData.materials.length > 0 && <>
             <table>
                 <thead>
                     <tr>
@@ -145,9 +42,9 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
                     </tr>
                 </thead>
                 <tbody>
-                    {materials.map(mat => (
+                    {viewData.materials.map(mat => (
                         <tr key={mat.name}>
-                            <td className='pointer' onClick={() => navigate(budgetItemMaterialUrl(selection!.selectedItem!, mat.name))}>{mat.name}</td>
+                            <td className='pointer' onClick={() => navigate(budgetItemMaterialUrl(viewData.selectedItem!, mat.name))}>{mat.name}</td>
                             <td align='right'>{mat.budgetQuantity}</td>
                             <td align='right'>{mat.budgetValue.toFixed(2)} PED</td>
                             <td align='right'>{mat.budgetWithMarkup.toFixed(2)} PED</td>
@@ -159,101 +56,77 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
             </table>
         </>}
 
-        {Object.keys(pendingLines).length > 0 && <>
+        {viewData.pendingLines.length > 0 && <>
             <hr />
             <h3>Pending Lines</h3>
-            {Object.entries(pendingLines).map(([itemName, lines]) => {
-                const matNames: string[] = [...new Set(lines.flatMap(line => 
-                    line.materials.map(mat => mat.name)
-                ))].sort()
-                
-                return (
-                    <div key={itemName}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <h4>{itemName}</h4>
-                            {lines.length > 1 && (
-                                <button 
-                                    onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
-                                    style={{ fontSize: '12px', padding: '2px 6px' }}
-                                >
-                                    Clear All
-                                </button>
-                            )}
-                        </div>                    
-                        <table style={{ marginLeft: '20px' }} className="table-diff">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reason</th>
-                                    <th>PED</th>
-                                    {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {lines.map((line, idx) => (
-                                    <tr>
-                                        <td>
-                                            {formatDateTime(line.date)}
-                                            {line.reason !== 'Balance' && (
-                                                <ImgButton 
-                                                    title='Delete pending line' 
-                                                    src='img/cross.png'
-                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))} 
-                                                />
-                                            )}
-                                        </td>
-                                        <td>{line.reason}</td>
-                                        <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
-                                        {matNames.map((n, idx) => {
-                                            const m = line.materials.find(m => m.name === n);
-                                            return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+            {viewData.pendingLines.map(({ itemName, lines, matNames }) => (
+                <div key={itemName}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h4>{itemName}</h4>
+                        {lines.length > 1 && (
+                            <button
+                                onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
+                                style={{ fontSize: '12px', padding: '2px 6px' }}
+                            >
+                                Clear All
+                            </button>
+                        )}
                     </div>
-                )
-            })}
+                    <table style={{ marginLeft: '20px' }} className="table-diff">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reason</th>
+                                <th>PED</th>
+                                {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {lines.map((line, idx) => (
+                                <tr key={idx}>
+                                    <td>
+                                        {formatDateTime(line.date)}
+                                        {line.reason !== 'Balance' && (
+                                            <ImgButton
+                                                title='Delete pending line'
+                                                src='img/cross.png'
+                                                dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))}
+                                            />
+                                        )}
+                                    </td>
+                                    <td>{line.reason}</td>
+                                    <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
+                                    {matNames.map((n, idx) => {
+                                        const m = line.materials.find(m => m.name === n);
+                                        return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ))}
             <br />
-            <button onClick={() => dispatch(sendBudgetPendingLines(pendingLines))} disabled={s.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
+            <button onClick={() => dispatch(sendBudgetPendingLines(viewData.pendingLinesForAction))} disabled={viewData.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
         </>}
     </div>
 }
 
-const MaterialDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSelection | null }) => {
+const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelViewData | null }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    if (!selection || !selection.selectedMaterial) {
+    if (!viewData) {
         return null
     }
 
-    const material = s.materials.map[selection.selectedMaterial]
-    if (!material) return null
-
-    // Create a map of itemName to budget and real data
-    const itemMap: { [itemName: string]: { budget?: { quantity: number, value: number }, real?: { quantity: number, value: number, disabled: boolean } } } = {}
-
-    material.budgetList.forEach(b => {
-        if (!itemMap[b.itemName]) itemMap[b.itemName] = {}
-        itemMap[b.itemName].budget = { quantity: b.quantity, value: b.quantity * material.unitValue }
-    })
-
-    material.realList.forEach(r => {
-        if (!itemMap[r.itemName]) itemMap[r.itemName] = {}
-        itemMap[r.itemName].real = { quantity: r.quantity, value: r.quantity * material.unitValue, disabled: r.disabled }
-    })
-
-    const sortedItemNames = Object.keys(itemMap).sort()
-
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(selection.selectedItem!))}>
-                Material: {selection.selectedMaterial} <img src='img/left.png' />
+            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(viewData.selectedItem!))}>
+                Material: {viewData.materialName} <img src='img/left.png' />
             </h2>
-            <p>Markup: {(material.markup * 100).toFixed(2)}%</p>
-            <p>Balance with markup: {(material.c.balanceWithMarkup).toFixed(2)} PED</p>
+            <p>Markup: {(viewData.markup * 100).toFixed(2)}%</p>
+            <p>Balance with markup: {viewData.balanceWithMarkup.toFixed(2)} PED</p>
             <table className='table-diff' style={{ backgroundColor: 'transparent' }}>
                 <thead>
                     <tr>
@@ -265,44 +138,41 @@ const MaterialDetailsPanel = ({ s, selection }: { s: BudgetState, selection: Url
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedItemNames.map(itemName => {
-                        const data = itemMap[itemName]
-                        return (
-                            <tr key={itemName}>
-                                <td>
-                                    {data.real ? (
-                                        <>
-                                            {data.real.disabled ? (
-                                                <ImgButton title='Enable this material' src='img/tick.png'
-                                                    dispatch={() => dispatch(enableBudgetMaterial(material.sheetName, itemName))} />
-                                            ) : (
-                                                <ImgButton title='Disable this material' src='img/cross.png'
-                                                    dispatch={() => dispatch(disableBudgetMaterial(material.sheetName, itemName))} />
-                                            )}
-                                            {itemName}
-                                        </>
-                                    ) : (
-                                        `${itemName} sheet`
-                                    )}
-                                </td>
-                                <td align='right'>{data.budget ? data.budget.quantity : ''}</td>
-                                <td align='right'>{data.budget ? data.budget.value.toFixed(2) + ' PED' : ''}</td>
-                                <td align='right'>{data.real ? (data.real.disabled ? `(${data.real.quantity})` : data.real.quantity) : ''}</td>
-                                <td align='right'>{data.real && !data.real.disabled ? data.real.value.toFixed(2) + ' PED' : ''}</td>
-                            </tr>
-                        )
-                    })}
+                    {viewData.items.map(item => (
+                        <tr key={item.itemName}>
+                            <td>
+                                {item.real ? (
+                                    <>
+                                        {item.real.disabled ? (
+                                            <ImgButton title='Enable this material' src='img/tick.png'
+                                                dispatch={() => dispatch(enableBudgetMaterial(viewData.sheetName, item.itemName))} />
+                                        ) : (
+                                            <ImgButton title='Disable this material' src='img/cross.png'
+                                                dispatch={() => dispatch(disableBudgetMaterial(viewData.sheetName, item.itemName))} />
+                                        )}
+                                        {item.itemName}
+                                    </>
+                                ) : (
+                                    `${item.itemName} sheet`
+                                )}
+                            </td>
+                            <td align='right'>{item.budget ? item.budget.quantity : ''}</td>
+                            <td align='right'>{item.budget ? item.budget.value.toFixed(2) + ' PED' : ''}</td>
+                            <td align='right'>{item.real ? (item.real.disabled ? `(${item.real.quantity})` : item.real.quantity) : ''}</td>
+                            <td align='right'>{item.real && !item.real.disabled ? item.real.value.toFixed(2) + ' PED' : ''}</td>
+                        </tr>
+                    ))}
                     <tr key='total'>
                         <td><strong>TOTAL</strong></td>
-                        <td align='right'><strong>{material.c.totalBudgetQuantity}</strong></td>
-                        <td align='right'><strong>{material.c.totalBudget.toFixed(2)} PED</strong></td>
-                        <td align='right'><strong>{material.c.totalRealQuantity}</strong></td>
-                        <td align='right'><strong>{material.c.totalReal.toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{viewData.totals.budgetQuantity}</strong></td>
+                        <td align='right'><strong>{viewData.totals.budgetValue.toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{viewData.totals.realQuantity}</strong></td>
+                        <td align='right'><strong>{viewData.totals.realValue.toFixed(2)} PED</strong></td>
                     </tr>
                     <tr key='balance'>
                         <td>Balance</td>
-                        <td align='right'>{material.c.balanceQuantity}</td>
-                        <td align='right'>{material.c.balance.toFixed(2)} PED</td>
+                        <td align='right'>{viewData.balance.quantity}</td>
+                        <td align='right'>{viewData.balance.value.toFixed(2)} PED</td>
                     </tr>
                 </tbody>
             </table>
@@ -310,38 +180,27 @@ const MaterialDetailsPanel = ({ s, selection }: { s: BudgetState, selection: Url
     )
 }
 
-type UrlSelection = {
-    selectedItem: string | null,
-    selectedMaterial: string | null,
-} & ({
-    type: 'item',
-    itemName: string,
-} | {
-    type: 'group',
-    groupId: string,
-} | {
-    type: 'totals',
-})
-
 function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
-    const s: BudgetState = useSelector(getBudget)
+    const budgetState = useSelector(getBudget)
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const lastState: any = useSelector(getLast)
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
 
-    const ungroupedItems = getUngroupedItems(s)
+    const viewData = calculateBudgetViewData(budgetState)
 
     // Get selected item and group from URL parameter
     const getSelectedFromUrl = (): UrlSelection | null => {
         if (!selectedItem) return null
 
         // Check if it's an item
-        const allItems = [...ungroupedItems, ...s.groups.list.flatMap(g => g.itemNames.map(name => ({ name, groupId: g.id })))]
+        const allItemNames = [
+            ...viewData.ungrouped.items.map(i => i.item.name),
+            ...viewData.groups.flatMap(g => g.items.map(i => i.item.name))
+        ]
 
-        if (allItems.some(item => item.name === selectedItem)) {
+        if (allItemNames.includes(selectedItem)) {
             return {
                 type: 'item',
                 itemName: selectedItem,
@@ -351,7 +210,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         }
 
         // Check if it's a group
-        const group = s.groups.list.find(g => g.id === selectedItem)
+        const group = viewData.groups.find(g => g.id === selectedItem)
         if (group) {
             return {
                 type: 'group',
@@ -374,6 +233,31 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     }
 
     const urlSelection = getSelectedFromUrl()
+
+    // Get pre-calculated details panel view data from the appropriate row
+    const getBudgetDetailsPanelViewData = (): BudgetDetailsPanelViewData | null => {
+        if (!urlSelection) return null
+
+        if (urlSelection.type === 'item') {
+            // Find the item in groups or ungrouped
+            for (const group of viewData.groups) {
+                const item = group.items.find(i => i.item.name === urlSelection.itemName)
+                if (item) return item.detailsPanelViewData
+            }
+            const ungroupedItem = viewData.ungrouped.items.find(i => i.item.name === urlSelection.itemName)
+            if (ungroupedItem) return ungroupedItem.detailsPanelViewData
+        } else if (urlSelection.type === 'group') {
+            const group = viewData.groups.find(g => g.id === urlSelection.groupId)
+            if (group) return group.detailsPanelViewData
+        } else if (urlSelection.type === 'totals') {
+            return viewData.totals.detailsPanelViewData
+        }
+
+        return null
+    }
+
+    const budgetDetailsPanelViewData = getBudgetDetailsPanelViewData()
+    const materialDetailsPanelViewData = calculateMaterialDetailsPanelViewData(budgetState, urlSelection)
 
     const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemName: string) => {
         setDraggedItem(itemName)
@@ -404,7 +288,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         }
     }
 
-    const handleStartRename = (group: BudgetGroup) => {
+    const handleStartRename = (group: GroupViewData) => {
         setEditingGroupId(group.id)
         setEditingName(group.name)
     }
@@ -435,24 +319,20 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const isTotalsSelected = urlSelection?.type === 'totals'
 
     const isGroupExpanded = (groupId: string) => {
-        const group = s.groups.list.find(g => g.id === groupId)
+        const group = viewData.groups.find(g => g.id === groupId)
         return group?.expanded ||
                (selectedItem && group?.itemNames.includes(selectedItem)) ||
                false
     }
 
     const isUngroupedExpanded = () =>
-        s.groups.ungroupedExpanded ||
-        (selectedItem && ungroupedItems.some(item => item.name === selectedItem)) ||
+        viewData.ungrouped.expanded ||
+        (selectedItem && viewData.ungrouped.items.some(item => item.item.name === selectedItem)) ||
         false
 
-    const renderItemRow = (item: BudgetItem) => {
-        const itemMaterials = _getMaterials(_getUsedMaterialsMap([item.name], s.materials.map))
-        const materialsBalance = itemMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
-        const isLoading = item.refreshStatus === 'loading'
-        const isLoaded = item.refreshStatus === 'loaded'
-        const pendingAmount = item.pendingLines?.length || 0
-        
+    const renderItemRow = (itemData: ItemViewData) => {
+        const { item, materialsBalance, isLoading, isLoaded, pendingAmount } = itemData
+
         return (
             <tr
                 key={item.name}
@@ -460,7 +340,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 onDragStart={(e) => handleDragStart(e, item.name)}
                 onDragEnd={handleDragEnd}
                 className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''} ${isLoading ? 'budget-item-loading' : ''} ${isLoaded ? 'budget-item-loaded' : ''}`}
-                style={{ 
+                style={{
                     cursor: 'grab',
                     opacity: isLoading ? 0.6 : 1
                 }}
@@ -486,7 +366,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
-                        <span style={{ 
+                        <span style={{
                             fontStyle: isLoading ? 'italic' : 'normal',
                             color: isLoading ? '#666' : 'inherit'
                         }}>
@@ -502,22 +382,19 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         )
     }
 
-    const renderGroupHeader = (group: BudgetGroup) => {
-        const totals = getGroupTotals(group, s.list.items)
-        const groupMaterials = _getMaterials(_getUsedMaterialsMap(group.itemNames, s.materials.map))
-        const materialsBalance = groupMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
-        const isEditing = editingGroupId === group.id
+    const renderGroupHeader = (groupData: GroupViewData) => {
+        const isEditing = editingGroupId === groupData.id
 
         return (
             <tr
-                className={`budget-group-header pointer ${isGroupSelected(group.id) ? 'selected' : ''}`}
-                onClick={() => navigate(budgetItemUrl(group.id))}
+                className={`budget-group-header pointer ${isGroupSelected(groupData.id) ? 'selected' : ''}`}
+                onClick={() => navigate(budgetItemUrl(groupData.id))}
             >
                 <td></td>
                 <td>
                     <ExpandableArrowButton
-                        expanded={isGroupExpanded(group.id)}
-                        setExpanded={() => toggleBudgetGroupExpanded(group.id)}
+                        expanded={isGroupExpanded(groupData.id)}
+                        setExpanded={() => toggleBudgetGroupExpanded(groupData.id)}
                     />
                     {isEditing ? (
                         <input
@@ -531,42 +408,40 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                             style={{ width: '150px' }}
                         />
                     ) : (
-                        group.name
+                        groupData.name
                     )}
                     {!isEditing && <ImgButton
                         title='Rename group'
                         src='img/edit.png'
-                        dispatch={() => handleStartRename(group)}
+                        dispatch={() => handleStartRename(groupData)}
                         style={{ marginLeft: '8px' }}
                     />}
                     <ImgButton
                         title='Delete group'
                         src='img/cross.png'
-                        dispatch={() => removeBudgetGroup(group.id)}
+                        dispatch={() => removeBudgetGroup(groupData.id)}
                         style={{ marginLeft: '8px' }}
                     />
                 </td>
-                <td align='right'>{totals.peds.toFixed(2)}</td>
-                <td align='right'>{totals.totalMU.toFixed(2)}</td>
-                <td align='right'>{totals.total.toFixed(2)}</td>
-                <td align='right'>{materialsBalance.toFixed(2)}</td>
+                <td align='right'>{groupData.totals.peds.toFixed(2)}</td>
+                <td align='right'>{groupData.totals.totalMU.toFixed(2)}</td>
+                <td align='right'>{groupData.totals.total.toFixed(2)}</td>
+                <td align='right'>{groupData.materialsBalance.toFixed(2)}</td>
             </tr>
         )
     }
 
-    const renderGroup = (group: BudgetGroup) => {
-        const groupItems = s.list.items.filter(i => group.itemNames.includes(i.name))
-
+    const renderGroup = (groupData: GroupViewData) => {
         return (
             <tbody
-                key={group.id}
+                key={groupData.id}
                 onDragOver={handleDragOver}
-                onDrop={(e) => handleDropOnGroup(e, group.id)}
+                onDrop={(e) => handleDropOnGroup(e, groupData.id)}
                 className={draggedItem ? 'drop-target' : ''}
             >
-                {renderGroupHeader(group)}
-                {isGroupExpanded(group.id) && groupItems.map(renderItemRow)}
-                {isGroupExpanded(group.id) && groupItems.length === 0 && (
+                {renderGroupHeader(groupData)}
+                {isGroupExpanded(groupData.id) && groupData.items.map(renderItemRow)}
+                {isGroupExpanded(groupData.id) && groupData.items.length === 0 && (
                     <tr className='budget-empty-group'>
                         <td colSpan={6} style={{ fontStyle: 'italic', color: '#888' }}>
                             Drag items here
@@ -578,14 +453,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     }
 
     const renderUngroupedSection = () => {
-        const totals = {
-            peds: ungroupedItems.reduce((sum, i) => sum + i.peds, 0),
-            totalMU: ungroupedItems.reduce((sum, i) => sum + i.totalMU, 0),
-            total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
-        }
-        const ungroupedItemNames = ungroupedItems.map(i => i.name)
-        const ungroupedMaterials = _getMaterials(_getUsedMaterialsMap(ungroupedItemNames, s.materials.map))
-        const materialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.budgetWithMarkup, 0)
+        const { totals, materialsBalance, items } = viewData.ungrouped
 
         return (
             <tbody
@@ -607,7 +475,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
                     <td align='right'><strong>{materialsBalance.toFixed(2)}</strong></td>
                 </tr>
-                {isUngroupedExpanded() && ungroupedItems.map(renderItemRow)}
+                {isUngroupedExpanded() && items.map(renderItemRow)}
             </tbody>
         )
     }
@@ -615,9 +483,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
             <p>
-                <button onClick={() => dispatch(refreshBudget)} disabled={s.stage !== STAGE_INITIALIZING}>Refresh</button>
+                <button onClick={() => dispatch(refreshBudget)} disabled={viewData.stage !== STAGE_INITIALIZING}>Refresh</button>
                 <button onClick={handleAddGroup} style={{ marginLeft: '8px' }}>Add Group</button>
-                { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
+                { viewData.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[viewData.stage]}... {viewData.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -632,21 +500,21 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                             <th>Balance</th>
                         </tr>
                     </thead>
-                     {s.groups.list.map(renderGroup)}
-                     {ungroupedItems.length > 0 && renderUngroupedSection()}
+                     {viewData.groups.map(renderGroup)}
+                     {viewData.ungrouped.items.length > 0 && renderUngroupedSection()}
                      <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
                          <td></td>
                          <td><strong>TOTAL</strong></td>
-                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.peds, 0).toFixed(2)}</strong></td>
-                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.totalMU, 0).toFixed(2)}</strong></td>
-                         <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.total, 0).toFixed(2)}</strong></td>
-                         <td align='right'><strong>{_getMaterials(_getUsedMaterialsMap(s.list.items.map(i => i.name), s.materials.map)).reduce((sum, mat) => sum + mat.balanceWithMarkup, 0).toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.peds.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.totalMU.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.total.toFixed(2)}</strong></td>
+                         <td align='right'><strong>{viewData.totals.materialsBalance.toFixed(2)}</strong></td>
                      </tr>
                      </table>
                  </div>
                  <div className='inline'>
-                     <BudgetDetailsPanel s={s} selection={urlSelection} />
-                     <MaterialDetailsPanel s={s} selection={urlSelection} />
+                     <BudgetDetailsPanel viewData={budgetDetailsPanelViewData} />
+                     <MaterialDetailsPanel viewData={materialDetailsPanelViewData} />
                  </div>
              </div>
          </ExpandableSection>
