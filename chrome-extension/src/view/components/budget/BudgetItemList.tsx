@@ -6,6 +6,8 @@ import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, d
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
+import { getLast } from '../../application/selectors/last'
+import { setLastShowActions } from '../../application/actions/last'
 import { getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
@@ -326,6 +328,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const s: BudgetState = useSelector(getBudget)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const lastState: any = useSelector(getLast)
+    const showActions: boolean = !!lastState?.showActions
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
@@ -615,6 +619,13 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
             <p>
                 <button onClick={() => dispatch(refreshBudget)} disabled={s.stage !== STAGE_INITIALIZING}>Refresh</button>
                 <button onClick={handleAddGroup} style={{ marginLeft: '8px' }}>Add Group</button>
+                {/* Auctions toggle - reuse Last.tsx behavior */}
+                <ImgButton
+                    title={showActions ? 'Hide auctions' : 'Show auctions'}
+                    src='img/lightning.png'
+                    className='img-btn-lightning'
+                    dispatch={() => setLastShowActions(!showActions)}
+                />
                 { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
