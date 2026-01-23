@@ -4,7 +4,7 @@ import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PEND
 import { ADD_ACTIONS, REMOVE_ACTIONS, updateActionBudgetName } from "../actions/activity"
 import { SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
 import { AppAction } from "../slice/app"
-import { cleanForSave, getBalanceLines, initialState } from "../helpers/budget"
+import { cleanForSave, initialState } from "../helpers/budget"
 import { getItemList } from "../helpers/inventory"
 import { getBudget } from "../selectors/budget"
 import { getInventory } from "../selectors/inventory"
@@ -17,6 +17,7 @@ import { SettingsState } from "../state/settings"
 import { inferBudgetLinesFromActions } from "../helpers/budgetInference"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetInterface"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
+import { getBalanceLines } from "../helpers/budgetGetBalanceLines"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -109,7 +110,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case PROCESS_BUDGET_MATERIAL_SELECTION: {
             const budget: BudgetState = getBudget(getState())
             const selectedMaterials = Object.fromEntries(Object.entries(budget.materials.map).filter(([_, m]) => m.selected))
-            const lines = getBalanceLines(Date.now(), selectedMaterials)
+            const validBudgetItems = budget.list.items
+                .filter(item => !budget.disabledItems.names.includes(item.name))
+                .map(item => item.name)
+            const lines = getBalanceLines(Date.now(), selectedMaterials, validBudgetItems)
             dispatch(sendBudgetPendingLines(lines))
             break
         }

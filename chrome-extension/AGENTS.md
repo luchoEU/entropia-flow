@@ -39,7 +39,41 @@ This document provides guidelines for agentic coding assistants working on the E
 - **Absolute imports**: Avoid; use relative paths consistently
 - **Import grouping**: Group by external libraries first, then internal modules
 - **Interface imports**: Use `import type` for type-only imports when possible
-- **Barrel exports**: Avoid wildcard imports (`import *`); be explicit
+ - **Barrel exports**: Avoid wildcard imports (`import *`); be explicit
+
+### End-Only Exports
+Pattern:
+```typescript
+function X() { /* ... */ }
+export { X }
+```
+Rationale: Keeps all exports at the bottom while declarations stay at the top, improving readability and making exports the final visible contract of the module.
+
+Examples:
+- Old:
+```typescript
+export function A() { /* ... */ }
+export function B() { /* ... */ }
+```
+- New (End-Only Exports):
+```typescript
+function A() { /* ... */ }
+function B() { /* ... */ }
+export { A, B }
+```
+
+Multi-exports and default exports:
+```typescript
+// Multiple declarations with end-only exports
+function C() { /* ... */ }
+function D() { /* ... */ }
+export { C, D }
+
+// Optional default export accompanying end-only named exports
+function E() { /* ... */ }
+export { E };
+export default E;
+```
 
 ```typescript
 // Good: Explicit imports

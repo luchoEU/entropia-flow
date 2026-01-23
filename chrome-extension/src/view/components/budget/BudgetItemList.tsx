@@ -6,12 +6,13 @@ import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, d
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from '../../application/state/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
-import { getBalanceLines, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
+import { getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
 import { useNavigate } from 'react-router-dom'
+import { getBalanceLines } from '../../application/helpers/budgetGetBalanceLines'
 
 interface MaterialSummary {
     name: string
@@ -99,7 +100,8 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
     })
 
     const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
-    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap)
+    const validBudgetItems = itemNames.filter(name => !s.disabledItems.names.includes(name))
+    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap, validBudgetItems)
     const materials = getMaterials(usedMaterialsMap)
     Object.entries(balanceLines).forEach(([itemName, lines]) => {
         if (!pendingLines[itemName]) {
