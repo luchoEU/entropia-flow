@@ -57,6 +57,30 @@ export function inferBudgetLinesFromActions(
                     budgetName
                 })
             }
+        } else if (storedAction.type === 'listed_auction') {
+            // Handle listing actions: create a budget line for the item with a negative quantity
+            // and a negative PED corresponding to any listing fee/value on the action.
+            let budgetName: string | undefined
+            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            if (mainItem) {
+                budgetName = mainItem.name
+            }
+
+            if (budgetName) {
+                const amount = (storedAction.amount ?? 0)
+                const value = (storedAction.value ?? 0)
+                const budgetLine: BudgetLineData = {
+                    date: storedAction.timestamp,
+                    reason: 'Auction',
+                    ped: value ? -value : 0,
+                    materials: [{ name: storedAction.item, quantity: -amount }]
+                }
+                results.push({
+                    action: storedAction,
+                    budgetLine,
+                    budgetName
+                })
+            }
         }
     }
 

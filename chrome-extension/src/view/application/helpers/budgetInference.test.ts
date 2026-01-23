@@ -81,6 +81,17 @@ describe('budgetInference', () => {
             relatedItems: []
         })
 
+        const createListedAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
+            id: `action-${Math.random()}`,
+            type: 'listed_auction',
+            item,
+            amount,
+            value,
+            timestamp,
+            sources: ['inventory'],
+            relatedItems: []
+        })
+
         it('should create budget line for sold_auction action with matching budget item', () => {
             const budget = createMockBudgetState(['Light Mind Essence', 'Force Nexus'])
             const soldAction = createSoldAction('Light Mind Essence', 1000, 150.50)
@@ -246,6 +257,29 @@ describe('budgetInference', () => {
 
             expect(results[0].action).toBe(originalAction)
             expect(originalAction).toEqual(actionCopy) // Ensure original wasn't modified
+        })
+
+        it('should create budget line for listed_auction action with 7 items and 1.19 PED fee', () => {
+            // Arrange
+            const budget = createMockBudgetState(['T3 Weapon Economy Enhancer'])
+            const listedAction = createListedAction('T3 Weapon Economy Enhancer', 7, 1.19, 123456789)
+
+            // Act
+            const results = inferBudgetLinesFromActions([listedAction], budget)
+
+            // Assert
+            expect(results).toHaveLength(1)
+            const result = results[0]
+            expect(result.action).toEqual(listedAction)
+            expect(result.budgetName).toBe('T3 Weapon Economy Enhancer')
+            if (result.budgetLine) {
+                expect(result.budgetLine.date).toBe(123456789)
+                expect(result.budgetLine.reason).toBe('Listed')
+                expect(result.budgetLine.ped).toBe(-1.19)
+                expect(result.budgetLine.materials).toEqual([
+                    { name: 'T3 Weapon Economy Enhancer', quantity: -7 }
+                ])
+            }
         })
     })
 })

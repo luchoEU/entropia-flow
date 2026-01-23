@@ -57,7 +57,7 @@ function formatActionDescription(action: InferredAction): string {
             return `📤 Lost ${action.amount} ${action.item}`
         case 'unknown':
         default:
-            return `❓ Changes in ${action.item}}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
+            return `❓ Changes in ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
     }
 }
 

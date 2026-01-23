@@ -47,7 +47,13 @@ class StreamDataBuilder {
         {
             const layouts = (await this.apiStorage.loadStream())?.layouts;
             this._builderState.layouts = layouts;
-            this._builderState.computed = Object.fromEntries(Object.entries(layouts).map(([k, v]) => [k, { usedVariables: getUsedVariablesInTemplateList([v.htmlTemplate, v.cssTemplate]) }]));
+            if (layouts) {
+                this._builderState.computed = Object.fromEntries(
+                    Object.entries(layouts).map(([k, v]) => [k, { usedVariables: getUsedVariablesInTemplateList([v.htmlTemplate, v.cssTemplate]) }])
+                );
+            } else {
+                this._builderState.computed = {} as any
+            }
             this._isDirty = true
         }
     }
