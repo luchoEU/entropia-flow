@@ -17,7 +17,7 @@ function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNam
             throw new Error(`Material '${name}' has no budgetList entries`);
         }
         return {
-            sheetName: material.sheetName,
+            name: material.sheetName,
             balanceQuantity: material.c?.balanceQuantity || 0,
             balanceWithMarkup: material.c?.balanceWithMarkup || 0,
             budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
@@ -30,12 +30,15 @@ function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData
     for (const material of materials) {
         if (material.balanceQuantity < 0) {
             const needed = -material.balanceQuantity;
-            let remaining = needed;
             const budgets = Object.entries(material.budget);
-            for (const [budgetName, budgetValue] of budgets) {
-                if (remaining <= 0) break;
-                if (validBudgetItems !== undefined && !validBudgetItems.includes(budgetName)) continue;
-                const take = Math.min(budgetValue, remaining);
+
+            // Check if all valid budget entries have quantity 0
+            const validBudgets = budgets.filter(([name]) => validBudgetItems?.includes(name) != false);
+            const totalValidBudget = validBudgets.reduce((sum, [, qty]) => sum + qty, 0);
+
+            if (totalValidBudget === 0 && validBudgets.length > 0) {
+                // All valid budgets have quantity 0 - attribute full balance to first valid budget
+                const [budgetName] = validBudgets[0];
                 if (!lines[budgetName]) {
                     lines[budgetName] = [{
                         date: timestamp,
@@ -45,34 +48,51 @@ function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData
                     }]
                 }
                 lines[budgetName][0].materials.push({
-                    name: material.sheetName,
-                    quantity: -take
+                    name: material.name,
+                    quantity: material.balanceQuantity
                 })
-                const ped = lines[budgetName][0].ped! - (material.balanceWithMarkup * (take / needed))
-                lines[budgetName][0].ped = Math.round((ped + Number.EPSILON) * 100) / 100
-                remaining -= take;
-            }
-        } else if (material.balanceQuantity > 0) {
-            const budgets = Object.entries(material.budget);
-            if (budgets.length > 0) {
-                const [firstBudgetName] = budgets[0];
-                if (validBudgetItems === undefined || validBudgetItems.includes(firstBudgetName)) {
-                    if (!lines[firstBudgetName]) {
-                        lines[firstBudgetName] = [{
+                // ped stays 0 when budget quantity is 0 (no cost allocation)
+            } else {
+                // Normal proportional distribution
+                let remaining = needed;
+                for (const [budgetName, budgetValue] of validBudgets) {
+                    if (remaining <= 0) break;
+                    if (validBudgetItems !== undefined && !validBudgetItems.includes(budgetName)) continue;
+                    const take = Math.min(budgetValue, remaining);
+                    if (!lines[budgetName]) {
+                        lines[budgetName] = [{
                             date: timestamp,
                             reason: 'Balance',
                             ped: 0,
                             materials: []
                         }]
                     }
-                    lines[firstBudgetName][0].materials.push({
-                        name: material.sheetName,
-                        quantity: material.balanceQuantity
+                    lines[budgetName][0].materials.push({
+                        name: material.name,
+                        quantity: -take
                     })
-                    const ped = lines[firstBudgetName][0].ped! - material.balanceWithMarkup
-                    lines[firstBudgetName][0].ped = Math.round((ped + Number.EPSILON) * 100) / 100
+                    const ped = lines[budgetName][0].ped! - (material.balanceWithMarkup * (take / needed))
+                    lines[budgetName][0].ped! = Math.round((ped + Number.EPSILON) * 100) / 100
+                    remaining -= take;
                 }
             }
+        } else if (material.balanceQuantity > 0) {
+            const chosenBudget = Object.keys(material.budget).find(name => validBudgetItems?.includes(name) != false);
+            if (!chosenBudget) continue; // not in validBudgetItems
+            if (!lines[chosenBudget]) {
+                lines[chosenBudget] = [{
+                    date: timestamp,
+                    reason: 'Balance',
+                    ped: 0,
+                    materials: []
+                }]
+            }
+            lines[chosenBudget][0].materials.push({
+                name: material.name,
+                quantity: material.balanceQuantity
+            })
+            const ped = lines[chosenBudget][0].ped! - material.balanceWithMarkup
+            lines[chosenBudget][0].ped! = Math.round((ped + Number.EPSILON) * 100) / 100
         }
     }
     return lines

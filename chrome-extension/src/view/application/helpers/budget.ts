@@ -4,7 +4,7 @@ import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
 
 interface BalanceMaterialData {
-  sheetName: string;
+  name: string;
   balanceQuantity: number;
   balanceWithMarkup: number;
   budget: Record<string, number>;

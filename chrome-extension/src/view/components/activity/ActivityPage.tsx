@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
-import TextButton from '../common/TextButton'
 import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions, reinferSessionActions } from '../../application/actions/activity'
 import { getActivity } from '../../application/selectors/activity'
 import { getSettings } from '../../application/selectors/settings'
@@ -12,6 +11,7 @@ import { isFeatureEnabled, Feature } from '../../application/state/settings'
 import { reverseInferActions } from '../../application/helpers/actionInference'
 import { formatDate, formatDateTime, formatTime } from '../../../common/time'
 import { budgetItemUrl } from '../../application/actions/navigation'
+import ImgButton from '../common/ImgButton'
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005)
@@ -161,11 +161,12 @@ function ActivityPage() {
             <button onClick={() => dispatch(createNewSession())}>
                 New Session
             </button>
-            <TextButton
+            <ImgButton
                 title={ showActions ? 'Show items list' : 'Show grouped actions' }
-                className={ `button-actions ${showActions ? 'active' : ''}` }
-                text={ showActions ? 'Actions' : 'Items' }
-                dispatch={() => dispatch(setShowActions(!showActions))} />
+                src='img/lightning.png'
+                className='img-btn-lightning'
+                dispatch={() => setShowActions(!showActions)}
+            />
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
                 const sessionActions = groupedActions.get(session.id) || []
                 const isPreSession = session.id === 'pre-session'

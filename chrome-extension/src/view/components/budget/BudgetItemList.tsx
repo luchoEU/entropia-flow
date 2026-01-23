@@ -7,41 +7,40 @@ import { BudgetGroup, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, Budge
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import { getLast } from '../../application/selectors/last'
-import { setLastShowActions } from '../../application/actions/last'
-import { getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
+import { BalanceMaterialData, getGroupTotals, getUngroupedItems } from '../../application/helpers/budget'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
 import { useNavigate } from 'react-router-dom'
-import { getBalanceLines } from '../../application/helpers/budgetGetBalanceLines'
+import { calculateBalanceLines } from '../../application/helpers/budgetGetBalanceLines'
 
-interface MaterialSummary {
-    name: string
+interface MaterialSummary extends BalanceMaterialData {
     budgetQuantity: number
     budgetValue: number
     budgetWithMarkup: number
-    balanceQuantity: number
-    balanceWithMarkup: number
 }
 
-function getUsedMaterialsMap(itemNames: string[], materialsMap: BudgetMaterialsMap): Record<string, BudgetMaterialState> {
+function _getUsedMaterialsMap(itemNames: string[], materialsMap: BudgetMaterialsMap): Record<string, BudgetMaterialState> {
     return Object.fromEntries(Object.entries(materialsMap).filter(([_, m]) => m.budgetList.some(b => itemNames.includes(b.itemName))))
 }
 
-function getMaterials(usedMaterialsMap: BudgetMaterialsMap): MaterialSummary[] {
+function _getMaterials(usedMaterialsMap: BudgetMaterialsMap, validBudgetItems?: string[]): MaterialSummary[] {
     const result: MaterialSummary[] = []
 
     for (const [materialName, material] of Object.entries(usedMaterialsMap)) {
-        const quantity = material.budgetList.reduce((acc, b) => acc + b.quantity, 0)
+        const quantity = material.budgetList.reduce((acc, b) => validBudgetItems?.includes(b.itemName) ? acc + b.quantity : acc, 0)
         const value = quantity * material.unitValue
+        const validItems = material.budgetList.filter(b => validBudgetItems?.includes(b.itemName) != false)
+        const balanceQuantity = Math.max(-validItems.reduce((acc, b) => acc + b.quantity, 0), material.c.balanceQuantity)
         result.push({
             name: materialName,
             budgetQuantity: quantity,
             budgetValue: value,
             budgetWithMarkup: value * material.markup,
-            balanceQuantity: material.c.balanceQuantity,
-            balanceWithMarkup: material.c.balanceWithMarkup
+            balanceQuantity,
+            balanceWithMarkup: material.c.balanceQuantity != 0 ? material.c.balanceWithMarkup * (balanceQuantity / material.c.balanceQuantity) : 0,
+            budget: Object.fromEntries(validItems.map(b => [b.itemName, b.quantity]))
         })
     }
 
@@ -101,10 +100,10 @@ const BudgetDetailsPanel = ({ s, selection }: { s: BudgetState, selection: UrlSe
         })
     })
 
-    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
+    const usedMaterialsMap = _getUsedMaterialsMap(itemNames, s.materials.map)
     const validBudgetItems = itemNames.filter(name => !s.disabledItems.names.includes(name))
-    const balanceLines = getBalanceLines(Date.now(), usedMaterialsMap, validBudgetItems)
-    const materials = getMaterials(usedMaterialsMap)
+    const materials = _getMaterials(usedMaterialsMap, validBudgetItems)
+    const balanceLines = calculateBalanceLines(Date.now(), materials, validBudgetItems)
     Object.entries(balanceLines).forEach(([itemName, lines]) => {
         if (!pendingLines[itemName]) {
             pendingLines[itemName] = []
@@ -329,7 +328,6 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const lastState: any = useSelector(getLast)
-    const showActions: boolean = !!lastState?.showActions
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
@@ -449,7 +447,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         false
 
     const renderItemRow = (item: BudgetItem) => {
-        const itemMaterials = getMaterials(getUsedMaterialsMap([item.name], s.materials.map))
+        const itemMaterials = _getMaterials(_getUsedMaterialsMap([item.name], s.materials.map))
         const materialsBalance = itemMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
         const isLoading = item.refreshStatus === 'loading'
         const isLoaded = item.refreshStatus === 'loaded'
@@ -506,7 +504,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
     const renderGroupHeader = (group: BudgetGroup) => {
         const totals = getGroupTotals(group, s.list.items)
-        const groupMaterials = getMaterials(getUsedMaterialsMap(group.itemNames, s.materials.map))
+        const groupMaterials = _getMaterials(_getUsedMaterialsMap(group.itemNames, s.materials.map))
         const materialsBalance = groupMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
         const isEditing = editingGroupId === group.id
 
@@ -586,7 +584,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
             total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
         }
         const ungroupedItemNames = ungroupedItems.map(i => i.name)
-        const ungroupedMaterials = getMaterials(getUsedMaterialsMap(ungroupedItemNames, s.materials.map))
+        const ungroupedMaterials = _getMaterials(_getUsedMaterialsMap(ungroupedItemNames, s.materials.map))
         const materialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.budgetWithMarkup, 0)
 
         return (
@@ -619,13 +617,6 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
             <p>
                 <button onClick={() => dispatch(refreshBudget)} disabled={s.stage !== STAGE_INITIALIZING}>Refresh</button>
                 <button onClick={handleAddGroup} style={{ marginLeft: '8px' }}>Add Group</button>
-                {/* Auctions toggle - reuse Last.tsx behavior */}
-                <ImgButton
-                    title={showActions ? 'Hide auctions' : 'Show auctions'}
-                    src='img/lightning.png'
-                    className='img-btn-lightning'
-                    dispatch={() => setLastShowActions(!showActions)}
-                />
                 { s.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[s.stage]}... {s.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
@@ -649,7 +640,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.peds, 0).toFixed(2)}</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.totalMU, 0).toFixed(2)}</strong></td>
                          <td align='right'><strong>{s.list.items.reduce((sum, i) => sum + i.total, 0).toFixed(2)}</strong></td>
-                         <td align='right'><strong>{getMaterials(getUsedMaterialsMap(s.list.items.map(i => i.name), s.materials.map)).reduce((sum, mat) => sum + mat.balanceWithMarkup, 0).toFixed(2)}</strong></td>
+                         <td align='right'><strong>{_getMaterials(_getUsedMaterialsMap(s.list.items.map(i => i.name), s.materials.map)).reduce((sum, mat) => sum + mat.balanceWithMarkup, 0).toFixed(2)}</strong></td>
                      </tr>
                      </table>
                  </div>
