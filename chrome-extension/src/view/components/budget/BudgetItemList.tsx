@@ -63,7 +63,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                 <div key={itemName}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <h4>{itemName}</h4>
-                        {lines.length > 1 && (
+                        {lines.filter(l => l.reason != 'Balance').length > 0 && (
                             <button
                                 onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
                                 style={{ fontSize: '12px', padding: '2px 6px' }}
