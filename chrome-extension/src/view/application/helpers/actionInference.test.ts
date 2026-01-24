@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals"
 import { ViewItemData } from '../state/history'
 import { inferActions, reverseInferActions } from './actionInference'
 
@@ -270,4 +271,57 @@ describe('actionInference', () => {
             relatedItems: [diff[0], diff[1]]
         }])
     })
+
+     it('should infer sold_auction for exactly provided dataset', () => {
+       const diff: ViewItemData[] = [
+           { key: 0, n: 'T1 Weapon Economy Enhancer', q: '-7', v: '-7.00', c: 'AUCTION' },
+           { key: 1, n: 'T2 Mining Finder Range Enhancer', q: '-1', v: '-1.00', c: 'AUCTION' },
+           { key: 2, n: 'T3 Mining Finder Range Enhancer', q: '-1', v: '-1.00', c: 'AUCTION' },
+           { key: 3, n: 'T3 Weapon Economy Enhancer', q: '-7', v: '-7.00', c: 'AUCTION' },
+           { key: 4, n: 'T4 Mining Finder Range Enhancer', q: '-1', v: '-1.00', c: 'AUCTION' },
+           { key: 5, n: 'PED Card', q: '', v: '171.00', c: 'CARRIED' },
+       ]
+       const actions = inferActions(diff)
+
+       const reversed = reverseInferActions(actions)
+       expect(reversed).toEqual(diff)
+
+       expect(actions).toEqual([
+           {
+               type: 'sold_auction',
+               item: 'T3 Weapon Economy Enhancer',
+               amount: 7,
+               value: 21.95,
+               relatedItems: [diff[5], diff[3]]
+           },
+           {
+               type: 'sold_auction',
+               item: 'T1 Weapon Economy Enhancer',
+               amount: 7,
+               value: 22.90,
+               relatedItems: [diff[5], diff[0]]
+           },
+           {
+               type: 'sold_auction',
+               item: 'T4 Mining Finder Range Enhancer',
+               amount: 1,
+               value: 44.72,
+               relatedItems: [diff[5], diff[4]]
+           },
+           {
+               type: 'sold_auction',
+               item: 'T2 Mining Finder Range Enhancer',
+               amount: 1,
+               value: 40.81,
+               relatedItems: [diff[5], diff[1]]
+           },
+           {
+               type: 'sold_auction',
+               item: 'T3 Mining Finder Range Enhancer',
+               amount: 1,
+               value: 40.62,
+               relatedItems: [diff[5], diff[2]]
+           }
+       ])
+   })
 })
