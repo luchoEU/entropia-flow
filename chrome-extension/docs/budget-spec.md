@@ -53,7 +53,6 @@ interface BudgetState {
         [itemName: string]: string[] // Item -> disabled material names
     }
     materials: {
-        selectedCount: number        // Count of selected materials
         map: BudgetMaterialsMap      // Material name -> state
     }
     list: {
@@ -63,7 +62,6 @@ interface BudgetState {
         list: BudgetGroup[]          // Custom groups
         ungroupedExpanded: boolean   // UI state
     }
-    selection: BudgetSelection       // Currently selected group/item
 }
 ```
 

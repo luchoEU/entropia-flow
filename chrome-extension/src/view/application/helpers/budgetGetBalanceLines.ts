@@ -1,25 +1,28 @@
+import { ItemData } from '../../../common/state';
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget';
-import { BudgetMaterialsMap } from '../state/budget'
+import { BudgetState } from '../state/budget'
 import { BalanceMaterialData } from './budget';
+import { calculateMaterialDetails } from './budgetViewData';
 
-function getBalanceLines(timestamp: number, materialsMap: BudgetMaterialsMap, validBudgetItems?: string[]): { [itemName: string]: BudgetLineData[] } {
-    const balancedData = createBalanceMaterialData(materialsMap, Object.keys(materialsMap))
+function getBalanceLines(timestamp: number, budgetState: BudgetState, inventory: Array<ItemData>, validBudgetItems?: string[]): { [itemName: string]: BudgetLineData[] } {
+    const balancedData = createBalanceMaterialData(budgetState, inventory, Object.keys(budgetState.materials))
     return calculateBalanceLines(timestamp, balancedData, validBudgetItems);
 }
 
-function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNames: string[]): BalanceMaterialData[] {
+function createBalanceMaterialData(budgetState: BudgetState, inventory: Array<ItemData>, materialNames: string[]): BalanceMaterialData[] {
     return materialNames.map(name => {
-        const material = materialsMap[name];
+        const material = budgetState.materials[name];
         if (!material) {
             throw new Error(`Material '${name}' not found in materialsMap`);
         }
         if (!material.budgetList || material.budgetList.length === 0) {
             throw new Error(`Material '${name}' has no budgetList entries`);
         }
+        const materialDetails = calculateMaterialDetails(budgetState, name, inventory);
         return {
             name: material.sheetName,
-            balanceQuantity: material.c?.balanceQuantity || 0,
-            balanceWithMarkup: material.c?.balanceWithMarkup || 0,
+            balanceQuantity: materialDetails!.balanceQuantity,
+            balanceWithMarkup: materialDetails!.balanceWithMarkup,
             budget: Object.fromEntries(material.budgetList.map(b => [b.itemName, b.quantity]))
         };
     });

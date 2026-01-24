@@ -18,7 +18,6 @@ export async function refreshBudgetData(
     settings: SettingsState,
     budget: BudgetState,
     materials: ItemsState,
-    inventory: Array<ItemData>,
     callbacks: BudgetSheetInterfaceCallbacks
 ) {
     // Mark all existing items as loading initially
@@ -26,7 +25,7 @@ export async function refreshBudgetData(
         ...item,
         refreshStatus: 'loading'
     } as BudgetItem))
-    callbacks.onProgress(budget.materials.map, items, 0)
+    callbacks.onProgress(budget.materials, items, 0)
 
     // Get sheet list with stage callback
     const list: string[] = await callbacks.getBudgetSheetList(settings)
@@ -51,18 +50,6 @@ export async function refreshBudgetData(
         }
     }
 
-    // Process inventory data for real list items
-    for (const invMat of inventory) {
-        if (map[invMat.n] !== undefined) {
-            const realElement = {
-                itemName: invMat.c,
-                disabled: budget.disabledMaterials[invMat.n]?.includes(invMat.c) || false,
-                quantity: Number(invMat.q)
-            }
-            map[invMat.n].realList.push(realElement)
-        }
-    }
-
     // Normalize load status after processing all pending lines
     items = items.map(item => ({
         ...item,
@@ -84,9 +71,10 @@ export async function sendBudgetPendingLinesFunc(
     budget: BudgetState,
     materials: ItemsState,
     lines: { [itemName: string]: BudgetLineData[] },
+    inventory: Array<ItemData>,
     callbacks: BudgetSheetInterfaceCallbacks
 ) {
-    let map: BudgetMaterialsMap = budget.materials.map
+    let map: BudgetMaterialsMap = budget.materials
     let items: BudgetItem[] = budget.list.items
 
     // Mark all existing items as loading initially
@@ -132,10 +120,6 @@ export async function sendBudgetPendingLinesFunc(
         callbacks.removeBudgetItemPendingLines(itemName, lines[itemName]);
     }
 
-    for (const materialName in map) {
-        map[materialName].selected = false;
-    }
-
     // Normalize load status after processing all pending lines
     items = items.map(item => ({
         ...item,
@@ -177,12 +161,9 @@ async function _processSheetInfo(
             map[name] = {
                 sheetName: infoName,
                 expanded: false,
-                selected: false,
                 markup: m.markup,
                 unitValue: matInfo?.refined ? matInfo.refined.kValue / 1000 : (matInfo?.web?.item?.data?.value.value ?? 0),
-                budgetList: [],
-                realList: [],
-                c: undefined! // this will be filled when it is added to the state
+                budgetList: []
             }
         }
 

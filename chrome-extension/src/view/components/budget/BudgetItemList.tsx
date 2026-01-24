@@ -2,6 +2,8 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
+import { getInventory } from '../../application/selectors/inventory'
+import { getItemList } from '../../application/helpers/inventory'
 import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
@@ -9,7 +11,7 @@ import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
 import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
 import { useNavigate } from 'react-router-dom'
-import { BudgetDetailsViewData, calculateBudgetViewData, calculateMaterialDetailsPanelViewData, GroupViewData, ItemViewData, MaterialDetailsPanelViewData, UrlSelection } from '../../application/helpers/budgetViewData'
+import { BudgetDetailsViewData, calculateBudgetViewData, calculateMaterialDetailsViewData, GroupViewData, ItemViewData, MaterialDetailsViewData, UrlSelection } from '../../application/helpers/budgetViewData'
 
 interface EditingPendingLine {
     itemName: string
@@ -216,7 +218,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
     </div>
 }
 
-const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelViewData | null }) => {
+const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDetailsViewData | null, selectedItem: string | null }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -226,7 +228,7 @@ const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelView
 
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(viewData.selectedItem!))}>
+            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
                 Material: {viewData.materialName} <img src='img/left.png' />
             </h2>
             <p>Markup: {(viewData.markup * 100).toFixed(2)}%</p>
@@ -237,6 +239,8 @@ const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelView
                         <th>Container</th>
                         <th>Sheet Qty</th>
                         <th>Sheet Value</th>
+                        <th>Pending Qty</th>
+                        <th>Pending Value</th>
                         <th>Holding Qty</th>
                         <th>Holding Value</th>
                     </tr>
@@ -256,27 +260,33 @@ const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelView
                                         )}
                                         {item.itemName}
                                     </>
-                                ) : (
+                                ) : item.budget ? (
                                     `${item.itemName} sheet`
+                                ) : (
+                                    `${item.itemName} pending`
                                 )}
                             </td>
                             <td align='right'>{item.budget ? item.budget.quantity : ''}</td>
-                            <td align='right'>{item.budget ? item.budget.value.toFixed(2) + ' PED' : ''}</td>
+                            <td align='right'>{item.budget ? (item.budget.quantity * viewData.materialUnitValue).toFixed(2) + ' PED' : ''}</td>
+                            <td align='right'>{item.pending ? item.pending.quantity : ''}</td>
+                            <td align='right'>{item.pending ? (item.pending.quantity * viewData.materialUnitValue).toFixed(2) + ' PED' : ''}</td>
                             <td align='right'>{item.real ? (item.real.disabled ? `(${item.real.quantity})` : item.real.quantity) : ''}</td>
-                            <td align='right'>{item.real && !item.real.disabled ? item.real.value.toFixed(2) + ' PED' : ''}</td>
+                            <td align='right'>{item.real && !item.real.disabled ? (item.real.quantity * viewData.materialUnitValue).toFixed(2) + ' PED' : ''}</td>
                         </tr>
                     ))}
                     <tr key='total'>
                         <td><strong>TOTAL</strong></td>
                         <td align='right'><strong>{viewData.totals.budgetQuantity}</strong></td>
-                        <td align='right'><strong>{viewData.totals.budgetValue.toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{(viewData.totals.budgetQuantity * viewData.materialUnitValue).toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{viewData.totals.pendingQuantity}</strong></td>
+                        <td align='right'><strong>{(viewData.totals.pendingQuantity * viewData.materialUnitValue).toFixed(2)} PED</strong></td>
                         <td align='right'><strong>{viewData.totals.realQuantity}</strong></td>
-                        <td align='right'><strong>{viewData.totals.realValue.toFixed(2)} PED</strong></td>
+                        <td align='right'><strong>{(viewData.totals.realQuantity * viewData.materialUnitValue).toFixed(2)} PED</strong></td>
                     </tr>
                     <tr key='balance'>
                         <td>Balance</td>
-                        <td align='right'>{viewData.balance.quantity}</td>
-                        <td align='right'>{viewData.balance.value.toFixed(2)} PED</td>
+                        <td align='right'>{viewData.balanceQuantity}</td>
+                        <td align='right'>{(viewData.balanceQuantity * viewData.materialUnitValue).toFixed(2)} PED</td>
                     </tr>
                 </tbody>
             </table>
@@ -286,13 +296,15 @@ const MaterialDetailsPanel = ({ viewData }: { viewData: MaterialDetailsPanelView
 
 function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
     const budgetState = useSelector(getBudget)
+    const inventoryState = useSelector(getInventory)
+    const inventory = getItemList(inventoryState)
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
 
-    const viewData = calculateBudgetViewData(budgetState)
+    const viewData = calculateBudgetViewData(budgetState, inventory)
 
     // Get selected item and group from URL parameter
     const getSelectedFromUrl = (): UrlSelection | null => {
@@ -361,7 +373,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     }
 
     const budgetDetailsPanelViewData = getBudgetDetailsPanelViewData()
-    const materialDetailsPanelViewData = calculateMaterialDetailsPanelViewData(budgetState, urlSelection)
+    const materialDetailsPanelViewData = urlSelection?.selectedMaterial ? calculateMaterialDetailsViewData(budgetState, urlSelection.selectedMaterial, inventory) : null
 
     const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemName: string) => {
         setDraggedItem(itemName)
@@ -623,7 +635,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                  </div>
                  <div className='inline'>
                      <BudgetDetailsPanel viewData={budgetDetailsPanelViewData} />
-                     <MaterialDetailsPanel viewData={materialDetailsPanelViewData} />
+                     <MaterialDetailsPanel viewData={materialDetailsPanelViewData} selectedItem={urlSelection?.selectedItem} />
                  </div>
              </div>
          </ExpandableSection>

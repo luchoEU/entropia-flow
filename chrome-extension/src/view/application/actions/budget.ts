@@ -1,3 +1,4 @@
+import { ItemData } from "../../../common/state"
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 import { BudgetState, BudgetMaterialsMap, BudgetItem } from "../state/budget"
 
@@ -11,9 +12,6 @@ const DISABLE_BUDGET_ITEM = '[budget] disable item'
 const ENABLE_BUDGET_MATERIAL = '[budget] enable material'
 const DISABLE_BUDGET_MATERIAL = '[budget] disable material'
 const REFRESH_BUDGET = '[budget] refresh'
-const ADD_BUDGET_MATERIAL_SELECTION = '[budget] add material selection'
-const REMOVE_BUDGET_MATERIAL_SELECTION = '[budget] remove material selection'
-const PROCESS_BUDGET_MATERIAL_SELECTION = '[budget] process material selection'
 const SEND_BUDGET_PENDING_LINES = '[budget] send pending lines'
 const ADD_BUDGET_GROUP = '[budget] add group'
 const REMOVE_BUDGET_GROUP = '[budget] remove group'
@@ -92,24 +90,6 @@ const disableBudgetMaterial = (itemName: string, materialName: string) => ({
     }
 })
 
-const addBudgetMaterialSelection = (materialName: string) => ({
-    type: ADD_BUDGET_MATERIAL_SELECTION,
-    payload: {
-        materialName
-    }
-})
-
-const removeBudgetMaterialSelection = (materialName: string) => ({
-    type: REMOVE_BUDGET_MATERIAL_SELECTION,
-    payload: {
-        materialName
-    }
-})
-
-const processBudgetMaterialSelection = () => ({
-    type: PROCESS_BUDGET_MATERIAL_SELECTION
-})
-
 const sendBudgetPendingLines = (pendingLines: { [itemName: string]: BudgetLineData[] }) => ({
     type: SEND_BUDGET_PENDING_LINES,
     payload: { pendingLines }
@@ -178,10 +158,7 @@ export {
     DISABLE_BUDGET_ITEM,
     ENABLE_BUDGET_MATERIAL,
     DISABLE_BUDGET_MATERIAL,
-    ADD_BUDGET_MATERIAL_SELECTION,
-    REMOVE_BUDGET_MATERIAL_SELECTION,
     REFRESH_BUDGET,
-    PROCESS_BUDGET_MATERIAL_SELECTION,
     SEND_BUDGET_PENDING_LINES,
     ADD_BUDGET_GROUP,
     REMOVE_BUDGET_GROUP,
@@ -202,10 +179,7 @@ export {
     disableBudgetItem,
     enableBudgetMaterial,
     disableBudgetMaterial,
-    addBudgetMaterialSelection,
-    removeBudgetMaterialSelection,
     refreshBudget,
-    processBudgetMaterialSelection,
     sendBudgetPendingLines,
     addBudgetGroup,
     removeBudgetGroup,

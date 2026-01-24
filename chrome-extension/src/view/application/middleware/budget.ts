@@ -1,6 +1,6 @@
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet } from "../../services/api/sheets/sheetsBudget"
-import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, PROCESS_BUDGET_MATERIAL_SELECTION, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, sendBudgetPendingLines, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE } from "../actions/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE } from "../actions/budget"
 import { ADD_ACTIONS, REMOVE_ACTIONS, updateActionBudgetName } from "../actions/activity"
 import { SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
 import { AppAction } from "../slice/app"
@@ -12,12 +12,10 @@ import { getItems } from "../selectors/items"
 import { getSettings } from "../selectors/settings"
 import { getActivity } from "../selectors/activity"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
-import { ItemsState } from "../state/items"
 import { SettingsState } from "../state/settings"
 import { inferBudgetLinesFromActions } from "../helpers/budgetInference"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
-import { getBalanceLines } from "../helpers/budgetGetBalanceLines"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -46,7 +44,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 const storedAction = activityState.list.find(act => act.id === actionId)
                 if (storedAction && storedAction.budgetName) {
                     // Remove budgetList entries for this item from all materials
-                    const updatedMap = { ...budget.materials.map }
+                    const updatedMap = { ...budget.materials }
                     for (const materialName of Object.keys(updatedMap)) {
                         updatedMap[materialName] = {
                             ...updatedMap[materialName],
@@ -63,8 +61,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case DISABLE_BUDGET_ITEM:
         case ENABLE_BUDGET_MATERIAL:
         case DISABLE_BUDGET_MATERIAL:
-        case ADD_BUDGET_MATERIAL_SELECTION:
-        case REMOVE_BUDGET_MATERIAL_SELECTION:
         case ADD_BUDGET_GROUP:
         case REMOVE_BUDGET_GROUP:
         case RENAME_BUDGET_GROUP:
@@ -85,6 +81,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const budget = getBudget(getState())
             const materials = getItems(getState())
 
+            const inventory = getItemList(getInventory(getState()))
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
             const callbacks: BudgetSheetInterfaceCallbacks = {
                 onProgress: (map: BudgetMaterialsMap, items: BudgetItem[], percentage: number) => dispatch(setBudgetFromSheet(map, items, percentage)),
@@ -95,142 +92,41 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             };
 
             if (action.type === REFRESH_BUDGET) {
-                const inventory = getItemList(getInventory(getState()))
-                await refreshBudgetData(settings, budget, materials, inventory, callbacks);
-                
+                await refreshBudgetData(settings, budget, materials, callbacks);
+
                 // Save the final state to storage
                 const finalState: BudgetState = getBudget(getState());
                 await api.storage.saveBudget(cleanForSave(finalState));
             } else {
                 const lines: { [itemName: string]: BudgetLineData[] } = action.payload.pendingLines
-                await sendBudgetPendingLinesFunc(settings, budget, materials, lines, callbacks)
+                await sendBudgetPendingLinesFunc(settings, budget, materials, lines, inventory, callbacks)
             }
             
-            break
-        }
-        case PROCESS_BUDGET_MATERIAL_SELECTION: {
-            const budget: BudgetState = getBudget(getState())
-            const selectedMaterials = Object.fromEntries(Object.entries(budget.materials.map).filter(([_, m]) => m.selected))
-            const validBudgetItems = budget.list.items
-                .filter(item => !budget.disabledItems.names.includes(item.name))
-                .map(item => item.name)
-            const lines = getBalanceLines(Date.now(), selectedMaterials, validBudgetItems)
-            dispatch(sendBudgetPendingLines(lines))
             break
         }
         case SET_ITEMS_STATE:
         case SET_CURRENT_INVENTORY: {
             const budget = getBudget(getState())
-            const inventory = getItemList(getInventory(getState()))
-            
-            // Update realList for all materials that exist in inventory
-            const map = { ...budget.materials.map }
-            let hasChanges = false
-            
-            for (const invMat of inventory) {
-                if (map[invMat.n] !== undefined) {
-                    const currentRealList = map[invMat.n].realList
-                    const existingIndex = currentRealList.findIndex(real => real.itemName === invMat.c)
-                    
-                    if (existingIndex >= 0) {
-                        // Update existing entry if quantity changed
-                        if (currentRealList[existingIndex].quantity !== Number(invMat.q)) {
-                            currentRealList[existingIndex] = {
-                                ...currentRealList[existingIndex],
-                                quantity: Number(invMat.q)
-                            }
-                            hasChanges = true
-                        }
-                    } else {
-                        // Add new entry
-                        currentRealList.push({
-                            itemName: invMat.c,
-                            disabled: budget.disabledMaterials[invMat.n]?.includes(invMat.c) || false,
-                            quantity: Number(invMat.q)
-                        })
-                        hasChanges = true
-                    }
-                }
-            }
-            
-            // Also remove entries that no longer exist in inventory
-            for (const materialName of Object.keys(map)) {
-                const invMaterial = inventory.find(inv => inv.n === materialName)
-                if (!invMaterial) {
-                    // Remove all realList entries for this material if it's not in inventory
-                    if (map[materialName].realList.length > 0) {
-                        map[materialName] = {
-                            ...map[materialName],
-                            realList: []
-                        }
-                        hasChanges = true
-                    }
-                } else {
-                    // Remove entries for containers that no longer exist for this material
-                    const invContainers = inventory
-                        .filter(inv => inv.n === materialName)
-                        .map(inv => inv.c)
-                    
-                    const originalLength = map[materialName].realList.length
-                    map[materialName].realList = map[materialName].realList.filter(
-                        real => invContainers.includes(real.itemName)
-                    )
-                    
-                    if (map[materialName].realList.length !== originalLength) {
-                        hasChanges = true
-                    }
-                }
-            }
-            
-            if (hasChanges) {
-                dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
+            // Recalculate selected status with updated inventory
+            if (Object.keys(budget.materials).length > 0) {
+                dispatch(setBudgetFromSheet(budget.materials, budget.list.items, budget.loadPercentage))
             }
             break
         }
         case SET_ITEM_PARTIAL_WEB_DATA: {
             const materialName: string = action.payload.item
             const budget = getBudget(getState())
-            const material = budget.materials.map[materialName]
-            
-            if (material) {
-                const inventory = getItemList(getInventory(getState()))
-                const invMaterial = inventory.find(inv => inv.n === materialName)
-                
-                if (invMaterial) {
-                    // Update realList to match current inventory
-                    const map = { ...budget.materials.map }
-                    const currentRealList = map[materialName].realList
-                    
-                    // Find existing real entries and update quantities, or add new ones
-                    const existingIndex = currentRealList.findIndex(real => real.itemName === invMaterial.c)
-                    if (existingIndex >= 0) {
-                        // Update existing entry
-                        currentRealList[existingIndex] = {
-                            ...currentRealList[existingIndex],
-                            quantity: Number(invMaterial.q)
-                        }
-                    } else {
-                        // Add new entry
-                        currentRealList.push({
-                            itemName: invMaterial.c,
-                            disabled: budget.disabledMaterials[materialName]?.includes(invMaterial.c) || false,
-                            quantity: Number(invMaterial.q)
-                        })
-                    }
-                    
+            const material = budget.materials[materialName]
+
+            if (material && material.unitValue === 0) {
+                const materials = getItems(getState())
+                const matInfo = materials.map[materialName]
+                const unitValue = matInfo?.web?.item?.data?.value.value ?? 0
+
+                if (unitValue !== 0) {
+                    const map = { ...budget.materials }
+                    map[materialName] = { ...map[materialName], unitValue }
                     dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
-                }
-                
-                if (material.unitValue === 0) {
-                    const materials: ItemsState = getItems(getState())
-                    const matInfo = materials.map[materialName]
-                    const unitValue = matInfo?.web?.item?.data?.value.value ?? 0
-                    
-                    if (unitValue !== 0) {
-                        const map = { ...budget.materials.map }
-                        map[materialName] = { ...map[materialName], unitValue }
-                        dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
-                    }
                 }
             }
             break

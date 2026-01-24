@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals"
 import { inferBudgetLinesFromActions, BudgetInferenceResult } from './budgetInference'
 import { StoredAction } from '../state/activity'
 import { BudgetState } from '../state/budget'
@@ -20,30 +21,16 @@ describe('budgetInference', () => {
                     }))
                 },
                 groups: { list: [], ungroupedExpanded: false },
-                materials: {
-                    selectedCount: 0,
-                    map: {}
-                }
+                materials: {}
             }
 
             for (const material of materials) {
-                budgetState.materials.map[material.name] = {
+                budgetState.materials[material.name] = {
                     sheetName: material.name,
                     expanded: false,
-                    selected: false,
                     unitValue: 0,
                     markup: 1,
                     budgetList: [{ itemName: material.usedBy, disabled: false, quantity: 0 }],
-                    realList: [],
-                    c: {
-                        totalBudgetQuantity: 0,
-                        totalRealQuantity: 0,
-                        totalBudget: 0,
-                        totalReal: 0,
-                        balanceQuantity: 0,
-                        balance: 0,
-                        balanceWithMarkup: 0
-                    }
                 }
             }
 

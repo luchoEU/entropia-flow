@@ -68,11 +68,10 @@ export function inferBudgetLinesFromActions(
 
             if (budgetName) {
                 const amount = (storedAction.amount ?? 0)
-                const value = (storedAction.value ?? 0)
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Auction',
-                    ped: value ? -value : 0,
+                    ped: 0,
                     materials: [{ name: storedAction.item, quantity: -amount }]
                 }
                 results.push({

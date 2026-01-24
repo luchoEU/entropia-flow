@@ -1,5 +1,6 @@
-import { BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
-import { BalanceMaterialData } from "./budget"
+import { ItemData } from "../../../common/state"
+import { BudgetItem, BudgetDisabledMaterials, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
+import { BalanceMaterialData, getRealList } from "./budget"
 import { calculateBalanceLines } from "./budgetGetBalanceLines"
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
 
@@ -90,40 +91,42 @@ export interface BudgetDetailsViewData {
 
 export interface MaterialItemRowViewData {
     itemName: string
-    budget?: { quantity: number, value: number }
-    real?: { quantity: number, value: number, disabled: boolean }
+    budget?: { quantity: number }
+    pending?: { quantity: number }
+    real?: { quantity: number, disabled: boolean }
 }
 
-export interface MaterialDetailsPanelViewData {
+export interface MaterialDetailsViewData {
     materialName: string
+    materialUnitValue: number
     markup: number
     balanceWithMarkup: number
     sheetName: string
     items: MaterialItemRowViewData[]
-    totals: { budgetQuantity: number, budgetValue: number, realQuantity: number, realValue: number }
-    balance: { quantity: number, value: number }
-    selectedItem: string | null
+    totals: { budgetQuantity: number, pendingQuantity: number, realQuantity: number }
+    balanceQuantity: number
 }
 
 export function getUsedMaterialsMap(itemNames: string[], materialsMap: BudgetMaterialsMap): Record<string, BudgetMaterialState> {
-    return Object.fromEntries(Object.entries(materialsMap).filter(([_, m]) => m.budgetList.some(b => itemNames.includes(b.itemName))))
+    return Object.fromEntries(Object.entries(materialsMap).filter(([_, m]) => m.budgetList?.some(b => itemNames.includes(b.itemName)) ?? false))
 }
 
-export function getMaterials(usedMaterialsMap: BudgetMaterialsMap, validBudgetItems?: string[]): MaterialSummary[] {
+export function getMaterials(budgetState: BudgetState, usedMaterialsMap: BudgetMaterialsMap, inventory: Array<ItemData>, disabledMaterials: BudgetDisabledMaterials, validBudgetItems?: string[]): MaterialSummary[] {
     const result: MaterialSummary[] = []
 
     for (const [materialName, material] of Object.entries(usedMaterialsMap)) {
+        const materialDetails = calculateMaterialDetails(budgetState, materialName, inventory);
         const quantity = material.budgetList.reduce((acc, b) => validBudgetItems?.includes(b.itemName) ? acc + b.quantity : acc, 0)
         const value = quantity * material.unitValue
         const validItems = material.budgetList.filter(b => validBudgetItems?.includes(b.itemName) != false)
-        const balanceQuantity = Math.max(-validItems.reduce((acc, b) => acc + b.quantity, 0), material.c.balanceQuantity)
+        const balanceQuantity = Math.max(-validItems.reduce((acc, b) => acc + b.quantity, 0), materialDetails.balanceQuantity)
         result.push({
             name: materialName,
             budgetQuantity: quantity,
             budgetValue: value,
             budgetWithMarkup: value * material.markup,
-            balanceQuantity,
-            balanceWithMarkup: material.c.balanceQuantity != 0 ? material.c.balanceWithMarkup * (balanceQuantity / material.c.balanceQuantity) : 0,
+            balanceQuantity: materialDetails.balanceQuantity,
+            balanceWithMarkup: materialDetails.balanceWithMarkup,
             budget: Object.fromEntries(validItems.map(b => [b.itemName, b.quantity]))
         })
     }
@@ -131,8 +134,8 @@ export function getMaterials(usedMaterialsMap: BudgetMaterialsMap, validBudgetIt
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function getItemViewData(item: BudgetItem, s: BudgetState): ItemViewData {
-    const detailsViewData = _calculateBudgetDetailsViewData(s, [item.name], item.name, item.name)
+function getItemViewData(item: BudgetItem, s: BudgetState, inventory: Array<ItemData>): ItemViewData {
+    const detailsViewData = _calculateBudgetDetailsViewData(s, [item.name], item.name, item.name, inventory)
 
     return {
         item,
@@ -145,14 +148,14 @@ function getItemViewData(item: BudgetItem, s: BudgetState): ItemViewData {
     }
 }
 
-export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
+export function calculateBudgetViewData(s: BudgetState, inventory: Array<ItemData>): BudgetViewData {
     const groupedItemNames = new Set(s.groups.list.flatMap(g => g.itemNames))
     const ungroupedItems = s.list.items.filter(i => !groupedItemNames.has(i.name))
 
     // Calculate groups data
     const groups: GroupViewData[] = s.groups.list.map(group => {
         const groupItems = s.list.items.filter(i => group.itemNames.includes(i.name))
-        const detailsViewData = _calculateBudgetDetailsViewData(s, group.itemNames, group.id, group.name)
+        const detailsViewData = _calculateBudgetDetailsViewData(s, group.itemNames, group.id, group.name, inventory)
 
         return {
             id: group.id,
@@ -166,7 +169,7 @@ export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
                 total: groupItems.reduce((sum, i) => sum + i.total, 0)
             },
             balance: detailsViewData?.totalBalanceWithMarkup || 0,
-            items: groupItems.map(item => getItemViewData(item, s)),
+            items: groupItems.map(item => getItemViewData(item, s, inventory)),
             detailsViewData
         }
     })
@@ -179,21 +182,21 @@ export function calculateBudgetViewData(s: BudgetState): BudgetViewData {
         total: ungroupedItems.reduce((sum, i) => sum + i.total, 0)
     }
     const ungroupedItemNames = ungroupedItems.map(i => i.name)
-    const ungroupedMaterials = getMaterials(getUsedMaterialsMap(ungroupedItemNames, s.materials.map))
+    const ungroupedMaterials = getMaterials(s,getUsedMaterialsMap(ungroupedItemNames, s.materials), inventory, s.disabledMaterials)
     const ungroupedMaterialsBalance = ungroupedMaterials.reduce((sum, mat) => sum + mat.budgetWithMarkup, 0)
 
     const ungrouped: UngroupedViewData = {
         expanded: s.groups.ungroupedExpanded,
         totals: ungroupedTotals,
         balance: ungroupedMaterialsBalance,
-        items: ungroupedItems.map(item => getItemViewData(item, s))
+        items: ungroupedItems.map(item => getItemViewData(item, s, inventory))
     }
 
     // Calculate overall totals
     const allItemNames = s.list.items.map(i => i.name)
-    const allMaterials = getMaterials(getUsedMaterialsMap(allItemNames, s.materials.map))
+    const allMaterials = getMaterials(s,getUsedMaterialsMap(allItemNames, s.materials), inventory, s.disabledMaterials)
     const totalMaterialsBalance = allMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
-    const detailsViewData = _calculateBudgetDetailsViewData(s, allItemNames, 'totals', 'Totals')
+    const detailsViewData = _calculateBudgetDetailsViewData(s, allItemNames, 'totals', 'Totals', inventory)
     ungroupedTotals.stored = detailsViewData?.totalBudgetValue || 0
 
     const totals: TotalsViewData = {
@@ -231,7 +234,8 @@ function _calculateBudgetDetailsViewData(
     s: BudgetState,
     itemNames: string[],
     selectedItem: string | null,
-    title: string
+    title: string,
+    inventory: Array<ItemData>
 ): BudgetDetailsViewData | null {
     if (itemNames.length === 0) return null
 
@@ -252,9 +256,9 @@ function _calculateBudgetDetailsViewData(
         lines.sort((a, b) => a.date - b.date)
     })
 
-    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
+    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials)
     const validBudgetItems = itemNames.filter(name => !s.disabledItems.names.includes(name))
-    const materials = getMaterials(usedMaterialsMap, validBudgetItems)
+    const materials = getMaterials(s, usedMaterialsMap, inventory, s.disabledMaterials, validBudgetItems)
     const balanceLines = calculateBalanceLines(Date.now(), materials, validBudgetItems)
     Object.entries(balanceLines).forEach(([itemName, lines]) => {
         if (!pendingLines[itemName]) {
@@ -306,46 +310,70 @@ function _calculateBudgetDetailsViewData(
     }
 }
 
-export function calculateMaterialDetailsPanelViewData(
-    s: BudgetState,
-    selection: UrlSelection | null
-): MaterialDetailsPanelViewData | null {
-    if (!selection || !selection.selectedMaterial) return null
-
-    const material = s.materials.map[selection.selectedMaterial]
+export function calculateMaterialDetailsViewData(
+    budgetState: BudgetState,
+    materialName: string,
+    inventory: Array<ItemData>
+): MaterialDetailsViewData | null {
+    const material = budgetState.materials[materialName]
     if (!material) return null
+    return calculateMaterialDetails(budgetState, materialName, inventory)
+}
+
+export function calculateMaterialDetails(
+    budgetState: BudgetState,
+    materialName: string,
+    inventory: Array<ItemData>
+): MaterialDetailsViewData {
+    const realList = getRealList(materialName, inventory, budgetState.disabledMaterials)
+
+    const material = budgetState.materials[materialName]!
 
     // Create a map of itemName to budget and real data
     const itemMap: Record<string, MaterialItemRowViewData> = {}
 
     material.budgetList.forEach(b => {
         if (!itemMap[b.itemName]) itemMap[b.itemName] = { itemName: b.itemName }
-        itemMap[b.itemName].budget = { quantity: b.quantity, value: b.quantity * material.unitValue }
+        itemMap[b.itemName].budget = { quantity: b.quantity }
+        budgetState.list.items.find(i => i.name === b.itemName)?.pendingLines?.forEach(p => {
+            const mat = p.materials.find(m => m.name === materialName)
+            if (!mat) return
+            if (!itemMap[p.reason]) itemMap[p.reason] = { itemName: p.reason }
+            itemMap[p.reason].pending = { quantity: (mat.quantity + (itemMap[p.reason].pending?.quantity || 0)) }
+        })
     })
 
-    material.realList.forEach(r => {
+    realList.forEach(r => {
         if (!itemMap[r.itemName]) itemMap[r.itemName] = { itemName: r.itemName }
-        itemMap[r.itemName].real = { quantity: r.quantity, value: r.quantity * material.unitValue, disabled: r.disabled }
+        itemMap[r.itemName].real = { quantity: r.quantity, disabled: r.disabled }
     })
 
-    const sortedItems = Object.values(itemMap).sort((a, b) => a.itemName.localeCompare(b.itemName))
+    function getPriority(item: MaterialItemRowViewData): number {
+        if (item.budget) return 0
+        if (item.pending) return 1
+        if (item.real) return 2
+        return 3 // fallback if none exist
+    }
+    const sortedItems = Object.values(itemMap).sort((a, b) => {
+        const priorityDiff = getPriority(a) - getPriority(b)
+        if (priorityDiff !== 0) return priorityDiff
+        return a.itemName.localeCompare(b.itemName)
+    })
+    const totals = {
+        budgetQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.budget?.quantity || 0), 0),
+        pendingQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.pending?.quantity || 0), 0),
+        realQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.real?.quantity || 0), 0)
+    }
+    const balanceQuantity = totals.realQuantity - totals.budgetQuantity - totals.pendingQuantity
 
     return {
-        materialName: selection.selectedMaterial,
+        materialName,
+        materialUnitValue: material.unitValue,
         markup: material.markup,
-        balanceWithMarkup: material.c.balanceWithMarkup,
         sheetName: material.sheetName,
         items: sortedItems,
-        totals: {
-            budgetQuantity: material.c.totalBudgetQuantity,
-            budgetValue: material.c.totalBudget,
-            realQuantity: material.c.totalRealQuantity,
-            realValue: material.c.totalReal
-        },
-        balance: {
-            quantity: material.c.balanceQuantity,
-            value: material.c.balance
-        },
-        selectedItem: selection.selectedItem
+        totals,
+        balanceQuantity,
+        balanceWithMarkup: balanceQuantity * material.unitValue * material.markup
     }
 }

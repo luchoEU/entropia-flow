@@ -1,7 +1,20 @@
 import { describe, it, expect } from "@jest/globals"
 import { BalanceMaterialData } from "./budget"
 import { calculateBalanceLines, createBalanceMaterialData, getBalanceLines } from "./budgetGetBalanceLines"
-import { BudgetMaterialsMap } from "../state/budget"
+import { BudgetMaterialsMap, BudgetState } from "../state/budget"
+
+const createMockBudgetState = (materials: BudgetMaterialsMap) => {
+    const budgetState: BudgetState = {
+        stage: 0,
+        loadPercentage: 0,
+        disabledItems: { names: [] },
+        disabledMaterials: {},
+        list: { items: [] },
+        groups: { list: [], ungroupedExpanded: false },
+        materials
+    }
+    return budgetState
+}
 
 describe('calculateBalanceLines', () => {
   it('calculates balance lines for selected materials', () => {
@@ -91,22 +104,11 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                realList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                c: {
-                    totalBudgetQuantity: 10,
-                    totalRealQuantity: 10,
-                    totalBudget: 10,
-                    totalReal: 10,
-                    balanceQuantity: 0.0001, // Very small positive balance
-                    balance: 0.0001,
-                    balanceWithMarkup: 0.00015
-                },
-                selected: false,
                 expanded: false
             }
         }
         
-        const result = getBalanceLines(1234567890, materialsMap)
+        const result = getBalanceLines(1234567890, createMockBudgetState(materialsMap), [])
         
         // Small positive balances might still create lines, let's check what we get
         // If there's a very small positive balance, it might still create a line
@@ -122,22 +124,11 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                realList: [{ itemName: 'Item1', quantity: 5, disabled: false }],
-                c: {
-                    totalBudgetQuantity: 10,
-                    totalRealQuantity: 5,
-                    totalBudget: 10,
-                    totalReal: 5,
-                    balanceQuantity: -5,
-                    balance: -5,
-                    balanceWithMarkup: -7.5
-                },
-                selected: false,
                 expanded: false
             }
         }
         
-        const result = getBalanceLines(1234567890, materialsMap)
+        const result = getBalanceLines(1234567890, createMockBudgetState(materialsMap), [])
         
         expect(Object.keys(result)).toHaveLength(1)
         expect(result['Item1']).toHaveLength(1)
@@ -155,22 +146,11 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                realList: [{ itemName: 'Item1', quantity: 15, disabled: false }],
-                c: {
-                    totalBudgetQuantity: 10,
-                    totalRealQuantity: 15,
-                    totalBudget: 10,
-                    totalReal: 15,
-                    balanceQuantity: 5,
-                    balance: 5,
-                    balanceWithMarkup: 7.5
-                },
-                selected: false,
                 expanded: false
             }
         }
         
-        const result = getBalanceLines(1234567890, materialsMap)
+        const result = getBalanceLines(1234567890, createMockBudgetState(materialsMap), [])
         
         expect(Object.keys(result)).toHaveLength(1)
         expect(result['Item1']).toHaveLength(1)
@@ -188,22 +168,11 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                realList: [{ itemName: 'Item1', quantity: 7, disabled: false }], // Less than budget
-                c: {
-                    totalBudgetQuantity: 10,
-                    totalRealQuantity: 7,
-                    totalBudget: 10,
-                    totalReal: 7,
-                    balanceQuantity: -3, // Already calculated deficiency
-                    balance: -3,
-                    balanceWithMarkup: -4.5
-                },
-                selected: false,
                 expanded: false
             }
         }
         
-        const result = getBalanceLines(1234567890, materialsMap)
+        const result = getBalanceLines(1234567890, createMockBudgetState(materialsMap), [])
         
         expect(Object.keys(result)).toHaveLength(1)
         expect(result['Item1']).toHaveLength(1)
@@ -221,17 +190,6 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.0,
                 budgetList: [{ itemName: 'SharedBudget', quantity: 100, disabled: false }],
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 100,
-                    totalRealQuantity: 0,
-                    totalBudget: 100,
-                    totalReal: 0,
-                    balanceQuantity: -20,       // creates a negative balance
-                    balance: -20,
-                    balanceWithMarkup: -20
-                },
-                selected: false,
                 expanded: false
             },
             // Item B: Another material that also references the same budget
@@ -240,22 +198,11 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.0,
                 budgetList: [{ itemName: 'SharedBudget', quantity: 50, disabled: false }],
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 50,
-                    totalRealQuantity: 0,
-                    totalBudget: 50,
-                    totalReal: 0,
-                    balanceQuantity: -10,       // creates a negative balance as well
-                    balance: -10,
-                    balanceWithMarkup: -10
-                },
-                selected: false,
                 expanded: false
             }
         }
 
-        const lines = getBalanceLines(timestamp, materialsMap)
+        const lines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [])
 
         // Shared budget should exist
         expect(lines).toHaveProperty('SharedBudget')
@@ -281,17 +228,6 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.0,
                 budgetList: [{ itemName: 'SharedBudget', quantity: 100, disabled: false }],
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 100,
-                    totalRealQuantity: 0,
-                    totalBudget: 100,
-                    totalReal: 0,
-                    balanceQuantity: -20,       // creates a negative balance
-                    balance: -20,
-                    balanceWithMarkup: -20
-                },
-                selected: false,
                 expanded: false
             },
             // Item B: Another material that also references the same budget
@@ -300,17 +236,6 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.0,
                 budgetList: [{ itemName: 'SharedBudget', quantity: 50, disabled: false }],
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 50,
-                    totalRealQuantity: 0,
-                    totalBudget: 50,
-                    totalReal: 0,
-                    balanceQuantity: -10,       // creates a negative balance as well
-                    balance: -10,
-                    balanceWithMarkup: -10
-                },
-                selected: false,
                 expanded: false
             },
             // Item C: Material with different budget
@@ -319,29 +244,18 @@ describe('getBalanceLines', () => {
                 unitValue: 1,
                 markup: 1.0,
                 budgetList: [{ itemName: 'OtherBudget', quantity: 30, disabled: false }],
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 30,
-                    totalRealQuantity: 0,
-                    totalBudget: 30,
-                    totalReal: 0,
-                    balanceQuantity: -15,
-                    balance: -15,
-                    balanceWithMarkup: -15
-                },
-                selected: false,
                 expanded: false
             }
         }
 
         // Test without validBudgetItems (should return all lines)
-        const allLines = getBalanceLines(timestamp, materialsMap)
+        const allLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [])
         expect(Object.keys(allLines)).toHaveLength(2)
         expect(allLines).toHaveProperty('SharedBudget')
         expect(allLines).toHaveProperty('OtherBudget')
 
         // Test with validBudgetItems filter - should filter by budget names, not material names
-        const filteredLines = getBalanceLines(timestamp, materialsMap, ['SharedBudget'])
+        const filteredLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [], ['SharedBudget'])
         expect(Object.keys(filteredLines)).toHaveLength(1)
         expect(filteredLines).toHaveProperty('SharedBudget')
         expect(filteredLines['SharedBudget']).toHaveLength(1)
@@ -352,7 +266,7 @@ describe('getBalanceLines', () => {
         expect(materialNames).toEqual(expect.arrayContaining(['T6 Weapon Economy Enhancer', 'Other Material Sharing Budget']))
 
         // Test with empty validBudgetItems (should return empty)
-        const emptyLines = getBalanceLines(timestamp, materialsMap, [])
+        const emptyLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [])
         expect(Object.keys(emptyLines)).toHaveLength(0)
     })
 
@@ -365,17 +279,6 @@ describe('getBalanceLines', () => {
                     unitValue: 1,
                     markup: 1.0,
                     budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100, disabled: false }],
-                    realList: [],
-                    c: {
-                        totalBudgetQuantity: 100,
-                        totalRealQuantity: 0,
-                        totalBudget: 100,
-                        totalReal: 0,
-                        balanceQuantity: -20,
-                        balance: -20,
-                        balanceWithMarkup: -20
-                    },
-                    selected: true,
                     expanded: false
                 },
                 'Other Material': {
@@ -383,17 +286,6 @@ describe('getBalanceLines', () => {
                     unitValue: 1,
                     markup: 1.0,
                     budgetList: [{ itemName: 'Disabled Budget Item', quantity: 50, disabled: false }],
-                    realList: [],
-                    c: {
-                        totalBudgetQuantity: 50,
-                        totalRealQuantity: 0,
-                        totalBudget: 50,
-                        totalReal: 0,
-                        balanceQuantity: -10,
-                        balance: -10,
-                        balanceWithMarkup: -10
-                    },
-                    selected: true,
                     expanded: false
                 }
             }
@@ -403,7 +295,7 @@ describe('getBalanceLines', () => {
             const disabledItems = ['Disabled Budget Item'] // But one is disabled
             const validBudgetItems = itemNames.filter(name => !disabledItems.includes(name))
             
-            const balanceLines = getBalanceLines(timestamp, materialsMap, validBudgetItems)
+            const balanceLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [], validBudgetItems)
 
             // Should only create lines for enabled items
             expect(Object.keys(balanceLines)).toHaveLength(1)
@@ -421,17 +313,6 @@ describe('getBalanceLines', () => {
                     unitValue: 1,
                     markup: 1.0,
                     budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100, disabled: false }],
-                    realList: [],
-                    c: {
-                        totalBudgetQuantity: 100,
-                        totalRealQuantity: 0,
-                        totalBudget: 100,
-                        totalReal: 0,
-                        balanceQuantity: -20,
-                        balance: -20,
-                        balanceWithMarkup: -20
-                    },
-                    selected: true,
                     expanded: false
                 },
                 'Other Material': {
@@ -439,24 +320,13 @@ describe('getBalanceLines', () => {
                     unitValue: 1,
                     markup: 1.0,
                     budgetList: [{ itemName: 'Other Budget Item', quantity: 50, disabled: false }],
-                    realList: [],
-                    c: {
-                        totalBudgetQuantity: 50,
-                        totalRealQuantity: 0,
-                        totalBudget: 50,
-                        totalReal: 0,
-                        balanceQuantity: -10,
-                        balance: -10,
-                        balanceWithMarkup: -10
-                    },
-                    selected: true,
                     expanded: false
                 }
             }
 
             // Simulate middleware scenario where we have validBudgetItems (enabled items only)
             const validBudgetItems = ['T6 Weapon Economy Enhancer'] // Other Budget Item is disabled
-            const lines = getBalanceLines(timestamp, materialsMap, validBudgetItems)
+            const lines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [], validBudgetItems)
 
             // Should only create lines for valid budget items
             expect(Object.keys(lines)).toHaveLength(1)
@@ -512,25 +382,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.43,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 68
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Dianthus Crystal Powder",
                 "unitValue": 0.6,
-                "c": {
-                    "totalBudgetQuantity": 68,
-                    "totalRealQuantity": 68,
-                    "totalBudget": 40.8,
-                    "totalReal": 40.8,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "Empty Enhancer Component": {
                 "budgetList": [
@@ -597,19 +450,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1,
-                "realList": [],
-                "selected": false,
                 "sheetName": "Empty Enhancer Component",
                 "unitValue": 1,
-                "c": {
-                    "totalBudgetQuantity": 0,
-                    "totalRealQuantity": 0,
-                    "totalBudget": 0,
-                    "totalReal": 0,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "Energy Matter Residue": {
                 "budgetList": [
@@ -666,25 +508,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.015,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 6222
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Energy Matter Residue",
                 "unitValue": 0.01,
-                "c": {
-                    "totalBudgetQuantity": 9777,
-                    "totalRealQuantity": 6222,
-                    "totalBudget": 97.77,
-                    "totalReal": 62.22,
-                    "balanceQuantity": -3555,
-                    "balance": -35.550000000000004,
-                    "balanceWithMarkup": -36.08325
-                }
             },
             "Material Efficiency Component": {
                 "budgetList": [
@@ -726,25 +551,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.04,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 198
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Material Efficiency Component",
                 "unitValue": 0.5,
-                "c": {
-                    "totalBudgetQuantity": 198,
-                    "totalRealQuantity": 198,
-                    "totalBudget": 99,
-                    "totalReal": 99,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "Metal Residue": {
                 "budgetList": [
@@ -811,25 +619,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.0093,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 19792
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Metal Residue",
                 "unitValue": 0.01,
-                "c": {
-                    "totalBudgetQuantity": 16917,
-                    "totalRealQuantity": 19792,
-                    "totalBudget": 169.17000000000002,
-                    "totalReal": 197.92000000000002,
-                    "balanceQuantity": 2875,
-                    "balance": 28.75,
-                    "balanceWithMarkup": 29.017375
-                }
             },
             "Nova Fragment": {
                 "budgetList": [
@@ -896,35 +687,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 200,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Howling Mine)",
-                        "disabled": true,
-                        "quantity": 2000
-                    },
-                    {
-                        "itemName": "STORAGE (Planet Cyrene)",
-                        "disabled": true,
-                        "quantity": 156
-                    },
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 40187
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Nova Fragment",
                 "unitValue": 0.00001,
-                "c": {
-                    "totalBudgetQuantity": 40240,
-                    "totalRealQuantity": 40187,
-                    "totalBudget": 0.40240000000000004,
-                    "totalReal": 0.40187000000000006,
-                    "balanceQuantity": -53,
-                    "balance": -0.0005300000000000001,
-                    "balanceWithMarkup": -0.10600000000000001
-                }
             },
             "Shrapnel": {
                 "budgetList": [
@@ -991,30 +755,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.005,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Space)",
-                        "disabled": true,
-                        "quantity": 24817
-                    },
-                    {
-                        "itemName": "STORAGE (Setesh)",
-                        "disabled": true,
-                        "quantity": 344
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Shrapnel",
                 "unitValue": 0.0001,
-                "c": {
-                    "totalBudgetQuantity": 0,
-                    "totalRealQuantity": 0,
-                    "totalBudget": 0,
-                    "totalReal": 0,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "Socket 6 Component": {
                 "budgetList": [
@@ -1026,25 +768,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 1.0268000000000002,
-                "realList": [
-                    {
-                        "itemName": "STORAGE (Calypso)",
-                        "disabled": false,
-                        "quantity": 666
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Socket 6 Component",
                 "unitValue": 0.1,
-                "c": {
-                    "totalBudgetQuantity": 666,
-                    "totalRealQuantity": 666,
-                    "totalBudget": 66.60000000000001,
-                    "totalReal": 66.60000000000001,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "T6 Weapon Economy Enhancer": {
                 "budgetList": [
@@ -1056,30 +781,8 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 3,
-                "realList": [
-                    {
-                        "itemName": "AUCTION",
-                        "disabled": false,
-                        "quantity": 7
-                    },
-                    {
-                        "itemName": "CARRIED",
-                        "disabled": false,
-                        "quantity": 25
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Item",
                 "unitValue": 1,
-                "c": {
-                    "totalBudgetQuantity": 32,
-                    "totalRealQuantity": 32,
-                    "totalBudget": 32,
-                    "totalReal": 32,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             },
             "T6 Weapon Economy Enhancer Blueprint (L)": {
                 "budgetList": [
@@ -1091,28 +794,11 @@ describe('getBalanceLines', () => {
                 ],
                 "expanded": false,
                 "markup": 40,
-                "realList": [
-                    {
-                        "itemName": "Limited (Vol. 2) (C)",
-                        "disabled": false,
-                        "quantity": 1
-                    }
-                ],
-                "selected": false,
                 "sheetName": "Blueprint",
                 "unitValue": 0.01,
-                "c": {
-                    "totalBudgetQuantity": 1,
-                    "totalRealQuantity": 1,
-                    "totalBudget": 0.01,
-                    "totalReal": 0.01,
-                    "balanceQuantity": 0,
-                    "balance": 0,
-                    "balanceWithMarkup": 0
-                }
             }
         }
-        const result = getBalanceLines(1769148912087, materialsMap, ['T6 Weapon Economy Enhancer'])
+        const result = getBalanceLines(1769148912087, createMockBudgetState(materialsMap), [])
 
         expect(result).toEqual({
             "T6 Weapon Economy Enhancer": [
@@ -1216,20 +902,6 @@ describe('getBalanceLines', () => {
                     { itemName: 'armor-plating', quantity: 216, disabled: false },
                     { itemName: 'shock-absorber', quantity: 100, disabled: false }
                 ],
-                realList: [
-                    { itemName: 'armor-plating', quantity: 185, disabled: false },
-                    { itemName: 'shock-absorber', quantity: 60, disabled: false }
-                ],
-                c: {
-                    totalBudgetQuantity: 316,
-                    totalRealQuantity: 245,
-                    totalBudget: 316 * 3.48,
-                    totalReal: 245 * 3.48,
-                    balanceQuantity: -71,
-                    balance: -71 * 3.48,
-                    balanceWithMarkup: -71 * 3.48
-                },
-                selected: false,
                 expanded: false
             },
             'Basic Universal Terminator': {
@@ -1240,25 +912,11 @@ describe('getBalanceLines', () => {
                     { itemName: 'armor-plating', quantity: 80, disabled: false },
                     { itemName: 'shock-absorber', quantity: 75, disabled: false }
                 ],
-                realList: [
-                    { itemName: 'armor-plating', quantity: 60, disabled: false },
-                    { itemName: 'shock-absorber', quantity: 65, disabled: false }
-                ],
-                c: {
-                    totalBudgetQuantity: 155,
-                    totalRealQuantity: 125,
-                    totalBudget: 155 * 2.16,
-                    totalReal: 125 * 2.16,
-                    balanceQuantity: -30,
-                    balance: -30 * 2.16,
-                    balanceWithMarkup: -30 * 2.16
-                },
-                selected: false,
                 expanded: false
             }
         }
         
-        const result = getBalanceLines(timestamp, materialsMap)
+        const result = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [])
         
         // Should create balance lines for deficient materials
         expect(Object.keys(result)).toContain('armor-plating')
@@ -1305,7 +963,7 @@ describe('createBalanceMaterialData', () => {
         const pendingLinesQuantity: Record<string, number> = {}
 
         expect(() => {
-            createBalanceMaterialData(materialsMap, materialNames)
+            createBalanceMaterialData(createMockBudgetState(materialsMap), [], materialNames)
         }).toThrow("Material 'NonExistentMaterial' not found in materialsMap")
     })
 
@@ -1316,25 +974,13 @@ describe('createBalanceMaterialData', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [], // Empty budget list
-                realList: [],
-                c: {
-                    totalBudgetQuantity: 0,
-                    totalRealQuantity: 0,
-                    totalBudget: 0,
-                    totalReal: 0,
-                    balanceQuantity: 0,
-                    balance: 0,
-                    balanceWithMarkup: 0
-                },
-                selected: false,
                 expanded: false
             }
         }
         const materialNames = ['Material1']
-        const pendingLinesQuantity: Record<string, number> = {}
 
         expect(() => {
-            createBalanceMaterialData(materialsMap, materialNames)
+            createBalanceMaterialData(createMockBudgetState(materialsMap), [], materialNames)
         }).toThrow("Material 'Material1' has no budgetList entries")
     })
 
@@ -1345,24 +991,12 @@ describe('createBalanceMaterialData', () => {
                 unitValue: 1,
                 markup: 1.5,
                 budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
-                realList: [{ itemName: 'Item1', quantity: 5, disabled: false }],
-                c: {
-                    totalBudgetQuantity: 10,
-                    totalRealQuantity: 5,
-                    totalBudget: 10,
-                    totalReal: 5,
-                    balanceQuantity: -5,
-                    balance: -5,
-                    balanceWithMarkup: -7.5
-                },
-                selected: false,
                 expanded: false
             }
         }
         const materialNames = ['Material1']
-        const pendingLinesQuantity: Record<string, number> = {}
 
-        const result = createBalanceMaterialData(materialsMap, materialNames)
+        const result = createBalanceMaterialData(createMockBudgetState(materialsMap), [], materialNames)
 
         expect(result).toHaveLength(1)
         expect(result[0].name).toBe('Material1')
@@ -1381,22 +1015,8 @@ describe('createBalanceMaterialData', () => {
                 ],
                 expanded: false,
                 markup: 1.02,
-                realList: [
-                    { itemName: 'CARRIED', quantity: 20014, disabled: false },
-                    { itemName: 'STORAGE (Calypso)', quantity: 8, disabled: false }
-                ],
-                selected: false,
                 sheetName: 'Force Nexus',
                 unitValue: 0.01,
-                c: {
-                    totalBudgetQuantity: 20022,
-                    totalRealQuantity: 20022,
-                    totalBudget: 200.22,
-                    totalReal: 200.22,
-                    balanceQuantity: 0,
-                    balance: 0,
-                    balanceWithMarkup: 0
-                }
             },
             'Mind Essence': {
                 budgetList: [
@@ -1404,21 +1024,8 @@ describe('createBalanceMaterialData', () => {
                 ],
                 expanded: false,
                 markup: 1.1938,
-                realList: [
-                    { itemName: 'CARRIED', quantity: 809432, disabled: false }
-                ],
-                selected: false,
                 sheetName: 'Mind Essence',
                 unitValue: 0.0001,
-                c: {
-                    totalBudgetQuantity: 809432,
-                    totalRealQuantity: 809432,
-                    totalBudget: 80.9432,
-                    totalReal: 80.9432,
-                    balanceQuantity: 0,
-                    balance: 0,
-                    balanceWithMarkup: 0
-                }
             },
             'Vibrant Sweat': {
                 budgetList: [
@@ -1426,28 +1033,12 @@ describe('createBalanceMaterialData', () => {
                 ],
                 expanded: false,
                 markup: 140,
-                realList: [
-                    { itemName: 'STORAGE (Arkadia)', quantity: 66377, disabled: true },
-                    { itemName: 'STORAGE (Calypso)', quantity: 47834, disabled: false },
-                    { itemName: 'STORAGE (Next Island)', quantity: 100000, disabled: true },
-                    { itemName: 'STORAGE (Planet Cyrene)', quantity: 46286, disabled: true }
-                ],
-                selected: false,
                 sheetName: 'Vibrant Sweat',
                 unitValue: 0.00001,
-                c: {
-                    totalBudgetQuantity: 47834,
-                    totalRealQuantity: 47834,
-                    totalBudget: 0.47834,
-                    totalReal: 0.47834,
-                    balanceQuantity: 0,
-                    balance: 0,
-                    balanceWithMarkup: 0
-                }
             }
         }
         
-        const balanceLines = getBalanceLines(timestamp, usedMaterialsMap)
+        const balanceLines = getBalanceLines(timestamp, createMockBudgetState(usedMaterialsMap), [])
         
         // All materials have balanceQuantity of 0, so no balance lines should be created
         expect(Object.keys(balanceLines)).toHaveLength(0)

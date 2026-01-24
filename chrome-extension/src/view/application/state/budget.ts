@@ -5,7 +5,7 @@ interface BudgetState {
     loadPercentage: number
     disabledItems: BudgetDisabledItems
     disabledMaterials: BudgetDisabledMaterials
-    materials: BudgetMaterials
+    materials: BudgetMaterialsMap
     list: BudgetList
     groups: BudgetGroups
 }
@@ -16,32 +16,14 @@ interface BudgetDisabledItems {
 
 type BudgetDisabledMaterials = { [name: string] : Array<string> }
 
-interface BudgetMaterials {
-    selectedCount: number
-    map: BudgetMaterialsMap
-}
-
 type BudgetMaterialsMap = { [name: string] : BudgetMaterialState }
 
 interface BudgetMaterialState {
     sheetName: string
     expanded: boolean
-    selected: boolean
     unitValue: number // quantity * unitValue = value
     markup: number // value * markup = market value in PEDs
     budgetList: Array<BudgetMaterial>
-    realList: Array<BudgetMaterial>
-    c: BudgetMaterialCalcState // calculated from previous
-}
-
-interface BudgetMaterialCalcState {
-    totalBudgetQuantity: number // sum(budgetList.quantity)
-    totalRealQuantity: number // sum(realList.quantity)
-    totalBudget: number // totalBudgetQuantity * unitValue
-    totalReal: number // totalRealQuantity * unitValue
-    balanceQuantity: number // totalRealQuantity - totalBudgetQuantity
-    balance: number // balanceQuantity * unitValue
-    balanceWithMarkup: number // balance * markup
 }
 
 interface BudgetMaterial {
@@ -80,6 +62,8 @@ export {
     BudgetState,
     BudgetMaterialsMap,
     BudgetMaterialState,
+    BudgetMaterial,
+    BudgetDisabledMaterials,
     BudgetItem,
     BudgetGroup,
     BudgetGroups
