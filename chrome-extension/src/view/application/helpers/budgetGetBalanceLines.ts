@@ -28,6 +28,9 @@ function createBalanceMaterialData(materialsMap: BudgetMaterialsMap, materialNam
 function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[], validBudgetItems?: string[], pendingLines?: { [itemName: string]: BudgetLineData[] }): { [itemName: string]: BudgetLineData[] } {
     const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
+        if (material.name == "Shrapnel")
+            continue
+
         const quantity = material.balanceQuantity + (pendingLines ? Object.values(pendingLines).flatMap(lines => lines).flatMap(line => line.materials).reduce((sum, m) => sum + m.quantity, 0) : 0);
         if (quantity < 0) {
             const needed = -quantity;
