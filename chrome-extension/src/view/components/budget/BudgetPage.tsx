@@ -1,5 +1,4 @@
 import React from 'react'
-import BudgetMaterialList from './BudgetMaterialList'
 import BudgetDisabledList from './BudgetDisabledList'
 import BudgetItemList from './BudgetItemList'
 import { formatFromUrl } from '../../application/helpers/navigation'
@@ -12,7 +11,6 @@ function BudgetPage() {
 
     return <>
         <BudgetItemList selected={decodedItemName || null} selectedMaterial={decodedMaterialName || null}/>
-        <BudgetMaterialList />
         <BudgetDisabledList />
     </>
 }
