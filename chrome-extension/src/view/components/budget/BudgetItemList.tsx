@@ -86,10 +86,10 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                 <thead>
                     <tr>
                         <th>Material</th>
-                        <th>Budget Quantity</th>
+                        <th>Budget Qty</th>
                         <th>Value</th>
                         <th>with MU</th>
-                        <th>Balance Quantity</th>
+                        <th>Balance Qty</th>
                         <th>with MU</th>
                     </tr>
                 </thead>

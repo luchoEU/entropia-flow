@@ -81,7 +81,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const budget = getBudget(getState())
             const materials = getItems(getState())
 
-            const inventory = getItemList(getInventory(getState()))
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
             const callbacks: BudgetSheetInterfaceCallbacks = {
                 onProgress: (map: BudgetMaterialsMap, items: BudgetItem[], percentage: number) => dispatch(setBudgetFromSheet(map, items, percentage)),
@@ -99,7 +98,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 await api.storage.saveBudget(cleanForSave(finalState));
             } else {
                 const lines: { [itemName: string]: BudgetLineData[] } = action.payload.pendingLines
-                await sendBudgetPendingLinesFunc(settings, budget, materials, lines, inventory, callbacks)
+                await sendBudgetPendingLinesFunc(settings, budget, materials, lines, callbacks)
             }
             
             break

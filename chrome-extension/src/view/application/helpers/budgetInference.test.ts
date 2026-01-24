@@ -79,6 +79,22 @@ describe('budgetInference', () => {
             relatedItems: []
         })
 
+        const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
+            id: `action-${Math.random()}`,
+            type: 'craft',
+            item,
+            amount,
+            timestamp,
+            sources: ['inventory'],
+            relatedItems: relatedItems.map(ri => ({
+                key: 0,
+                n: ri.name,
+                q: ri.quantity.toString(),
+                v: '0.00',
+                c: 'inventory'
+            }))
+        })
+
         it('should create budget line for sold_auction action with matching budget item', () => {
             const budget = createMockBudgetState(['Light Mind Essence', 'Force Nexus'])
             const soldAction = createSoldAction('Light Mind Essence', 1000, 150.50)
@@ -265,6 +281,44 @@ describe('budgetInference', () => {
                 expect(result.budgetLine.ped).toBe(-1.19)
                 expect(result.budgetLine.materials).toEqual([
                     { name: 'T3 Weapon Economy Enhancer', quantity: -7 }
+                ])
+            }
+        })
+
+        it('should create budget line for craft action with materials', () => {
+            // Arrange
+            const budget = createMockBudgetState(['T5 Weapon Economy Enhancer'])
+            const craftAction = createCraftAction('T5 Weapon Economy Enhancer', 8, [
+                { name: 'Dianthus Crystal Powder', quantity: 14 },
+                { name: 'Energy Matter Residue', quantity: 310 },
+                { name: 'Material Efficiency Component', quantity: 2 },
+                { name: 'Metal Residue', quantity: 1371 },
+                { name: 'Nova Fragment', quantity: 40 },
+                { name: 'Shrapnel', quantity: 819 },
+                { name: 'Socket 5 Component', quantity: 7 }
+            ], 1700000000000)
+
+            // Act
+            const results = inferBudgetLinesFromActions([craftAction], budget)
+
+            // Assert
+            expect(results).toHaveLength(1)
+            const result = results[0]
+            expect(result.action).toEqual(craftAction)
+            expect(result.budgetName).toBe('T5 Weapon Economy Enhancer')
+            if (result.budgetLine) {
+                expect(result.budgetLine.date).toBe(1700000000000)
+                expect(result.budgetLine.reason).toBe('Craft')
+                expect(result.budgetLine.ped).toBe(0)
+                expect(result.budgetLine.materials).toEqual([
+                    { name: 'T5 Weapon Economy Enhancer', quantity: 8 },
+                    { name: 'Dianthus Crystal Powder', quantity: -14 },
+                    { name: 'Energy Matter Residue', quantity: -310 },
+                    { name: 'Material Efficiency Component', quantity: -2 },
+                    { name: 'Metal Residue', quantity: -1371 },
+                    { name: 'Nova Fragment', quantity: -40 },
+                    { name: 'Shrapnel', quantity: -819 },
+                    { name: 'Socket 5 Component', quantity: -7 }
                 ])
             }
         })

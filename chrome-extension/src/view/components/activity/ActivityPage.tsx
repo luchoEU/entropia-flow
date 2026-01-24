@@ -58,12 +58,48 @@ function ActivityPage() {
     const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions } = useSelector(getActivity)
     const settings = useSelector(getSettings)
     const dispatch = useDispatch()
-    const navigate = useNavigate()
-    const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
-    const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
-    const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
-    const expandedSessions = new Set(expandedArray)
-    const expandedActionRowsSet = new Set(expandedActionRows)
+ const navigate = useNavigate()
+ const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
+ const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
+ const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
+ const expandedSessions = new Set(expandedArray)
+ const expandedActionRowsSet = new Set(expandedActionRows)
+
+  // Build a plain text representation for copying: title + list of items
+  const buildCopyTextForAction = (a: StoredAction): string => {
+    const title = (a as any).title || formatActionDescription(a)
+    let text = title
+    if (a.relatedItems && a.relatedItems.length > 0) {
+      text += '\nItems:'
+      a.relatedItems.forEach((it: ViewItemData) => {
+        const qty = Number(it.q) || 0
+        const val = Number(it.v) || 0
+        const total = qty * val
+        text += `\n- ${it.n} x ${qty} = ${total.toFixed(2)} PED (${val.toFixed(2)} each)`
+      })
+    }
+    return text
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text)
+        return
+      }
+    } catch {
+      // fallthrough to fallback
+    }
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.left = '-9999px'
+    document.body.appendChild(ta)
+    ta.focus()
+    ta.select()
+    try { document.execCommand('copy') } catch { /* ignore */ }
+    document.body.removeChild(ta)
+  }
 
     const ActionRow = ({ action, isExpanded, onToggle }: { action: StoredAction, isExpanded: boolean, onToggle: () => void }) => {
         const total = action.relatedItems.reduce((sum, item) => sum + (Number(item.v) || 0), 0)
@@ -88,6 +124,17 @@ function ActivityPage() {
                                 [📊Budget]
                             </span>
                         )}
+                        <ImgButton
+                            title="Copy to clipboard"
+                            src="img/copy.png"
+                            className="img-btn-copy"
+                            clickPopup="Copied!"
+                            dispatch={() => {
+                                const text = buildCopyTextForAction(action)
+                                copyToClipboard(text)
+                                // Side-effect only; no redux action dispatched
+                            }}
+                        />
                     </td>
                     <td className='action-sources'>
                         {action.sources.join(', ')}

@@ -4,7 +4,7 @@ import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { ItemsState } from "../state/items"
-import { itemStringFromNameLimited, nameFromItemStringLimited } from "../helpers/craft"
+import { isLimited, itemStringFromNameLimited, nameFromItemStringLimited } from "../helpers/craft"
 
 export interface BudgetSheetInterfaceCallbacks {
     onProgress: (map: BudgetMaterialsMap, items: BudgetItem[], percentage: number) => void
@@ -71,7 +71,6 @@ export async function sendBudgetPendingLinesFunc(
     budget: BudgetState,
     materials: ItemsState,
     lines: { [itemName: string]: BudgetLineData[] },
-    inventory: Array<ItemData>,
     callbacks: BudgetSheetInterfaceCallbacks
 ) {
     let map: BudgetMaterialsMap = budget.materials
@@ -90,13 +89,13 @@ export async function sendBudgetPendingLinesFunc(
 
         // Add all lines to sheet
         for (const line of lines[itemName]) {
-            const transformedLine: BudgetLineData = {
+            const transformedLine: BudgetLineData = isLimited(itemName) ? {
                 ...line,
                 materials: line.materials.map(m => ({
                     ...m,
                     name: itemStringFromNameLimited(itemName, m.name)
                 }))
-            }
+            } : line
             await sheet.addLine(transformedLine)
         }
         await sheet.save()

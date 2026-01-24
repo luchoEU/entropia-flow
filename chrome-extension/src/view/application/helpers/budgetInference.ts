@@ -37,7 +37,7 @@ export function inferBudgetLinesFromActions(
             if (mainItem) {
                 budgetName = mainItem.name
             } else {
-                const material = budget.materials.map[storedAction.item]
+                const material = budget.materials[storedAction.item]
                 if (material && material.budgetList.length > 0) {
                     budgetName = material.budgetList[0].itemName
                 }
@@ -70,9 +70,41 @@ export function inferBudgetLinesFromActions(
                 const amount = (storedAction.amount ?? 0)
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
-                    reason: 'Auction',
-                    ped: 0,
+                    reason: 'Listed',
+                    ped: storedAction.value ? -storedAction.value : 0,
                     materials: [{ name: storedAction.item, quantity: -amount }]
+                }
+                results.push({
+                    action: storedAction,
+                    budgetLine,
+                    budgetName
+                })
+            }
+        } else if (storedAction.type === 'craft') {
+            // Handle craft actions: create a budget line for the crafted item
+            // and include materials used in crafting from relatedItems
+            let budgetName: string | undefined
+            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            if (mainItem) {
+                budgetName = mainItem.name
+            }
+
+            if (budgetName) {
+                const amount = (storedAction.amount ?? 0)
+                const materials = [
+                    { name: storedAction.item, quantity: amount },
+                    // Include materials used from relatedItems
+                    ...storedAction.relatedItems.map(related => ({
+                        name: related.n,
+                        quantity: -parseInt(related.q) // negative for consumed materials
+                    }))
+                ]
+
+                const budgetLine: BudgetLineData = {
+                    date: storedAction.timestamp,
+                    reason: 'Craft',
+                    ped: 0,
+                    materials
                 }
                 results.push({
                     action: storedAction,

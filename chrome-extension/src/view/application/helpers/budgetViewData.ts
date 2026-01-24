@@ -362,7 +362,7 @@ export function calculateMaterialDetails(
     const totals = {
         budgetQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.budget?.quantity || 0), 0),
         pendingQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.pending?.quantity || 0), 0),
-        realQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.real?.quantity || 0), 0)
+        realQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.real?.disabled ? 0 : item.real?.quantity || 0), 0)
     }
     const balanceQuantity = totals.realQuantity - totals.budgetQuantity - totals.pendingQuantity
 
