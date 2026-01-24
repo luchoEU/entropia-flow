@@ -6,6 +6,7 @@ describe('reduceDeleteBudgetPendingLine', () => {
     const testState = {
       ...initialState,
       list: {
+        ...initialState.list,
         items: [
           {
             name: 'Test Item',
@@ -47,6 +48,7 @@ describe('reduceDeleteBudgetPendingLine', () => {
     const testState = {
       ...initialState,
       list: {
+        ...initialState.list,
         items: [
           {
             name: 'Test Item',
@@ -71,6 +73,7 @@ describe('reduceDeleteBudgetPendingLine', () => {
     const testState = {
       ...initialState,
       list: {
+        ...initialState.list,
         items: [
           {
             name: 'Test Item',

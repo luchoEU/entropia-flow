@@ -4,7 +4,7 @@ import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
 import { getInventory } from '../../application/selectors/inventory'
 import { getItemList } from '../../application/helpers/inventory'
-import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, enableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded, toggleBudgetShowDisabled, enableBudgetGroup, disableBudgetGroup } from '../../application/actions/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
@@ -303,6 +303,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
+    const showDisabled = budgetState.list.showDisabled ?? false
 
     const viewData = calculateBudgetViewData(budgetState, inventory)
 
@@ -312,8 +313,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
         // Check if it's an item
         const allItemNames = [
-            ...viewData.ungrouped.items.map(i => i.item.name),
-            ...viewData.groups.flatMap(g => g.items.map(i => i.item.name))
+            ...viewData.ungrouped.items.map(i => i.name),
+            ...viewData.groups.flatMap(g => g.items.map(i => i.name))
         ]
 
         if (allItemNames.includes(selectedItem)) {
@@ -357,10 +358,10 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         if (urlSelection.type === 'item') {
             // Find the item in groups or ungrouped
             for (const group of viewData.groups) {
-                const item = group.items.find(i => i.item.name === urlSelection.itemName)
+                const item = group.items.find(i => i.name === urlSelection.itemName)
                 if (item) return item.detailsViewData
             }
-            const ungroupedItem = viewData.ungrouped.items.find(i => i.item.name === urlSelection.itemName)
+            const ungroupedItem = viewData.ungrouped.items.find(i => i.name === urlSelection.itemName)
             if (ungroupedItem) return ungroupedItem.detailsViewData
         } else if (urlSelection.type === 'group') {
             const group = viewData.groups.find(g => g.id === urlSelection.groupId)
@@ -443,24 +444,24 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
     const isUngroupedExpanded = () =>
         viewData.ungrouped.expanded ||
-        (selectedItem && viewData.ungrouped.items.some(item => item.item.name === selectedItem)) ||
+        (selectedItem && viewData.ungrouped.items.some(item => item.name === selectedItem)) ||
         false
 
     const renderItemRow = (itemData: ItemViewData) => {
-        const { item, stored, balance, isLoading, isLoaded, pendingAmount } = itemData
+        const { name, peds, stored, markup, total, balance, isLoading, isLoaded, pendingAmount, disabled } = itemData
 
         return (
             <tr
-                key={item.name}
+                key={name}
                 draggable
-                onDragStart={(e) => handleDragStart(e, item.name)}
+                onDragStart={(e) => handleDragStart(e, name)}
                 onDragEnd={handleDragEnd}
-                className={`pointer ${draggedItem === item.name ? 'dragging' : ''} ${isItemSelected(item.name) ? 'selected' : ''} ${isLoading ? 'budget-item-loading' : ''} ${isLoaded ? 'budget-item-loaded' : ''}`}
+                className={`pointer ${draggedItem === name ? 'dragging' : ''} ${isItemSelected(name) ? 'selected' : ''} ${isLoading ? 'budget-item-loading' : ''} ${isLoaded ? 'budget-item-loaded' : ''} ${disabled ? 'budget-item-disabled' : ''}`}
                 style={{
                     cursor: 'grab',
-                    opacity: isLoading ? 0.6 : 1
+                    opacity: isLoading || disabled ? 0.6 : 1
                 }}
-                onClick={() => navigate(budgetItemUrl(item.name))}
+                onClick={() => navigate(budgetItemUrl(name))}
             >
                 <td align='center'>
                     {isLoading && (
@@ -481,20 +482,25 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 </td>
                 <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(item.name)} />
+                        {disabled ? (
+                            <ImgButton title='Enable' src='img/tick.png' dispatch={() => dispatch(enableBudgetItem(name))} />
+                        ) : (
+                            <ImgButton title='Disable' src='img/cross.png' dispatch={() => dispatch(disableBudgetItem(name))} />
+                        )}
                         <span style={{
                             fontStyle: isLoading ? 'italic' : 'normal',
-                            color: isLoading ? '#666' : 'inherit'
+                            color: isLoading || disabled ? '#666' : 'inherit',
+                            textDecoration: disabled ? 'line-through' : 'none'
                         }}>
-                            {item.name}
+                            {name}
                         </span>
                     </div>
                 </td>
-                <td align='right'>{item.peds.toFixed(2)}</td>
-                <td align='right'>{stored.toFixed(2)}</td>
-                <td align='right'>{item.totalMU.toFixed(2)}</td>
-                <td align='right'>{item.total.toFixed(2)}</td>
-                <td align='right'>{balance.toFixed(2)}</td>
+                <td align='right'>{disabled ? '' : peds.toFixed(2)}</td>
+                <td align='right'>{disabled ? '' : stored.toFixed(2)}</td>
+                <td align='right'>{disabled ? '' : markup.toFixed(2)}</td>
+                <td align='right'>{disabled ? '' : total.toFixed(2)}</td>
+                <td align='right'>{disabled ? '' : balance.toFixed(2)}</td>
             </tr>
         )
     }
@@ -504,8 +510,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
         return (
             <tr
-                className={`budget-group-header pointer ${isGroupSelected(groupData.id) ? 'selected' : ''}`}
+                className={`budget-group-header pointer ${isGroupSelected(groupData.id) ? 'selected' : ''} ${groupData.disabled ? 'budget-item-disabled' : ''}`}
                 onClick={() => navigate(budgetItemUrl(groupData.id))}
+                style={{ opacity: groupData.disabled ? 0.6 : 1 }}
             >
                 <td></td>
                 <td>
@@ -513,6 +520,11 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         expanded={isGroupExpanded(groupData.id)}
                         setExpanded={() => toggleBudgetGroupExpanded(groupData.id)}
                     />
+                    {groupData.disabled ? (
+                        <ImgButton title='Enable group' src='img/tick.png' dispatch={() => dispatch(enableBudgetGroup(groupData.id))} />
+                    ) : (
+                        <ImgButton title='Disable group' src='img/cross.png' dispatch={() => dispatch(disableBudgetGroup(groupData.id))} />
+                    )}
                     {isEditing ? (
                         <input
                             type='text'
@@ -525,7 +537,12 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                             style={{ width: '150px' }}
                         />
                     ) : (
-                        groupData.name
+                        <span style={{
+                            color: groupData.disabled ? '#666' : 'inherit',
+                            textDecoration: groupData.disabled ? 'line-through' : 'none'
+                        }}>
+                            {groupData.name}
+                        </span>
                     )}
                     {!isEditing && <ImgButton
                         title='Rename group'
@@ -540,16 +557,17 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         style={{ marginLeft: '8px' }}
                     />
                 </td>
-                <td align='right'>{groupData.totals.peds.toFixed(2)}</td>
-                <td align='right'>{groupData.totals.stored.toFixed(2)}</td>
-                <td align='right'>{groupData.totals.markup.toFixed(2)}</td>
-                <td align='right'>{groupData.totals.total.toFixed(2)}</td>
-                <td align='right'>{groupData.balance.toFixed(2)}</td>
+                <td align='right'>{groupData.disabled ? '' : groupData.peds.toFixed(2)}</td>
+                <td align='right'>{groupData.disabled ? '' : groupData.stored.toFixed(2)}</td>
+                <td align='right'>{groupData.disabled ? '' : groupData.markup.toFixed(2)}</td>
+                <td align='right'>{groupData.disabled ? '' : groupData.total.toFixed(2)}</td>
+                <td align='right'>{groupData.disabled ? '' : groupData.balance.toFixed(2)}</td>
             </tr>
         )
     }
 
     const renderGroup = (groupData: GroupViewData) => {
+        const visibleItems = showDisabled ? groupData.items : groupData.items.filter(i => !i.disabled)
         return (
             <tbody
                 key={groupData.id}
@@ -558,8 +576,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 className={draggedItem ? 'drop-target' : ''}
             >
                 {renderGroupHeader(groupData)}
-                {isGroupExpanded(groupData.id) && groupData.items.map(renderItemRow)}
-                {isGroupExpanded(groupData.id) && groupData.items.length === 0 && (
+                {isGroupExpanded(groupData.id) && visibleItems.map(renderItemRow)}
+                {isGroupExpanded(groupData.id) && visibleItems.length === 0 && (
                     <tr className='budget-empty-group'>
                         <td colSpan={6} style={{ fontStyle: 'italic', color: '#888' }}>
                             Drag items here
@@ -571,7 +589,8 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     }
 
     const renderUngroupedSection = () => {
-        const { totals, balance, items } = viewData.ungrouped
+        const { peds, stored, markup, total, balance, items } = viewData.ungrouped
+        const visibleItems = showDisabled ? items : items.filter(i => !i.disabled)
 
         return (
             <tbody
@@ -588,13 +607,13 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         />
                         <strong>Ungrouped</strong>
                     </td>
-                    <td align='right'><strong>{totals.peds.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{totals.stored.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{totals.markup.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{totals.total.toFixed(2)}</strong></td>
-                    <td align='right'><strong>{balance.toFixed(2)}</strong></td>
+                    <td align='right'>{peds.toFixed(2)}</td>
+                    <td align='right'>{stored.toFixed(2)}</td>
+                    <td align='right'>{markup.toFixed(2)}</td>
+                    <td align='right'>{total.toFixed(2)}</td>
+                    <td align='right'>{balance.toFixed(2)}</td>
                 </tr>
-                {isUngroupedExpanded() && items.map(renderItemRow)}
+                {isUngroupedExpanded() && visibleItems.map(renderItemRow)}
             </tbody>
         )
     }
@@ -602,8 +621,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
             <p>
-                <button onClick={() => dispatch(refreshBudget)} disabled={viewData.stage !== STAGE_INITIALIZING}>Refresh</button>
-                <button onClick={handleAddGroup} style={{ marginLeft: '8px' }}>Add Group</button>
+                <ImgButton title='Refresh' src='img/reload.png' className='img-btn-refresh' dispatch={() => refreshBudget} disabled={viewData.stage !== STAGE_INITIALIZING}></ImgButton>
+                <ImgButton title='Add Group' src='img/add.png' className='img-btn-add' dispatch={handleAddGroup} />
+                <ImgButton title={showDisabled ? 'Hide Disabled' : 'Show Disabled'} className='img-btn-disabled' src={showDisabled ? 'img/eyeOpen.png' : 'img/eyeClose.png'} dispatch={() => dispatch(toggleBudgetShowDisabled())} />
                 { viewData.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[viewData.stage]}... {viewData.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
@@ -635,7 +655,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                  </div>
                  <div className='inline'>
                      <BudgetDetailsPanel viewData={budgetDetailsPanelViewData} />
-                     <MaterialDetailsPanel viewData={materialDetailsPanelViewData} selectedItem={urlSelection?.selectedItem} />
+                     <MaterialDetailsPanel viewData={materialDetailsPanelViewData} selectedItem={urlSelection?.selectedItem ?? null} />
                  </div>
              </div>
          </ExpandableSection>

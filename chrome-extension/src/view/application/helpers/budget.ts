@@ -2,7 +2,7 @@ import { objectMap } from "../../../common/object"
 import { ItemData } from "../../../common/state"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
 import { BudgetLineData } from "../../services/api/sheets/sheetsBudget"
-import { BudgetDisabledMaterials, BudgetGroup, BudgetItem, BudgetMaterial, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
+import { BudgetDisabledMaterials, BudgetItem, BudgetMaterialsMap, BudgetMaterialState, BudgetState } from "../state/budget"
 import { calculateMaterialDetails } from "./budgetViewData"
 
 interface BalanceMaterialData {
@@ -15,12 +15,12 @@ interface BalanceMaterialData {
 const initialState: BudgetState = {
     stage: STAGE_INITIALIZING,
     loadPercentage: 0,
-    disabledItems: {
-        names: []
+    materials: {
+        disabled: {},
+        map: {}
     },
-    disabledMaterials: { },
-    materials: { },
     list: {
+        disabled: [],
         items: []
     },
     groups: {
@@ -31,31 +31,20 @@ const initialState: BudgetState = {
 
 const setState = (state: BudgetState, inState: BudgetState): BudgetState => inState
 
-export function getRealList(
-    materialName: string,
-    inventory: Array<ItemData>,
-    disabledMaterials: BudgetDisabledMaterials
-): BudgetMaterial[] {
-    return inventory
-        .filter(item => item.n === materialName)
-        .map(item => ({
-            itemName: item.c,
-            disabled: disabledMaterials[materialName]?.includes(item.c) || false,
-            quantity: Number(item.q)
-        }))
-}
-
 const SHOW_WARNING_THRESHOLD_PED_WITH_MARKUP = 50
 
 const reduceSetBudgetFromSheet = (state: BudgetState, map: BudgetMaterialsMap, items: BudgetItem[], loadPercentage: number): BudgetState => {
     const mapc: BudgetMaterialsMap = objectMap(map, (v: BudgetMaterialState, k: string) => ({
         ...v,
-        expanded: state.materials[k]?.expanded ?? false
+        expanded: state.materials.map[k]?.expanded ?? false
     }))
     return {
         ...state,
         loadPercentage,
-        materials: mapc,
+        materials: {
+            ...state.materials,
+            map: mapc
+        },
         list: {
             ...state.list,
             items
@@ -70,7 +59,7 @@ const cleanForSave = (state: BudgetState): BudgetState => ({
 
 const setBudgetMaterialExpanded = (state: BudgetState, material: string, expanded: boolean): BudgetState => {
     const cState: BudgetState = JSON.parse(JSON.stringify(state))
-    cState.materials[material].expanded = expanded
+    cState.materials.map[material].expanded = expanded
     return cState
 }
 
@@ -82,12 +71,9 @@ const setBudgetStage = (state: BudgetState, stage: number): BudgetState => ({
 
 const reduceEnableBudgetItem = (state: BudgetState, name: string): BudgetState => ({
     ...state,
-    disabledItems: {
-        ...state.disabledItems,
-        names: state.disabledItems.names.filter(n => n !== name)
-    },
     list: {
         ...state.list,
+        disabled: state.list.disabled.filter(n => n !== name),
         items: [
             ...state.list.items,
             {
@@ -124,39 +110,45 @@ function removeMaterialsByItemName(
 
 const reduceDisableBudgetItem = (state: BudgetState, name: string): BudgetState => ({
     ...state,
-    disabledItems: {
-        ...state.disabledItems,
-        names: [ ...state.disabledItems.names, name ]
-    },
     list: {
         ...state.list,
+        disabled: [...state.list.disabled, name],
         items: state.list.items.filter(i => i.name !== name)
     },
-    materials: removeMaterialsByItemName(state.materials, name)
+    materials: {
+        ...state.materials,
+        map: removeMaterialsByItemName(state.materials.map, name)
+    }
 })
 
 const reduceDisableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => ({
     ...state,
-    disabledMaterials: {
-        ...state.disabledMaterials,
-        [itemName]: [...(state.disabledMaterials[itemName] || []), materialName]
+    materials: {
+        ...state.materials,
+        disabled: {
+            ...state.materials.disabled,
+            [itemName]: [...(state.materials.disabled[itemName] || []), materialName]
+        }
     }
 })
 
 const reduceEnableBudgetMaterial = (state: BudgetState, itemName: string, materialName: string): BudgetState => {
-    const updatedDisabledMaterials = {
-        ...state.disabledMaterials,
-        [itemName]: (state.disabledMaterials[itemName] || []).filter(name => name !== materialName)
+    const updatedDisabled = {
+        ...state.materials.disabled,
+        [itemName]: (state.materials.disabled[itemName] || []).filter(name => name !== materialName)
     };
 
     // Remove the entry if the list is empty
-    if (updatedDisabledMaterials[itemName].length === 0) {
-        delete updatedDisabledMaterials[itemName];
+    if (updatedDisabled[itemName].length === 0) {
+        delete updatedDisabled[itemName];
     }
 
     return {
         ...state,
-        disabledMaterials: updatedDisabledMaterials
+        materials: {
+            ...state.materials,
+            disabled: updatedDisabled
+        }
     };
 };
 
@@ -305,12 +297,36 @@ const reduceRemoveBudgetItemPendingLines = (state: BudgetState, itemName: string
     list: {
         ...state.list,
         items: state.list.items.map(item => item.name === itemName && item.pendingLines ?
-            { 
-                ...item, 
+            {
+                ...item,
                 pendingLines: item.pendingLines.filter(line => !lines.some(l => l.date === line.date))
             }
             : item
         )
+    }
+})
+
+const reduceToggleBudgetShowDisabled = (state: BudgetState): BudgetState => ({
+    ...state,
+    list: {
+        ...state.list,
+        showDisabled: !state.list.showDisabled
+    }
+})
+
+const reduceEnableBudgetGroup = (state: BudgetState, groupId: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        disabledGroups: (state.groups.disabledGroups || []).filter(id => id !== groupId)
+    }
+})
+
+const reduceDisableBudgetGroup = (state: BudgetState, groupId: string): BudgetState => ({
+    ...state,
+    groups: {
+        ...state.groups,
+        disabledGroups: [...(state.groups.disabledGroups || []), groupId]
     }
 })
 
@@ -337,5 +353,8 @@ export {
     reduceClearBudgetItemPendingLines,
     reduceRemoveBudgetItemPendingLines,
     reduceDeleteBudgetPendingLine,
-    reduceUpdateBudgetPendingLine
+    reduceUpdateBudgetPendingLine,
+    reduceToggleBudgetShowDisabled,
+    reduceEnableBudgetGroup,
+    reduceDisableBudgetGroup
 }

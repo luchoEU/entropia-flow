@@ -5,13 +5,13 @@ import { BalanceMaterialData } from './budget';
 import { calculateMaterialDetails } from './budgetViewData';
 
 function getBalanceLines(timestamp: number, budgetState: BudgetState, inventory: Array<ItemData>, validBudgetItems?: string[]): { [itemName: string]: BudgetLineData[] } {
-    const balancedData = createBalanceMaterialData(budgetState, inventory, Object.keys(budgetState.materials))
+    const balancedData = createBalanceMaterialData(budgetState, inventory, Object.keys(budgetState.materials.map))
     return calculateBalanceLines(timestamp, balancedData, validBudgetItems);
 }
 
 function createBalanceMaterialData(budgetState: BudgetState, inventory: Array<ItemData>, materialNames: string[]): BalanceMaterialData[] {
     return materialNames.map(name => {
-        const material = budgetState.materials[name];
+        const material = budgetState.materials.map[name];
         if (!material) {
             throw new Error(`Material '${name}' not found in materialsMap`);
         }
@@ -31,9 +31,6 @@ function createBalanceMaterialData(budgetState: BudgetState, inventory: Array<It
 function calculateBalanceLines(timestamp: number, materials: BalanceMaterialData[], validBudgetItems?: string[], pendingLines?: { [itemName: string]: BudgetLineData[] }): { [itemName: string]: BudgetLineData[] } {
     const lines: { [itemName: string]: BudgetLineData[] } = {}
     for (const material of materials) {
-        if (material.name == "Shrapnel")
-            continue
-
         const quantity = material.balanceQuantity + (pendingLines ? Object.values(pendingLines).flatMap(lines => lines).flatMap(line => line.materials).reduce((sum, m) => sum + m.quantity, 0) : 0);
         if (quantity < 0) {
             const needed = -quantity;

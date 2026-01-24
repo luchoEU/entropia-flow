@@ -12,9 +12,12 @@ describe('budgetSheetSynchronization', () => {
         const createMockBudgetState = (itemNames: string[]): BudgetState => ({
             stage: 0,
             loadPercentage: 0,
-            disabledItems: { names: [] },
-            disabledMaterials: {},
+            materials: {
+                disabled: {},
+                map: {}
+            },
             list: {
+                disabled: [],
                 items: itemNames.map(name => ({
                     name,
                     totalMU: 0,
@@ -23,8 +26,7 @@ describe('budgetSheetSynchronization', () => {
                     url: `http://example.com/${name}`
                 }))
             },
-            groups: { list: [], ungroupedExpanded: false },
-            materials: {}
+            groups: { list: [], ungroupedExpanded: false }
         })
 
         const createMockMaterials = (): ItemsState => ({

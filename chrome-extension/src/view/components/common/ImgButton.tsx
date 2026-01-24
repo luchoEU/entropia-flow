@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 import { Dispatch, UnknownAction } from "redux"
 
-const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, clickPopup, className, style, show }: {
+const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, clickPopup, className, disabled, style, show }: {
     title: string,
     beforeText?: string,
     afterText?: string,
@@ -11,6 +11,7 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     dispatch: (navigate: NavigateFunction) => any,
     clickPopup?: string
     className?: string
+    disabled?: boolean
     style?: CSSProperties
     show?: boolean
 }) => {
@@ -38,6 +39,7 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
             {beforeText}
             <img src={src}
                 {...show ? { 'data-show': true } : {}}
+                {...disabled ? { disabled: true } : {}}
             />
             {clickPopup && <span style={{ display: 'none' }} className='popup'>{clickPopup}</span>}
             {afterText}

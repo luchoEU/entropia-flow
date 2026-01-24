@@ -24,6 +24,9 @@ const CLEAR_BUDGET_ITEM_PENDING_LINES = '[budget] clear item pending lines'
 const REMOVE_BUDGET_ITEM_PENDING_LINES = '[budget] remove item pending lines'
 const DELETE_BUDGET_PENDING_LINE = '[budget] delete pending line'
 const UPDATE_BUDGET_PENDING_LINE = '[budget] update pending line'
+const TOGGLE_BUDGET_SHOW_DISABLED = '[budget] toggle show disabled'
+const ENABLE_BUDGET_GROUP = '[budget] enable group'
+const DISABLE_BUDGET_GROUP = '[budget] disable group'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -149,6 +152,20 @@ const updateBudgetPendingLine = (itemName: string, lineIndex: number, ped: numbe
     payload: { itemName, lineIndex, ped, materials }
 })
 
+const toggleBudgetShowDisabled = () => ({
+    type: TOGGLE_BUDGET_SHOW_DISABLED
+})
+
+const enableBudgetGroup = (groupId: string) => ({
+    type: ENABLE_BUDGET_GROUP,
+    payload: { groupId }
+})
+
+const disableBudgetGroup = (groupId: string) => ({
+    type: DISABLE_BUDGET_GROUP,
+    payload: { groupId }
+})
+
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
@@ -171,6 +188,9 @@ export {
     REMOVE_BUDGET_ITEM_PENDING_LINES,
     DELETE_BUDGET_PENDING_LINE,
     UPDATE_BUDGET_PENDING_LINE,
+    TOGGLE_BUDGET_SHOW_DISABLED,
+    ENABLE_BUDGET_GROUP,
+    DISABLE_BUDGET_GROUP,
     setBudgetState,
     setBudgetFromSheet,
     setBudgetMaterialExpanded,
@@ -191,5 +211,8 @@ export {
     clearBudgetItemPendingLines,
     removeBudgetItemPendingLines,
     deleteBudgetPendingLine,
-    updateBudgetPendingLine
+    updateBudgetPendingLine,
+    toggleBudgetShowDisabled,
+    enableBudgetGroup,
+    disableBudgetGroup
 }

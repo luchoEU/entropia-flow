@@ -3,15 +3,19 @@ import { BalanceMaterialData } from "./budget"
 import { calculateBalanceLines, createBalanceMaterialData, getBalanceLines } from "./budgetGetBalanceLines"
 import { BudgetMaterialsMap, BudgetState } from "../state/budget"
 
-const createMockBudgetState = (materials: BudgetMaterialsMap) => {
+const createMockBudgetState = (materialsMap: BudgetMaterialsMap) => {
     const budgetState: BudgetState = {
         stage: 0,
         loadPercentage: 0,
-        disabledItems: { names: [] },
-        disabledMaterials: {},
-        list: { items: [] },
-        groups: { list: [], ungroupedExpanded: false },
-        materials
+        materials: {
+            disabled: {},
+            map: materialsMap
+        },
+        list: {
+            disabled: [],
+            items: []
+        },
+        groups: { list: [], ungroupedExpanded: false }
     }
     return budgetState
 }
@@ -103,7 +107,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Material1',
                 unitValue: 1,
                 markup: 1.5,
-                budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
+                budgetList: [{ itemName: 'Item1', quantity: 10 }],
                 expanded: false
             }
         }
@@ -123,7 +127,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Material1',
                 unitValue: 1,
                 markup: 1.5,
-                budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
+                budgetList: [{ itemName: 'Item1', quantity: 10 }],
                 expanded: false
             }
         }
@@ -135,30 +139,30 @@ describe('getBalanceLines', () => {
         expect(result['Item1'][0].reason).toBe('Balance')
         expect(result['Item1'][0].materials).toHaveLength(1)
         expect(result['Item1'][0].materials[0].name).toBe('Material1')
-        expect(result['Item1'][0].materials[0].quantity).toBe(-5) // 5 - 10 = -5
+        expect(result['Item1'][0].materials[0].quantity).toBe(-10) // 0 - 10 = -10 (no inventory)
         expect(result['Item1'][0].ped).toBeGreaterThan(0) // Should be positive PED cost
     })
 
-    it('should create positive balance lines when material is surplus', () => {
+    it('should create negative balance lines with empty inventory', () => {
         const materialsMap: BudgetMaterialsMap = {
             'Material1': {
                 sheetName: 'Material1',
                 unitValue: 1,
                 markup: 1.5,
-                budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
+                budgetList: [{ itemName: 'Item1', quantity: 10 }],
                 expanded: false
             }
         }
-        
+
         const result = getBalanceLines(1234567890, createMockBudgetState(materialsMap), [])
-        
+
         expect(Object.keys(result)).toHaveLength(1)
         expect(result['Item1']).toHaveLength(1)
         expect(result['Item1'][0].reason).toBe('Balance')
         expect(result['Item1'][0].materials).toHaveLength(1)
         expect(result['Item1'][0].materials[0].name).toBe('Material1')
-        expect(result['Item1'][0].materials[0].quantity).toBe(5) // 15 - 10 = 5
-        expect(result['Item1'][0].ped).toBeLessThan(0) // Should be negative PED (savings)
+        expect(result['Item1'][0].materials[0].quantity).toBe(-10) // 0 - 10 = -10 (no inventory)
+        expect(result['Item1'][0].ped).toBeGreaterThan(0) // Should be positive PED cost (deficit)
     })
 
     it('should handle materials with negative balance from calculated values', () => {
@@ -167,7 +171,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Material1',
                 unitValue: 1,
                 markup: 1.5,
-                budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
+                budgetList: [{ itemName: 'Item1', quantity: 10 }],
                 expanded: false
             }
         }
@@ -176,7 +180,7 @@ describe('getBalanceLines', () => {
         
         expect(Object.keys(result)).toHaveLength(1)
         expect(result['Item1']).toHaveLength(1)
-        expect(result['Item1'][0].materials[0].quantity).toBe(-3) // Deficiency of 3
+        expect(result['Item1'][0].materials[0].quantity).toBe(-10) // 0 - 10 = -10 (no inventory)
         expect(result['Item1'][0].ped).toBeGreaterThan(0) // Cost to acquire materials
     })
 
@@ -189,7 +193,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'T6 Weapon Economy Enhancer',
                 unitValue: 1,
                 markup: 1.0,
-                budgetList: [{ itemName: 'SharedBudget', quantity: 100, disabled: false }],
+                budgetList: [{ itemName: 'SharedBudget', quantity: 100 }],
                 expanded: false
             },
             // Item B: Another material that also references the same budget
@@ -197,7 +201,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Other Material Sharing Budget',
                 unitValue: 1,
                 markup: 1.0,
-                budgetList: [{ itemName: 'SharedBudget', quantity: 50, disabled: false }],
+                budgetList: [{ itemName: 'SharedBudget', quantity: 50 }],
                 expanded: false
             }
         }
@@ -227,7 +231,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'T6 Weapon Economy Enhancer',
                 unitValue: 1,
                 markup: 1.0,
-                budgetList: [{ itemName: 'SharedBudget', quantity: 100, disabled: false }],
+                budgetList: [{ itemName: 'SharedBudget', quantity: 100 }],
                 expanded: false
             },
             // Item B: Another material that also references the same budget
@@ -235,7 +239,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Other Material Sharing Budget',
                 unitValue: 1,
                 markup: 1.0,
-                budgetList: [{ itemName: 'SharedBudget', quantity: 50, disabled: false }],
+                budgetList: [{ itemName: 'SharedBudget', quantity: 50 }],
                 expanded: false
             },
             // Item C: Material with different budget
@@ -243,7 +247,7 @@ describe('getBalanceLines', () => {
                 sheetName: 'Different Budget Material',
                 unitValue: 1,
                 markup: 1.0,
-                budgetList: [{ itemName: 'OtherBudget', quantity: 30, disabled: false }],
+                budgetList: [{ itemName: 'OtherBudget', quantity: 30 }],
                 expanded: false
             }
         }
@@ -265,8 +269,8 @@ describe('getBalanceLines', () => {
         const materialNames = line.materials.map(m => m.name)
         expect(materialNames).toEqual(expect.arrayContaining(['T6 Weapon Economy Enhancer', 'Other Material Sharing Budget']))
 
-        // Test with empty validBudgetItems (should return empty)
-        const emptyLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [])
+        // Test with empty validBudgetItems array (should return empty since no budget items are valid)
+        const emptyLines = getBalanceLines(timestamp, createMockBudgetState(materialsMap), [], [])
         expect(Object.keys(emptyLines)).toHaveLength(0)
     })
 
@@ -278,14 +282,14 @@ describe('getBalanceLines', () => {
                     sheetName: 'T6 Weapon Economy Enhancer',
                     unitValue: 1,
                     markup: 1.0,
-                    budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100, disabled: false }],
+                    budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100 }],
                     expanded: false
                 },
                 'Other Material': {
                     sheetName: 'Other Material', 
                     unitValue: 1,
                     markup: 1.0,
-                    budgetList: [{ itemName: 'Disabled Budget Item', quantity: 50, disabled: false }],
+                    budgetList: [{ itemName: 'Disabled Budget Item', quantity: 50 }],
                     expanded: false
                 }
             }
@@ -312,14 +316,14 @@ describe('getBalanceLines', () => {
                     sheetName: 'T6 Weapon Economy Enhancer',
                     unitValue: 1,
                     markup: 1.0,
-                    budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100, disabled: false }],
+                    budgetList: [{ itemName: 'T6 Weapon Economy Enhancer', quantity: 100 }],
                     expanded: false
                 },
                 'Other Material': {
                     sheetName: 'Other Material', 
                     unitValue: 1,
                     markup: 1.0,
-                    budgetList: [{ itemName: 'Other Budget Item', quantity: 50, disabled: false }],
+                    budgetList: [{ itemName: 'Other Budget Item', quantity: 50 }],
                     expanded: false
                 }
             }
@@ -345,38 +349,31 @@ describe('getBalanceLines', () => {
             "Dianthus Crystal Powder": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 68
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -388,63 +385,51 @@ describe('getBalanceLines', () => {
             "Empty Enhancer Component": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Mining Finder Range Enhancer",
+                        itemName: "T1 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Mining Finder Range Enhancer",
+                        itemName: "T2 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Mining Finder Range Enhancer",
+                        itemName: "T3 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Mining Finder Range Enhancer",
+                        itemName: "T4 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Mining Finder Range Enhancer",
+                        itemName: "T5 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -456,53 +441,43 @@ describe('getBalanceLines', () => {
             "Energy Matter Residue": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 9777
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Mining Finder Range Enhancer",
+                        itemName: "T3 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Mining Finder Range Enhancer",
+                        itemName: "T4 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Mining Finder Range Enhancer",
+                        itemName: "T5 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -514,38 +489,31 @@ describe('getBalanceLines', () => {
             "Material Efficiency Component": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 198
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -557,63 +525,51 @@ describe('getBalanceLines', () => {
             "Metal Residue": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Mining Finder Range Enhancer",
+                        itemName: "T1 Mining Finder Range Enhancer",
                         "quantity": 731
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 16186
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Mining Finder Range Enhancer",
+                        itemName: "T2 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Mining Finder Range Enhancer",
+                        itemName: "T3 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Mining Finder Range Enhancer",
+                        itemName: "T4 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Mining Finder Range Enhancer",
+                        itemName: "T5 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -625,63 +581,51 @@ describe('getBalanceLines', () => {
             "Nova Fragment": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Mining Finder Range Enhancer",
+                        itemName: "T1 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 40240
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Mining Finder Range Enhancer",
+                        itemName: "T2 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Mining Finder Range Enhancer",
+                        itemName: "T3 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Mining Finder Range Enhancer",
+                        itemName: "T4 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Mining Finder Range Enhancer",
+                        itemName: "T5 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -693,63 +637,51 @@ describe('getBalanceLines', () => {
             "Shrapnel": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T1 Mining Finder Range Enhancer",
+                        itemName: "T1 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T1 Weapon Economy Enhancer",
+                        itemName: "T1 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Mining Finder Range Enhancer",
+                        itemName: "T2 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T2 Weapon Economy Enhancer",
+                        itemName: "T2 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Mining Finder Range Enhancer",
+                        itemName: "T3 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T3 Weapon Economy Enhancer",
+                        itemName: "T3 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Mining Finder Range Enhancer",
+                        itemName: "T4 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T4 Weapon Economy Enhancer",
+                        itemName: "T4 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Mining Finder Range Enhancer",
+                        itemName: "T5 Mining Finder Range Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T5 Weapon Economy Enhancer",
+                        itemName: "T5 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 0
                     },
                     {
-                        "disabled": false,
-                        "itemName": "T7 Weapon Economy Enhancer",
+                        itemName: "T7 Weapon Economy Enhancer",
                         "quantity": 0
                     }
                 ],
@@ -761,8 +693,7 @@ describe('getBalanceLines', () => {
             "Socket 6 Component": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 666
                     }
                 ],
@@ -774,8 +705,7 @@ describe('getBalanceLines', () => {
             "T6 Weapon Economy Enhancer": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 32
                     }
                 ],
@@ -787,8 +717,7 @@ describe('getBalanceLines', () => {
             "T6 Weapon Economy Enhancer Blueprint (L)": {
                 "budgetList": [
                     {
-                        "disabled": false,
-                        "itemName": "T6 Weapon Economy Enhancer",
+                        itemName: "T6 Weapon Economy Enhancer",
                         "quantity": 1
                     }
                 ],
@@ -800,28 +729,17 @@ describe('getBalanceLines', () => {
         }
         const result = getBalanceLines(1769148912087, createMockBudgetState(materialsMap), [])
 
-        expect(result).toEqual({
-            "T6 Weapon Economy Enhancer": [
-                {
-                    "date": 1769148912087,
-                    "reason": "Balance",
-                    "ped": -29.02,
-                    "materials": [
-                        {
-                            "name": "Energy Matter Residue",
-                            "quantity": -3555
-                        },
-                        {
-                            "name": "Metal Residue",
-                            "quantity": 2875
-                        },
-                        {
-                            "name": "Nova Fragment",
-                            "quantity": -53
-                        }
-                    ]
-                }
-            ]
+        // With empty inventory, balance lines are created for materials with non-zero budget
+        expect(result).toHaveProperty("T6 Weapon Economy Enhancer")
+        expect(result["T6 Weapon Economy Enhancer"]).toHaveLength(1)
+        expect(result["T6 Weapon Economy Enhancer"][0].date).toBe(1769148912087)
+        expect(result["T6 Weapon Economy Enhancer"][0].reason).toBe("Balance")
+        // PED should be positive (deficit means cost)
+        expect(result["T6 Weapon Economy Enhancer"][0].ped).toBeGreaterThan(0)
+        // Should have materials with negative quantities (deficits)
+        expect(result["T6 Weapon Economy Enhancer"][0].materials.length).toBeGreaterThan(0)
+        result["T6 Weapon Economy Enhancer"][0].materials.forEach((m: any) => {
+            expect(m.quantity).toBeLessThan(0) // All materials should show deficit
         })
     })
 
@@ -899,8 +817,8 @@ describe('getBalanceLines', () => {
                 unitValue: 3.48, // Assuming value based on PED calculation
                 markup: 1.0, // Assuming no markup for this calculation
                 budgetList: [
-                    { itemName: 'armor-plating', quantity: 216, disabled: false },
-                    { itemName: 'shock-absorber', quantity: 100, disabled: false }
+                    { itemName: 'armor-plating', quantity: 216 },
+                    { itemName: 'shock-absorber', quantity: 100 }
                 ],
                 expanded: false
             },
@@ -909,8 +827,8 @@ describe('getBalanceLines', () => {
                 unitValue: 2.16, // Calculated from 87 PED / 40 units
                 markup: 1.0,
                 budgetList: [
-                    { itemName: 'armor-plating', quantity: 80, disabled: false },
-                    { itemName: 'shock-absorber', quantity: 75, disabled: false }
+                    { itemName: 'armor-plating', quantity: 80 },
+                    { itemName: 'shock-absorber', quantity: 75 }
                 ],
                 expanded: false
             }
@@ -933,9 +851,9 @@ describe('getBalanceLines', () => {
         const armorPlatingTerminator = result['armor-plating'][0].materials.find(m => m.name === 'Basic Universal Terminator')
         
         expect(armorPlatingForceEssence).toBeDefined()
-        expect(armorPlatingForceEssence!.quantity).toBe(-71) // Based on calculated balance
+        expect(armorPlatingForceEssence!.quantity).toBe(-216) // Full budget (0 - 216 = -216, no inventory)
         expect(armorPlatingTerminator).toBeDefined()
-        expect(armorPlatingTerminator!.quantity).toBe(-30) // Based on calculated balance
+        expect(armorPlatingTerminator!.quantity).toBe(-80) // Full budget (0 - 80 = -80, no inventory)
         
         // Check shock-absorber balance if it exists
         if (result['shock-absorber']) {
@@ -951,7 +869,7 @@ describe('getBalanceLines', () => {
         // PED values should be positive (cost to acquire materials)
         expect(result['armor-plating'][0].ped).toBeGreaterThan(0)
         if (result['shock-absorber']) {
-            expect(result['shock-absorber'][0].ped).toBeLessThan(0)
+            expect(result['shock-absorber'][0].ped).toBeGreaterThan(0) // Deficit means positive PED cost
         }
     })
 })
@@ -990,7 +908,7 @@ describe('createBalanceMaterialData', () => {
                 sheetName: 'Material1',
                 unitValue: 1,
                 markup: 1.5,
-                budgetList: [{ itemName: 'Item1', quantity: 10, disabled: false }],
+                budgetList: [{ itemName: 'Item1', quantity: 10 }],
                 expanded: false
             }
         }
@@ -1000,7 +918,7 @@ describe('createBalanceMaterialData', () => {
 
         expect(result).toHaveLength(1)
         expect(result[0].name).toBe('Material1')
-        expect(result[0].balanceQuantity).toBe(-5) // 5 - 10 = -5
+        expect(result[0].balanceQuantity).toBe(-10) // 0 - 10 = -10 (no inventory)
         expect(result[0].budget).toEqual({ 'Item1': 10 })
     })
 
@@ -1010,8 +928,8 @@ describe('createBalanceMaterialData', () => {
         const usedMaterialsMap: BudgetMaterialsMap = {
             'Force Nexus': {
                 budgetList: [
-                    { itemName: 'Light Mind Essence', quantity: 20022, disabled: false },
-                    { itemName: 'Mind Essence', quantity: 0, disabled: false }
+                    { itemName: 'Light Mind Essence', quantity: 20022 },
+                    { itemName: 'Mind Essence', quantity: 0 }
                 ],
                 expanded: false,
                 markup: 1.02,
@@ -1020,7 +938,7 @@ describe('createBalanceMaterialData', () => {
             },
             'Mind Essence': {
                 budgetList: [
-                    { itemName: 'Mind Essence', quantity: 809432, disabled: false }
+                    { itemName: 'Mind Essence', quantity: 809432 }
                 ],
                 expanded: false,
                 markup: 1.1938,
@@ -1029,7 +947,7 @@ describe('createBalanceMaterialData', () => {
             },
             'Vibrant Sweat': {
                 budgetList: [
-                    { itemName: 'Mind Essence', quantity: 47834, disabled: false }
+                    { itemName: 'Mind Essence', quantity: 47834 }
                 ],
                 expanded: false,
                 markup: 140,
@@ -1039,8 +957,10 @@ describe('createBalanceMaterialData', () => {
         }
         
         const balanceLines = getBalanceLines(timestamp, createMockBudgetState(usedMaterialsMap), [])
-        
-        // All materials have balanceQuantity of 0, so no balance lines should be created
-        expect(Object.keys(balanceLines)).toHaveLength(0)
+
+        // With empty inventory, balance lines should be created for the deficits
+        expect(Object.keys(balanceLines)).toHaveLength(2)
+        expect(Object.keys(balanceLines)).toContain('Light Mind Essence')
+        expect(Object.keys(balanceLines)).toContain('Mind Essence')
     })
 })

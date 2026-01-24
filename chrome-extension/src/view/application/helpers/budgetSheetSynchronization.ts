@@ -1,7 +1,6 @@
-import { ItemData } from "../../../common/state"
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from "../../services/api/sheets/sheetsBudget"
 import { STAGE_INITIALIZING } from "../../services/api/sheets/sheetsStages"
-import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
+import { BudgetItem, BudgetMaterial, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { ItemsState } from "../state/items"
 import { isLimited, itemStringFromNameLimited, nameFromItemStringLimited } from "../helpers/craft"
@@ -25,7 +24,7 @@ export async function refreshBudgetData(
         ...item,
         refreshStatus: 'loading'
     } as BudgetItem))
-    callbacks.onProgress(budget.materials, items, 0)
+    callbacks.onProgress(budget.materials.map, items, 0)
 
     // Get sheet list with stage callback
     const list: string[] = await callbacks.getBudgetSheetList(settings)
@@ -35,10 +34,10 @@ export async function refreshBudgetData(
     let map: BudgetMaterialsMap = { }
     let loaded = 0
     for (const itemName of list) {
-        if (budget.disabledItems.names.indexOf(itemName) != -1) continue
+        if (budget.list.disabled?.indexOf(itemName) != -1) continue
 
         // Process sheet info and update item status
-        const { updatedMap, updatedItems } = await _processSheetInfo(settings, itemName, budget.disabledMaterials[itemName], materials, map, items, callbacks)
+        const { updatedMap, updatedItems } = await _processSheetInfo(settings, itemName, materials, map, items, callbacks)
 
         // Only update if we got valid results
         if (updatedMap && updatedItems) {
@@ -73,7 +72,7 @@ export async function sendBudgetPendingLinesFunc(
     lines: { [itemName: string]: BudgetLineData[] },
     callbacks: BudgetSheetInterfaceCallbacks
 ) {
-    let map: BudgetMaterialsMap = budget.materials
+    let map: BudgetMaterialsMap = budget.materials.map
     let items: BudgetItem[] = budget.list.items
 
     // Mark all existing items as loading initially
@@ -88,8 +87,9 @@ export async function sendBudgetPendingLinesFunc(
         const sheet: BudgetSheet = await callbacks.loadBudgetSheet(settings, itemName)
 
         // Add all lines to sheet
+        const isBlueprint = budget.list.items.find(i => i.name === itemName)?.isBlueprint
         for (const line of lines[itemName]) {
-            const transformedLine: BudgetLineData = isLimited(itemName) ? {
+            const transformedLine: BudgetLineData = isBlueprint ? {
                 ...line,
                 materials: line.materials.map(m => ({
                     ...m,
@@ -107,7 +107,7 @@ export async function sendBudgetPendingLinesFunc(
         items = items.filter(i => i.name !== itemName)
 
         // Process sheet info and update items
-        const { updatedMap, updatedItems } = await _processSheetInfo(settings, itemName, budget.disabledMaterials[itemName], materials, map, items, callbacks)
+        const { updatedMap, updatedItems } = await _processSheetInfo(settings, itemName, materials, map, items, callbacks)
         map = updatedMap
         items = updatedItems
 
@@ -137,7 +137,6 @@ export async function sendBudgetPendingLinesFunc(
 async function _processSheetInfo(
     settings: SettingsState,
     itemName: string,
-    disabledMaterials: string[],
     materials: ItemsState,
     map: BudgetMaterialsMap,
     items: BudgetItem[],
@@ -162,13 +161,13 @@ async function _processSheetInfo(
                 expanded: false,
                 markup: m.markup,
                 unitValue: matInfo?.refined ? matInfo.refined.kValue / 1000 : (matInfo?.web?.item?.data?.value.value ?? 0),
-                budgetList: []
+                budgetList: [],
+                disabled: []
             }
         }
 
-        const budgetElement = {
+        const budgetElement: BudgetMaterial = {
             itemName,
-            disabled: disabledMaterials?.includes(name) || false,
             quantity: m.current
         }
 
@@ -181,6 +180,7 @@ async function _processSheetInfo(
         total: info.total,
         peds: info.peds,
         url: sheet.getUrl(),
+        isBlueprint: Object.keys(info.materials).some(m => m === 'Blueprint'),
         pendingLines: items.find(i => i.name === itemName)?.pendingLines,
         refreshStatus: 'loaded'
     }

@@ -1,6 +1,6 @@
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet } from "../../services/api/sheets/sheetsBudget"
-import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE } from "../actions/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE, TOGGLE_BUDGET_SHOW_DISABLED, ENABLE_BUDGET_GROUP, DISABLE_BUDGET_GROUP } from "../actions/budget"
 import { ADD_ACTIONS, REMOVE_ACTIONS, updateActionBudgetName } from "../actions/activity"
 import { SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
 import { AppAction } from "../slice/app"
@@ -44,7 +44,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 const storedAction = activityState.list.find(act => act.id === actionId)
                 if (storedAction && storedAction.budgetName) {
                     // Remove budgetList entries for this item from all materials
-                    const updatedMap = { ...budget.materials }
+                    const updatedMap = { ...budget.materials.map }
                     for (const materialName of Object.keys(updatedMap)) {
                         updatedMap[materialName] = {
                             ...updatedMap[materialName],
@@ -70,7 +70,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case ADD_BUDGET_ITEM_PENDING_LINES:
         case CLEAR_BUDGET_ITEM_PENDING_LINES:
         case DELETE_BUDGET_PENDING_LINE:
-        case UPDATE_BUDGET_PENDING_LINE: {
+        case UPDATE_BUDGET_PENDING_LINE:
+        case TOGGLE_BUDGET_SHOW_DISABLED:
+        case ENABLE_BUDGET_GROUP:
+        case DISABLE_BUDGET_GROUP: {
             const state: BudgetState = getBudget(getState())
             await api.storage.saveBudget(cleanForSave(state))
             break
@@ -107,15 +110,15 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_CURRENT_INVENTORY: {
             const budget = getBudget(getState())
             // Recalculate selected status with updated inventory
-            if (Object.keys(budget.materials).length > 0) {
-                dispatch(setBudgetFromSheet(budget.materials, budget.list.items, budget.loadPercentage))
+            if (Object.keys(budget.materials.map).length > 0) {
+                dispatch(setBudgetFromSheet(budget.materials.map, budget.list.items, budget.loadPercentage))
             }
             break
         }
         case SET_ITEM_PARTIAL_WEB_DATA: {
             const materialName: string = action.payload.item
             const budget = getBudget(getState())
-            const material = budget.materials[materialName]
+            const material = budget.materials.map[materialName]
 
             if (material && material.unitValue === 0) {
                 const materials = getItems(getState())
@@ -123,7 +126,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 const unitValue = matInfo?.web?.item?.data?.value.value ?? 0
 
                 if (unitValue !== 0) {
-                    const map = { ...budget.materials }
+                    const map: BudgetMaterialsMap = { ...budget.materials.map }
                     map[materialName] = { ...map[materialName], unitValue }
                     dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
                 }

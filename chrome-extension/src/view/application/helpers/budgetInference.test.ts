@@ -9,9 +9,12 @@ describe('budgetInference', () => {
             const budgetState: BudgetState = {
                 stage: 0,
                 loadPercentage: 0,
-                disabledItems: { names: [] },
-                disabledMaterials: {},
+                materials: {
+                    disabled: {},
+                    map: {}
+                },
                 list: {
+                    disabled: [],
                     items: itemNames.map(name => ({
                         name,
                         totalMU: 0,
@@ -20,17 +23,16 @@ describe('budgetInference', () => {
                         url: `http://example.com/${name}`
                     }))
                 },
-                groups: { list: [], ungroupedExpanded: false },
-                materials: {}
+                groups: { list: [], ungroupedExpanded: false }
             }
 
             for (const material of materials) {
-                budgetState.materials[material.name] = {
+                budgetState.materials.map[material.name] = {
                     sheetName: material.name,
                     expanded: false,
                     unitValue: 0,
                     markup: 1,
-                    budgetList: [{ itemName: material.usedBy, disabled: false, quantity: 0 }],
+                    budgetList: [{ itemName: material.usedBy, quantity: 0 }],
                 }
             }
 
