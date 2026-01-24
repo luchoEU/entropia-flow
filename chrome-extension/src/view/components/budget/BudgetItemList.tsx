@@ -2,7 +2,7 @@ import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
+import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded } from '../../application/actions/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
@@ -11,13 +11,63 @@ import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/
 import { useNavigate } from 'react-router-dom'
 import { BudgetDetailsViewData, calculateBudgetViewData, calculateMaterialDetailsPanelViewData, GroupViewData, ItemViewData, MaterialDetailsPanelViewData, UrlSelection } from '../../application/helpers/budgetViewData'
 
+interface EditingPendingLine {
+    itemName: string
+    lineIdx: number
+    ped: string
+    materials: { name: string, quantity: string }[]
+}
+
 const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | null }) => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const [editingLine, setEditingLine] = useState<EditingPendingLine | null>(null)
 
     if (!viewData) {
         return <></>
     }
+
+    const startEditing = (itemName: string, lineIdx: number, ped: number | undefined, materials: { name: string, quantity: number }[], matNames: string[]) => {
+        setEditingLine({
+            itemName,
+            lineIdx,
+            ped: ped?.toString() ?? '0',
+            materials: matNames.map(name => {
+                const mat = materials.find(m => m.name === name)
+                return { name, quantity: mat?.quantity?.toString() ?? '' }
+            })
+        })
+    }
+
+    const cancelEditing = () => {
+        setEditingLine(null)
+    }
+
+    const confirmEditing = () => {
+        if (!editingLine) return
+        const ped = parseFloat(editingLine.ped) || 0
+        const materials = editingLine.materials
+            .filter(m => m.quantity !== '')
+            .map(m => ({ name: m.name, quantity: parseFloat(m.quantity) || 0 }))
+        dispatch(updateBudgetPendingLine(editingLine.itemName, editingLine.lineIdx, ped, materials))
+        setEditingLine(null)
+    }
+
+    const updateEditingPed = (value: string) => {
+        if (!editingLine) return
+        setEditingLine({ ...editingLine, ped: value })
+    }
+
+    const updateEditingMaterial = (name: string, quantity: string) => {
+        if (!editingLine) return
+        setEditingLine({
+            ...editingLine,
+            materials: editingLine.materials.map(m => m.name === name ? { ...m, quantity } : m)
+        })
+    }
+
+    const isEditing = (itemName: string, lineIdx: number) =>
+        editingLine?.itemName === itemName && editingLine?.lineIdx === lineIdx
 
     return <div className='trade-item-data'>
         <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>
@@ -75,33 +125,87 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                     <table style={{ marginLeft: '20px' }} className="table-diff">
                         <thead>
                             <tr>
+                                <th></th>
                                 <th>Date</th>
+                                <th></th>
                                 <th>Reason</th>
                                 <th>PED</th>
                                 {matNames.map((n, idx) => <th key={idx}>{n}</th>)}
                             </tr>
                         </thead>
                         <tbody>
-                            {lines.map((line, idx) => (
-                                <tr key={idx}>
-                                    <td>
-                                        {formatDateTime(line.date)}
-                                        {line.reason !== 'Balance' && (
-                                            <ImgButton
-                                                title='Delete pending line'
-                                                src='img/cross.png'
-                                                dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))}
-                                            />
-                                        )}
-                                    </td>
-                                    <td>{line.reason}</td>
-                                    <td align='right'>{line.ped?.toFixed(2) || '0.00'}</td>
-                                    {matNames.map((n, idx) => {
-                                        const m = line.materials.find(m => m.name === n);
-                                        return <td key={idx} align='right'>{m?.quantity ?? ''}</td>;
-                                    })}
-                                </tr>
-                            ))}
+                            {lines.map((line, idx) => {
+                                const editing = isEditing(itemName, idx)
+                                return (
+                                    <tr key={idx}>
+                                        <td>
+                                            {line.reason !== 'Balance' && !editing && (
+                                                <ImgButton
+                                                    title='Delete pending line'
+                                                    src='img/cross.png'
+                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))}
+                                                />
+                                            )}
+                                        </td>
+                                        <td>{formatDateTime(line.date)}</td>
+                                        <td>
+                                            {line.reason !== 'Balance' && !editing && (
+                                                <ImgButton
+                                                    title='Edit pending line'
+                                                    src='img/edit.png'
+                                                    dispatch={() => startEditing(itemName, idx, line.ped, line.materials, matNames)}
+                                                />
+                                            )}
+                                            {editing && (
+                                                <>
+                                                    <ImgButton
+                                                        title='Confirm edit'
+                                                        src='img/tick.png'
+                                                        show
+                                                        dispatch={confirmEditing}
+                                                    />
+                                                    <ImgButton
+                                                        title='Cancel edit'
+                                                        src='img/cross.png'
+                                                        show
+                                                        dispatch={cancelEditing}
+                                                    />
+                                                </>
+                                            )}
+                                        </td>
+                                        <td>{line.reason}</td>
+                                        <td align='right'>
+                                            {editing ? (
+                                                <input
+                                                    type='text'
+                                                    value={editingLine?.ped ?? ''}
+                                                    onChange={(e) => updateEditingPed(e.target.value)}
+                                                    style={{ width: '60px', textAlign: 'right' }}
+                                                />
+                                            ) : (
+                                                line.ped?.toFixed(2) || '0.00'
+                                            )}
+                                        </td>
+                                        {matNames.map((n, matIdx) => {
+                                            const m = line.materials.find(m => m.name === n)
+                                            return (
+                                                <td key={matIdx} align='right'>
+                                                    {editing ? (
+                                                        <input
+                                                            type='text'
+                                                            value={editingLine?.materials.find(em => em.name === n)?.quantity ?? ''}
+                                                            onChange={(e) => updateEditingMaterial(n, e.target.value)}
+                                                            style={{ width: '60px', textAlign: 'right' }}
+                                                        />
+                                                    ) : (
+                                                        m?.quantity ?? ''
+                                                    )}
+                                                </td>
+                                            )
+                                        })}
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 </div>

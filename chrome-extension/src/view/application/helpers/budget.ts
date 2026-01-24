@@ -358,13 +358,30 @@ const reduceDeleteBudgetPendingLine = (state: BudgetState, itemName: string, lin
      list: {
          ...state.list,
          items: state.list.items.map(item => item.name === itemName && item.pendingLines ?
-             { 
-                 ...item, 
+             {
+                 ...item,
                  pendingLines: item.pendingLines.filter((_, index) => index !== lineIndex)
              }
              : item
          )
      }
+})
+
+const reduceUpdateBudgetPendingLine = (state: BudgetState, itemName: string, lineIndex: number, ped: number, materials: { name: string, quantity: number }[]): BudgetState => ({
+    ...state,
+    list: {
+        ...state.list,
+        items: state.list.items.map(item => item.name === itemName && item.pendingLines ?
+            {
+                ...item,
+                pendingLines: item.pendingLines.map((line, index) => index === lineIndex ?
+                    { ...line, ped, materials }
+                    : line
+                )
+            }
+            : item
+        )
+    }
 })
 
 const reduceRemoveBudgetItemPendingLines = (state: BudgetState, itemName: string, lines: BudgetLineData[]): BudgetState => ({
@@ -405,5 +422,6 @@ export {
     reduceAddBudgetItemPendingLines,
     reduceClearBudgetItemPendingLines,
     reduceRemoveBudgetItemPendingLines,
-    reduceDeleteBudgetPendingLine
+    reduceDeleteBudgetPendingLine,
+    reduceUpdateBudgetPendingLine
 }

@@ -25,6 +25,7 @@ const ADD_BUDGET_ITEM_PENDING_LINES = '[budget] add item pending lines'
 const CLEAR_BUDGET_ITEM_PENDING_LINES = '[budget] clear item pending lines'
 const REMOVE_BUDGET_ITEM_PENDING_LINES = '[budget] remove item pending lines'
 const DELETE_BUDGET_PENDING_LINE = '[budget] delete pending line'
+const UPDATE_BUDGET_PENDING_LINE = '[budget] update pending line'
 
 const setBudgetState = (state: BudgetState) => ({
     type: SET_BUDGET_STATE,
@@ -163,6 +164,11 @@ const deleteBudgetPendingLine = (itemName: string, lineIndex: number) => ({
     payload: { itemName, lineIndex }
 })
 
+const updateBudgetPendingLine = (itemName: string, lineIndex: number, ped: number, materials: { name: string, quantity: number }[]) => ({
+    type: UPDATE_BUDGET_PENDING_LINE,
+    payload: { itemName, lineIndex, ped, materials }
+})
+
 export {
     SET_BUDGET_STATE,
     SET_BUDGET_FROM_SHEET,
@@ -187,6 +193,7 @@ export {
     CLEAR_BUDGET_ITEM_PENDING_LINES,
     REMOVE_BUDGET_ITEM_PENDING_LINES,
     DELETE_BUDGET_PENDING_LINE,
+    UPDATE_BUDGET_PENDING_LINE,
     setBudgetState,
     setBudgetFromSheet,
     setBudgetMaterialExpanded,
@@ -209,5 +216,6 @@ export {
     addBudgetItemPendingLines,
     clearBudgetItemPendingLines,
     removeBudgetItemPendingLines,
-    deleteBudgetPendingLine
+    deleteBudgetPendingLine,
+    updateBudgetPendingLine
 }

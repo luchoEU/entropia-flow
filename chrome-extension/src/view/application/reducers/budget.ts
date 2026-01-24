@@ -1,5 +1,5 @@
-import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DELETE_BUDGET_PENDING_LINE, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_FROM_SHEET, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, REMOVE_BUDGET_ITEM_PENDING_LINES } from "../actions/budget"
-import { reduceAddBudgetGroup, reduceAddBudgetItemPendingLines, reduceClearBudgetItemPendingLines, reduceDeleteBudgetPendingLine, reduceDisableBudgetItem, reduceDisableBudgetMaterial, reduceEnableBudgetItem, reduceEnableBudgetMaterial, initialState, reduceAddBudgetMaterialSelection, reduceMoveItemToGroup, reduceRemoveBudgetGroup, reduceRemoveBudgetMaterialSelection, reduceRenameBudgetGroup, reduceSetBudgetFromSheet, reduceToggleBudgetGroupExpanded, reduceToggleBudgetUngroupedExpanded, setBudgetMaterialExpanded, setBudgetStage, setState, reduceRemoveBudgetItemPendingLines } from "../helpers/budget"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DELETE_BUDGET_PENDING_LINE, UPDATE_BUDGET_PENDING_LINE, ADD_BUDGET_MATERIAL_SELECTION, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REMOVE_BUDGET_GROUP, REMOVE_BUDGET_MATERIAL_SELECTION, RENAME_BUDGET_GROUP, SET_BUDGET_FROM_SHEET, SET_BUDGET_MATERIAL_EXPANDED, SET_BUDGET_STAGE, SET_BUDGET_STATE, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, REMOVE_BUDGET_ITEM_PENDING_LINES } from "../actions/budget"
+import { reduceAddBudgetGroup, reduceAddBudgetItemPendingLines, reduceClearBudgetItemPendingLines, reduceDeleteBudgetPendingLine, reduceUpdateBudgetPendingLine, reduceDisableBudgetItem, reduceDisableBudgetMaterial, reduceEnableBudgetItem, reduceEnableBudgetMaterial, initialState, reduceAddBudgetMaterialSelection, reduceMoveItemToGroup, reduceRemoveBudgetGroup, reduceRemoveBudgetMaterialSelection, reduceRenameBudgetGroup, reduceSetBudgetFromSheet, reduceToggleBudgetGroupExpanded, reduceToggleBudgetUngroupedExpanded, setBudgetMaterialExpanded, setBudgetStage, setState, reduceRemoveBudgetItemPendingLines } from "../helpers/budget"
 
 export default (state = initialState, action: any) => {
     switch (action.type) {
@@ -23,6 +23,7 @@ export default (state = initialState, action: any) => {
         case CLEAR_BUDGET_ITEM_PENDING_LINES: return reduceClearBudgetItemPendingLines(state, action.payload.itemName)
         case REMOVE_BUDGET_ITEM_PENDING_LINES: return reduceRemoveBudgetItemPendingLines(state, action.payload.itemName, action.payload.lines)
         case DELETE_BUDGET_PENDING_LINE: return reduceDeleteBudgetPendingLine(state, action.payload.itemName, action.payload.lineIndex)
+        case UPDATE_BUDGET_PENDING_LINE: return reduceUpdateBudgetPendingLine(state, action.payload.itemName, action.payload.lineIndex, action.payload.ped, action.payload.materials)
         default: return state
     }
 }
