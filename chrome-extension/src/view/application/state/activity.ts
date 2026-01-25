@@ -13,6 +13,7 @@ type ActionType =
     | 'decay'
     | 'gained'
     | 'lost'
+    | 'dismiss_pet'
     | 'unknown'
 
 type ActionSource = 'inventory' | 'chat' | 'screen'
@@ -55,6 +56,8 @@ function formatActionDescription(action: InferredAction): string {
             return `📥 Gained ${action.amount} ${action.item}`
         case 'lost':
             return `📤 Lost ${action.amount} ${action.item}`
+        case 'dismiss_pet':
+            return `🐕 Dismissed ${action.amount} ${action.item}${action.value ? ` (${action.value.toFixed(2)} PED)` : ''}`
         case 'unknown':
         default:
             return `❓ Changes in ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`

@@ -196,6 +196,23 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         used.add(prod.key)
     }
 
+    // 4.75 Match pet dismissal: pets with negative quantity
+    for (const item of diff) {
+        if (used.has(item.key)) continue
+        if (item.n.includes('Pet') && item.q.startsWith('-') && item.c === 'CARRIED') {
+            const amount = Math.abs(Number(item.q)) || 1
+            const value = Math.abs(Number(item.v)) || 0
+            actions.push({
+                type: 'dismiss_pet',
+                item: item.n,
+                amount,
+                value: value || undefined,
+                relatedItems: [item]
+            })
+            used.add(item.key)
+        }
+    }
+
     // 5. Match moves: items with ⟹ or ⭢ in container
     for (const item of diff) {
         if (used.has(item.key)) continue

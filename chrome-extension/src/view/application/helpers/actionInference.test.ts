@@ -171,6 +171,22 @@ describe('actionInference', () => {
                 ]
             }])
         })
+
+        it('should infer dismiss_pet for Ancient Exarosaur Strong Pet', () => {
+            const diff: ViewItemData[] = [
+                { key: 0, n: 'Ancient Exarosaur Strong Pet', q: '-1', v: '-4.69', c: 'CARRIED' }
+            ]
+
+            const actions = inferActions(diff)
+
+            expect(actions).toEqual([{
+                type: 'dismiss_pet',
+                item: 'Ancient Exarosaur Strong Pet',
+                amount: 1,
+                value: 4.69,
+                relatedItems: [diff[0]]
+            }])
+        })
     })
 
     describe('reverseInferActions', () => {
