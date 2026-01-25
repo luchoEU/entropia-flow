@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
@@ -23,6 +23,65 @@ function getDeltaClass(delta: number | undefined) {
     } else {
         return ''
     }
+}
+
+type SortColumn = 'n' | 'q' | 'v' | 'c'
+type SortDirection = 'asc' | 'desc'
+
+const SortableItemsTable = ({ items }: { items: ViewItemData[] }) => {
+    const [sortColumn, setSortColumn] = useState<SortColumn>('v')
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortColumn(column)
+            setSortDirection('asc')
+        }
+    }
+
+    const sortedItems = [...items].sort((a, b) => {
+        const aVal = a[sortColumn]
+        const bVal = b[sortColumn]
+        let compare: number
+        if (sortColumn === 'q' || sortColumn === 'v') {
+            compare = Math.abs(parseFloat(aVal) || 0) - Math.abs(parseFloat(bVal) || 0)
+        } else {
+            compare = aVal.localeCompare(bVal)
+        }
+        return sortDirection === 'asc' ? compare : -compare
+    })
+
+    const SortHeader = ({ column, label }: { column: SortColumn, label: string }) => (
+        <th onClick={() => handleSort(column)} style={{ cursor: 'pointer' }}>
+            {label}
+            {sortColumn === column && (
+                <img src={sortDirection === 'asc' ? 'img/up.png' : 'img/down.png'} className="img-sort" style={{ marginLeft: '4px' }} />
+            )}
+        </th>
+    )
+
+    return (
+        <table className='table-diff'>
+            <thead>
+                <SortHeader column='n' label='Item' />
+                <SortHeader column='q' label='Quantity' />
+                <SortHeader column='v' label='Value' />
+                <SortHeader column='c' label='Container' />
+            </thead>
+            <tbody>
+                {sortedItems.map((item) => (
+                    <tr key={item.key}>
+                        <td><ItemText text={item.n} /></td>
+                        <td>{item.q}</td>
+                        <td>{item.v} PED</td>
+                        <td>{item.c}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    )
 }
 
 const preSessionKey = 'pre-session'
@@ -290,26 +349,7 @@ function ActivityPage() {
                                     } else {
                                     // Show inventory items
                                     const items = reverseInferActions(sessionActions)
-                                    return (
-                                        <table className='table-diff'>
-                                            <thead>
-                                                <th>Item</th>
-                                                <th>Quantity</th>
-                                                <th>Value</th>
-                                                <th>Container</th>
-                                            </thead>
-                                            <tbody>
-                                            {items.map((item) => (
-                                                <tr key={item.key}>
-                                                    <td><ItemText text={item.n} /></td>
-                                                    <td>{item.q}</td>
-                                                    <td>{item.v} PED</td>
-                                                    <td>{item.c}</td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                    )
+                                    return <SortableItemsTable items={items} />
                                     }
                                 })()}
                             </>

@@ -222,7 +222,7 @@ function toBudgetDetailsInput(s: BudgetState, itemNames: string[], selectedItem:
             peds: i.peds,
             totalMU: i.totalMU,
             total: i.total,
-            pendingLines: i.pendingLines
+            pendingLines: i.pendingLines?.length == 0 ? undefined : i.pendingLines
         })),
         materialsMap: s.materials.map,
         materialDisabled: s.materials.disabled,
