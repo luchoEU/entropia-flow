@@ -160,7 +160,6 @@ let _lastData: StreamWindowRenderData = {
                      overflow: hidden;
                      cursor: grab;
                      cursor: -webkit-grab;
-                     --neu-non-draggable-region: true;
                  }
                  .map-image {
                      position: absolute;
@@ -292,7 +291,7 @@ async function _setupMapInteractions() {
 
     // Mouse drag pan
     container.addEventListener('mousedown', (e) => {
-        if (e.button === 0) { // Left mouse button
+        if (e.button === 2) { // Right mouse button
             e.preventDefault();
             _isDragging = true;
             _lastMouseX = e.clientX;
@@ -433,7 +432,8 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
         } : d.commonData!,
         layout: layout as any
     };
-    let size = await clientRender(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    const minSize = s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 };
+    let size = await clientRender(single, dispatch, scale, minSize);
     if (size) {
         _baseSize = { width: Math.floor(size.width), height: Math.floor(size.height) };
         await setContentSize(size);
@@ -457,7 +457,13 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
         // Add resize listener if not already added
         if (!_resizeListenerAdded) {
             window.addEventListener('resize', async () => {
-                if (_baseSize) {
+                const currentSize = await Neutralino.window.getSize();
+                let streamElement: HTMLElement | null = document.getElementById('stream');
+                if (streamElement) {
+                    streamElement.style.width = `${Math.max(currentSize.width || 0, _baseSize!.width)}px`;
+                    streamElement.style.height = `${Math.max(currentSize.height || 0, _baseSize!.height)}px`;
+                }
+                /*if (_baseSize) {
                     const currentSize = await Neutralino.window.getSize();
                     const scaleX = (currentSize.width || window.innerWidth) / _baseSize.width;
                     const scaleY = (currentSize.height || window.innerHeight) / _baseSize.height;
@@ -476,7 +482,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
                         navStyle.transform = `scale(${dynamicScale})`;
                         navStyle.transformOrigin = 'top left';
                     }
-                }
+                }*/
             });
             _resizeListenerAdded = true;
         }
