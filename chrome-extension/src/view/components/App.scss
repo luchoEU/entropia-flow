@@ -1200,3 +1200,100 @@ label {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
 }
+
+// Activity Sessions
+.actions-group {
+    margin-bottom: 15px;
+}
+
+.session-header {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+}
+
+.session-header-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .difference {
+        margin-left: auto;
+        min-width: 70px;
+        text-align: center;
+    }
+}
+
+.session-expand {
+    font-size: 12px;
+    width: 16px;
+}
+
+.session-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.session-name-input {
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 6px;
+    background: white;
+}
+
+.session-date {
+    font-size: 13px;
+    color: #666;
+    margin-left: 24px;
+}
+
+.img-btn-edit {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.img-btn-edit img {
+    height: 14px;
+}
+
+.session-header:hover .img-btn-edit {
+    opacity: 1;
+}
+
+.session-content {
+    margin-left: 24px;
+}
+
+.session-meta {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+    flex-wrap: wrap;
+}
+
+.session-type {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.session-type select {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.session-inventory {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #555;
+}
+
+.btn-reinfer {
+    font-size: 12px;
+    padding: 3px 8px;
+}

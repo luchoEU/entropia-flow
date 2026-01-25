@@ -117,12 +117,13 @@ function ActivityPage() {
     const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions } = useSelector(getActivity)
     const settings = useSelector(getSettings)
     const dispatch = useDispatch()
- const navigate = useNavigate()
- const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
- const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
- const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
- const expandedSessions = new Set(expandedArray)
- const expandedActionRowsSet = new Set(expandedActionRows)
+    const navigate = useNavigate()
+    const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
+    const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
+    const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
+    const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
+    const expandedSessions = new Set(expandedArray)
+    const expandedActionRowsSet = new Set(expandedActionRows)
 
   // Build a plain text representation for copying: title + list of items
   const buildCopyTextForAction = (a: StoredAction): string => {
@@ -283,69 +284,88 @@ function ActivityPage() {
                 const isExpanded = expandedSessions.has(session.id)
                 return (
                     <div key={session.id} className='actions-group'>
-                         <h4 className='actions-date' onClick={() => toggleSession(session.id)} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default', fontSize: '18px' }}>
-                             <span style={{ marginRight: '5px' }}>{isExpanded ? '▼' : '▶'}</span>
-                            <input
-                                value={session.name}
-                                onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
-                                disabled={isPreSession}
-                                style={{ border: 'none', background: 'transparent', fontSize: 'inherit', fontWeight: 'bold' }}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                            {sessionDeltas.get(session.id) !== undefined && <span style={{ marginRight: '10px' }} className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>{sessionDeltas.get(session.id)?.toFixed(2)}</span>}
-                            {formatDateTime(start)}
-                         </h4>
-                        {isExpanded && (
-                            <>
-                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                     <span>
-                                         <strong>Type:</strong> {typeIcon}
-                                         <select
-                                             value={session.type}
-                                             onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
-                                             disabled={isPreSession}
-                                             style={{ border: 'none', background: 'transparent' }}
-                                             onClick={(e) => e.stopPropagation()}
-                                         >
-                                             <option value="unknown">Any</option>
-                                             <option value="hunt">Hunt</option>
-                                             <option value="mine">Mine</option>
-                                             <option value="craft">Craft</option>
-                                         </select>
-                                     </span>
-                                     {!isPreSession && (
-                                         <button onClick={() => dispatch(reinferSessionActions(session.id))}>
-                                             Re-infer Actions
-                                         </button>
-                                     )}
-                                 </div>
-                                {session.inventory && (
-                                    <p className="inventory-line" style={{ margin: '10px 0', fontSize: '14px' }}>
-                                        <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>
-                                        {sessionActions.length > 0 && (
-                                            <ImgButton
-                                                title="Copy session to clipboard"
-                                                src="img/copy.png"
-                                                className="img-btn-copy"
-                                                clickPopup="Copied!"
-                                                dispatch={() => {
-                                                    let text = `${session.name}\n`
-                                                    if (showActions) {
-                                                        sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
-                                                            text += '\n' + buildCopyTextForAction(action)
-                                                        })
-                                                    } else {
-                                                        const items = reverseInferActions(sessionActions)
-                                                        items.forEach(item => {
-                                                            text += `\n${item.n}: ${item.q} (${item.v} PED)`
-                                                        })
-                                                    }
-                                                    copyToClipboard(text)
-                                                }}
-                                            />
-                                        )}
-                                    </p>
+                        <div className='session-header' onClick={() => toggleSession(session.id)} style={{ cursor: sessionActions.length > 0 ? 'pointer' : 'default' }}>
+                            <div className='session-header-main'>
+                                <span className='session-expand'>{isExpanded ? '▼' : '▶'}</span>
+                                {editingSessionId === session.id ? (
+                                    <input
+                                        value={session.name}
+                                        onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
+                                        onBlur={() => setEditingSessionId(null)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') setEditingSessionId(null) }}
+                                        autoFocus
+                                        className='session-name-input'
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                ) : (
+                                    <span className='session-name'>{session.name}</span>
                                 )}
+                                {!isPreSession && editingSessionId !== session.id && (
+                                    <ImgButton
+                                        title="Edit session name"
+                                        src="img/edit.png"
+                                        className="img-btn-edit"
+                                        dispatch={() => setEditingSessionId(session.id)}
+                                    />
+                                )}
+                                {sessionDeltas.get(session.id) !== undefined && (
+                                    <span className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>
+                                        {sessionDeltas.get(session.id)?.toFixed(2)}
+                                    </span>
+                                )}
+                            </div>
+                            <span className='session-date'>{formatDateTime(start)}</span>
+                        </div>
+                        {isExpanded && (
+                            <div className='session-content'>
+                                <div className='session-meta'>
+                                    <span className='session-type'>
+                                        {typeIcon}
+                                        <select
+                                            value={session.type}
+                                            onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
+                                            disabled={isPreSession}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <option value="unknown">Any</option>
+                                            <option value="hunt">Hunt</option>
+                                            <option value="mine">Mine</option>
+                                            <option value="craft">Craft</option>
+                                        </select>
+                                    </span>
+                                    {session.inventory && (
+                                        <span className='session-inventory'>
+                                            {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)
+                                            {sessionActions.length > 0 && (
+                                                <ImgButton
+                                                    title="Copy session to clipboard"
+                                                    src="img/copy.png"
+                                                    className="img-btn-copy"
+                                                    clickPopup="Copied!"
+                                                    dispatch={() => {
+                                                        let text = `${session.name}\n`
+                                                        if (showActions) {
+                                                            sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                                                text += '\n' + buildCopyTextForAction(action)
+                                                            })
+                                                        } else {
+                                                            const items = reverseInferActions(sessionActions)
+                                                            items.forEach(item => {
+                                                                text += `\n${item.n}: ${item.q} (${item.v} PED)`
+                                                            })
+                                                        }
+                                                        copyToClipboard(text)
+                                                    }}
+                                                />
+                                            )}
+                                        </span>
+                                    )}
+                                    {!isPreSession && (
+                                        <button className='btn-reinfer' onClick={() => dispatch(reinferSessionActions(session.id))}>
+                                            Re-infer
+                                        </button>
+                                    )}
+                                </div>
                                 {sessionActions.length > 0 && (() => {
                                     if (showActions) {
                                         const dateGroups: Map<string, StoredAction[]> = new Map()
@@ -374,7 +394,7 @@ function ActivityPage() {
                                     return <SortableItemsTable items={items} />
                                     }
                                 })()}
-                            </>
+                            </div>
                         )}
                     </div>
                 )
