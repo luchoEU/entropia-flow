@@ -10,6 +10,7 @@ type ActionType =
     | 'chip_out'
     | 'refine'
     | 'craft'
+    | 'convert_ammo'
     | 'decay'
     | 'gained'
     | 'lost'
@@ -44,6 +45,8 @@ function formatActionDescription(action: InferredAction): string {
             return `🔨 Refined ${action.amount} ${action.item}`
         case 'craft':
             return `🔨 Crafted ${action.amount} ${action.item}`
+        case 'convert_ammo':
+            return `🔄 Converted ${action.amount} ${action.item}`
         case 'moved':
             return `📦 Moved ${action.item} from ${action.from} to ${action.to}`
         case 'ped_deposited':

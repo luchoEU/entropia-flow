@@ -149,6 +149,30 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
+    // 3.5 Match convert_ammo: Shrapnel consumed + Universal Ammo gained (or vice versa)
+    const shrapnelItem = diff.find(d => !used.has(d.key) && d.n === 'Shrapnel' && d.c === 'CARRIED')
+    const universalAmmoItem = diff.find(d => !used.has(d.key) && d.n === 'Universal Ammo' && d.c === 'CARRIED')
+    if (shrapnelItem && universalAmmoItem) {
+        const shrapnelQty = Number(shrapnelItem.q)
+        const universalQty = Number(universalAmmoItem.q)
+        // One should be negative (consumed) and one positive (gained)
+        if ((shrapnelQty < 0 && universalQty > 0) || (shrapnelQty > 0 && universalQty < 0)) {
+            const consumedItem = shrapnelQty < 0 ? shrapnelItem : universalAmmoItem
+            const gainedItem = shrapnelQty < 0 ? universalAmmoItem : shrapnelItem
+            const amount = Math.abs(Number(consumedItem.q))
+            const value = Math.abs(Number(consumedItem.v))
+            actions.push({
+                type: 'convert_ammo',
+                item: consumedItem.n,
+                amount,
+                value,
+                relatedItems: [consumedItem, gainedItem]
+            })
+            used.add(shrapnelItem.key)
+            used.add(universalAmmoItem.key)
+        }
+    }
+
     // 4. Match craft: one or more consumed items (negative qty) and multiple positive items (crafted item + residues)
     const consumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
     const positiveItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
@@ -213,28 +237,40 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         }
     }
 
-    // 5. Match moves: items with ⟹ or ⭢ in container
+    // 5. Match moves: items with ⟹ or ⭢ in container, grouped by from/to
+    const moveGroups = new Map<string, { from: string, to: string, items: ViewItemData[] }>()
     for (const item of diff) {
         if (used.has(item.key)) continue
         const moveMatch = item.c.match(/(.+?) ⟹ (.+)/) || item.c.match(/(.+?) ⭢ (.+)/)
         if (moveMatch) {
             const from = moveMatch[1]
             const to = moveMatch[2]
-            actions.push({
-                type: 'moved',
-                item: item.n,
-                from,
-                to,
-                relatedItems: [{
-                    key: item.key,
-                    n: item.n,
-                    q: '',
-                    v: '',  // Value change handled separately (e.g., in chip_out)
-                    c: item.c
-                }]
+            const groupKey = `${from}|${to}`
+            if (!moveGroups.has(groupKey)) {
+                moveGroups.set(groupKey, { from, to, items: [] })
+            }
+            moveGroups.get(groupKey)!.items.push({
+                key: item.key,
+                n: item.n,
+                q: '',
+                v: '',  // Value change handled separately (e.g., in chip_out)
+                c: item.c
             })
             used.add(item.key)
         }
+    }
+    for (const group of moveGroups.values()) {
+        const itemNames = group.items.map(i => i.n)
+        const displayName = itemNames.length > 3
+            ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
+            : itemNames.join(', ')
+        actions.push({
+            type: 'moved',
+            item: displayName,
+            from: group.from,
+            to: group.to,
+            relatedItems: group.items
+        })
     }
 
     // 6. Remaining items go to unknown

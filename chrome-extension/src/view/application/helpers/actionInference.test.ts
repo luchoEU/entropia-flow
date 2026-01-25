@@ -187,6 +187,49 @@ describe('actionInference', () => {
                 relatedItems: [diff[0]]
             }])
         })
+
+        it('should infer convert_ammo and moved from shrapnel to universal ammo with items moved to storage', () => {
+            const diff: ViewItemData[] = [
+                { key: 0, n: 'Shrapnel', q: '-4353', v: '-0.43', c: 'CARRIED' },
+                { key: 1, n: 'Animal Eye Oil', q: '79', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 2, n: 'Animal Muscle Oil', q: '337', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 3, n: 'Animal Oil Residue', q: '2149', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 4, n: 'Belkar Ingot', q: '1', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 5, n: 'Lysterium Ingot', q: '4', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 6, n: 'Melchi Crystal', q: '1', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 7, n: 'Metal Residue', q: '5', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 8, n: 'Simple 1 Conductors', q: '86', v: '0.00', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                { key: 9, n: 'Universal Ammo', q: '4396', v: '0.44', c: 'CARRIED' }
+            ]
+
+            const actions = inferActions(diff)
+
+            expect(actions).toEqual([
+                {
+                    type: 'convert_ammo',
+                    item: 'Shrapnel',
+                    amount: 4353,
+                    value: 0.43,
+                    relatedItems: [diff[0], diff[9]]
+                },
+                {
+                    type: 'moved',
+                    item: 'Animal Eye Oil, Animal Muscle Oil, Animal Oil Residue and 5 more',
+                    from: 'CARRIED',
+                    to: 'STORAGE (Calypso)',
+                    relatedItems: [
+                        { key: 1, n: 'Animal Eye Oil', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 2, n: 'Animal Muscle Oil', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 3, n: 'Animal Oil Residue', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 4, n: 'Belkar Ingot', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 5, n: 'Lysterium Ingot', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 6, n: 'Melchi Crystal', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 7, n: 'Metal Residue', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
+                        { key: 8, n: 'Simple 1 Conductors', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' }
+                    ]
+                }
+            ])
+        })
     })
 
     describe('reverseInferActions', () => {
