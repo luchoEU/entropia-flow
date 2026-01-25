@@ -74,9 +74,9 @@ const SortableItemsTable = ({ items }: { items: ViewItemData[] }) => {
                 {sortedItems.map((item) => (
                     <tr key={item.key}>
                         <td><ItemText text={item.n} /></td>
-                        <td>{item.q}</td>
-                        <td>{item.v} PED</td>
-                        <td>{item.c}</td>
+                        <td style={{ textAlign: 'right' }}>{item.q}</td>
+                        <td style={{ textAlign: 'right' }}>{item.v} PED</td>
+                        <td style={{ textAlign: 'left' }}>{item.c}</td>
                     </tr>
                 ))}
             </tbody>

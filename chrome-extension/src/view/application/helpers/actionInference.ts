@@ -242,20 +242,24 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
 }
 
 function reverseInferActions(actions: InferredAction[]): ViewItemData[] {
-    const uniqueItems = new Map<number, ViewItemData>()
+    const groupedItems = new Map<string, ViewItemData>()
     for (const action of actions) {
         for (const item of action.relatedItems) {
-            if (uniqueItems.has(item.key)) {
-                const existing = uniqueItems.get(item.key)!
-                if (existing.q === "") existing.q = item.q
-                if (existing.v === "") existing.v = item.v
-                if (item.c.length > existing.c.length) existing.c = item.c
+            const key = `${item.n}|${item.c}`
+            if (groupedItems.has(key)) {
+                const existing = groupedItems.get(key)!
+                const existingQ = parseInt(existing.q) || 0
+                const itemQ = parseInt(item.q) || 0
+                const existingV = parseFloat(existing.v) || 0
+                const itemV = parseFloat(item.v) || 0
+                existing.q = (existingQ + itemQ) ? String(existingQ + itemQ) : ''
+                existing.v = (existingV + itemV) ? (existingV + itemV).toFixed(2) : ''
             } else {
-                uniqueItems.set(item.key, item)
+                groupedItems.set(key, { ...item })
             }
         }
     }
-    return Array.from(uniqueItems.values())
+    return Array.from(groupedItems.values())
 }
 
 export {
