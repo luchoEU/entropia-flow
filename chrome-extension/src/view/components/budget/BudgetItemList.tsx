@@ -647,17 +647,19 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                             <th>Balance</th>
                         </tr>
                     </thead>
-                     {viewData.groups.map(renderGroup)}
-                     {viewData.ungrouped.items.length > 0 && renderUngroupedSection()}
-                     <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
-                         <td></td>
-                         <td><strong>TOTAL</strong></td>
-                         <td align='right'><strong>{viewData.totals.peds.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.stored.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.markup.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.total.toFixed(2)}</strong></td>
-                         <td align='right'><strong>{viewData.totals.balance.toFixed(2)}</strong></td>
-                     </tr>
+                      {viewData.groups.map(renderGroup)}
+                      {viewData.ungrouped.items.length > 0 && renderUngroupedSection()}
+                      <tbody>
+                          <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
+                              <td></td>
+                              <td><strong>TOTAL</strong></td>
+                              <td align='right'><strong>{viewData.totals.peds.toFixed(2)}</strong></td>
+                              <td align='right'><strong>{viewData.totals.stored.toFixed(2)}</strong></td>
+                              <td align='right'><strong>{viewData.totals.markup.toFixed(2)}</strong></td>
+                              <td align='right'><strong>{viewData.totals.total.toFixed(2)}</strong></td>
+                              <td align='right'><strong>{viewData.totals.balance.toFixed(2)}</strong></td>
+                          </tr>
+                      </tbody>
                      </table>
                  </div>
                  <div className='inline'>
