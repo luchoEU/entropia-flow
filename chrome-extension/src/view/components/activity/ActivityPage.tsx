@@ -320,8 +320,30 @@ function ActivityPage() {
                                      )}
                                  </div>
                                 {session.inventory && (
-                                    <p style={{ margin: '10px 0', fontSize: '14px' }}>
+                                    <p className="inventory-line" style={{ margin: '10px 0', fontSize: '14px' }}>
                                         <span><strong>Inventory</strong>: {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)</span>
+                                        {sessionActions.length > 0 && (
+                                            <ImgButton
+                                                title="Copy session to clipboard"
+                                                src="img/copy.png"
+                                                className="img-btn-copy"
+                                                clickPopup="Copied!"
+                                                dispatch={() => {
+                                                    let text = `${session.name}\n`
+                                                    if (showActions) {
+                                                        sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                                            text += '\n' + buildCopyTextForAction(action)
+                                                        })
+                                                    } else {
+                                                        const items = reverseInferActions(sessionActions)
+                                                        items.forEach(item => {
+                                                            text += `\n${item.n}: ${item.q} (${item.v} PED)`
+                                                        })
+                                                    }
+                                                    copyToClipboard(text)
+                                                }}
+                                            />
+                                        )}
                                     </p>
                                 )}
                                 {sessionActions.length > 0 && (() => {

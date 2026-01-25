@@ -471,6 +471,15 @@ form label {
     margin-left: 10px;
 }
 
+.inventory-line .img-btn-copy {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.inventory-line:hover .img-btn-copy {
+    opacity: 1;
+}
+
 .img-btn-export img {
     height: 14px;
 }
