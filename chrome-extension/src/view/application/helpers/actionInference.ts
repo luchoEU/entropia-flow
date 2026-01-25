@@ -1,7 +1,88 @@
-import { InferredAction } from '../state/activity'
+import { InferredAction, StoredAction } from '../state/activity'
 import { ViewItemData } from '../state/history'
 
 const PED_CARD = 'PED Card'
+const DEFAULT_LOOT_MATCH_WINDOW_MS = 60000 // 60 seconds
+
+interface LootMatch {
+    itemName: string
+    inventoryItem: ViewItemData
+    lootActionIds: string[]
+}
+
+interface MatchLootResult {
+    matches: LootMatch[]
+    unmatched: ViewItemData[]
+}
+
+/**
+ * Matches inventory diff items to existing loot actions from the client.
+ * Items that match loot will be merged with the loot actions instead of
+ * creating new inferred actions.
+ *
+ * @param inventoryItems - The inventory diff items to check
+ * @param lootActions - Existing loot actions from the client
+ * @param inventoryTimestamp - The timestamp of the inventory snapshot
+ * @param timeWindowMs - Time window to consider for matching (default 60s)
+ * @returns Object with matches and unmatched items
+ */
+function matchLootWithInventory(
+    inventoryItems: ViewItemData[],
+    lootActions: StoredAction[],
+    inventoryTimestamp: number,
+    timeWindowMs: number = DEFAULT_LOOT_MATCH_WINDOW_MS
+): MatchLootResult {
+    const matches: LootMatch[] = []
+    const unmatched: ViewItemData[] = []
+    const matchedItemNames = new Set<string>()
+
+    // Filter loot actions within time window that don't already have inventory source
+    const eligibleLootActions = lootActions.filter(action =>
+        action.type === 'loot' &&
+        !action.sources.includes('inventory') &&
+        action.timestamp >= inventoryTimestamp - timeWindowMs &&
+        action.timestamp <= inventoryTimestamp
+    )
+
+    // Build a map of item names to loot actions that contain them
+    const itemNameToLootActions = new Map<string, string[]>()
+    for (const action of eligibleLootActions) {
+        for (const relatedItem of action.relatedItems) {
+            if (!itemNameToLootActions.has(relatedItem.n)) {
+                itemNameToLootActions.set(relatedItem.n, [])
+            }
+            const actionIds = itemNameToLootActions.get(relatedItem.n)!
+            if (!actionIds.includes(action.id)) {
+                actionIds.push(action.id)
+            }
+        }
+    }
+
+    // Check each inventory item for matches
+    for (const item of inventoryItems) {
+        // Only match positive quantity items (gained, not consumed)
+        const qty = Number(item.q)
+        if (qty <= 0 && item.q !== '' && item.q !== '0') {
+            unmatched.push(item)
+            continue
+        }
+
+        // Check if this item name appears in any loot action
+        const matchingActionIds = itemNameToLootActions.get(item.n)
+        if (matchingActionIds && matchingActionIds.length > 0 && !matchedItemNames.has(item.n)) {
+            matches.push({
+                itemName: item.n,
+                inventoryItem: item,
+                lootActionIds: matchingActionIds
+            })
+            matchedItemNames.add(item.n)
+        } else {
+            unmatched.push(item)
+        }
+    }
+
+    return { matches, unmatched }
+}
 
 function inferActions(diff: ViewItemData[]): InferredAction[] {
     const actions: InferredAction[] = []
@@ -317,5 +398,8 @@ function reverseInferActions(actions: InferredAction[]): ViewItemData[] {
 
 export {
     inferActions,
-    reverseInferActions
+    reverseInferActions,
+    matchLootWithInventory,
+    LootMatch,
+    MatchLootResult
 }

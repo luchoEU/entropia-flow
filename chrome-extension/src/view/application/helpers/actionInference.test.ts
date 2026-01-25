@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals"
 import { ViewItemData } from '../state/history'
-import { inferActions, reverseInferActions } from './actionInference'
+import { StoredAction } from '../state/activity'
+import { inferActions, reverseInferActions, matchLootWithInventory } from './actionInference'
 
 describe('actionInference', () => {
     describe('inferActions', () => {
@@ -745,5 +746,157 @@ describe('actionInference', () => {
         // Verify Universal Ammo aggregation
         expect(findItem('Universal Ammo', 'Isis Project Zero-Eight, CDF Edition (L)')?.q).toBe('-15526')
         expect(findItem('Universal Ammo', 'CARRIED')?.q).toBe('-86254')
+    })
+
+    describe('matchLootWithInventory', () => {
+        it('should match inventory items to existing loot actions by item name', () => {
+            // Existing loot actions from client (game log)
+            const lootActions: StoredAction[] = [
+                {
+                    id: 'loot-1',
+                    type: 'loot',
+                    item: 'Shrapnel',
+                    value: 2.22,
+                    timestamp: 1000043000, // 16:51:43
+                    sources: ['client'],
+                    relatedItems: [
+                        { key: 1, n: 'Shrapnel', q: '22241', v: '2.22', c: 'LOOT' }
+                    ]
+                },
+                {
+                    id: 'loot-2',
+                    type: 'loot',
+                    item: 'Animal Thyroid Oil, Shrapnel',
+                    value: 1.34,
+                    timestamp: 1000003000, // 16:51:03
+                    sources: ['client'],
+                    relatedItems: [
+                        { key: 2, n: 'Animal Thyroid Oil', q: '9', v: '0.90', c: 'LOOT' },
+                        { key: 3, n: 'Shrapnel', q: '4441', v: '0.44', c: 'LOOT' }
+                    ]
+                }
+            ]
+
+            // Inventory diff items (comes later)
+            const inventoryItems: ViewItemData[] = [
+                { key: 10, n: 'Universal Ammo', q: '-57668', v: '-5.77', c: 'CARRIED' },
+                { key: 11, n: 'Shrapnel', q: '26682', v: '2.67', c: 'CARRIED' },
+                { key: 12, n: 'Mind Essence', q: '-76', v: '-0.01', c: 'CARRIED' },
+                { key: 13, n: 'Animal Thyroid Oil', q: '9', v: '0.90', c: 'CARRIED' },
+                { key: 14, n: 'ArMatrix Extender P20 (L)', q: '0', v: '-0.05', c: 'Hyperion Aurora OC-40 (L)' },
+                { key: 15, n: 'Hyperion Aurora OC-40 (L)', q: '0', v: '-0.19', c: 'CARRIED' },
+                { key: 16, n: 'Mayhem M-Matrix Beta (L)', q: '0', v: '-0.01', c: 'Hyperion Aurora OC-40 (L)' },
+                { key: 17, n: 'Melee Trauma Amplifier 4', q: '0', v: '-2.31', c: 'Hyperion Aurora OC-40 (L)' },
+                { key: 18, n: 'Restoration Chip, Adjusted', q: '0', v: '-0.02', c: 'CARRIED' }
+            ]
+
+            const inventoryTimestamp = 1000060000 // ~17 seconds after last loot
+
+            const result = matchLootWithInventory(inventoryItems, lootActions, inventoryTimestamp)
+
+            // Shrapnel and Animal Thyroid Oil should be matched
+            expect(result.matches.length).toBe(2)
+
+            // Check Shrapnel match
+            const shrapnelMatch = result.matches.find(m => m.itemName === 'Shrapnel')
+            expect(shrapnelMatch).toBeDefined()
+            expect(shrapnelMatch!.lootActionIds).toContain('loot-1')
+            expect(shrapnelMatch!.lootActionIds).toContain('loot-2')
+
+            // Check Animal Thyroid Oil match
+            const oilMatch = result.matches.find(m => m.itemName === 'Animal Thyroid Oil')
+            expect(oilMatch).toBeDefined()
+            expect(oilMatch!.lootActionIds).toContain('loot-2')
+
+            // Universal Ammo, Mind Essence, and decay items should be unmatched
+            expect(result.unmatched.length).toBe(7)
+            expect(result.unmatched.find(i => i.n === 'Universal Ammo')).toBeDefined()
+            expect(result.unmatched.find(i => i.n === 'Mind Essence')).toBeDefined()
+            expect(result.unmatched.find(i => i.n === 'ArMatrix Extender P20 (L)')).toBeDefined()
+        })
+
+        it('should not match items outside the time window', () => {
+            const lootActions: StoredAction[] = [
+                {
+                    id: 'loot-1',
+                    type: 'loot',
+                    item: 'Shrapnel',
+                    value: 2.22,
+                    timestamp: 1000000000,
+                    sources: ['client'],
+                    relatedItems: [
+                        { key: 1, n: 'Shrapnel', q: '22241', v: '2.22', c: 'LOOT' }
+                    ]
+                }
+            ]
+
+            const inventoryItems: ViewItemData[] = [
+                { key: 10, n: 'Shrapnel', q: '22241', v: '2.22', c: 'CARRIED' }
+            ]
+
+            // Inventory timestamp is 2 minutes later - outside default 60s window
+            const inventoryTimestamp = 1000120000
+
+            const result = matchLootWithInventory(inventoryItems, lootActions, inventoryTimestamp)
+
+            expect(result.matches.length).toBe(0)
+            expect(result.unmatched.length).toBe(1)
+        })
+
+        it('should only match positive quantity items (gained)', () => {
+            const lootActions: StoredAction[] = [
+                {
+                    id: 'loot-1',
+                    type: 'loot',
+                    item: 'Universal Ammo',
+                    value: 5.77,
+                    timestamp: 1000000000,
+                    sources: ['client'],
+                    relatedItems: [
+                        { key: 1, n: 'Universal Ammo', q: '57668', v: '5.77', c: 'LOOT' }
+                    ]
+                }
+            ]
+
+            const inventoryItems: ViewItemData[] = [
+                // Negative quantity - consumed, not gained
+                { key: 10, n: 'Universal Ammo', q: '-57668', v: '-5.77', c: 'CARRIED' }
+            ]
+
+            const inventoryTimestamp = 1000030000
+
+            const result = matchLootWithInventory(inventoryItems, lootActions, inventoryTimestamp)
+
+            // Should not match because the inventory item is negative (consumed)
+            expect(result.matches.length).toBe(0)
+            expect(result.unmatched.length).toBe(1)
+        })
+
+        it('should not match loot actions that already have inventory source', () => {
+            const lootActions: StoredAction[] = [
+                {
+                    id: 'loot-1',
+                    type: 'loot',
+                    item: 'Shrapnel',
+                    value: 2.22,
+                    timestamp: 1000000000,
+                    sources: ['client', 'inventory'], // Already merged
+                    relatedItems: [
+                        { key: 1, n: 'Shrapnel', q: '22241', v: '2.22', c: 'LOOT' }
+                    ]
+                }
+            ]
+
+            const inventoryItems: ViewItemData[] = [
+                { key: 10, n: 'Shrapnel', q: '22241', v: '2.22', c: 'CARRIED' }
+            ]
+
+            const inventoryTimestamp = 1000030000
+
+            const result = matchLootWithInventory(inventoryItems, lootActions, inventoryTimestamp)
+
+            expect(result.matches.length).toBe(0)
+            expect(result.unmatched.length).toBe(1)
+        })
     })
 })

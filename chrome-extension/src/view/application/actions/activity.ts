@@ -1,8 +1,10 @@
 import { StoredAction, SessionType, ActivityState } from "../state/activity"
+import { ViewItemData } from "../state/history"
 
 const ADD_ACTIONS = "[actions] add actions"
 const CLEAR_ACTIONS = "[actions] clear actions"
 const SET_LAST_PROCESSED_KEY = "[actions] set last processed key"
+const SET_LAST_PROCESSED_LOG_SERIAL = "[actions] set last processed log serial"
 const CREATE_NEW_SESSION = "[actions] create new session"
 const UPDATE_SESSION_NAME = "[actions] update session name"
 const UPDATE_SESSION_TYPE = "[actions] update session type"
@@ -20,6 +22,7 @@ const PERMANENT_EXCLUDE_ITEM = "[actions] permanent exclude item"
 const EXCLUDE_ACTION = "[actions] exclude action"
 const INCLUDE_ACTION = "[actions] include action"
 const PERMANENT_EXCLUDE_ACTION = "[actions] permanent exclude action"
+const MERGE_LOOT_WITH_INVENTORY = "[actions] merge loot with inventory"
 
 const addActions = (actions: StoredAction[]) => ({
     type: ADD_ACTIONS,
@@ -33,6 +36,11 @@ const clearActions = () => ({
 const setLastProcessedKey = (key: number) => ({
     type: SET_LAST_PROCESSED_KEY,
     payload: { key }
+})
+
+const setLastProcessedLogSerial = (serial: number) => ({
+    type: SET_LAST_PROCESSED_LOG_SERIAL,
+    payload: { serial }
 })
 
 const createNewSession = () => ({
@@ -119,10 +127,16 @@ const permanentExcludeAction = (sessionType: SessionType, actionType: string, it
     payload: { sessionType, actionType, itemName, value }
 })
 
+const mergeLootWithInventory = (actionId: string, inventoryItem: ViewItemData) => ({
+    type: MERGE_LOOT_WITH_INVENTORY,
+    payload: { actionId, inventoryItem }
+})
+
 export {
     ADD_ACTIONS,
     CLEAR_ACTIONS,
     SET_LAST_PROCESSED_KEY,
+    SET_LAST_PROCESSED_LOG_SERIAL,
     CREATE_NEW_SESSION,
     UPDATE_SESSION_NAME,
     UPDATE_SESSION_TYPE,
@@ -140,9 +154,11 @@ export {
     EXCLUDE_ACTION,
     INCLUDE_ACTION,
     PERMANENT_EXCLUDE_ACTION,
+    MERGE_LOOT_WITH_INVENTORY,
     addActions,
     clearActions,
     setLastProcessedKey,
+    setLastProcessedLogSerial,
     createNewSession,
     updateSessionName,
     updateSessionType,
@@ -159,5 +175,6 @@ export {
     permanentExcludeItem,
     excludeAction,
     includeAction,
-    permanentExcludeAction
+    permanentExcludeAction,
+    mergeLootWithInventory
 }

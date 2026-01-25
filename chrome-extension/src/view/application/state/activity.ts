@@ -15,9 +15,10 @@ type ActionType =
     | 'gained'
     | 'lost'
     | 'dismiss_pet'
+    | 'loot'
     | 'unknown'
 
-type ActionSource = 'inventory' | 'chat' | 'screen'
+type ActionSource = 'inventory' | 'chat' | 'screen' | 'client'
 
 type SessionType = 'unknown' | 'hunt' | 'mine' | 'craft'
 
@@ -61,6 +62,8 @@ function formatActionDescription(action: InferredAction): string {
             return `📤 Lost ${action.amount} ${action.item}`
         case 'dismiss_pet':
             return `🐕 Dismissed ${action.amount} ${action.item}${action.value ? ` (${action.value.toFixed(2)} PED)` : ''}`
+        case 'loot':
+            return `🎁 Looted ${action.item} (${action.value?.toFixed(2)} PED)`
         case 'unknown':
         default:
             return `❓ Changes in ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
@@ -88,6 +91,7 @@ interface SessionBoundary {
 interface ActivityState {
     list: StoredAction[]
     lastProcessedInventoryKey?: number
+    lastProcessedLogSerial?: number
     sessions: SessionBoundary[]
     expandedSessions: string[]
     expandedActionRows: string[]

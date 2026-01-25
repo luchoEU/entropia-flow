@@ -181,10 +181,12 @@ function ActivityPage() {
 
     // Build a plain text representation for copying: title + list of items
     const buildCopyTextForAction = (a: StoredAction): string => {
-        const title = (a as any).title || formatActionDescription(a)
-        let text = title
+        const time = formatTime(a.timestamp)
+        const total = a.value?.toFixed(2) || '0.00'
+        const title = formatActionDescription(a)
+        const sources = a.sources.join(', ')
+        let text = `${time} ${total} PED - ${title} - ${sources}`
         if (a.relatedItems && a.relatedItems.length > 0) {
-            text += '\nItems:'
             a.relatedItems.forEach((it: ViewItemData) => {
                 const qty = Number(it.q) || 0
                 const val = Number(it.v) || 0
@@ -381,7 +383,7 @@ function ActivityPage() {
         if (showActions) {
             // In actions view, exclude by action and by item
             const delta = sessionActions.reduce((sum, action) => {
-                if (isActionExcluded(session.id, session.type, action)) return sum
+                if (isActionExcluded(session.id, session.type, action) || !action.sources.includes('inventory')) return sum
                 return sum + action.relatedItems.reduce((itemSum, item) => {
                     if (isItemExcludedInSession(session.id, session.type, item.n)) return itemSum
                     return itemSum + (Number(item.v) || 0)

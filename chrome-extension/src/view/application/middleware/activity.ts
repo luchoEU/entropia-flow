@@ -1,15 +1,18 @@
 import { SET_HISTORY_LIST } from '../actions/history'
-import { addActions, setLastProcessedKey, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_SHOW_ACTIONS, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, removeActions, updateSessionInventory, setActionsState } from '../actions/activity'
-import { ActivityState, StoredAction } from '../state/activity'
-import { HistoryState } from '../state/history'
+import { SET_CURRENT_GAME_LOG } from '../actions/log'
+import { addActions, setLastProcessedKey, setLastProcessedLogSerial, ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, SET_LAST_PROCESSED_LOG_SERIAL, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, SET_SHOW_ACTIONS, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, MERGE_LOOT_WITH_INVENTORY, removeActions, updateSessionInventory, setActionsState, mergeLootWithInventory } from '../actions/activity'
+import { StoredAction } from '../state/activity'
 import { AppAction } from '../slice/app'
 import { getActivity } from '../selectors/activity'
 import { getHistory } from '../selectors/history'
-import { inferActions, reverseInferActions } from '../helpers/actionInference'
+import { getGameLog } from '../selectors/log'
+import { inferActions, reverseInferActions, matchLootWithInventory } from '../helpers/actionInference'
+import { GameLogData } from '../../../background/client/gameLogData'
 
 const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const prevActionsState = getActivity(getState())
     const prevLastKey = prevActionsState.lastProcessedInventoryKey
+    const prevLastLogSerial = prevActionsState.lastProcessedLogSerial
 
     await next(action)
 
@@ -23,14 +26,87 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         case ADD_ACTIONS:
         case CLEAR_ACTIONS:
         case SET_LAST_PROCESSED_KEY:
+        case SET_LAST_PROCESSED_LOG_SERIAL:
         case UPDATE_SESSION_NAME:
         case UPDATE_SESSION_TYPE:
         case UPDATE_EXPANDED_SESSIONS:
         case UPDATE_EXPANDED_ACTION_ROWS:
         case UPDATE_SESSION_INVENTORY:
-        case SET_SHOW_ACTIONS: {
+        case SET_SHOW_ACTIONS:
+        case MERGE_LOOT_WITH_INVENTORY: {
             const actionsState = getActivity(getState())
             await api.storage.saveActions(actionsState)
+            break
+        }
+        case SET_CURRENT_GAME_LOG: {
+            const gameLog: GameLogData = action.payload.gameLog
+            if (!gameLog.raw || gameLog.raw.length === 0) break
+
+            // Group loot events by timestamp
+            const lootByTimestamp = new Map<number, { serial: number; loot: { name: string; quantity: number; value: number } }[]>()
+            let maxSerial = prevLastLogSerial || 0
+
+            for (const line of gameLog.raw) {
+                // Skip if already processed
+                if (prevLastLogSerial !== undefined && line.serial <= prevLastLogSerial) {
+                    continue
+                }
+
+                // Collect loot events grouped by timestamp
+                if (line.data.loot) {
+                    if (!lootByTimestamp.has(line.time)) {
+                        lootByTimestamp.set(line.time, [])
+                    }
+                    lootByTimestamp.get(line.time)!.push({
+                        serial: line.serial,
+                        loot: line.data.loot
+                    })
+                }
+
+                if (line.serial > maxSerial) {
+                    maxSerial = line.serial
+                }
+            }
+
+            // Create one action per timestamp with all loot items
+            const newLootActions: StoredAction[] = []
+            for (const [timestamp, lootItems] of lootByTimestamp) {
+                const totalValue = lootItems.reduce((sum, item) => sum + item.loot.value, 0)
+                const relatedItems = lootItems.map(item => ({
+                    key: item.serial,
+                    n: item.loot.name,
+                    q: String(item.loot.quantity),
+                    v: item.loot.value.toFixed(2),
+                    c: 'LOOT'
+                }))
+                const minSerial = Math.min(...lootItems.map(item => item.serial))
+
+                const itemNames = lootItems.map(item => item.loot.name)
+                const displayName = itemNames.length > 3
+                    ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
+                    : itemNames.join(', ')
+
+                const storedAction: StoredAction = {
+                    type: 'loot',
+                    item: displayName,
+                    amount: lootItems.reduce((sum, item) => sum + item.loot.value, 0),
+                    value: totalValue,
+                    relatedItems,
+                    id: `loot-${minSerial}`,
+                    timestamp,
+                    sources: ['client']
+                }
+                newLootActions.push(storedAction)
+            }
+
+            if (newLootActions.length > 0) {
+                dispatch(addActions(newLootActions))
+            }
+
+            // Update lastProcessedLogSerial
+            if (maxSerial > (prevLastLogSerial || 0)) {
+                dispatch(setLastProcessedLogSerial(maxSerial))
+            }
             break
         }
         case REINFER_SESSION_ACTIONS: {
@@ -113,6 +189,12 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
         }
         case SET_HISTORY_LIST: {
             const history = getHistory(getState())
+            const actionsState = getActivity(getState())
+
+            // Get existing loot actions (type 'loot' with 'client' source, not yet merged with inventory)
+            const existingLootActions = actionsState.list.filter(
+                act => act.type === 'loot' && act.sources.includes('client')
+            )
 
             // Find new inventory items that haven't been processed yet
             const newActions: StoredAction[] = []
@@ -123,20 +205,39 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
                     continue
                 }
 
-                // Skip if no actions inferred
-                if (!inventory.actions || inventory.actions.length === 0) {
+                // Skip if no diff available
+                if (!inventory.diff || inventory.diff.length === 0) {
                     continue
                 }
 
-                // Convert InferredAction to StoredAction
-                for (const inferredAction of inventory.actions) {
-                    const storedAction: StoredAction = {
-                        ...inferredAction,
-                        id: `${inventory.key}-${inferredAction.type}-${inferredAction.item}`,
-                        timestamp: inventory.key, // The inventory key is the timestamp
-                        sources: ['inventory']
+                // Match inventory items to existing loot actions
+                const matchResult = matchLootWithInventory(
+                    inventory.diff,
+                    existingLootActions,
+                    inventory.key // inventory timestamp
+                )
+
+                // Dispatch merge actions for matched items
+                for (const match of matchResult.matches) {
+                    for (const actionId of match.lootActionIds) {
+                        dispatch(mergeLootWithInventory(actionId, match.inventoryItem))
                     }
-                    newActions.push(storedAction)
+                }
+
+                // Infer actions only for unmatched items
+                if (matchResult.unmatched.length > 0) {
+                    const inferredActions = inferActions(matchResult.unmatched)
+
+                    // Convert InferredAction to StoredAction
+                    for (const inferredAction of inferredActions) {
+                        const storedAction: StoredAction = {
+                            ...inferredAction,
+                            id: `${inventory.key}-${inferredAction.type}-${inferredAction.item}`,
+                            timestamp: inventory.key, // The inventory key is the timestamp
+                            sources: ['inventory']
+                        }
+                        newActions.push(storedAction)
+                    }
                 }
             }
 
@@ -153,8 +254,8 @@ const actionsMiddleware = ({ api }) => ({ dispatch, getState }) => next => async
             }
 
             // Update session inventory data
-            const actionsState = getActivity(getState())
-            const sessions = actionsState.sessions
+            const updatedActionsState = getActivity(getState())
+            const sessions = updatedActionsState.sessions
 
             for (const session of sessions) {
                 const endTime = sessions[sessions.indexOf(session) + 1]?.startTime || Date.now()

@@ -1,10 +1,12 @@
-import { ActivityState, StoredAction, SessionType } from "../state/activity"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_NAME, SET_SHOW_ACTIONS, SET_ACTIONS_STATE, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, EXCLUDE_ITEM, INCLUDE_ITEM, PERMANENT_EXCLUDE_ITEM, EXCLUDE_ACTION, INCLUDE_ACTION, PERMANENT_EXCLUDE_ACTION } from "../actions/activity"
+import { ActivityState, StoredAction, SessionType, ActionSource } from "../state/activity"
+import { ViewItemData } from "../state/history"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, SET_LAST_PROCESSED_LOG_SERIAL, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_NAME, SET_SHOW_ACTIONS, SET_ACTIONS_STATE, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, EXCLUDE_ITEM, INCLUDE_ITEM, PERMANENT_EXCLUDE_ITEM, EXCLUDE_ACTION, INCLUDE_ACTION, PERMANENT_EXCLUDE_ACTION, MERGE_LOOT_WITH_INVENTORY } from "../actions/activity"
 import { inferActions, reverseInferActions } from "../helpers/actionInference"
 
 const initialState: ActivityState = {
     list: [],
     lastProcessedInventoryKey: undefined,
+    lastProcessedLogSerial: undefined,
     sessions: [],
     expandedSessions: [],
     expandedActionRows: [],
@@ -27,6 +29,11 @@ interface ClearActionsAction {
 interface SetLastProcessedKeyAction {
     type: typeof SET_LAST_PROCESSED_KEY
     payload: { key: number }
+}
+
+interface SetLastProcessedLogSerialAction {
+    type: typeof SET_LAST_PROCESSED_LOG_SERIAL
+    payload: { serial: number }
 }
 
 interface CreateNewSessionAction {
@@ -113,7 +120,12 @@ interface PermanentExcludeActionAction {
     payload: { sessionType: SessionType; actionType: string; itemName: string; value: boolean }
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetNameAction | SetShowActionsAction | SetActionsStateAction | ReinferSessionActionsAction | RemoveActionsAction | ExcludeItemAction | IncludeItemAction | PermanentExcludeItemAction | ExcludeActionAction | IncludeActionAction | PermanentExcludeActionAction
+interface MergeLootWithInventoryAction {
+    type: typeof MERGE_LOOT_WITH_INVENTORY
+    payload: { actionId: string; inventoryItem: ViewItemData }
+}
+
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | SetLastProcessedLogSerialAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetNameAction | SetShowActionsAction | SetActionsStateAction | ReinferSessionActionsAction | RemoveActionsAction | ExcludeItemAction | IncludeItemAction | PermanentExcludeItemAction | ExcludeActionAction | IncludeActionAction | PermanentExcludeActionAction | MergeLootWithInventoryAction
 
 export default (state = initialState, action: ActionsAction): ActivityState => {
     switch (action.type) {
@@ -132,6 +144,11 @@ export default (state = initialState, action: ActionsAction): ActivityState => {
             return {
                 ...state,
                 lastProcessedInventoryKey: action.payload.key
+            }
+        case SET_LAST_PROCESSED_LOG_SERIAL:
+            return {
+                ...state,
+                lastProcessedLogSerial: action.payload.serial
             }
         case CREATE_NEW_SESSION:
             const nextSessionNumber = state.sessions.length + 1
@@ -291,6 +308,37 @@ export default (state = initialState, action: ActionsAction): ActivityState => {
                         [sessionType]: currentList.filter(t => t !== key)
                     }
                 }
+            }
+        }
+        case MERGE_LOOT_WITH_INVENTORY: {
+            const { actionId, inventoryItem } = action.payload
+            return {
+                ...state,
+                list: state.list.map(act => {
+                    if (act.id !== actionId) return act
+
+                    // Add 'inventory' to sources if not present
+                    const newSources: ActionSource[] = act.sources.includes('inventory')
+                        ? [...act.sources]
+                        : [...act.sources, 'inventory']
+
+                    // Update relatedItems: for matching items, change container from LOOT to "CARRIED +LOOT"
+                    const newRelatedItems = act.relatedItems.map(item => {
+                        if (item.n === inventoryItem.n && item.c === 'LOOT') {
+                            return {
+                                ...item,
+                                c: `${inventoryItem.c} +LOOT`
+                            }
+                        }
+                        return item
+                    })
+
+                    return {
+                        ...act,
+                        sources: newSources,
+                        relatedItems: newRelatedItems
+                    }
+                })
             }
         }
         default:
