@@ -1297,3 +1297,15 @@ label {
     font-size: 12px;
     padding: 3px 8px;
 }
+
+.session-meta-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.session-meta:hover .session-meta-actions {
+    opacity: 1;
+}

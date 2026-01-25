@@ -268,12 +268,6 @@ function ActivityPage() {
             <button onClick={() => dispatch(createNewSession())}>
                 New Session
             </button>
-            <ImgButton
-                title={ showActions ? 'Show items list' : 'Show grouped actions' }
-                src='img/lightning.png'
-                className='img-btn-lightning'
-                dispatch={() => setShowActions(!showActions)}
-            />
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
                 const sessionActions = groupedActions.get(session.id) || []
                 const isPreSession = session.id === 'pre-session'
@@ -336,35 +330,43 @@ function ActivityPage() {
                                     {session.inventory && (
                                         <span className='session-inventory'>
                                             {session.inventory.total.toFixed(2)} PED ({session.inventory.items} items)
-                                            {sessionActions.length > 0 && (
-                                                <ImgButton
-                                                    title="Copy session to clipboard"
-                                                    src="img/copy.png"
-                                                    className="img-btn-copy"
-                                                    clickPopup="Copied!"
-                                                    dispatch={() => {
-                                                        let text = `${session.name}\n`
-                                                        if (showActions) {
-                                                            sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
-                                                                text += '\n' + buildCopyTextForAction(action)
-                                                            })
-                                                        } else {
-                                                            const items = reverseInferActions(sessionActions)
-                                                            items.forEach(item => {
-                                                                text += `\n${item.n}: ${item.q} (${item.v} PED)`
-                                                            })
-                                                        }
-                                                        copyToClipboard(text)
-                                                    }}
-                                                />
-                                            )}
                                         </span>
                                     )}
-                                    {!isPreSession && (
-                                        <button className='btn-reinfer' onClick={() => dispatch(reinferSessionActions(session.id))}>
-                                            Re-infer
-                                        </button>
-                                    )}
+                                    <span className='session-meta-actions'>
+                                        {sessionActions.length > 0 && (
+                                            <ImgButton
+                                                title="Copy session to clipboard"
+                                                src="img/copy.png"
+                                                className="img-btn-copy"
+                                                clickPopup="Copied!"
+                                                dispatch={() => {
+                                                    let text = `${session.name}\n`
+                                                    if (showActions) {
+                                                        sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                                            text += '\n' + buildCopyTextForAction(action)
+                                                        })
+                                                    } else {
+                                                        const items = reverseInferActions(sessionActions)
+                                                        items.forEach(item => {
+                                                            text += `\n${item.n}: ${item.q} (${item.v} PED)`
+                                                        })
+                                                    }
+                                                    copyToClipboard(text)
+                                                }}
+                                            />
+                                        )}
+                                        <ImgButton
+                                            title={showActions ? 'Show items list' : 'Show grouped actions'}
+                                            src='img/lightning.png'
+                                            className='img-btn-lightning'
+                                            dispatch={() => setShowActions(!showActions)}
+                                        />
+                                        {!isPreSession && (
+                                            <button className='btn-reinfer' onClick={() => dispatch(reinferSessionActions(session.id))}>
+                                                Re-infer
+                                            </button>
+                                        )}
+                                    </span>
                                 </div>
                                 {sessionActions.length > 0 && (() => {
                                     if (showActions) {
