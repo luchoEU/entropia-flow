@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/danlock/gogosseract"
 	"github.com/kbinani/screenshot"
@@ -775,20 +776,40 @@ func main() {
 	n := screenshot.NumActiveDisplays()
 	log.Printf("Found %d displays, capturing display %d", n, displayIndex)
 
-	log.Println("Testing circle detection with debug images and OCR...")
+	log.Println("Detecting the correct circle with coordinates...")
 	circles := DetectCirclesWithDebug(displayIndex, 80, 1.0)
-	log.Printf("Found %d circles:", len(circles))
-	for i, c := range circles {
-		log.Printf("  [%d] Center: (%.1f, %.1f), Radius: %.1f", i, c.CenterX, c.CenterY, c.Radius)
-		if c.TopText != "" {
-			log.Printf("       Top text: %q", c.TopText)
+
+	// Find the correct circle with coordinates
+	var correctCircle CircleInfo
+	for _, c := range circles {
+		lon, lat := parseCoordinates(c.BottomText)
+		if lon != 0 || lat != 0 {
+			correctCircle = c
+			break
 		}
-		if c.BottomText != "" {
-			log.Printf("       Bottom text: %q", c.BottomText)
-			lon, lat := parseCoordinates(c.BottomText)
-			if lon != 0 || lat != 0 {
-				log.Printf("       Parsed coords: Lon=%d, Lat=%d", lon, lat)
-			}
+	}
+
+	if correctCircle.Radius == 0 {
+		log.Println("No circle with coordinates found")
+		return
+	}
+
+	log.Printf("Using circle at (%.1f, %.1f), Radius: %.1f", correctCircle.CenterX, correctCircle.CenterY, correctCircle.Radius)
+
+	// Infinite loop to capture and OCR
+	for {
+		bounds := screenshot.GetDisplayBounds(displayIndex)
+		img, err := screenshot.CaptureRect(bounds)
+		if err != nil {
+			log.Printf("Failed to capture: %v", err)
+			time.Sleep(time.Second)
+			continue
 		}
+
+		topText, bottomText := extractMinimapText(img, correctCircle)
+		lon, lat := parseCoordinates(bottomText)
+		log.Printf("Planet: %s, Lon: %d, Lat: %d", topText, lon, lat)
+
+		time.Sleep(time.Second)
 	}
 }
