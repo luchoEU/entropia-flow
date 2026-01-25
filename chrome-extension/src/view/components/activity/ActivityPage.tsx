@@ -177,42 +177,42 @@ function ActivityPage() {
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
     const expandedSessions = new Set(expandedArray)
     const expandedActionRowsSet = new Set(expandedActionRows)
+    const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
 
-  // Build a plain text representation for copying: title + list of items
-  const buildCopyTextForAction = (a: StoredAction): string => {
-    const title = (a as any).title || formatActionDescription(a)
-    let text = title
-    if (a.relatedItems && a.relatedItems.length > 0) {
-      text += '\nItems:'
-      a.relatedItems.forEach((it: ViewItemData) => {
-        const qty = Number(it.q) || 0
-        const val = Number(it.v) || 0
-        const total = qty * val
-        text += `\n- ${it.n} x ${qty} = ${total.toFixed(2)} PED (${val.toFixed(2)} each)`
-      })
+    // Build a plain text representation for copying: title + list of items
+    const buildCopyTextForAction = (a: StoredAction): string => {
+        const title = (a as any).title || formatActionDescription(a)
+        let text = title
+        if (a.relatedItems && a.relatedItems.length > 0) {
+            text += '\nItems:'
+            a.relatedItems.forEach((it: ViewItemData) => {
+                const qty = Number(it.q) || 0
+                const val = Number(it.v) || 0
+                text += `\n- ${it.n} x ${qty}, ${val.toFixed(2)} PED, ${it.c}`
+            })
+        }
+        return text
     }
-    return text
-  }
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text)
-        return
-      }
-    } catch {
-      // fallthrough to fallback
+    const copyToClipboard = async (text: string) => {
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text)
+                return
+            }
+        } catch {
+            // fallthrough to fallback
+        }
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.focus()
+        ta.select()
+        try { document.execCommand('copy') } catch { /* ignore */ }
+        document.body.removeChild(ta)
     }
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.left = '-9999px'
-    document.body.appendChild(ta)
-    ta.focus()
-    ta.select()
-    try { document.execCommand('copy') } catch { /* ignore */ }
-    document.body.removeChild(ta)
-  }
 
     interface ActionExclusionConfig {
         sessionId: string
@@ -512,9 +512,7 @@ function ActivityPage() {
                                                         })
                                                     } else {
                                                         const items = reverseInferActions(sessionActions)
-                                                        items.forEach(item => {
-                                                            text += `\n${item.n}: ${item.q} (${item.v} PED)`
-                                                        })
+                                                        text = items.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
                                                     }
                                                     copyToClipboard(text)
                                                 }}
