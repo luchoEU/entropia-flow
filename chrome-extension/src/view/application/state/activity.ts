@@ -35,11 +35,11 @@ interface InferredAction {
 function formatActionDescription(action: InferredAction): string {
     switch (action.type) {
         case 'sold_auction':
-            return `💰 Sold ${action.amount} ${action.item} for ${action.value} PED`
+            return `💰 Sold ${action.amount} ${action.item}`
         case 'bought_auction':
-            return `🛒 Bought ${action.amount} ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
+            return `🛒 Bought ${action.amount} ${action.item}`
         case 'listed_auction':
-            return `🏷️ Listed ${action.amount} ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED fee` : ''}`
+            return `🏷️ Listed ${action.amount} ${action.item}`
         case 'chip_out':
             return `🧠 Extracted ${action.item} from ${action.from}`
         case 'refine':
@@ -61,12 +61,12 @@ function formatActionDescription(action: InferredAction): string {
         case 'lost':
             return `📤 Lost ${action.amount} ${action.item}`
         case 'dismiss_pet':
-            return `🐕 Dismissed ${action.amount} ${action.item}${action.value ? ` (${action.value.toFixed(2)} PED)` : ''}`
+            return `🐕 Dismissed ${action.amount} ${action.item}`
         case 'loot':
-            return `🎁 Looted ${action.item} (${action.value?.toFixed(2)} PED)`
+            return `🎁 Looted ${action.item}`
         case 'unknown':
         default:
-            return `❓ Changes in ${action.item}${action.value ? ` for ${action.value.toFixed(2)} PED` : ''}`
+            return `❓ Changes in ${action.item}`
     }
 }
 
