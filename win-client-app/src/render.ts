@@ -1,4 +1,4 @@
-﻿import { render as clientRender, applyDelta } from "clientStream";
+import { render as clientRender, applyDelta } from "clientStream";
 import { StreamRenderSingle } from "../resources/stream/stream/data";
 import { SettingsData } from "./data";
 import { StreamRenderObject } from "../resources/stream/stream/data";
@@ -12,6 +12,7 @@ const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
 const MENU_LAYOUT_ID = PREFIX_LAYOUT_ID + 'menu';
 const OCR_LAYOUT_ID = PREFIX_LAYOUT_ID + 'ocr';
+const MAP_LAYOUT_ID = PREFIX_LAYOUT_ID + 'map';
 
 interface StreamWindowLayout {
     name: string;
@@ -33,30 +34,32 @@ let _lastData: StreamWindowRenderData = {
         [WAITING_LAYOUT_ID]: {
             name: 'Entropia Flow Waiting',
             htmlTemplate: `
-                <div style="display: flex; align-items: center; margin: 15px;">
-                    <img src="{{img.logo}}" alt="Logo" style="width: 50px;">
-                    <div style="margin: 10px;">
-                        <div style="font-size: 20px; font-weight: bold;">Entropia Flow</div>
-                        <div style="font-size: 14px; margin-left: 10px;">
-                            {{#uri}}Waiting for connection...{{/uri}}
-                            {{^uri}}Loading...{{/uri}}
-                        </div>
-                    </div>
-                    {{#uri}}
-                        <span id="copyButton" class="clickable">
-                            <img src="{{img.copy}}" alt="Copy" style="width: 20px;" title="{{uri}}">
-                            <span id="copyPopup">Copied!</span>
-                        </span>
-                    {{/uri}}
-                    {{^uri}}
-                        <img id="copyButton" src="{{img.loading}}" alt="Loading" style="width: 20px;">
-                    {{/uri}}
-                </div>
-            `,
+                 <div style="display: flex; align-items: center; margin: 15px;">
+                     <img src="{{img.logo}}" alt="Logo" style="width: 50px;">
+                     <div style="margin: 10px;">
+                         <div style="font-size: 20px; font-weight: bold;">Entropia Flow</div>
+                         <div style="font-size: 14px; margin-left: 10px;">
+                             {{#uri}}Waiting for connection...{{/uri}}
+                             {{^uri}}Loading...{{/uri}}
+                         </div>
+                     </div>
+                     {{#uri}}
+                         <span id="copyButton" class="clickable">
+                             <img src="{{img.copy}}" alt="Copy" style="width: 20px;" title="{{uri}}">
+                             <span id="copyPopup">Copied!</span>
+                         </span>
+                     {{/uri}}
+                     {{^uri}}
+                         <img id="copyButton" src="{{img.loading}}" alt="Loading" style="width: 20px;">
+                     {{/uri}}
+                 </div>
+             `,
             cssTemplate: `
-                .layout-root {
-                    background-color: rgba(173, 216, 230, 0.8); /* light blue */
-                }
+                 .layout-root {
+                     background-color: rgba(173, 216, 230, 0.8); /* light blue */
+                     width: 100%;
+                     height: 100%;
+                 }
                 #entropia-flow-client-menu, #entropia-flow-client-next {
                     display: none !important;
                 }
@@ -86,13 +89,15 @@ let _lastData: StreamWindowRenderData = {
         [MENU_LAYOUT_ID]: {
             name: 'Entropia Flow Menu',
             htmlTemplate: `
-                {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
-                {{^layouts}}No layouts found{{/layouts}}
-            `,
+                 {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
+                 {{^layouts}}No layouts found{{/layouts}}
+             `,
             cssTemplate: `
-                .layout-root {
-                    background-color: rgba(173, 216, 230, 0.8); /* light blue */
-                }
+                 .layout-root {
+                     background-color: rgba(173, 216, 230, 0.8); /* light blue */
+                     width: 100%;
+                     height: 100%;
+                 }
                 #entropia-flow-client-minimize,
                 #entropia-flow-client-layout,
                 #entropia-flow-client-menu,
@@ -134,50 +139,90 @@ let _lastData: StreamWindowRenderData = {
                 }
             }
         },
-        /*[OCR_LAYOUT_ID]: {
-            name: 'Entropia Flow Scanner',
+        [MAP_LAYOUT_ID]: {
+            name: 'Calypso Map',
             htmlTemplate: `
-                <div class='root'>
-                   <div></div><div class='title'>Scanner</div><div></div>
-                   <div></div><div class='area'></div><div></div>
-                   <div></div><div id='text'></div><div></div>
-                </div>
-            `,
+                 <div class="map-container">
+                     <img src="/img/CalypsoMap.jpg" class="map-image" />
+                 </div>
+             `,
             cssTemplate: `
-                .root {
-                    display: grid;
-                    grid-template-columns: 20px 1fr 20px;
-                    grid-template-rows: 1fr 20px 20px;
-                }
-                .root > div {
-                    background-color: rgba(0,0,0,.7);
-                }
-                .root > div.area {
-                    background-color: transparent;
-                }
-                .title {
-                    padding: 0px 15px;
-                    margin: 0px;
-                    color: white;
-                    font-size: 20px;
-                }
-                .area {
-                    border: solid 1px red;
-                }
-                #text {
-                    color: white;
-                    font-size: 12px;
-                    font-weight: 100;
-                    text-align: center;
-                }
-                #entropia-flow-client-layout,
-                #entropia-flow-client-menu,
-                #entropia-flow-client-next {
-                    display: none !important;
-                }
-            `,
-            action: () => _setScannerTimeout()
-        },*/
+                 .layout-root {
+                     background-color: #000;
+                     overflow: hidden;
+                     width: 100% !important;
+                     height: 100% !important;
+                 }
+                 .map-container {
+                     position: relative;
+                     width: 100%;
+                     height: 100%;
+                     overflow: hidden;
+                     cursor: grab;
+                     cursor: -webkit-grab;
+                     --neu-non-draggable-region: true;
+                 }
+                 .map-image {
+                     position: absolute;
+                     top: 50%;
+                     left: 50%;
+                     transform-origin: center;
+                     user-select: none;
+                     -webkit-user-drag: none;
+                     pointer-events: none;
+                 }
+                 #entropia-flow-client-layout,
+                 #entropia-flow-client-menu,
+                 #entropia-flow-client-next {
+                     display: none !important;
+                 }
+             `,
+            action: () => _setupMapInteractions()
+        },
+        /*[OCR_LAYOUT_ID]: {
+           name: 'Entropia Flow Scanner',
+           htmlTemplate: `
+               <div class='root'>
+                  <div></div><div class='title'>Scanner</div><div></div>
+                  <div></div><div class='area'></div><div></div>
+                  <div></div><div id='text'></div><div></div>
+               </div>
+           `,
+           cssTemplate: `
+               .root {
+                   display: grid;
+                   grid-template-columns: 20px 1fr 20px;
+                   grid-template-rows: 1fr 20px 20px;
+               }
+               .root > div {
+                   background-color: rgba(0,0,0,.7);
+               }
+               .root > div.area {
+                   background-color: transparent;
+               }
+               .title {
+                   padding: 0px 15px;
+                   margin: 0px;
+                   color: white;
+                   font-size: 20px;
+               }
+               .area {
+                   border: solid 1px red;
+               }
+               #text {
+                   color: white;
+                   font-size: 12px;
+                   font-weight: 100;
+                   text-align: center;
+               }
+               #entropia-flow-client-layout,
+               #entropia-flow-client-menu,
+               #entropia-flow-client-next {
+                   display: none !important;
+               }
+           `,
+           action: () => _setScannerTimeout()
+       },*/
     }
 }
 /*
@@ -190,7 +235,111 @@ function _setScannerTimeout() {
         _setScannerTimeout(); // set 1 second again after it finishes
     }, 1000);
 }
-*/
+ */
+
+// Map interaction state
+interface MapState {
+    zoom: number;
+    panX: number;
+    panY: number;
+}
+
+const MAP_STORE_KEY = 'entropiaflow.map.state';
+let _currentMapState: MapState = { zoom: 1, panX: 0, panY: 0 };
+let _isDragging = false;
+let _lastMouseX = 0;
+let _lastMouseY = 0;
+
+async function _setupMapInteractions() {
+    const container = document.querySelector('.map-container') as HTMLElement;
+    const image = document.querySelector('.map-image') as HTMLImageElement;
+
+    if (!container || !image) return;
+
+    // Load saved state
+    try {
+        const savedState = await Neutralino.storage.getData(MAP_STORE_KEY);
+        if (savedState) {
+            _currentMapState = JSON.parse(savedState);
+        }
+    } catch (e) {
+        // Use default state if loading fails
+        _currentMapState = { zoom: 1, panX: 0, panY: 0 };
+    }
+
+    // Apply initial state
+    _applyMapTransform();
+
+    // Mouse wheel zoom
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = Math.max(0.5, Math.min(4, _currentMapState.zoom * zoomFactor));
+
+        // Zoom towards mouse position
+        const rect = container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const scaleChange = newZoom / _currentMapState.zoom;
+        _currentMapState.panX = mouseX - (mouseX - _currentMapState.panX) * scaleChange;
+        _currentMapState.panY = mouseY - (mouseY - _currentMapState.panY) * scaleChange;
+        _currentMapState.zoom = newZoom;
+
+        _applyMapTransform();
+        _saveMapState();
+    });
+
+    // Mouse drag pan
+    container.addEventListener('mousedown', (e) => {
+        if (e.button === 0) { // Left mouse button
+            e.preventDefault();
+            _isDragging = true;
+            _lastMouseX = e.clientX;
+            _lastMouseY = e.clientY;
+            container.style.cursor = 'grabbing';
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (_isDragging) {
+            const deltaX = e.clientX - _lastMouseX;
+            const deltaY = e.clientY - _lastMouseY;
+
+            _currentMapState.panX += deltaX;
+            _currentMapState.panY += deltaY;
+
+            _lastMouseX = e.clientX;
+            _lastMouseY = e.clientY;
+
+            _applyMapTransform();
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (_isDragging) {
+            _isDragging = false;
+            container.style.cursor = 'grab';
+            _saveMapState();
+        }
+    });
+}
+
+function _applyMapTransform() {
+    const image = document.querySelector('.map-image') as HTMLImageElement;
+    if (image) {
+        image.style.transform = `translate(-50%, -50%) translate(${_currentMapState.panX}px, ${_currentMapState.panY}px) scale(${_currentMapState.zoom})`;
+    }
+}
+
+async function _saveMapState() {
+    try {
+        await Neutralino.storage.setData(MAP_STORE_KEY, JSON.stringify(_currentMapState));
+    } catch (e) {
+        console.error('Failed to save map state:', e);
+    }
+}
+
 const _emptyLayout = {
     name: 'Entropia Flow Client Empty',
 };
@@ -231,8 +380,8 @@ function _setupButtons() {
 function receive(delta: any) {
     _lastData = applyDelta(_lastData, delta);
     const layouts = Object.entries(_lastData.layouts)
-        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
-        .map(([id,l]) => ({ id, name: l.name }))
+        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID || k === MAP_LAYOUT_ID)
+        .map(([id, l]) => ({ id, name: l.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
     if (!_lastData.layoutData) _lastData.layoutData = {};
     _lastData.layoutData![MENU_LAYOUT_ID] = { layouts };
@@ -286,6 +435,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     };
     let size = await clientRender(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     if (size) {
+        _baseSize = { width: Math.floor(size.width), height: Math.floor(size.height) };
         await setContentSize(size);
 
         size = { width: Math.floor(size.width), height: Math.floor(size.height) };
@@ -302,6 +452,33 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
                 style.height = `${size.height}px`;
                 style.removeProperty('transform');
             }
+        }
+
+        // Add resize listener if not already added
+        if (!_resizeListenerAdded) {
+            window.addEventListener('resize', async () => {
+                if (_baseSize) {
+                    const currentSize = await Neutralino.window.getSize();
+                    const scaleX = (currentSize.width || window.innerWidth) / _baseSize.width;
+                    const scaleY = (currentSize.height || window.innerHeight) / _baseSize.height;
+                    const dynamicScale = Math.min(scaleX, scaleY);
+
+                    const layoutRoot = document.querySelector('.layout-root') as HTMLElement;
+                    if (layoutRoot) {
+                        layoutRoot.style.transform = `scale(${dynamicScale})`;
+                        layoutRoot.style.transformOrigin = 'top left';
+                    }
+
+                    if (clientNav) {
+                        const navStyle = clientNav.style;
+                        navStyle.width = `${_baseSize.width / dynamicScale}px`;
+                        navStyle.height = `${_baseSize.height / dynamicScale}px`;
+                        navStyle.transform = `scale(${dynamicScale})`;
+                        navStyle.transformOrigin = 'top left';
+                    }
+                }
+            });
+            _resizeListenerAdded = true;
         }
     }
 
@@ -351,6 +528,9 @@ function streamChanged(payload: any) {
 }
 
 let _storeIntervalId: number = 0;
+let _baseSize: { width: number; height: number } | undefined;
+let _resizeListenerAdded = false;
+
 async function storeWindowData() {
     async function _storeIt() {
         const pos = await Neutralino.window.getPosition();
@@ -397,7 +577,7 @@ function switchMinimized() {
 
 document.addEventListener("DOMContentLoaded", async function () {
     _setupButtons();
-    
+
     // Load initialization data
     const initKey = interpolate(STORE_INIT, NL_PID);
     let initData: WindowData;

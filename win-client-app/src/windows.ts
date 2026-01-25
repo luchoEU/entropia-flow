@@ -80,6 +80,7 @@ async function openLastGameWindows() {
     if (_initWindowData.length === 0) {
         openGameWindow();
     } else {
+        _initWindowData = _initWindowData.slice(-1); // open only the most recent window
         _initWindowData.forEach(openGameWindow);
     }
 

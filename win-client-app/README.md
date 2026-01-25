@@ -18,7 +18,7 @@ This is a Windows client to enable more features for the extension. It is option
 
 1. [https://go.dev/dl/]
 
-1. `cd go-websocket-relay`
+1. `cd relay`
 
 1. `go install github.com/akavel/rsrc@latest`
 
@@ -46,6 +46,15 @@ This is a Windows client to enable more features for the extension. It is option
 ### Build Client for testing
 
 1. `neu run`
+
+neutralino.config.json
+  "window": {
+    "title": "Entropia Flow Client Logic (Hidden)",
+    "icon": "/resources/img/appIcon.png",
+    "hidden": true,
+    "enableInspector": true, <== change to debug
+    "exitProcessOnClose": true
+  }
 
 ### Build Client For production
 
