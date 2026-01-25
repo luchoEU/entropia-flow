@@ -37,7 +37,7 @@ export function inferBudgetLinesFromActions(
             if (mainItem) {
                 budgetName = mainItem.name
             } else {
-                const material = budget.materials[storedAction.item]
+                const material = budget.materials.map[storedAction.item]
                 if (material && material.budgetList.length > 0) {
                     budgetName = material.budgetList[0].itemName
                 }
@@ -73,6 +73,38 @@ export function inferBudgetLinesFromActions(
                     reason: 'Listed',
                     ped: storedAction.value ? -storedAction.value : 0,
                     materials: [{ name: storedAction.item, quantity: -amount }]
+                }
+                results.push({
+                    action: storedAction,
+                    budgetLine,
+                    budgetName
+                })
+            }
+        } else if (storedAction.type === 'refine') {
+            // Handle refine actions: create a budget line for the refined item
+            // and include materials used in refining from relatedItems
+            let budgetName: string | undefined
+            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            if (mainItem) {
+                budgetName = mainItem.name
+            }
+
+            if (budgetName) {
+                const amount = (storedAction.amount ?? 0)
+                const materials = [
+                    { name: storedAction.item, quantity: amount },
+                    // Include materials used from relatedItems (consumed items have negative quantity)
+                    ...storedAction.relatedItems.map(related => ({
+                        name: related.n,
+                        quantity: -parseInt(related.q) // negative for consumed materials
+                    }))
+                ]
+
+                const budgetLine: BudgetLineData = {
+                    date: storedAction.timestamp,
+                    reason: 'Refine',
+                    ped: 0,
+                    materials
                 }
                 results.push({
                     action: storedAction,

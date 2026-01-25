@@ -81,6 +81,22 @@ describe('budgetInference', () => {
             relatedItems: []
         })
 
+        const createRefineAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
+            id: `action-${Math.random()}`,
+            type: 'refine',
+            item,
+            amount,
+            timestamp,
+            sources: ['inventory'],
+            relatedItems: relatedItems.map(ri => ({
+                key: 0,
+                n: ri.name,
+                q: ri.quantity.toString(),
+                v: '0.00',
+                c: 'inventory'
+            }))
+        })
+
         const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'craft',
@@ -283,6 +299,34 @@ describe('budgetInference', () => {
                 expect(result.budgetLine.ped).toBe(-1.19)
                 expect(result.budgetLine.materials).toEqual([
                     { name: 'T3 Weapon Economy Enhancer', quantity: -7 }
+                ])
+            }
+        })
+
+        it('should create budget line for refine action with materials', () => {
+            // Arrange
+            const budget = createMockBudgetState(['Mind Essence'])
+            const refineAction = createRefineAction('Mind Essence', 1001000, [
+                { name: 'Force Nexus', quantity: 10000 },
+                { name: 'Vibrant Sweat', quantity: 10000 }
+            ], 1700000000000)
+
+            // Act
+            const results = inferBudgetLinesFromActions([refineAction], budget)
+
+            // Assert
+            expect(results).toHaveLength(1)
+            const result = results[0]
+            expect(result.action).toEqual(refineAction)
+            expect(result.budgetName).toBe('Mind Essence')
+            if (result.budgetLine) {
+                expect(result.budgetLine.date).toBe(1700000000000)
+                expect(result.budgetLine.reason).toBe('Refine')
+                expect(result.budgetLine.ped).toBe(0)
+                expect(result.budgetLine.materials).toEqual([
+                    { name: 'Mind Essence', quantity: 1001000 },
+                    { name: 'Force Nexus', quantity: -10000 },
+                    { name: 'Vibrant Sweat', quantity: -10000 }
                 ])
             }
         })
