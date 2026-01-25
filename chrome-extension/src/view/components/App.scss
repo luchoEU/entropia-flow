@@ -420,6 +420,12 @@ form label {
     color: grey;
 }
 
+.item-row-excluded {
+    color: grey;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
 .sort-row img {
     width: 8px;
     height: 8px;

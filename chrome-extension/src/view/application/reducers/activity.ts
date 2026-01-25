@@ -1,5 +1,5 @@
 import { ActivityState, StoredAction, SessionType } from "../state/activity"
-import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_NAME, SET_SHOW_ACTIONS, SET_ACTIONS_STATE, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS } from "../actions/activity"
+import { ADD_ACTIONS, CLEAR_ACTIONS, SET_LAST_PROCESSED_KEY, CREATE_NEW_SESSION, UPDATE_SESSION_NAME, UPDATE_SESSION_TYPE, UPDATE_EXPANDED_SESSIONS, UPDATE_EXPANDED_ACTION_ROWS, UPDATE_SESSION_INVENTORY, UPDATE_ACTION_BUDGET_NAME, SET_SHOW_ACTIONS, SET_ACTIONS_STATE, REINFER_SESSION_ACTIONS, REMOVE_ACTIONS, EXCLUDE_ITEM, INCLUDE_ITEM, PERMANENT_EXCLUDE_ITEM, EXCLUDE_ACTION, INCLUDE_ACTION, PERMANENT_EXCLUDE_ACTION } from "../actions/activity"
 import { inferActions, reverseInferActions } from "../helpers/actionInference"
 
 const initialState: ActivityState = {
@@ -8,7 +8,11 @@ const initialState: ActivityState = {
     sessions: [],
     expandedSessions: [],
     expandedActionRows: [],
-    showActions: true
+    showActions: true,
+    sessionBlacklist: {},
+    sessionActionBlacklist: {},
+    permanentItemBlacklist: { unknown: [], hunt: [], mine: [], craft: [] },
+    permanentActionBlacklist: { unknown: [], hunt: [], mine: [], craft: [] }
 }
 
 interface AddActionsAction {
@@ -79,7 +83,37 @@ interface RemoveActionsAction {
     payload: { actionIds: string[] }
 }
 
-type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetNameAction | SetShowActionsAction | SetActionsStateAction | ReinferSessionActionsAction | RemoveActionsAction
+interface ExcludeItemAction {
+    type: typeof EXCLUDE_ITEM
+    payload: { sessionId: string; itemName: string }
+}
+
+interface IncludeItemAction {
+    type: typeof INCLUDE_ITEM
+    payload: { sessionId: string; itemName: string }
+}
+
+interface PermanentExcludeItemAction {
+    type: typeof PERMANENT_EXCLUDE_ITEM
+    payload: { sessionType: SessionType; itemName: string; value: boolean }
+}
+
+interface ExcludeActionAction {
+    type: typeof EXCLUDE_ACTION
+    payload: { sessionId: string; actionId: string }
+}
+
+interface IncludeActionAction {
+    type: typeof INCLUDE_ACTION
+    payload: { sessionId: string; actionId: string }
+}
+
+interface PermanentExcludeActionAction {
+    type: typeof PERMANENT_EXCLUDE_ACTION
+    payload: { sessionType: SessionType; actionType: string; itemName: string; value: boolean }
+}
+
+type ActionsAction = AddActionsAction | ClearActionsAction | SetLastProcessedKeyAction | CreateNewSessionAction | UpdateSessionNameAction | UpdateSessionTypeAction | UpdateExpandedSessionsAction | UpdateExpandedActionRowsAction | UpdateSessionInventoryAction | UpdateActionBudgetNameAction | SetShowActionsAction | SetActionsStateAction | ReinferSessionActionsAction | RemoveActionsAction | ExcludeItemAction | IncludeItemAction | PermanentExcludeItemAction | ExcludeActionAction | IncludeActionAction | PermanentExcludeActionAction
 
 export default (state = initialState, action: ActionsAction): ActivityState => {
     switch (action.type) {
@@ -168,6 +202,97 @@ export default (state = initialState, action: ActionsAction): ActivityState => {
         case REINFER_SESSION_ACTIONS:
             // Logic handled in middleware
             return state
+        case EXCLUDE_ITEM: {
+            const { sessionId, itemName } = action.payload
+            const currentList = state.sessionBlacklist?.[sessionId] || []
+            if (currentList.includes(itemName)) return state
+            return {
+                ...state,
+                sessionBlacklist: {
+                    ...state.sessionBlacklist,
+                    [sessionId]: [...currentList, itemName]
+                }
+            }
+        }
+        case INCLUDE_ITEM: {
+            const { sessionId, itemName } = action.payload
+            const currentList = state.sessionBlacklist?.[sessionId] || []
+            return {
+                ...state,
+                sessionBlacklist: {
+                    ...state.sessionBlacklist,
+                    [sessionId]: currentList.filter(n => n !== itemName)
+                }
+            }
+        }
+        case PERMANENT_EXCLUDE_ITEM: {
+            const { sessionType, itemName, value } = action.payload
+            const currentList = state.permanentItemBlacklist?.[sessionType] || []
+            if (value) {
+                if (currentList.includes(itemName)) return state
+                return {
+                    ...state,
+                    permanentItemBlacklist: {
+                        ...state.permanentItemBlacklist,
+                        [sessionType]: [...currentList, itemName]
+                    }
+                }
+            } else {
+                return {
+                    ...state,
+                    permanentItemBlacklist: {
+                        ...state.permanentItemBlacklist,
+                        [sessionType]: currentList.filter(n => n !== itemName)
+                    }
+                }
+            }
+        }
+        case EXCLUDE_ACTION: {
+            const { sessionId, actionId } = action.payload
+            const currentList = state.sessionActionBlacklist?.[sessionId] || []
+            if (currentList.includes(actionId)) return state
+            return {
+                ...state,
+                sessionActionBlacklist: {
+                    ...state.sessionActionBlacklist,
+                    [sessionId]: [...currentList, actionId]
+                }
+            }
+        }
+        case INCLUDE_ACTION: {
+            const { sessionId, actionId } = action.payload
+            const currentList = state.sessionActionBlacklist?.[sessionId] || []
+            return {
+                ...state,
+                sessionActionBlacklist: {
+                    ...state.sessionActionBlacklist,
+                    [sessionId]: currentList.filter(id => id !== actionId)
+                }
+            }
+        }
+        case PERMANENT_EXCLUDE_ACTION: {
+            const { sessionType, actionType, itemName, value } = action.payload
+            const key = `${actionType}:${itemName}`
+            const currentList = state.permanentActionBlacklist?.[sessionType] || []
+            if (value) {
+                if (currentList.includes(key)) return state
+                return {
+                    ...state,
+                    permanentActionBlacklist: {
+                        ...state.permanentActionBlacklist,
+                        [sessionType]: [...currentList, key]
+                    }
+                }
+            } else {
+                return {
+                    ...state,
+                    permanentActionBlacklist: {
+                        ...state.permanentActionBlacklist,
+                        [sessionType]: currentList.filter(t => t !== key)
+                    }
+                }
+            }
+        }
         default:
             return state
     }

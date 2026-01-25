@@ -86,6 +86,14 @@ interface ActivityState {
     expandedSessions: string[]
     expandedActionRows: string[]
     showActions: boolean
+    // Per-session blacklist: sessionId -> item names excluded for this session
+    sessionBlacklist: Record<string, string[]>
+    // Per-session action blacklist: sessionId -> action ids excluded for this session
+    sessionActionBlacklist: Record<string, string[]>
+    // Permanent blacklist per session type: sessionType -> item names
+    permanentItemBlacklist: Record<SessionType, string[]>
+    // Permanent action blacklist per session type: sessionType -> action type strings
+    permanentActionBlacklist: Record<SessionType, string[]>
 }
 
 export {

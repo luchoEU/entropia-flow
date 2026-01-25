@@ -14,6 +14,12 @@ const SET_SHOW_ACTIONS = "[actions] set show actions"
 const SET_ACTIONS_STATE = "[actions] set state"
 const REINFER_SESSION_ACTIONS = "[actions] re-infer session actions"
 const REMOVE_ACTIONS = "[actions] remove actions"
+const EXCLUDE_ITEM = "[actions] exclude item"
+const INCLUDE_ITEM = "[actions] include item"
+const PERMANENT_EXCLUDE_ITEM = "[actions] permanent exclude item"
+const EXCLUDE_ACTION = "[actions] exclude action"
+const INCLUDE_ACTION = "[actions] include action"
+const PERMANENT_EXCLUDE_ACTION = "[actions] permanent exclude action"
 
 const addActions = (actions: StoredAction[]) => ({
     type: ADD_ACTIONS,
@@ -83,6 +89,36 @@ const removeActions = (actionIds: string[]) => ({
     payload: { actionIds }
 })
 
+const excludeItem = (sessionId: string, itemName: string) => ({
+    type: EXCLUDE_ITEM,
+    payload: { sessionId, itemName }
+})
+
+const includeItem = (sessionId: string, itemName: string) => ({
+    type: INCLUDE_ITEM,
+    payload: { sessionId, itemName }
+})
+
+const permanentExcludeItem = (sessionType: SessionType, itemName: string, value: boolean) => ({
+    type: PERMANENT_EXCLUDE_ITEM,
+    payload: { sessionType, itemName, value }
+})
+
+const excludeAction = (sessionId: string, actionId: string) => ({
+    type: EXCLUDE_ACTION,
+    payload: { sessionId, actionId }
+})
+
+const includeAction = (sessionId: string, actionId: string) => ({
+    type: INCLUDE_ACTION,
+    payload: { sessionId, actionId }
+})
+
+const permanentExcludeAction = (sessionType: SessionType, actionType: string, itemName: string, value: boolean) => ({
+    type: PERMANENT_EXCLUDE_ACTION,
+    payload: { sessionType, actionType, itemName, value }
+})
+
 export {
     ADD_ACTIONS,
     CLEAR_ACTIONS,
@@ -98,6 +134,12 @@ export {
     SET_ACTIONS_STATE,
     REINFER_SESSION_ACTIONS,
     REMOVE_ACTIONS,
+    EXCLUDE_ITEM,
+    INCLUDE_ITEM,
+    PERMANENT_EXCLUDE_ITEM,
+    EXCLUDE_ACTION,
+    INCLUDE_ACTION,
+    PERMANENT_EXCLUDE_ACTION,
     addActions,
     clearActions,
     setLastProcessedKey,
@@ -111,5 +153,11 @@ export {
     setShowActions,
     setActionsState,
     reinferSessionActions,
-    removeActions
+    removeActions,
+    excludeItem,
+    includeItem,
+    permanentExcludeItem,
+    excludeAction,
+    includeAction,
+    permanentExcludeAction
 }
