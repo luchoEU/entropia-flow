@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/color"
 	"image/png"
@@ -13,17 +14,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/danlock/gogosseract"
 	"github.com/kbinani/screenshot"
-	"github.com/otiai10/gosseract/v2"
 )
 
 // CircleInfo represents a detected circle with extracted text
 type CircleInfo struct {
-	CenterX  float32 `json:"centerX"`
-	CenterY  float32 `json:"centerY"`
-	Radius   float32 `json:"radius"`
-	TopText  string  `json:"topText,omitempty"`  // Text above circle (e.g., "CALYPSO")
-	BottomText string `json:"bottomText,omitempty"` // Text below circle (e.g., "Lon: 71546\nLat: 68246")
+	CenterX    float32 `json:"centerX"`
+	CenterY    float32 `json:"centerY"`
+	Radius     float32 `json:"radius"`
+	TopText    string  `json:"topText,omitempty"`    // Text above circle (e.g., "CALYPSO")
+	BottomText string  `json:"bottomText,omitempty"` // Text below circle (e.g., "Lon: 71546\nLat: 68246")
 }
 
 // MinimapInfo contains the extracted minimap data
@@ -302,6 +303,31 @@ func saveMaskAsImage(mask [][]uint8, filename string) error {
 	return png.Encode(f, img)
 }
 
+// loadImageFromPNG loads an image from a PNG file
+func loadImageFromPNG(filename string) (*image.RGBA, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	img, err := png.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+	rgba, ok := img.(*image.RGBA)
+	if !ok {
+		// Convert to RGBA
+		bounds := img.Bounds()
+		rgba = image.NewRGBA(bounds)
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				rgba.Set(x, y, img.At(x, y))
+			}
+		}
+	}
+	return rgba, nil
+}
+
 // saveImageWithCircles saves the original image with detected circles drawn on it
 func saveImageWithCircles(img *image.RGBA, circles []CircleInfo, filename string) error {
 	// Create a copy of the image
@@ -315,10 +341,25 @@ func saveImageWithCircles(img *image.RGBA, circles []CircleInfo, filename string
 
 	// Draw circles in red
 	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
-	for _, c := range circles {
+	white := color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	cyan := color.RGBA{R: 0, G: 255, B: 255, A: 255}
+	green := color.RGBA{R: 0, G: 255, B: 0, A: 255}
+
+	for i, c := range circles {
 		drawCircle(result, int(c.CenterX), int(c.CenterY), int(c.Radius), red)
 		// Draw center point
 		drawCross(result, int(c.CenterX), int(c.CenterY), 5, red)
+
+		// Draw circle number in white
+		drawText(result, int(c.CenterX)-5, int(c.CenterY)-int(c.Radius)-10, strconv.Itoa(i+1), white)
+
+		// Bottom OCR ROI (cyan with corner ticks)
+		bRect := bottomOCRRect(c)
+		drawRectOutline(result, bRect, cyan)
+
+		// Top OCR ROI (green with corner ticks)
+		tRect := topOCRRect(c)
+		drawRectOutline(result, tRect, green)
 	}
 
 	f, err := os.Create(filename)
@@ -353,28 +394,118 @@ func drawCross(img *image.RGBA, cx, cy, size int, col color.RGBA) {
 	}
 }
 
+// drawText draws simple text using a basic 5x7 font pattern
+func drawText(img *image.RGBA, x, y int, text string, col color.RGBA) {
+	// Simple 5x7 font patterns for digits 0-9
+	fontPatterns := map[rune][]string{
+		'0': {"11111", "10001", "10011", "10101", "11001", "10001", "11111"},
+		'1': {"00100", "01100", "00100", "00100", "00100", "00100", "01110"},
+		'2': {"11111", "00001", "00001", "11111", "10000", "10000", "11111"},
+		'3': {"11111", "00001", "00001", "11111", "00001", "00001", "11111"},
+		'4': {"10001", "10001", "10001", "11111", "00001", "00001", "00001"},
+		'5': {"11111", "10000", "10000", "11111", "00001", "00001", "11111"},
+		'6': {"11111", "10000", "10000", "11111", "10001", "10001", "11111"},
+		'7': {"11111", "00001", "00010", "00100", "01000", "01000", "01000"},
+		'8': {"11111", "10001", "10001", "11111", "10001", "10001", "11111"},
+		'9': {"11111", "10001", "10001", "11111", "00001", "00001", "11111"},
+	}
+
+	charWidth := 6 // 5 pixels + 1 space
+	charHeight := 7
+
+	for i, char := range text {
+		pattern, exists := fontPatterns[char]
+		if !exists {
+			continue
+		}
+
+		charX := x + i*charWidth
+		for row := 0; row < charHeight; row++ {
+			for colIdx := 0; colIdx < 5; colIdx++ {
+				if row < len(pattern) && colIdx < len(pattern[row]) && pattern[row][colIdx] == '1' {
+					px, py := charX+colIdx, y+row
+					if px >= 0 && px < img.Bounds().Dx() && py >= 0 && py < img.Bounds().Dy() {
+						img.SetRGBA(px, py, col)
+					}
+				}
+			}
+		}
+	}
+}
+
+// draw rectangle outline on image with corner ticks for better visibility
+func drawRectOutline(img *image.RGBA, rect image.Rectangle, col color.RGBA) {
+	// Clip to image bounds
+	minX := max(rect.Min.X, img.Bounds().Min.X)
+	minY := max(rect.Min.Y, img.Bounds().Min.Y)
+	maxX := min(rect.Max.X, img.Bounds().Max.X)
+	maxY := min(rect.Max.Y, img.Bounds().Max.Y)
+
+	// Top and bottom borders
+	for x := minX; x <= maxX; x++ {
+		if minY >= img.Bounds().Min.Y && minY < img.Bounds().Max.Y {
+			img.SetRGBA(x, minY, col)
+		}
+		if maxY-1 >= img.Bounds().Min.Y && maxY-1 < img.Bounds().Max.Y {
+			img.SetRGBA(x, maxY-1, col)
+		}
+	}
+	// Left and right borders
+	for y := minY; y <= maxY; y++ {
+		if minX >= img.Bounds().Min.X && minX < img.Bounds().Max.X {
+			img.SetRGBA(minX, y, col)
+		}
+		if maxX-1 >= img.Bounds().Min.X && maxX-1 < img.Bounds().Max.X {
+			img.SetRGBA(maxX-1, y, col)
+		}
+	}
+
+	// Add corner ticks (ticker-style) for better visibility
+	tickLength := 8
+	// Top-left corner
+	for i := 0; i <= tickLength; i++ {
+		if minX+i >= img.Bounds().Min.X && minX+i < img.Bounds().Max.X && minY >= img.Bounds().Min.Y && minY < img.Bounds().Max.Y {
+			img.SetRGBA(minX+i, minY, col)
+		}
+		if minY+i >= img.Bounds().Min.Y && minY+i < img.Bounds().Max.Y && minX >= img.Bounds().Min.X && minX < img.Bounds().Max.X {
+			img.SetRGBA(minX, minY+i, col)
+		}
+	}
+	// Top-right corner
+	for i := 0; i <= tickLength; i++ {
+		if maxX-i >= img.Bounds().Min.X && maxX-i < img.Bounds().Max.X && minY >= img.Bounds().Min.Y && minY < img.Bounds().Max.Y {
+			img.SetRGBA(maxX-i, minY, col)
+		}
+		if minY+i >= img.Bounds().Min.Y && minY+i < img.Bounds().Max.Y && maxX-1 >= img.Bounds().Min.X && maxX-1 < img.Bounds().Max.X {
+			img.SetRGBA(maxX-1, minY+i, col)
+		}
+	}
+	// Bottom-left corner
+	for i := 0; i <= tickLength; i++ {
+		if minX+i >= img.Bounds().Min.X && minX+i < img.Bounds().Max.X && maxY-1 >= img.Bounds().Min.Y && maxY-1 < img.Bounds().Max.Y {
+			img.SetRGBA(minX+i, maxY-1, col)
+		}
+		if maxY-i >= img.Bounds().Min.Y && maxY-i < img.Bounds().Max.Y && minX >= img.Bounds().Min.X && minX < img.Bounds().Max.X {
+			img.SetRGBA(minX, maxY-i, col)
+		}
+	}
+	// Bottom-right corner
+	for i := 0; i <= tickLength; i++ {
+		if maxX-i >= img.Bounds().Min.X && maxX-i < img.Bounds().Max.X && maxY-1 >= img.Bounds().Min.Y && maxY-1 < img.Bounds().Max.Y {
+			img.SetRGBA(maxX-i, maxY-1, col)
+		}
+		if maxY-i >= img.Bounds().Min.Y && maxY-i < img.Bounds().Max.Y && maxX-1 >= img.Bounds().Min.X && maxX-1 < img.Bounds().Max.X {
+			img.SetRGBA(maxX-1, maxY-i, col)
+		}
+	}
+}
+
 // cropImage extracts a rectangular region from an image
-func cropImage(img *image.RGBA, x, y, width, height int) *image.RGBA {
-	bounds := img.Bounds()
-
-	// Clamp coordinates to image bounds
-	if x < bounds.Min.X {
-		x = bounds.Min.X
-	}
-	if y < bounds.Min.Y {
-		y = bounds.Min.Y
-	}
-	if x+width > bounds.Max.X {
-		width = bounds.Max.X - x
-	}
-	if y+height > bounds.Max.Y {
-		height = bounds.Max.Y - y
-	}
-
-	cropped := image.NewRGBA(image.Rect(0, 0, width, height))
-	for dy := 0; dy < height; dy++ {
-		for dx := 0; dx < width; dx++ {
-			cropped.Set(dx, dy, img.At(x+dx, y+dy))
+func cropImage(img *image.RGBA, rect image.Rectangle) *image.RGBA {
+	cropped := image.NewRGBA(image.Rect(0, 0, rect.Dx(), rect.Dy()))
+	for dy := 0; dy < rect.Dy(); dy++ {
+		for dx := 0; dx < rect.Dx(); dx++ {
+			cropped.Set(dx, dy, img.At(rect.Min.X+dx, rect.Min.Y+dy))
 		}
 	}
 	return cropped
@@ -389,58 +520,141 @@ func imageToBytes(img image.Image) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// saveImageAsPNG saves an image as PNG file
+func saveImageAsPNG(img image.Image, filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, img)
+}
+
+// OCR ROI rectangles based on a detected circle
+func bottomOCRRect(c CircleInfo) image.Rectangle {
+	cx := int(c.CenterX)
+	cy := int(c.CenterY)
+	r := int(c.Radius)
+	// Increased crop size - wider and taller to capture full Lon/Lat text
+	bottomX := cx - r + r/8
+	bottomY := cy + r + 3
+	bottomWidth := r - r/4
+	bottomHeight := r * 4 / 10
+	return image.Rect(bottomX, bottomY, bottomX+bottomWidth, bottomY+bottomHeight)
+}
+
+func topOCRRect(c CircleInfo) image.Rectangle {
+	cx := int(c.CenterX)
+	cy := int(c.CenterY)
+	r := int(c.Radius)
+	// Increased crop size to capture planet names
+	topX := cx
+	topY := cy - r - r/2 + 3
+	topWidth := r + r/3
+	topHeight := r / 5
+	return image.Rect(topX, topY, topX+topWidth, topY+topHeight)
+}
+
 // extractTextFromRegion uses OCR to extract text from an image region
-func extractTextFromRegion(img *image.RGBA, x, y, width, height int) (string, error) {
-	cropped := cropImage(img, x, y, width, height)
+func extractTextFromRegion(img *image.RGBA, rect image.Rectangle) (string, error) {
+	cropped := cropImage(img, rect)
 
-	imgBytes, err := imageToBytes(cropped)
+	// Convert cropped image to PNG bytes
+	imageBytes, err := imageToBytes(cropped)
 	if err != nil {
-		return "", err
+		log.Printf("[ocr] Failed to convert image to bytes: %v", err)
+		return "OCR_CONVERT_FAILED", nil
 	}
 
-	client := gosseract.NewClient()
-	defer client.Close()
+	ctx := context.Background()
 
-	// Configure for better accuracy on game text
-	client.SetWhitelist("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789: \n")
-
-	if err := client.SetImageFromBytes(imgBytes); err != nil {
-		return "", err
+	// Try to download English traineddata if not available
+	trainingDataPath := "eng.traineddata"
+	if _, err := os.Stat(trainingDataPath); os.IsNotExist(err) {
+		log.Printf("[ocr] Downloading English traineddata for Tesseract...")
+		// For now, use a simple fallback since auto-download requires setup
+		return "OCR_NO_TRAINDATA", nil
 	}
 
-	text, err := client.Text()
+	// Open training data file
+	trainingDataFile, err := os.Open(trainingDataPath)
 	if err != nil {
-		return "", err
+		log.Printf("[ocr] Failed to open traineddata: %v", err)
+		return "OCR_NO_TRAINDATA", nil
+	}
+	defer trainingDataFile.Close()
+
+	// Create gogosseract instance
+	cfg := gogosseract.Config{
+		Language:     "eng",
+		TrainingData: trainingDataFile,
+	}
+
+	tess, err := gogosseract.New(ctx, cfg)
+	if err != nil {
+		log.Printf("[ocr] Failed to initialize gogosseract: %v", err)
+		return "OCR_INIT_FAILED", nil
+	}
+	defer tess.Close(ctx)
+
+	// Load image from bytes using bytes.Reader
+	if err := tess.LoadImage(ctx, bytes.NewReader(imageBytes), gogosseract.LoadImageOptions{}); err != nil {
+		log.Printf("[ocr] Failed to load image: %v", err)
+		return "OCR_LOAD_FAILED", nil
+	}
+
+	// Extract text
+	text, err := tess.GetText(ctx, nil)
+	if err != nil {
+		log.Printf("[ocr] Failed to extract text: %v", err)
+		return "OCR_EXTRACT_FAILED", nil
 	}
 
 	return strings.TrimSpace(text), nil
 }
 
+func clampRect(rect image.Rectangle, bounds image.Rectangle) image.Rectangle {
+	// Clamp coordinates to image bounds
+	if rect.Min.X < bounds.Min.X {
+		rect.Min.X = bounds.Min.X
+	}
+	if rect.Min.Y < bounds.Min.Y {
+		rect.Min.Y = bounds.Min.Y
+	}
+	if rect.Max.X > bounds.Max.X {
+		rect.Max.X = bounds.Max.X
+	}
+	if rect.Max.Y > bounds.Max.Y {
+		rect.Max.Y = bounds.Max.Y
+	}
+	if rect.Dx() < 10 {
+		rect.Max.X = rect.Min.X + 10 // minimum width for OCR
+	}
+	if rect.Dy() < 5 {
+		rect.Max.Y = rect.Min.Y + 5 // minimum height for OCR
+	}
+	return rect
+}
+
 // extractMinimapText extracts text around a detected circle (minimap)
 func extractMinimapText(img *image.RGBA, circle CircleInfo) (topText, bottomText string) {
-	cx := int(circle.CenterX)
-	cy := int(circle.CenterY)
-	r := int(circle.Radius)
+	bounds := img.Bounds()
 
 	// Top text region: above the circle (for "CALYPSO")
-	topX := cx - r - 20
-	topY := cy - r - 30
-	topWidth := r*2 + 40
-	topHeight := 25
+	tRect := topOCRRect(circle)
+	tRect = clampRect(tRect, bounds)
 
 	// Bottom-left text region: below and to the left of circle (for "Lon:" and "Lat:")
-	bottomX := cx - r - 30
-	bottomY := cy + r + 5
-	bottomWidth := 100
-	bottomHeight := 40
+	bRect := bottomOCRRect(circle)
+	bRect = clampRect(bRect, bounds)
 
 	var err error
-	topText, err = extractTextFromRegion(img, topX, topY, topWidth, topHeight)
+	topText, err = extractTextFromRegion(img, tRect)
 	if err != nil {
 		log.Printf("[ocr] Failed to extract top text: %v", err)
 	}
 
-	bottomText, err = extractTextFromRegion(img, bottomX, bottomY, bottomWidth, bottomHeight)
+	bottomText, err = extractTextFromRegion(img, bRect)
 	if err != nil {
 		log.Printf("[ocr] Failed to extract bottom text: %v", err)
 	}
@@ -489,6 +703,12 @@ func DetectCirclesWithDebug(displayIndex, minRadius int, screenScalingFactor flo
 	} else {
 		log.Println("[circles] Saved: debug_1_screenshot.png")
 	}
+
+	/*img, err := loadImageFromPNG("debug_1_screenshot.png")
+	if err != nil {
+		log.Printf("[circles] Failed to load screenshot: %v", err)
+		return nil
+	}*/
 
 	// Create binary mask
 	mask := createBinaryMask(img, 0, 0, 145, 180, 30, 255)
@@ -556,7 +776,7 @@ func main() {
 	log.Printf("Found %d displays, capturing display %d", n, displayIndex)
 
 	log.Println("Testing circle detection with debug images and OCR...")
-	circles := DetectCirclesWithDebug(displayIndex, 50, 1.0)
+	circles := DetectCirclesWithDebug(displayIndex, 80, 1.0)
 	log.Printf("Found %d circles:", len(circles))
 	for i, c := range circles {
 		log.Printf("  [%d] Center: (%.1f, %.1f), Radius: %.1f", i, c.CenterX, c.CenterY, c.Radius)
@@ -564,8 +784,8 @@ func main() {
 			log.Printf("       Top text: %q", c.TopText)
 		}
 		if c.BottomText != "" {
-			lon, lat := parseCoordinates(c.BottomText)
 			log.Printf("       Bottom text: %q", c.BottomText)
+			lon, lat := parseCoordinates(c.BottomText)
 			if lon != 0 || lat != 0 {
 				log.Printf("       Parsed coords: Lon=%d, Lat=%d", lon, lat)
 			}
