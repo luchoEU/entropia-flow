@@ -145,7 +145,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                 <ImgButton
                                                     title='Delete pending line'
                                                     src='img/cross.png'
-                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, idx))}
+                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, line.index))}
                                                 />
                                             )}
                                         </td>
@@ -155,7 +155,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                 <ImgButton
                                                     title='Edit pending line'
                                                     src='img/edit.png'
-                                                    dispatch={() => startEditing(itemName, idx, line.ped, line.materials, matNames)}
+                                                    dispatch={() => startEditing(itemName, line.index, line.ped, line.materials, matNames)}
                                                 />
                                             )}
                                             {editing && (

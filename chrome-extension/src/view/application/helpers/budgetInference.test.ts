@@ -307,8 +307,8 @@ describe('budgetInference', () => {
             // Arrange
             const budget = createMockBudgetState(['Mind Essence'])
             const refineAction = createRefineAction('Mind Essence', 1001000, [
-                { name: 'Force Nexus', quantity: 10000 },
-                { name: 'Vibrant Sweat', quantity: 10000 }
+                { name: 'Force Nexus', quantity: -10000 },
+                { name: 'Vibrant Sweat', quantity: -10000 }
             ], 1700000000000)
 
             // Act
@@ -322,7 +322,7 @@ describe('budgetInference', () => {
             if (result.budgetLine) {
                 expect(result.budgetLine.date).toBe(1700000000000)
                 expect(result.budgetLine.reason).toBe('Refine')
-                expect(result.budgetLine.ped).toBe(0)
+                expect(result.budgetLine.ped).toBe(-1.5)
                 expect(result.budgetLine.materials).toEqual([
                     { name: 'Mind Essence', quantity: 1001000 },
                     { name: 'Force Nexus', quantity: -10000 },

@@ -96,14 +96,14 @@ export function inferBudgetLinesFromActions(
                     // Include materials used from relatedItems (consumed items have negative quantity)
                     ...storedAction.relatedItems.map(related => ({
                         name: related.n,
-                        quantity: -parseInt(related.q) // negative for consumed materials
+                        quantity: parseInt(related.q) // negative for consumed materials
                     }))
                 ]
 
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Refine',
-                    ped: 0,
+                    ped: Math.round(materials[1].quantity * 1.5) / 10000,
                     materials
                 }
                 results.push({

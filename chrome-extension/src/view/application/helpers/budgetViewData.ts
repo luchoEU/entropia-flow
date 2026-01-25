@@ -63,6 +63,7 @@ export interface BudgetViewData {
 
 // Detail panel view data interfaces
 export interface PendingLineViewData {
+    index: number
     date: number
     reason: string
     ped?: number
@@ -132,8 +133,105 @@ export function getMaterials(budgetState: BudgetState, usedMaterialsMap: BudgetM
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
 
+type BudgetItemInput = BudgetDetailsInput['budgetItems'][number]
+
+function getMaterialsFromInput(
+    budgetItems: BudgetItemInput[],
+    usedMaterialsMap: BudgetMaterialsMap,
+    materialDisabled: Record<string, string[]>,
+    inventory: Array<ItemData>,
+    validBudgetItems?: string[]
+): MaterialSummary[] {
+    const result: MaterialSummary[] = []
+
+    for (const [materialName, material] of Object.entries(usedMaterialsMap)) {
+        const materialDetails = calculateMaterialDetailsFromInput(budgetItems, materialName, material, materialDisabled, inventory)
+        const quantity = material.budgetList.reduce((acc, b) => validBudgetItems?.includes(b.itemName) ? acc + b.quantity : acc, 0)
+        const value = quantity * material.unitValue
+        const validItems = material.budgetList.filter(b => validBudgetItems?.includes(b.itemName) != false)
+        result.push({
+            name: materialName,
+            budgetQuantity: quantity,
+            budgetValue: value,
+            budgetWithMarkup: value * material.markup,
+            balanceQuantity: materialDetails.balanceQuantity,
+            balanceWithMarkup: materialDetails.balanceWithMarkup,
+            budget: Object.fromEntries(validItems.map(b => [b.itemName, b.quantity]))
+        })
+    }
+
+    return result.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function calculateMaterialDetailsFromInput(
+    budgetItems: BudgetItemInput[],
+    materialName: string,
+    material: BudgetMaterialState,
+    materialDisabled: Record<string, string[]>,
+    inventory: Array<ItemData>
+): { balanceQuantity: number; balanceWithMarkup: number } {
+    const realList = inventory
+        .filter(item => item.n === materialName)
+        .map(item => ({
+            itemName: item.c,
+            disabled: materialDisabled[materialName]?.includes(item.c) || false,
+            quantity: Number(item.q)
+        }))
+
+    const itemMap: Record<string, { budget?: number; pending?: number; real?: { quantity: number; disabled: boolean } }> = {}
+
+    material.budgetList.forEach(b => {
+        if (!itemMap[b.itemName]) itemMap[b.itemName] = {}
+        itemMap[b.itemName].budget = b.quantity
+        budgetItems.find(i => i.name === b.itemName)?.pendingLines?.forEach(p => {
+            const mat = p.materials.find(m => m.name === materialName)
+            if (!mat) return
+            if (!itemMap[p.reason]) itemMap[p.reason] = {}
+            itemMap[p.reason].pending = (mat.quantity + (itemMap[p.reason].pending || 0))
+        })
+    })
+
+    realList.forEach(r => {
+        if (!itemMap[r.itemName]) itemMap[r.itemName] = {}
+        itemMap[r.itemName].real = { quantity: r.quantity, disabled: r.disabled }
+    })
+
+    const totals = {
+        budgetQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.budget || 0), 0),
+        pendingQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.pending || 0), 0),
+        realQuantity: Object.values(itemMap).reduce((sum, item) => sum + (item.real?.disabled ? 0 : item.real?.quantity || 0), 0)
+    }
+    const balanceQuantity = materialName === "Shrapnel" ? 0 : totals.realQuantity - totals.budgetQuantity - totals.pendingQuantity
+
+    return {
+        balanceQuantity,
+        balanceWithMarkup: balanceQuantity * material.unitValue * material.markup
+    }
+}
+
+function toBudgetDetailsInput(s: BudgetState, itemNames: string[], selectedItem: string | null, title: string, inventory: Array<ItemData>): BudgetDetailsInput {
+    return {
+        itemNames,
+        selectedItem,
+        title,
+        budgetItems: s.list.items.map(i => ({
+            name: i.name,
+            url: i.url,
+            peds: i.peds,
+            totalMU: i.totalMU,
+            total: i.total,
+            pendingLines: i.pendingLines
+        })),
+        materialsMap: s.materials.map,
+        materialDisabled: s.materials.disabled,
+        disabledItems: s.list.disabled || [],
+        stage: s.stage,
+        inventory
+    }
+}
+
 function getItemViewData(item: BudgetItem, s: BudgetState, inventory: Array<ItemData>, disabled: boolean): ItemViewData {
-    const detailsViewData = disabled ? null : _calculateBudgetDetailsViewData(s, [item.name], item.name, item.name, inventory)
+    const detailsViewData = disabled ? null : calculateBudgetDetailsViewData(toBudgetDetailsInput(s, [item.name], item.name, item.name, inventory))
 
     return {
         name: item.name,
@@ -176,7 +274,7 @@ export function calculateBudgetViewData(s: BudgetState, inventory: Array<ItemDat
     const groups: GroupViewData[] = s.groups.list.map(group => {
         const groupDisabled = disabledGroups.includes(group.id)
         const groupItems = s.list.items.filter(i => group.itemNames.includes(i.name))
-        const detailsViewData = groupDisabled ? null : _calculateBudgetDetailsViewData(s, group.itemNames, group.id, group.name, inventory)
+        const detailsViewData = groupDisabled ? null : calculateBudgetDetailsViewData(toBudgetDetailsInput(s, group.itemNames, group.id, group.name, inventory))
         // Get disabled items that belong to this group but are not in s.list.items
         const groupDisabledItems = disabledItems.filter(name =>
             group.itemNames.includes(name) && !groupItems.some(i => i.name === name)
@@ -229,7 +327,7 @@ export function calculateBudgetViewData(s: BudgetState, inventory: Array<ItemDat
     const enabledItemNames = allItemNames.filter(name => !disabledItems.includes(name) && !itemsInDisabledGroups.includes(name))
     const allMaterials = getMaterials(s, getUsedMaterialsMap(allItemNames, s.materials.map), inventory, enabledItemNames)
     const totalMaterialsBalance = allMaterials.reduce((sum, mat) => sum + mat.balanceWithMarkup, 0)
-    const detailsViewData = _calculateBudgetDetailsViewData(s, allItemNames, 'totals', 'Totals', inventory)
+    const detailsViewData = calculateBudgetDetailsViewData(toBudgetDetailsInput(s, allItemNames, 'totals', 'Totals', inventory))
     ungrouped.stored = detailsViewData?.totalBudgetValue || 0
 
     const totals: TotalsViewData = {
@@ -264,16 +362,31 @@ export type UrlSelection = {
     type: 'totals',
 })
 
-function _calculateBudgetDetailsViewData(
-    s: BudgetState,
-    itemNames: string[],
-    selectedItem: string | null,
-    title: string,
+// Minimal input for calculateBudgetDetailsViewData to make it testable
+export interface BudgetDetailsInput {
+    itemNames: string[]
+    selectedItem: string | null
+    title: string
+    budgetItems: Array<{
+        name: string
+        url: string
+        peds: number
+        totalMU: number
+        total: number
+        pendingLines?: BudgetLineData[]
+    }>
+    materialsMap: BudgetMaterialsMap
+    materialDisabled?: Record<string, string[]>
+    disabledItems: string[]
+    stage: number
     inventory: Array<ItemData>
-): BudgetDetailsViewData | null {
+}
+
+export function calculateBudgetDetailsViewData(input: BudgetDetailsInput): BudgetDetailsViewData | null {
+    const { itemNames, selectedItem, title, budgetItems, materialsMap, materialDisabled, disabledItems, stage, inventory } = input
     if (itemNames.length === 0) return null
 
-    const items = itemNames.map(n => s.list.items.find(i => i.name === n))
+    const items = itemNames.map(n => budgetItems.find(i => i.name === n))
     if (items.some(i => !i)) return null
 
     // Combine balanceLines with pendingLines from items
@@ -286,13 +399,10 @@ function _calculateBudgetDetailsViewData(
             pendingLines[item.name].push(...item.pendingLines)
         }
     })
-    Object.values(pendingLines).forEach(lines => {
-        lines.sort((a, b) => a.date - b.date)
-    })
 
-    const usedMaterialsMap = getUsedMaterialsMap(itemNames, s.materials.map)
-    const validBudgetItems = itemNames.filter(name => !(s.list.disabled || []).includes(name))
-    const materials = getMaterials(s, usedMaterialsMap, inventory, validBudgetItems)
+    const usedMaterialsMap = getUsedMaterialsMap(itemNames, materialsMap)
+    const validBudgetItems = itemNames.filter(name => !disabledItems.includes(name))
+    const materials = getMaterialsFromInput(budgetItems, usedMaterialsMap, materialDisabled || {}, inventory, validBudgetItems)
     const balanceLines = calculateBalanceLines(Date.now(), materials, validBudgetItems)
     Object.entries(balanceLines).forEach(([itemName, lines]) => {
         if (!pendingLines[itemName]) {
@@ -303,7 +413,7 @@ function _calculateBudgetDetailsViewData(
 
     // Calculate totals for the selected items
     const totals: ItemTotals = itemNames.reduce((acc, itemName) => {
-        const item = s.list.items.find(i => i.name === itemName)
+        const item = budgetItems.find(i => i.name === itemName)
         if (item) {
             acc.peds += item.peds
             acc.markup += item.totalMU
@@ -320,12 +430,13 @@ function _calculateBudgetDetailsViewData(
 
         return {
             itemName,
-            lines: lines.map(line => ({
+            lines: lines.map((line, index) => ({
+                index,
                 date: line.date,
                 reason: line.reason,
                 ped: line.ped,
                 materials: line.materials
-            })),
+            })).sort((a, b) => a.date - b.date),
             matNames
         }
     })
@@ -339,7 +450,7 @@ function _calculateBudgetDetailsViewData(
         materials,
         pendingLines: pendingLinesViewData,
         pendingLinesForAction: pendingLines,
-        stage: s.stage,
+        stage,
         selectedItem
     }
 }
