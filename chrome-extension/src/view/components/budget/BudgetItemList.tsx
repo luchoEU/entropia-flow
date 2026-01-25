@@ -507,6 +507,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
     const renderGroupHeader = (groupData: GroupViewData) => {
         const isEditing = editingGroupId === groupData.id
+        const showPendingBadge = !isGroupExpanded(groupData.id) && groupData.pendingAmount > 0
 
         return (
             <tr
@@ -514,7 +515,13 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 onClick={() => navigate(budgetItemUrl(groupData.id))}
                 style={{ opacity: groupData.disabled ? 0.6 : 1 }}
             >
-                <td></td>
+                <td align='center'>
+                    {showPendingBadge && (
+                        <div className="budget-pending-indicator" title={`${groupData.pendingAmount} pending`}>
+                            <span className="pending-badge">{groupData.pendingAmount}</span>
+                        </div>
+                    )}
+                </td>
                 <td>
                     <ExpandableArrowButton
                         expanded={isGroupExpanded(groupData.id)}

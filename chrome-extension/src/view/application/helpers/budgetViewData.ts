@@ -40,12 +40,14 @@ export interface GroupViewData extends BudgetRowData {
     itemNames: string[]
     expanded: boolean
     disabled: boolean
+    pendingAmount: number
     items: ItemViewData[]
     detailsViewData: BudgetDetailsViewData | null
 }
 
 export interface UngroupedViewData extends BudgetRowData {
     expanded: boolean
+    pendingAmount: number
     items: ItemViewData[]
 }
 
@@ -280,19 +282,22 @@ export function calculateBudgetViewData(s: BudgetState, inventory: Array<ItemDat
             group.itemNames.includes(name) && !groupItems.some(i => i.name === name)
         )
 
+        const items = groupItems.map(item => getItemViewData(item, s, inventory, groupDisabled || disabledItems.includes(item.name)))
+            .concat(groupDisabledItems.map(item => getDisabledItemViewData(item)))
+
         return {
             id: group.id,
             name: group.name,
             itemNames: group.itemNames,
             expanded: group.expanded,
             disabled: groupDisabled,
+            pendingAmount: items.reduce((sum, i) => sum + i.pendingAmount, 0),
             peds: groupDisabled ? 0 : groupItems.reduce((sum, i) => sum + i.peds, 0),
             markup: groupDisabled ? 0 : groupItems.reduce((sum, i) => sum + i.totalMU, 0),
             stored: groupDisabled ? 0 : (detailsViewData?.totalBudgetValue || 0),
             total: groupDisabled ? 0 : groupItems.reduce((sum, i) => sum + i.total, 0),
             balance: groupDisabled ? 0 : (detailsViewData?.totalBalanceWithMarkup || 0),
-            items: groupItems.map(item => getItemViewData(item, s, inventory, groupDisabled || disabledItems.includes(item.name)))
-                .concat(groupDisabledItems.map(item => getDisabledItemViewData(item))),
+            items,
             detailsViewData
         }
     })
@@ -305,16 +310,19 @@ export function calculateBudgetViewData(s: BudgetState, inventory: Array<ItemDat
     // Get disabled items that are not in any group
     const ungroupedDisabledItems = disabledItems.filter(name => !groupedItemNames.has(name) && !ungroupedItems.some(i => i.name === name))
 
+    const ungroupedItemsViewData = ungroupedItems.map(item => getItemViewData(item, s, inventory, disabledItems.includes(item.name)))
+        .concat(ungroupedDisabledItems.map(item => getDisabledItemViewData(item)))
+
     const ungrouped: UngroupedViewData = {
         name: 'Ungrouped',
         expanded: s.groups.ungroupedExpanded,
+        pendingAmount: ungroupedItemsViewData.reduce((sum, i) => sum + i.pendingAmount, 0),
         peds: enabledUngroupedItems.reduce((sum, i) => sum + i.peds, 0),
         markup: enabledUngroupedItems.reduce((sum, i) => sum + i.totalMU, 0),
         stored: 0, // Will be updated below
         total: enabledUngroupedItems.reduce((sum, i) => sum + i.total, 0),
         balance: ungroupedMaterialsBalance,
-        items: ungroupedItems.map(item => getItemViewData(item, s, inventory, disabledItems.includes(item.name)))
-            .concat(ungroupedDisabledItems.map(item => getDisabledItemViewData(item)))
+        items: ungroupedItemsViewData
     }
 
     // Calculate overall totals

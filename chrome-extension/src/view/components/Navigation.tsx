@@ -7,6 +7,7 @@ import { pinMenu, setShowSubtitles, setShowVisibleToggle } from '../application/
 import { getClientStatus } from '../application/selectors/connection';
 import { getStatusMessage } from '../application/selectors/status';
 import { getAnyInventory } from '../application/selectors/last';
+import { getBudgetPendingCount } from '../application/selectors/budget';
 import { getVisible } from '../application/selectors/expandable';
 import { setVisible } from '../application/actions/expandable';
 import { getSettings } from '../application/selectors/settings';
@@ -18,7 +19,8 @@ import { useElementSize } from './common/useElementSize';
 
 const Tab = (p: {
     id: TabId,
-    actionRequired?: string
+    actionRequired?: string,
+    pendingCount?: number
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -57,6 +59,9 @@ const Tab = (p: {
             onClick={handleClick}>
             { tabTitle[p.id] }
             { p.actionRequired && <img className='img-warning-menu' src='img/warning.png' title={p.actionRequired} /> }
+            { p.pendingCount !== undefined && p.pendingCount > 0 && (
+                <span className='tab-pending-badge' title={`${p.pendingCount} pending`}>{p.pendingCount}</span>
+            )}
             { showVisibility &&
                 <ImgButton title={visible ? 'click to Hide Tab' : 'click to Show Tab'}
                     className='img-btn-visible-tab'
@@ -74,6 +79,7 @@ const FirstRow = () => {
     const settings = useSelector(getSettings)
     const showVisibility = useSelector(getShowVisibility)
     const menuPinned = useSelector(getMenuPinned)
+    const budgetPendingCount = useSelector(getBudgetPendingCount)
 
     return (
         <>
@@ -82,7 +88,12 @@ const FirstRow = () => {
                 <strong>Entropia Flow</strong>
             </div>
             { tabOrder.map((id) => tabShow(id, anyInventory, settings) &&
-                <Tab key={id} id={id} actionRequired={tabActionRequired(id, message, status)} />) }
+                <Tab
+                    key={id}
+                    id={id}
+                    actionRequired={tabActionRequired(id, message, status)}
+                    pendingCount={id === TabId.BUDGET ? budgetPendingCount : undefined}
+                />) }
             { showVisibility &&
                 <ImgButton
                     title={`click to ${menuPinned ? 'Unpin' : 'Pin'} Menu`}
