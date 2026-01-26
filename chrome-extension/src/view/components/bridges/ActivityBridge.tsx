@@ -18,13 +18,11 @@ import { getHistory } from '../../application/selectors/history'
 import { getBudget } from '../../application/selectors/budget'
 import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
-import { addNotificationsDone } from '../../application/actions/last'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
-import { createBasicNotification } from '../../../common/notifications'
 import { StoredAction } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
-import { HistoryState, ViewItemData } from '../../application/state/history'
+import { HistoryState } from '../../application/state/history'
 
 export function ActivityBridge() {
     const dispatch = useDispatch()

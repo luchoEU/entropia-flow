@@ -44,11 +44,6 @@ type ActionSource = 'inventory' | 'chat' | 'screen'
 
 interface InferredAction {
     type: ActionType
-    item: string             // Primary item name
-    amount?: number          // Quantity involved
-    value?: number           // PED value involved
-    from?: string            // Source (container for moves, implant for chip_out)
-    to?: string              // Destination container (for moves)
     relatedItems: ViewItemData[]  // All items involved
 }
 
@@ -69,7 +64,7 @@ interface ActivityState {
 
 ### ID Generation
 
-Action IDs are generated as: `{inventoryKey}-{actionType}-{itemName}`
+Action IDs are generated as: `{inventoryKey}-{actionType}-{relatedItems[0].n}`
 
 This allows potential future merging when the same action is detected from multiple sources.
 
@@ -90,12 +85,10 @@ The `inferActions(diff: ViewItemData[])` function analyzes inventory differences
    - Item consumed in an Implant Inserter
    - Skill Implant gained in CARRIED
    - Optional: Inserter decay detected
-   - `from` field stores the implant name
 
 3. **Item Movement** (`moved`) - 📦
    - Container field contains `⟹` or `⭢` separator
-   - Extracts source and destination containers
-   - `from` and `to` fields store container names
+   - Extracts source and destination containers from relatedItems
 
 4. **Unknown** (`unknown`) - ❓
    - Catch-all for remaining unmatched changes
@@ -103,20 +96,20 @@ The `inferActions(diff: ViewItemData[])` function analyzes inventory differences
 
 ### Description Formatting (`formatActionDescription`)
 
-Descriptions are derived at display time from the action data:
+Descriptions are derived at display time from `relatedItems`:
 
 | Type | Format |
 |------|--------|
-| `sold_auction` | 💰 Sold {amount} {item} for {value} PED |
-| `bought_auction` | 🛒 Bought {amount} {item} for {value} PED |
-| `chip_out` | 🧠 Extracted {item} from {from} |
-| `moved` | 📦 Moved {item} from {from} to {to} |
+| `sold_auction` | 💰 Sold {quantity} {name} for {value} PED |
+| `bought_auction` | 🛒 Bought {quantity} {name} for {value} PED |
+| `chip_out` | 🧠 Extracted {name} from {implant} |
+| `moved` | 📦 Moved {name} from {source} to {destination} |
 | `ped_deposited` | 💵 Deposited {value} PED |
 | `ped_withdrawn` | 💸 Withdrew {value} PED |
-| `decay` | 🔧 Used {item} ({value} PED decay) |
-| `gained` | 📥 Gained {amount} {item} |
-| `lost` | 📤 Lost {amount} {item} |
-| `unknown` | ❓ Changed {item} |
+| `decay` | 🔧 Used {name} ({value} PED decay) |
+| `gained` | 📥 Gained {quantity} {name} |
+| `lost` | 📤 Lost {quantity} {name} |
+| `unknown` | ❓ Changed {name} |
 
 ### 2. Actions Reducer (`reducers/actions.ts`)
 
@@ -192,7 +185,7 @@ To add a new action source (e.g., chat log):
    const chatActions = inferActionsFromChat(messages)
    const storedActions = chatActions.map(a => ({
        ...a,
-       id: `chat-${timestamp}-${a.type}-${a.item}`,
+       id: `chat-${timestamp}-${a.type}-${a.relatedItems[0].n}`,
        timestamp,
        sources: ['chat']
    }))
