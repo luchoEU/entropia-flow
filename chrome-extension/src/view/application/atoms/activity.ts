@@ -3,6 +3,8 @@ import { ActivityState, StoredAction, SessionBoundary, SessionType, ActionType, 
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
+import { lastPersistedAtom, lastComputedAtom } from './last'
+import messagesApi from '../../services/api/messages'
 
 // Initial state
 const initialActivityState: ActivityState = {
@@ -159,6 +161,23 @@ export const setLastProcessedLogSerialAtom = atom(
 export const createNewSessionAtom = atom(
     null,
     async (get, set) => {
+        // Also set current inventory as session start (same as setLastAtom)
+        const lastComputed = get(lastComputedAtom)
+        if (lastComputed.latestInventoryKey) {
+            messagesApi.requestSetLast(true, lastComputed.latestInventoryKey)
+        }
+        // Reset last UI state
+        const lastPersisted = get(lastPersistedAtom)
+        const newLastState = {
+            ...lastPersisted,
+            expanded: false,
+            peds: [],
+            notificationsDone: []
+        }
+        set(lastPersistedAtom, newLastState)
+        await LOCAL_STORAGE.set('view.last', newLastState)
+
+        // Create new activity session
         const current = get(activityAtom)
         const nextSessionNumber = current.sessions.length + 1
         const newSession: SessionBoundary = {
