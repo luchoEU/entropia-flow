@@ -372,7 +372,45 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         })
     }
 
+    // Check reverse inference consistency
+    const reversed = reverseInferActions(actions)
+    const originalNormalized = normalizeDiff(diff)
+    const reversedNormalized = normalizeDiff(reversed)
+    if (!mapsEqual(originalNormalized, reversedNormalized)) {
+        actions.push({
+            type: 'reverse_fail',
+            item: 'Reverse inference failed',
+            relatedItems: diff
+        })
+    }
+
     return actions
+}
+
+function normalizeDiff(items: ViewItemData[]): Map<string, { q: number; v: number }> {
+    const map = new Map<string, { q: number; v: number }>()
+    for (const item of items) {
+        const key = `${item.n}|${item.c}`
+        const q = parseFloat(item.q) || 0
+        const v = parseFloat(item.v) || 0
+        if (map.has(key)) {
+            const existing = map.get(key)!
+            existing.q += q
+            existing.v += v
+        } else {
+            map.set(key, { q, v })
+        }
+    }
+    return map
+}
+
+function mapsEqual(a: Map<string, { q: number; v: number }>, b: Map<string, { q: number; v: number }>): boolean {
+    if (a.size !== b.size) return false
+    for (const [key, valA] of a) {
+        const valB = b.get(key)
+        if (!valB || valA.q !== valB.q || valA.v !== valB.v) return false
+    }
+    return true
 }
 
 function reverseInferActions(actions: InferredAction[]): ViewItemData[] {

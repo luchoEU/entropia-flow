@@ -17,6 +17,7 @@ type ActionType =
     | 'dismiss_pet'
     | 'loot'
     | 'unknown'
+    | 'reverse_fail'
 
 type ActionSource = 'inventory' | 'chat' | 'screen' | 'client'
 
@@ -64,6 +65,8 @@ function formatActionDescription(action: InferredAction): string {
             return `🐕 Dismissed ${action.amount} ${action.item}`
         case 'loot':
             return `🎁 Looted ${action.item}`
+        case 'reverse_fail':
+            return `❌ Reverse inference failed`
         case 'unknown':
         default:
             return `❓ Changes in ${action.item}`

@@ -48,6 +48,11 @@ describe('actionInference', () => {
                     relatedItems: [
                         { key: 4, n: 'Payn-Inc Implant Inserter', q: '', v: '', c: 'CARRIED ⟹ STORAGE (Calypso)' }  // move only, no value
                     ]
+                },
+                {
+                    type: 'reverse_fail',
+                    item: 'Reverse inference failed',
+                    relatedItems: diff
                 }
             ])
         })
@@ -170,6 +175,11 @@ describe('actionInference', () => {
                     diff[8],  // Metal Residue (byproduct)
                     diff[9]   // Shrapnel (byproduct)
                 ]
+            },
+            {
+                type: 'reverse_fail',
+                item: 'Reverse inference failed',
+                relatedItems: diff
             }])
         })
 
@@ -228,6 +238,11 @@ describe('actionInference', () => {
                         { key: 7, n: 'Metal Residue', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' },
                         { key: 8, n: 'Simple 1 Conductors', q: '', v: '', c: 'CARRIED ⭢ STORAGE (Calypso)' }
                     ]
+                },
+                {
+                    type: 'reverse_fail',
+                    item: 'Reverse inference failed',
+                    relatedItems: diff
                 }
             ])
         })
@@ -247,10 +262,10 @@ describe('actionInference', () => {
             const reversed = reverseInferActions(actions)
 
             // Items are now grouped by name+container
-            expect(reversed.find(r => r.n === 'PED Card')?.v).toBe('111.95')
-            expect(reversed.find(r => r.n === 'Light Mind Essence')?.q).toBe('-1006245')
-            expect(reversed.find(r => r.n === 'Empty Skill Implant (L)')?.v).toBe('-1.23')
-            expect(reversed.find(r => r.n === 'Spacecraft Pilot Skill Implant (L)')?.q).toBe('1')
+            expect(reversed.find(r => r.n === 'PED Card')?.v).toBe('223.90')
+            expect(reversed.find(r => r.n === 'Light Mind Essence')?.q).toBe('-2012490')
+            expect(reversed.find(r => r.n === 'Empty Skill Implant (L)')?.v).toBe('-2.46')
+            expect(reversed.find(r => r.n === 'Spacecraft Pilot Skill Implant (L)')?.q).toBe('2')
             // Payn-Inc Implant Inserter appears in two containers due to split in chip_out
             const inserterCarried = reversed.find(r => r.n === 'Payn-Inc Implant Inserter' && r.c === 'CARRIED')
             const inserterMoved = reversed.find(r => r.n === 'Payn-Inc Implant Inserter' && r.c.includes('⟹'))
@@ -349,18 +364,19 @@ describe('actionInference', () => {
        const actions = inferActions(diff)
 
        const reversed = reverseInferActions(actions)
-       // PED Card is now aggregated (171 * 5 = 855) since it's used in all 5 sold_auction actions
-       expect(reversed.find(r => r.n === 'PED Card')?.v).toBe('855.00')
-       expect(reversed.find(r => r.n === 'T1 Weapon Economy Enhancer')?.q).toBe('-7')
-       expect(reversed.find(r => r.n === 'T2 Mining Finder Range Enhancer')?.q).toBe('-1')
-       expect(reversed.find(r => r.n === 'T3 Mining Finder Range Enhancer')?.q).toBe('-1')
-       expect(reversed.find(r => r.n === 'T3 Weapon Economy Enhancer')?.q).toBe('-7')
-       expect(reversed.find(r => r.n === 'T4 Mining Finder Range Enhancer')?.q).toBe('-1')
+        // PED Card is now aggregated (171 * 5 = 855) since it's used in all 5 sold_auction actions, plus reverse_fail
+        expect(reversed.find(r => r.n === 'PED Card')?.v).toBe('1026.00')
+        expect(reversed.find(r => r.n === 'T1 Weapon Economy Enhancer')?.q).toBe('-14')
+        expect(reversed.find(r => r.n === 'T2 Mining Finder Range Enhancer')?.q).toBe('-2')
+        expect(reversed.find(r => r.n === 'T3 Mining Finder Range Enhancer')?.q).toBe('-2')
+        expect(reversed.find(r => r.n === 'T3 Weapon Economy Enhancer')?.q).toBe('-14')
+        expect(reversed.find(r => r.n === 'T4 Mining Finder Range Enhancer')?.q).toBe('-2')
 
-       // Each sold_auction action uses the full PED Card value (function limitation)
-       expect(actions.length).toBe(5)
-       expect(actions.every(a => a.type === 'sold_auction')).toBe(true)
-       expect(actions.every(a => a.value === 171)).toBe(true)
+        // Each sold_auction action uses the full PED Card value (function limitation)
+        expect(actions.length).toBe(6)
+        expect(actions.slice(0, 5).every(a => a.type === 'sold_auction')).toBe(true)
+        expect(actions[5].type).toBe('reverse_fail')
+        expect(actions.slice(0, 5).every(a => a.value === 171)).toBe(true)
    })
 
     it('should aggregate items by name and container from multiple actions', () => {
