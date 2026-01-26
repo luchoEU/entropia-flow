@@ -219,6 +219,10 @@ function ActivityPage() {
     const expandedActionRowsSet = new Set(expandedActionRows)
     const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
 
+    const buildCopyTextForItems = (items: ViewItemData[]): string => {
+        return items.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
+    }
+
     // Build a plain text representation for copying: title + list of items
     const buildCopyTextForAction = (a: StoredAction): string => {
         const time = formatTime(a.timestamp)
@@ -227,11 +231,8 @@ function ActivityPage() {
         const sources = a.sources.join(', ')
         let text = `${time} ${total} PED - ${title} - ${sources}`
         if (a.relatedItems && a.relatedItems.length > 0) {
-            a.relatedItems.forEach((it: ViewItemData) => {
-                const qty = Number(it.q) || 0
-                const val = Number(it.v) || 0
-                text += `\n- ${it.n} x ${qty}, ${val.toFixed(2)} PED, ${it.c}`
-            })
+            text += '\n'
+            text += buildCopyTextForItems(a.relatedItems)
         }
         return text
     }
@@ -586,7 +587,7 @@ function ActivityPage() {
                                                         })
                                                     } else {
                                                         const items = reverseInferActions(sessionActions)
-                                                        text = items.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
+                                                        text = buildCopyTextForItems(items)
                                                     }
                                                     copyToClipboard(text)
                                                 }}
