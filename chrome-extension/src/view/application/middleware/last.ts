@@ -1,5 +1,5 @@
 import { mergeDeep } from "../../../common/merge"
-import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, ADD_ACTIONS, addNotificationsDone, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
+import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, addActionsToLast, addNotificationsDone, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
 import { ITEM_BUY_MARKUP_CHANGED, SET_ITEM_MARKUP_UNIT, SET_ITEMS_STATE } from "../actions/items"
 import { SET_AS_LAST, SET_LAST, setLast } from "../actions/messages"
 import { initialState } from "../helpers/last"
@@ -9,9 +9,6 @@ import { getItemsMap } from "../selectors/items"
 import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 import { AppAction } from "../slice/app"
-import { createBasicNotification } from "../../../common/notifications"
-import { ViewItemData } from "../state/history"
-import { CREATE_NEW_SESSION } from "../actions/activity"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     await next(action)
@@ -42,25 +39,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const inventory: InventoryState = getInventory(getState())
             dispatch(addActionsToLast(inventory))
             break;
-        }
-        case ADD_ACTIONS: {
-            const state: LastRequiredState = getLast(getState())
-            if (state.c.diff) {
-                const reduced: string[] = state.c.diff.reduce((list: string[], d: ViewItemData) => d.a === undefined ? list : [ ...list, d.a.message ], [])
-
-                state.notificationsDone.forEach(m => {
-                    const index = reduced.indexOf(m);
-                    if (index > -1) {
-                        reduced.splice(index, 1);
-                    }
-                })
-
-                if (reduced.length > 0) {
-                    createBasicNotification('actions', reduced.join('\n'));
-                    dispatch(addNotificationsDone(reduced))
-                }
-            }
-            break
         }
     }
 

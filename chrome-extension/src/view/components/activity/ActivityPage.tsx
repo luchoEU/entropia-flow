@@ -1,11 +1,26 @@
 import React, { useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useNavigate } from 'react-router-dom'
 import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
-import { createNewSession, updateSessionName, updateSessionType, updateExpandedSessions, updateExpandedActionRows, setShowActions, reinferSessionActions, excludeItem, includeItem, permanentExcludeItem, excludeAction, includeAction, permanentExcludeAction } from '../../application/actions/activity'
-import { getActivity } from '../../application/selectors/activity'
+import {
+    activityAtom,
+    createNewSessionAtom,
+    updateSessionNameAtom,
+    updateSessionTypeAtom,
+    updateExpandedSessionsAtom,
+    updateExpandedActionRowsAtom,
+    setShowActionsAtom,
+    reinferSessionActionsAtom,
+    excludeItemAtom,
+    includeItemAtom,
+    permanentExcludeItemAtom,
+    excludeActionAtom,
+    includeActionAtom,
+    permanentExcludeActionAtom
+} from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
 import { isFeatureEnabled, Feature } from '../../application/state/settings'
 import { reverseInferActions } from '../../application/helpers/actionInference'
@@ -167,9 +182,27 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 }
 
 function ActivityPage() {
-    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist } = useSelector(getActivity)
+    // Jotai state
+    const activity = useAtomValue(activityAtom)
+    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist } = activity
+
+    // Jotai actions
+    const createNewSession = useSetAtom(createNewSessionAtom)
+    const updateSessionName = useSetAtom(updateSessionNameAtom)
+    const updateSessionType = useSetAtom(updateSessionTypeAtom)
+    const updateExpandedSessions = useSetAtom(updateExpandedSessionsAtom)
+    const updateExpandedActionRows = useSetAtom(updateExpandedActionRowsAtom)
+    const setShowActions = useSetAtom(setShowActionsAtom)
+    const reinferSessionActions = useSetAtom(reinferSessionActionsAtom)
+    const excludeItem = useSetAtom(excludeItemAtom)
+    const includeItem = useSetAtom(includeItemAtom)
+    const permanentExcludeItem = useSetAtom(permanentExcludeItemAtom)
+    const excludeAction = useSetAtom(excludeActionAtom)
+    const includeAction = useSetAtom(includeActionAtom)
+    const permanentExcludeAction = useSetAtom(permanentExcludeActionAtom)
+
+    // Redux state (for settings only)
     const settings = useSelector(getSettings)
-    const dispatch = useDispatch()
     const navigate = useNavigate()
     const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
     const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
@@ -408,7 +441,7 @@ function ActivityPage() {
         } else {
             newSet.add(sessionId)
         }
-        dispatch(updateExpandedSessions(Array.from(newSet)))
+        updateExpandedSessions(Array.from(newSet))
     }
 
     const toggleActionRow = (id: string) => {
@@ -418,7 +451,7 @@ function ActivityPage() {
         } else {
             newSet.add(id)
         }
-        dispatch(updateExpandedActionRows(Array.from(newSet)))
+        updateExpandedActionRows(Array.from(newSet))
     }
 
     if (actions.length === 0) {
@@ -432,7 +465,7 @@ function ActivityPage() {
 
     return (
         <section>
-            <button onClick={() => dispatch(createNewSession())}>
+            <button onClick={() => createNewSession()}>
                 New Session
             </button>
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
@@ -451,7 +484,7 @@ function ActivityPage() {
                                 {editingSessionId === session.id ? (
                                     <input
                                         value={session.name}
-                                        onChange={(e) => dispatch(updateSessionName(session.id, e.target.value))}
+                                        onChange={(e) => updateSessionName({ sessionId: session.id, name: e.target.value })}
                                         onBlur={() => setEditingSessionId(null)}
                                         onKeyDown={(e) => { if (e.key === 'Enter') setEditingSessionId(null) }}
                                         autoFocus
@@ -484,7 +517,7 @@ function ActivityPage() {
                                         {typeIcon}
                                         <select
                                             value={session.type}
-                                            onChange={(e) => dispatch(updateSessionType(session.id, e.target.value as SessionType))}
+                                            onChange={(e) => updateSessionType({ sessionId: session.id, sessionType: e.target.value as SessionType })}
                                             disabled={isPreSession}
                                             onClick={(e) => e.stopPropagation()}
                                         >
@@ -527,7 +560,7 @@ function ActivityPage() {
                                             dispatch={() => setShowActions(!showActions)}
                                         />
                                         {!isPreSession && (
-                                            <button className='btn-reinfer' onClick={() => dispatch(reinferSessionActions(session.id))}>
+                                            <button className='btn-reinfer' onClick={() => reinferSessionActions(session.id)}>
                                                 Re-infer
                                             </button>
                                         )}
@@ -567,18 +600,18 @@ function ActivityPage() {
                                                                     sessionType: session.type,
                                                                     isExcluded: isExcluded || isPermanentlyExcluded,
                                                                     isPermanentlyExcluded,
-                                                                    onExclude: () => dispatch(excludeAction(session.id, action.id)),
-                                                                    onInclude: () => dispatch(includeAction(session.id, action.id)),
-                                                                    onPermanentExclude: (value: boolean) => dispatch(permanentExcludeAction(session.type, action.type, action.item, value))
+                                                                    onExclude: () => excludeAction({ sessionId: session.id, actionId: action.id }),
+                                                                    onInclude: () => includeAction({ sessionId: session.id, actionId: action.id }),
+                                                                    onPermanentExclude: (value: boolean) => permanentExcludeAction({ sessionType: session.type, actionType: action.type, itemName: action.item, value })
                                                                 }}
                                                                 itemExclusionConfig={{
                                                                     sessionId: session.id,
                                                                     sessionType: session.type,
                                                                     sessionBlacklist: itemSessionList,
                                                                     permanentBlacklist: itemPermanentList,
-                                                                    onExclude: (itemName: string) => dispatch(excludeItem(session.id, itemName)),
-                                                                    onInclude: (itemName: string) => dispatch(includeItem(session.id, itemName)),
-                                                                    onPermanentExclude: (itemName: string, value: boolean) => dispatch(permanentExcludeItem(session.type, itemName, value))
+                                                                    onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
+                                                                    onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
+                                                                    onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
                                                                 }}
                                                             />
                                                         )
@@ -599,9 +632,9 @@ function ActivityPage() {
                                             sessionType: session.type,
                                             sessionBlacklist: itemSessionList,
                                             permanentBlacklist: itemPermanentList,
-                                            onExclude: (itemName: string) => dispatch(excludeItem(session.id, itemName)),
-                                            onInclude: (itemName: string) => dispatch(includeItem(session.id, itemName)),
-                                            onPermanentExclude: (itemName: string, value: boolean) => dispatch(permanentExcludeItem(session.type, itemName, value))
+                                            onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
+                                            onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
+                                            onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
                                         }}
                                     />
                                     }

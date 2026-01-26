@@ -1,19 +1,14 @@
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet } from "../../services/api/sheets/sheetsBudget"
-import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, addBudgetItemPendingLines, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE, TOGGLE_BUDGET_SHOW_DISABLED, ENABLE_BUDGET_GROUP, DISABLE_BUDGET_GROUP } from "../actions/budget"
-import { ADD_ACTIONS, REMOVE_ACTIONS, updateActionBudgetName } from "../actions/activity"
+import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE, TOGGLE_BUDGET_SHOW_DISABLED, ENABLE_BUDGET_GROUP, DISABLE_BUDGET_GROUP } from "../actions/budget"
 import { SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/budget"
-import { getItemList } from "../helpers/inventory"
 import { getBudget } from "../selectors/budget"
-import { getInventory } from "../selectors/inventory"
 import { getItems } from "../selectors/items"
 import { getSettings } from "../selectors/settings"
-import { getActivity } from "../selectors/activity"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
-import { inferBudgetLinesFromActions } from "../helpers/budgetInference"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 
@@ -24,35 +19,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const state: BudgetState = await api.storage.loadBudget()
             if (state) {
                 dispatch(setBudgetState(mergeDeep(initialState, state)))
-            }
-            break
-        }
-        case ADD_ACTIONS: {
-            const budget = getBudget(getState())
-            const results = inferBudgetLinesFromActions(action.payload.actions, budget)
-            
-            for (const result of results) {
-                dispatch(addBudgetItemPendingLines(result.budgetName, [result.budgetLine]))
-                dispatch(updateActionBudgetName(result.action.id, result.budgetName))
-            }
-            break
-        }
-        case REMOVE_ACTIONS: {
-            const budget = getBudget(getState())
-            const activityState = getActivity(getState())
-            for (const actionId of action.payload.actionIds) {
-                const storedAction = activityState.list.find(act => act.id === actionId)
-                if (storedAction && storedAction.budgetName) {
-                    // Remove budgetList entries for this item from all materials
-                    const updatedMap = { ...budget.materials.map }
-                    for (const materialName of Object.keys(updatedMap)) {
-                        updatedMap[materialName] = {
-                            ...updatedMap[materialName],
-                            budgetList: updatedMap[materialName].budgetList.filter(b => b.itemName !== storedAction.budgetName)
-                        }
-                    }
-                    dispatch(setBudgetFromSheet(updatedMap, budget.list.items, budget.loadPercentage))
-                }
             }
             break
         }

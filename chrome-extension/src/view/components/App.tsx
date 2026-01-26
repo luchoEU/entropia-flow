@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Provider } from 'react-redux';
+import { Provider as JotaiProvider } from 'jotai';
 import './App.scss'
 import { store } from '../application/store';
 import Navigation from './Navigation';
@@ -8,6 +9,7 @@ import { HashRouter } from 'react-router-dom';
 import { useAppDispatch } from '../application/store';
 import { useSelector } from 'react-redux';
 import { appAction, initialize, isAppLoaded } from '../application/slice/app';
+import { ActivityBridge } from './bridges/ActivityBridge';
 
 function _AppWithInitializer() {
     const dispatch = useAppDispatch();
@@ -43,9 +45,12 @@ function _AppWithInitializer() {
 function App() {
   return (
     <Provider store={store}>
-      <HashRouter>
-        <_AppWithInitializer />
-      </HashRouter>
+      <JotaiProvider>
+        <HashRouter>
+          <ActivityBridge />
+          <_AppWithInitializer />
+        </HashRouter>
+      </JotaiProvider>
     </Provider>
   )
 }
