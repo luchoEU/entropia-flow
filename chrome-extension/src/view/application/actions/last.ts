@@ -16,7 +16,6 @@ const SET_LAST_SHOW_ACTIONS = "[last] set last show actions"
 const SORT_BY = "[last] sort by"
 const ADD_PEDS = "[last] add peds"
 const REMOVE_PEDS = "[last] remove peds"
-const ADD_ACTIONS = "[last] add actions"
 const ADD_NOTIFICATIONS_DONE = "[last] add notifications done"
 const APPLY_MARKUP_TO_LAST = "[last] apply markup"
 
@@ -127,13 +126,6 @@ const removePeds = (key: number) => ({
     }
 })
 
-const addActionsToLast = (inventory: InventoryState) => ({
-    type: ADD_ACTIONS,
-    payload: {
-        inventory
-    }
-})
-
 const addNotificationsDone = (messages: string[]) => ({
     type: ADD_NOTIFICATIONS_DONE,
     payload: {
@@ -162,7 +154,6 @@ export {
     SORT_BY,
     ADD_PEDS,
     REMOVE_PEDS,
-    ADD_ACTIONS,
     ADD_NOTIFICATIONS_DONE,
     APPLY_MARKUP_TO_LAST,
     setLastState,
@@ -180,7 +171,6 @@ export {
     setLastShowMarkup,
     setLastShowActions,
     clearLastItemMode,
-    addActionsToLast,
     addNotificationsDone,
     applyMarkupToLast,
 }

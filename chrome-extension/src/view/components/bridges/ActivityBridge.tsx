@@ -82,29 +82,8 @@ export function ActivityBridge() {
                     // Update action with budget name in Jotai
                     updateActionBudgetName({ actionId: result.action.id, budgetName: result.budgetName })
                 }
-
-                // Notification integration (from last middleware)
-                const currentLast = lastRef.current
-                if (currentLast.c.diff) {
-                    const reduced: string[] = currentLast.c.diff.reduce(
-                        (list: string[], d: ViewItemData) => d.a === undefined ? list : [...list, d.a.message],
-                        []
-                    )
-
-                    currentLast.notificationsDone.forEach((m: string) => {
-                        const index = reduced.indexOf(m)
-                        if (index > -1) {
-                            reduced.splice(index, 1)
-                        }
-                    })
-
-                    if (reduced.length > 0) {
-                        createBasicNotification('actions', reduced.join('\n'))
-                        dispatch(addNotificationsDone(reduced))
-                    }
-                }
             },
-            onActionsRemoved: (actionIds: string[], removedActions: StoredAction[]) => {
+            onActionsRemoved: (_actionIds: string[], removedActions: StoredAction[]) => {
                 // Budget cleanup on action removal
                 const currentBudget = budgetRef.current
                 for (const action of removedActions) {

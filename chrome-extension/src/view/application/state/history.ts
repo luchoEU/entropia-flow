@@ -10,7 +10,6 @@ interface ViewItemData {
     e?: boolean // excluded from difference
     x?: boolean // permanent exclude from difference
     w?: boolean // show warning
-    a?: ViewItemAction // action available
     m?: ViewItemMode // i.e for edit markup
 }
 

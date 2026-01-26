@@ -21,10 +21,6 @@ const InventoryItem = (p: { item: ViewInventory }) => {
         movedTitle: 'this item was moved by the amount in parenthesis'
     }
     
-    let expandedClass = 'button-diff'
-    if (item.diff && item.diff.some((i: ViewItemData) => i.a !== undefined))
-        expandedClass += ' button-with-actions'
-
     return <>
         <tr className='item-row' onClick={() => dispatch(setItemExpanded(item.key)(!item.expanded))}>
             <td>

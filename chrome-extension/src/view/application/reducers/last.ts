@@ -1,8 +1,8 @@
-import { initialState, reduceAddActions, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkupToLast, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastShowActions, reduceSetLastState, reduceSortByPart } from "../helpers/last"
-import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_ACTIONS, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
+import { initialState, reduceAddNotificationsDone, reduceAddPeds, reduceApplyMarkupToLast, reduceExclude, reduceExcludeWarnings, reduceInclude, reduceOnLast, reducePermanentExclude, reduceRemovePeds, reduceSetAsLast, reduceSetExpanded, reduceSetLast, reduceSetLastItemMode, reduceSetLastShowMarkup, reduceSetLastShowActions, reduceSetLastState, reduceSortByPart } from "../helpers/last"
+import { EXCLUDE, INCLUDE, ON_LAST, SORT_BY, SET_EXPANDED, EXCLUDE_WARNINGS, ADD_PEDS, REMOVE_PEDS, PERMANENT_EXCLUDE, ADD_NOTIFICATIONS_DONE, SET_LAST_ITEM_MODE, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, SET_LAST_STATE, APPLY_MARKUP_TO_LAST } from "../actions/last"
 import { SET_AS_LAST, SET_LAST } from "../actions/messages"
 
-export default (state = initialState, action) => {
+export default (state = initialState, action: any) => {
     switch (action.type) {
         case SET_LAST_STATE: return reduceSetLastState(state, action.payload.state)
         case ON_LAST: return reduceOnLast(state, action.payload.list, action.payload.last)
@@ -19,7 +19,6 @@ export default (state = initialState, action) => {
         case SET_LAST_SHOW_ACTIONS: return reduceSetLastShowActions(state, action.payload.showActions)
         case ADD_PEDS: return reduceAddPeds(state, action.payload.value)
         case REMOVE_PEDS: return reduceRemovePeds(state, action.payload.key)
-        case ADD_ACTIONS: return reduceAddActions(state, action.payload.inventory)
         case ADD_NOTIFICATIONS_DONE: return reduceAddNotificationsDone(state, action.payload.messages)
         case APPLY_MARKUP_TO_LAST: return reduceApplyMarkupToLast(state, action.payload.items)
         default: return state

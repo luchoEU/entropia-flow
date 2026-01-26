@@ -127,18 +127,6 @@ const ItemRow = ({ item, c }: {
             <td onClick={sortBy(CONTAINER)}>
                 <ItemText text={item.c} />
             </td>
-            <td>
-                { showActionLink && item.a &&
-                    <button
-                        className='button-me-log'
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(item.a!.navigateTo);
-                        }}>
-                        { '>' }
-                    </button>
-                }
-            </td>
         </tr>
     )
 }

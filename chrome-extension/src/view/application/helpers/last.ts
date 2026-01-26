@@ -198,17 +198,6 @@ const reduceApplyMarkupToLast = (state: LastRequiredState, items: ItemsMap): Las
     }
 }
 
-const reduceAddActions = (state: LastRequiredState, inventory: InventoryState): LastRequiredState => ({
-    ...state,
-    c: {
-        ...state.c,
-        diff: state.c.diff?.map(d => ({
-            ...d,
-            a: getItemAction(d, inventory)
-        }))
-    }
-})
-
 const reduceAddNotificationsDone = (state: LastRequiredState, messages: Array<string>): LastRequiredState => ({
     ...state,
     notificationsDone: [ ...state.notificationsDone, ...messages ]
@@ -246,7 +235,6 @@ export {
     reduceOnLast,
     reduceSetLast,
     reduceSetAsLast,
-    reduceAddActions,
     reduceSetExpanded,
     reduceInclude,
     reduceExclude,
