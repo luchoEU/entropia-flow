@@ -33,43 +33,62 @@ interface InferredAction {
     relatedItems: ViewItemData[]
 }
 
+const actionTypeInfo: Record<ActionType, { icon: string, name: string }> = {
+    'sold_auction': { icon: '💰', name: 'Sold' },
+    'bought_auction': { icon: '🛒', name: 'Bought' },
+    'listed_auction': { icon: '🏷️', name: 'Listed' },
+    'ped_deposited': { icon: '💵', name: 'Deposited' },
+    'ped_withdrawn': { icon: '💸', name: 'Withdrew' },
+    'moved': { icon: '📦', name: 'Moved' },
+    'chip_out': { icon: '🧠', name: 'Extracted' },
+    'refine': { icon: '🔨', name: 'Refined' },
+    'craft': { icon: '🔨', name: 'Crafted' },
+    'convert_ammo': { icon: '🔄', name: 'Converted' },
+    'decay': { icon: '🔧', name: 'Used' },
+    'gained': { icon: '📥', name: 'Gained' },
+    'lost': { icon: '📤', name: 'Lost' },
+    'dismiss_pet': { icon: '🐕', name: 'Dismissed' },
+    'loot': { icon: '🎁', name: 'Looted' },
+    'unknown': { icon: '❓', name: 'Changes in' },
+    'reverse_fail': { icon: '‼', name: 'Reverse inference failed' },
+}
+
 function formatActionDescription(action: InferredAction): string {
+    const info = actionTypeInfo[action.type]
     switch (action.type) {
-        case 'sold_auction':
-            return `💰 Sold ${action.amount} ${action.item}`
         case 'bought_auction':
-            return `🛒 Bought ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'listed_auction':
-            return `🏷️ Listed ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'chip_out':
-            return `🧠 Extracted ${action.item} from ${action.from}`
+            return `${info.icon} ${info.name} ${action.item} from ${action.from}`
         case 'refine':
-            return `🔨 Refined ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'craft':
-            return `🔨 Crafted ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'convert_ammo':
-            return `🔄 Converted ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'moved':
-            return `📦 Moved ${action.item} from ${action.from} to ${action.to}`
+            return `${info.icon} ${info.name} ${action.item} from ${action.from} to ${action.to}`
         case 'ped_deposited':
-            return `💵 Deposited ${action.value} PED`
+            return `${info.icon} ${info.name}`
         case 'ped_withdrawn':
-            return `💸 Withdrew ${action.value} PED`
+            return `${info.icon} ${info.name}`
         case 'decay':
-            return `🔧 Used ${action.item} (${action.value} PED decay)`
+            return `${info.icon} ${info.name} ${action.item}`
         case 'gained':
-            return `📥 Gained ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'lost':
-            return `📤 Lost ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'dismiss_pet':
-            return `🐕 Dismissed ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'loot':
-            return `🎁 Looted ${action.item}`
+            return `${info.icon} ${info.name} ${action.item}`
         case 'reverse_fail':
-            return `❌ Reverse inference failed`
+            return `${info.icon} ${info.name}`
         case 'unknown':
         default:
-            return `❓ Changes in ${action.item}`
+            return `${info.icon} ${info.name} ${action.item}`
     }
 }
 
@@ -117,5 +136,6 @@ export {
     StoredAction,
     SessionBoundary,
     ActivityState,
-    formatActionDescription
+    formatActionDescription,
+    actionTypeInfo
 }

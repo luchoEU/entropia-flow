@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { ActivityState, StoredAction, SessionBoundary, SessionType, ActionSource } from '../state/activity'
+import { ActivityState, StoredAction, SessionBoundary, SessionType, ActionType, ActionSource } from '../state/activity'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
@@ -431,6 +431,51 @@ export const mergeLootWithInventoryAtom = atom(
                     relatedItems: newRelatedItems
                 }
             })
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const updateActionTypeAtom = atom(
+    null,
+    async (get, set, { actionId, type }: { actionId: string; type: ActionType }) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            list: current.list.map(act =>
+                act.id === actionId ? { ...act, type } : act
+            )
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const updateActionItemAtom = atom(
+    null,
+    async (get, set, { actionId, item }: { actionId: string; item: string }) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            list: current.list.map(act =>
+                act.id === actionId ? { ...act, item } : act
+            )
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const updateActionItemsAtom = atom(
+    null,
+    async (get, set, { actionId, relatedItems }: { actionId: string; relatedItems: ViewItemData[] }) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            list: current.list.map(act =>
+                act.id === actionId ? { ...act, relatedItems } : act
+            )
         }
         set(activityAtom, newState)
         await saveToStorage(newState)

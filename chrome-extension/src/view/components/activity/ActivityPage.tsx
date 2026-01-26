@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useNavigate } from 'react-router-dom'
-import { StoredAction, SessionBoundary, SessionType, formatActionDescription } from '../../application/state/activity'
+import { StoredAction, SessionBoundary, SessionType, formatActionDescription, actionTypeInfo } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
 import {
@@ -19,7 +19,10 @@ import {
     permanentExcludeItemAtom,
     excludeActionAtom,
     includeActionAtom,
-    permanentExcludeActionAtom
+    permanentExcludeActionAtom,
+    updateActionTypeAtom,
+    updateActionItemAtom,
+    updateActionItemsAtom
 } from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
 import { isFeatureEnabled, Feature } from '../../application/state/settings'
@@ -200,12 +203,16 @@ function ActivityPage() {
     const excludeAction = useSetAtom(excludeActionAtom)
     const includeAction = useSetAtom(includeActionAtom)
     const permanentExcludeAction = useSetAtom(permanentExcludeActionAtom)
+    const updateActionType = useSetAtom(updateActionTypeAtom)
+    const updateActionItem = useSetAtom(updateActionItemAtom)
+    const updateActionItems = useSetAtom(updateActionItemsAtom)
 
     // Redux state (for settings only)
     const settings = useSelector(getSettings)
     const navigate = useNavigate()
     const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
     const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
+    const [editingActionId, setEditingActionId] = useState<string | null>(null)
     const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
     const groupedActions = groupBySession(actions, sessions)  // Still use real sessions for grouping
     const expandedSessions = new Set(expandedArray)
@@ -263,132 +270,164 @@ function ActivityPage() {
         const total = action.relatedItems.reduce((sum, item) => sum + (Number(item.v) || 0), 0)
         const excluded = exclusionConfig?.isExcluded ?? false
         const permanent = exclusionConfig?.isPermanentlyExcluded ?? false
+
         return (
             <>
-                <tr className={`item-row ${excluded ? 'item-row-excluded' : ''}`} onClick={onToggle}>
+                <tr className={`item-row ${excluded ? 'item-row-excluded' : ''}`}>
                     <td>
-                        <span style={{ cursor: 'pointer', marginRight: '5px' }}>
+                        <span style={{ cursor: 'pointer', marginRight: '5px' }} onClick={onToggle}>
                             {isExpanded ? '▼' : '▶'}
                         </span>
+                    </td>
+                    <td>
                         <span className='action-time'>{formatTime(action.timestamp)}</span>
-                        {` ${total.toFixed(2)} PED `}
-                        <ItemText text={formatActionDescription(action)} />
-                        {action.budgetName && isBudgetEnabled && (
-                            <span
-                                style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    navigate(budgetItemUrl(action.budgetName!))
+                    </td>
+                    <td>
+                        {`${total.toFixed(2)} PED`}
+                    </td>
+                    <td>
+                        <div>
+                            {editingActionId === action.id ?
+                                <select
+                                    value={action.type}
+                                    onChange={(e) => updateActionType({ actionId: action.id, type: e.target.value as any })}
+                                    style={{ marginRight: '5px' }}
+                                >
+                                    {Object.entries(actionTypeInfo).map(([type, info]) => (
+                                        <option key={type} value={type}>{info.icon} {info.name}</option>
+                                    ))}
+                                </select>
+                                :
+                                <ItemText text={formatActionDescription(action)} />
+                            }
+                            {action.budgetName && isBudgetEnabled && (
+                                <span
+                                    style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigate(budgetItemUrl(action.budgetName!))
+                                    }}
+                                >
+                                    [📊Budget]
+                                </span>
+                            )}
+                            <ImgButton
+                                title="Copy to clipboard"
+                                src="img/copy.png"
+                                className="img-btn-copy"
+                                clickPopup="Copied!"
+                                dispatch={() => {
+                                    const text = buildCopyTextForAction(action)
+                                    copyToClipboard(text)
                                 }}
-                            >
-                                [📊Budget]
-                            </span>
-                        )}
-                        <ImgButton
-                            title="Copy to clipboard"
-                            src="img/copy.png"
-                            className="img-btn-copy"
-                            clickPopup="Copied!"
-                            dispatch={() => {
-                                const text = buildCopyTextForAction(action)
-                                copyToClipboard(text)
-                                // Side-effect only; no redux action dispatched
-                            }}
-                        />
-                        {exclusionConfig && (
-                            permanent ? (
-                                <ImgButton
-                                    title='Remove permanent exclusion from the sum'
-                                    src='img/forbidden.png'
-                                    show
-                                    dispatch={() => exclusionConfig.onPermanentExclude(false)}
-                                />
-                            ) : excluded ? (
-                                <>
+                            />
+                            <ImgButton
+                                title="Edit action item"
+                                src="img/edit.png"
+                                className="img-btn"
+                                dispatch={() => setEditingActionId(editingActionId == action.id ? null : action.id)}
+                            />
+                            {exclusionConfig && (
+                                permanent ? (
                                     <ImgButton
-                                        title='Include this action in the sum'
-                                        src='img/cross.png'
-                                        show
-                                        dispatch={() => exclusionConfig.onInclude()}
-                                    />
-                                    <ImgButton
-                                        title='Permanently exclude this action type from the sum'
+                                        title='Remove permanent exclusion from the sum'
                                         src='img/forbidden.png'
-                                        dispatch={() => exclusionConfig.onPermanentExclude(true)}
+                                        show
+                                        dispatch={() => exclusionConfig.onPermanentExclude(false)}
                                     />
-                                </>
-                            ) : (
-                                <ImgButton
-                                    title='Exclude this action from the sum'
-                                    src='img/cross.png'
-                                    dispatch={() => exclusionConfig.onExclude()}
-                                />
-                            )
-                        )}
+                                ) : excluded ? (
+                                    <>
+                                        <ImgButton
+                                            title='Include this action in the sum'
+                                            src='img/cross.png'
+                                            show
+                                            dispatch={() => exclusionConfig.onInclude()}
+                                        />
+                                        <ImgButton
+                                            title='Permanently exclude this action type from the sum'
+                                            src='img/forbidden.png'
+                                            dispatch={() => exclusionConfig.onPermanentExclude(true)}
+                                        />
+                                    </>
+                                ) : (
+                                    <ImgButton
+                                        title='Exclude this action from the sum'
+                                        src='img/cross.png'
+                                        dispatch={() => exclusionConfig.onExclude()}
+                                    />
+                                )
+                            )}
+                        </div>
                     </td>
                     <td className='action-sources'>
                         {action.sources.join(', ')}
                     </td>
                 </tr>
                 {isExpanded && action.relatedItems.length > 0 &&
-                    <table className='table-diff' style={{ paddingLeft: '40px' }}>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                {itemExclusionConfig && <th></th>}
-                                <th>Quantity</th>
-                                <th>Value</th>
-                                <th>Container</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {action.relatedItems.map((item: ViewItemData, idx: number) => {
-                                const itemExcluded = itemExclusionConfig?.sessionBlacklist?.includes(item.n) ?? false
-                                const itemPermanent = itemExclusionConfig?.permanentBlacklist?.includes(item.n) ?? false
-                                const isItemExcludedOrPermanent = itemExcluded || itemPermanent
-                                return (
-                                    <tr key={idx} className={`item-row ${isItemExcludedOrPermanent ? 'item-row-excluded' : ''}`}>
-                                        <td><ItemText text={item.n} /></td>
-                                        {itemExclusionConfig && (
-                                            <td>
-                                                {itemPermanent ? (
-                                                    <ImgButton
-                                                        title='Remove permanent exclusion from the sum'
-                                                        src='img/forbidden.png'
-                                                        show
-                                                        dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, false)}
-                                                    />
-                                                ) : itemExcluded ? (
-                                                    <>
-                                                        <ImgButton
-                                                            title='Include this item in the sum'
-                                                            src='img/cross.png'
-                                                            show
-                                                            dispatch={() => itemExclusionConfig.onInclude(item.n)}
-                                                        />
-                                                        <ImgButton
-                                                            title='Permanently exclude this item from the sum'
-                                                            src='img/forbidden.png'
-                                                            dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, true)}
-                                                        />
-                                                    </>
-                                                ) : (
-                                                    <ImgButton
-                                                        title='Exclude this item from the sum'
-                                                        src='img/cross.png'
-                                                        dispatch={() => itemExclusionConfig.onExclude(item.n)}
-                                                    />
-                                                )}
-                                            </td>
-                                        )}
-                                        <td>{item.q} </td>
-                                        <td>{item.v} PED</td>
-                                        <td>{item.c}</td>
+                    <tr>
+                        <td></td>
+                        <td colSpan={4}>
+                            <table className='table-diff' style={{ paddingLeft: '40px' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        {itemExclusionConfig && <th></th>}
+                                        <th>Quantity</th>
+                                        <th>Value</th>
+                                        <th>Container</th>
+
                                     </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {action.relatedItems.map((item: ViewItemData, idx: number) => {
+                                        const itemExcluded = itemExclusionConfig?.sessionBlacklist?.includes(item.n) ?? false
+                                        const itemPermanent = itemExclusionConfig?.permanentBlacklist?.includes(item.n) ?? false
+                                        const isItemExcludedOrPermanent = itemExcluded || itemPermanent
+                                        return (
+                                            <tr key={idx} className={`item-row ${isItemExcludedOrPermanent ? 'item-row-excluded' : ''}`}>
+                                                <td><ItemText text={item.n} /></td>
+                                                {itemExclusionConfig && (
+                                                    <td>
+                                                        {itemPermanent ? (
+                                                            <ImgButton
+                                                                title='Remove permanent exclusion from the sum'
+                                                                src='img/forbidden.png'
+                                                                show
+                                                                dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, false)}
+                                                            />
+                                                        ) : itemExcluded ? (
+                                                            <>
+                                                                <ImgButton
+                                                                    title='Include this item in the sum'
+                                                                    src='img/cross.png'
+                                                                    show
+                                                                    dispatch={() => itemExclusionConfig.onInclude(item.n)}
+                                                                />
+                                                                <ImgButton
+                                                                    title='Permanently exclude this item from the sum'
+                                                                    src='img/forbidden.png'
+                                                                    dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, true)}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            <ImgButton
+                                                                title='Exclude this item from the sum'
+                                                                src='img/cross.png'
+                                                                dispatch={() => itemExclusionConfig.onExclude(item.n)}
+                                                            />
+                                                        )}
+                                                    </td>
+                                                )}
+                                                <td>{item.q} </td>
+                                                <td>{item.v} PED</td>
+                                                <td>{item.c}</td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
                 }
             </>
         )
@@ -581,62 +620,62 @@ function ActivityPage() {
                                                 <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
                                                 <table className='table-diff'>
                                                     <tbody>
-                                                    {dateActions.map((action, idx) => {
-                                                        const actionSessionList = sessionActionBlacklist?.[session.id] || []
-                                                        const actionPermanentList = permanentActionBlacklist?.[session.type] || []
-                                                        const isExcluded = actionSessionList.includes(action.id)
-                                                        const permanentKey = `${action.type}:${action.item}`
-                                                        const isPermanentlyExcluded = actionPermanentList.includes(permanentKey)
-                                                        const itemSessionList = sessionBlacklist?.[session.id] || []
-                                                        const itemPermanentList = permanentItemBlacklist?.[session.type] || []
-                                                        return (
-                                                            <ActionRow
-                                                                key={action.id || idx}
-                                                                action={action}
-                                                                isExpanded={expandedActionRowsSet.has(action.id)}
-                                                                onToggle={() => toggleActionRow(action.id)}
-                                                                exclusionConfig={{
-                                                                    sessionId: session.id,
-                                                                    sessionType: session.type,
-                                                                    isExcluded: isExcluded || isPermanentlyExcluded,
-                                                                    isPermanentlyExcluded,
-                                                                    onExclude: () => excludeAction({ sessionId: session.id, actionId: action.id }),
-                                                                    onInclude: () => includeAction({ sessionId: session.id, actionId: action.id }),
-                                                                    onPermanentExclude: (value: boolean) => permanentExcludeAction({ sessionType: session.type, actionType: action.type, itemName: action.item, value })
-                                                                }}
-                                                                itemExclusionConfig={{
-                                                                    sessionId: session.id,
-                                                                    sessionType: session.type,
-                                                                    sessionBlacklist: itemSessionList,
-                                                                    permanentBlacklist: itemPermanentList,
-                                                                    onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
-                                                                    onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
-                                                                    onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
-                                                                }}
-                                                            />
-                                                        )
-                                                    })}
+                                                        {dateActions.map((action, idx) => {
+                                                            const actionSessionList = sessionActionBlacklist?.[session.id] || []
+                                                            const actionPermanentList = permanentActionBlacklist?.[session.type] || []
+                                                            const isExcluded = actionSessionList.includes(action.id)
+                                                            const permanentKey = `${action.type}:${action.item}`
+                                                            const isPermanentlyExcluded = actionPermanentList.includes(permanentKey)
+                                                            const itemSessionList = sessionBlacklist?.[session.id] || []
+                                                            const itemPermanentList = permanentItemBlacklist?.[session.type] || []
+                                                            return (
+                                                                <ActionRow
+                                                                    key={action.id || idx}
+                                                                    action={action}
+                                                                    isExpanded={expandedActionRowsSet.has(action.id)}
+                                                                    onToggle={() => toggleActionRow(action.id)}
+                                                                    exclusionConfig={{
+                                                                        sessionId: session.id,
+                                                                        sessionType: session.type,
+                                                                        isExcluded: isExcluded || isPermanentlyExcluded,
+                                                                        isPermanentlyExcluded,
+                                                                        onExclude: () => excludeAction({ sessionId: session.id, actionId: action.id }),
+                                                                        onInclude: () => includeAction({ sessionId: session.id, actionId: action.id }),
+                                                                        onPermanentExclude: (value: boolean) => permanentExcludeAction({ sessionType: session.type, actionType: action.type, itemName: action.item, value })
+                                                                    }}
+                                                                    itemExclusionConfig={{
+                                                                        sessionId: session.id,
+                                                                        sessionType: session.type,
+                                                                        sessionBlacklist: itemSessionList,
+                                                                        permanentBlacklist: itemPermanentList,
+                                                                        onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
+                                                                        onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
+                                                                        onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
+                                                                    }}
+                                                                />
+                                                            )
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </div>
                                         ))
                                     } else {
-                                    // Show inventory items
-                                    const items = reverseInferActions(sessionActions)
-                                    const itemSessionList = sessionBlacklist?.[session.id] || []
-                                    const itemPermanentList = permanentItemBlacklist?.[session.type] || []
-                                    return <SortableItemsTable
-                                        items={items}
-                                        exclusionConfig={{
-                                            sessionId: session.id,
-                                            sessionType: session.type,
-                                            sessionBlacklist: itemSessionList,
-                                            permanentBlacklist: itemPermanentList,
-                                            onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
-                                            onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
-                                            onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
-                                        }}
-                                    />
+                                        // Show inventory items
+                                        const items = reverseInferActions(sessionActions)
+                                        const itemSessionList = sessionBlacklist?.[session.id] || []
+                                        const itemPermanentList = permanentItemBlacklist?.[session.type] || []
+                                        return <SortableItemsTable
+                                            items={items}
+                                            exclusionConfig={{
+                                                sessionId: session.id,
+                                                sessionType: session.type,
+                                                sessionBlacklist: itemSessionList,
+                                                permanentBlacklist: itemPermanentList,
+                                                onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
+                                                onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
+                                                onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
+                                            }}
+                                        />
                                     }
                                 })()}
                             </div>
