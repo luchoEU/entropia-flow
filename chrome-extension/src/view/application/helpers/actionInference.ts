@@ -1,4 +1,5 @@
 import { InferredAction, StoredAction } from '../state/activity'
+import type { BoughtAuctionItems, ListedAuctionItems } from '../state/activity'
 import { ViewItemData } from '../state/history'
 
 const PED_CARD = 'PED Card'
@@ -67,11 +68,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     for (const item of diff) {
         if (used.has(item.key)) continue
         if (item.c === 'AUCTION' && item.q.startsWith('-') && pedCard && !pedCard.v.startsWith('-')) {
-            const amount = Math.abs(Number(item.q))
-            const value = Number(pedCard.v)
             actions.push({
                 type: 'sold_auction',
-                relatedItems: [diff.indexOf(pedCard), diff.indexOf(item)]
+                relatedItems: {
+                    item: diff.indexOf(item),
+                    payment: diff.indexOf(pedCard)
+                }
             })
             used.add(item.key)
             used.add(pedCard.key)
@@ -82,25 +84,19 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     for (const item of diff) {
         if (used.has(item.key)) continue
         if (item.c === 'AUCTION' && !item.q.startsWith('-')) {
-            const amount = Number(item.q) || 1
-             let value: number | undefined = undefined
-            const relatedItems: ViewItemData[] = [item]
-            
-             // Include PED Card if present with negative value
-             if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
-                 relatedItems.push(pedCard)
-                 used.add(pedCard.key)
-                 value = -Number(pedCard.v)
-             }
+            const relatedItems: BoughtAuctionItems = {
+                item: diff.indexOf(item)
+            }
 
-             // If no PED Card deduction, use the item's value as the purchase cost
-             if (value === undefined) {
-                 value = Number(item.v)
-             }
+            // Include PED Card if present with negative value
+            if (pedCard && pedCard.v.startsWith('-') && !used.has(pedCard.key)) {
+                relatedItems.payment = diff.indexOf(pedCard)
+                used.add(pedCard.key)
+            }
 
-             actions.push({
+            actions.push({
                 type: 'bought_auction',
-                relatedItems: relatedItems.map(item => diff.indexOf(item))
+                relatedItems
             })
             used.add(item.key)
         }
@@ -111,11 +107,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
           const listedItems = diff.filter(d => !used.has(d.key) && d.c.includes('⭢ AUCTION'))
           if (listedItems.length === 1) {
               const item = listedItems[0]
-              const amount = Number(item.q) || 1
-              const value = -Number(pedCard.v)
               actions.push({
                   type: 'listed_auction',
-                  relatedItems: [diff.indexOf(item), diff.indexOf(pedCard)]
+                  relatedItems: {
+                      item: diff.indexOf(item),
+                      fee: diff.indexOf(pedCard)
+                  }
               })
               used.add(item.key)
               used.add(pedCard.key)
@@ -127,11 +124,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
           const gainedItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '' && !d.c.includes('⭢ AUCTION'))
           if (gainedItems.length === 1) {
               const item = gainedItems[0]
-              const amount = Number(item.q)
-              const value = -Number(pedCard.v)
               actions.push({
                   type: 'bought_auction',
-                  relatedItems: [diff.indexOf(item), diff.indexOf(pedCard)]
+                  relatedItems: {
+                      item: diff.indexOf(item),
+                      payment: diff.indexOf(pedCard)
+                  }
               })
               used.add(item.key)
               used.add(pedCard.key)
@@ -160,25 +158,21 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             )
 
             if (skillChip) {
-                const value = Math.abs(Number(item.v))
-                const amount = Number(skillChip.q) || 1
-                const relatedItems: ViewItemData[] = [item, skillChip]
-
-                // Add inserter decay as separate item (just the decay part)
-                if (inserterDecay) {
-                    relatedItems.push({
-                        key: inserterDecay.key,
-                        n: inserterDecay.n,
-                        q: '',
-                        v: inserterDecay.v,
-                        c: 'CARRIED'  // The decay happened in CARRIED before the move
-                    })
-                }
-
-                actions.push({
+                const chipOutAction: InferredAction = {
                     type: 'chip_out',
-                    relatedItems: relatedItems.map(item => diff.indexOf(item))
-                })
+                    relatedItems: {
+                        consumed: diff.indexOf(item),
+                        skillChip: diff.indexOf(skillChip),
+                        ...(inserterDecay ? { inserterDecay: diff.indexOf({
+                            key: inserterDecay.key,
+                            n: inserterDecay.n,
+                            q: '',
+                            v: inserterDecay.v,
+                            c: 'CARRIED'
+                        }) } : {})
+                    }
+                }
+                actions.push(chipOutAction)
                 used.add(item.key)
                 used.add(skillChip.key)
                 // Note: inserterDecay.key is NOT added to used - it will be processed again for the move
@@ -196,11 +190,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         if ((shrapnelQty < 0 && universalQty > 0) || (shrapnelQty > 0 && universalQty < 0)) {
             const consumedItem = shrapnelQty < 0 ? shrapnelItem : universalAmmoItem
             const gainedItem = shrapnelQty < 0 ? universalAmmoItem : shrapnelItem
-            const amount = Math.abs(Number(consumedItem.q))
-            const value = Math.abs(Number(consumedItem.v))
             actions.push({
                 type: 'convert_ammo',
-                relatedItems: [diff.indexOf(consumedItem), diff.indexOf(gainedItem)]
+                relatedItems: {
+                    consumed: diff.indexOf(consumedItem),
+                    produced: diff.indexOf(gainedItem)
+                }
             })
             used.add(shrapnelItem.key)
             used.add(universalAmmoItem.key)
@@ -211,23 +206,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     const consumed = diff.filter(d => !used.has(d.key) && d.q.startsWith('-'))
     const positiveItems = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
     if (consumed.length >= 1 && positiveItems.length >= 2 && !consumed.some(c => c.c === 'AUCTION')) {
-        // Identify the main crafted item - prioritize items that don't sound like residues
-        const craftedItem = positiveItems.reduce((best, current) => {
-            const isBestResidue = best.n.toLowerCase().includes('residue') || best.n.toLowerCase().includes('shrapnel')
-            const isCurrentResidue = current.n.toLowerCase().includes('residue') || current.n.toLowerCase().includes('shrapnel')
-            
-            if (isBestResidue && !isCurrentResidue) return current
-            if (!isBestResidue && isCurrentResidue) return best
-            
-            // If both are residues or both are not residues, use value as tiebreaker
-            return Number(current.v) > Number(best.v) ? current : best
-        })
-        
-        const amount = Number(craftedItem.q)
-        const value = Number(craftedItem.v)
         actions.push({
             type: 'craft',
-            relatedItems: [diff.indexOf(consumed[0]), ...positiveItems.map(item => diff.indexOf(item))]
+            relatedItems: {
+                consumed: consumed.map(item => diff.indexOf(item)),
+                produced: positiveItems.map(item => diff.indexOf(item))
+            }
         })
         consumed.forEach(c => used.add(c.key))
         positiveItems.forEach(p => used.add(p.key))
@@ -238,11 +222,12 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     const refineProduced = diff.filter(d => !used.has(d.key) && !d.q.startsWith('-') && d.q !== '')
     if (refineConsumed.length > 0 && refineProduced.length === 1) {
         const prod = refineProduced[0]
-        const amount = Number(prod.q)
-        const value = Number(prod.v)
         actions.push({
             type: 'refine',
-            relatedItems: [...refineConsumed.map(item => diff.indexOf(item)), diff.indexOf(prod)]
+            relatedItems: {
+                consumed: refineConsumed.map(item => diff.indexOf(item)),
+                produced: diff.indexOf(prod)
+            }
         })
         refineConsumed.forEach(c => used.add(c.key))
         used.add(prod.key)
@@ -252,18 +237,18 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
     for (const item of diff) {
         if (used.has(item.key)) continue
         if (item.n.includes('Pet') && item.q.startsWith('-') && item.c === 'CARRIED') {
-            const amount = Math.abs(Number(item.q)) || 1
-            const value = Math.abs(Number(item.v)) || 0
-                actions.push({
-                    type: 'dismiss_pet',
-                    relatedItems: [diff.indexOf(item)]
-                })
+            actions.push({
+                type: 'dismiss_pet',
+                relatedItems: {
+                    pet: diff.indexOf(item)
+                }
+            })
             used.add(item.key)
         }
     }
 
     // 5. Match moves: items with ⟹ or ⭢ in container, grouped by from/to
-    const moveGroups = new Map<string, { from: string, to: string, items: ViewItemData[] }>()
+    const moveGroups = new Map<string, { from: string, to: string, itemIndices: number[] }>()
     for (const item of diff) {
         if (used.has(item.key)) continue
         const moveMatch = item.c.match(/(.+?) ⟹ (.+)/) || item.c.match(/(.+?) ⭢ (.+)/)
@@ -272,42 +257,29 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             const to = moveMatch[2]
             const groupKey = `${from}|${to}`
             if (!moveGroups.has(groupKey)) {
-                moveGroups.set(groupKey, { from, to, items: [] })
+                moveGroups.set(groupKey, { from, to, itemIndices: [] })
             }
-            moveGroups.get(groupKey)!.items.push({
-                key: item.key,
-                n: item.n,
-                q: '',
-                v: '',  // Value change handled separately (e.g., in chip_out)
-                c: item.c
-            })
+            moveGroups.get(groupKey)!.itemIndices.push(diff.indexOf(item))
             used.add(item.key)
         }
     }
     for (const group of moveGroups.values()) {
-        const itemNames = group.items.map(i => i.n)
-        const displayName = itemNames.length > 3
-            ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
-            : itemNames.join(', ')
         actions.push({
             type: 'moved',
-            relatedItems: group.items.map(item => diff.indexOf(item))
+            relatedItems: {
+                items: group.itemIndices
+            }
         })
     }
 
     // 6. Remaining items go to unknown
     const remaining = diff.filter(d => !used.has(d.key))
     if (remaining.length > 0) {
-        const itemNames = remaining.map(r => r.n)
-        const displayName = itemNames.length > 3
-            ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
-            : itemNames.join(', ')
-
-        const totalValue = remaining.reduce((sum, r) => sum + (Number(r.v) || 0), 0)
-
         actions.push({
             type: 'unknown',
-            relatedItems: remaining.map(item => diff.indexOf(item))
+            relatedItems: {
+                items: remaining.map(item => diff.indexOf(item))
+            }
         })
     }
 

@@ -44,7 +44,7 @@ describe('budgetInference', () => {
             type: 'sold_auction',
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { item: 0, payment: 1 } // TODO: populate with actual inventory item IDs
         })
 
         const createBoughtAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
@@ -52,7 +52,7 @@ describe('budgetInference', () => {
             type: 'bought_auction',
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { item: 0, payment: 1 } // TODO: populate with actual inventory item IDs
         })
 
         const createOtherAction = (type: string, item: string, timestamp: number = Date.now()): StoredAction => ({
@@ -60,7 +60,7 @@ describe('budgetInference', () => {
             type: type as any,
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { items: [0] } // TODO: populate with actual inventory item IDs
         })
 
         const createListedAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
@@ -68,7 +68,7 @@ describe('budgetInference', () => {
             type: 'listed_auction',
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { item: 0, fee: 1 } // TODO: populate with actual inventory item IDs
         })
 
         const createRefineAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
@@ -76,7 +76,7 @@ describe('budgetInference', () => {
             type: 'refine',
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { consumed: [0], produced: 1 } // TODO: populate with actual inventory item IDs
         })
 
         const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
@@ -84,7 +84,7 @@ describe('budgetInference', () => {
             type: 'craft',
             timestamp,
             sources: ['inventory'],
-            relatedItems: [] // TODO: populate with inventory item IDs
+            relatedItems: { consumed: [0], produced: [1] } // TODO: populate with actual inventory item IDs
         })
 
         it('should create budget line for sold_auction action with matching budget item', () => {

@@ -7,6 +7,20 @@ import { formatActionDescription } from '../../application/state/activity'
 const ActionRow = ({ action }: { action: InferredAction }) => {
     const [expanded, setExpanded] = useState(false)
 
+    // Helper to extract all item IDs from relatedItems structure
+    const getAllItemIds = (action: InferredAction): number[] => {
+        const values = Object.values(action.relatedItems)
+        const ids: number[] = []
+        for (const value of values) {
+            if (typeof value === 'number') {
+                ids.push(value)
+            } else if (Array.isArray(value)) {
+                ids.push(...value)
+            }
+        }
+        return ids
+    }
+
     // Fallback function for missing inventory items (monitor doesn't have full state)
     const getInventoryItemFallback = (id: number) => ({
         id,
@@ -16,6 +30,9 @@ const ActionRow = ({ action }: { action: InferredAction }) => {
         container: 'unknown',
         timestamp: Date.now()
     })
+
+    const itemIds = getAllItemIds(action)
+
     return (
         <>
             <tr className='item-row' onClick={() => setExpanded(!expanded)}>
@@ -29,7 +46,7 @@ const ActionRow = ({ action }: { action: InferredAction }) => {
                 <td></td>
                 <td></td>
             </tr>
-            {expanded && action.relatedItems.map((itemId: number, idx: number) => {
+            {expanded && itemIds.map((itemId: number, idx: number) => {
                 const item = getInventoryItemFallback(itemId)
                 return (
                     <tr key={idx} className='item-row'>

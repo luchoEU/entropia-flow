@@ -257,6 +257,20 @@ function ActivityPage() {
     const expandedActionRowsSet = new Set(expandedActionRows)
     const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
 
+    // Helper to extract all item IDs from relatedItems structure
+    const getAllItemIds = (action: StoredAction): number[] => {
+        const values = Object.values(action.relatedItems)
+        const ids: number[] = []
+        for (const value of values) {
+            if (typeof value === 'number') {
+                ids.push(value)
+            } else if (Array.isArray(value)) {
+                ids.push(...value)
+            }
+        }
+        return ids
+    }
+
     const buildCopyTextForItems = (items: StoredInventoryItem[]): string => {
         return items.map(d => `${d.name}\t${d.quantity}\t${useComma ? d.value.toFixed(2).replace('.', ',') : d.value.toFixed(2)}`).join('\n')
     }
@@ -264,18 +278,19 @@ function ActivityPage() {
     // Build a plain text representation for copying: title + list of items
     const buildCopyTextForAction = (a: StoredAction): string => {
         const time = formatTime(a.timestamp)
+        const itemIds = getAllItemIds(a)
         // Calculate total value from related inventory items
-        const total = a.relatedItems.reduce((sum, itemId) => {
+        const total = itemIds.reduce((sum, itemId) => {
             const item = getInventoryItem(itemId)
             return sum + (item ? item.value : 0)
         }, 0).toFixed(2)
         const title = formatActionDescription(a, getInventoryItem)
         const sources = a.sources.join(', ')
         let text = `${time} ${total} PED - ${title} - ${sources}`
-        if (a.relatedItems && a.relatedItems.length > 0) {
+        if (itemIds.length > 0) {
             text += '\n'
             // Get inventory items directly
-            const items: StoredInventoryItem[] = a.relatedItems.map(itemId => getInventoryItemWithFallback(itemId, a.timestamp))
+            const items: StoredInventoryItem[] = itemIds.map(itemId => getInventoryItemWithFallback(itemId, a.timestamp))
             text += buildCopyTextForItems(items)
         }
         return text
@@ -312,7 +327,8 @@ function ActivityPage() {
     }
 
     const ActionRow = ({ action, isExpanded, onToggle, exclusionConfig, itemExclusionConfig }: { action: StoredAction, isExpanded: boolean, onToggle: () => void, exclusionConfig?: ActionExclusionConfig, itemExclusionConfig?: ItemExclusionConfig }) => {
-        const total = action.relatedItems.reduce((sum, itemId) => {
+        const itemIds = getAllItemIds(action)
+        const total = itemIds.reduce((sum, itemId) => {
             const item = getInventoryItem(itemId)
             return sum + (item ? item.value : 0)
         }, 0)
@@ -411,7 +427,7 @@ function ActivityPage() {
                         {action.sources.join(', ')}
                     </td>
                 </tr>
-                {isExpanded && action.relatedItems.length > 0 &&
+                {isExpanded && itemIds.length > 0 &&
                     <tr>
                         <td></td>
                         <td colSpan={4}>
@@ -427,7 +443,7 @@ function ActivityPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {action.relatedItems.map((itemId: number, idx: number) => {
+                                    {itemIds.map((itemId: number, idx: number) => {
                                         const item = getInventoryItemWithFallback(itemId, action.timestamp)
                                         const itemExcluded = itemExclusionConfig?.sessionBlacklist?.includes(item.name) ?? false
                                         const itemPermanent = itemExclusionConfig?.permanentBlacklist?.includes(item.name) ?? false
@@ -506,7 +522,8 @@ function ActivityPage() {
             // In actions view, exclude by action and by item
             const delta = sessionActions.reduce((sum, action) => {
                 if (isActionExcluded(session.id, session.type, action) || !action.sources.includes('inventory')) return sum
-                return sum + action.relatedItems.reduce((itemSum, itemId) => {
+                const itemIds = getAllItemIds(action)
+                return sum + itemIds.reduce((itemSum, itemId) => {
                     const item = getInventoryItem(itemId)
                     if (item && !isItemExcludedInSession(session.id, session.type, item.name)) {
                         return itemSum + item.value
@@ -519,7 +536,8 @@ function ActivityPage() {
             // In items view, exclude by item name
             // Calculate delta from inventory items referenced by actions
             const delta = sessionActions.reduce((sum, action) => {
-                return sum + action.relatedItems.reduce((actionSum, itemId) => {
+                const itemIds = getAllItemIds(action)
+                return sum + itemIds.reduce((actionSum, itemId) => {
                     const item = getInventoryItem(itemId)
                     if (item && !isItemExcludedInSession(session.id, session.type, item.name)) {
                         return actionSum + item.value
@@ -660,7 +678,7 @@ function ActivityPage() {
                                                          // Get all inventory items referenced by actions in this session
                                                          const itemIds = new Set<number>()
                                                          sessionActions.forEach(action => {
-                                                             action.relatedItems.forEach(itemId => itemIds.add(itemId))
+                                                             getAllItemIds(action).forEach(itemId => itemIds.add(itemId))
                                                          })
                                                          const items = Array.from(itemIds).map(itemId => getInventoryItem(itemId)).filter(item => item !== undefined) as StoredInventoryItem[]
                                                          text = buildCopyTextForItems(items)
@@ -740,7 +758,7 @@ function ActivityPage() {
                                         // Show inventory items
                                         const itemIds = new Set<number>()
                                         sessionActions.forEach(action => {
-                                            action.relatedItems.forEach(itemId => itemIds.add(itemId))
+                                            getAllItemIds(action).forEach(itemId => itemIds.add(itemId))
                                         })
                                         const items: ViewItemData[] = Array.from(itemIds).map(itemId => {
                                             const item = getInventoryItemWithFallback(itemId)

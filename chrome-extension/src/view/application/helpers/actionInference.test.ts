@@ -17,7 +17,7 @@ describe('actionInference', () => {
       expect(actions.length).toBeGreaterThan(0)
       expect(actions[0]).toHaveProperty('type')
       expect(actions[0]).toHaveProperty('relatedItems')
-      expect(Array.isArray(actions[0].relatedItems)).toBe(true)
+      expect(typeof actions[0].relatedItems).toBe('object')
     })
   })
 })

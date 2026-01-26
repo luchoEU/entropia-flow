@@ -21,7 +21,7 @@ import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
-import { StoredAction, StoredInventoryItem } from '../../application/state/activity'
+import { InferredAction, StoredAction, StoredInventoryItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 import { HistoryState } from '../../application/state/history'
 
@@ -149,7 +149,7 @@ export function ActivityBridge() {
 
             const storedAction: StoredAction = {
                 type: 'loot',
-                relatedItems: [], // Will be populated when merged with inventory items
+                relatedItems: { items: [] }, // Will be populated when merged with inventory items
                 id: `loot-${minSerial}`,
                 timestamp,
                 sources: ['client']
@@ -231,11 +231,24 @@ export function ActivityBridge() {
             if (matchResult.unmatched.length > 0) {
                 const inferredActions = inferActions(matchResult.unmatched)
 
+                // Helper to map indices to actual inventory IDs in the relatedItems structure
+                const mapIndicesToIds = (relatedItems: InferredAction['relatedItems']): any => {
+                    const result: any = {}
+                    for (const [key, value] of Object.entries(relatedItems)) {
+                        if (typeof value === 'number') {
+                            result[key] = inventoryStartIndex + value
+                        } else if (Array.isArray(value)) {
+                            result[key] = value.map(index => inventoryStartIndex + index)
+                        }
+                    }
+                    return result
+                }
+
                 // Convert InferredAction to StoredAction
                 for (const inferredAction of inferredActions) {
                     const storedAction: StoredAction = {
                         type: inferredAction.type,
-                        relatedItems: inferredAction.relatedItems.map(index => inventoryStartIndex + index), // Map indices to actual IDs
+                        relatedItems: mapIndicesToIds(inferredAction.relatedItems),
                         id: `${inventory.key}-${inferredAction.type}-${Date.now()}`,
                         timestamp: inventory.key,
                         sources: ['inventory']

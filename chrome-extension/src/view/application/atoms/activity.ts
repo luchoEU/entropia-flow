@@ -153,6 +153,15 @@ export const clearActionsAtom = atom(
     }
 )
 
+export const resetAllActivityDataAtom = atom(
+    null,
+    async (_get, set) => {
+        // Completely reset to initial state
+        set(activityAtom, initialActivityState)
+        await saveToStorage(initialActivityState)
+    }
+)
+
 export const setLastProcessedKeyAtom = atom(
     null,
     async (get, set, key: number) => {
