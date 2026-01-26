@@ -32,7 +32,7 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     return <>
         <span
             title={title}
-            className={'pointer popup-container ' + (className ?? '')}
+            className={'pointer popup-container ' + (className ?? 'img-btn')}
             onClick={onClick}
             {...style ? { style } : {}}
             {...show ? { 'data-show': true } : {}}>

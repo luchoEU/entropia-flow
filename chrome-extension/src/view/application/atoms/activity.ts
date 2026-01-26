@@ -18,7 +18,8 @@ const initialActivityState: ActivityState = {
     sessionBlacklist: {},
     sessionActionBlacklist: {},
     permanentItemBlacklist: { unknown: [], hunt: [], mine: [], craft: [] },
-    permanentActionBlacklist: { unknown: [], hunt: [], mine: [], craft: [] }
+    permanentActionBlacklist: { unknown: [], hunt: [], mine: [], craft: [] },
+    lastDeletedSession: null
 }
 
 // Base atom for activity state
@@ -232,6 +233,64 @@ export const updateSessionTypeAtom = atom(
             sessions: current.sessions.map(s =>
                 s.id === sessionId ? { ...s, type: sessionType } : s
             )
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const deleteSessionAtom = atom(
+    null,
+    async (get, set, sessionId: string) => {
+        const current = get(activityAtom)
+        const session = current.sessions.find(s => s.id === sessionId)
+        if (!session) return
+
+        // Find actions in this session
+        const sessionIndex = current.sessions.indexOf(session)
+        const nextSession = current.sessions[sessionIndex + 1]
+        const endTime = nextSession ? nextSession.startTime : Date.now()
+        const sessionActions = current.list.filter(act =>
+            act.timestamp >= session.startTime && act.timestamp < endTime
+        )
+
+        // Remove session and actions
+        const newSessions = current.sessions.filter(s => s.id !== sessionId)
+        const newList = current.list.filter(act => !sessionActions.includes(act))
+
+        // Clean up blacklists
+        const { [sessionId]: _, ...newSessionBlacklist } = current.sessionBlacklist
+        const { [sessionId]: __, ...newSessionActionBlacklist } = current.sessionActionBlacklist
+
+        const newState = {
+            ...current,
+            sessions: newSessions,
+            list: newList,
+            sessionBlacklist: newSessionBlacklist,
+            sessionActionBlacklist: newSessionActionBlacklist,
+            lastDeletedSession: { session, actions: sessionActions },
+            expandedSessions: current.expandedSessions.filter(id => id !== sessionId)
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const undoDeleteSessionAtom = atom(
+    null,
+    async (get, set) => {
+        const current = get(activityAtom)
+        if (!current.lastDeletedSession) return
+
+        const { session, actions } = current.lastDeletedSession
+        const newSessions = [...current.sessions, session].sort((a, b) => a.startTime - b.startTime)
+        const newList = [...actions, ...current.list]
+
+        const newState = {
+            ...current,
+            sessions: newSessions,
+            list: newList,
+            lastDeletedSession: null
         }
         set(activityAtom, newState)
         await saveToStorage(newState)

@@ -126,6 +126,8 @@ interface ActivityState {
     permanentItemBlacklist: Record<SessionType, string[]>
     // Permanent action blacklist per session type: sessionType -> action type strings
     permanentActionBlacklist: Record<SessionType, string[]>
+    // Last deleted session for undo
+    lastDeletedSession: { session: SessionBoundary, actions: StoredAction[] } | null
 }
 
 export {

@@ -22,7 +22,9 @@ import {
     permanentExcludeActionAtom,
     updateActionTypeAtom,
     updateActionItemAtom,
-    updateActionItemsAtom
+    updateActionItemsAtom,
+    deleteSessionAtom,
+    undoDeleteSessionAtom
 } from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
 import { isFeatureEnabled, Feature } from '../../application/state/settings'
@@ -187,7 +189,7 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 function ActivityPage() {
     // Jotai state
     const activity = useAtomValue(activityAtom)
-    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist } = activity
+    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist, lastDeletedSession } = activity
 
     // Jotai actions
     const createNewSession = useSetAtom(createNewSessionAtom)
@@ -206,6 +208,8 @@ function ActivityPage() {
     const updateActionType = useSetAtom(updateActionTypeAtom)
     const updateActionItem = useSetAtom(updateActionItemAtom)
     const updateActionItems = useSetAtom(updateActionItemsAtom)
+    const deleteSession = useSetAtom(deleteSessionAtom)
+    const undoDeleteSession = useSetAtom(undoDeleteSessionAtom)
 
     // Redux state (for settings only)
     const settings = useSelector(getSettings)
@@ -505,9 +509,16 @@ function ActivityPage() {
 
     return (
         <section>
-            <button onClick={() => createNewSession()}>
-                New Session
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button onClick={() => createNewSession()}>
+                    New Session
+                </button>
+                {lastDeletedSession && (
+                    <button onClick={() => undoDeleteSession()}>
+                        Undo Delete Session
+                    </button>
+                )}
+            </div>
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
                 const sessionActions = groupedActions.get(session.id) || []
                 const isPreSession = session.id === 'pre-session'
@@ -535,12 +546,19 @@ function ActivityPage() {
                                     <span className='session-name'>{session.name}</span>
                                 )}
                                 {!isPreSession && editingSessionId !== session.id && (
-                                    <ImgButton
-                                        title="Edit session name"
-                                        src="img/edit.png"
-                                        className="img-btn-edit"
-                                        dispatch={() => setEditingSessionId(session.id)}
-                                    />
+                                    <>
+                                        <ImgButton
+                                            title="Edit session name"
+                                            src="img/edit.png"
+                                            className="img-btn-edit"
+                                            dispatch={() => setEditingSessionId(session.id)}
+                                        />
+                                        <ImgButton
+                                            title="Delete session"
+                                            src="img/trash.png"
+                                            dispatch={() => deleteSession(session.id)}
+                                        />
+                                    </>
                                 )}
                                 {sessionDeltas.get(session.id) !== undefined && (
                                     <span className={`difference ${getDeltaClass(sessionDeltas.get(session.id))}`}>
