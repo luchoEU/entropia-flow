@@ -22,7 +22,7 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, it
     if (state.owned.options.reserve) {
         list = list.map(d => {
             const m: ItemState = items[d.data.n];
-            if (!m) return d;
+            if (!m || !m.reserveAmount) return d;
             const reserve: number = parseFloat(m.reserveAmount);
             if (isNaN(reserve)) return d;
             const unitValue = m.web?.item?.data?.value.value
@@ -51,10 +51,16 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, it
                 },
                 chain: state.tradeItemDataChain
             },
-            items: list.map(d => ({ ...d, t: {
-                showingTradeItem: d.data.n === chainRootName,
-                ttServiceValue: ttServiceValueMap?.[d.data.n]
-            }})),
+            items: list.map(d => {
+                const m: ItemState = items[d.data.n];
+                return {
+                    ...d, t: {
+                        showingTradeItem: d.data.n === chainRootName,
+                        reserveAmount: m?.reserveAmount ? parseFloat(m.reserveAmount) : undefined,
+                        ttServiceValue: ttServiceValueMap?.[d.data.n]
+                    }
+                };
+            }),
         },
     }
 }
@@ -63,24 +69,24 @@ const inventoryTabularDefinitions: TabularDefinitions = {
     [INVENTORY_TABULAR_OWNED]: {
         title: 'Owned List',
         subtitle: 'List of the Items you own, excluding hidden ones',
-        columns: ['Name', 'Quantity', 'Value', 'TT Service', 'Container'],
-        columnVisible: (items?: ItemOwned[], data?: InventoryTabularOwnedData) => {
-            const chainRootName = data?.chain?.[0].name;
-            const hasChain = !chainRootName || !items?.some(g => g.data.n === chainRootName);
-            return [true, true, true, hasChain && data?.ttService.featureEnabled, hasChain]
+        columns: ['Name', 'Quantity', 'Value', 'Reserve', 'TT Service', 'Container'],
+        columnVisible: (items: ItemOwned[] = [], data?: InventoryTabularOwnedData) => {
+            const chainRootName = data?.chain?.[0]?.name;
+            const hasChain = !chainRootName || !items.some(g => g.data.n === chainRootName);
+            return [true, true, true, true, hasChain && data?.ttService.featureEnabled, hasChain]
         },
-        columnHeaderAfterName: (data?: InventoryTabularOwnedData) => [,,,
+        columnHeaderAfterName: (data?: InventoryTabularOwnedData) => [, , , , ,
             data?.ttService.loadingSource ?
                 { img: 'img/loading.gif', title: `Loading from ${data.ttService.loadingSource}`, class: 'img-tt-service-loading' } :
                 [
-                    ...data?.ttService.loadingError ? [{ img: 'img/error.png', title: data.ttService.loadingError, class: 'img-tt-service-error' }] : [],
+                    ...(data?.ttService.loadingError ? [{ img: 'img/error.png', title: data.ttService.loadingError, class: 'img-tt-service-error' }] : []),
                     { img: 'img/reload.png', title: 'Reload TT Service from sheet', class: 'img-tt-service-reload', dispatch: loadTTService }
                 ]
         ],
-        getRow: (g: ItemOwned): RowValue[] => {
+        getRow: (g: ItemOwned, index: number, data?: InventoryTabularOwnedData): RowValue[] => {
             return [
                 { // Name
-                    dispatch: () => showTradingItemData(g.t?.showingTradeItem ? undefined : g.data.n, 0),
+                    dispatch: () => g.data.n && showTradingItemData(g.t?.showingTradeItem ? undefined : g.data.n, 0),
                     sub: [
                         g.c.hidden.any ?
                             { img: 'img/tick.png', title: 'Show this item name', dispatch: () => showByName(g.data.n), visible: g.c.hidden.name } :
@@ -92,12 +98,15 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                         { flex: 1 },
                         { img: 'img/find.png', title: 'Search by this item name', dispatch: () => setTabularFilter(INVENTORY_TABULAR_OWNED)(`!${g.data.n}`) }
                     ]
-                }, g.data.q // Quantity
-                , [ // Value
+                },
+                g.data.q, // Quantity
+                [ // Value
                     g.c.hidden.any ?
                         { img: 'img/tick.png', title: 'Show this value or higher', dispatch: () => showByValue(g.data.v), visible: g.c.hidden.value } :
                         { img: 'img/cross.png', title: 'Hide this value or lower', dispatch: () => hideByValue(g.data.v) },
                     g.data.v + ' PED'
+                ], [ // Reserve
+                    g.t?.reserveAmount !== undefined ? `${g.t.reserveAmount.toFixed(2)} PED` : ''
                 ], [ // TT Service
                     g.t?.ttServiceValue !== undefined ? `${g.t.ttServiceValue.toFixed(2)} PED` : ''
                 ], [ // Container
@@ -109,7 +118,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
             ]
         },
         getRowClass: (g: ItemOwned) => g.c.hidden.any ? 'hidden-item-row' : undefined,
-        getRowForSort: (g: ItemOwned) => [g.data.n, Number(g.data.q), Number(g.data.v), g.t?.ttServiceValue ?? 0, g.data.c],
+        getRowForSort: (g: ItemOwned) => [g.data.n, Number(g.data.q), Number(g.data.v), g.t?.reserveAmount ?? 0, g.t?.ttServiceValue ?? 0, g.data.c],
         getPedValue: (g: ItemOwned) => Number(g.data.v)
     }
 }

@@ -122,6 +122,7 @@ interface ItemOwned {
   }
   t?: { // calculated when creating the tabular data
     showingTradeItem: boolean
+    reserveAmount: number | undefined
     ttServiceValue: number | undefined
   }
 }
