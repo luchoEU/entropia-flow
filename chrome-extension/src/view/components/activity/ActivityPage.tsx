@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useNavigate } from 'react-router-dom'
-import { StoredAction, SessionBoundary, SessionType, formatActionDescription, actionTypeInfo } from '../../application/state/activity'
+import { StoredAction, StoredInventoryItem, SessionBoundary, SessionType, formatActionDescription, actionTypeInfo } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
 import {
@@ -28,7 +28,7 @@ import {
 } from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
 import { isFeatureEnabled, Feature } from '../../application/state/settings'
-import { reverseInferActions } from '../../application/helpers/actionInference'
+
 import { formatDate, formatDateTime, formatTime } from '../../../common/time'
 import { budgetItemUrl } from '../../application/actions/navigation'
 import ImgButton from '../common/ImgButton'
@@ -189,7 +189,41 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 function ActivityPage() {
     // Jotai state
     const activity = useAtomValue(activityAtom)
-    const { list: actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist, lastDeletedSession } = activity
+
+    // Guard against undefined activity
+    if (!activity) {
+        return (
+            <section>
+                <p>Loading activity data...</p>
+            </section>
+        )
+    }
+
+    const { list: inventoryItems, actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist, lastDeletedSession } = activity
+
+    // Guard against undefined arrays
+    if (!inventoryItems || !actions) {
+        return (
+            <section>
+                <p>Loading activity data...</p>
+            </section>
+        )
+    }
+
+    // Create lookup function for inventory items
+    const getInventoryItem = (id: number) => inventoryItems.find(item => item.id === id)
+
+    // Helper function to get inventory item with fallback
+    const getInventoryItemWithFallback = (itemId: number, fallbackTimestamp?: number): StoredInventoryItem => {
+        return getInventoryItem(itemId) || {
+            id: itemId,
+            name: 'unknown',
+            quantity: 0,
+            value: 0,
+            container: 'unknown',
+            timestamp: fallbackTimestamp || Date.now()
+        }
+    }
 
     // Jotai actions
     const createNewSession = useSetAtom(createNewSessionAtom)
@@ -223,20 +257,26 @@ function ActivityPage() {
     const expandedActionRowsSet = new Set(expandedActionRows)
     const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
 
-    const buildCopyTextForItems = (items: ViewItemData[]): string => {
-        return items.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
+    const buildCopyTextForItems = (items: StoredInventoryItem[]): string => {
+        return items.map(d => `${d.name}\t${d.quantity}\t${useComma ? d.value.toFixed(2).replace('.', ',') : d.value.toFixed(2)}`).join('\n')
     }
 
     // Build a plain text representation for copying: title + list of items
     const buildCopyTextForAction = (a: StoredAction): string => {
         const time = formatTime(a.timestamp)
-        const total = a.value?.toFixed(2) || '0.00'
-        const title = formatActionDescription(a)
+        // Calculate total value from related inventory items
+        const total = a.relatedItems.reduce((sum, itemId) => {
+            const item = getInventoryItem(itemId)
+            return sum + (item ? item.value : 0)
+        }, 0).toFixed(2)
+        const title = formatActionDescription(a, getInventoryItem)
         const sources = a.sources.join(', ')
         let text = `${time} ${total} PED - ${title} - ${sources}`
         if (a.relatedItems && a.relatedItems.length > 0) {
             text += '\n'
-            text += buildCopyTextForItems(a.relatedItems)
+            // Get inventory items directly
+            const items: StoredInventoryItem[] = a.relatedItems.map(itemId => getInventoryItemWithFallback(itemId, a.timestamp))
+            text += buildCopyTextForItems(items)
         }
         return text
     }
@@ -272,7 +312,10 @@ function ActivityPage() {
     }
 
     const ActionRow = ({ action, isExpanded, onToggle, exclusionConfig, itemExclusionConfig }: { action: StoredAction, isExpanded: boolean, onToggle: () => void, exclusionConfig?: ActionExclusionConfig, itemExclusionConfig?: ItemExclusionConfig }) => {
-        const total = action.relatedItems.reduce((sum, item) => sum + (Number(item.v) || 0), 0)
+        const total = action.relatedItems.reduce((sum, itemId) => {
+            const item = getInventoryItem(itemId)
+            return sum + (item ? item.value : 0)
+        }, 0)
         const excluded = exclusionConfig?.isExcluded ?? false
         const permanent = exclusionConfig?.isPermanentlyExcluded ?? false
 
@@ -303,7 +346,7 @@ function ActivityPage() {
                                     ))}
                                 </select>
                                 :
-                                <ItemText text={formatActionDescription(action)} />
+                                <ItemText text={formatActionDescription(action, getInventoryItem)} />
                             }
                             {action.budgetName && isBudgetEnabled && (
                                 <span
@@ -384,13 +427,14 @@ function ActivityPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {action.relatedItems.map((item: ViewItemData, idx: number) => {
-                                        const itemExcluded = itemExclusionConfig?.sessionBlacklist?.includes(item.n) ?? false
-                                        const itemPermanent = itemExclusionConfig?.permanentBlacklist?.includes(item.n) ?? false
+                                    {action.relatedItems.map((itemId: number, idx: number) => {
+                                        const item = getInventoryItemWithFallback(itemId, action.timestamp)
+                                        const itemExcluded = itemExclusionConfig?.sessionBlacklist?.includes(item.name) ?? false
+                                        const itemPermanent = itemExclusionConfig?.permanentBlacklist?.includes(item.name) ?? false
                                         const isItemExcludedOrPermanent = itemExcluded || itemPermanent
                                         return (
                                             <tr key={idx} className={`item-row ${isItemExcludedOrPermanent ? 'item-row-excluded' : ''}`}>
-                                                <td><ItemText text={item.n} /></td>
+                                                <td><ItemText text={item.name} /></td>
                                                 {itemExclusionConfig && (
                                                     <td>
                                                         {itemPermanent ? (
@@ -398,7 +442,7 @@ function ActivityPage() {
                                                                 title='Remove permanent exclusion from the sum'
                                                                 src='img/forbidden.png'
                                                                 show
-                                                                dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, false)}
+                                                                dispatch={() => itemExclusionConfig.onPermanentExclude(item.name, false)}
                                                             />
                                                         ) : itemExcluded ? (
                                                             <>
@@ -406,26 +450,26 @@ function ActivityPage() {
                                                                     title='Include this item in the sum'
                                                                     src='img/cross.png'
                                                                     show
-                                                                    dispatch={() => itemExclusionConfig.onInclude(item.n)}
+                                                                    dispatch={() => itemExclusionConfig.onInclude(item.name)}
                                                                 />
                                                                 <ImgButton
                                                                     title='Permanently exclude this item from the sum'
                                                                     src='img/forbidden.png'
-                                                                    dispatch={() => itemExclusionConfig.onPermanentExclude(item.n, true)}
+                                                                    dispatch={() => itemExclusionConfig.onPermanentExclude(item.name, true)}
                                                                 />
                                                             </>
                                                         ) : (
                                                             <ImgButton
                                                                 title='Exclude this item from the sum'
                                                                 src='img/cross.png'
-                                                                dispatch={() => itemExclusionConfig.onExclude(item.n)}
+                                                                dispatch={() => itemExclusionConfig.onExclude(item.name)}
                                                             />
                                                         )}
                                                     </td>
                                                 )}
-                                                <td>{item.q} </td>
-                                                <td>{item.v} PED</td>
-                                                <td>{item.c}</td>
+                                                <td>{item.quantity} </td>
+                                                <td>{item.value.toFixed(2)} PED</td>
+                                                <td>{item.container}</td>
                                             </tr>
                                         )
                                     })}
@@ -439,10 +483,11 @@ function ActivityPage() {
     }
 
     // Helper to check if an action is excluded
-    const isActionExcluded = (sessionId: string, sessionType: SessionType, action: StoredAction): boolean => {
+            const isActionExcluded = (sessionId: string, sessionType: SessionType, action: StoredAction): boolean => {
         const sessionList = sessionActionBlacklist?.[sessionId] || []
         const permanentList = permanentActionBlacklist?.[sessionType] || []
-        const permanentKey = `${action.type}:${action.item}`
+        // For now, use action type as the key since we don't have item names directly
+        const permanentKey = `${action.type}:unknown`
         return sessionList.includes(action.id) || permanentList.includes(permanentKey)
     }
 
@@ -461,18 +506,26 @@ function ActivityPage() {
             // In actions view, exclude by action and by item
             const delta = sessionActions.reduce((sum, action) => {
                 if (isActionExcluded(session.id, session.type, action) || !action.sources.includes('inventory')) return sum
-                return sum + action.relatedItems.reduce((itemSum, item) => {
-                    if (isItemExcludedInSession(session.id, session.type, item.n)) return itemSum
-                    return itemSum + (Number(item.v) || 0)
+                return sum + action.relatedItems.reduce((itemSum, itemId) => {
+                    const item = getInventoryItem(itemId)
+                    if (item && !isItemExcludedInSession(session.id, session.type, item.name)) {
+                        return itemSum + item.value
+                    }
+                    return itemSum
                 }, 0)
             }, 0)
             sessionDeltas.set(session.id, delta)
         } else {
             // In items view, exclude by item name
-            const items = reverseInferActions(sessionActions)
-            const delta = items.reduce((sum, item) => {
-                if (isItemExcludedInSession(session.id, session.type, item.n)) return sum
-                return sum + (Number(item.v) || 0)
+            // Calculate delta from inventory items referenced by actions
+            const delta = sessionActions.reduce((sum, action) => {
+                return sum + action.relatedItems.reduce((actionSum, itemId) => {
+                    const item = getInventoryItem(itemId)
+                    if (item && !isItemExcludedInSession(session.id, session.type, item.name)) {
+                        return actionSum + item.value
+                    }
+                    return actionSum
+                }, 0)
             }, 0)
             sessionDeltas.set(session.id, delta)
         }
@@ -603,10 +656,15 @@ function ActivityPage() {
                                                         sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
                                                             text += '\n' + buildCopyTextForAction(action)
                                                         })
-                                                    } else {
-                                                        const items = reverseInferActions(sessionActions)
-                                                        text = buildCopyTextForItems(items)
-                                                    }
+                                                     } else {
+                                                         // Get all inventory items referenced by actions in this session
+                                                         const itemIds = new Set<number>()
+                                                         sessionActions.forEach(action => {
+                                                             action.relatedItems.forEach(itemId => itemIds.add(itemId))
+                                                         })
+                                                         const items = Array.from(itemIds).map(itemId => getInventoryItem(itemId)).filter(item => item !== undefined) as StoredInventoryItem[]
+                                                         text = buildCopyTextForItems(items)
+                                                     }
                                                     copyToClipboard(text)
                                                 }}
                                             />
@@ -643,7 +701,7 @@ function ActivityPage() {
                                                             const actionSessionList = sessionActionBlacklist?.[session.id] || []
                                                             const actionPermanentList = permanentActionBlacklist?.[session.type] || []
                                                             const isExcluded = actionSessionList.includes(action.id)
-                                                            const permanentKey = `${action.type}:${action.item}`
+                                                             const permanentKey = `${action.type}:unknown`
                                                             const isPermanentlyExcluded = actionPermanentList.includes(permanentKey)
                                                             const itemSessionList = sessionBlacklist?.[session.id] || []
                                                             const itemPermanentList = permanentItemBlacklist?.[session.type] || []
@@ -660,7 +718,7 @@ function ActivityPage() {
                                                                         isPermanentlyExcluded,
                                                                         onExclude: () => excludeAction({ sessionId: session.id, actionId: action.id }),
                                                                         onInclude: () => includeAction({ sessionId: session.id, actionId: action.id }),
-                                                                        onPermanentExclude: (value: boolean) => permanentExcludeAction({ sessionType: session.type, actionType: action.type, itemName: action.item, value })
+                                                                         onPermanentExclude: (value: boolean) => permanentExcludeAction({ sessionType: session.type, actionType: action.type, itemName: 'unknown', value })
                                                                     }}
                                                                     itemExclusionConfig={{
                                                                         sessionId: session.id,
@@ -680,7 +738,20 @@ function ActivityPage() {
                                         ))
                                     } else {
                                         // Show inventory items
-                                        const items = reverseInferActions(sessionActions)
+                                        const itemIds = new Set<number>()
+                                        sessionActions.forEach(action => {
+                                            action.relatedItems.forEach(itemId => itemIds.add(itemId))
+                                        })
+                                        const items: ViewItemData[] = Array.from(itemIds).map(itemId => {
+                                            const item = getInventoryItemWithFallback(itemId)
+                                            return {
+                                                key: item.id,
+                                                n: item.name,
+                                                q: item.quantity.toString(),
+                                                v: item.value.toFixed(2),
+                                                c: item.container
+                                            }
+                                        })
                                         const itemSessionList = sessionBlacklist?.[session.id] || []
                                         const itemPermanentList = permanentItemBlacklist?.[session.type] || []
                                         return <SortableItemsTable

@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { ActivityState, StoredAction, SessionBoundary, SessionType, ActionType, ActionSource } from '../state/activity'
+import { ActivityState, StoredAction, StoredInventoryItem, SessionBoundary, SessionType, ActionType, ActionSource } from '../state/activity'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
@@ -9,6 +9,7 @@ import messagesApi from '../../services/api/messages'
 // Initial state
 const initialActivityState: ActivityState = {
     list: [],
+    actions: [],
     lastProcessedInventoryKey: undefined,
     lastProcessedLogSerial: undefined,
     sessions: [],
@@ -76,7 +77,8 @@ export const initializeActivityAtom = atom(
     async (get, set) => {
         const stored = await loadFromStorage()
         if (stored) {
-            set(activityAtom, stored)
+            // Merge with initial state to ensure all properties exist (handles migrations)
+            set(activityAtom, { ...initialActivityState, ...stored })
         }
         set(activityLoadingAtom, false)
     }
@@ -84,13 +86,31 @@ export const initializeActivityAtom = atom(
 
 // Write atoms (replacing action creators)
 
+export const addInventoryAndActionsAtom = atom(
+    null,
+    async (get, set, { inventoryItems, actions }: { inventoryItems: StoredInventoryItem[], actions: StoredAction[] }) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            list: [...inventoryItems, ...current.list],
+            actions: [...actions, ...current.actions]
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+
+        // Notify subscribers
+        const subscribers = get(activitySubscribersAtom)
+        subscribers.onActionsAdded.forEach(cb => cb(actions))
+    }
+)
+
 export const addActionsAtom = atom(
     null,
     async (get, set, actions: StoredAction[]) => {
         const current = get(activityAtom)
         const newState = {
             ...current,
-            list: [...actions, ...current.list]
+            actions: [...actions, ...current.actions]
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -105,10 +125,10 @@ export const removeActionsAtom = atom(
     null,
     async (get, set, actionIds: string[]) => {
         const current = get(activityAtom)
-        const removedActions = current.list.filter(act => actionIds.includes(act.id))
+        const removedActions = current.actions.filter(act => actionIds.includes(act.id))
         const newState = {
             ...current,
-            list: current.list.filter(act => !actionIds.includes(act.id))
+            actions: current.actions.filter(act => !actionIds.includes(act.id))
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -250,13 +270,13 @@ export const deleteSessionAtom = atom(
         const sessionIndex = current.sessions.indexOf(session)
         const nextSession = current.sessions[sessionIndex + 1]
         const endTime = nextSession ? nextSession.startTime : Date.now()
-        const sessionActions = current.list.filter(act =>
+        const sessionActions = current.actions.filter(act =>
             act.timestamp >= session.startTime && act.timestamp < endTime
         )
 
         // Remove session and actions
         const newSessions = current.sessions.filter(s => s.id !== sessionId)
-        const newList = current.list.filter(act => !sessionActions.includes(act))
+        const newActions = current.actions.filter(act => !sessionActions.includes(act))
 
         // Clean up blacklists
         const { [sessionId]: _, ...newSessionBlacklist } = current.sessionBlacklist
@@ -265,7 +285,7 @@ export const deleteSessionAtom = atom(
         const newState = {
             ...current,
             sessions: newSessions,
-            list: newList,
+            actions: newActions,
             sessionBlacklist: newSessionBlacklist,
             sessionActionBlacklist: newSessionActionBlacklist,
             lastDeletedSession: { session, actions: sessionActions },
@@ -284,12 +304,12 @@ export const undoDeleteSessionAtom = atom(
 
         const { session, actions } = current.lastDeletedSession
         const newSessions = [...current.sessions, session].sort((a, b) => a.startTime - b.startTime)
-        const newList = [...actions, ...current.list]
+        const newActions = [...actions, ...current.actions]
 
         const newState = {
             ...current,
             sessions: newSessions,
-            list: newList,
+            actions: newActions,
             lastDeletedSession: null
         }
         set(activityAtom, newState)
@@ -344,7 +364,7 @@ export const updateActionBudgetNameAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            list: current.list.map(act =>
+            actions: current.actions.map(act =>
                 act.id === actionId ? { ...act, budgetName } : act
             )
         }
@@ -491,10 +511,11 @@ export const permanentExcludeActionAtom = atom(
     }
 )
 
+// TODO: Implement for new dual storage structure
 export const mergeLootWithInventoryAtom = atom(
     null,
     async (get, set, { actionId, inventoryItem }: { actionId: string; inventoryItem: ViewItemData }) => {
-        const current = get(activityAtom)
+        /*const current = get(activityAtom)
         const newState = {
             ...current,
             list: current.list.map(act => {
@@ -522,7 +543,9 @@ export const mergeLootWithInventoryAtom = atom(
             })
         }
         set(activityAtom, newState)
-        await saveToStorage(newState)
+        await saveToStorage(newState)*/
+        // Temporarily disabled during refactoring
+        console.warn('mergeLootWithInventoryAtom not yet implemented for new structure')
     }
 )
 
@@ -532,7 +555,7 @@ export const updateActionTypeAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            list: current.list.map(act =>
+            actions: current.actions.map(act =>
                 act.id === actionId ? { ...act, type } : act
             )
         }
@@ -541,42 +564,31 @@ export const updateActionTypeAtom = atom(
     }
 )
 
+// TODO: Update for new dual storage architecture
 export const updateActionItemAtom = atom(
     null,
     async (get, set, { actionId, item }: { actionId: string; item: string }) => {
-        const current = get(activityAtom)
-        const newState = {
-            ...current,
-            list: current.list.map(act =>
-                act.id === actionId ? { ...act, item } : act
-            )
-        }
-        set(activityAtom, newState)
-        await saveToStorage(newState)
+        // Temporarily disabled - actions no longer have individual item names
+        console.warn('updateActionItemAtom not implemented for new structure')
     }
 )
 
+// TODO: Update for new dual storage architecture
 export const updateActionItemsAtom = atom(
     null,
     async (get, set, { actionId, relatedItems }: { actionId: string; relatedItems: ViewItemData[] }) => {
-        const current = get(activityAtom)
-        const newState = {
-            ...current,
-            list: current.list.map(act =>
-                act.id === actionId ? { ...act, relatedItems } : act
-            )
-        }
-        set(activityAtom, newState)
-        await saveToStorage(newState)
+        // Temporarily disabled - relatedItems are now number[] IDs
+        console.warn('updateActionItemsAtom not implemented for new structure')
     }
 )
 
 // Re-infer session actions (complex operation - needs session boundaries)
+// TODO: Implement for new dual storage structure
 export const reinferSessionActionsAtom = atom(
     null,
     async (get, set, sessionId: string) => {
         // Import helpers inline to avoid circular dependencies
-        const { inferActions, reverseInferActions } = await import('../helpers/actionInference')
+        /*const { inferActions, reverseInferActions } = await import('../helpers/actionInference')
 
         const current = get(activityAtom)
         const session = current.sessions.find(s => s.id === sessionId)
@@ -636,6 +648,8 @@ export const reinferSessionActionsAtom = atom(
         await saveToStorage(newState)
 
         // Notify about addition
-        subscribers.onActionsAdded.forEach(cb => cb(newStoredActions))
+        subscribers.onActionsAdded.forEach(cb => cb(newStoredActions))*/
+        // Temporarily disabled during refactoring
+        console.warn('reinferSessionActionsAtom not yet implemented for new structure')
     }
 )

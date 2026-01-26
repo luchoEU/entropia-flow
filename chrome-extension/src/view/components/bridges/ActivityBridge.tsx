@@ -6,6 +6,7 @@ import {
     activityLoadingAtom,
     initializeActivityAtom,
     addActionsAtom,
+    addInventoryAndActionsAtom,
     setLastProcessedKeyAtom,
     setLastProcessedLogSerialAtom,
     mergeLootWithInventoryAtom,
@@ -20,7 +21,7 @@ import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
-import { StoredAction } from '../../application/state/activity'
+import { StoredAction, StoredInventoryItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 import { HistoryState } from '../../application/state/history'
 
@@ -38,6 +39,7 @@ export function ActivityBridge() {
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
     const addActions = useSetAtom(addActionsAtom)
+    const addInventoryAndActions = useSetAtom(addInventoryAndActionsAtom)
     const setLastProcessedKey = useSetAtom(setLastProcessedKeyAtom)
     const setLastProcessedLogSerial = useSetAtom(setLastProcessedLogSerialAtom)
     const mergeLootWithInventory = useSetAtom(mergeLootWithInventoryAtom)
@@ -143,27 +145,11 @@ export function ActivityBridge() {
         // Create one action per timestamp with all loot items
         const newLootActions: StoredAction[] = []
         for (const [timestamp, lootItems] of lootByTimestamp) {
-            const totalValue = lootItems.reduce((sum, item) => sum + item.loot.value, 0)
-            const relatedItems = lootItems.map(item => ({
-                key: item.serial,
-                n: item.loot.name,
-                q: String(item.loot.quantity),
-                v: item.loot.value.toFixed(2),
-                c: 'LOOT'
-            }))
             const minSerial = Math.min(...lootItems.map(item => item.serial))
-
-            const itemNames = lootItems.map(item => item.loot.name)
-            const displayName = itemNames.length > 3
-                ? `${itemNames.slice(0, 3).join(', ')} and ${itemNames.length - 3} more`
-                : itemNames.join(', ')
 
             const storedAction: StoredAction = {
                 type: 'loot',
-                item: displayName,
-                amount: lootItems.reduce((sum, item) => sum + item.loot.value, 0),
-                value: totalValue,
-                relatedItems,
+                relatedItems: [], // Will be populated when merged with inventory items
                 id: `loot-${minSerial}`,
                 timestamp,
                 sources: ['client']
@@ -184,6 +170,7 @@ export function ActivityBridge() {
     // Process history changes (equivalent to SET_HISTORY_LIST handling)
     useEffect(() => {
         if (isLoading) return
+        if (!activity) return
         if (!history?.list || history.list.length === 0) return
 
         // Only process if history actually changed
@@ -193,11 +180,12 @@ export function ActivityBridge() {
         const prevLastKey = activity.lastProcessedInventoryKey
 
         // Get existing loot actions (type 'loot' with 'client' source, not yet merged with inventory)
-        const existingLootActions = activity.list.filter(
+        const existingLootActions = (activity.actions ?? []).filter(
             act => act.type === 'loot' && act.sources.includes('client')
         )
 
         // Find new inventory items that haven't been processed yet
+        const newInventoryItems: StoredInventoryItem[] = []
         const newActions: StoredAction[] = []
 
         for (const inventory of history.list) {
@@ -225,15 +213,30 @@ export function ActivityBridge() {
                 }
             }
 
-            // Infer actions only for unmatched items
+            // Create StoredInventoryItem objects from the unmatched diff items
+            const inventoryStartIndex = activity.list.length + newInventoryItems.length
+            for (const diffItem of matchResult.unmatched) {
+                const inventoryItem: StoredInventoryItem = {
+                    id: inventoryStartIndex + newInventoryItems.length, // Serial ID
+                    name: diffItem.n,
+                    quantity: parseFloat(diffItem.q),
+                    value: parseFloat(diffItem.v),
+                    container: diffItem.c,
+                    timestamp: inventory.key
+                }
+                newInventoryItems.push(inventoryItem)
+            }
+
+            // Infer actions from unmatched items
             if (matchResult.unmatched.length > 0) {
                 const inferredActions = inferActions(matchResult.unmatched)
 
                 // Convert InferredAction to StoredAction
                 for (const inferredAction of inferredActions) {
                     const storedAction: StoredAction = {
-                        ...inferredAction,
-                        id: `${inventory.key}-${inferredAction.type}-${inferredAction.item}`,
+                        type: inferredAction.type,
+                        relatedItems: inferredAction.relatedItems.map(index => inventoryStartIndex + index), // Map indices to actual IDs
+                        id: `${inventory.key}-${inferredAction.type}-${Date.now()}`,
                         timestamp: inventory.key,
                         sources: ['inventory']
                     }
@@ -242,8 +245,9 @@ export function ActivityBridge() {
             }
         }
 
-        if (newActions.length > 0) {
-            addActions(newActions)
+        // Save inventory items and actions
+        if (newInventoryItems.length > 0 || newActions.length > 0) {
+            addInventoryAndActions({ inventoryItems: newInventoryItems, actions: newActions })
         }
 
         // Update lastProcessedInventoryKey

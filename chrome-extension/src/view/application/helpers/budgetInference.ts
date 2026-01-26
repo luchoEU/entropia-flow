@@ -14,7 +14,7 @@ export function inferBudgetLinesFromActions(
 ): BudgetInferenceResult[] {
     const results: BudgetInferenceResult[] = []
 
-    for (const storedAction of actions) {
+    /*for (const storedAction of actions) {
         if (storedAction.type === 'sold_auction') {
             const item = budget.list.items.find(item => item.name === storedAction.item)
             if (item) {
@@ -147,5 +147,9 @@ export function inferBudgetLinesFromActions(
         }
     }
 
-    return results
+    return results*/
+    // Temporarily disabled - needs update for new action structure
+    // TODO: Update budget inference to work with relatedItems referencing inventory items
+    // Return empty results for now
+    return []
 }

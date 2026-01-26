@@ -44,42 +44,14 @@ function matchLootWithInventory(
         action.timestamp <= inventoryTimestamp
     )
 
-    // Build a map of item names to loot actions that contain them
+    // For now, loot actions have empty relatedItems in the new structure
+    // We'll match based on a different approach or disable matching until loot actions are redesigned
     const itemNameToLootActions = new Map<string, string[]>()
-    for (const action of eligibleLootActions) {
-        for (const relatedItem of action.relatedItems) {
-            if (!itemNameToLootActions.has(relatedItem.n)) {
-                itemNameToLootActions.set(relatedItem.n, [])
-            }
-            const actionIds = itemNameToLootActions.get(relatedItem.n)!
-            if (!actionIds.includes(action.id)) {
-                actionIds.push(action.id)
-            }
-        }
-    }
+    // Note: Loot matching needs to be redesigned for the new dual storage structure
 
-    // Check each inventory item for matches
-    for (const item of inventoryItems) {
-        // Only match positive quantity items (gained, not consumed)
-        const qty = Number(item.q)
-        if (qty <= 0 && item.q !== '' && item.q !== '0') {
-            unmatched.push(item)
-            continue
-        }
-
-        // Check if this item name appears in any loot action
-        const matchingActionIds = itemNameToLootActions.get(item.n)
-        if (matchingActionIds && matchingActionIds.length > 0 && !matchedItemNames.has(item.n)) {
-            matches.push({
-                itemName: item.n,
-                inventoryItem: item,
-                lootActionIds: matchingActionIds
-            })
-            matchedItemNames.add(item.n)
-        } else {
-            unmatched.push(item)
-        }
-    }
+    // Temporarily disable loot matching until redesigned for new structure
+    // All inventory items are considered unmatched for now
+    unmatched.push(...inventoryItems)
 
     return { matches, unmatched }
 }
@@ -99,10 +71,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             const value = Number(pedCard.v)
             actions.push({
                 type: 'sold_auction',
-                item: item.n,
-                amount,
-                value,
-                relatedItems: [pedCard, item]
+                relatedItems: [diff.indexOf(pedCard), diff.indexOf(item)]
             })
             used.add(item.key)
             used.add(pedCard.key)
@@ -131,10 +100,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
 
              actions.push({
                 type: 'bought_auction',
-                item: item.n,
-                amount,
-                value,
-                relatedItems
+                relatedItems: relatedItems.map(item => diff.indexOf(item))
             })
             used.add(item.key)
         }
@@ -149,10 +115,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
               const value = -Number(pedCard.v)
               actions.push({
                   type: 'listed_auction',
-                  item: item.n,
-                  amount,
-                  value,
-                  relatedItems: [item, pedCard]
+                  relatedItems: [diff.indexOf(item), diff.indexOf(pedCard)]
               })
               used.add(item.key)
               used.add(pedCard.key)
@@ -168,10 +131,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
               const value = -Number(pedCard.v)
               actions.push({
                   type: 'bought_auction',
-                  item: item.n,
-                  amount,
-                  value,
-                  relatedItems: [item, pedCard]
+                  relatedItems: [diff.indexOf(item), diff.indexOf(pedCard)]
               })
               used.add(item.key)
               used.add(pedCard.key)
@@ -217,11 +177,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
 
                 actions.push({
                     type: 'chip_out',
-                    item: skillChip.n,
-                    from: item.n,  // The implant the chip was extracted from
-                    amount,
-                    value,
-                    relatedItems
+                    relatedItems: relatedItems.map(item => diff.indexOf(item))
                 })
                 used.add(item.key)
                 used.add(skillChip.key)
@@ -244,10 +200,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             const value = Math.abs(Number(consumedItem.v))
             actions.push({
                 type: 'convert_ammo',
-                item: consumedItem.n,
-                amount,
-                value,
-                relatedItems: [consumedItem, gainedItem]
+                relatedItems: [diff.indexOf(consumedItem), diff.indexOf(gainedItem)]
             })
             used.add(shrapnelItem.key)
             used.add(universalAmmoItem.key)
@@ -274,10 +227,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         const value = Number(craftedItem.v)
         actions.push({
             type: 'craft',
-            item: craftedItem.n,
-            amount,
-            value,
-            relatedItems: [consumed[0], ...positiveItems]
+            relatedItems: [diff.indexOf(consumed[0]), ...positiveItems.map(item => diff.indexOf(item))]
         })
         consumed.forEach(c => used.add(c.key))
         positiveItems.forEach(p => used.add(p.key))
@@ -292,10 +242,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         const value = Number(prod.v)
         actions.push({
             type: 'refine',
-            item: prod.n,
-            amount,
-            value,
-            relatedItems: [...refineConsumed, prod]
+            relatedItems: [...refineConsumed.map(item => diff.indexOf(item)), diff.indexOf(prod)]
         })
         refineConsumed.forEach(c => used.add(c.key))
         used.add(prod.key)
@@ -307,13 +254,10 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
         if (item.n.includes('Pet') && item.q.startsWith('-') && item.c === 'CARRIED') {
             const amount = Math.abs(Number(item.q)) || 1
             const value = Math.abs(Number(item.v)) || 0
-            actions.push({
-                type: 'dismiss_pet',
-                item: item.n,
-                amount,
-                value: value || undefined,
-                relatedItems: [item]
-            })
+                actions.push({
+                    type: 'dismiss_pet',
+                    relatedItems: [diff.indexOf(item)]
+                })
             used.add(item.key)
         }
     }
@@ -347,10 +291,7 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
             : itemNames.join(', ')
         actions.push({
             type: 'moved',
-            item: displayName,
-            from: group.from,
-            to: group.to,
-            relatedItems: group.items
+            relatedItems: group.items.map(item => diff.indexOf(item))
         })
     }
 
@@ -366,23 +307,11 @@ function inferActions(diff: ViewItemData[]): InferredAction[] {
 
         actions.push({
             type: 'unknown',
-            item: displayName,
-            value: totalValue,
-            relatedItems: remaining
+            relatedItems: remaining.map(item => diff.indexOf(item))
         })
     }
 
-    // Check reverse inference consistency
-    const reversed = reverseInferActions(actions)
-    const originalNormalized = normalizeDiff(diff)
-    const reversedNormalized = normalizeDiff(reversed)
-    if (!mapsEqual(originalNormalized, reversedNormalized)) {
-        actions.push({
-            type: 'reverse_fail',
-            item: 'Reverse inference failed',
-            relatedItems: diff
-        })
-    }
+
 
     return actions
 }
@@ -413,30 +342,10 @@ function mapsEqual(a: Map<string, { q: number; v: number }>, b: Map<string, { q:
     return true
 }
 
-function reverseInferActions(actions: InferredAction[]): ViewItemData[] {
-    const groupedItems = new Map<string, ViewItemData>()
-    for (const action of actions) {
-        for (const item of action.relatedItems) {
-            const key = `${item.n}|${item.c}`
-            if (groupedItems.has(key)) {
-                const existing = groupedItems.get(key)!
-                const existingQ = parseInt(existing.q) || 0
-                const itemQ = parseInt(item.q) || 0
-                const existingV = parseFloat(existing.v) || 0
-                const itemV = parseFloat(item.v) || 0
-                existing.q = (existingQ + itemQ) ? String(existingQ + itemQ) : ''
-                existing.v = (existingV + itemV) ? (existingV + itemV).toFixed(2) : ''
-            } else {
-                groupedItems.set(key, { ...item })
-            }
-        }
-    }
-    return Array.from(groupedItems.values())
-}
+
 
 export {
     inferActions,
-    reverseInferActions,
     matchLootWithInventory,
     LootMatch,
     MatchLootResult

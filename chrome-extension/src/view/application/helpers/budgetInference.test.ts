@@ -42,75 +42,49 @@ describe('budgetInference', () => {
         const createSoldAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'sold_auction',
-            item,
-            amount,
-            value,
             timestamp,
             sources: ['inventory'],
-            relatedItems: []
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         const createBoughtAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'bought_auction',
-            item,
-            amount,
-            value,
             timestamp,
             sources: ['inventory'],
-            relatedItems: []
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         const createOtherAction = (type: string, item: string, timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: type as any,
-            item,
             timestamp,
             sources: ['inventory'],
-            relatedItems: []
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         const createListedAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'listed_auction',
-            item,
-            amount,
-            value,
             timestamp,
             sources: ['inventory'],
-            relatedItems: []
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         const createRefineAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'refine',
-            item,
-            amount,
             timestamp,
             sources: ['inventory'],
-            relatedItems: relatedItems.map(ri => ({
-                key: 0,
-                n: ri.name,
-                q: ri.quantity.toString(),
-                v: '0.00',
-                c: 'inventory'
-            }))
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): StoredAction => ({
             id: `action-${Math.random()}`,
             type: 'craft',
-            item,
-            amount,
             timestamp,
             sources: ['inventory'],
-            relatedItems: relatedItems.map(ri => ({
-                key: 0,
-                n: ri.name,
-                q: ri.quantity.toString(),
-                v: '0.00',
-                c: 'inventory'
-            }))
+            relatedItems: [] // TODO: populate with inventory item IDs
         })
 
         it('should create budget line for sold_auction action with matching budget item', () => {

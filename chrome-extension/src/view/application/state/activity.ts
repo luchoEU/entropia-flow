@@ -23,14 +23,18 @@ type ActionSource = 'inventory' | 'chat' | 'screen' | 'client'
 
 type SessionType = 'unknown' | 'hunt' | 'mine' | 'craft'
 
+interface StoredInventoryItem {
+    id: number
+    name: string
+    quantity: number
+    value: number
+    container: string
+    timestamp: number
+}
+
 interface InferredAction {
     type: ActionType
-    item: string
-    amount?: number
-    value?: number
-    from?: string
-    to?: string
-    relatedItems: ViewItemData[]
+    relatedItems: number[]
 }
 
 const actionTypeInfo: Record<ActionType, { icon: string, name: string }> = {
@@ -53,42 +57,46 @@ const actionTypeInfo: Record<ActionType, { icon: string, name: string }> = {
     'reverse_fail': { icon: '‼', name: 'Reverse inference failed' },
 }
 
-function formatActionDescription(action: InferredAction): string {
+function formatActionDescription(action: InferredAction, getInventoryItem: (id: number) => StoredInventoryItem | undefined): string {
     const info = actionTypeInfo[action.type]
+
+    // Helper to get main item info (assumes first related item is the main one)
+    const getMainItem = () => {
+        if (action.relatedItems.length > 0) {
+            const item = getInventoryItem(action.relatedItems[0])
+            return item ? { name: item.name, quantity: item.quantity } : { name: 'unknown', quantity: 0 }
+        }
+        return { name: 'unknown', quantity: 0 }
+    }
+
+    const mainItem = getMainItem()
+
     switch (action.type) {
         case 'bought_auction':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'listed_auction':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
+            return `${info.icon} ${info.name} ${mainItem.quantity} ${mainItem.name}`
         case 'chip_out':
-            return `${info.icon} ${info.name} ${action.item} from ${action.from}`
+            return `${info.icon} ${info.name} ${mainItem.name}`
         case 'refine':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'craft':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'convert_ammo':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
+        case 'gained':
+        case 'lost':
+        case 'dismiss_pet':
+            return `${info.icon} ${info.name} ${mainItem.quantity} ${mainItem.name}`
         case 'moved':
-            return `${info.icon} ${info.name} ${action.item} from ${action.from} to ${action.to}`
+            return `${info.icon} ${info.name} ${mainItem.name}`
         case 'ped_deposited':
-            return `${info.icon} ${info.name}`
         case 'ped_withdrawn':
             return `${info.icon} ${info.name}`
         case 'decay':
-            return `${info.icon} ${info.name} ${action.item}`
-        case 'gained':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
-        case 'lost':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
-        case 'dismiss_pet':
-            return `${info.icon} ${info.name} ${action.amount} ${action.item}`
         case 'loot':
-            return `${info.icon} ${info.name} ${action.item}`
+            return `${info.icon} ${info.name} ${mainItem.name}`
         case 'reverse_fail':
             return `${info.icon} ${info.name}`
         case 'unknown':
         default:
-            return `${info.icon} ${info.name} ${action.item}`
+            return `${info.icon} ${info.name} ${mainItem.name}`
     }
 }
 
@@ -111,7 +119,8 @@ interface SessionBoundary {
 }
 
 interface ActivityState {
-    list: StoredAction[]
+    list: StoredInventoryItem[]
+    actions: StoredAction[]
     lastProcessedInventoryKey?: number
     lastProcessedLogSerial?: number
     sessions: SessionBoundary[]
@@ -134,6 +143,7 @@ export {
     ActionType,
     ActionSource,
     SessionType,
+    StoredInventoryItem,
     InferredAction,
     StoredAction,
     SessionBoundary,
