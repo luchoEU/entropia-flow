@@ -75,7 +75,7 @@ export function ActivityBridge() {
             onActionsAdded: (actions: StoredAction[]) => {
                 // Budget integration
                 const currentBudget = budgetRef.current
-                const results = inferBudgetLinesFromActions(actions, currentBudget)
+                const results = inferBudgetLinesFromActions(actions, currentBudget, activity.list)
 
                 for (const result of results) {
                     dispatch(addBudgetItemPendingLines(result.budgetName, [result.budgetLine]))

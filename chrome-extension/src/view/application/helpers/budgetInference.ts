@@ -1,4 +1,4 @@
-import { StoredAction } from '../state/activity'
+import { StoredAction, StoredInventoryItem, SoldAuctionItems, BoughtAuctionItems, ListedAuctionItems, RefineItems, CraftItems } from '../state/activity'
 import { BudgetState } from '../state/budget'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 
@@ -10,47 +10,63 @@ export interface BudgetInferenceResult {
 
 export function inferBudgetLinesFromActions(
     actions: StoredAction[],
-    budget: BudgetState
+    budget: BudgetState,
+    inventoryItems: StoredInventoryItem[]
 ): BudgetInferenceResult[] {
     const results: BudgetInferenceResult[] = []
 
-    /*for (const storedAction of actions) {
+    // Helper to look up inventory items by ID
+    const getInventoryItem = (id: number) => inventoryItems.find(item => item.id === id)
+
+    for (const storedAction of actions) {
         if (storedAction.type === 'sold_auction') {
-            const item = budget.list.items.find(item => item.name === storedAction.item)
-            if (item) {
+            const items = storedAction.relatedItems as SoldAuctionItems
+            const soldItem = getInventoryItem(items.item)
+            const paymentItem = getInventoryItem(items.payment)
+
+            if (!soldItem || !paymentItem) continue
+
+            const budgetItem = budget.list.items.find(item => item.name === soldItem.name)
+            if (budgetItem) {
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Sold',
-                    ped: storedAction.value,
-                    materials: [{ name: storedAction.item, quantity: -storedAction.amount! }]
+                    ped: paymentItem.value,
+                    materials: [{ name: soldItem.name, quantity: -soldItem.quantity }]
                 }
-                
+
                 results.push({
                     action: storedAction,
                     budgetLine,
-                    budgetName: item.name
+                    budgetName: budgetItem.name
                 })
             }
         } else if (storedAction.type === 'bought_auction') {
+            const items = storedAction.relatedItems as BoughtAuctionItems
+            const boughtItem = getInventoryItem(items.item)
+            const paymentItem = items.payment ? getInventoryItem(items.payment) : undefined
+
+            if (!boughtItem) continue
+
             let budgetName: string | undefined
-            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            const mainItem = budget.list.items.find(item => item.name === boughtItem.name)
             if (mainItem) {
                 budgetName = mainItem.name
             } else {
-                const material = budget.materials.map[storedAction.item]
+                const material = budget.materials.map[boughtItem.name]
                 if (material && material.budgetList.length > 0) {
                     budgetName = material.budgetList[0].itemName
                 }
             }
-            
+
             if (budgetName) {
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Buy',
-                    ped: storedAction.value ? -storedAction.value : 0,
-                    materials: [{ name: storedAction.item, quantity: storedAction.amount || 0 }]
+                    ped: paymentItem ? -paymentItem.value : 0,
+                    materials: [{ name: boughtItem.name, quantity: boughtItem.quantity }]
                 }
-                
+
                 results.push({
                     action: storedAction,
                     budgetLine,
@@ -58,21 +74,24 @@ export function inferBudgetLinesFromActions(
                 })
             }
         } else if (storedAction.type === 'listed_auction') {
-            // Handle listing actions: create a budget line for the item with a negative quantity
-            // and a negative PED corresponding to any listing fee/value on the action.
+            const items = storedAction.relatedItems as ListedAuctionItems
+            const listedItem = getInventoryItem(items.item)
+            const feeItem = getInventoryItem(items.fee)
+
+            if (!listedItem || !feeItem) continue
+
             let budgetName: string | undefined
-            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            const mainItem = budget.list.items.find(item => item.name === listedItem.name)
             if (mainItem) {
                 budgetName = mainItem.name
             }
 
             if (budgetName) {
-                const amount = (storedAction.amount ?? 0)
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Listed',
-                    ped: storedAction.value ? -storedAction.value : 0,
-                    materials: [{ name: storedAction.item, quantity: -amount }]
+                    ped: -feeItem.value,
+                    materials: [{ name: listedItem.name, quantity: -listedItem.quantity }]
                 }
                 results.push({
                     action: storedAction,
@@ -81,29 +100,31 @@ export function inferBudgetLinesFromActions(
                 })
             }
         } else if (storedAction.type === 'refine') {
-            // Handle refine actions: create a budget line for the refined item
-            // and include materials used in refining from relatedItems
+            const items = storedAction.relatedItems as RefineItems
+            const producedItem = getInventoryItem(items.produced)
+
+            if (!producedItem) continue
+
             let budgetName: string | undefined
-            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            const mainItem = budget.list.items.find(item => item.name === producedItem.name)
             if (mainItem) {
                 budgetName = mainItem.name
             }
 
             if (budgetName) {
-                const amount = (storedAction.amount ?? 0)
                 const materials = [
-                    { name: storedAction.item, quantity: amount },
+                    { name: producedItem.name, quantity: producedItem.quantity },
                     // Include materials used from relatedItems (consumed items have negative quantity)
-                    ...storedAction.relatedItems.map(related => ({
-                        name: related.n,
-                        quantity: parseInt(related.q) // negative for consumed materials
-                    }))
+                    ...items.consumed.map(consumedId => {
+                        const consumed = getInventoryItem(consumedId)
+                        return consumed ? { name: consumed.name, quantity: -consumed.quantity } : null
+                    }).filter((m): m is { name: string; quantity: number } => m !== null)
                 ]
 
                 const budgetLine: BudgetLineData = {
                     date: storedAction.timestamp,
                     reason: 'Refine',
-                    ped: Math.round(materials[1].quantity * 1.5) / 10000,
+                    ped: materials.length > 1 ? Math.round(materials[1].quantity * 1.5) / 10000 : 0,
                     materials
                 }
                 results.push({
@@ -113,23 +134,27 @@ export function inferBudgetLinesFromActions(
                 })
             }
         } else if (storedAction.type === 'craft') {
-            // Handle craft actions: create a budget line for the crafted item
-            // and include materials used in crafting from relatedItems
+            const items = storedAction.relatedItems as CraftItems
+
+            if (!items.produced || items.produced.length === 0) continue
+
+            const producedItem = getInventoryItem(items.produced[0])
+            if (!producedItem) continue
+
             let budgetName: string | undefined
-            const mainItem = budget.list.items.find(item => item.name === storedAction.item)
+            const mainItem = budget.list.items.find(item => item.name === producedItem.name)
             if (mainItem) {
                 budgetName = mainItem.name
             }
 
             if (budgetName) {
-                const amount = (storedAction.amount ?? 0)
                 const materials = [
-                    { name: storedAction.item, quantity: amount },
+                    { name: producedItem.name, quantity: producedItem.quantity },
                     // Include materials used from relatedItems
-                    ...storedAction.relatedItems.map(related => ({
-                        name: related.n,
-                        quantity: -parseInt(related.q) // negative for consumed materials
-                    }))
+                    ...items.consumed.map(consumedId => {
+                        const consumed = getInventoryItem(consumedId)
+                        return consumed ? { name: consumed.name, quantity: -consumed.quantity } : null
+                    }).filter((m): m is { name: string; quantity: number } => m !== null)
                 ]
 
                 const budgetLine: BudgetLineData = {
@@ -147,9 +172,5 @@ export function inferBudgetLinesFromActions(
         }
     }
 
-    return results*/
-    // Temporarily disabled - needs update for new action structure
-    // TODO: Update budget inference to work with relatedItems referencing inventory items
-    // Return empty results for now
-    return []
+    return results
 }
