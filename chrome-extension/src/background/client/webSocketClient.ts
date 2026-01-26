@@ -6,12 +6,12 @@ import { VERSION } from "../../view/components/about/AboutPage"
 import IWebSocketClient, { WebSocketState, WebSocketStateCode } from "./webSocketInterface"
 
 class WebSocketClient implements IWebSocketClient {
-    private socket: WebSocket
+    private socket: WebSocket | undefined
     private pendingJson: Array<string>
     private url: string
     private state: WebSocketState
-    public onMessage: (msg: any) => Promise<void>
-    public onStateChanged: (state: WebSocketState) => Promise<void>
+    public onMessage: ((msg: any) => Promise<void>) | undefined
+    public onStateChanged: ((state: WebSocketState) => Promise<void>) | undefined
 
     constructor() {
         this.pendingJson = []

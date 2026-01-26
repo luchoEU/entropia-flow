@@ -1,11 +1,14 @@
-import { setLast } from "./messages";
+import { getDefaultStore } from "jotai";
+import { createNewSessionAtom } from "../atoms/activity";
 
-export const getStreamClickAction = (click: string): any => {
+export const executeStreamClickAction = (click: string) => {
     switch (click) {
-        case 'flowSetLast': return setLast;
+        case 'flowSetLast': 
+            getDefaultStore().set(createNewSessionAtom)
+            break;
         default: {
             console.log(`Unknown click action: ${click}`);
-            return null;
+            break;
         }
     }
 };

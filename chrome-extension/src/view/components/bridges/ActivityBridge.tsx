@@ -34,7 +34,7 @@ export function ActivityBridge() {
     const last = useSelector(getLast)
 
     // Jotai atoms
-    const [activity, setActivity] = useAtom(activityAtom)
+    const [activity] = useAtom(activityAtom)
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
     const addActions = useSetAtom(addActionsAtom)

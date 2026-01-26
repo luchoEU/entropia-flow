@@ -2,9 +2,9 @@ interface IWebSocketClient {
     start(url: string): Promise<void>
     send(type: string, data: any): Promise<void>
     close(): Promise<void>
-    onMessage: (msg: any) => Promise<void>
+    onMessage: ((msg: any) => Promise<void>) | undefined
     getState(): WebSocketState
-    onStateChanged: (state: WebSocketState) => Promise<void>
+    onStateChanged: ((state: WebSocketState) => Promise<void>) | undefined
 }
 
 enum WebSocketStateCode {

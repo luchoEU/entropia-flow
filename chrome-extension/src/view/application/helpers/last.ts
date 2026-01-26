@@ -172,13 +172,6 @@ function reduceOnLast(state: LastRequiredState, list: Array<Inventory>, last: nu
     }
 }
 
-const reduceSetLast = (state: LastRequiredState): LastRequiredState => ({
-    ...state,
-    expanded: false,
-    peds: [],
-    notificationsDone: [],
-})
-
 const reduceSetAsLast = (state: LastRequiredState, last: number): LastRequiredState => ({
     ...state,
     peds: [],
@@ -233,7 +226,6 @@ export {
     initialState,
     reduceSetLastState,
     reduceOnLast,
-    reduceSetLast,
     reduceSetAsLast,
     reduceSetExpanded,
     reduceInclude,

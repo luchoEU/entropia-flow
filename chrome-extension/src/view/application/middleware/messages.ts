@@ -1,16 +1,15 @@
 import { STRING_WAIT_3_MINUTES } from '../../../common/const'
-import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState, ViewUsedLayouts } from '../../../common/state'
+import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
-import { REFRESH, setLast, SET_AS_LAST, SET_LAST, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
+import { REFRESH, SET_AS_LAST, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
-import { getStreamClickAction } from '../actions/stream.click'
+import { executeStreamClickAction } from '../actions/stream.click'
 import { AppAction } from '../slice/app'
-import { getLatestFromHistory } from '../helpers/history'
 import { getHistory } from '../selectors/history'
 import { getLast } from '../selectors/last'
 import { HistoryState } from '../state/history'
@@ -20,6 +19,8 @@ import { setBlueprintList } from '../actions/craft'
 import { SET_STREAM_SHOWING_LAYOUT_ID, setStreamData, setStreamVariables } from '../actions/stream'
 import { Feature, isFeatureEnabled } from '../state/settings'
 import { getSettings } from '../selectors/settings'
+import { getDefaultStore } from 'jotai'
+import { createNewSessionAtom } from '../atoms/activity'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -29,7 +30,7 @@ const refreshViewHandler = (m: ViewState): any[] => {
         if (m.last)
             actions.push(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)
-            actions.push(setLast)
+            getDefaultStore().set(createNewSessionAtom)
         const newest = m.list.find(e => e.log === undefined && e.itemlist !== undefined)
         if (newest !== undefined)
             actions.push(setCurrentInventory(newest))
@@ -51,10 +52,8 @@ const refreshViewHandler = (m: ViewState): any[] => {
     return actions;
 }
 
-const actionViewHandler = (dispatch: AppDispatch) => async (m: ViewDispatch) => {
-    const action = getStreamClickAction(m.action);
-    if (action)
-        dispatch(action);
+const actionViewHandler = () => async (m: ViewDispatch) => {
+    executeStreamClickAction(m.action);
 }
 
 const notificationViewHandler = (dispatch: AppDispatch) => async (m: ViewNotification) => {
@@ -77,7 +76,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         await Promise.resolve(dispatch(action));
                     }
                     resolve();
-                }, actionViewHandler(dispatch), notificationViewHandler(dispatch), blueprintListHandler(dispatch))
+                }, actionViewHandler(), notificationViewHandler(dispatch), blueprintListHandler(dispatch))
             })
             break
         }
@@ -85,12 +84,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const history: HistoryState = getHistory(getState())
             const forced = history.list.length > 0 && history.list[0].text.endsWith(STRING_WAIT_3_MINUTES)
             api.messages.requestRefresh(forced);
-            break
-        }
-        case SET_LAST: {
-            const history: HistoryState = getHistory(getState())
-            if (history.list.length > 0)
-                api.messages.requestSetLast(true, getLatestFromHistory(history).key)
             break
         }
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }

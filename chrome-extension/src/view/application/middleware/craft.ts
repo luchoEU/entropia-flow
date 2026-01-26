@@ -5,7 +5,7 @@ import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MAT
 import { SET_HISTORY_LIST } from '../actions/history'
 import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
-import { refresh, setLast } from '../actions/messages'
+import { refresh } from '../actions/messages'
 import { AppAction } from '../slice/app'
 import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
@@ -31,6 +31,8 @@ import { setTabularData } from '../actions/tabular'
 import { getItemList } from '../helpers/inventory'
 import { ItemData } from '../../../common/state'
 import { IWebSource } from '../../../web/sources'
+import { getDefaultStore } from 'jotai'
+import { createNewSessionAtom } from '../atoms/activity'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     let editModeBlueprintName: string | undefined;
@@ -321,20 +323,20 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const history: HistoryState = getHistory(getState())
             if (history.list.length > 0) {
                 if (history.list[0].class === 'error') {
-                    dispatch(errorCraftingSession(state.activeSession, history.list[0].text))
+                    dispatch(errorCraftingSession(state.activeSession!, history.list[0].text))
                 } else {
                     if (history.list[0].isLast)
                         dispatch(clearBuyBudget)
                     
                     if (state.activeSession !== undefined) {
                         const activeSessionBp = state.blueprints[state.activeSession]
-                        switch (activeSessionBp.session.step) {
+                        switch (activeSessionBp.session?.step) {
                             case STEP_REFRESH_TO_START:
                             case STEP_REFRESH_ERROR: {
                                 if (history.list[0].isLast) {
                                     dispatch(readyCraftingSession(state.activeSession))
                                 } else {
-                                    dispatch(setLast)
+                                    getDefaultStore().set(createNewSessionAtom)
                                 }
                             }
                         }
@@ -409,7 +411,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
         case CLEAR_CRAFT_SESSION: {
-            dispatch(setLast)
+            getDefaultStore().set(createNewSessionAtom)
             break
         }
         case BUY_BUDGET_PAGE_MATERIAL: {

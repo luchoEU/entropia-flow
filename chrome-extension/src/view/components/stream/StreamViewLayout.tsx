@@ -4,7 +4,7 @@ import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
 import { useDispatch } from "react-redux"
-import { getStreamClickAction } from "../../application/actions/stream.click"
+import { executeStreamClickAction } from "../../application/actions/stream.click"
 import { Component, traceError } from "../../../common/trace"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {
@@ -14,7 +14,6 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
     scale?: number
 }) => {
     const shadowRootRef = useRef<HTMLDivElement>(null);
-    const dispatch = useDispatch();
 
     const [shadowReady, setShadowReady] = useState(false);
     const [size, setSize] = useState<StreamRenderSize | undefined>();
@@ -32,9 +31,7 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             if (target?.dataset?.click) {
-                const action = getStreamClickAction(target.dataset.click);
-                if (action)
-                    dispatch(action);
+                executeStreamClickAction(target.dataset.click);
             }
         };
 
@@ -75,9 +72,7 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement;
         if (target?.dataset?.click) {
-            const action = getStreamClickAction(target.dataset.click);
-            if (action)
-                dispatch(action);
+            executeStreamClickAction(target.dataset.click);
         }
     };
 

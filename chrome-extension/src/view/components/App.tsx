@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Provider } from 'react-redux';
-import { Provider as JotaiProvider } from 'jotai';
+import { Provider as JotaiProvider, getDefaultStore } from 'jotai';
 import './App.scss'
 import { store } from '../application/store';
 import Navigation from './Navigation';
@@ -46,7 +46,7 @@ function _AppWithInitializer() {
 function App() {
   return (
     <Provider store={store}>
-      <JotaiProvider>
+      <JotaiProvider store={getDefaultStore()}>
         <HashRouter>
           <ActivityBridge />
           <LastBridge />

@@ -178,7 +178,18 @@ export const createNewSessionAtom = atom(
         await LOCAL_STORAGE.set('view.last', newLastState)
 
         // Create new activity session
-        const current = get(activityAtom)
+        // If not initialized yet, load from storage to avoid overwriting existing sessions
+        const isLoading = get(activityLoadingAtom)
+        let current = get(activityAtom)
+        if (isLoading) {
+            const stored = await loadFromStorage()
+            if (stored) {
+                current = stored
+                set(activityAtom, stored)
+                set(activityLoadingAtom, false)
+            }
+        }
+
         const nextSessionNumber = current.sessions.length + 1
         const newSession: SessionBoundary = {
             id: crypto.randomUUID(),

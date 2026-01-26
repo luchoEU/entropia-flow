@@ -1,7 +1,7 @@
 import { mergeDeep } from "../../../common/merge"
 import { ADD_PEDS, PERMANENT_EXCLUDE, EXCLUDE, INCLUDE, ON_LAST, REMOVE_PEDS, SET_LAST_SHOW_MARKUP, SET_LAST_SHOW_ACTIONS, setLastState, SORT_BY, SET_EXPANDED, applyMarkupToLast, EXCLUDE_WARNINGS, ADD_NOTIFICATIONS_DONE } from "../actions/last"
 import { ITEM_BUY_MARKUP_CHANGED, SET_ITEM_MARKUP_UNIT, SET_ITEMS_STATE } from "../actions/items"
-import { SET_AS_LAST, SET_LAST } from "../actions/messages"
+import { SET_AS_LAST } from "../actions/messages"
 import { initialState } from "../helpers/last"
 import { getLast } from "../selectors/last"
 import { getItemsMap } from "../selectors/items"
@@ -22,7 +22,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case PERMANENT_EXCLUDE:
         case ADD_PEDS:
         case REMOVE_PEDS:
-        case SET_LAST:
         case SET_AS_LAST:
         case SORT_BY:
         case SET_EXPANDED:
