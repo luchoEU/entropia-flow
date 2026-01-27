@@ -9,6 +9,7 @@ enum TabId {
     BUDGET = '/budget',
     ACTIVITY = '/activity',
     SETTING = '/setting',
+    RAW_STORAGE = '/raw-storage',
     ABOUT = '/about'
 }
 
@@ -23,6 +24,7 @@ const tabOrder: TabId[] = [
     TabId.REFINED,
     TabId.BUDGET,
     TabId.SETTING,
+    TabId.RAW_STORAGE,
     TabId.ABOUT
 ]
 

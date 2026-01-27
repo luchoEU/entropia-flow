@@ -1,0 +1,321 @@
+import React, { useState, useEffect } from 'react'
+import {
+    getAllSyncStorage,
+    getAllLocalStorage,
+    setStorageValue,
+    deleteStorageKey,
+    clearStorage,
+    getStorageInfo,
+    type StorageArea,
+    type StorageInfo
+} from '../../services/rawStorageService'
+import JsonTreeViewer from './JsonTreeViewer'
+import StorageEditModal from './StorageEditModal'
+
+type SelectedStorage = 'sync' | 'local'
+
+const RawStoragePage: React.FC = () => {
+    const [selectedStorage, setSelectedStorage] = useState<SelectedStorage>('sync')
+    const [syncData, setSyncData] = useState<Record<string, any>>({})
+    const [localData, setLocalData] = useState<Record<string, any>>({})
+    const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
+    const [searchQuery, setSearchQuery] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState<string | null>(null)
+
+    // Edit modal state
+    const [editingKey, setEditingKey] = useState<string | null>(null)
+    const [editingValue, setEditingValue] = useState<any>(null)
+
+    // Storage info
+    const [syncInfo, setSyncInfo] = useState<StorageInfo | null>(null)
+    const [localInfo, setLocalInfo] = useState<StorageInfo | null>(null)
+
+    const loadAllData = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const [syncStorage, localStorage, syncInfo, localInfo] = await Promise.all([
+                getAllSyncStorage(),
+                getAllLocalStorage(),
+                getStorageInfo('sync'),
+                getStorageInfo('local')
+            ])
+
+            setSyncData(syncStorage)
+            setLocalData(localStorage)
+            setSyncInfo(syncInfo)
+            setLocalInfo(localInfo)
+            setLoading(false)
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to load storage'
+            setError(message)
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadAllData()
+
+        // Listen for storage changes from other tabs/windows
+        const handleStorageChange = (changes: any, areaName: string) => {
+            // Reload data when storage changes externally
+            loadAllData()
+        }
+
+        chrome.storage.onChanged.addListener(handleStorageChange)
+        return () => chrome.storage.onChanged.removeListener(handleStorageChange)
+    }, [])
+
+    const currentData = selectedStorage === 'sync' ? syncData : localData
+
+    const handleToggleExpand = (keyPath: string) => {
+        const newExpanded = new Set(expandedKeys)
+        if (newExpanded.has(keyPath)) {
+            newExpanded.delete(keyPath)
+        } else {
+            newExpanded.add(keyPath)
+        }
+        setExpandedKeys(newExpanded)
+    }
+
+    const handleEdit = (key: string, value: any) => {
+        setEditingKey(key)
+        setEditingValue(value)
+    }
+
+    const handleSaveEdit = async (key: string, value: any) => {
+        try {
+            setError(null)
+            await setStorageValue(selectedStorage, key, value)
+            setSuccess('Value saved successfully')
+            setTimeout(() => setSuccess(null), 3000)
+            await loadAllData()
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to save'
+            setError(message)
+        }
+    }
+
+    const handleDelete = async (key: string) => {
+        if (!confirm(`Delete "${key}"?`)) return
+
+        try {
+            setError(null)
+            await deleteStorageKey(selectedStorage, key)
+            setSuccess('Key deleted successfully')
+            setTimeout(() => setSuccess(null), 3000)
+            await loadAllData()
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to delete'
+            setError(message)
+        }
+    }
+
+    const handleClearStorage = async () => {
+        const confirmMsg = `Clear all ${selectedStorage} storage? This cannot be undone.`
+        if (!confirm(confirmMsg)) return
+
+        try {
+            setError(null)
+            await clearStorage(selectedStorage)
+            setSuccess('Storage cleared successfully')
+            setTimeout(() => setSuccess(null), 3000)
+            await loadAllData()
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to clear'
+            setError(message)
+        }
+    }
+
+    const handleExport = () => {
+        const data = {
+            exported: new Date().toISOString(),
+            storage: selectedStorage,
+            data: currentData
+        }
+        const json = JSON.stringify(data, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `storage-${selectedStorage}-${Date.now()}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    const handleRefresh = async () => {
+        await loadAllData()
+        setSuccess('Storage refreshed')
+        setTimeout(() => setSuccess(null), 2000)
+    }
+
+    const storageInfo = selectedStorage === 'sync' ? syncInfo : localInfo
+
+    if (loading) {
+        return (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+                <p>Loading storage data...</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="raw-storage-page">
+            {/* Error Banner */}
+            {error && (
+                <div style={{
+                    padding: '12px 16px',
+                    margin: '16px',
+                    backgroundColor: '#ffeef0',
+                    border: '1px solid #d73a49',
+                    borderRadius: '4px',
+                    color: '#d73a49'
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {/* Success Banner */}
+            {success && (
+                <div style={{
+                    padding: '12px 16px',
+                    margin: '16px',
+                    backgroundColor: '#f0f5f9',
+                    border: '1px solid #28a745',
+                    borderRadius: '4px',
+                    color: '#28a745'
+                }}>
+                    {success}
+                </div>
+            )}
+
+            {/* Storage Selector */}
+            <div style={{ display: 'flex', gap: '8px', padding: '16px', borderBottom: '1px solid #e1e4e8' }}>
+                {(['sync', 'local'] as const).map(storage => (
+                    <button
+                        key={storage}
+                        onClick={() => setSelectedStorage(storage)}
+                        style={{
+                            padding: '8px 16px',
+                            border: selectedStorage === storage ? '2px solid #0366d6' : '1px solid #e1e4e8',
+                            borderRadius: '4px',
+                            backgroundColor: selectedStorage === storage ? '#f6f8fa' : '#fff',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        {storage === 'sync' ? '☁️ Sync Storage' : '💾 Local Storage'}
+                    </button>
+                ))}
+            </div>
+
+            {/* Storage Info */}
+            {storageInfo && (
+                <div style={{ padding: '12px 16px', backgroundColor: '#f6f8fa', fontSize: '12px', borderBottom: '1px solid #e1e4e8' }}>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                        <span>
+                            <strong>Usage:</strong> {(storageInfo.bytes / 1024).toFixed(1)} KB / {(storageInfo.quota / 1024).toFixed(0)} KB
+                            ({storageInfo.percentUsed.toFixed(1)}%)
+                        </span>
+                        <span>
+                            <strong>Available:</strong> {(storageInfo.available / 1024).toFixed(1)} KB
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {/* Search Bar */}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e1e4e8' }}>
+                <input
+                    type="text"
+                    placeholder="Search keys..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px solid #e1e4e8',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        boxSizing: 'border-box'
+                    }}
+                />
+            </div>
+
+            {/* Action Bar */}
+            <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderBottom: '1px solid #e1e4e8' }}>
+                <button
+                    onClick={handleRefresh}
+                    style={{
+                        padding: '6px 12px',
+                        border: '1px solid #e1e4e8',
+                        borderRadius: '4px',
+                        backgroundColor: '#f6f8fa',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    🔄 Refresh
+                </button>
+                <button
+                    onClick={handleExport}
+                    style={{
+                        padding: '6px 12px',
+                        border: '1px solid #e1e4e8',
+                        borderRadius: '4px',
+                        backgroundColor: '#f6f8fa',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                    }}
+                >
+                    📥 Export
+                </button>
+                <button
+                    onClick={handleClearStorage}
+                    style={{
+                        padding: '6px 12px',
+                        border: '1px solid #d73a49',
+                        borderRadius: '4px',
+                        backgroundColor: '#ffeef0',
+                        color: '#d73a49',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        marginLeft: 'auto'
+                    }}
+                >
+                    🗑️ Clear All
+                </button>
+            </div>
+
+            {/* JSON Tree Viewer */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+                <JsonTreeViewer
+                    data={currentData}
+                    expandedKeys={expandedKeys}
+                    onToggleExpand={handleToggleExpand}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    searchQuery={searchQuery}
+                />
+            </div>
+
+            {/* Edit Modal */}
+            <StorageEditModal
+                isVisible={editingKey !== null}
+                storageKey={editingKey}
+                initialValue={editingValue}
+                onSave={handleSaveEdit}
+                onCancel={() => {
+                    setEditingKey(null)
+                    setEditingValue(null)
+                }}
+            />
+        </div>
+    )
+}
+
+export default RawStoragePage

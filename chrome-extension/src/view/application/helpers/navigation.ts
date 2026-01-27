@@ -14,6 +14,7 @@ const tabTitle = {
     [TabId.BUDGET]: 'Budget',
     [TabId.ACTIVITY]: 'Activity',
     [TabId.SETTING]: 'Settings',
+    [TabId.RAW_STORAGE]: 'Raw Storage',
     [TabId.ABOUT]: 'About'
 }
 
@@ -28,6 +29,7 @@ const tabSubtitle = {
     [TabId.BUDGET]: 'Budget your different activities',
     [TabId.ACTIVITY]: 'Timeline of activities inferred from your activity',
     [TabId.SETTING]: 'Settings for Entropia Flow',
+    [TabId.RAW_STORAGE]: 'View and edit Chrome storage data',
     [TabId.ABOUT]: 'Information about Entropia Flow'
 }
 
