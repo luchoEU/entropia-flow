@@ -1,4 +1,39 @@
-import { ViewItemData } from './history'
+interface ActivityState {
+    schema: number
+    data: {
+        // Inventory snapshots from game updates
+        items: ActivityItem[]
+        // Automatically inferred actions from inventory changes
+        autoActions: StoredAction[]
+        // User-guided actions with open inference (not yet implemented)
+        userActions: ActivityAction[]
+        // Sessions tracking activity over time
+        sessions: ActivitySession[]
+    }
+    lastProcessed: {
+        inventoryKey?: number
+        clientLogSerial?: number
+    }
+    ui: {
+        expanded: {
+            sessions: string[]
+            actionRows: string[]
+        }
+        showActions: ShowActionsType
+    }
+    blacklist: {
+        // Per-session blacklist: sessionId -> item names excluded for this session
+        session: Record<string, string[]>
+        // Per-session action blacklist: sessionId -> action ids excluded for this session
+        sessionAction: Record<string, string[]>
+        // Permanent blacklist per session type: sessionType -> item names
+        permanentItem: Record<SessionType, string[]>
+        // Permanent action blacklist per session type: sessionType -> action type strings
+        permanentAction: Record<SessionType, string[]>
+    }
+}
+
+type ShowActionsType = 'items' | 'autoActions' | 'userActions'
 
 type ActionType =
     | 'sold_auction'
@@ -19,17 +54,34 @@ type ActionType =
     | 'unknown'
     | 'reverse_fail'
 
-type ActionSource = 'inventory' | 'chat' | 'screen' | 'client'
+type ActionSource = 'inventory' | 'client'
 
 type SessionType = 'unknown' | 'hunt' | 'mine' | 'craft'
 
-interface StoredInventoryItem {
+interface ActivityItem {
     id: number
     name: string
     quantity: number
     value: number
     container: string
     timestamp: number
+    source: ActionSource
+}
+
+interface ActivityAction {
+    type: string
+    relatedItems: Record<string, number | number[]>
+}
+
+interface ActivitySession {
+    id: string
+    name: string
+    type: SessionType
+    startTime: number
+    inventory?: { // Last total inventory stats in this session
+        total: number
+        items: number
+    }
 }
 
 // Specific item reference types for each action
@@ -121,7 +173,7 @@ const actionTypeInfo: Record<ActionType, { icon: string, name: string }> = {
     'reverse_fail': { icon: '‼', name: 'Reverse inference failed' },
 }
 
-function formatActionDescription(action: InferredAction | StoredAction, getInventoryItem: (id: number) => StoredInventoryItem | undefined): string {
+function formatActionDescription(action: InferredAction | StoredAction, getInventoryItem: (id: number) => ActivityItem | undefined): string {
     const info = actionTypeInfo[action.type]
 
     // Helper to get item info from ID
@@ -212,47 +264,16 @@ interface StoredAction {
     relatedItems: InferredAction['relatedItems']
 }
 
-interface SessionBoundary {
-    id: string
-    name: string
-    type: SessionType
-    startTime: number
-    inventory?: {
-        total: number
-        items: number
-    }
-}
-
-interface ActivityState {
-    list: StoredInventoryItem[]
-    actions: StoredAction[]
-    lastProcessedInventoryKey?: number
-    lastProcessedLogSerial?: number
-    sessions: SessionBoundary[]
-    expandedSessions: string[]
-    expandedActionRows: string[]
-    showActions: boolean
-    // Per-session blacklist: sessionId -> item names excluded for this session
-    sessionBlacklist: Record<string, string[]>
-    // Per-session action blacklist: sessionId -> action ids excluded for this session
-    sessionActionBlacklist: Record<string, string[]>
-    // Permanent blacklist per session type: sessionType -> item names
-    permanentItemBlacklist: Record<SessionType, string[]>
-    // Permanent action blacklist per session type: sessionType -> action type strings
-    permanentActionBlacklist: Record<SessionType, string[]>
-    // Last deleted session for undo
-    lastDeletedSession: { session: SessionBoundary, actions: StoredAction[] } | null
-}
-
 export {
     ActionType,
     ActionSource,
     SessionType,
-    StoredInventoryItem,
+    ActivityItem,
     InferredAction,
     StoredAction,
-    SessionBoundary,
+    ActivitySession,
     ActivityState,
+    ShowActionsType,
     formatActionDescription,
     actionTypeInfo
 }

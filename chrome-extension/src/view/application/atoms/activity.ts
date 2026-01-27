@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { ActivityState, StoredAction, StoredInventoryItem, SessionBoundary, SessionType, ActionType, ActionSource } from '../state/activity'
+import { ActivityState, StoredAction, ActivityItem, ActivitySession, SessionType, ActionType, ActionSource, ShowActionsType } from '../state/activity'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
@@ -8,20 +8,43 @@ import messagesApi from '../../services/api/messages'
 
 // Initial state
 const initialActivityState: ActivityState = {
-    list: [],
-    actions: [],
-    lastProcessedInventoryKey: undefined,
-    lastProcessedLogSerial: undefined,
-    sessions: [],
-    expandedSessions: [],
-    expandedActionRows: [],
-    showActions: true,
-    sessionBlacklist: {},
-    sessionActionBlacklist: {},
-    permanentItemBlacklist: { unknown: [], hunt: [], mine: [], craft: [] },
-    permanentActionBlacklist: { unknown: [], hunt: [], mine: [], craft: [] },
-    lastDeletedSession: null
+    schema: 1,
+    data: {
+        items: [],
+        autoActions: [],
+        userActions: [],
+        sessions: []
+    },
+    lastProcessed: {
+        inventoryKey: undefined,
+        clientLogSerial: undefined
+    },
+    ui: {
+        expanded: {
+            sessions: [],
+            actionRows: []
+        },
+        showActions: 'items'
+    },
+    blacklist: {
+        session: {},
+        sessionAction: {},
+        permanentItem: { unknown: [], hunt: [], mine: [], craft: [] },
+        permanentAction: { unknown: [], hunt: [], mine: [], craft: [] }
+    }
 }
+
+// Writable atom for deleted session
+export const lastDeletedSessionAtom = atom<
+    { session: ActivitySession; actions: StoredAction[] } | null,
+    [{ session: ActivitySession; actions: StoredAction[] } | null],
+    void
+>(
+    null,
+    (_get, set, newValue) => {
+        set(lastDeletedSessionAtom as any, newValue)
+    }
+)
 
 // Base atom for activity state
 export const activityAtom = atom<ActivityState>(initialActivityState)
@@ -76,9 +99,11 @@ export const initializeActivityAtom = atom(
     null,
     async (get, set) => {
         const stored = await loadFromStorage()
-        if (stored) {
+        if (stored && stored.schema === initialActivityState.schema) {
             // Merge with initial state to ensure all properties exist (handles migrations)
             set(activityAtom, { ...initialActivityState, ...stored })
+        } else {
+            set(activityAtom, initialActivityState)
         }
         set(activityLoadingAtom, false)
     }
@@ -88,12 +113,15 @@ export const initializeActivityAtom = atom(
 
 export const addInventoryAndActionsAtom = atom(
     null,
-    async (get, set, { inventoryItems, actions }: { inventoryItems: StoredInventoryItem[], actions: StoredAction[] }) => {
+    async (get, set, { inventoryItems, actions }: { inventoryItems: ActivityItem[], actions: StoredAction[] }) => {
         const current = get(activityAtom)
         const newState = {
             ...current,
-            list: [...inventoryItems, ...current.list],
-            actions: [...actions, ...current.actions]
+            data: {
+                ...current.data,
+                items: [...inventoryItems, ...current.data.items],
+                autoActions: [...actions, ...current.data.autoActions]
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -110,7 +138,10 @@ export const addActionsAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            actions: [...actions, ...current.actions]
+            data: {
+                ...current.data,
+                autoActions: [...actions, ...current.data.autoActions]
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -125,10 +156,13 @@ export const removeActionsAtom = atom(
     null,
     async (get, set, actionIds: string[]) => {
         const current = get(activityAtom)
-        const removedActions = current.actions.filter(act => actionIds.includes(act.id))
+        const removedActions = current.data.autoActions.filter(act => actionIds.includes(act.id))
         const newState = {
             ...current,
-            actions: current.actions.filter(act => !actionIds.includes(act.id))
+            data: {
+                ...current.data,
+                autoActions: current.data.autoActions.filter(act => !actionIds.includes(act.id))
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -145,8 +179,14 @@ export const clearActionsAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            list: [],
-            lastProcessedInventoryKey: undefined
+            data: {
+                ...current.data,
+                items: []
+            },
+            lastProcessed: {
+                ...current.lastProcessed,
+                inventoryKey: undefined
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -168,7 +208,10 @@ export const setLastProcessedKeyAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            lastProcessedInventoryKey: key
+            lastProcessed: {
+                ...current.lastProcessed,
+                inventoryKey: key
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -181,7 +224,10 @@ export const setLastProcessedLogSerialAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            lastProcessedLogSerial: serial
+            lastProcessed: {
+                ...current.lastProcessed,
+                clientLogSerial: serial
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -220,8 +266,8 @@ export const createNewSessionAtom = atom(
             }
         }
 
-        const nextSessionNumber = current.sessions.length + 1
-        const newSession: SessionBoundary = {
+        const nextSessionNumber = current.data.sessions.length + 1
+        const newSession: ActivitySession = {
             id: crypto.randomUUID(),
             name: `Session ${nextSessionNumber}`,
             type: 'unknown',
@@ -229,8 +275,17 @@ export const createNewSessionAtom = atom(
         }
         const newState = {
             ...current,
-            sessions: [...current.sessions, newSession].sort((a, b) => a.startTime - b.startTime),
-            expandedSessions: [...current.expandedSessions, newSession.id]
+            data: {
+                ...current.data,
+                sessions: [...current.data.sessions, newSession].sort((a, b) => a.startTime - b.startTime)
+            },
+            ui: {
+                ...current.ui,
+                expanded: {
+                    ...current.ui.expanded,
+                    sessions: [...current.ui.expanded.sessions, newSession.id]
+                }
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -244,9 +299,12 @@ export const updateSessionNameAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            sessions: current.sessions.map(s =>
-                s.id === sessionId ? { ...s, name } : s
-            )
+            data: {
+                ...current.data,
+                sessions: current.data.sessions.map(s =>
+                    s.id === sessionId ? { ...s, name } : s
+                )
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -259,9 +317,12 @@ export const updateSessionTypeAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            sessions: current.sessions.map(s =>
-                s.id === sessionId ? { ...s, type: sessionType } : s
-            )
+            data: {
+                ...current.data,
+                sessions: current.data.sessions.map(s =>
+                    s.id === sessionId ? { ...s, type: sessionType } : s
+                )
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -272,34 +333,48 @@ export const deleteSessionAtom = atom(
     null,
     async (get, set, sessionId: string) => {
         const current = get(activityAtom)
-        const session = current.sessions.find(s => s.id === sessionId)
+        const session = current.data.sessions.find(s => s.id === sessionId)
         if (!session) return
 
         // Find actions in this session
-        const sessionIndex = current.sessions.indexOf(session)
-        const nextSession = current.sessions[sessionIndex + 1]
+        const sessionIndex = current.data.sessions.indexOf(session)
+        const nextSession = current.data.sessions[sessionIndex + 1]
         const endTime = nextSession ? nextSession.startTime : Date.now()
-        const sessionActions = current.actions.filter(act =>
+        const sessionActions = current.data.autoActions.filter(act =>
             act.timestamp >= session.startTime && act.timestamp < endTime
         )
 
         // Remove session and actions
-        const newSessions = current.sessions.filter(s => s.id !== sessionId)
-        const newActions = current.actions.filter(act => !sessionActions.includes(act))
+        const newSessions = current.data.sessions.filter(s => s.id !== sessionId)
+        const newAutoActions = current.data.autoActions.filter(act => !sessionActions.includes(act))
 
         // Clean up blacklists
-        const { [sessionId]: _, ...newSessionBlacklist } = current.sessionBlacklist
-        const { [sessionId]: __, ...newSessionActionBlacklist } = current.sessionActionBlacklist
+        const { [sessionId]: _, ...newSessionBlacklist } = current.blacklist.session
+        const { [sessionId]: __, ...newSessionActionBlacklist } = current.blacklist.sessionAction
 
         const newState = {
             ...current,
-            sessions: newSessions,
-            actions: newActions,
-            sessionBlacklist: newSessionBlacklist,
-            sessionActionBlacklist: newSessionActionBlacklist,
-            lastDeletedSession: { session, actions: sessionActions },
-            expandedSessions: current.expandedSessions.filter(id => id !== sessionId)
+            data: {
+                ...current.data,
+                sessions: newSessions,
+                autoActions: newAutoActions
+            },
+            blacklist: {
+                ...current.blacklist,
+                session: newSessionBlacklist,
+                sessionAction: newSessionActionBlacklist
+            },
+            ui: {
+                ...current.ui,
+                expanded: {
+                    ...current.ui.expanded,
+                    sessions: current.ui.expanded.sessions.filter(id => id !== sessionId)
+                }
+            }
         }
+
+        // Store deleted session separately for undo
+        set(lastDeletedSessionAtom, { session, actions: sessionActions })
         set(activityAtom, newState)
         await saveToStorage(newState)
     }
@@ -309,19 +384,23 @@ export const undoDeleteSessionAtom = atom(
     null,
     async (get, set) => {
         const current = get(activityAtom)
-        if (!current.lastDeletedSession) return
+        const deleted = get(lastDeletedSessionAtom)
+        if (!deleted) return
 
-        const { session, actions } = current.lastDeletedSession
-        const newSessions = [...current.sessions, session].sort((a, b) => a.startTime - b.startTime)
-        const newActions = [...actions, ...current.actions]
+        const { session, actions } = deleted
+        const newSessions = [...current.data.sessions, session].sort((a, b) => a.startTime - b.startTime)
+        const newAutoActions = [...actions, ...current.data.autoActions]
 
         const newState = {
             ...current,
-            sessions: newSessions,
-            actions: newActions,
-            lastDeletedSession: null
+            data: {
+                ...current.data,
+                sessions: newSessions,
+                autoActions: newAutoActions
+            }
         }
         set(activityAtom, newState)
+        set(lastDeletedSessionAtom, null)
         await saveToStorage(newState)
     }
 )
@@ -332,7 +411,13 @@ export const updateExpandedSessionsAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            expandedSessions: expanded
+            ui: {
+                ...current.ui,
+                expanded: {
+                    ...current.ui.expanded,
+                    sessions: expanded
+                }
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -345,7 +430,13 @@ export const updateExpandedActionRowsAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            expandedActionRows: expanded
+            ui: {
+                ...current.ui,
+                expanded: {
+                    ...current.ui.expanded,
+                    actionRows: expanded
+                }
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -358,9 +449,12 @@ export const updateSessionInventoryAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            sessions: current.sessions.map(s =>
-                s.id === sessionId ? { ...s, inventory } : s
-            )
+            data: {
+                ...current.data,
+                sessions: current.data.sessions.map(s =>
+                    s.id === sessionId ? { ...s, inventory } : s
+                )
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -373,9 +467,12 @@ export const updateActionBudgetNameAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            actions: current.actions.map(act =>
-                act.id === actionId ? { ...act, budgetName } : act
-            )
+            data: {
+                ...current.data,
+                autoActions: current.data.autoActions.map(act =>
+                    act.id === actionId ? { ...act, budgetName } : act
+                )
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -384,11 +481,14 @@ export const updateActionBudgetNameAtom = atom(
 
 export const setShowActionsAtom = atom(
     null,
-    async (get, set, showActions: boolean) => {
+    async (get, set, showActions: ShowActionsType) => {
         const current = get(activityAtom)
         const newState = {
             ...current,
-            showActions
+            ui: {
+                ...current.ui,
+                showActions
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)
@@ -399,14 +499,17 @@ export const excludeItemAtom = atom(
     null,
     async (get, set, { sessionId, itemName }: { sessionId: string; itemName: string }) => {
         const current = get(activityAtom)
-        const currentList = current.sessionBlacklist?.[sessionId] || []
+        const currentList = current.blacklist.session?.[sessionId] || []
         if (currentList.includes(itemName)) return
 
         const newState = {
             ...current,
-            sessionBlacklist: {
-                ...current.sessionBlacklist,
-                [sessionId]: [...currentList, itemName]
+            blacklist: {
+                ...current.blacklist,
+                session: {
+                    ...current.blacklist.session,
+                    [sessionId]: [...currentList, itemName]
+                }
             }
         }
         set(activityAtom, newState)
@@ -418,12 +521,15 @@ export const includeItemAtom = atom(
     null,
     async (get, set, { sessionId, itemName }: { sessionId: string; itemName: string }) => {
         const current = get(activityAtom)
-        const currentList = current.sessionBlacklist?.[sessionId] || []
+        const currentList = current.blacklist.session?.[sessionId] || []
         const newState = {
             ...current,
-            sessionBlacklist: {
-                ...current.sessionBlacklist,
-                [sessionId]: currentList.filter(n => n !== itemName)
+            blacklist: {
+                ...current.blacklist,
+                session: {
+                    ...current.blacklist.session,
+                    [sessionId]: currentList.filter(n => n !== itemName)
+                }
             }
         }
         set(activityAtom, newState)
@@ -435,7 +541,7 @@ export const permanentExcludeItemAtom = atom(
     null,
     async (get, set, { sessionType, itemName, value }: { sessionType: SessionType; itemName: string; value: boolean }) => {
         const current = get(activityAtom)
-        const currentList = current.permanentItemBlacklist?.[sessionType] || []
+        const currentList = current.blacklist.permanentItem?.[sessionType] || []
 
         let newList: string[]
         if (value) {
@@ -447,9 +553,12 @@ export const permanentExcludeItemAtom = atom(
 
         const newState = {
             ...current,
-            permanentItemBlacklist: {
-                ...current.permanentItemBlacklist,
-                [sessionType]: newList
+            blacklist: {
+                ...current.blacklist,
+                permanentItem: {
+                    ...current.blacklist.permanentItem,
+                    [sessionType]: newList
+                }
             }
         }
         set(activityAtom, newState)
@@ -461,14 +570,17 @@ export const excludeActionAtom = atom(
     null,
     async (get, set, { sessionId, actionId }: { sessionId: string; actionId: string }) => {
         const current = get(activityAtom)
-        const currentList = current.sessionActionBlacklist?.[sessionId] || []
+        const currentList = current.blacklist.sessionAction?.[sessionId] || []
         if (currentList.includes(actionId)) return
 
         const newState = {
             ...current,
-            sessionActionBlacklist: {
-                ...current.sessionActionBlacklist,
-                [sessionId]: [...currentList, actionId]
+            blacklist: {
+                ...current.blacklist,
+                sessionAction: {
+                    ...current.blacklist.sessionAction,
+                    [sessionId]: [...currentList, actionId]
+                }
             }
         }
         set(activityAtom, newState)
@@ -480,12 +592,15 @@ export const includeActionAtom = atom(
     null,
     async (get, set, { sessionId, actionId }: { sessionId: string; actionId: string }) => {
         const current = get(activityAtom)
-        const currentList = current.sessionActionBlacklist?.[sessionId] || []
+        const currentList = current.blacklist.sessionAction?.[sessionId] || []
         const newState = {
             ...current,
-            sessionActionBlacklist: {
-                ...current.sessionActionBlacklist,
-                [sessionId]: currentList.filter(id => id !== actionId)
+            blacklist: {
+                ...current.blacklist,
+                sessionAction: {
+                    ...current.blacklist.sessionAction,
+                    [sessionId]: currentList.filter(id => id !== actionId)
+                }
             }
         }
         set(activityAtom, newState)
@@ -498,7 +613,7 @@ export const permanentExcludeActionAtom = atom(
     async (get, set, { sessionType, actionType, itemName, value }: { sessionType: SessionType; actionType: string; itemName: string; value: boolean }) => {
         const current = get(activityAtom)
         const key = `${actionType}:${itemName}`
-        const currentList = current.permanentActionBlacklist?.[sessionType] || []
+        const currentList = current.blacklist.permanentAction?.[sessionType] || []
 
         let newList: string[]
         if (value) {
@@ -510,9 +625,12 @@ export const permanentExcludeActionAtom = atom(
 
         const newState = {
             ...current,
-            permanentActionBlacklist: {
-                ...current.permanentActionBlacklist,
-                [sessionType]: newList
+            blacklist: {
+                ...current.blacklist,
+                permanentAction: {
+                    ...current.blacklist.permanentAction,
+                    [sessionType]: newList
+                }
             }
         }
         set(activityAtom, newState)
@@ -564,9 +682,12 @@ export const updateActionTypeAtom = atom(
         const current = get(activityAtom)
         const newState = {
             ...current,
-            actions: current.actions.map(act =>
-                act.id === actionId ? { ...act, type } : act
-            )
+            data: {
+                ...current.data,
+                autoActions: current.data.autoActions.map(act =>
+                    act.id === actionId ? { ...act, type } : act
+                )
+            }
         }
         set(activityAtom, newState)
         await saveToStorage(newState)

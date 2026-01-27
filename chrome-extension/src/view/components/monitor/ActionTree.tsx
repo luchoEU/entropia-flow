@@ -28,7 +28,8 @@ const ActionRow = ({ action }: { action: InferredAction }) => {
         quantity: 0,
         value: 0,
         container: 'unknown',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        source: 'inventory' as const
     })
 
     const itemIds = getAllItemIds(action)

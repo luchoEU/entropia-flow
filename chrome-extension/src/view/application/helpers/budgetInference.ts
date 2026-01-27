@@ -1,4 +1,4 @@
-import { StoredAction, StoredInventoryItem, SoldAuctionItems, BoughtAuctionItems, ListedAuctionItems, RefineItems, CraftItems } from '../state/activity'
+import { StoredAction, ActivityItem, SoldAuctionItems, BoughtAuctionItems, ListedAuctionItems, RefineItems, CraftItems } from '../state/activity'
 import { BudgetState } from '../state/budget'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 
@@ -11,7 +11,7 @@ export interface BudgetInferenceResult {
 export function inferBudgetLinesFromActions(
     actions: StoredAction[],
     budget: BudgetState,
-    inventoryItems: StoredInventoryItem[]
+    inventoryItems: ActivityItem[]
 ): BudgetInferenceResult[] {
     const results: BudgetInferenceResult[] = []
 

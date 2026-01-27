@@ -21,7 +21,7 @@ import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
-import { InferredAction, StoredAction, StoredInventoryItem } from '../../application/state/activity'
+import { InferredAction, StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 import { HistoryState } from '../../application/state/history'
 
@@ -75,7 +75,7 @@ export function ActivityBridge() {
             onActionsAdded: (actions: StoredAction[]) => {
                 // Budget integration
                 const currentBudget = budgetRef.current
-                const results = inferBudgetLinesFromActions(actions, currentBudget, activity.list)
+                const results = inferBudgetLinesFromActions(actions, currentBudget, activity.data.items)
 
                 for (const result of results) {
                     dispatch(addBudgetItemPendingLines(result.budgetName, [result.budgetLine]))
@@ -114,7 +114,7 @@ export function ActivityBridge() {
         if (prevGameLogRef.current === gameLog) return
         prevGameLogRef.current = gameLog
 
-        const prevLastLogSerial = activity.lastProcessedLogSerial
+        const prevLastLogSerial = activity.lastProcessed.clientLogSerial
 
         // Group loot events by timestamp
         const lootByTimestamp = new Map<number, { serial: number; loot: { name: string; quantity: number; value: number } }[]>()
@@ -165,7 +165,7 @@ export function ActivityBridge() {
         if (maxSerial > (prevLastLogSerial || 0)) {
             setLastProcessedLogSerial(maxSerial)
         }
-    }, [gameLog, isLoading, activity.lastProcessedLogSerial, addActions, setLastProcessedLogSerial])
+    }, [gameLog, isLoading, activity.lastProcessed.clientLogSerial, addActions, setLastProcessedLogSerial])
 
     // Process history changes (equivalent to SET_HISTORY_LIST handling)
     useEffect(() => {
@@ -177,15 +177,15 @@ export function ActivityBridge() {
         if (prevHistoryRef.current === history) return
         prevHistoryRef.current = history
 
-        const prevLastKey = activity.lastProcessedInventoryKey
+        const prevLastKey = activity.lastProcessed.inventoryKey
 
         // Get existing loot actions (type 'loot' with 'client' source, not yet merged with inventory)
-        const existingLootActions = (activity.actions ?? []).filter(
+        const existingLootActions = (activity.data.autoActions ?? []).filter(
             act => act.type === 'loot' && act.sources.includes('client')
         )
 
         // Find new inventory items that haven't been processed yet
-        const newInventoryItems: StoredInventoryItem[] = []
+        const newInventoryItems: ActivityItem[] = []
         const newActions: StoredAction[] = []
 
         for (const inventory of history.list) {
@@ -213,16 +213,17 @@ export function ActivityBridge() {
                 }
             }
 
-            // Create StoredInventoryItem objects from the unmatched diff items
-            const inventoryStartIndex = activity.list.length + newInventoryItems.length
+            // Create ActivityItem objects from the unmatched diff items
+            const inventoryStartIndex = activity.data.items.length + newInventoryItems.length
             for (const diffItem of matchResult.unmatched) {
-                const inventoryItem: StoredInventoryItem = {
+                const inventoryItem: ActivityItem = {
                     id: inventoryStartIndex + newInventoryItems.length, // Serial ID
                     name: diffItem.n,
                     quantity: parseFloat(diffItem.q),
                     value: parseFloat(diffItem.v),
                     container: diffItem.c,
-                    timestamp: inventory.key
+                    timestamp: inventory.key,
+                    source: 'inventory'
                 }
                 newInventoryItems.push(inventoryItem)
             }
@@ -272,7 +273,7 @@ export function ActivityBridge() {
         }
 
         // Update session inventory data
-        const sessions = activity.sessions
+        const sessions = activity.data.sessions
         for (const session of sessions) {
             const sessionIndex = sessions.indexOf(session)
             const endTime = sessions[sessionIndex + 1]?.startTime || Date.now()
@@ -296,7 +297,7 @@ export function ActivityBridge() {
                 updateSessionInventory({ sessionId: session.id, inventory: inventoryData })
             }
         }
-    }, [history, isLoading, activity.lastProcessedInventoryKey, activity.list, activity.sessions, addActions, setLastProcessedKey, mergeLootWithInventory, updateSessionInventory])
+    }, [history, isLoading, activity.lastProcessed.inventoryKey, activity.data.items, activity.data.sessions, addActions, setLastProcessedKey, mergeLootWithInventory])
 
     // This component doesn't render anything
     return null

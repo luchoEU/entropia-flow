@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useNavigate } from 'react-router-dom'
-import { StoredAction, StoredInventoryItem, SessionBoundary, SessionType, formatActionDescription, actionTypeInfo } from '../../application/state/activity'
+import { StoredAction, ActivityItem, ActivitySession, SessionType, formatActionDescription, actionTypeInfo } from '../../application/state/activity'
 import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
 import {
     activityAtom,
+    lastDeletedSessionAtom,
     createNewSessionAtom,
     updateSessionNameAtom,
     updateSessionTypeAtom,
@@ -158,7 +159,7 @@ const SortableItemsTable = ({ items, exclusionConfig }: { items: ViewItemData[],
 }
 
 const preSessionKey = 'pre-session'
-const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): Map<string, StoredAction[]> => {
+const groupBySession = (actions: StoredAction[], sessions: ActivitySession[]): Map<string, StoredAction[]> => {
     const groups = new Map<string, StoredAction[]>()
     // Sort actions chronologically
     const sortedActions = [...actions].sort((a, b) => a.timestamp - b.timestamp)
@@ -189,6 +190,7 @@ const groupBySession = (actions: StoredAction[], sessions: SessionBoundary[]): M
 function ActivityPage() {
     // Jotai state
     const activity = useAtomValue(activityAtom)
+    const lastDeletedSession = useAtomValue(lastDeletedSessionAtom)
 
     // Guard against undefined activity
     if (!activity) {
@@ -199,7 +201,7 @@ function ActivityPage() {
         )
     }
 
-    const { list: inventoryItems, actions, sessions, expandedSessions: expandedArray, expandedActionRows, showActions, sessionBlacklist, sessionActionBlacklist, permanentItemBlacklist, permanentActionBlacklist, lastDeletedSession } = activity
+    const { data: { items: inventoryItems, autoActions: actions, sessions }, ui: { expanded: { sessions: expandedArray, actionRows: expandedActionRows }, showActions }, blacklist: { session: sessionBlacklist, sessionAction: sessionActionBlacklist, permanentItem: permanentItemBlacklist, permanentAction: permanentActionBlacklist } } = activity
 
     // Guard against undefined arrays
     if (!inventoryItems || !actions) {
@@ -214,14 +216,15 @@ function ActivityPage() {
     const getInventoryItem = (id: number) => inventoryItems.find(item => item.id === id)
 
     // Helper function to get inventory item with fallback
-    const getInventoryItemWithFallback = (itemId: number, fallbackTimestamp?: number): StoredInventoryItem => {
+    const getInventoryItemWithFallback = (itemId: number, fallbackTimestamp?: number): ActivityItem => {
         return getInventoryItem(itemId) || {
             id: itemId,
             name: 'unknown',
             quantity: 0,
             value: 0,
             container: 'unknown',
-            timestamp: fallbackTimestamp || Date.now()
+            timestamp: fallbackTimestamp || Date.now(),
+            source: 'inventory'
         }
     }
 
@@ -271,8 +274,8 @@ function ActivityPage() {
         return ids
     }
 
-    const buildCopyTextForItems = (items: StoredInventoryItem[]): string => {
-        return items.map(d => `${d.name}\t${d.quantity}\t${useComma ? d.value.toFixed(2).replace('.', ',') : d.value.toFixed(2)}`).join('\n')
+    const buildCopyTextForItems = (items: ActivityItem[]): string => {
+        return items.map(d => `${d.name}\t${d.quantity}\t${useComma ? (d.value ?? 0).toFixed(2).replace('.', ',') : (d.value ?? 0).toFixed(2)}`).join('\n')
     }
 
     // Build a plain text representation for copying: title + list of items
@@ -290,7 +293,7 @@ function ActivityPage() {
         if (itemIds.length > 0) {
             text += '\n'
             // Get inventory items directly
-            const items: StoredInventoryItem[] = itemIds.map(itemId => getInventoryItemWithFallback(itemId, a.timestamp))
+            const items: ActivityItem[] = itemIds.map(itemId => getInventoryItemWithFallback(itemId, a.timestamp))
             text += buildCopyTextForItems(items)
         }
         return text
@@ -484,7 +487,7 @@ function ActivityPage() {
                                                     </td>
                                                 )}
                                                 <td>{item.quantity} </td>
-                                                <td>{item.value.toFixed(2)} PED</td>
+                                                <td>{(item.value ?? 0).toFixed(2)} PED</td>
                                                 <td>{item.container}</td>
                                             </tr>
                                         )
@@ -518,7 +521,7 @@ function ActivityPage() {
     const sessionDeltas = new Map<string, number>()
     for (const session of virtualSessions) {
         const sessionActions = groupedActions.get(session.id) || []
-        if (showActions) {
+        if (showActions === 'autoActions') {
             // In actions view, exclude by action and by item
             const delta = sessionActions.reduce((sum, action) => {
                 if (isActionExcluded(session.id, session.type, action) || !action.sources.includes('inventory')) return sum
@@ -670,7 +673,7 @@ function ActivityPage() {
                                                 clickPopup="Copied!"
                                                 dispatch={() => {
                                                     let text = `${session.name}\n`
-                                                    if (showActions) {
+                                                    if (showActions === 'autoActions') {
                                                         sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
                                                             text += '\n' + buildCopyTextForAction(action)
                                                         })
@@ -680,7 +683,7 @@ function ActivityPage() {
                                                          sessionActions.forEach(action => {
                                                              getAllItemIds(action).forEach(itemId => itemIds.add(itemId))
                                                          })
-                                                         const items = Array.from(itemIds).map(itemId => getInventoryItem(itemId)).filter(item => item !== undefined) as StoredInventoryItem[]
+                                                         const items = Array.from(itemIds).map(itemId => getInventoryItem(itemId)).filter(item => item !== undefined) as ActivityItem[]
                                                          text = buildCopyTextForItems(items)
                                                      }
                                                     copyToClipboard(text)
@@ -688,10 +691,10 @@ function ActivityPage() {
                                             />
                                         )}
                                         <ImgButton
-                                            title={showActions ? 'Show items list' : 'Show grouped actions'}
+                                            title={showActions === 'autoActions' ? 'Show items list' : 'Show grouped actions'}
                                             src='img/lightning.png'
                                             className='img-btn-lightning'
-                                            dispatch={() => setShowActions(!showActions)}
+                                            dispatch={() => setShowActions(showActions === 'autoActions' ? 'items' : 'autoActions')}
                                         />
                                         {!isPreSession && (
                                             <button className='btn-reinfer' onClick={() => reinferSessionActions(session.id)}>
@@ -701,7 +704,7 @@ function ActivityPage() {
                                     </span>
                                 </div>
                                 {sessionActions.length > 0 && (() => {
-                                    if (showActions) {
+                                    if (showActions === 'autoActions') {
                                         const dateGroups: Map<string, StoredAction[]> = new Map()
                                         sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
                                             const date = formatDate(action.timestamp)
@@ -765,8 +768,8 @@ function ActivityPage() {
                                             return {
                                                 key: item.id,
                                                 n: item.name,
-                                                q: item.quantity.toString(),
-                                                v: item.value.toFixed(2),
+                                                q: (item.quantity ?? 0).toString(),
+                                                v: (item.value ?? 0).toFixed(2),
                                                 c: item.container
                                             }
                                         })

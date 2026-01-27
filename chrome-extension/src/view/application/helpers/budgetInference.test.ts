@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "@jest/globals"
 import { inferBudgetLinesFromActions, BudgetInferenceResult } from './budgetInference'
-import { StoredAction, StoredInventoryItem } from '../state/activity'
+import { StoredAction, ActivityItem } from '../state/activity'
 import { BudgetState } from '../state/budget'
 
 describe('budgetInference', () => {
@@ -45,16 +45,17 @@ describe('budgetInference', () => {
             return budgetState
         }
 
-        const createInventoryItem = (name: string, quantity: number, value: number, timestamp: number = Date.now()): StoredInventoryItem => ({
+        const createInventoryItem = (name: string, quantity: number, value: number, timestamp: number = Date.now()): ActivityItem => ({
             id: nextInventoryId++,
             name,
             quantity,
             value,
             container: 'Inventory',
-            timestamp
+            timestamp,
+            source: 'inventory'
         })
 
-        const createSoldAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: StoredInventoryItem[] } => {
+        const createSoldAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: ActivityItem[] } => {
             const soldItem = createInventoryItem(item, amount, 0, timestamp)
             const paymentItem = createInventoryItem('PED', value, value, timestamp)
 
@@ -70,7 +71,7 @@ describe('budgetInference', () => {
             }
         }
 
-        const createBoughtAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: StoredInventoryItem[] } => {
+        const createBoughtAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: ActivityItem[] } => {
             const boughtItem = createInventoryItem(item, amount, 0, timestamp)
             const paymentItem = createInventoryItem('PED', value, value, timestamp)
 
@@ -86,7 +87,7 @@ describe('budgetInference', () => {
             }
         }
 
-        const createListedAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: StoredInventoryItem[] } => {
+        const createListedAction = (item: string, amount: number, value: number, timestamp: number = Date.now()): { action: StoredAction; inventoryItems: ActivityItem[] } => {
             const listedItem = createInventoryItem(item, amount, 0, timestamp)
             const feeItem = createInventoryItem('PED', value, value, timestamp)
 
@@ -102,7 +103,7 @@ describe('budgetInference', () => {
             }
         }
 
-        const createRefineAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): { action: StoredAction; inventoryItems: StoredInventoryItem[] } => {
+        const createRefineAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): { action: StoredAction; inventoryItems: ActivityItem[] } => {
             const producedItem = createInventoryItem(item, amount, 0, timestamp)
             const consumedItems = relatedItems.map(r => createInventoryItem(r.name, Math.abs(r.quantity), 0, timestamp))
 
@@ -118,7 +119,7 @@ describe('budgetInference', () => {
             }
         }
 
-        const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): { action: StoredAction; inventoryItems: StoredInventoryItem[] } => {
+        const createCraftAction = (item: string, amount: number, relatedItems: { name: string; quantity: number }[], timestamp: number = Date.now()): { action: StoredAction; inventoryItems: ActivityItem[] } => {
             const producedItem = createInventoryItem(item, amount, 0, timestamp)
             const consumedItems = relatedItems.map(r => createInventoryItem(r.name, r.quantity, 0, timestamp))
 
