@@ -592,6 +592,20 @@ function ActivityPage() {
                         Undo Delete Session
                     </button>
                 )}
+                <ImgButton
+                    title={showActions === 'autoActions' ? 'Show user actions' : showActions === 'userActions' ? 'Show items list' : 'Show auto actions'}
+                    src='img/lightning.png'
+                    className='img-btn-lightning'
+                    dispatch={() => {
+                        if (showActions === 'autoActions') {
+                            setShowActions('userActions')
+                        } else if (showActions === 'userActions') {
+                            setShowActions('items')
+                        } else {
+                            setShowActions('autoActions')
+                        }
+                    }}
+                />
             </div>
             {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
                 const sessionActions = groupedActions.get(session.id) || []
@@ -630,6 +644,7 @@ function ActivityPage() {
                                         <ImgButton
                                             title="Delete session"
                                             src="img/trash.png"
+                                            className="img-btn-trash-black"
                                             dispatch={() => deleteSession(session.id)}
                                         />
                                     </>
@@ -690,12 +705,6 @@ function ActivityPage() {
                                                 }}
                                             />
                                         )}
-                                        <ImgButton
-                                            title={showActions === 'autoActions' ? 'Show items list' : 'Show grouped actions'}
-                                            src='img/lightning.png'
-                                            className='img-btn-lightning'
-                                            dispatch={() => setShowActions(showActions === 'autoActions' ? 'items' : 'autoActions')}
-                                        />
                                         {!isPreSession && (
                                             <button className='btn-reinfer' onClick={() => reinferSessionActions(session.id)}>
                                                 Re-infer

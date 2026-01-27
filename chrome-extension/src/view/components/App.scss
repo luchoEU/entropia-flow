@@ -70,7 +70,7 @@ nav .img-logo {
     height: 20px;
 }
 
-nav .img-btn-ubtitles {
+nav .img-btn-subtitles {
     display: inline-flex;
     align-items: flex-end;
     height: $nav-subtitle-height;
@@ -472,9 +472,13 @@ form label {
     margin-right: 10px;
 }
 
-.img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img, .img-btn-lightning img, .img-btn img {
+.img-btn img, .img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img, .img-btn-lightning img, .img-btn-trash-black img {
     height: 15px;
     margin-left: 10px;
+}
+
+.img-btn-trash-black img {
+    filter: brightness(0.3);
 }
 
 .inventory-line .img-btn-copy {
@@ -1255,7 +1259,7 @@ label {
     margin-left: 24px;
 }
 
-.img-btn-edit {
+.img-btn-edit, .img-btn-trash-black, .img-btn-lightning {
     opacity: 0;
     transition: opacity 0.2s;
 }
@@ -1264,7 +1268,7 @@ label {
     height: 14px;
 }
 
-.session-header:hover .img-btn-edit {
+.session-header:hover .img-btn-edit, .session-header:hover .img-btn-trash-black, div:hover > .img-btn-lightning {
     opacity: 1;
 }
 
