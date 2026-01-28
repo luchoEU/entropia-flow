@@ -67,7 +67,7 @@ nav .nav-row {
     align-items: center;
     flex-wrap: wrap;
     padding: 0px 13px;
-    height: $nav-row-height;
+    min-height: $nav-row-height;
 }
 
 nav .img-logo {
@@ -416,7 +416,8 @@ form label {
 .item-row:hover img,
 .item-row img[data-show],
 .img-container-hover:hover img,
-.img-container-hover img[data-show] {
+.img-container-hover img[data-show],
+.img-btn[data-show] img {
     visibility: visible;
 }
 
@@ -495,6 +496,10 @@ form label {
 }
 
 .img-hover-container:hover .img-btn {
+    opacity: 1;
+}
+
+.img-btn[data-show] {
     opacity: 1;
 }
 

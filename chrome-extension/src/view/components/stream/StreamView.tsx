@@ -28,6 +28,7 @@ function StreamView() {
                 title={`click to ${streamViewPinned ? 'Unpin' : 'Pin'} Stream View`}
                 className='img-btn-stream-view-pin'
                 src={streamViewPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
+                show
                 dispatch={() => pinStreamView(!streamViewPinned)}
             /> : undefined}
         >

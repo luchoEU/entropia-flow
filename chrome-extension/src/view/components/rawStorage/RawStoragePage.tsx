@@ -200,9 +200,10 @@ const RawStoragePage: React.FC = () => {
                         onClick={() => setSelectedStorage(storage)}
                         style={{
                             padding: '8px 16px',
-                            border: selectedStorage === storage ? '2px solid #0366d6' : '1px solid #e1e4e8',
+                            border: selectedStorage === storage ? '2px solid #0366d6' : '1px solid #ccc',
                             borderRadius: '4px',
-                            backgroundColor: selectedStorage === storage ? '#f6f8fa' : '#fff',
+                            backgroundColor: selectedStorage === storage ? '#e8f5ff' : '#f5f5f5',
+                            color: selectedStorage === storage ? '#0366d6' : '#333',
                             cursor: 'pointer',
                             fontSize: '12px',
                             fontWeight: 'bold'
@@ -252,11 +253,13 @@ const RawStoragePage: React.FC = () => {
                     onClick={handleRefresh}
                     style={{
                         padding: '6px 12px',
-                        border: '1px solid #e1e4e8',
+                        border: '1px solid #0366d6',
                         borderRadius: '4px',
-                        backgroundColor: '#f6f8fa',
+                        backgroundColor: '#e8f5ff',
+                        color: '#0366d6',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '12px',
+                        fontWeight: 'bold'
                     }}
                 >
                     🔄 Refresh
@@ -265,11 +268,13 @@ const RawStoragePage: React.FC = () => {
                     onClick={handleExport}
                     style={{
                         padding: '6px 12px',
-                        border: '1px solid #e1e4e8',
+                        border: '1px solid #0366d6',
                         borderRadius: '4px',
-                        backgroundColor: '#f6f8fa',
+                        backgroundColor: '#e8f5ff',
+                        color: '#0366d6',
                         cursor: 'pointer',
-                        fontSize: '12px'
+                        fontSize: '12px',
+                        fontWeight: 'bold'
                     }}
                 >
                     📥 Export
