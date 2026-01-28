@@ -4,7 +4,7 @@ import { ViewItemData } from '../../application/state/history'
 import ItemText from '../common/ItemText'
 import ImgButton from '../common/ImgButton'
 
-type SortColumn = 'n' | 'q' | 'v' | 'c'
+type SortColumn = 'n' | 'q' | 'v' | 'c' | 't' | 's'
 type SortDirection = 'asc' | 'desc'
 
 interface ItemExclusionConfig {
@@ -34,10 +34,10 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
         const aVal = a[sortColumn]
         const bVal = b[sortColumn]
         let compare: number
-        if (sortColumn === 'q' || sortColumn === 'v') {
-            compare = Math.abs(parseFloat(aVal) || 0) - Math.abs(parseFloat(bVal) || 0)
+        if (sortColumn === 'q' || sortColumn === 'v' || sortColumn === 't') {
+            compare = Math.abs(parseFloat(String(aVal)) || 0) - Math.abs(parseFloat(String(bVal)) || 0)
         } else {
-            compare = aVal.localeCompare(bVal)
+            compare = String(aVal || '').localeCompare(String(bVal || ''))
         }
         return sortDirection === 'asc' ? compare : -compare
     })
@@ -89,11 +89,13 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
             <thead>
                 <tr>
                     {selectionMode && showSelectAll && <th><input type="checkbox" onChange={(e) => handleSelectAll(e.target.checked)} checked={sortedItems.length > 0 && sortedItems.every(item => selectedItemIds.has(item.key))} /></th>}
+                    <SortHeader column='t' label='Time' />
                     <SortHeader column='n' label='Item' />
                     {exclusionConfig && <th></th>}
                     <SortHeader column='q' label='Quantity' />
                     <SortHeader column='v' label='Value' />
                     <SortHeader column='c' label='Container' />
+                    <SortHeader column='s' label='Source' />
                 </tr>
             </thead>
             <tbody>
@@ -112,6 +114,7 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
                                     />
                                 </td>
                             )}
+                            <td style={{ textAlign: 'left' }}>{item.t ? new Date(item.t).toLocaleString() : '-'}</td>
                             <td><ItemText text={item.n} /></td>
                             {exclusionConfig && (
                                 <td>
@@ -148,6 +151,7 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
                             <td style={{ textAlign: 'right' }}>{item.q}</td>
                             <td style={{ textAlign: 'right' }}>{item.v} PED</td>
                             <td style={{ textAlign: 'left' }}>{item.c}</td>
+                            <td style={{ textAlign: 'left' }}>{item.s || '-'}</td>
                         </tr>
                     )
                 })}

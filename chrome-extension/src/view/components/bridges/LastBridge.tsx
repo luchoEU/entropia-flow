@@ -26,10 +26,8 @@ export function LastBridge() {
         if (prevHistoryRef.current === history) return
         prevHistoryRef.current = history
 
-        // Extract the inventory list and "last" timestamp
-        const inventoryList = history.list
-            .filter(item => item.rawInventory?.itemlist !== undefined)
-            .map(item => item.rawInventory)
+        // Extract all inventories
+        const inventoryList = history.list.map(item => item.rawInventory)
 
         // Find the "last" (session start) timestamp
         const lastItem = history.list.find(item => item.isLast)

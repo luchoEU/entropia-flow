@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { ViewPedData } from '../state/last'
+import { LastRequiredState, ViewPedData } from '../state/last'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { SORT_VALUE_DESCENDING, nextSortType, sortList, cloneSortList } from '../helpers/inventory.sort'
@@ -27,7 +27,7 @@ const initialComputedState: ComputedState = {
 }
 
 // Initial state for persisted data
-const initialPersistedState = {
+const initialPersistedState: LastRequiredState = {
     expanded: false,
     sortType: SORT_VALUE_DESCENDING,
     showMarkup: false,
@@ -35,7 +35,7 @@ const initialPersistedState = {
     blacklist: [] as string[],
     permanentBlacklist: [] as string[],
     peds: [] as ViewPedData[],
-    notificationsDone: [] as string[],
+    notificationsDone: [] as string[]
 }
 
 // Base atom for persisted last state

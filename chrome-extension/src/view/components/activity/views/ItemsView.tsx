@@ -25,6 +25,8 @@ const ItemsView: React.FC<ItemsViewProps> = ({
     const items: ViewItemData[] = Array.from(itemIds).map(itemId => {
         const item = getInventoryItemWithFallback(itemId)
         return {
+            t: item.timestamp,
+            s: item.source,
             key: item.id,
             n: item.name,
             q: (item.quantity ?? 0).toString(),
