@@ -7,6 +7,7 @@ interface JsonTreeNodeProps {
     value: any
     depth: number
     isExpanded: boolean
+    expandedKeys: Set<string>
     onToggleExpand: (keyPath: string) => void
     onEdit: (key: string, value: any) => void
     onDelete: (key: string) => void
@@ -56,6 +57,7 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
     value,
     depth,
     isExpanded,
+    expandedKeys,
     onToggleExpand,
     onEdit,
     onDelete
@@ -84,19 +86,23 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
 
         return (
             <div style={{ paddingLeft: '20px' }}>
-                {entries.map(([childKey, childValue]: any, index) => (
-                    <JsonTreeNode
-                        key={`${keyPath}.${childKey}`}
-                        keyPath={`${keyPath}.${childKey}`}
-                        nodeKey={childKey}
-                        value={childValue}
-                        depth={depth + 1}
-                        isExpanded={false}
-                        onToggleExpand={onToggleExpand}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                    />
-                ))}
+                {entries.map(([childKey, childValue]: any) => {
+                    const childKeyPath = `${keyPath}.${childKey}`
+                    return (
+                        <JsonTreeNode
+                            key={childKeyPath}
+                            keyPath={childKeyPath}
+                            nodeKey={childKey}
+                            value={childValue}
+                            depth={depth + 1}
+                            isExpanded={expandedKeys.has(childKeyPath)}
+                            expandedKeys={expandedKeys}
+                            onToggleExpand={onToggleExpand}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                        />
+                    )
+                })}
             </div>
         )
     }
@@ -108,7 +114,18 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
 
     return (
         <div style={{ marginBottom: '4px', fontFamily: 'monospace', fontSize: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '2px 4px',
+                    borderRadius: '2px',
+                    transition: 'backgroundColor 0.15s'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
                 {isExpandable && (
                     <span
                         style={{
@@ -129,43 +146,43 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                 </span>
 
                 {!isExpandable ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                        {renderPrimitive()}
-                        {wasCompressed && <span style={{ color: '#999', fontSize: '10px' }}>[compressed]</span>}
-                        <button
-                            onClick={() => onEdit(nodeKey, value)}
-                            style={{
-                                padding: '2px 6px',
-                                fontSize: '11px',
-                                cursor: 'pointer',
-                                marginLeft: 'auto'
-                            }}
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={handleCopyValue}
-                            style={{
-                                padding: '2px 6px',
-                                fontSize: '11px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Copy
-                        </button>
-                        {depth === 0 && (
-                            <button
-                                onClick={() => onDelete(nodeKey)}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
+                        <div>
+                            {renderPrimitive()}
+                            {wasCompressed && <span style={{ color: '#999', fontSize: '10px' }}>[compressed]</span>}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                            <img
+                                src="/img/edit.png"
+                                alt="Edit"
+                                title="Edit value"
+                                onClick={() => onEdit(nodeKey, value)}
                                 style={{
-                                    padding: '2px 6px',
-                                    fontSize: '11px',
+                                    width: '16px',
+                                    height: '16px',
                                     cursor: 'pointer',
-                                    color: '#d73a49'
+                                    opacity: 0.7,
+                                    transition: 'opacity 0.2s'
                                 }}
-                            >
-                                Delete
-                            </button>
-                        )}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                            />
+                            <img
+                                src="/img/copy.png"
+                                alt="Copy"
+                                title="Copy to clipboard"
+                                onClick={handleCopyValue}
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                    opacity: 0.7,
+                                    transition: 'opacity 0.2s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                            />
+                        </div>
                     </div>
                 ) : (
                     <span style={{ color: '#666' }}>

@@ -22,7 +22,7 @@ function StreamView() {
     const showVisibility = useSelector(getShowVisibility);
     const streamViewPinned = useSelector(getStreamViewPinned);
 
-    return d && (
+    return d && view.length > 0 && (
         <ExpandableSection selector='StreamView' title='' subtitle='Stream View' hideExpandableArrow className='stream-view-section'
             afterTitle={showVisibility ? <ImgButton
                 title={`click to ${streamViewPinned ? 'Unpin' : 'Pin'} Stream View`}

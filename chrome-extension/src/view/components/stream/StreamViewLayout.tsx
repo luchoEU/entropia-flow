@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
-import { useDispatch } from "react-redux"
 import { executeStreamClickAction } from "../../application/actions/stream.click"
 import { Component, traceError } from "../../../common/trace"
 

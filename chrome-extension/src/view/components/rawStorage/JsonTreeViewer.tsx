@@ -45,6 +45,7 @@ const JsonTreeViewer: React.FC<JsonTreeViewerProps> = ({
                     value={value}
                     depth={0}
                     isExpanded={expandedKeys.has(key)}
+                    expandedKeys={expandedKeys}
                     onToggleExpand={onToggleExpand}
                     onEdit={onEdit}
                     onDelete={onDelete}

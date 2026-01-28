@@ -6,7 +6,6 @@ import {
     deleteStorageKey,
     clearStorage,
     getStorageInfo,
-    type StorageArea,
     type StorageInfo
 } from '../../services/rawStorageService'
 import JsonTreeViewer from './JsonTreeViewer'
