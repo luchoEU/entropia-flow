@@ -209,21 +209,17 @@ async function wiring(
     // port handlers
     contentPortManager.handlers = {
         [MSG_NAME_NEW_INVENTORY]: async (m) => {
-            // Publish to all instances (including self via handler)
             await sharedInstance.publishAction(SHARED_ACTION_NEW_INVENTORY, { inventory: m.inventory })
         },
         [MSG_NAME_REMAINING_SECONDS]: (m) => refreshManager.handleRemainingSeconds(m.remainingSeconds),
         [MSG_NAME_LOADING]: async (m) => {
-            // Publish to all instances (including self via handler)
             await sharedInstance.publishAction(SHARED_ACTION_LOADING, { loading: m.loading })
         },
         [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
         [MSG_NAME_REQUEST_TIMER_ON]: async () => {
-            // Publish to all instances (including self via handler)
             await sharedInstance.publishAction(SHARED_ACTION_TIMER_ON)
         },
         [MSG_NAME_REQUEST_TIMER_OFF]: async () => {
-            // Publish to all instances (including self via handler)
             await sharedInstance.publishAction(SHARED_ACTION_TIMER_OFF)
         }
     }

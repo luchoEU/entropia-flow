@@ -13,13 +13,6 @@ interface InstanceEvent {
     timestamp: number               // When it was created
 }
 
-interface InstanceResult {
-    eventId: string                 // Links to the InstanceEvent
-    sourceInstanceId: string        // Which instance is reporting result
-    data: any                       // The result data
-    timestamp: number
-}
-
 type EventHandler = (event: InstanceEvent) => Promise<any>
 
 class SharedInstanceService {
@@ -57,7 +50,7 @@ class SharedInstanceService {
     /**
      * Trigger an action that all instances should execute
      */
-    public async publishAction(actionName: string, payload: any = {}): Promise<InstanceResult[]> {
+    public async publishAction(actionName: string, payload: any = {}): Promise<void> {
         const event: InstanceEvent = {
             id: this.generateEventId(),
             sourceInstanceId: this.instanceId,
@@ -69,58 +62,18 @@ class SharedInstanceService {
         // Store the event
         const storageKey = `action_${event.id}`
         await chrome.storage.local.set({
-            [storageKey]: event,
-            'lastAction': event.id // Track the last action for quick lookup
+            [storageKey]: event
         })
 
         // Execute locally
-        const localResult = await this.executeAction(event)
+        await this.executeAction(event)
 
-        // Wait a bit for other instances to process
-        const otherResults = await new Promise<InstanceResult[]>((resolve) => {
-            const timeout = setTimeout(() => {
-                resolve([])
-            }, 1000) // Give other instances 1 second to respond
-
-            const onStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-                const results: InstanceResult[] = []
-                for (const key in changes) {
-                    if (key.startsWith(`result_${event.id}_`)) {
-                        const result = changes[key].newValue as InstanceResult
-                        if (result.sourceInstanceId !== this.instanceId) {
-                            results.push(result)
-                        }
-                    }
-                }
-                if (results.length > 0) {
-                    chrome.storage.onChanged.removeListener(onStorageChange)
-                    clearTimeout(timeout)
-                    resolve(results)
-                }
-            }
-
-            chrome.storage.onChanged.addListener(onStorageChange)
-        })
-
-        return localResult ? [localResult, ...otherResults] : otherResults
+        // Clean up after 5 seconds
+        setTimeout(() => {
+            chrome.storage.local.remove(storageKey)
+        }, 5000)
     }
 
-    /**
-     * Store a result for an action
-     */
-    public async publishResult(eventId: string, data: any): Promise<void> {
-        const result: InstanceResult = {
-            eventId,
-            sourceInstanceId: this.instanceId,
-            data,
-            timestamp: Date.now()
-        }
-
-        const storageKey = `result_${eventId}_${this.instanceId}`
-        await chrome.storage.local.set({
-            [storageKey]: result
-        })
-    }
 
     private generateEventId(): string {
         return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -151,28 +104,16 @@ class SharedInstanceService {
         })
     }
 
-    private async executeAction(event: InstanceEvent): Promise<InstanceResult | null> {
+    private async executeAction(event: InstanceEvent): Promise<void> {
         const handlers = this.handlers.get(event.actionName)
         if (!handlers || handlers.length === 0) {
-            return null
+            return
         }
 
         try {
-            const results = await Promise.all(handlers.map(h => h(event)))
-            const result = results.length === 1 ? results[0] : results
-
-            // Store result
-            await this.publishResult(event.id, result)
-
-            return {
-                eventId: event.id,
-                sourceInstanceId: this.instanceId,
-                data: result,
-                timestamp: Date.now()
-            }
+            await Promise.all(handlers.map(h => h(event)))
         } catch (error) {
             console.error(`Error executing action ${event.actionName}:`, error)
-            return null
         }
     }
 }

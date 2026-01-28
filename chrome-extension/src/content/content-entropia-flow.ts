@@ -25,13 +25,12 @@ import { BalanceReader } from './balanceReader'
 
 //// INITIALIZATION ////
 
-// Prevent multiple initializations of the same content script instance
-if (ContentUI.isAlreadyAdded()) {
-    throw new Error('Content script already initialized. Preventing duplicate initialization.')
-}
-
 class ContentInitializer {
     public static init() {
+        // Prevent multiple initializations of the same content script instance
+        if (ContentUI.isAlreadyAdded()) {
+            return
+        }
         let messagesClient: ChromeMessagesClient
         function showView(): boolean {
             return messagesClient.send(MSG_NAME_OPEN_VIEW)
