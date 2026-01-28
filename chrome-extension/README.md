@@ -41,7 +41,7 @@
 
 1. Update [CHANGESLOG.md](CHANGESLOG.md)
 
-1. Execute `npm run build` to build a production (minified) version in [dist.zip](dist.zip)
+1. Execute `npm run build:prod` to build a production (minified) version in [dist.zip](dist.zip)
 
 1. Do manual testing
 
