@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux';
+import { useAtomValue } from 'jotai';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
 import { getMenuPinned, getMode, getShowVisibility } from '../application/selectors/mode';
 import { pinMenu, setShowSubtitles, setShowVisibleToggle } from '../application/actions/mode';
 import { getClientStatus } from '../application/selectors/connection';
 import { getStatusMessage } from '../application/selectors/status';
-import { getAnyInventory } from '../application/selectors/last';
+import { lastComputedAtom } from '../application/atoms/last';
 import { getBudgetPendingCount } from '../application/selectors/budget';
 import { getVisible } from '../application/selectors/expandable';
 import { setVisible } from '../application/actions/expandable';
@@ -73,7 +74,8 @@ const Tab = (p: {
 }
 
 const FirstRow = () => {
-    const anyInventory = useSelector(getAnyInventory)
+    const lastComputed = useAtomValue(lastComputedAtom)
+    const anyInventory = lastComputed.anyInventory
     const status = useSelector(getClientStatus)
     const message = useSelector(getStatusMessage);
     const settings = useSelector(getSettings)

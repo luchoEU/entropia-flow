@@ -1,15 +1,12 @@
 import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setCurrentInventory } from '../actions/inventory'
-import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
 import { REFRESH, SET_AS_LAST, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
 import { executeStreamClickAction } from '../actions/stream.click'
 import { AppAction } from '../slice/app'
-import { getLast } from '../selectors/last'
-import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
 import { SET_STREAM_SHOWING_LAYOUT_ID, setStreamData, setStreamVariables } from '../actions/stream'
@@ -18,6 +15,7 @@ import { getSettings } from '../selectors/settings'
 import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
 import { setHistoryListAtom } from '../atoms/history'
+import { setLastTimestampAtom, lastComputedAtom } from '../atoms/last'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -25,8 +23,9 @@ const refreshViewHandler = (m: ViewState): any[] => {
         m.list.reverse() // newer first
         // Update Jotai atoms
         getDefaultStore().set(setHistoryListAtom, { list: m.list, last: m.last })
-        if (m.last)
-            actions.push(onLast(m.list, m.last))
+        if (m.last) {
+            getDefaultStore().set(setLastTimestampAtom, m.last)
+        }
         else if (m.list.length > 0 && m.list[0].log === undefined)
             getDefaultStore().set(createNewSessionAtom)
         const newest = m.list.find(e => e.log === undefined && e.itemlist !== undefined)
@@ -87,11 +86,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }
         case COPY_LAST: {
-            const { c: { diff } }: LastRequiredState = getLast(getState())
-            if (diff) {
+            const computed = getDefaultStore().get(lastComputedAtom)
+            if (computed.diff) {
                 const settings = getSettings(getState())
                 const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
-                const text = diff.map(d => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
+                const text = computed.diff.map((d: any) => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
                 navigator.clipboard.writeText(text).catch(err => console.error('Failed to copy text: ', err));
             }
             break

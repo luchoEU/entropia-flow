@@ -1,13 +1,13 @@
 import React, { Dispatch, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useAtomValue } from 'jotai'
 import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
 import { getCraft } from '../../application/selectors/craft'
-import { getLast } from '../../application/selectors/last'
 import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
-import { LastRequiredState } from '../../application/state/last'
+import { lastComputedAtom } from '../../application/atoms/last'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
 import { getItems, getItemsMap } from '../../application/selectors/items'
@@ -163,10 +163,11 @@ const CraftSingle = ({ bp, activeSession, message }: {
             }
         })
 
-        const { c: { diff } }: LastRequiredState = useSelector(getLast)
+        const lastComputed = useAtomValue(lastComputedAtom)
+        const diff = lastComputed.diff
         if (diff) {
             bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
-                const item = diff.find(x => x.n == m.name && Number(x.q) !== 0)
+                const item = diff.find((x: any) => x.n == m.name && Number(x.q) !== 0)
                 const budgetM = bp.budget!.sheet?.materials[m.name]
                 if (item !== undefined && budgetM && !budgetM.buyDone) {
                     if (bought === undefined) {
@@ -190,12 +191,13 @@ const CraftSingle = ({ bp, activeSession, message }: {
             })
         }
     } else {
-        const { c: { diff } }: LastRequiredState = useSelector(getLast);
+        const lastComputed = useAtomValue(lastComputedAtom);
+        const diff = lastComputed.diff;
         if (diff) {
             let onNeeded = false
             bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
-                const sum = diff.filter(x => x.n == m.name && !x.c.includes('⭢'))
-                    .reduce((p, c) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
+                const sum = diff.filter((x: any) => x.n == m.name && !x.c.includes('⭢'))
+                    .reduce((p: any, c: any) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
                 if (sum.v !== 0) {
                     if (!session) {
                         session = {};

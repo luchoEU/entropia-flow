@@ -1,4 +1,3 @@
-import last from './last'
 import actives from './actives'
 import calculator from './calculator'
 import helpers from './helpers'
@@ -36,7 +35,6 @@ export default [
     ...sweat,
     ...stackable,
     ...refine,
-    ...last,
     ...stream,
     ...inventory,
     ...about,

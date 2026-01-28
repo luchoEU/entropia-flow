@@ -5,15 +5,17 @@ interface ViewPedData {
     value: string
 }
 
-interface LastRequiredState {
-    c: { // not persisted
-        anyInventory: boolean,
-        text?: string,
-        delta?: number,
-        date: number,
-        diff?: Array<ViewItemData>,
-    }
+// Computed state (not persisted)
+interface ComputedLastState {
+    anyInventory: boolean,
+    text?: string,
+    delta?: number,
+    date: number,
+    diff?: Array<ViewItemData>,
+}
 
+// Persisted state
+interface PersistedLastState {
     expanded?: boolean,
     sortType: number,
     showMarkup: boolean,
@@ -24,7 +26,14 @@ interface LastRequiredState {
     notificationsDone: Array<string>,
 }
 
+// Combined state interface for backward compatibility
+interface LastRequiredState extends PersistedLastState {
+    c: ComputedLastState,
+}
+
 export {
     ViewPedData,
+    ComputedLastState,
+    PersistedLastState,
     LastRequiredState
 }

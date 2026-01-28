@@ -3,8 +3,9 @@ import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inve
 import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useDispatch, useSelector } from 'react-redux'
+import { useSetAtom } from 'jotai'
 import { ViewPedData } from '../../application/state/last'
-import { addPeds, removePeds } from '../../application/actions/last'
+import { addPedsAtom, removePedsAtom } from '../../application/atoms/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
 import { getItem } from '../../application/selectors/items'
@@ -136,6 +137,7 @@ const PedRow = (p: {
     c: Config
 }) => {
     const { item, c } = p
+    const removePeds = useSetAtom(removePedsAtom)
     return (
         <tr>
             <td>
@@ -154,6 +156,7 @@ const PedRow = (p: {
 
 const PedNewRow = () => {
     const [peds, setPeds] = useState('')
+    const addPeds = useSetAtom(addPedsAtom)
     const isValid = !isNaN(Number(peds)) && Number(peds) !== 0
     return (
         <tr>
@@ -169,7 +172,7 @@ const PedNewRow = () => {
                         title='Add PEDs'
                         src='img/tick.png' show dispatch={() => {
                         setPeds('')
-                        return addPeds(peds)
+                        addPeds(peds)
                     }} /> : <ImgButton
                         title='Cancel'
                         src='img/cross.png' show dispatch={() => {

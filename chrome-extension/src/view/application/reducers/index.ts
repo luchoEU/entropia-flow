@@ -1,6 +1,5 @@
 import { combineReducers } from 'redux'
 import status from './status'
-import last from './last'
 import calculator from './calculator'
 import actives from './actives'
 import order from './order'
@@ -28,7 +27,7 @@ import mode from './mode'
 import app from '../slice/app'
 
 export default combineReducers({
-    status, items, last, calculator, actives, order, sweat, stackable,
+    status, items, calculator, actives, order, sweat, stackable,
     refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
     connection, budget, ttService, tabular, expandable, trade, mode, app
 })

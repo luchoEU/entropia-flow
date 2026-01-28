@@ -25,7 +25,6 @@ import {
     excludeWarningsAtom,
     permanentExcludeOnAtom,
     permanentExcludeOffAtom,
-    setLastItemModeAtom,
     copyLastAtom
 } from '../../application/atoms/last'
 import { createNewSessionAtom } from '../../application/atoms/activity'
@@ -61,7 +60,6 @@ const Last = () => {
     const excludeWarnings = useSetAtom(excludeWarningsAtom)
     const permanentExcludeOn = useSetAtom(permanentExcludeOnAtom)
     const permanentExcludeOff = useSetAtom(permanentExcludeOffAtom)
-    const setLastItemMode = useSetAtom(setLastItemModeAtom)
     const createNewSession = useSetAtom(createNewSessionAtom)
     const copyLast = useSetAtom(copyLastAtom)
 
@@ -75,8 +73,8 @@ const Last = () => {
         exclude: (key: number) => { excludeItem(key); return undefined as any },
         permanentExcludeOn: (key: number) => { permanentExcludeOn(key); return undefined as any },
         permanentExcludeOff: (key: number) => { permanentExcludeOff(key); return undefined as any },
-        setMode: (key: number, type: number, data: any) => { setLastItemMode({ key, mode: { type, data } }); return undefined as any },
-        clearMode: (key: number) => { setLastItemMode({ key, mode: undefined }); return undefined as any },
+        setMode: (_key: number, _type: number, _data: any) => { return undefined as any },
+        clearMode: (_key: number) => { return undefined as any },
         showPeds: true,
         showMarkup,
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"

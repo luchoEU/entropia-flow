@@ -15,9 +15,9 @@ import {
     updateActionBudgetNameAtom
 } from '../../application/atoms/activity'
 import { historyComputedAtom } from '../../application/atoms/history'
+import { lastComputedAtom } from '../../application/atoms/last'
 import { getGameLog } from '../../application/selectors/log'
 import { getBudget } from '../../application/selectors/budget'
-import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
@@ -32,7 +32,7 @@ export function ActivityBridge() {
     // Jotai atoms
     const history = useAtomValue(historyComputedAtom)
     const budget = useSelector(getBudget)
-    const last = useSelector(getLast)
+    const last = useAtomValue(lastComputedAtom)
 
     // Jotai atoms
     const [activity] = useAtom(activityAtom)

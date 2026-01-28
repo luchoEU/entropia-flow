@@ -1,4 +1,5 @@
 import React from 'react'
+import { useAtomValue } from 'jotai'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
 import InventoryPage from './inventory/InventoryPage'
@@ -18,13 +19,14 @@ import { useSelector } from 'react-redux'
 import { getVisibleByExpandable } from '../application/selectors/expandable'
 import { tabShow } from '../application/helpers/navigation'
 import { getSettings } from '../application/selectors/settings'
-import { getAnyInventory } from '../application/selectors/last'
+import { lastComputedAtom } from '../application/atoms/last'
 import { getExpandable } from '../application/selectors/expandable'
 import { getShowVisibility, getStreamViewPinned } from '../application/selectors/mode'
 import StreamTrashPage from './stream/StreamTrashPage'
 
 function ContentPage() {
-    const anyInventory = useSelector(getAnyInventory)
+    const lastComputed = useAtomValue(lastComputedAtom)
+    const anyInventory = lastComputed.anyInventory
     const settings = useSelector(getSettings)
     const expandable = useSelector(getExpandable)
     const showVisibility = useSelector(getShowVisibility);
