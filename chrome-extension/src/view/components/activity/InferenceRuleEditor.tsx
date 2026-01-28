@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { ActivityItem } from '../../application/state/activity'
 import { itemMatchesRule, getInferenceRuleMatchReasons } from '../../application/helpers/activityInference'
 
@@ -6,6 +6,7 @@ interface InferenceRuleEditorProps {
     ruleData: any
     items: number[]
     getInventoryItem: (id: number) => ActivityItem | undefined
+    onRuleChange: (updatedRule: any) => void
 }
 
 const interpolateDescription = (description: string, sampleData: { [key: string]: any }): string => {
@@ -26,21 +27,16 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
     ruleData,
     items,
     getInventoryItem,
+    onRuleChange,
 }) => {
-    const [editingRuleData, setEditingRuleData] = useState(ruleData)
-
-    // Initialize description if not present
-    if (!editingRuleData.description) {
-        editingRuleData.description = ''
-    }
-
+    // Use ruleData prop directly as the source of truth - controlled by parent
     const matchedItems: number[] = []
     const unmatchedItemsWithReasons: Array<{ id: number; item: ActivityItem; ruleIndex: number; reasons: string[] }> = []
 
-    if (editingRuleData?.items && editingRuleData.items.length > 0) {
+    if (ruleData?.items && ruleData.items.length > 0) {
         // Match each rule line with the corresponding item line (1-to-1)
-        for (let idx = 0; idx < Math.min(items.length, editingRuleData.items.length); idx++) {
-            const rule = editingRuleData.items[idx]
+        for (let idx = 0; idx < Math.min(items.length, ruleData.items.length); idx++) {
+            const rule = ruleData.items[idx]
             const itemId = items[idx]
             const item = getInventoryItem(itemId)
             if (item && itemMatchesRule(item, rule)) {
@@ -67,13 +63,13 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {editingRuleData?.items.map((itemRule: any, idx: number) => (
+                    {ruleData?.items.map((itemRule: any, idx: number) => (
                         <tr key={idx}>
                             <td>
                                 <select value={itemRule.name.type} onChange={(e) => {
-                                    const newData = { ...editingRuleData }
+                                    const newData = { ...ruleData }
                                     newData.items[idx].name.type = e.target.value
-                                    setEditingRuleData(newData)
+                                    onRuleChange(newData)
                                 }} style={{ width: '80px', padding: '4px' }}>
                                     <option value="any">any</option>
                                     <option value="exact">exact</option>
@@ -82,17 +78,17 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                                 </select>
                                 {itemRule.name.type !== 'any' && (
                                     <input type="text" value={itemRule.name.value} onChange={(e) => {
-                                        const newData = { ...editingRuleData }
+                                        const newData = { ...ruleData }
                                         newData.items[idx].name.value = e.target.value
-                                        setEditingRuleData(newData)
+                                        onRuleChange(newData)
                                     }} style={{ width: '100px', padding: '4px', marginLeft: '4px' }} />
                                 )}
                             </td>
                             <td>
                                 <select value={itemRule.quantity.type} onChange={(e) => {
-                                    const newData = { ...editingRuleData }
+                                    const newData = { ...ruleData }
                                     newData.items[idx].quantity.type = e.target.value
-                                    setEditingRuleData(newData)
+                                    onRuleChange(newData)
                                 }} style={{ width: '80px', padding: '4px' }}>
                                     <option value="any">any</option>
                                     <option value="exact">exact</option>
@@ -101,17 +97,17 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                                 </select>
                                 {itemRule.quantity.type !== 'any' && (
                                     <input type="text" value={itemRule.quantity.value} onChange={(e) => {
-                                        const newData = { ...editingRuleData }
+                                        const newData = { ...ruleData }
                                         newData.items[idx].quantity.value = e.target.value
-                                        setEditingRuleData(newData)
+                                        onRuleChange(newData)
                                     }} style={{ width: '100px', padding: '4px', marginLeft: '4px' }} />
                                 )}
                             </td>
                             <td>
                                 <select value={itemRule.value.type} onChange={(e) => {
-                                    const newData = { ...editingRuleData }
+                                    const newData = { ...ruleData }
                                     newData.items[idx].value.type = e.target.value
-                                    setEditingRuleData(newData)
+                                    onRuleChange(newData)
                                 }} style={{ width: '80px', padding: '4px' }}>
                                     <option value="any">any</option>
                                     <option value="exact">exact</option>
@@ -120,17 +116,17 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                                 </select>
                                 {itemRule.value.type !== 'any' && (
                                     <input type="text" value={itemRule.value.value} onChange={(e) => {
-                                        const newData = { ...editingRuleData }
+                                        const newData = { ...ruleData }
                                         newData.items[idx].value.value = e.target.value
-                                        setEditingRuleData(newData)
+                                        onRuleChange(newData)
                                     }} style={{ width: '100px', padding: '4px', marginLeft: '4px' }} />
                                 )}
                             </td>
                             <td>
                                 <select value={itemRule.container.type} onChange={(e) => {
-                                    const newData = { ...editingRuleData }
+                                    const newData = { ...ruleData }
                                     newData.items[idx].container.type = e.target.value
-                                    setEditingRuleData(newData)
+                                    onRuleChange(newData)
                                 }} style={{ width: '80px', padding: '4px' }}>
                                     <option value="any">any</option>
                                     <option value="exact">exact</option>
@@ -139,17 +135,17 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                                 </select>
                                 {itemRule.container.type !== 'any' && (
                                     <input type="text" value={itemRule.container.value} onChange={(e) => {
-                                        const newData = { ...editingRuleData }
+                                        const newData = { ...ruleData }
                                         newData.items[idx].container.value = e.target.value
-                                        setEditingRuleData(newData)
+                                        onRuleChange(newData)
                                     }} style={{ width: '100px', padding: '4px', marginLeft: '4px' }} />
                                 )}
                             </td>
                             <td>
                                 <input type="text" value={itemRule.fieldName} onChange={(e) => {
-                                    const newData = { ...editingRuleData }
+                                    const newData = { ...ruleData }
                                     newData.items[idx].fieldName = e.target.value
-                                    setEditingRuleData(newData)
+                                    onRuleChange(newData)
                                 }} style={{ width: '80px', padding: '4px' }} />
                             </td>
                             <td></td>
@@ -162,11 +158,11 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
             <div style={{ marginBottom: '10px', padding: '8px', backgroundColor: '#f0f8ff', borderRadius: '4px', border: '1px solid #e0e7ff' }}>
                 <div style={{ marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Description Template</div>
                 <textarea
-                    value={editingRuleData.description || ''}
+                    value={ruleData.description || ''}
                     onChange={(e) => {
-                        const newData = { ...editingRuleData }
-                        newData.description = e.target.value
-                        setEditingRuleData(newData)
+                        const newData = { ...ruleData }
+                        newData.description = e.target.value.replace(/\n/g, '')
+                        onRuleChange(newData)
                     }}
                     placeholder="Enter description template. Use {fieldName.property} syntax, e.g. 'You sold {sold.name} for {sold.value}' or 'Received {item.quantity}x {item.name}'"
                     style={{
@@ -180,13 +176,18 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                         marginBottom: '8px'
                     }}
                 />
+                {ruleData.description && ruleData.description.includes('\n') && (
+                    <div style={{ padding: '8px', backgroundColor: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb', borderRadius: '3px', marginBottom: '8px', fontSize: '12px' }}>
+                        ❌ Description must be a single line only
+                    </div>
+                )}
                 <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px' }}>
                     <strong>Available fields:</strong> Use field names to reference row data, e.g. <code style={{ backgroundColor: '#f0f0f0', padding: '2px 4px', borderRadius: '2px' }}>{`{sold.name}`}</code>, <code style={{ backgroundColor: '#f0f0f0', padding: '2px 4px', borderRadius: '2px' }}>{`{weapon.quantity}`}</code>, or <code style={{ backgroundColor: '#f0f0f0', padding: '2px 4px', borderRadius: '2px' }}>{`{armor.value}`}</code>
                 </div>
-                {editingRuleData.description && editingRuleData.items?.length > 0 && (
+                {ruleData.description && ruleData.items?.length > 0 && (
                     <div style={{ padding: '6px', backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '3px' }}>
                         <div style={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '4px', color: '#666' }}>Preview:</div>
-                        {editingRuleData.items.slice(0, 2).map((itemRule: any, idx: number) => {
+                        {ruleData.items.slice(0, 2).map((itemRule: any, idx: number) => {
                             const fieldName = itemRule.fieldName
                             const itemData = {
                                 name: itemRule.name.value || itemRule.name.type,
@@ -195,7 +196,7 @@ const InferenceRuleEditor: React.FC<InferenceRuleEditorProps> = ({
                                 container: itemRule.container.value || itemRule.container.type
                             }
                             const sampleData = fieldName ? { [fieldName]: itemData } : itemData
-                            const preview = interpolateDescription(editingRuleData.description, sampleData)
+                            const preview = interpolateDescription(ruleData.description, sampleData)
                             return (
                                 <div key={idx} style={{ fontSize: '10px', marginTop: idx > 0 ? '4px' : '0', color: '#333', fontFamily: 'monospace' }}>
                                     Row {idx + 1}: {preview}

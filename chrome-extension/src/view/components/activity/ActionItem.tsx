@@ -73,17 +73,23 @@ const ActionItem: React.FC<ActionItemProps> = ({
         if (!editingName.trim() || !isValidEmoji(editingEmoji)) return
 
         // If the type definition changed, save the updated definition
-        if (actionTypeDef && (editingEmoji !== actionTypeDef.emoji || editingName !== actionTypeDef.name)) {
+        const ruleChanged = editingRule && JSON.stringify(editingRule) !== JSON.stringify(actionTypeDef?.inferenceRule)
+        if (actionTypeDef && (editingEmoji !== actionTypeDef.emoji || editingName !== actionTypeDef.name || ruleChanged)) {
             if (onSaveActionType) {
                 const updatedType = {
                     ...actionTypeDef,
                     emoji: editingEmoji,
-                    name: editingName
+                    name: editingName,
+                    inferenceRule: editingRule
                 }
                 await onSaveActionType(updatedType)
             }
         }
         setIsEditing(false)
+    }
+
+    const handleRuleChange = (updatedRule: any) => {
+        setEditingRule(updatedRule)
     }
 
     const handleCancelEdit = () => {
@@ -143,6 +149,7 @@ const ActionItem: React.FC<ActionItemProps> = ({
                                 ruleData={editingRule}
                                 items={itemIds}
                                 getInventoryItem={getInventoryItem}
+                                onRuleChange={handleRuleChange}
                             />
                         ) : itemIds.length > 0 ? (
                             <table className='table-diff' style={{ borderBottom: '1px solid #ddd' }}>
