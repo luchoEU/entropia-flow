@@ -23,14 +23,14 @@ const Status = () => {
                 <ImgButton
                     title='Refresh'
                     src='img/reload.png'
-                    className='img-btn-refresh'
+                    show                    
                     dispatch={() => refresh} />
             }
             { history.hiddenError &&
                 <ImgButton
                     title={history.hiddenError}
                     src='img/error.png'
-                    className='img-btn-refresh'
+                    show
                     dispatch={() => setExpanded('MonitorStatus')(true)} />
             }
             <span className={className}>

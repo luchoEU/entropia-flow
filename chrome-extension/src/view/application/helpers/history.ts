@@ -82,13 +82,13 @@ function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
     return list[0] // should never happend
 }
 
-function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean, showActions: boolean): ViewInventory {
+function getViewInventory(inventory: Inventory, previous: Inventory, expanded: boolean, sortType: number, isLast: boolean, showActions: boolean, index: number): ViewInventory {
     const diff = getDifference(inventory, previous)
     if (diff)
         Sort.sortList(diff, sortType)
     const actions = diff ? inferActions(diff) : undefined
     return {
-        key: inventory.meta.date,
+        key: inventory.meta.date * 1000000 + index,
         text: getText(inventory),
         info: getInfo(inventory)!,
         class: getClass(inventory)!,
@@ -126,7 +126,7 @@ function reduceSetHistoryList(state: HistoryState, list: Array<Inventory>, last:
             showActions = oldItem.showActions
         }
 
-        viewList.push(getViewInventory(inv, prev!, expanded, sortType, last === inv.meta.date, showActions))
+        viewList.push(getViewInventory(inv, prev!, expanded, sortType, last === inv.meta.date, showActions, n))
     }
     return {
         ...state,

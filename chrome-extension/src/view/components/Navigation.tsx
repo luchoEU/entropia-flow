@@ -112,7 +112,7 @@ const Navigation = () => {
 
     return (
         <>
-            <nav ref={ref} className={menuPinned && 'nav-pinned'}>
+            <nav ref={ref} className={'img-hover-container ' + (menuPinned ? 'nav-pinned' : '')}>
                 { showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>
@@ -123,8 +123,13 @@ const Navigation = () => {
                             <ImgButton title={showVisibleToggle ? 'click to Hide Section Visibility Button' : 'click to Show Section Visibility Button'}
                                 className='img-btn-visible-section'
                                 src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
+                                show
                                 dispatch={() => setShowVisibleToggle(!showVisibleToggle)} />
-                            <ImgButton title='Hide Subtitles' className='img-btn-subtitles' src='img/up.png' dispatch={() => setShowSubtitles(false)} />
+                            <ImgButton title='Hide Subtitles'
+                                className='img-btn-subtitles'
+                                src='img/up.png'
+                                show
+                                dispatch={() => setShowSubtitles(false)} />
                         </div>
                     </div> :
                     <div className='nav-row'>

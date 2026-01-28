@@ -42,9 +42,7 @@ class SharedInstanceService {
         this.handlers.get(actionName)!.push(handler)
 
         // Start listening for storage changes on first handler
-        if (!this.listeningForChanges) {
-            this.startListening()
-        }
+        this.startListening()
     }
 
     /**
