@@ -63,10 +63,6 @@ class ContentInitializer {
         const itemReader = new ItemsReader()
         const balanceReader = new BalanceReader()
         const contentUI = new ContentUI(showView, toggleIsMonitoring)
-        const timer = new ContentTimer(requestItems,
-                contentUI.refreshItemsLoadTime,
-                loading => messagesClient.send(MSG_NAME_LOADING, { loading }),
-                inventory => messagesClient.send(MSG_NAME_NEW_INVENTORY, { inventory }));
 
         const handlersMap: PortHandlers = {
             [MSG_NAME_REFRESH_WAKE_UP]: async () => {
@@ -90,6 +86,11 @@ class ContentInitializer {
             MSG_NAME_REGISTER_CONTENT,
             PORT_NAME_BACK_CONTENT, handlersMap
         )
+
+        const timer = new ContentTimer(requestItems,
+                contentUI.refreshItemsLoadTime,
+                loading => messagesClient.send(MSG_NAME_LOADING, { loading }),
+                inventory => messagesClient.send(MSG_NAME_NEW_INVENTORY, { inventory }));
     }
 }
 
