@@ -81,9 +81,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
         case REFRESH: {
-            const history: HistoryState = getHistory(getState())
-            const forced = history.list.length > 0 && history.list[0].text.endsWith(STRING_WAIT_3_MINUTES)
-            api.messages.requestRefresh(forced);
+            /* Commented because it doesn't seem to be an issue anymore (January 2026) */
+            //const history: HistoryState = getHistory(getState())
+            //const forced = history.list.length > 0 && history.list[0].text.endsWith(STRING_WAIT_3_MINUTES)
+            api.messages.requestRefresh(true);
             break
         }
         case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }

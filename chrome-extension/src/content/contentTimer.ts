@@ -87,7 +87,6 @@ class ContentTimer {
             if (source === 'ajax') {
                 this.options.currentWaitSeconds = NORMAL_WAIT_SECONDS;
             }
-            /* Commented because it doesn't seem to be an issue anymore (January 2026)
             const remainingSeconds = this.remainingSeconds();
             if (remainingSeconds > 0) {
                 return {
@@ -95,7 +94,6 @@ class ContentTimer {
                     waitSeconds: remainingSeconds
                 }
             }
-            */
         }
 
         this.options.itemsLoadingTime = new Date().getTime();
