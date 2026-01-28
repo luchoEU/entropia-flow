@@ -1,3 +1,4 @@
+import { describe, expect, beforeEach, test } from "@jest/globals"
 import MemoryStorageArea from "../chrome/memoryStorageArea"
 import MockActionManager from "../chrome/mockActionManager"
 import MockAlarmManager from "../chrome/mockAlarmManager"
@@ -9,14 +10,10 @@ import MockTabManager from "../chrome/mockTab"
 import {
     MSG_NAME_ACTION_VIEW,
     MSG_NAME_NEW_INVENTORY,
-    MSG_NAME_REFRESH_CONTENT,
-    MSG_NAME_REFRESH_ITEMS_AJAX,
     MSG_NAME_REFRESH_VIEW,
     MSG_NAME_REGISTER_CONTENT,
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REQUEST_NEW,
-    MSG_NAME_REQUEST_TIMER_OFF,
-    MSG_NAME_REQUEST_TIMER_ON,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_ALARM
@@ -30,15 +27,11 @@ import ContentTabManager from "./content/contentTab"
 import RefreshManager from "./content/refreshManager"
 import {
     DATE_CONST,
-    STATE_LOADING_ITEMS,
     STATE_LOADING_PAGE_MONITORING_OFF,
     STATE_NO_DATA_MONITORING_OFF,
     STATE_NO_DATA_MONITORING_ON,
-    STATE_PLEASE_LOG_IN_MONITORING_OFF,
     STATE_PLEASE_LOG_IN_MONITORING_ON,
-    STATE_UPDATES_1_MIN,
     STATE_UPDATES_NOW,
-    TIME_1_MIN,
 } from "./stateConst"
 import ViewStateManager from "./view/viewState"
 import wiring from "./wiring"
@@ -206,79 +199,6 @@ describe('full', () => {
     })
 
     describe('montoring', () => {
-        test("when turned off, don't stop alarm", async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
-
-            expect(ajaxAlarm.endMock.mock.calls.length).toBe(0)
-        })
-
-        test("when turned off, change view state", async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
-            await doWiring()
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
-
-            expect(viewPort.sendMock.mock.calls.length).toBe(1)
-            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_PLEASE_LOG_IN_MONITORING_OFF)
-        })
-
-        test('when turned off, change alarm state', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: true })
-            await doWiring()
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_OFF](undefined)
-
-            expect(settingsStorage.setMock.mock.calls.length).toBe(1)
-            expect(settingsStorage.setMock.mock.calls[0].length).toBe(2)
-            expect(settingsStorage.setMock.mock.calls[0][0]).toBe(STORAGE_ALARM)
-            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ isMonitoring: false })
-        })
-
-        test('when turned on and still time, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            ajaxAlarm.isActiveMock.mockReturnValue(true)
-            ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
-            await doWiring()
-
-            await contentPortManager.handlers[MSG_NAME_NEW_INVENTORY]({ inventory: [] }) // remove sticky from RefreshManager
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined) // test
-
-            expect(viewPort.sendMock.mock.calls.length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1].length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[1][1]).toEqual(STATE_UPDATES_1_MIN)
-        })
-
-        // TODO: fix test case
-        test.skip('when turned on, alarm is off and content is up, change view state', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            ajaxAlarm.isActiveMock.mockReturnValue(false)
-            await doWiring()
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
-
-            expect(viewPort.sendMock.mock.calls.length).toBe(1)
-            expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
-            expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_LOADING_ITEMS)
-        })
-
-        test('when turned on, change alarm state', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            await doWiring()
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
-
-            expect(settingsStorage.setMock.mock.calls.length).toBe(1)
-            expect(settingsStorage.setMock.mock.calls[0].length).toBe(2)
-            expect(settingsStorage.setMock.mock.calls[0][0]).toBe(STORAGE_ALARM)
-            expect(settingsStorage.setMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
-        })
-
         // TODO: fix test case
         test.skip('when is off on alarm tick, dont send request for items', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
@@ -288,38 +208,6 @@ describe('full', () => {
             await alarmTick()
 
             expect(contentPort.sendMock.mock.calls.length).toBe(0)
-        })
-
-        test('when turned on and still time, dont request items', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            ajaxAlarm.isActiveMock.mockReturnValue(true)
-            ajaxAlarm.getTimeLeftMock.mockReturnValue(TIME_1_MIN)
-            await doWiring()
-
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
-
-            expect(contentPort.sendMock.mock.calls.length).toBe(1)
-            expect(contentPort.sendMock.mock.calls[0].length).toBe(2)
-            expect(contentPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_CONTENT)
-            expect(contentPort.sendMock.mock.calls[0][1]).toEqual({ isMonitoring: true })
-        })
-
-        // TODO: fix test case
-        test.skip('when turned on and alarm is off, send request item', async () => {
-            settingsStorage.getMock.mockReturnValue({ isMonitoring: false })
-            ajaxAlarm.isActiveMock.mockReturnValue(false)
-            await doWiring()
-
-            await contentPortManager.onConnect(contentPort)
-            await viewPortManager.handlers[MSG_NAME_REQUEST_TIMER_ON](undefined)
-
-            expect(contentPort.sendMock.mock.calls.length).toBe(3)
-            expect(contentPort.sendMock.mock.calls[1].length).toBe(2)
-            expect(contentPort.sendMock.mock.calls[1][0]).toBe(MSG_NAME_REFRESH_ITEMS_AJAX)
-            expect(contentPort.sendMock.mock.calls[1][1]).toEqual({ tag: undefined })
-            expect(contentPort.sendMock.mock.calls[2].length).toBe(2)
-            expect(contentPort.sendMock.mock.calls[2][0]).toBe(MSG_NAME_REFRESH_CONTENT)
-            expect(contentPort.sendMock.mock.calls[2][1]).toEqual({ isMonitoring: true })
         })
 
         test('when websocket state changes, send it to content', async () => {

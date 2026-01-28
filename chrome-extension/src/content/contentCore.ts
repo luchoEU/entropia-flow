@@ -1,5 +1,5 @@
 import { ChromeMessagesClient } from "../chrome/chromeMessages"
-import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, MSG_NAME_LOADING, MSG_NAME_NEW_INVENTORY, MSG_NAME_OPEN_VIEW, MSG_NAME_REFRESH_CONTENT, MSG_NAME_REFRESH_ITEMS_AJAX, MSG_NAME_REFRESH_SET_SLEEP_MODE, MSG_NAME_REFRESH_WAKE_UP, MSG_NAME_REGISTER_CONTENT, MSG_NAME_REMAINING_SECONDS, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_CONTENT } from "../common/const"
+import { AFTER_MANUAL_WAIT_SECONDS, CLASS_ERROR, MSG_NAME_LOADING, MSG_NAME_NEW_INVENTORY, MSG_NAME_OPEN_VIEW, MSG_NAME_CONTENT_SET_MONITORING, MSG_NAME_REFRESH_ITEMS_AJAX, MSG_NAME_CONTENT_SET_SLEEP_MODE, MSG_NAME_REFRESH_WAKE_UP, MSG_NAME_REGISTER_CONTENT, MSG_NAME_REMAINING_SECONDS, PORT_NAME_BACK_CONTENT, MSG_NAME_MONITORING_CHANGED } from "../common/const"
 import { Inventory, makeLogInventory } from "../common/state"
 import { BalanceReader } from "./balanceReader"
 import { ContentTimer } from "./contentTimer"
@@ -41,6 +41,12 @@ export class ContentCore {
             PORT_NAME_BACK_CONTENT,
             handlers
         )
+
+        // Passthrough: forward all broadcasts to chromeClient
+        this.bridge.registerBroadcast("*", async (m: any) => {
+            const { name, ...data } = m
+            this.chromeClient.send(name, data)
+        })
     }
 
     // ==============================
@@ -53,7 +59,7 @@ export class ContentCore {
 
         this.contentUI = new ContentUI(
             () => this.showView(),
-            () => this.toggleMonitoring()
+            () => this.setMonitoring(!this.timer.isMonitoring)
         )
 
         this.timer = new ContentTimer(
@@ -76,27 +82,23 @@ export class ContentCore {
             MSG_NAME_REFRESH_ITEMS_AJAX,
             async (m) => {
                 const inventory = await this.timer.trigger(m.forced, false, "ajax", AFTER_MANUAL_WAIT_SECONDS, m.tag)
-                return { name: MSG_NAME_NEW_INVENTORY, inventory }
+                this.bridge.broadcast(MSG_NAME_NEW_INVENTORY, { inventory })
             }
         )
 
         this.bridge.register(
-            MSG_NAME_REFRESH_CONTENT,
-            async (m) => {
-                this.timer.isMonitoring = m.isMonitoring
-                this.contentUI.refreshButton(m.isMonitoring)
-            }
+            MSG_NAME_CONTENT_SET_MONITORING,
+            async (m) => this.setMonitoring(m.isMonitoring)
         )
 
         // Set sleep mode
         this.bridge.register(
-            MSG_NAME_REFRESH_SET_SLEEP_MODE,
+            MSG_NAME_CONTENT_SET_SLEEP_MODE,
             async (m) => {
                 this.timer.sleepMode = m.sleepMode
-                return {
-                    name: MSG_NAME_REMAINING_SECONDS,
+                this.bridge.broadcast(MSG_NAME_REMAINING_SECONDS, {
                     remainingSeconds: this.timer.remainingSeconds()
-                }
+                })
             }
         )
     }
@@ -110,12 +112,10 @@ export class ContentCore {
         return true
     }
 
-    private toggleMonitoring() {
-        this.chromeClient.send(
-            this.timer.isMonitoring
-                ? MSG_NAME_REQUEST_TIMER_OFF
-                : MSG_NAME_REQUEST_TIMER_ON
-        )
+    private setMonitoring(isMonitoring: boolean) {
+        this.timer.isMonitoring = isMonitoring
+        this.contentUI.refreshButton(isMonitoring)
+        this.bridge.broadcast(MSG_NAME_MONITORING_CHANGED, { isMonitoring })
     }
 
     private async requestItems(fromHtml: boolean): Promise<Inventory> {
@@ -145,10 +145,10 @@ export class ContentCore {
     }
 
     private broadcastLoading(loading: boolean) {
-        this.chromeClient.send(MSG_NAME_LOADING, { loading })
+        this.bridge.broadcast(MSG_NAME_LOADING, { loading })
     }
 
     private broadcastInventory(inventory: Inventory) {
-        this.chromeClient.send(MSG_NAME_NEW_INVENTORY, { inventory })
+        this.bridge.broadcast(MSG_NAME_NEW_INVENTORY, { inventory })
     }
 }

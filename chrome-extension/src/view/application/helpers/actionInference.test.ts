@@ -1,6 +1,6 @@
-import { InferredAction, StoredAction } from '../state/activity'
+import { describe, it, expect } from "@jest/globals"
 import { ViewItemData } from '../state/history'
-import { inferActions, matchLootWithInventory } from './actionInference'
+import { inferActions } from './actionInference'
 
 describe('actionInference', () => {
   describe('inferActions', () => {

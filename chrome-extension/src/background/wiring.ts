@@ -11,8 +11,6 @@ import {
     MSG_NAME_REGISTER_VIEW,
     MSG_NAME_REQUEST_NEW,
     MSG_NAME_REQUEST_SET_LAST,
-    MSG_NAME_REQUEST_TIMER_OFF,
-    MSG_NAME_REQUEST_TIMER_ON,
     PORT_NAME_BACK_CONTENT,
     PORT_NAME_BACK_VIEW,
     STORAGE_TAB_CONTENTS,
@@ -22,6 +20,7 @@ import {
     MSG_NAME_REMAINING_SECONDS,
     MSG_NAME_STORAGE_CHANGED,
     MSG_NAME_SET_SHOWING_LAYOUT_ID,
+    MSG_NAME_MONITORING_CHANGED,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -193,13 +192,10 @@ async function wiring(
         [MSG_NAME_LOADING]: async (m) => {
             await refreshManager.handleLoading(m.loading)
         },
-        [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
-        [MSG_NAME_REQUEST_TIMER_ON]: async () => {
-            await refreshManager.setTimerOn()
+        [MSG_NAME_MONITORING_CHANGED]: async (m) => {
+            await refreshManager.handleMonitoringChanged(m.isMonitoring)
         },
-        [MSG_NAME_REQUEST_TIMER_OFF]: async () => {
-            await refreshManager.setTimerOff()
-        }
+        [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
     }
     viewPortManager.handlers = {
         [MSG_NAME_REQUEST_NEW]: async (m: { tag: any, forced: boolean }) => {
@@ -213,8 +209,6 @@ async function wiring(
             if (m.tag?.last)
                 gameLogHistory.clearSession()
         },
-        [MSG_NAME_REQUEST_TIMER_ON]: () => refreshManager.setTimerOn(),
-        [MSG_NAME_REQUEST_TIMER_OFF]: () => refreshManager.setTimerOff(),
         [MSG_NAME_SET_SHOWING_LAYOUT_ID]: async (m: { layoutId: string }) => streamDataBuilder.updateShowingLayoutId(m.layoutId),
         [MSG_NAME_STORAGE_CHANGED]: async (m: { store: string }) => streamDataBuilder.updateState(m.store),
         [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => webSocketClient.start(m.url)

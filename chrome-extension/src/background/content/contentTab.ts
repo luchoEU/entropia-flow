@@ -2,12 +2,12 @@
 import IPortManager, { IPort } from '../../chrome/IPort'
 import {
     MSG_NAME_REFRESH_ITEMS_AJAX,
-    MSG_NAME_REFRESH_CONTENT,
+    MSG_NAME_CONTENT_SET_MONITORING,
     STRING_CONNECTION_BACKGROUND_TO_CONTENT,
     STRING_PLEASE_LOG_IN,
     MSG_NAME_REFRESH_WAKE_UP,
     STRING_SELECT_ITEMS_TAB,
-    MSG_NAME_REFRESH_SET_SLEEP_MODE
+    MSG_NAME_CONTENT_SET_SLEEP_MODE
 } from '../../common/const'
 import { Component, trace, traceError } from '../../common/trace'
 import { IContentTab } from './refreshManager'
@@ -101,7 +101,7 @@ class ContentTabManager implements IContentTab {
     }
 
     public async setSleepMode(sleepMode: boolean): Promise<string> {
-        return this._send('setSleepMode', MSG_NAME_REFRESH_SET_SLEEP_MODE, { sleepMode })
+        return this._send('setSleepMode', MSG_NAME_CONTENT_SET_SLEEP_MODE, { sleepMode })
     }
 
     public async wakeUp(): Promise<boolean> {
@@ -110,7 +110,7 @@ class ContentTabManager implements IContentTab {
 
     public async setStatus(isMonitoring: boolean): Promise<void> {
         const ports = await this.portManager.all()
-        ports.forEach(port => port.send(MSG_NAME_REFRESH_CONTENT, { isMonitoring }))
+        ports.forEach(port => port.send(MSG_NAME_CONTENT_SET_MONITORING, { isMonitoring }))
     }
 }
 

@@ -149,25 +149,8 @@ class RefreshManager {
         }
     }
 
-    public async setTimerOn() {
-        const on = await this.alarmSettings.isMonitoringOn()
-        if (on) {
-            await this._setViewStatus()
-        } else {
-            await this.alarmSettings.turnMonitoringOn(true)
-            if (await this.ajaxAlarm.isActive()) {
-                await this._setViewStatus()
-            }
-        }
-        await this.contentTab?.setStatus(true)
-    }
-
-    public async setTimerOff() {
-        const on = await this.alarmSettings?.isMonitoringOn()
-        if (on) {
-            await this.alarmSettings.turnMonitoringOn(false)
-        }
-        await this.contentTab?.setStatus(false)
+    public async handleMonitoringChanged(isMonitoring: boolean) {
+        await this.alarmSettings.turnMonitoringOn(isMonitoring)
         await this._setViewStatus()
     }
 

@@ -1,7 +1,7 @@
 import { ChromeMessagesClient } from "../../../chrome/chromeMessages"
 import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea"
 import { PortHandler } from "../../../chrome/IPort"
-import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, MSG_NAME_REQUEST_TIMER_OFF, MSG_NAME_REQUEST_TIMER_ON, PORT_NAME_BACK_VIEW, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW, MSG_NAME_BLUEPRINT_LIST, MSG_NAME_STORAGE_CHANGED, MSG_NAME_SET_SHOWING_LAYOUT_ID } from "../../../common/const"
+import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, PORT_NAME_BACK_VIEW, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW, MSG_NAME_BLUEPRINT_LIST, MSG_NAME_STORAGE_CHANGED, MSG_NAME_SET_SHOWING_LAYOUT_ID, MSG_NAME_CONTENT_SET_MONITORING } from "../../../common/const"
 import { traceId } from "../../../common/trace"
 
 let messagesClient: ChromeMessagesClient
@@ -33,11 +33,11 @@ function requestSetLast(addTag: boolean, last: number): boolean {
 }
 
 function requestTimerOn(): boolean {
-    return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
+    return messagesClient.send(MSG_NAME_CONTENT_SET_MONITORING, { isMonitoring: true })
 }
 
 function requestTimerOff(): boolean {
-    return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
+    return messagesClient.send(MSG_NAME_CONTENT_SET_MONITORING, { isMonitoring: false })
 }
 
 function setShowingLayoutId(layoutId: string): boolean {
