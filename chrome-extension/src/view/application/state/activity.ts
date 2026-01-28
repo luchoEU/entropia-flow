@@ -5,8 +5,10 @@ interface ActivityState {
         items: ActivityItem[]
         // Automatically inferred actions from inventory changes
         autoActions: StoredAction[]
-        // User-guided actions with open inference (not yet implemented)
+        // User-guided actions with open inference
         userActions: ActivityAction[]
+        // User-defined action type definitions
+        actionTypeDefinitions: ActionTypeDefinition[]
         // Sessions tracking activity over time
         sessions: ActivitySession[]
     }
@@ -19,7 +21,8 @@ interface ActivityState {
             sessions: string[]
             actionRows: string[]
         }
-        showActions: ShowActionsType
+        showActions: 'items' | 'autoActions' | 'userActions'
+        userActionDisplay: 'values' | 'inferenceRule'
     }
     blacklist: {
         // Per-session blacklist: sessionId -> item names excluded for this session
@@ -33,7 +36,30 @@ interface ActivityState {
     }
 }
 
-type ShowActionsType = 'items' | 'autoActions' | 'userActions'
+interface ActionTypeDefinition {
+    id: string
+    name: string
+    emoji: string
+    descriptionFormat?: string
+    inferenceRule?: ActionInferenceRule
+}
+
+interface ActionInferenceRule {
+    items: {
+        name: MatchRule,
+        quantity: MatchRule,
+        value: MatchRule,
+        container: MatchRule,
+        fieldName: string
+    }[]
+}
+
+type MatchRule = {
+    type: 'exact' | 'contains' | 'regex'
+    value: string
+} | {
+    type: 'any'
+}
 
 type ActionType =
     | 'sold_auction'
@@ -58,6 +84,8 @@ type ActionSource = 'inventory' | 'client'
 
 type SessionType = 'unknown' | 'hunt' | 'mine' | 'craft'
 
+type ShowActionsType = 'items' | 'autoActions' | 'userActions'
+
 interface ActivityItem {
     id: number
     name: string
@@ -69,7 +97,9 @@ interface ActivityItem {
 }
 
 interface ActivityAction {
+    id?: string
     type: string
+    timestamp?: number
     relatedItems: Record<string, number | number[]>
 }
 
@@ -255,27 +285,119 @@ function formatActionDescription(action: InferredAction | StoredAction, getInven
     }
 }
 
+function formatUserActionDescription(
+    action: ActivityAction,
+    getInventoryItem: (id: number) => ActivityItem | undefined,
+    actionTypeDef?: ActionTypeDefinition
+): string {
+    if (!actionTypeDef) {
+        return `Unknown action type`
+    }
+
+    const items = action.relatedItems.items
+    if (!items || (Array.isArray(items) && items.length === 0)) {
+        return `${actionTypeDef.emoji} ${actionTypeDef.name} (no items)`
+    }
+
+    if (Array.isArray(items)) {
+        if (items.length === 0) {
+            return `${actionTypeDef.emoji} ${actionTypeDef.name} (no items)`
+        }
+        const item = getInventoryItem(items[0])
+        if (!item) {
+            return `${actionTypeDef.emoji} ${actionTypeDef.name}`
+        }
+        return `${actionTypeDef.emoji} ${actionTypeDef.name} ${item.quantity} ${item.name}`
+    } else {
+        const item = getInventoryItem(items)
+        if (!item) {
+            return `${actionTypeDef.emoji} ${actionTypeDef.name}`
+        }
+        return `${actionTypeDef.emoji} ${actionTypeDef.name} ${item.quantity} ${item.name}`
+    }
+}
+
 interface StoredAction {
     id: string
-    timestamp: number
     sources: ActionSource[]
     budgetName?: string
     type: InferredAction['type']
     relatedItems: InferredAction['relatedItems']
 }
 
+/**
+ * Extract all item IDs from relatedItems object
+ */
+function extractItemIds(obj: any): number[] {
+    const ids: number[] = []
+    if (obj === null || obj === undefined) {
+        return ids
+    }
+    if (typeof obj === 'number') {
+        return [obj]
+    }
+    if (Array.isArray(obj)) {
+        return obj.flatMap(extractItemIds)
+    }
+    if (typeof obj === 'object') {
+        for (const value of Object.values(obj)) {
+            ids.push(...extractItemIds(value))
+        }
+    }
+    return ids
+}
+
+/**
+ * Get the timestamp of a StoredAction by finding the latest timestamp from its related items
+ * Overload 1: Pass an array of items
+ */
+function getActionTimestamp(action: StoredAction, items: ActivityItem[]): number
+/**
+ * Get the timestamp of a StoredAction by finding the latest timestamp from its related items
+ * Overload 2: Pass a callback function to get items
+ */
+function getActionTimestamp(action: StoredAction, getItem: (id: number) => ActivityItem | undefined): number
+/**
+ * Implementation
+ */
+function getActionTimestamp(action: StoredAction, itemsOrGetItem: ActivityItem[] | ((id: number) => ActivityItem | undefined)): number {
+    let maxTimestamp = 0
+
+    const getItemFn = (id: number): ActivityItem | undefined => {
+        if (Array.isArray(itemsOrGetItem)) {
+            return itemsOrGetItem.find(item => item.id === id)
+        } else {
+            return itemsOrGetItem(id)
+        }
+    }
+
+    const itemIds = extractItemIds(action.relatedItems)
+    for (const itemId of itemIds) {
+        const item = getItemFn(itemId)
+        if (item && item.timestamp > maxTimestamp) {
+            maxTimestamp = item.timestamp
+        }
+    }
+
+    return maxTimestamp
+}
+
 export {
     ActionType,
     ActionSource,
     SessionType,
+    ShowActionsType,
     ActivityItem,
     InferredAction,
     StoredAction,
     ActivitySession,
     ActivityState,
-    ShowActionsType,
+    ActionTypeDefinition as UserActionTypeDefinition,
+    ActionInferenceRule as UserActionInferenceRule,
     formatActionDescription,
-    actionTypeInfo
+    formatUserActionDescription,
+    actionTypeInfo,
+    getActionTimestamp
 }
 
 export type {
@@ -288,5 +410,6 @@ export type {
     ConvertAmmoItems,
     MovedItems,
     DismissPetItems,
-    SimpleItems
+    SimpleItems,
+    ActivityAction
 }

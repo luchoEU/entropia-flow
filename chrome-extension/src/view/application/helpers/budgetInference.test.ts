@@ -63,7 +63,6 @@ describe('budgetInference', () => {
                 action: {
                     id: `action-${Math.random()}`,
                     type: 'sold_auction',
-                    timestamp,
                     sources: ['inventory'],
                     relatedItems: { item: soldItem.id, payment: paymentItem.id }
                 },
@@ -79,7 +78,6 @@ describe('budgetInference', () => {
                 action: {
                     id: `action-${Math.random()}`,
                     type: 'bought_auction',
-                    timestamp,
                     sources: ['inventory'],
                     relatedItems: { item: boughtItem.id, payment: paymentItem.id }
                 },
@@ -95,7 +93,6 @@ describe('budgetInference', () => {
                 action: {
                     id: `action-${Math.random()}`,
                     type: 'listed_auction',
-                    timestamp,
                     sources: ['inventory'],
                     relatedItems: { item: listedItem.id, fee: feeItem.id }
                 },
@@ -111,7 +108,6 @@ describe('budgetInference', () => {
                 action: {
                     id: `action-${Math.random()}`,
                     type: 'refine',
-                    timestamp,
                     sources: ['inventory'],
                     relatedItems: { consumed: consumedItems.map(i => i.id), produced: producedItem.id }
                 },
@@ -127,7 +123,6 @@ describe('budgetInference', () => {
                 action: {
                     id: `action-${Math.random()}`,
                     type: 'craft',
-                    timestamp,
                     sources: ['inventory'],
                     relatedItems: { consumed: consumedItems.map(i => i.id), produced: [producedItem.id] }
                 },
@@ -138,6 +133,7 @@ describe('budgetInference', () => {
         it('should create budget line for sold_auction action with matching budget item', () => {
             const budget = createMockBudgetState(['Light Mind Essence', 'Force Nexus'])
             const { action: soldAction, inventoryItems } = createSoldAction('Light Mind Essence', 1000, 150.50)
+            const expectedTimestamp = Math.max(...inventoryItems.map(i => i.timestamp))
 
             const results = inferBudgetLinesFromActions([soldAction], budget, inventoryItems)
 
@@ -148,7 +144,7 @@ describe('budgetInference', () => {
             expect(result.budgetName).toBe('Light Mind Essence')
 
             if (result.budgetLine) {
-                expect(result.budgetLine.date).toBe(soldAction.timestamp)
+                expect(result.budgetLine.date).toBe(expectedTimestamp)
                 expect(result.budgetLine.reason).toBe('Sold')
                 expect(result.budgetLine.ped).toBe(150.50)
                 expect(result.budgetLine.materials).toEqual([
@@ -192,6 +188,7 @@ describe('budgetInference', () => {
         it('should create budget line for bought_auction action with matching budget item', () => {
             const budget = createMockBudgetState(['Mind Essence', 'Force Nexus'])
             const { action: boughtAction, inventoryItems } = createBoughtAction('Mind Essence', 1001052, 1.43)
+            const expectedTimestamp = Math.max(...inventoryItems.map(i => i.timestamp))
 
             const results = inferBudgetLinesFromActions([boughtAction], budget, inventoryItems)
 
@@ -202,7 +199,7 @@ describe('budgetInference', () => {
             expect(result.budgetName).toBe('Mind Essence')
 
             if (result.budgetLine) {
-                expect(result.budgetLine.date).toBe(boughtAction.timestamp)
+                expect(result.budgetLine.date).toBe(expectedTimestamp)
                 expect(result.budgetLine.reason).toBe('Buy')
                 expect(result.budgetLine.ped).toBe(-1.43) // negative value for cost
                 expect(result.budgetLine.materials).toEqual([
@@ -217,6 +214,7 @@ describe('budgetInference', () => {
                 [{ name: 'Force Nexus', usedBy: 'Light Mind Essence' }]
             )
             const { action: boughtAction, inventoryItems } = createBoughtAction('Force Nexus', 20014, 204.00)
+            const expectedTimestamp = Math.max(...inventoryItems.map(i => i.timestamp))
 
             const results = inferBudgetLinesFromActions([boughtAction], budget, inventoryItems)
 
@@ -227,7 +225,7 @@ describe('budgetInference', () => {
             expect(result.budgetName).toBe('Light Mind Essence') // Should associate with Light Mind Essence
 
             if (result.budgetLine) {
-                expect(result.budgetLine.date).toBe(boughtAction.timestamp)
+                expect(result.budgetLine.date).toBe(expectedTimestamp)
                 expect(result.budgetLine.reason).toBe('Buy')
                 expect(result.budgetLine.ped).toBe(-204.00) // negative value for cost
                 expect(result.budgetLine.materials).toEqual([

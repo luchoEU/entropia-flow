@@ -1,4 +1,4 @@
-import { StoredAction, ActivityItem, SoldAuctionItems, BoughtAuctionItems, ListedAuctionItems, RefineItems, CraftItems } from '../state/activity'
+import { StoredAction, ActivityItem, SoldAuctionItems, BoughtAuctionItems, ListedAuctionItems, RefineItems, CraftItems, getActionTimestamp } from '../state/activity'
 import { BudgetState } from '../state/budget'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 
@@ -29,7 +29,7 @@ export function inferBudgetLinesFromActions(
             const budgetItem = budget.list.items.find(item => item.name === soldItem.name)
             if (budgetItem) {
                 const budgetLine: BudgetLineData = {
-                    date: storedAction.timestamp,
+                    date: getActionTimestamp(storedAction, inventoryItems),
                     reason: 'Sold',
                     ped: paymentItem.value,
                     materials: [{ name: soldItem.name, quantity: -soldItem.quantity }]
@@ -61,7 +61,7 @@ export function inferBudgetLinesFromActions(
 
             if (budgetName) {
                 const budgetLine: BudgetLineData = {
-                    date: storedAction.timestamp,
+                    date: getActionTimestamp(storedAction, inventoryItems),
                     reason: 'Buy',
                     ped: paymentItem ? -paymentItem.value : 0,
                     materials: [{ name: boughtItem.name, quantity: boughtItem.quantity }]
@@ -88,7 +88,7 @@ export function inferBudgetLinesFromActions(
 
             if (budgetName) {
                 const budgetLine: BudgetLineData = {
-                    date: storedAction.timestamp,
+                    date: getActionTimestamp(storedAction, inventoryItems),
                     reason: 'Listed',
                     ped: -feeItem.value,
                     materials: [{ name: listedItem.name, quantity: -listedItem.quantity }]
@@ -122,7 +122,7 @@ export function inferBudgetLinesFromActions(
                 ]
 
                 const budgetLine: BudgetLineData = {
-                    date: storedAction.timestamp,
+                    date: getActionTimestamp(storedAction, inventoryItems),
                     reason: 'Refine',
                     ped: materials.length > 1 ? Math.round(materials[1].quantity * 1.5) / 10000 : 0,
                     materials
@@ -158,7 +158,7 @@ export function inferBudgetLinesFromActions(
                 ]
 
                 const budgetLine: BudgetLineData = {
-                    date: storedAction.timestamp,
+                    date: getActionTimestamp(storedAction, inventoryItems),
                     reason: 'Craft',
                     ped: 0,
                     materials

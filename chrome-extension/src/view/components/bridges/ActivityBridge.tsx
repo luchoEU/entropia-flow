@@ -144,14 +144,13 @@ export function ActivityBridge() {
 
         // Create one action per timestamp with all loot items
         const newLootActions: StoredAction[] = []
-        for (const [timestamp, lootItems] of lootByTimestamp) {
+        for (const lootItems of lootByTimestamp.values()) {
             const minSerial = Math.min(...lootItems.map(item => item.serial))
 
             const storedAction: StoredAction = {
                 type: 'loot',
                 relatedItems: { items: [] }, // Will be populated when merged with inventory items
                 id: `loot-${minSerial}`,
-                timestamp,
                 sources: ['client']
             }
             newLootActions.push(storedAction)
@@ -203,7 +202,9 @@ export function ActivityBridge() {
             const matchResult = matchLootWithInventory(
                 inventory.diff,
                 existingLootActions,
-                inventory.key // inventory timestamp
+                inventory.key, // inventory timestamp
+                undefined,
+                activity.data.items
             )
 
             // Merge matched items
@@ -251,7 +252,6 @@ export function ActivityBridge() {
                         type: inferredAction.type,
                         relatedItems: mapIndicesToIds(inferredAction.relatedItems),
                         id: `${inventory.key}-${inferredAction.type}-${Date.now()}`,
-                        timestamp: inventory.key,
                         sources: ['inventory']
                     }
                     newActions.push(storedAction)

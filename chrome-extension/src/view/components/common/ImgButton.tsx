@@ -32,7 +32,7 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     return <>
         <span
             title={title}
-            className={'pointer popup-container ' + (className ?? 'img-btn')}
+            className={'pointer popup-container img-btn ' + (className ?? '')}
             onClick={onClick}
             {...style ? { style } : {}}
             {...show ? { 'data-show': true } : {}}>
@@ -54,6 +54,14 @@ function multiDispatch(
 ) {
     const action = getDispatchAction(navigate, dispatch)
     if (!action) return
+
+    // Handle promises (e.g., from async Jotai atom setters)
+    if (action instanceof Promise) {
+        action.catch((error) => {
+            console.error('Async dispatch error:', error)
+        })
+        return
+    }
 
     if (Array.isArray(action)) {
         action.forEach((a) => dispatch(a))

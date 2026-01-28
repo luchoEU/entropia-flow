@@ -1,18 +1,20 @@
 import { atom } from 'jotai'
-import { ActivityState, StoredAction, ActivityItem, ActivitySession, SessionType, ActionType, ActionSource, ShowActionsType } from '../state/activity'
+import { ActivityState, StoredAction, ActivityItem, ActivitySession, SessionType, ActionType, ActionSource, ShowActionsType, UserActionTypeDefinition, ActivityAction, getActionTimestamp } from '../state/activity'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
 import { lastPersistedAtom, lastComputedAtom } from './last'
 import messagesApi from '../../services/api/messages'
+import { findAllMatchesInRule } from '../helpers/activityInference'
 
 // Initial state
 const initialActivityState: ActivityState = {
-    schema: 1,
+    schema: 2,
     data: {
         items: [],
         autoActions: [],
         userActions: [],
+        actionTypeDefinitions: [],
         sessions: []
     },
     lastProcessed: {
@@ -24,7 +26,8 @@ const initialActivityState: ActivityState = {
             sessions: [],
             actionRows: []
         },
-        showActions: 'items'
+        showActions: 'items',
+        userActionDisplay: 'values'
     },
     blacklist: {
         session: {},
@@ -99,9 +102,32 @@ export const initializeActivityAtom = atom(
     null,
     async (get, set) => {
         const stored = await loadFromStorage()
-        if (stored && stored.schema === initialActivityState.schema) {
-            // Merge with initial state to ensure all properties exist (handles migrations)
-            set(activityAtom, { ...initialActivityState, ...stored })
+        if (stored) {
+            if (stored.schema === 1) {
+                // Migrate from schema 1 to schema 2: add actionTypeDefinitions and userActionInferenceRules
+                const migrated: ActivityState = {
+                    ...stored,
+                    schema: 2,
+                    data: {
+                        ...stored.data,
+                        actionTypeDefinitions: (stored.data as any).actionTypeDefinitions || [],
+                    }
+                }
+                set(activityAtom, migrated)
+                await saveToStorage(migrated)
+            } else if (stored.schema === initialActivityState.schema) {
+                // Merge with initial state to ensure all properties exist
+                const merged = { ...initialActivityState, ...stored }
+                // Ensure data properties are fully merged
+                merged.data = {
+                    ...initialActivityState.data,
+                    ...stored.data
+                }
+                set(activityAtom, merged)
+            } else {
+                // Unknown schema, reset
+                set(activityAtom, initialActivityState)
+            }
         } else {
             set(activityAtom, initialActivityState)
         }
@@ -340,9 +366,10 @@ export const deleteSessionAtom = atom(
         const sessionIndex = current.data.sessions.indexOf(session)
         const nextSession = current.data.sessions[sessionIndex + 1]
         const endTime = nextSession ? nextSession.startTime : Date.now()
-        const sessionActions = current.data.autoActions.filter(act =>
-            act.timestamp >= session.startTime && act.timestamp < endTime
-        )
+        const sessionActions = current.data.autoActions.filter(act => {
+            const timestamp = getActionTimestamp(act, current.data.items)
+            return timestamp >= session.startTime && timestamp < endTime
+        })
 
         // Remove session and actions
         const newSessions = current.data.sessions.filter(s => s.id !== sessionId)
@@ -488,6 +515,22 @@ export const setShowActionsAtom = atom(
             ui: {
                 ...current.ui,
                 showActions
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const setUserActionDisplayAtom = atom(
+    null,
+    async (get, set, userActionDisplay: 'values' | 'inferenceRule') => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            ui: {
+                ...current.ui,
+                userActionDisplay
             }
         }
         set(activityAtom, newState)
@@ -783,3 +826,154 @@ export const reinferSessionActionsAtom = atom(
         console.warn('reinferSessionActionsAtom not yet implemented for new structure')
     }
 )
+
+// User action type definitions
+export const addActionTypeDefinitionAtom = atom(
+    null,
+    async (get, set, definition: UserActionTypeDefinition) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                actionTypeDefinitions: [...current.data.actionTypeDefinitions, definition]
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const removeActionTypeDefinitionAtom = atom(
+    null,
+    async (get, set, id: string) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                actionTypeDefinitions: current.data.actionTypeDefinitions.filter(def => def.id !== id)
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const updateActionTypeDefinitionAtom = atom(
+    null,
+    async (get, set, updatedDef: UserActionTypeDefinition) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                actionTypeDefinitions: current.data.actionTypeDefinitions.map(def =>
+                    def.id === updatedDef.id ? updatedDef : def
+                )
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+
+// User actions
+export const addUserActionAtom = atom(
+    null,
+    async (get, set, action: Omit<ActivityAction, 'id'> & { timestamp: number }) => {
+        const current = get(activityAtom)
+        const newAction: ActivityAction = {
+            ...action,
+            id: crypto.randomUUID()
+        }
+
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                userActions: [newAction, ...current.data.userActions]
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const removeUserActionAtom = atom(
+    null,
+    async (get, set, actionId: string) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                userActions: current.data.userActions.filter(a => a.id !== actionId)
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+export const applyInferenceRuleAtom = atom(
+    null,
+    async (get, set, actionTypeId: string) => {
+        const current = get(activityAtom)
+        const actionTypeDef = current.data.actionTypeDefinitions.find(def => def.id === actionTypeId)
+
+        if (!actionTypeDef || !actionTypeDef.inferenceRule) {
+            return
+        }
+
+        // Get available items that are not already in an action
+        const availableItems = get(availableItemsAtom)
+
+        // Find all possible matches for the inference rule
+        const allMatches = findAllMatchesInRule(availableItems, actionTypeDef.inferenceRule)
+
+        if (allMatches.length === 0) {
+            return // No matching items found
+        }
+
+        // Create new user actions for each match found
+        const newActions: ActivityAction[] = allMatches.map(matchedItemIds => ({
+            id: crypto.randomUUID(),
+            type: actionTypeId,
+            timestamp: Date.now(),
+            relatedItems: {
+                items: matchedItemIds
+            }
+        }))
+
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                userActions: [...newActions, ...current.data.userActions]
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+    }
+)
+
+// Computable atom for available items (items not already in user actions)
+export const availableItemsAtom = atom(get => {
+    const current = get(activityAtom)
+
+    // Collect all item IDs already used in actions
+    const usedItemIds = new Set<number>()
+    for (const action of current.data.userActions) {
+        const items = action.relatedItems.items
+        if (Array.isArray(items)) {
+            items.forEach(id => usedItemIds.add(id))
+        } else if (typeof items === 'number') {
+            usedItemIds.add(items)
+        }
+    }
+
+    // Filter items to only include those not already in an action
+    return current.data.items.filter(item => !usedItemIds.has(item.id))
+})

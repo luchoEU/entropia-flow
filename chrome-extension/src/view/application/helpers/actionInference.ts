@@ -1,4 +1,4 @@
-import { InferredAction, StoredAction } from '../state/activity'
+import { InferredAction, StoredAction, ActivityItem, getActionTimestamp } from '../state/activity'
 import type { BoughtAuctionItems, ListedAuctionItems } from '../state/activity'
 import { ViewItemData } from '../state/history'
 
@@ -25,25 +25,28 @@ interface MatchLootResult {
  * @param lootActions - Existing loot actions from the client
  * @param inventoryTimestamp - The timestamp of the inventory snapshot
  * @param timeWindowMs - Time window to consider for matching (default 60s)
+ * @param allItems - All inventory items for timestamp lookup
  * @returns Object with matches and unmatched items
  */
 function matchLootWithInventory(
     inventoryItems: ViewItemData[],
     lootActions: StoredAction[],
     inventoryTimestamp: number,
-    timeWindowMs: number = DEFAULT_LOOT_MATCH_WINDOW_MS
+    timeWindowMs: number = DEFAULT_LOOT_MATCH_WINDOW_MS,
+    allItems: ActivityItem[] = []
 ): MatchLootResult {
     const matches: LootMatch[] = []
     const unmatched: ViewItemData[] = []
     const matchedItemNames = new Set<string>()
 
     // Filter loot actions within time window that don't already have inventory source
-    const eligibleLootActions = lootActions.filter(action =>
-        action.type === 'loot' &&
-        !action.sources.includes('inventory') &&
-        action.timestamp >= inventoryTimestamp - timeWindowMs &&
-        action.timestamp <= inventoryTimestamp
-    )
+    const eligibleLootActions = lootActions.filter(action => {
+        const timestamp = getActionTimestamp(action, allItems)
+        return action.type === 'loot' &&
+            !action.sources.includes('inventory') &&
+            timestamp >= inventoryTimestamp - timeWindowMs &&
+            timestamp <= inventoryTimestamp
+    })
 
     // For now, loot actions have empty relatedItems in the new structure
     // We'll match based on a different approach or disable matching until loot actions are redesigned

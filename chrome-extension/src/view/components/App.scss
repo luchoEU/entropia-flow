@@ -472,13 +472,26 @@ form label {
     margin-right: 10px;
 }
 
-.img-btn img, .img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img, .img-btn-lightning img, .img-btn-trash-black img {
+.img-btn img, .img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img {
     height: 15px;
     margin-left: 10px;
 }
 
 .img-btn-trash-black img {
     filter: brightness(0.3);
+}
+
+.img-btn-edit img {
+    height: 14px;
+}
+
+.img-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.img-hover-container:hover .img-btn {
+    opacity: 1;
 }
 
 .inventory-line .img-btn-copy {
@@ -1259,19 +1272,6 @@ label {
     margin-left: 24px;
 }
 
-.img-btn-edit, .img-btn-trash-black, .img-btn-lightning {
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.img-btn-edit img {
-    height: 14px;
-}
-
-.session-header:hover .img-btn-edit, .session-header:hover .img-btn-trash-black, div:hover > .img-btn-lightning {
-    opacity: 1;
-}
-
 .session-content {
     margin-left: 24px;
 }
@@ -1318,4 +1318,68 @@ label {
 
 .session-meta:hover .session-meta-actions {
     opacity: 1;
+}
+
+// User action creation styles
+.create-user-action-form {
+    background: #f9f9f9;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 2px solid $primary-color;
+
+    select,
+    input,
+    button {
+        margin: 5px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    select,
+    input {
+        background: white;
+    }
+
+    button {
+        background: white;
+        cursor: pointer;
+        border: 1px solid $primary-color;
+        color: $primary-color;
+
+        &:hover:not(:disabled) {
+            background: $primary-color;
+            color: white;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.new-action-type-form {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    align-items: center;
+    flex-wrap: wrap;
+
+    input {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    button {
+        white-space: nowrap;
+    }
+}
+
+.selected-items-summary {
+    font-weight: bold;
+    margin: 10px 0;
+    color: $primary-color;
 }
