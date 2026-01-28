@@ -34,12 +34,6 @@ const MSG_NAME_OPEN_VIEW = 'OpenView'
 const MSG_NAME_SET_WEB_SOCKET_URL = 'SetWebSocketUrl'
 const MSG_NAME_RETRY_WEB_SOCKET = 'RetryWebSocket'
 
-// Shared actions between extension instances
-const SHARED_ACTION_NEW_INVENTORY = 'SharedNewInventory'
-const SHARED_ACTION_TIMER_ON = 'SharedTimerOn'
-const SHARED_ACTION_TIMER_OFF = 'SharedTimerOff'
-const SHARED_ACTION_LOADING = 'SharedLoading'
-
 // Classes
 const CLASS_INFO = 'info'
 const CLASS_ERROR = 'error'
@@ -152,10 +146,6 @@ export {
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_SET_WEB_SOCKET_URL,
     MSG_NAME_RETRY_WEB_SOCKET,
-    SHARED_ACTION_NEW_INVENTORY,
-    SHARED_ACTION_TIMER_ON,
-    SHARED_ACTION_TIMER_OFF,
-    SHARED_ACTION_LOADING,
     CLASS_INFO,
     CLASS_NEW_DATE,
     CLASS_ERROR,

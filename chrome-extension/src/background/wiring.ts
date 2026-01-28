@@ -4,7 +4,6 @@ import IMessagesHub from '../chrome/IMessagesHub'
 import { PortManagerFactory } from '../chrome/IPort'
 import IStorageArea from '../chrome/IStorageArea'
 import ITabManager from '../chrome/ITab'
-import SharedInstanceService from '../chrome/sharedInstanceService'
 import {
     MSG_NAME_NEW_INVENTORY,
     MSG_NAME_OPEN_VIEW,
@@ -23,10 +22,6 @@ import {
     MSG_NAME_REMAINING_SECONDS,
     MSG_NAME_STORAGE_CHANGED,
     MSG_NAME_SET_SHOWING_LAYOUT_ID,
-    SHARED_ACTION_NEW_INVENTORY,
-    SHARED_ACTION_TIMER_ON,
-    SHARED_ACTION_TIMER_OFF,
-    SHARED_ACTION_LOADING,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -81,9 +76,6 @@ async function wiring(
     // settings
     const alarmSettings = new AlarmSettings(settingsStorageArea)
     const viewSettings = new ViewSettings(settingsStorageArea)
-
-    // shared instance service for cross-extension communication
-    const sharedInstance = new SharedInstanceService()
 
     // port manager
     const contentPortManager = portManagerFactory(contentListStorage, messages, tabs, PORT_NAME_BACK_CONTENT)
@@ -192,35 +184,21 @@ async function wiring(
         [MSG_NAME_REGISTER_VIEW]: viewPortManager
     })
 
-    // register shared action handlers
-    sharedInstance.onAction(SHARED_ACTION_NEW_INVENTORY, async (event) => {
-        await refreshManager.handleNewInventory(event.payload.inventory)
-    })
-    sharedInstance.onAction(SHARED_ACTION_TIMER_ON, async () => {
-        await refreshManager.setTimerOn()
-    })
-    sharedInstance.onAction(SHARED_ACTION_TIMER_OFF, async () => {
-        await refreshManager.setTimerOff()
-    })
-    sharedInstance.onAction(SHARED_ACTION_LOADING, async (event) => {
-        await refreshManager.handleLoading(event.payload.loading)
-    })
-
     // port handlers
     contentPortManager.handlers = {
         [MSG_NAME_NEW_INVENTORY]: async (m) => {
-            await sharedInstance.publishAction(SHARED_ACTION_NEW_INVENTORY, { inventory: m.inventory })
+            await refreshManager.handleNewInventory(m.inventory)
         },
         [MSG_NAME_REMAINING_SECONDS]: (m) => refreshManager.handleRemainingSeconds(m.remainingSeconds),
         [MSG_NAME_LOADING]: async (m) => {
-            await sharedInstance.publishAction(SHARED_ACTION_LOADING, { loading: m.loading })
+            await refreshManager.handleLoading(m.loading)
         },
         [MSG_NAME_OPEN_VIEW]: () => viewTabManager.createOrOpenView(),
         [MSG_NAME_REQUEST_TIMER_ON]: async () => {
-            await sharedInstance.publishAction(SHARED_ACTION_TIMER_ON)
+            await refreshManager.setTimerOn()
         },
         [MSG_NAME_REQUEST_TIMER_OFF]: async () => {
-            await sharedInstance.publishAction(SHARED_ACTION_TIMER_OFF)
+            await refreshManager.setTimerOff()
         }
     }
     viewPortManager.handlers = {

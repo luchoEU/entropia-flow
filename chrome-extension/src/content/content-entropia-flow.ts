@@ -25,73 +25,110 @@ import { BalanceReader } from './balanceReader'
 
 //// INITIALIZATION ////
 
-class ContentInitializer {
-    public static init() {
-        // Prevent multiple initializations of the same content script instance
-        if (ContentUI.isAlreadyAdded()) {
-            return
+class ContentManager {
+    private itemReader!: ItemsReader
+    private balanceReader!: BalanceReader
+    private contentUI!: ContentUI
+    private timer!: ContentTimer
+    private handlersMap!: PortHandlers
+    private allMessagesClients: ChromeMessagesClient[] = []
+    private isInitialized = false
+
+    private static instance: ContentManager
+
+    static getInstance(): ContentManager {
+        if (!ContentManager.instance) {
+            ContentManager.instance = new ContentManager()
         }
-        let messagesClient: ChromeMessagesClient
-        function showView(): boolean {
-            return messagesClient.send(MSG_NAME_OPEN_VIEW)
-        }
-        function toggleIsMonitoring(): boolean {
-            if (timer.isMonitoring)
-                return messagesClient.send(MSG_NAME_REQUEST_TIMER_OFF)
+        return ContentManager.instance
+    }
+
+    showView(): boolean {
+        this.allMessagesClients.forEach(client => client.send(MSG_NAME_OPEN_VIEW))
+        return true
+    }
+
+    toggleIsMonitoring(): boolean {
+        this.allMessagesClients.forEach(client => {
+            if (this.timer.isMonitoring)
+                client.send(MSG_NAME_REQUEST_TIMER_OFF)
             else
-                return messagesClient.send(MSG_NAME_REQUEST_TIMER_ON)
-        }
-        async function requestItems(fromHtml: boolean): Promise<Inventory> {
-            const inventory = fromHtml ? await itemReader.requestItemsHtml() : await itemReader.requestItemsAjax();
-            if (inventory.log)
-                return inventory
-            
-            const balance = fromHtml ? await balanceReader.requestBalanceHtml() : await balanceReader.requestBalanceAjax();
-            if (balance.errorText)
-                return makeLogInventory(CLASS_ERROR, `Balance error: ${balance.errorText}`)
+                client.send(MSG_NAME_REQUEST_TIMER_ON)
+        })
+        return true
+    }
 
-            inventory.itemlist?.push({
-                id: "0",
-                n: "PED Card",
-                q: "1",
-                v: balance.accountBalance?.toString() || "0",
-                c: "CARRIED"
-            });
+    async requestItems(fromHtml: boolean): Promise<Inventory> {
+        const inventory = fromHtml ? await this.itemReader.requestItemsHtml() : await this.itemReader.requestItemsAjax();
+        if (inventory.log)
             return inventory
-        }
 
-        const itemReader = new ItemsReader()
-        const balanceReader = new BalanceReader()
-        const contentUI = new ContentUI(showView, toggleIsMonitoring)
+        const balance = fromHtml ? await this.balanceReader.requestBalanceHtml() : await this.balanceReader.requestBalanceAjax();
+        if (balance.errorText)
+            return makeLogInventory(CLASS_ERROR, `Balance error: ${balance.errorText}`)
 
-        const handlersMap: PortHandlers = {
-            [MSG_NAME_REFRESH_WAKE_UP]: async () => {
-                await timer.wakeUp()
-            },
-            [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
-                const inventory = await timer.trigger(m.forced, false, 'ajax', AFTER_MANUAL_WAIT_SECONDS, m.tag);
-                return { name: MSG_NAME_NEW_INVENTORY, inventory }
-            },
-            [MSG_NAME_REFRESH_CONTENT]: async (m) => {
-                timer.isMonitoring = m.isMonitoring
-                contentUI.refreshButton(m.isMonitoring)
-            },
-            [MSG_NAME_REFRESH_SET_SLEEP_MODE]: async (m) => {
-                timer.sleepMode = m.sleepMode
-                return { name: MSG_NAME_REMAINING_SECONDS, remainingSeconds: timer.remainingSeconds() }
+        inventory.itemlist?.push({
+            id: "0",
+            n: "PED Card",
+            q: "1",
+            v: balance.accountBalance?.toString() || "0",
+            c: "CARRIED"
+        });
+        return inventory
+    }
+
+    broadcastLoading(loading: boolean): void {
+        this.allMessagesClients.forEach(client => client.send(MSG_NAME_LOADING, { loading }))
+    }
+
+    broadcastInventory(inventory: Inventory): void {
+        this.allMessagesClients.forEach(client => client.send(MSG_NAME_NEW_INVENTORY, { inventory }))
+    }
+
+    init() {
+        // Initialize shared resources only once
+        if (!this.isInitialized) {
+            this.itemReader = new ItemsReader()
+            this.balanceReader = new BalanceReader()
+            this.contentUI = new ContentUI(
+                () => this.showView(),
+                () => this.toggleIsMonitoring()
+            )
+            this.timer = new ContentTimer(
+                (fromHtml) => this.requestItems(fromHtml),
+                this.contentUI.refreshItemsLoadTime,
+                (loading) => this.broadcastLoading(loading),
+                (inventory) => this.broadcastInventory(inventory)
+            )
+            this.handlersMap = {
+                [MSG_NAME_REFRESH_WAKE_UP]: async () => {
+                    await this.timer.wakeUp()
+                },
+                [MSG_NAME_REFRESH_ITEMS_AJAX]: async (m) => {
+                    const inventory = await this.timer.trigger(m.forced, false, 'ajax', AFTER_MANUAL_WAIT_SECONDS, m.tag);
+                    return { name: MSG_NAME_NEW_INVENTORY, inventory }
+                },
+                [MSG_NAME_REFRESH_CONTENT]: async (m) => {
+                    this.timer.isMonitoring = m.isMonitoring
+                    this.contentUI.refreshButton(m.isMonitoring)
+                },
+                [MSG_NAME_REFRESH_SET_SLEEP_MODE]: async (m) => {
+                    this.timer.sleepMode = m.sleepMode
+                    return { name: MSG_NAME_REMAINING_SECONDS, remainingSeconds: this.timer.remainingSeconds() }
+                }
             }
+            this.isInitialized = true
         }
 
-        messagesClient = new ChromeMessagesClient(
+        // Create new ChromeMessagesClient for this extension
+        const messagesClient = new ChromeMessagesClient(
             MSG_NAME_REGISTER_CONTENT,
-            PORT_NAME_BACK_CONTENT, handlersMap
+            PORT_NAME_BACK_CONTENT, this.handlersMap
         )
 
-        const timer = new ContentTimer(requestItems,
-                contentUI.refreshItemsLoadTime,
-                loading => messagesClient.send(MSG_NAME_LOADING, { loading }),
-                inventory => messagesClient.send(MSG_NAME_NEW_INVENTORY, { inventory }));
+        // Register this client
+        this.allMessagesClients.push(messagesClient)
     }
 }
 
-ContentInitializer.init()
+ContentManager.getInstance().init()
