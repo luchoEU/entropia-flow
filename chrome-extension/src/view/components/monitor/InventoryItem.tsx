@@ -1,6 +1,7 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { sortBy, setItemExpanded, exportToFile, toggleActionsView } from '../../application/actions/history'
+import { useSetAtom } from 'jotai'
+import { sortByAtom, setItemExpandedAtom, exportToFileAtom, toggleActionsViewAtom } from '../../application/atoms/history'
 import { setAsLast } from '../../application/actions/messages'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
@@ -12,22 +13,26 @@ import ImgButton from '../common/ImgButton'
 const InventoryItem = (p: { item: ViewInventory }) => {
     const { item } = p
     const dispatch = useDispatch()
+    const setSortBy = useSetAtom(sortByAtom)
+    const setExpanded = useSetAtom(setItemExpandedAtom)
+    const exportFile = useSetAtom(exportToFileAtom)
+    const toggleActions = useSetAtom(toggleActionsViewAtom)
 
     const config = {
-        sortBy: (part: number) => () => dispatch(sortBy(item.key, part)),
+        sortBy: (part: number) => () => setSortBy({ key: item.key, part }),
         allowExclude: false,
         showPeds: false,
         showMarkup: false,
         movedTitle: 'this item was moved by the amount in parenthesis'
     }
-    
+
     return <>
-        <tr className='item-row' onClick={() => dispatch(setItemExpanded(item.key)(!item.expanded))}>
+        <tr className='item-row' onClick={() => setExpanded({ key: item.key, expanded: !item.expanded })}>
             <td>
                 <ExpandablePlusButton
                     className={item.class}
                     expanded={item.diff ? item.expanded : undefined}
-                    setExpanded={setItemExpanded(item.key)}
+                    setExpanded={(expanded: boolean) => setExpanded({ key: item.key, expanded })}
                 />
                 <ItemText className={item.class} text={ item.text } />
                 { item.info &&
@@ -39,7 +44,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                     title='Export all items to a file'
                     src='img/export.png'
                     className='img-btn-export'
-                    dispatch={() => exportToFile(item.key)} />
+                    dispatch={() => exportFile(item.key)} />
                 }
             </td>
             <td>
@@ -51,7 +56,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                             src='img/up.png'
                             className='img-btn-up'
                             afterText='Session Start'
-                            dispatch={() => setAsLast(item.key)}
+                            dispatch={() => dispatch(setAsLast(item.key))}
                         />
                     )
                 }
@@ -63,7 +68,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                         className='button-toggle-view'
                         onClick={(e) => {
                             e.stopPropagation()
-                            dispatch(toggleActionsView(item.key))
+                            toggleActions(item.key)
                         }}>
                         {item.showActions ? 'Show Items' : 'Show Actions'}
                     </button>

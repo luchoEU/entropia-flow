@@ -28,6 +28,10 @@ const initialComputedState: ComputedState = {
 
 // Initial state for persisted data
 const initialPersistedState: LastRequiredState = {
+    c: {
+        anyInventory: false,
+        date: 0
+    },
     expanded: false,
     sortType: SORT_VALUE_DESCENDING,
     showMarkup: false,

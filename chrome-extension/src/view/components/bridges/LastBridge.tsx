@@ -1,17 +1,15 @@
 import { useEffect, useRef } from 'react'
-import { useSelector } from 'react-redux'
-import { useSetAtom } from 'jotai'
-import { getHistory } from '../../application/selectors/history'
-import { HistoryState } from '../../application/state/history'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { historyComputedAtom } from '../../application/atoms/history'
 import { initializeLastAtom, computeLastAtom } from '../../application/atoms/last'
 
 export function LastBridge() {
     const initializeLast = useSetAtom(initializeLastAtom)
     const computeLast = useSetAtom(computeLastAtom)
 
-    // Redux state for history (inventory list)
-    const history: HistoryState = useSelector(getHistory)
-    const prevHistoryRef = useRef<HistoryState | null>(null)
+    // Jotai atoms for history (inventory list)
+    const history = useAtomValue(historyComputedAtom)
+    const prevHistoryRef = useRef(history)
 
     // Initialize Jotai state from storage
     useEffect(() => {

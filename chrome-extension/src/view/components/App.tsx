@@ -10,6 +10,7 @@ import { useAppDispatch } from '../application/store';
 import { useSelector } from 'react-redux';
 import { appAction, initialize, isAppLoaded } from '../application/slice/app';
 import { ActivityBridge } from './bridges/ActivityBridge';
+import { HistoryBridge } from './bridges/HistoryBridge';
 import { LastBridge } from './bridges/LastBridge';
 
 function _AppWithInitializer() {
@@ -49,6 +50,7 @@ function App() {
       <JotaiProvider store={getDefaultStore()}>
         <HashRouter>
           <ActivityBridge />
+          <HistoryBridge />
           <LastBridge />
           <_AppWithInitializer />
         </HashRouter>

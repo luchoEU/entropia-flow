@@ -7,7 +7,6 @@ import order from './order'
 import sweat from './sweat'
 import stackable from './stackable'
 import refine from './refine'
-import history from './history'
 import stream from './stream'
 import inventory from './inventory'
 import about from './about'
@@ -38,7 +37,6 @@ export default [
     ...stackable,
     ...refine,
     ...last,
-    ...history,
     ...stream,
     ...inventory,
     ...about,

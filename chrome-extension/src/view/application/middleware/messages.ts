@@ -1,7 +1,5 @@
-import { STRING_WAIT_3_MINUTES } from '../../../common/const'
 import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
-import { setHistoryList } from '../actions/history'
 import { setCurrentInventory } from '../actions/inventory'
 import { onLast } from '../actions/last'
 import { setCurrentGameLog } from '../actions/log'
@@ -10,9 +8,7 @@ import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
 import { executeStreamClickAction } from '../actions/stream.click'
 import { AppAction } from '../slice/app'
-import { getHistory } from '../selectors/history'
 import { getLast } from '../selectors/last'
-import { HistoryState } from '../state/history'
 import { LastRequiredState } from '../state/last'
 import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
@@ -21,12 +17,14 @@ import { Feature, isFeatureEnabled } from '../state/settings'
 import { getSettings } from '../selectors/settings'
 import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
+import { setHistoryListAtom } from '../atoms/history'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
     if (m.list) {
         m.list.reverse() // newer first
-        actions.push(setHistoryList(m.list, m.last))
+        // Update Jotai atoms
+        getDefaultStore().set(setHistoryListAtom, { list: m.list, last: m.last })
         if (m.last)
             actions.push(onLast(m.list, m.last))
         else if (m.list.length > 0 && m.list[0].log === undefined)

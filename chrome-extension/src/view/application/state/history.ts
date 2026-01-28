@@ -42,17 +42,10 @@ interface ViewInventory {
     showActions: boolean
 }
 
-interface HistoryState {
-    list: Array<ViewInventory>
-    hiddenError?: string
-    intervalId?: number
-}
-
 export {
     ViewItemData,
     ViewItemAction,
     ViewItemMode,
     VIEW_ITEM_MODE_EDIT_MARKUP,
-    ViewInventory,
-    HistoryState
+    ViewInventory
 }

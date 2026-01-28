@@ -3,13 +3,13 @@ import { Inventory } from "../../../common/state";
 import { getDifference } from "./diff";
 import { inferActions } from "./actionInference";
 import * as Sort from "./inventory.sort"
-import { HistoryState, ViewInventory } from "../state/history";
+import { ViewInventory } from "../state/history";
 
-const initialState: HistoryState = {
-    hiddenError: undefined,
-    list: [],
-    intervalId: undefined
+interface HistoryComputedState {
+    list: ViewInventory[]
+    hiddenError?: string
 }
+
 
 function getText(inventory: Inventory, onlyLastDate?: boolean) {
     let date = new Date()
@@ -66,14 +66,6 @@ function getCanBeLast(inventory: Inventory) {
     return inventory.log === undefined
 }
 
-function getLatestFromHistory(state: HistoryState): ViewInventory {
-    for (let n = 0; n < state.list.length; n++) {
-        if (state.list[n].canBeLast)
-            return state.list[n]
-    }
-    return state.list[0] // should never happend
-}
-
 function getLatestFromInventoryList(list: Array<Inventory>): Inventory {
     for (let n = 0; n < list.length; n++) {
         if (getCanBeLast(list[n]))
@@ -103,7 +95,7 @@ function getViewInventory(inventory: Inventory, previous: Inventory, expanded: b
     }
 }
 
-function reduceSetHistoryList(state: HistoryState, list: Array<Inventory>, last: number): HistoryState {
+function reduceSetHistoryList(state: HistoryComputedState, list: Array<Inventory>, last: number): HistoryComputedState {
     const viewList: Array<ViewInventory> = []
     for (let n = 0; n < list.length; n++) {
         const inv = list[n]
@@ -142,23 +134,6 @@ function getHiddenError(list: Array<ViewInventory>): string | undefined {
         return undefined
 }
 
-function reduceSetItemExpanded(state: HistoryState, key: number, expanded: boolean): HistoryState {
-    return {
-        ...state,
-        list: state.list.map(
-            inv => inv.key === key ?
-                { ...inv, expanded } :
-                inv)
-    }
-}
-
-function reduceSetHistoryIntervalId(state: HistoryState, intervalId: number): HistoryState {
-    return {
-        ...state,
-        intervalId
-    }
-}
-
 function sortByPart(state: ViewInventory, part: number) {
     const sortType = Sort.nextSortType(part, state.sortType)
     return {
@@ -168,14 +143,14 @@ function sortByPart(state: ViewInventory, part: number) {
     }
 }
 
-function reduceHistorySortBy(state: HistoryState, key: number, part: number): HistoryState {
+function reduceHistorySortBy(state: HistoryComputedState, key: number, part: number): HistoryComputedState {
     return {
         ...state,
         list: state.list.map(inv => inv.key === key ? sortByPart(inv, part) : inv)
     }
 }
 
-function reduceToggleActionsView(state: HistoryState, key: number): HistoryState {
+function reduceToggleActionsView(state: HistoryComputedState, key: number): HistoryComputedState {
     return {
         ...state,
         list: state.list.map(inv =>
@@ -185,13 +160,9 @@ function reduceToggleActionsView(state: HistoryState, key: number): HistoryState
 }
 
 export {
-    initialState,
     getText,
     getLatestFromInventoryList,
-    getLatestFromHistory,
     reduceSetHistoryList,
-    reduceSetItemExpanded,
-    reduceSetHistoryIntervalId,
     reduceHistorySortBy,
     reduceToggleActionsView
 }

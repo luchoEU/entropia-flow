@@ -1,5 +1,4 @@
 import { Inventory } from "../../../common/state"
-import { InventoryState } from "../state/inventory"
 import { LastRequiredState } from "../state/last"
 import { ItemsMap } from "../state/items"
 

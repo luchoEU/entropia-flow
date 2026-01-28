@@ -2,19 +2,17 @@ import { Component, traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, saveCraftingSession, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, setNewCraftingSessionDiff, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SET_NEW_CRAFT_SESSION_DIFF, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_CRAFT_STATE, SET_CRAFT_OPTIONS, ADD_BLUEPRINT_MATERIAL, REMOVE_BLUEPRINT_MATERIAL, CHANGE_BLUEPRINT_MATERIAL_QUANTITY, CHANGE_BLUEPRINT_MATERIAL_NAME, MOVE_BLUEPRINT_MATERIAL, START_BLUEPRINT_EDIT_MODE, END_BLUEPRINT_EDIT_MODE, setBlueprintSuggestedMaterials, SET_BLUEPRINT_LIST } from '../actions/craft'
-import { SET_HISTORY_LIST } from '../actions/history'
 import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { EXCLUDE, EXCLUDE_WARNINGS, ON_LAST } from '../actions/last'
 import { refresh } from '../actions/messages'
 import { AppAction } from '../slice/app'
 import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
-import { getHistory } from '../selectors/history'
 import { getInventory } from '../selectors/inventory'
 import { getLast } from '../selectors/last'
 import { getSettings } from '../selectors/settings'
-import { BlueprintSessionDiff, CraftState, STEP_REFRESH_ERROR, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START } from '../state/craft'
-import { HistoryState, ViewItemData } from '../state/history'
+import { BlueprintSessionDiff, CraftState, STEP_REFRESH_TO_END } from '../state/craft'
+import { ViewItemData } from '../state/history'
 import { InventoryState } from '../state/inventory'
 import { LastRequiredState } from '../state/last'
 import { SettingsState } from '../state/settings'
@@ -316,33 +314,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case START_CRAFT_SESSION:
         case END_CRAFT_SESSION: {
             dispatch(refresh)
-            break
-        }
-        case SET_HISTORY_LIST: {
-            const state: CraftState = getCraft(getState())
-            const history: HistoryState = getHistory(getState())
-            if (history.list.length > 0) {
-                if (history.list[0].class === 'error') {
-                    dispatch(errorCraftingSession(state.activeSession!, history.list[0].text))
-                } else {
-                    if (history.list[0].isLast)
-                        dispatch(clearBuyBudget)
-                    
-                    if (state.activeSession !== undefined) {
-                        const activeSessionBp = state.blueprints[state.activeSession]
-                        switch (activeSessionBp.session?.step) {
-                            case STEP_REFRESH_TO_START:
-                            case STEP_REFRESH_ERROR: {
-                                if (history.list[0].isLast) {
-                                    dispatch(readyCraftingSession(state.activeSession))
-                                } else {
-                                    getDefaultStore().set(createNewSessionAtom)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             break
         }
         case ON_LAST:

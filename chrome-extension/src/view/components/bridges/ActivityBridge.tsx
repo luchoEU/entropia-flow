@@ -14,8 +14,8 @@ import {
     subscribeToActivityAtom,
     updateActionBudgetNameAtom
 } from '../../application/atoms/activity'
+import { historyComputedAtom } from '../../application/atoms/history'
 import { getGameLog } from '../../application/selectors/log'
-import { getHistory } from '../../application/selectors/history'
 import { getBudget } from '../../application/selectors/budget'
 import { getLast } from '../../application/selectors/last'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
@@ -23,14 +23,14 @@ import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInf
 import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
 import { InferredAction, StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
-import { HistoryState } from '../../application/state/history'
 
 export function ActivityBridge() {
     const dispatch = useDispatch()
 
     // Redux selectors
     const gameLog: GameLogData = useSelector(getGameLog)
-    const history: HistoryState = useSelector(getHistory)
+    // Jotai atoms
+    const history = useAtomValue(historyComputedAtom)
     const budget = useSelector(getBudget)
     const last = useSelector(getLast)
 
@@ -49,7 +49,7 @@ export function ActivityBridge() {
 
     // Refs to track previous values for comparison
     const prevGameLogRef = useRef<GameLogData | null>(null)
-    const prevHistoryRef = useRef<HistoryState | null>(null)
+    const prevHistoryRef = useRef(history)
     const budgetRef = useRef(budget)
     const lastRef = useRef(last)
 
