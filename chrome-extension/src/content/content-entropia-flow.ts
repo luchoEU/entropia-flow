@@ -26,11 +26,9 @@ import { BalanceReader } from './balanceReader'
 //// INITIALIZATION ////
 
 // Prevent multiple initializations of the same content script instance
-const CONTENT_SCRIPT_INITIALIZED_KEY = '__entropia_flow_initialized__'
-if ((window as any)[CONTENT_SCRIPT_INITIALIZED_KEY]) {
+if (ContentUI.isAlreadyAdded()) {
     throw new Error('Content script already initialized. Preventing duplicate initialization.')
 }
-(window as any)[CONTENT_SCRIPT_INITIALIZED_KEY] = true
 
 class ContentInitializer {
     public static init() {

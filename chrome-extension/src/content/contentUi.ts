@@ -12,6 +12,10 @@ class ContentUI {
         this.addDiv()
     }
 
+    public static isAlreadyAdded(): boolean {
+        return document.getElementById('EntropiaFlowExtension') !== null
+    }
+
     public refreshButton(isMonitoring: boolean) {
         const div = document.getElementById('EntropiaFlowExtension')
         const btn = document.getElementById('EntropiaFlowButton')
