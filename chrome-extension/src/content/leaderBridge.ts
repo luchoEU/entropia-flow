@@ -9,11 +9,10 @@ type Message =
     | { channel: string; type: "RESPONSE"; name: string; payload?: any }
 
 export class LeaderBridge {
-    private isLeader = false
+    private isLeader = true
     private handlers: Record<string, RpcHandler> = {}
 
     constructor() {
-        this.electLeader()
         this.listen()
     }
 
@@ -53,48 +52,6 @@ export class LeaderBridge {
 
     isLeaderInstance() {
         return this.isLeader
-    }
-
-    // ==============================
-    // Internal
-    // ==============================
-
-    private electLeader() {
-        let decided = false
-
-        const timeout = setTimeout(() => {
-            if (!decided) {
-                this.isLeader = true
-                window.postMessage(
-                    { channel: CHANNEL, type: "I_AM_LEADER" },
-                    "*"
-                )
-                console.log("[LeaderBridge] I am leader")
-            }
-        }, 100)
-
-        window.postMessage(
-            { channel: CHANNEL, type: "WHO_IS_LEADER" },
-            "*"
-        )
-
-        window.addEventListener("message", (event) => {
-            if (event.source !== window) return
-            const msg = event.data
-            if (msg?.channel !== CHANNEL) return
-
-            if (msg.type === "I_AM_LEADER") {
-                decided = true
-                clearTimeout(timeout)
-            }
-
-            if (msg.type === "WHO_IS_LEADER" && this.isLeader) {
-                window.postMessage(
-                    { channel: CHANNEL, type: "I_AM_LEADER" },
-                    "*"
-                )
-            }
-        })
     }
 
     private listen() {
