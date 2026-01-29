@@ -46,23 +46,16 @@ export const lastLoadingAtom = atom<boolean>(true)
 export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
     const history = get(historyComputedAtom)
     const persisted = get(lastPersistedAtom)
-    const lastTimestamp = get(lastTimestampAtom)
+    let lastTimestamp = get(lastTimestampAtom)
 
-    if (!lastTimestamp || !history.list.length) {
+    if (!history.list.length) {
         return initialComputedState
     }
 
     const lastInv = getLatestFromInventoryList(
         history.list.map(v => v.rawInventory)
     )
-    const inv = history.list.find(v => v.key === lastTimestamp)?.rawInventory
-
-    if (!inv) {
-        return {
-            anyInventory: false,
-            date: 0
-        }
-    }
+    const inv = history.list.find(v => v.key === lastTimestamp)?.rawInventory ?? lastInv
 
     const latestInventoryKey = lastInv?.meta?.date
     if (inv === lastInv) {
@@ -325,6 +318,14 @@ export const setLastAtom = atom(
         }
         set(lastPersistedAtom, newState)
         await saveToStorage(newState)
+    }
+)
+
+// Set a specific timestamp as session start
+export const setAsLastAtom = atom(
+    null,
+    async (_get, _set, last: number) => {
+        messagesApi.requestSetLast(false, last)
     }
 )
 

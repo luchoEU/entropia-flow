@@ -1,8 +1,7 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
 import { useSetAtom } from 'jotai'
 import { sortByAtom, setItemExpandedAtom, exportToFileAtom, toggleActionsViewAtom } from '../../application/atoms/history'
-import { setAsLast } from '../../application/actions/messages'
+import { setAsLastAtom } from '../../application/atoms/last'
 import { ViewInventory, ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ActionTree from './ActionTree'
@@ -12,11 +11,11 @@ import ImgButton from '../common/ImgButton'
 
 const InventoryItem = (p: { item: ViewInventory }) => {
     const { item } = p
-    const dispatch = useDispatch()
     const setSortBy = useSetAtom(sortByAtom)
     const setExpanded = useSetAtom(setItemExpandedAtom)
     const exportFile = useSetAtom(exportToFileAtom)
     const toggleActions = useSetAtom(toggleActionsViewAtom)
+    const setAsLast = useSetAtom(setAsLastAtom)
 
     const config = {
         sortBy: (part: number) => () => setSortBy({ key: item.key, part }),
@@ -27,7 +26,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
     }
 
     return <>
-        <tr className='item-row' onClick={() => setExpanded({ key: item.key, expanded: !item.expanded })}>
+        <tr className='item-row img-hover-container' onClick={() => setExpanded({ key: item.key, expanded: !item.expanded })}>
             <td>
                 <ExpandablePlusButton
                     className={item.class}
@@ -56,7 +55,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                             src='img/up.png'
                             className='img-btn-up'
                             afterText='Session Start'
-                            dispatch={() => dispatch(setAsLast(item.key))}
+                            dispatch={() => setAsLast(item.key)}
                         />
                     )
                 }

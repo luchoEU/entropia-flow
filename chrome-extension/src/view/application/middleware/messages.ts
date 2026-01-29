@@ -2,7 +2,7 @@ import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '..
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setCurrentInventory } from '../actions/inventory'
 import { setCurrentGameLog } from '../actions/log'
-import { REFRESH, SET_AS_LAST, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
+import { REFRESH, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
 import { executeStreamClickAction } from '../actions/stream.click'
@@ -84,7 +84,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             api.messages.requestRefresh(true);
             break
         }
-        case SET_AS_LAST: { api.messages.requestSetLast(false, action.payload.last); break }
         case COPY_LAST: {
             const computed = getDefaultStore().get(lastComputedAtom)
             if (computed.diff) {

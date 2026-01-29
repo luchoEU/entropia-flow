@@ -1,5 +1,4 @@
 const REFRESH = "[msg] refresh"
-const SET_AS_LAST = "[msg] set as last"
 const COPY_LAST = "[msg] copy last"
 const TIMER_ON = "[msg] timer on"
 const TIMER_OFF = "[msg] timer off"
@@ -13,13 +12,6 @@ const refresh = {
 const copyLast = {
     type: COPY_LAST
 }
-
-const setAsLast = (last: number) => ({
-    type: SET_AS_LAST,
-    payload: {
-        last
-    }
-})
 
 const timerOn = {
     type: TIMER_ON
@@ -38,14 +30,12 @@ const setWebSocketUrl = (url: string) => ({
 
 export {
     REFRESH,
-    SET_AS_LAST,
     COPY_LAST,
     TIMER_ON,
     TIMER_OFF,
     SET_WEB_SOCKET_URL,
     RETRY_WEB_SOCKET,
     refresh,
-    setAsLast,
     copyLast,
     timerOn,
     timerOff,
