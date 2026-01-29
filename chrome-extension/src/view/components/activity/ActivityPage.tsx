@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { SessionType, getActionTimestamp } from '../../application/state/activity'
 import { preSessionKey, groupBySession } from './activityPageUtils'
-import { useActivityPage } from './useActivityPage'
+import { useActivityPage, useClearAllAndReload } from './useActivityPage'
 import SessionHeader from './SessionHeader'
 import SessionMeta from './SessionMeta'
 import AutoActionsView from './views/AutoActionsView'
@@ -24,9 +24,6 @@ function ActivityPage() {
         excludeItem,
         includeItem,
         permanentExcludeItem,
-        excludeAction,
-        includeAction,
-        permanentExcludeAction,
         updateActionType,
         deleteSession,
         undoDeleteSession,
@@ -41,6 +38,7 @@ function ActivityPage() {
         buildCopyTextForAction,
         copyToClipboard,
     } = useActivityPage()
+    const clearAllAndReloadDirect = useClearAllAndReload()
 
     const activityData = activity
 
@@ -187,6 +185,11 @@ function ActivityPage() {
                         Undo Delete Session
                     </button>
                 )}
+                <button onClick={async () => {
+                    await clearAllAndReloadDirect()
+                }}>
+                    Reset Items
+                </button>
                 <button
                     onClick={() => setShowActions('autoActions')}
                     style={{ fontWeight: showActions === 'autoActions' ? 'bold' : 'normal', opacity: showActions === 'autoActions' ? 1 : 0.6 }}
@@ -289,7 +292,6 @@ function ActivityPage() {
                                         const itemPermanentList = permanentItemBlacklist?.[session.type] || []
                                         return (
                                             <ItemsView
-                                                sessionActions={sessionActions}
                                                 itemExclusionConfig={{
                                                     sessionId: session.id,
                                                     sessionType: session.type,
@@ -299,8 +301,6 @@ function ActivityPage() {
                                                     onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
                                                     onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
                                                 }}
-                                                getAllItemIds={getAllItemIds}
-                                                getInventoryItemWithFallback={getInventoryItemWithFallback}
                                             />
                                         )
                                     } else if (showActions === 'userActions') {

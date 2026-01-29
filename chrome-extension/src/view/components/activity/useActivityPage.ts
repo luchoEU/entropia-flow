@@ -19,8 +19,6 @@ import {
     includeActionAtom,
     permanentExcludeActionAtom,
     updateActionTypeAtom,
-    updateActionItemAtom,
-    updateActionItemsAtom,
     deleteSessionAtom,
     undoDeleteSessionAtom,
     addActionTypeDefinitionAtom,
@@ -28,6 +26,9 @@ import {
     addUserActionAtom,
     removeUserActionAtom,
     applyInferenceRuleAtom,
+    clearAllAtom,
+    onHistoryChangeAtom,
+    clearAllAndReloadAtom,
 } from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
 import { isFeatureEnabled, Feature } from '../../application/state/settings'
@@ -62,6 +63,9 @@ export const useActivityPage = () => {
     const addUserAction = useSetAtom(addUserActionAtom)
     const removeUserAction = useSetAtom(removeUserActionAtom)
     const applyInferenceRule = useSetAtom(applyInferenceRuleAtom)
+    const clearAll = useSetAtom(clearAllAtom)
+    const onHistoryChange = useSetAtom(onHistoryChangeAtom)
+    const clearAllAndReload = useSetAtom(clearAllAndReloadAtom)
 
     // Redux state (for settings only)
     const settings = useSelector(getSettings)
@@ -180,6 +184,9 @@ export const useActivityPage = () => {
         addUserAction,
         removeUserAction,
         applyInferenceRule,
+        clearAll,
+        onHistoryChange,
+        clearAllAndReload,
 
         // Helper functions
         getAllItemIds,
@@ -189,4 +196,8 @@ export const useActivityPage = () => {
         buildCopyTextForAction,
         copyToClipboard,
     }
+}
+
+export const useClearAllAndReload = () => {
+    return useSetAtom(clearAllAndReloadAtom)
 }
