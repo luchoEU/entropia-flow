@@ -108,7 +108,7 @@ class ContentTabManager implements IContentTab {
         return (await this._send('wakeUp', MSG_NAME_REFRESH_WAKE_UP)) === undefined
     }
 
-    public async setStatus(isMonitoring: boolean): Promise<void> {
+    public async setMonitoring(isMonitoring: boolean): Promise<void> {
         const ports = await this.portManager.all()
         ports.forEach(port => port.send(MSG_NAME_CONTENT_SET_MONITORING, { isMonitoring }))
     }

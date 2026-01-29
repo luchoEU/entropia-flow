@@ -5,7 +5,7 @@ import { Component, traceError } from "../../common/trace";
 import AlarmSettings from "../settings/alarmSettings";
 
 interface IContentTab {
-    setStatus(isMonitoring: boolean): Promise<void>
+    setMonitoring(isMonitoring: boolean): Promise<void>
     requestItems(tag?: any, forced?: boolean): Promise<string>
     setSleepMode(sleepMode: boolean): Promise<string>
     wakeUp(): Promise<boolean>
@@ -84,7 +84,7 @@ class RefreshManager {
         contentTab.onConnected = async () => {
             await this._setViewStatus(CLASS_INFO, STRING_LOADING_PAGE);
             const on = await this.alarmSettings.isMonitoringOn();
-            await this.contentTab?.setStatus(on);
+            await this.contentTab?.setMonitoring(on);
             await this.tickAlarm?.start(TICK_SECONDS);
         }
 
@@ -185,6 +185,10 @@ class RefreshManager {
         if (this.sleepMode === sleepMode) return
         this.sleepMode = sleepMode
         await this.contentTab?.setSleepMode(sleepMode)
+    }
+
+    public async setMonitoring(isMonitoring: boolean) {
+        await this.contentTab?.setMonitoring(isMonitoring)
     }
 
     public async onLogMessageReceived() {

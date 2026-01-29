@@ -21,6 +21,7 @@ import {
     MSG_NAME_STORAGE_CHANGED,
     MSG_NAME_SET_SHOWING_LAYOUT_ID,
     MSG_NAME_MONITORING_CHANGED,
+    MSG_NAME_REQUEST_CHANGE_MONITORING,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -208,6 +209,9 @@ async function wiring(
             viewStateManager.reload()
             if (m.tag?.last)
                 gameLogHistory.clearSession()
+        },
+        [MSG_NAME_REQUEST_CHANGE_MONITORING]: async (m: { isMonitoring: boolean }) => {
+            await refreshManager.setMonitoring(m.isMonitoring)
         },
         [MSG_NAME_SET_SHOWING_LAYOUT_ID]: async (m: { layoutId: string }) => streamDataBuilder.updateShowingLayoutId(m.layoutId),
         [MSG_NAME_STORAGE_CHANGED]: async (m: { store: string }) => streamDataBuilder.updateState(m.store),
