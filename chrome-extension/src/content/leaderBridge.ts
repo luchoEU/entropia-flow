@@ -10,11 +10,12 @@ type Message =
     | { channel: string; type: "BROADCAST"; name: string; payload?: any }
 
 export class LeaderBridge {
-    private isLeader = true
+    private isLeader: boolean
     private handlers: Record<string, RpcHandler> = {}
     private broadcastHandlers: Record<string, RpcHandler> = {}
 
-    constructor() {
+    constructor(isLeader: boolean) {
+        this.isLeader = isLeader
         this.listen()
     }
 
@@ -69,7 +70,6 @@ export class LeaderBridge {
 
     private listen() {
         window.addEventListener("message", async (event) => {
-            if (event.source !== window) return
             const msg = event.data
             if (msg?.channel !== CHANNEL) return
 
