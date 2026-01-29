@@ -11,6 +11,9 @@ import {
 import { getDifference } from '../helpers/diff'
 
 const STORAGE_KEY = 'view.history'
+// Scale factor to create unique keys: date * INVENTORY_KEY_SCALE + index
+// Ensures correct ordering even when inventories share the same timestamp
+export const INVENTORY_KEY_SCALE = 1000000
 
 // Persisted UI state
 interface HistoryUIState {
@@ -58,7 +61,7 @@ export const historyAtom = atom<HistoryComputedState>(get => {
                 m++
         }
 
-        const key = inv.meta.date * 1000000 + n
+        const key = inv.meta.date * INVENTORY_KEY_SCALE + n
         const expanded = ui.expandedItems.includes(key)
         const sortType = ui.sortTypes[key] ?? 0
         const showActions = ui.showActionsMap[key] ?? true

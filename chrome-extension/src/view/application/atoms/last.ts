@@ -7,7 +7,7 @@ import { getDifference } from '../helpers/diff'
 import { getLatestFromInventoryList, getText } from '../helpers/history'
 import { _applyExcludes, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
 import messagesApi from '../../services/api/messages'
-import { historyAtom, inventoryListAtom } from './history'
+import { historyAtom, inventoryListAtom, INVENTORY_KEY_SCALE } from './history'
 
 const STORAGE_KEY = 'view.last'
 
@@ -55,7 +55,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
     const lastInv = getLatestFromInventoryList(
         history.list.map(v => v.rawInventory)
     )
-    const inv = history.list.find(v => v.key === lastTimestamp)?.rawInventory ?? lastInv
+    const inv = history.list.find(v => Math.floor(v.key / INVENTORY_KEY_SCALE) === lastTimestamp)?.rawInventory ?? lastInv
 
     const latestInventoryKey = lastInv?.meta?.date
     if (inv === lastInv) {
