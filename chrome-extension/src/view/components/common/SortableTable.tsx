@@ -7,15 +7,16 @@ const SortableTable = (p: {
     sortType: number,
     sortBy: (part: number) => any,
     columns: number[],
+    className?: string,
     nameOverride?: { [part: number]: string },
     definition: { [part: number]: { text: string, up: number, down: number} },
     children: any
 }) => {
-    const { sortType, sortBy, columns, nameOverride, definition, children } = p
+    const { sortType, sortBy, columns, className, nameOverride, definition, children } = p
     const dispatch = useDispatch()
 
     return (
-        <table className='sort-table'>
+        <table className={'sort-table ' + (className || '')}>
             <thead>
                 <tr className='sort-row'>
                     { columns.map((c,i) =>

@@ -141,6 +141,7 @@ export const addInventoryAndActionsAtom = atom(
     null,
     async (get, set, { inventoryItems, actions }: { inventoryItems: ActivityItem[], actions: StoredAction[] }) => {
         const current = get(activityAtom)
+
         const newState = {
             ...current,
             data: {
@@ -351,7 +352,7 @@ export const clearAllAndReloadAtom = atom(
         // Collect all actions and inventory items
         const allActions: StoredAction[] = []
         const allInventoryItems: ActivityItem[] = []
-        let lastProcessedTimestamp = activity.lastProcessed.inventoryKey ?? 0
+        let lastProcessedKey = activity.lastProcessed.inventoryKey ?? 0
 
         for (const inventoryView of unprocessedInventories) {
             const timestamp = inventoryView.rawInventory.meta?.date ?? Date.now()
@@ -381,7 +382,7 @@ export const clearAllAndReloadAtom = atom(
                 )
             }
 
-            lastProcessedTimestamp = timestamp
+            lastProcessedKey = inventoryView.key
         }
 
         // Update activity with new actions and items
@@ -395,28 +396,25 @@ export const clearAllAndReloadAtom = atom(
                 },
                 lastProcessed: {
                     ...activity.lastProcessed,
-                    inventoryKey: lastProcessedTimestamp
+                    inventoryKey: lastProcessedKey
                 }
             }
             set(activityAtom, updatedActivity)
             await saveToStorage(updatedActivity)
         } else {
             // Even if no new items/actions, update lastProcessed to prevent reprocessing
-            // Find the latest timestamp in the history
-            let latestTimestamp = activity.lastProcessed.inventoryKey ?? 0
-            for (const inv of history.list) {
-                const timestamp = inv.rawInventory.meta?.date ?? 0
-                if (timestamp > latestTimestamp) {
-                    latestTimestamp = timestamp
-                }
+            // Find the latest key in the history
+            let latestKey = activity.lastProcessed.inventoryKey ?? 0
+            if (history.list.length > 0) {
+                latestKey = Math.max(...history.list.map(i => i.key))
             }
 
-            if (latestTimestamp > (activity.lastProcessed.inventoryKey ?? 0)) {
+            if (latestKey > (activity.lastProcessed.inventoryKey ?? 0)) {
                 const updatedActivity = {
                     ...activity,
                     lastProcessed: {
                         ...activity.lastProcessed,
-                        inventoryKey: latestTimestamp
+                        inventoryKey: latestKey
                     }
                 }
                 set(activityAtom, updatedActivity)

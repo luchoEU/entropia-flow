@@ -87,12 +87,14 @@ const Last = () => {
 
     return (
         <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
-            <p>
-                <ExpandablePlusButton
-                    expanded={expanded}
-                    setExpanded={setExpanded}
-                />
-                <span onClick={() => setExpanded(!expanded)}>{ text }</span>
+            <p className="img-container-hover flex" style={{ alignItems: 'center', gap: '10px' }}>
+                <span onClick={() => setExpanded(!expanded)}>
+                    <ExpandablePlusButton
+                        expanded={expanded}
+                        setExpanded={setExpanded}
+                    />
+                    { text }
+                </span>
                 <span className={`difference ${getDeltaClass(delta)}`}>{ delta?.toFixed(2) }</span>
                 { hasWarning &&
                     <ImgButton
@@ -113,6 +115,7 @@ const Last = () => {
                         title='Set as Session Start'
                         src='img/tick.png'
                         className='img-btn-delta-zero'
+                        show
                         dispatch={() => { createNewSession(); return undefined }} />
                 }
                 { expanded &&

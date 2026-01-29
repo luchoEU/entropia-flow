@@ -11,7 +11,7 @@ const TextButton = (p: {
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    return <button className={`button-text ${p.className ?? ''}`} title={p.title} onClick={(e) => {
+    return <button className={`button-text img-btn ${p.className ?? ''}`} title={p.title} onClick={(e) => {
         e.stopPropagation();
         multiDispatch(dispatch, navigate, p.dispatch);
     }}>{p.text}</button>

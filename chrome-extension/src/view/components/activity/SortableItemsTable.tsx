@@ -34,8 +34,10 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
         const aVal = a[sortColumn]
         const bVal = b[sortColumn]
         let compare: number
-        if (sortColumn === 'q' || sortColumn === 'v' || sortColumn === 't') {
+        if (sortColumn === 'q' || sortColumn === 'v') {
             compare = Math.abs(parseFloat(String(aVal)) || 0) - Math.abs(parseFloat(String(bVal)) || 0)
+        } else if (sortColumn === 't') {
+            compare = new Date(aVal || 0).getTime() - new Date(bVal || 0).getTime()
         } else {
             compare = String(aVal || '').localeCompare(String(bVal || ''))
         }
@@ -85,7 +87,7 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
     }
 
     return (
-        <table className='table-diff'>
+        <table key={`${sortColumn}-${sortDirection}`} className='table-diff'>
             <thead>
                 <tr>
                     {selectionMode && showSelectAll && <th><input type="checkbox" onChange={(e) => handleSelectAll(e.target.checked)} checked={sortedItems.length > 0 && sortedItems.every(item => selectedItemIds.has(item.key))} /></th>}

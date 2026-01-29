@@ -28,7 +28,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
     }
 
     return <>
-        <tr className='item-row img-hover-container' onClick={() => setExpanded({ key: item.key, expanded: !item.expanded })}>
+        <tr className='item-row img-container-hover' onClick={() => setExpanded({ key: item.key, expanded: !item.expanded })}>
             <td>
                 <ExpandablePlusButton
                     className={item.class}

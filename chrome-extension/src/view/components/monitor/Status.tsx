@@ -17,36 +17,38 @@ const Status = () => {
 
     return (
         <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items' subtitle='Status of connection' actionRequired={message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined}>
-            { showLoading ?
-                <img src='img/loading.gif'
-                    className='img-refresh-loading' /> :
-                <ImgButton
-                    title='Refresh'
-                    src='img/reload.png'
-                    show                    
-                    dispatch={() => refresh} />
-            }
-            { history.hiddenError &&
-                <ImgButton
-                    title={history.hiddenError}
-                    src='img/error.png'
-                    show
-                    dispatch={() => setExpanded('MonitorStatus')(true)} />
-            }
-            <span className={className}>
-                {message === STRING_PLEASE_LOG_IN ?
-                    <a href={URL_MY_ITEMS_PAGE} target="_blank">{message}</a>
-                    : message
+            <div className='flex' style={{ gap: '10px', alignItems: 'center', marginLeft: '10px' }}>
+                { showLoading ?
+                    <img src='img/loading.gif'
+                        className='img-refresh-loading' /> :
+                    <ImgButton
+                        title='Refresh'
+                        src='img/reload.png'
+                        show
+                        dispatch={() => refresh} />
                 }
-            </span>
-            {isMonitoring ?
-                <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
-                    Stop Automatic Refresh
-                </button> :
-                <button className="button-timer start" onClick={() => dispatch(timerOn)}>
-                    Start Automatic Refresh
-                </button>
-            }
+                { history.hiddenError &&
+                    <ImgButton
+                        title={history.hiddenError}
+                        src='img/error.png'
+                        show
+                        dispatch={() => setExpanded('MonitorStatus')(true)} />
+                }
+                <span className={className}>
+                    {message === STRING_PLEASE_LOG_IN ?
+                        <a href={URL_MY_ITEMS_PAGE} target="_blank">{message}</a>
+                        : message
+                    }
+                </span>
+                {isMonitoring ?
+                    <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
+                        Stop Automatic Refresh
+                    </button> :
+                    <button className="button-timer start" onClick={() => dispatch(timerOn)}>
+                        Start Automatic Refresh
+                    </button>
+                }
+            </div>
         </ExpandableSection>
     )
 }

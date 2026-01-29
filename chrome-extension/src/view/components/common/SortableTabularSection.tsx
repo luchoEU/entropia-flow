@@ -132,7 +132,7 @@ const _ItemRow = <T extends any>(
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
     const row = getRow(item, index, data);
-    let className = 'item-row' + ('dispatch' in row ? ' pointer' : '');
+    let className = 'item-row img-container-hover' + ('dispatch' in row ? ' pointer' : '');
     const rowClass = getRowClass?.(item, index, data);
     if (rowClass) className += ` ${rowClass}`
 
@@ -246,7 +246,7 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
             </thead>
             <tbody>
                 {s.items.show.map((r, i) =>
-                    <tr key={getItemRowKey?.(r, i, s.data) ?? i} className='item-row'>
+                    <tr key={getItemRowKey?.(r, i, s.data) ?? i} className='item-row img-container-hover'>
                         {getItemRow(r, i, s.data).map((v, j) =>
                             <td key={j}>
                                 <div><RowValueRenderComponent v={v} /></div>

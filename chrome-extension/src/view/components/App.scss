@@ -405,7 +405,6 @@ form label {
 }
 
 .table-diff tr td img,
-.item-row img,
 .img-container-hover img {
     visibility: hidden;
     align-self: center;
@@ -413,8 +412,6 @@ form label {
 
 .table-diff tr:hover td img,
 .table-diff tr td img[data-show],
-.item-row:hover img,
-.item-row img[data-show],
 .img-container-hover:hover img,
 .img-container-hover img[data-show],
 .img-btn[data-show] img {
@@ -458,7 +455,6 @@ form label {
     color: white;
     border-radius: 8px;
     padding: 8px;
-    margin-left: 20px;
     font-size: 14px;
 }
 
@@ -477,7 +473,6 @@ form label {
 
 .img-btn img, .img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img {
     height: 15px;
-    margin-left: 10px;
 }
 
 .img-btn-trash-black img {
@@ -491,10 +486,6 @@ form label {
 .img-btn {
     opacity: 0;
     transition: opacity 0.2s;
-}
-
-.img-hover-container:hover .img-btn {
-    opacity: 1;
 }
 
 .img-btn[data-show] {
@@ -782,7 +773,6 @@ button:active {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    margin-left: 10px;
 }
 
 .button-diff {

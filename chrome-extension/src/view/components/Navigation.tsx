@@ -59,7 +59,7 @@ const Tab = (p: {
                 'button-menu'}
             onClick={handleClick}>
             { tabTitle[p.id] }
-            { p.actionRequired && <img className='img-warning-menu' src='img/warning.png' title={p.actionRequired} /> }
+            { p.actionRequired && <img className='img-warning-menu' data-show src='img/warning.png' title={p.actionRequired} /> }
             { p.pendingCount !== undefined && p.pendingCount > 0 && (
                 <span className='tab-pending-badge' title={`${p.pendingCount} pending`}>{p.pendingCount}</span>
             )}
@@ -86,7 +86,7 @@ const FirstRow = () => {
     return (
         <>
             <div>
-                <img src='img/flow128.png' className='img-logo'></img>
+                <img src='img/flow128.png' data-show className='img-logo'></img>
                 <strong>Entropia Flow</strong>
             </div>
             { tabOrder.map((id) => tabShow(id, anyInventory, settings) &&
@@ -114,7 +114,7 @@ const Navigation = () => {
 
     return (
         <>
-            <nav ref={ref} className={'img-hover-container ' + (menuPinned ? 'nav-pinned' : '')}>
+            <nav ref={ref} className={'img-container-hover ' + (menuPinned ? 'nav-pinned' : '')}>
                 { showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>
