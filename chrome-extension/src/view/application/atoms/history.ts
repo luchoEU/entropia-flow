@@ -5,10 +5,10 @@ import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import {
     getText,
     getLatestFromInventoryList,
-    reduceSetHistoryList,
     reduceHistorySortBy,
     reduceToggleActionsView
 } from '../helpers/history'
+import { getDifference } from '../helpers/diff'
 
 const STORAGE_KEY = 'view.history'
 
@@ -38,8 +38,50 @@ const initialComputedState: HistoryComputedState = {
 
 // Base atoms
 export const historyUIAtom = atom<HistoryUIState>(initialUIState)
-export const historyComputedAtom = atom<HistoryComputedState>(initialComputedState)
+export const inventoryListAtom = atom<Inventory[]>([])
 export const historyLoadingAtom = atom<boolean>(true)
+
+// Computed atoms
+export const historyAtom = atom<HistoryComputedState>(get => {
+    const list = get(inventoryListAtom)
+    const ui = get(historyUIAtom)
+    const viewList: ViewInventory[] = []
+
+    for (let n = 0; n < list.length; n++) {
+        const inv = list[n]
+        let prev: Inventory | undefined = undefined
+        let m = n + 1
+        while (prev === undefined && m < list.length) {
+            if (list[m].itemlist !== undefined)
+                prev = list[m]
+            else
+                m++
+        }
+
+        const key = inv.meta.date * 1000000 + n
+        const expanded = ui.expandedItems.includes(key)
+        const sortType = ui.sortTypes[key] ?? 0
+        const showActions = ui.showActionsMap[key] ?? true
+
+        viewList.push({
+            key,
+            text: getText(inv),
+            info: '',
+            class: '',
+            expanded,
+            sortType,
+            canBeLast: inv.log === undefined,
+            diff: getDifference(inv, prev),
+            rawInventory: inv,
+            showActions
+        } as ViewInventory)
+    }
+
+    return {
+        list: viewList,
+        hiddenError: viewList.length > 0 && !viewList[0].canBeLast ? viewList[0].text : undefined
+    }
+})
 
 // Persistence helper
 const saveUIToStorage = async (state: HistoryUIState) => {
@@ -68,30 +110,10 @@ export const initializeHistoryAtom = atom(
 
 // Write atoms (actions)
 
-export const setHistoryListAtom = atom(
-    null,
-    (get, set, { list, last }: { list: Inventory[], last?: number }) => {
-        const currentUI = get(historyUIAtom)
-
-        // Create initial state with empty list
-        const initialHistoryState: HistoryComputedState = {
-            list: [],
-            hiddenError: undefined
-        }
-
-        // Use the helper function to reduce the history list
-        const newHistoryState = reduceSetHistoryList(initialHistoryState, list, last)
-
-        // Update computed state
-        set(historyComputedAtom, newHistoryState)
-    }
-)
-
 export const setItemExpandedAtom = atom(
     null,
     async (get, set, { key, expanded }: { key: number, expanded: boolean }) => {
         const currentUI = get(historyUIAtom)
-        const currentComputed = get(historyComputedAtom)
 
         // Update persisted UI state
         const newExpandedItems = expanded
@@ -100,12 +122,6 @@ export const setItemExpandedAtom = atom(
         const newUI = { ...currentUI, expandedItems: newExpandedItems }
         set(historyUIAtom, newUI)
         await saveUIToStorage(newUI)
-
-        // Update computed list
-        const newList = currentComputed.list.map(inv =>
-            inv.key === key ? { ...inv, expanded } : inv
-        )
-        set(historyComputedAtom, { ...currentComputed, list: newList })
     }
 )
 
@@ -113,7 +129,7 @@ export const sortByAtom = atom(
     null,
     async (get, set, { key, part }: { key: number, part: number }) => {
         const currentUI = get(historyUIAtom)
-        const currentComputed = get(historyComputedAtom)
+        const currentComputed = get(historyAtom)
 
         // Use the helper to update the history state
         const updatedState = reduceHistorySortBy(currentComputed, key, part)
@@ -126,8 +142,6 @@ export const sortByAtom = atom(
             set(historyUIAtom, newUI)
             await saveUIToStorage(newUI)
         }
-
-        set(historyComputedAtom, updatedState)
     }
 )
 
@@ -135,7 +149,7 @@ export const toggleActionsViewAtom = atom(
     null,
     async (get, set, key: number) => {
         const currentUI = get(historyUIAtom)
-        const currentComputed = get(historyComputedAtom)
+        const currentComputed = get(historyAtom)
 
         // Use the helper to update the history state
         const updatedState = reduceToggleActionsView(currentComputed, key)
@@ -148,15 +162,14 @@ export const toggleActionsViewAtom = atom(
             set(historyUIAtom, newUI)
             await saveUIToStorage(newUI)
         }
-
-        set(historyComputedAtom, updatedState)
     }
 )
 
 export const exportToFileAtom = atom(
     null,
     (get, _set, key: number) => {
-        const { list } = get(historyComputedAtom)
+        const { list } = get(historyAtom)
+        const inventories = get(inventoryListAtom)
         const inv = list.find(i => i.key === key)
         if (!inv) return
 

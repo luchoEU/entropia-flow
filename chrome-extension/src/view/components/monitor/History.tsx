@@ -1,13 +1,13 @@
 import React from 'react'
 import { useAtomValue } from 'jotai';
-import { historyComputedAtom } from '../../application/atoms/history'
+import { historyAtom } from '../../application/atoms/history'
 import { ViewInventory } from '../../application/state/history'
 import ExpandableSection from '../common/ExpandableSection2';
 import InventoryItem from './InventoryItem'
 import { STRING_NO_DATA } from '../../../common/const';
 
 const History = () => {
-    const history = useAtomValue(historyComputedAtom)
+    const history = useAtomValue(historyAtom)
 
     if (history.list.length === 0 ||
         history.list.length === 1 && history.list[0].rawInventory.log?.message === STRING_NO_DATA

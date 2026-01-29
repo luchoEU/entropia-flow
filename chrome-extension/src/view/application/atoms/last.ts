@@ -7,7 +7,7 @@ import { getDifference } from '../helpers/diff'
 import { getLatestFromInventoryList, getText } from '../helpers/history'
 import { _applyExcludes, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
 import messagesApi from '../../services/api/messages'
-import { historyComputedAtom } from './history'
+import { historyAtom, inventoryListAtom } from './history'
 
 const STORAGE_KEY = 'view.last'
 
@@ -42,9 +42,9 @@ export const lastTimestampAtom = atom<number>(0)
 // Loading state atom
 export const lastLoadingAtom = atom<boolean>(true)
 
-// Computed state atom (derived from historyComputedAtom and lastTimestampAtom)
+// Computed state atom (derived from historyAtom and lastTimestampAtom)
 export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
-    const history = get(historyComputedAtom)
+    const history = get(historyAtom)
     const persisted = get(lastPersistedAtom)
     let lastTimestamp = get(lastTimestampAtom)
 

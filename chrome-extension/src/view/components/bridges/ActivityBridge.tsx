@@ -14,7 +14,7 @@ import {
     subscribeToActivityAtom,
     updateActionBudgetNameAtom
 } from '../../application/atoms/activity'
-import { historyComputedAtom } from '../../application/atoms/history'
+import { historyAtom } from '../../application/atoms/history'
 import { lastComputedAtom } from '../../application/atoms/last'
 import { getGameLog } from '../../application/selectors/log'
 import { getBudget } from '../../application/selectors/budget'
@@ -30,7 +30,7 @@ export function ActivityBridge() {
     // Redux selectors
     const gameLog: GameLogData = useSelector(getGameLog)
     // Jotai atoms
-    const history = useAtomValue(historyComputedAtom)
+    const history = useAtomValue(historyAtom)
     const budget = useSelector(getBudget)
     const last = useAtomValue(lastComputedAtom)
 

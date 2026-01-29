@@ -35,7 +35,6 @@ interface ViewInventory {
     expanded: boolean
     diff: Array<ViewItemData> | null
     sortType: number
-    isLast: boolean
     canBeLast: boolean
     rawInventory: Inventory
     actions?: InferredAction[]

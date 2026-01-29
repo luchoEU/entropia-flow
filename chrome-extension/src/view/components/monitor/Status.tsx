@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useAtomValue } from 'jotai';
 import { Status } from '../../../common/state'
 import { refresh, timerOff, timerOn } from '../../application/actions/messages';
-import { historyComputedAtom } from '../../application/atoms/history';
+import { historyAtom } from '../../application/atoms/history';
 import { getStatus } from '../../application/selectors/status';
 import { STRING_PLEASE_LOG_IN, URL_MY_ITEMS_PAGE } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
@@ -12,7 +12,7 @@ import { setExpanded } from '../../application/actions/expandable';
 
 const Status = () => {
     const dispatch = useDispatch()
-    const history = useAtomValue(historyComputedAtom)
+    const history = useAtomValue(historyAtom)
     const { class: className, message, showLoading, isMonitoring } = useSelector(getStatus);
 
     return (

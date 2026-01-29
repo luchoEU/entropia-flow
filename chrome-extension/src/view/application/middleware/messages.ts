@@ -14,15 +14,15 @@ import { Feature, isFeatureEnabled } from '../state/settings'
 import { getSettings } from '../selectors/settings'
 import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
-import { setHistoryListAtom } from '../atoms/history'
 import { setLastTimestampAtom, lastComputedAtom } from '../atoms/last'
+import { inventoryListAtom } from '../atoms/history'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
     if (m.list) {
         m.list.reverse() // newer first
         // Update Jotai atoms
-        getDefaultStore().set(setHistoryListAtom, { list: m.list, last: m.last })
+        getDefaultStore().set(inventoryListAtom, m.list)
         if (m.last) {
             getDefaultStore().set(setLastTimestampAtom, m.last)
         }

@@ -1,8 +1,8 @@
 import React from 'react'
-import { useSetAtom } from 'jotai'
+import { useSetAtom, useAtomValue } from 'jotai'
 import { sortByAtom, setItemExpandedAtom, exportToFileAtom, toggleActionsViewAtom } from '../../application/atoms/history'
-import { setAsLastAtom } from '../../application/atoms/last'
-import { ViewInventory, ViewItemData } from '../../application/state/history'
+import { setAsLastAtom, lastTimestampAtom } from '../../application/atoms/last'
+import { ViewInventory } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ActionTree from './ActionTree'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
@@ -16,6 +16,8 @@ const InventoryItem = (p: { item: ViewInventory }) => {
     const exportFile = useSetAtom(exportToFileAtom)
     const toggleActions = useSetAtom(toggleActionsViewAtom)
     const setAsLast = useSetAtom(setAsLastAtom)
+    const lastTimestamp = useAtomValue(lastTimestampAtom)
+    const isLast = item.rawInventory.meta.date === lastTimestamp
 
     const config = {
         sortBy: (part: number) => () => setSortBy({ key: item.key, part }),
@@ -47,7 +49,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                 }
             </td>
             <td>
-                { item.isLast ?
+                { isLast ?
                     <span className='label-up'>Session Start</span> :
                     (item.canBeLast &&
                         <ImgButton
@@ -55,7 +57,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                             src='img/up.png'
                             className='img-btn-up'
                             afterText='Session Start'
-                            dispatch={() => setAsLast(item.key)}
+                            dispatch={() => setAsLast(item.rawInventory.meta.date)}
                         />
                     )
                 }
