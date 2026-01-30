@@ -14,7 +14,8 @@ interface InventoryTabularOwnedData {
         loadingSource?: string,
         loadingError?: string
     },
-    chain: TradeItemData[]
+    chain: TradeItemData[],
+    reserve: boolean
 }
 
 const inventoryTabularData = (state: InventoryState, settings: SettingsState, items: ItemsMap, ttService: TTServiceState): TabularRawData<ItemOwned, InventoryTabularOwnedData> => {
@@ -49,7 +50,8 @@ const inventoryTabularData = (state: InventoryState, settings: SettingsState, it
                     loadingSource: ttService.web?.inventory?.loading?.source,
                     loadingError: ttService.web?.inventory?.errors?.[0].message
                 },
-                chain: state.tradeItemDataChain
+                chain: state.tradeItemDataChain,
+                reserve: state.owned.options.reserve ?? false
             },
             items: list.map(d => {
                 const m: ItemState = items[d.data.n];
@@ -73,7 +75,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
         columnVisible: (items: ItemOwned[] = [], data?: InventoryTabularOwnedData) => {
             const chainRootName = data?.chain?.[0]?.name;
             const hasChain = !chainRootName || !items.some(g => g.data.n === chainRootName);
-            return [true, true, true, true, hasChain && data?.ttService.featureEnabled, hasChain]
+            return [true, true, true, hasChain && data?.reserve, hasChain && data?.ttService.featureEnabled, hasChain]
         },
         columnHeaderAfterName: (data?: InventoryTabularOwnedData) => [, , , , ,
             data?.ttService.loadingSource ?

@@ -1,13 +1,10 @@
 import React, { useState } from 'react'
-import { SessionType } from '../../application/state/activity'
 import ImgButton from '../common/ImgButton'
 import { getDeltaClass } from './activityPageUtils'
 import { formatDateTime } from '../../../common/time'
 
 interface SessionHeaderProps {
-    sessionId: string
     sessionName: string
-    sessionType: SessionType
     isExpanded: boolean
     isEditing: boolean
     isPreSession: boolean
@@ -20,9 +17,7 @@ interface SessionHeaderProps {
 }
 
 const SessionHeader: React.FC<SessionHeaderProps> = ({
-    sessionId,
     sessionName,
-    sessionType,
     isExpanded,
     isEditing,
     isPreSession,
@@ -84,7 +79,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
                     </span>
                 )}
             </div>
-            <span className='session-date'>{formatDateTime(startTime)}</span>
+            <span className='session-date'>{startTime ? formatDateTime(startTime) : ''}</span>
         </div>
     )
 }

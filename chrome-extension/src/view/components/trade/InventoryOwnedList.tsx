@@ -160,7 +160,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                     <p>Type: { user?.type ?? webItem?.type }</p>
                     <p>Value: { addZeroes(user?.value ?? webItem?.value ?? 0) }</p>
                 </>}
-                { reserve && <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={itemReserveValueChanged(tradeItemData.name)}> PED (in TT value)</Field> }
+                { reserve && <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={itemReserveValueChanged(tradeItemData.name)}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</Field> }
                 <ItemMarkup name={tradeItemData.name} />
                 <ItemCalculator name={tradeItemData.name} />
             </>

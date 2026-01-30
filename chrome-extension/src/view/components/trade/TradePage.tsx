@@ -11,7 +11,7 @@ import { getTrade } from '../../application/selectors/trade'
 import { TradeState } from '../../application/state/trade'
 import { getTabularData } from '../../application/selectors/tabular'
 import { setTabularFilter } from '../../application/actions/tabular'
-import InventoryOwnedList from './InventoryOwnedList'
+import { InventoryOwnedList } from './InventoryOwnedList'
 import { getSettings } from '../../application/selectors/settings'
 import { Feature, isFeatureEnabled, SettingsState } from '../../application/state/settings'
 

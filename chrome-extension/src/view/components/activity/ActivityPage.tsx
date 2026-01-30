@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useAtomValue } from 'jotai'
-import { ActivitySession } from '../../application/state/activity'
 import { virtualSessionsAtom } from '../../application/atoms/activity'
 import { preSessionKey } from './activityPageUtils'
 import { useActivityPage, useClearAllAndReload } from './useActivityPage'
@@ -201,17 +200,13 @@ function ActivityPage() {
             {/* Sessions */}
             {virtualSessions.map((session) => {
                 const isPreSession = session.id === preSessionKey
-
                 const isExpanded = expandedSessions.has(session.id)
-                const sessionActions = getSessionActions(session.id, activityData)
 
                 return (
                     <div key={session.id} className='actions-group'>
                         {/* Session Header */}
                         <SessionHeader
-                            sessionId={session.id}
                             sessionName={session.name}
-                            sessionType={session.type}
                             isExpanded={isExpanded}
                             isEditing={editingSessionId === session.id}
                             isPreSession={isPreSession}
@@ -241,14 +236,12 @@ function ActivityPage() {
                                     onUpdateType={(type) => updateSessionType({ sessionId: session.id, sessionType: type })}
                                     onCopy={() => copyToClipboard('')}
                                     onReinfer={() => reinferSessionActions(session.id)}
-                                    getAllItemIds={getAllItemIds}
                                     buildCopyTextForAction={buildCopyTextForAction}
                                     buildCopyTextForItems={buildCopyTextForItems}
-                                    getInventoryItem={getInventoryItem}
                                 />
 
                                 {/* Views */}
-                                {sessionActions.length > 0 && (() => {
+                                {(() => {
                                     if (showActions === 'autoActions') {
                                         return (
                                             <AutoActionsView

@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai'
 import { SessionType, StoredAction, ActivityItem, getActionTimestamp } from '../../application/state/activity'
 import ImgButton from '../common/ImgButton'
 import { activityAtom } from '../../application/atoms/activity'
-import { getSessionActions as getSessionActionsUtil } from './activityUtils'
+import { getSessionActions, getSessionItems } from './activityUtils'
 
 interface SessionMetaProps {
     sessionId: string
@@ -19,10 +19,8 @@ interface SessionMetaProps {
     onUpdateType: (type: SessionType) => void
     onCopy: () => void
     onReinfer: () => void
-    getAllItemIds: (action: StoredAction) => number[]
     buildCopyTextForAction: (action: StoredAction) => string
     buildCopyTextForItems: (items: ActivityItem[]) => string
-    getInventoryItem: (id: number) => ActivityItem | undefined
 }
 
 const SessionMeta: React.FC<SessionMetaProps> = ({
@@ -36,13 +34,10 @@ const SessionMeta: React.FC<SessionMetaProps> = ({
     onUpdateType,
     onCopy,
     onReinfer,
-    getAllItemIds,
     buildCopyTextForAction,
     buildCopyTextForItems,
-    getInventoryItem,
 }) => {
     const activity = useAtomValue(activityAtom)
-    const sessionActions = getSessionActionsUtil(sessionId, activity)
     return (
         <div className='session-meta'>
             <span className='session-type'>
@@ -65,31 +60,26 @@ const SessionMeta: React.FC<SessionMetaProps> = ({
                 </span>
             )}
             <span className='session-meta-actions'>
-                {sessionActions.length > 0 && (
-                    <ImgButton
-                        title="Copy session to clipboard"
-                        src="img/copy.png"
-                        className="img-btn-copy"
-                        clickPopup="Copied!"
-                        dispatch={() => {
-                            let text = `${sessionName}\n`
-                            if (showActions === 'autoActions') {
-                                sessionActions.sort((a, b) => getActionTimestamp(b, getInventoryItem) - getActionTimestamp(a, getInventoryItem)).forEach(action => {
-                                    text += '\n' + buildCopyTextForAction(action)
-                                })
-                            } else {
-                                // Get all inventory items referenced by actions in this session
-                                const itemIds = new Set<number>()
-                                sessionActions.forEach(action => {
-                                    getAllItemIds(action).forEach(itemId => itemIds.add(itemId))
-                                })
-                                const items = Array.from(itemIds).map(itemId => getInventoryItem(itemId)).filter(item => item !== undefined) as ActivityItem[]
-                                text = buildCopyTextForItems(items)
-                            }
-                            onCopy()
-                        }}
-                    />
-                )}
+                <ImgButton
+                    title="Copy session to clipboard"
+                    src="img/copy.png"
+                    className="img-btn-copy"
+                    clickPopup="Copied!"
+                    dispatch={() => {
+                        let text = `${sessionName}\n`
+                        if (showActions === 'autoActions') {
+                            const sessionActions = getSessionActions(sessionId, activity)
+                            sessionActions.sort((a, b) => b.timestamp - a.timestamp).forEach(action => {
+                                text += '\n' + buildCopyTextForAction(action)
+                            })
+                        } else {
+                            // Get all inventory items referenced by actions in this session
+                            const sessionItems = getSessionItems(sessionId, activity)
+                            text = buildCopyTextForItems(sessionItems)
+                        }
+                        onCopy()
+                    }}
+                />
                 {!isPreSession && (
                     <button className='btn-reinfer' onClick={() => onReinfer()}>
                         Re-infer

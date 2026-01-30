@@ -25,8 +25,8 @@ const ActionRow = ({ action }: { action: InferredAction }) => {
     const getInventoryItemFallback = (id: number) => ({
         id,
         name: 'unknown',
-        quantity: 0,
-        value: 0,
+        quantity: NaN,
+        value: NaN,
         container: 'unknown',
         timestamp: Date.now(),
         source: 'inventory' as const
@@ -55,10 +55,10 @@ const ActionRow = ({ action }: { action: InferredAction }) => {
                             <ItemText text={item.name} />
                         </td>
                         <td>
-                            <ItemText text={item.quantity.toString()} />
+                            <ItemText text={isNaN(item.quantity) ? '' : item.quantity.toString()} />
                         </td>
                         <td>
-                            <ItemText text={item.value.toFixed(2) + ' PED'} />
+                            <ItemText text={isNaN(item.value) ? '' : item.value.toFixed(2) + ' PED'} />
                         </td>
                         <td>
                             <ItemText text={item.container} />

@@ -4,7 +4,7 @@ import { ViewInventory, ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
 import { lastPersistedAtom, lastComputedAtom } from './last'
-import { historyAtom, HistoryComputedState, inventoryListAtom, INVENTORY_KEY_SCALE } from './history'
+import { historyAtom, HistoryComputedState, inventoryListAtom } from './history'
 import messagesApi from '../../services/api/messages'
 import { findAllMatchesInRule } from '../helpers/activityInference'
 import { inferActions } from '../helpers/actionInference'
@@ -1137,25 +1137,30 @@ export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
     const preSessionEnd = sessions.length > 0 ? sessions[0].startTime : Infinity
     sessionTimeRanges.set(preSessionKey, { start: 0, end: preSessionEnd })
 
-    const map = new Map<string, { session: ActivitySession, items: ActivityItem[] }>()
+    let preSession = {
+        id: preSessionKey,
+        name: 'Pre-Session',
+        type: 'unknown' as SessionType,
+        startTime: 0
+    }
+
+    const entries: Array<[string, { session: ActivitySession, items: ActivityItem[] }]> = [
+        [preSessionKey, { session: preSession, items: [] }],
+        ...sessions.map(session => [session.id, { session, items: [] }] as [string, { session: ActivitySession, items: ActivityItem[] }])
+    ]
+    const map = new Map(entries)
 
     for (const item of items) {
         // Find which session this item belongs to
-        let matchSession = {
-            id: preSessionKey,
-            name: 'Pre-Session',
-            type: 'unknown' as SessionType,
-            startTime: 0
-        }
+        let matchSessionId = preSessionKey
         for (const session of sessions) {
             if (item.timestamp >= session.startTime) {
-                matchSession = session
+                matchSessionId = session.id
             } else {
                 break
             }
         }
-        if (!map.has(matchSession.id)) map.set(matchSession.id, { session: matchSession, items: [] })
-        map.get(matchSession.id)!.items.push(item)
+        map.get(matchSessionId)!.items.push(item)
     }
 
     return Array.from(map.values()).map(({ session, items }) => {
@@ -1163,5 +1168,5 @@ export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
         const delta = validItems.reduce((sum: number, item: ActivityItem) => sum + item.value, 0)
         const timeRange = sessionTimeRanges.get(session.id) || { start: 0, end: Infinity }
         return { ...session, delta, start: timeRange.start, end: timeRange.end }
-    })
+    }).reverse()
 })

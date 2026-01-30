@@ -1,6 +1,6 @@
 import { StoredAction, ActivityItem, getActionTimestamp, ActivityState } from '../../application/state/activity'
 
-export const getSessionActions = (sessionId: string, activity: ActivityState): StoredAction[] => {
+export const getSessionActions = (sessionId: string, activity: ActivityState): (StoredAction & { timestamp: number })[] => {
     if (!activity?.data.sessions || !activity?.data.autoActions) return []
 
     const session = activity.data.sessions.find(s => s.id === sessionId)
@@ -11,9 +11,11 @@ export const getSessionActions = (sessionId: string, activity: ActivityState): S
     const nextSession = activity.data.sessions[sessionIndex + 1]
     const endTime = nextSession ? nextSession.startTime : Infinity
 
-    return activity.data.autoActions.filter(act => {
-        const timestamp = getActionTimestamp(act, activity.data.items)
-        return timestamp >= session.startTime && timestamp < endTime
+    return activity.data.autoActions.map(a => { 
+        const timestamp = getActionTimestamp(a, activity.data.items)
+        return { ...a, timestamp }
+    }).filter(act => {
+        return act.timestamp >= session.startTime && act.timestamp < endTime
     })
 }
 
