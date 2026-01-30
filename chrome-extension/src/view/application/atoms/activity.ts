@@ -1,10 +1,10 @@
 import { atom } from 'jotai'
 import { ActivityState, StoredAction, ActivityItem, ActivitySession, SessionType, ActionType, ActionSource, ShowActionsType, UserActionTypeDefinition, ActivityAction, getActionTimestamp } from '../state/activity'
-import { ViewItemData } from '../state/history'
+import { ViewInventory, ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_ACTIVITY } from '../../../common/const'
 import { lastPersistedAtom, lastComputedAtom } from './last'
-import { historyAtom, inventoryListAtom } from './history'
+import { historyAtom, HistoryComputedState, inventoryListAtom, INVENTORY_KEY_SCALE } from './history'
 import messagesApi from '../../services/api/messages'
 import { findAllMatchesInRule } from '../helpers/activityInference'
 import { inferActions } from '../helpers/actionInference'
@@ -159,6 +159,69 @@ export const addInventoryAndActionsAtom = atom(
     }
 )
 
+// Helper function to process history and return actions/items
+const processHistoryData = async (
+    history: HistoryComputedState,
+    activity: ActivityState
+): Promise<{ allActions: StoredAction[]; allInventoryItems: ActivityItem[]; lastProcessedKey: number } | null> => {
+    if (!history.list || history.list.length === 0) {
+        return null
+    }
+
+    // Find all unprocessed inventories (those with key > lastProcessed)
+    const unprocessedInventories = history.list.filter((inv: ViewInventory) => {
+        return inv.key > (activity.lastProcessed.inventoryKey ?? 0)
+    })
+
+    if (unprocessedInventories.length === 0) {
+        return null
+    }
+
+    // Process in reverse order (oldest first)
+    unprocessedInventories.reverse()
+
+    // Collect all actions and inventory items from all unprocessed inventories
+    const allActions: StoredAction[] = []
+    const allInventoryItems: ActivityItem[] = []
+    let lastProcessedKey = activity.lastProcessed.inventoryKey ?? 0
+
+    for (const inventoryView of unprocessedInventories) {
+        const timestamp = inventoryView.rawInventory.meta?.date ?? Date.now()
+
+        // Map diff items to ActivityItem format
+        if (inventoryView.diff && inventoryView.diff.length > 0) {
+            allInventoryItems.push(
+                ...inventoryView.diff.map((diffItem: any) => ({
+                    id: diffItem.key,
+                    name: diffItem.n,
+                    quantity: parseFloat(diffItem.q) || 0,
+                    value: parseFloat(diffItem.v) || 0,
+                    container: diffItem.c,
+                    timestamp,
+                    source: 'inventory' as ActionSource
+                }))
+            )
+
+            // Infer actions from the difference
+            const inferredActions = inferActions(inventoryView.diff)
+
+            // Convert InferredAction[] to StoredAction[]
+            allActions.push(
+                ...inferredActions.map(inferred => ({
+                    id: crypto.randomUUID(),
+                    sources: ['inventory'] as ActionSource[],
+                    type: inferred.type,
+                    relatedItems: inferred.relatedItems
+                }))
+            )
+        }
+
+        lastProcessedKey = inventoryView.key
+    }
+
+    return { allActions, allInventoryItems, lastProcessedKey }
+}
+
 // Write atom that triggers addInventoryAndActionsAtom when historyAtom changes
 export const onHistoryChangeAtom = atom(
     null,
@@ -166,61 +229,10 @@ export const onHistoryChangeAtom = atom(
         const history = get(historyAtom)
         const activity = get(activityAtom)
 
-        if (!history.list || history.list.length === 0) {
-            return
-        }
+        const result = await processHistoryData(history, activity)
+        if (!result) return
 
-        // Find all unprocessed inventories (those with timestamp > lastProcessed)
-        const unprocessedInventories = history.list.filter(inv => {
-            const timestamp = inv.rawInventory.meta?.date ?? 0
-            return timestamp > (activity.lastProcessed.inventoryKey ?? 0)
-        })
-
-        if (unprocessedInventories.length === 0) {
-            return // Nothing new to process
-        }
-
-        // Process in reverse order (oldest first)
-        unprocessedInventories.reverse()
-
-        // Collect all actions and inventory items from all unprocessed inventories
-        const allActions: StoredAction[] = []
-        const allInventoryItems: ActivityItem[] = []
-        let lastProcessedTimestamp = activity.lastProcessed.inventoryKey ?? 0
-
-        for (const inventoryView of unprocessedInventories) {
-            const timestamp = inventoryView.rawInventory.meta?.date ?? Date.now()
-
-            // Map diff items to ActivityItem format
-            if (inventoryView.diff && inventoryView.diff.length > 0) {
-                allInventoryItems.push(
-                    ...inventoryView.diff.map(diffItem => ({
-                        id: diffItem.key,
-                        name: diffItem.n,
-                        quantity: parseFloat(diffItem.q) || 0,
-                        value: parseFloat(diffItem.v) || 0,
-                        container: diffItem.c,
-                        timestamp,
-                        source: 'inventory' as ActionSource
-                    }))
-                )
-
-                // Infer actions from the difference
-                const inferredActions = inferActions(inventoryView.diff)
-
-                // Convert InferredAction[] to StoredAction[]
-                allActions.push(
-                    ...inferredActions.map(inferred => ({
-                        id: crypto.randomUUID(),
-                        sources: ['inventory'] as ActionSource[],
-                        type: inferred.type,
-                        relatedItems: inferred.relatedItems
-                    }))
-                )
-            }
-
-            lastProcessedTimestamp = timestamp
-        }
+        const { allActions, allInventoryItems, lastProcessedKey } = result
 
         // Trigger the add action
         if (allActions.length > 0 || allInventoryItems.length > 0) {
@@ -235,7 +247,7 @@ export const onHistoryChangeAtom = atom(
             ...activity,
             lastProcessed: {
                 ...activity.lastProcessed,
-                inventoryKey: lastProcessedTimestamp
+                inventoryKey: lastProcessedKey
             }
         }
         set(activityAtom, updatedState)
@@ -332,95 +344,26 @@ export const clearAllAndReloadAtom = atom(
         const history = get(historyAtom)
         const activity = get(activityAtom)
 
-        if (!history.list || history.list.length === 0) {
-            return
-        }
+        const result = await processHistoryData(history, activity)
+        if (!result) return
 
-        // Find all unprocessed inventories
-        const unprocessedInventories = history.list.filter(inv => {
-            const timestamp = inv.rawInventory.meta?.date ?? 0
-            return timestamp > (activity.lastProcessed.inventoryKey ?? 0)
-        })
-
-        if (unprocessedInventories.length === 0) {
-            return
-        }
-
-        // Process in reverse order (oldest first)
-        unprocessedInventories.reverse()
-
-        // Collect all actions and inventory items
-        const allActions: StoredAction[] = []
-        const allInventoryItems: ActivityItem[] = []
-        let lastProcessedKey = activity.lastProcessed.inventoryKey ?? 0
-
-        for (const inventoryView of unprocessedInventories) {
-            const timestamp = inventoryView.rawInventory.meta?.date ?? Date.now()
-
-            if (inventoryView.diff && inventoryView.diff.length > 0) {
-                allInventoryItems.push(
-                    ...inventoryView.diff.map(diffItem => ({
-                        id: diffItem.key,
-                        name: diffItem.n,
-                        quantity: parseFloat(diffItem.q) || 0,
-                        value: parseFloat(diffItem.v) || 0,
-                        container: diffItem.c,
-                        timestamp,
-                        source: 'inventory' as ActionSource
-                    }))
-                )
-
-                const inferredActions = inferActions(inventoryView.diff)
-
-                allActions.push(
-                    ...inferredActions.map(inferred => ({
-                        id: crypto.randomUUID(),
-                        sources: ['inventory'] as ActionSource[],
-                        type: inferred.type,
-                        relatedItems: inferred.relatedItems
-                    }))
-                )
-            }
-
-            lastProcessedKey = inventoryView.key
-        }
+        const { allActions, allInventoryItems, lastProcessedKey } = result
 
         // Update activity with new actions and items
-        if (allActions.length > 0 || allInventoryItems.length > 0) {
-            const updatedActivity = {
-                ...activity,
-                data: {
-                    ...activity.data,
-                    items: allInventoryItems,
-                    autoActions: allActions
-                },
-                lastProcessed: {
-                    ...activity.lastProcessed,
-                    inventoryKey: lastProcessedKey
-                }
-            }
-            set(activityAtom, updatedActivity)
-            await saveToStorage(updatedActivity)
-        } else {
-            // Even if no new items/actions, update lastProcessed to prevent reprocessing
-            // Find the latest key in the history
-            let latestKey = activity.lastProcessed.inventoryKey ?? 0
-            if (history.list.length > 0) {
-                latestKey = Math.max(...history.list.map(i => i.key))
-            }
-
-            if (latestKey > (activity.lastProcessed.inventoryKey ?? 0)) {
-                const updatedActivity = {
-                    ...activity,
-                    lastProcessed: {
-                        ...activity.lastProcessed,
-                        inventoryKey: latestKey
-                    }
-                }
-                set(activityAtom, updatedActivity)
-                await saveToStorage(updatedActivity)
+        const updatedActivity = {
+            ...activity,
+            data: {
+                ...activity.data,
+                items: allInventoryItems,
+                autoActions: allActions
+            },
+            lastProcessed: {
+                ...activity.lastProcessed,
+                inventoryKey: lastProcessedKey
             }
         }
+        set(activityAtom, updatedActivity)
+        await saveToStorage(updatedActivity)
     }
 )
 

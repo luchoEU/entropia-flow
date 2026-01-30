@@ -4,7 +4,6 @@ import { ViewItemData, ViewInventory } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import {
     getText,
-    getLatestFromInventoryList,
     reduceHistorySortBy,
     reduceToggleActionsView
 } from '../helpers/history'
@@ -29,7 +28,7 @@ const initialUIState: HistoryUIState = {
 }
 
 // Computed state (not persisted)
-interface HistoryComputedState {
+export interface HistoryComputedState {
     list: ViewInventory[]
     hiddenError?: string
 }

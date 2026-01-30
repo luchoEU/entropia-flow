@@ -234,7 +234,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
     </>
 }
 
-const InventoryVisibleList = () => {
+export const InventoryOwnedList = () => {
     const c = useSelector(getHideCriteria)
     const opt = useSelector(getOwnedOptions)
     const hasAnyHideCriteria = c.name.length > 0 || c.container.length > 0 || c.value >= 0
@@ -258,5 +258,3 @@ const InventoryVisibleList = () => {
         <TradeItemDetailsChain />
     </SortableTabularSection>
 }
-
-export default InventoryVisibleList
