@@ -6,13 +6,10 @@ import {
     activityLoadingAtom,
     initializeActivityAtom,
     addActionsAtom,
-    addInventoryAndActionsAtom,
-    setLastProcessedKeyAtom,
     setLastProcessedLogSerialAtom,
-    mergeLootWithInventoryAtom,
-    updateSessionInventoryAtom,
     subscribeToActivityAtom,
-    updateActionBudgetNameAtom
+    updateActionBudgetNameAtom,
+    onHistoryChangeAtom
 } from '../../application/atoms/activity'
 import { historyAtom } from '../../application/atoms/history'
 import { lastComputedAtom } from '../../application/atoms/last'
@@ -20,8 +17,7 @@ import { getGameLog } from '../../application/selectors/log'
 import { getBudget } from '../../application/selectors/budget'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
-import { inferActions, matchLootWithInventory } from '../../application/helpers/actionInference'
-import { InferredAction, StoredAction, ActivityItem } from '../../application/state/activity'
+import { StoredAction } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 
 export function ActivityBridge() {
@@ -39,13 +35,10 @@ export function ActivityBridge() {
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
     const addActions = useSetAtom(addActionsAtom)
-    const addInventoryAndActions = useSetAtom(addInventoryAndActionsAtom)
-    const setLastProcessedKey = useSetAtom(setLastProcessedKeyAtom)
     const setLastProcessedLogSerial = useSetAtom(setLastProcessedLogSerialAtom)
-    const mergeLootWithInventory = useSetAtom(mergeLootWithInventoryAtom)
-    const updateSessionInventory = useSetAtom(updateSessionInventoryAtom)
     const subscribe = useSetAtom(subscribeToActivityAtom)
     const updateActionBudgetName = useSetAtom(updateActionBudgetNameAtom)
+    const processHistoryChange = useSetAtom(onHistoryChangeAtom)
 
     // Refs to track previous values for comparison
     const prevGameLogRef = useRef<GameLogData | null>(null)
@@ -166,7 +159,7 @@ export function ActivityBridge() {
         }
     }, [gameLog, isLoading, activity.lastProcessed.clientLogSerial, addActions, setLastProcessedLogSerial])
 
-    // Process history changes (equivalent to SET_HISTORY_LIST handling)
+    // Process history changes
     useEffect(() => {
         if (isLoading) return
         if (!activity) return
@@ -176,128 +169,8 @@ export function ActivityBridge() {
         if (prevHistoryRef.current === history) return
         prevHistoryRef.current = history
 
-        const prevLastKey = activity.lastProcessed.inventoryKey
-
-        // Get existing loot actions (type 'loot' with 'client' source, not yet merged with inventory)
-        const existingLootActions = (activity.data.autoActions ?? []).filter(
-            act => act.type === 'loot' && act.sources.includes('client')
-        )
-
-        // Find new inventory items that haven't been processed yet
-        const newInventoryItems: ActivityItem[] = []
-        const newActions: StoredAction[] = []
-
-        for (const inventory of history.list) {
-            // Skip if already processed
-            if (prevLastKey !== undefined && inventory.key <= prevLastKey) {
-                continue
-            }
-
-            // Skip if no diff available
-            if (!inventory.diff || inventory.diff.length === 0) {
-                continue
-            }
-
-            // Match inventory items to existing loot actions
-            const matchResult = matchLootWithInventory(
-                inventory.diff,
-                existingLootActions,
-                inventory.key, // inventory timestamp
-                undefined,
-                activity.data.items
-            )
-
-            // Merge matched items
-            for (const match of matchResult.matches) {
-                for (const actionId of match.lootActionIds) {
-                    mergeLootWithInventory({ actionId, inventoryItem: match.inventoryItem })
-                }
-            }
-
-            // Create ActivityItem objects from the unmatched diff items
-            const inventoryStartIndex = activity.data.items.length + newInventoryItems.length
-            for (const diffItem of matchResult.unmatched) {
-                const inventoryItem: ActivityItem = {
-                    id: inventoryStartIndex + newInventoryItems.length, // Serial ID
-                    name: diffItem.n,
-                    quantity: parseFloat(diffItem.q),
-                    value: parseFloat(diffItem.v),
-                    container: diffItem.c,
-                    timestamp: inventory.key,
-                    source: 'inventory'
-                }
-                newInventoryItems.push(inventoryItem)
-            }
-
-            // Infer actions from unmatched items
-            if (matchResult.unmatched.length > 0) {
-                const inferredActions = inferActions(matchResult.unmatched)
-
-                // Helper to map indices to actual inventory IDs in the relatedItems structure
-                const mapIndicesToIds = (relatedItems: InferredAction['relatedItems']): any => {
-                    const result: any = {}
-                    for (const [key, value] of Object.entries(relatedItems)) {
-                        if (typeof value === 'number') {
-                            result[key] = inventoryStartIndex + value
-                        } else if (Array.isArray(value)) {
-                            result[key] = value.map(index => inventoryStartIndex + index)
-                        }
-                    }
-                    return result
-                }
-
-                // Convert InferredAction to StoredAction
-                for (const inferredAction of inferredActions) {
-                    const storedAction: StoredAction = {
-                        type: inferredAction.type,
-                        relatedItems: mapIndicesToIds(inferredAction.relatedItems),
-                        id: `${inventory.key}-${inferredAction.type}-${Date.now()}`,
-                        sources: ['inventory']
-                    }
-                    newActions.push(storedAction)
-                }
-            }
-        }
-
-        // Save inventory items and actions
-        if (newInventoryItems.length > 0 || newActions.length > 0) {
-            addInventoryAndActions({ inventoryItems: newInventoryItems, actions: newActions })
-        }
-
-        // Update lastProcessedInventoryKey
-        if (history.list.length > 0) {
-            const latestKey = Math.max(...history.list.map(i => i.key))
-            if (prevLastKey === undefined || latestKey > prevLastKey) {
-                setLastProcessedKey(latestKey)
-            }
-        }
-
-        // Update session inventory data
-        const sessions = activity.data.sessions
-        for (const session of sessions) {
-            const sessionIndex = sessions.indexOf(session)
-            const endTime = sessions[sessionIndex + 1]?.startTime || Date.now()
-
-            // Find the latest inventory within this session's time range
-            let latestInventory: any = null
-            for (let i = history.list.length - 1; i >= 0; i--) {
-                const item = history.list[i]
-                if (item.key <= endTime && item.key >= session.startTime) {
-                    latestInventory = item
-                    break
-                }
-            }
-
-            const inventoryData = latestInventory && latestInventory.rawInventory ? {
-                total: Number(latestInventory.rawInventory.meta.total) || 0,
-                items: latestInventory.rawInventory.itemlist?.length || 0
-            } : undefined
-
-            if (inventoryData) {
-                updateSessionInventory({ sessionId: session.id, inventory: inventoryData })
-            }
-        }
-    }, [history, isLoading, activity.lastProcessed.inventoryKey, activity.data.items, activity.data.sessions, addActions, setLastProcessedKey, mergeLootWithInventory])
+        processHistoryChange()
+    }, [history, isLoading, activity, processHistoryChange])
 
     // This component doesn't render anything
     return null

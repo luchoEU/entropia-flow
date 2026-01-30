@@ -137,28 +137,6 @@ export const initializeActivityAtom = atom(
     }
 )
 
-export const addInventoryAndActionsAtom = atom(
-    null,
-    async (get, set, { inventoryItems, actions }: { inventoryItems: ActivityItem[], actions: StoredAction[] }) => {
-        const current = get(activityAtom)
-
-        const newState = {
-            ...current,
-            data: {
-                ...current.data,
-                items: [...inventoryItems, ...current.data.items],
-                autoActions: [...actions, ...current.data.autoActions]
-            }
-        }
-        set(activityAtom, newState)
-        await saveToStorage(newState)
-
-        // Notify subscribers
-        const subscribers = get(activitySubscribersAtom)
-        subscribers.onActionsAdded.forEach(cb => cb(actions))
-    }
-)
-
 // Helper function to process history and return actions/items
 const processHistoryData = async (
     history: HistoryComputedState,
@@ -222,7 +200,6 @@ const processHistoryData = async (
     return { allActions, allInventoryItems, lastProcessedKey }
 }
 
-// Write atom that triggers addInventoryAndActionsAtom when historyAtom changes
 export const onHistoryChangeAtom = atom(
     null,
     async (get, set) => {
@@ -234,24 +211,27 @@ export const onHistoryChangeAtom = atom(
 
         const { allActions, allInventoryItems, lastProcessedKey } = result
 
-        // Trigger the add action
-        if (allActions.length > 0 || allInventoryItems.length > 0) {
-            set(addInventoryAndActionsAtom, {
-                inventoryItems: allInventoryItems,
-                actions: allActions
-            })
-        }
-
-        // Update lastProcessed to avoid reprocessing
-        const updatedState = {
-            ...activity,
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                items: [...allInventoryItems, ...current.data.items],
+                autoActions: [...allActions, ...current.data.autoActions]
+            },
             lastProcessed: {
-                ...activity.lastProcessed,
+                ...current.lastProcessed,
                 inventoryKey: lastProcessedKey
             }
         }
-        set(activityAtom, updatedState)
-        await saveToStorage(updatedState)
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+
+        // Notify subscribers
+        if (allActions.length > 0 || allInventoryItems.length > 0) {
+            const subscribers = get(activitySubscribersAtom)
+            subscribers.onActionsAdded.forEach(cb => cb(allActions))
+        }
     }
 )
 
