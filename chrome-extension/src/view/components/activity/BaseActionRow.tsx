@@ -104,7 +104,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                                 opacity: isSaveDisabled ? 0.5 : 1
                             }}
                         >
-                            Save
+                            ✅ Save
                         </button>
                     )}
                     {onCancel && (
@@ -120,7 +120,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                                 cursor: 'pointer'
                             }}
                         >
-                            Cancel
+                            ❌ Cancel
                         </button>
                     )}
                 </>
@@ -140,7 +140,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
     )
 
     return (
-        <tr className="item-row img-hover-containerr">
+        <tr className="item-row img-hover-container">
             <td>
                 <span style={{ cursor: 'pointer', marginRight: '5px' }} onClick={onToggleExpand}>
                     {isExpanded ? '▼' : '▶'}

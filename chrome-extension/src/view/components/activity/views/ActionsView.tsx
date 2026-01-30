@@ -136,10 +136,12 @@ const ActionsView: React.FC<ActionsViewProps> = ({
                                             const item = getInventoryItemWithFallback(itemId)
                                             return {
                                                 key: item.id,
+                                                t: item.timestamp,
                                                 n: item.name,
                                                 q: (item.quantity ?? 0).toString(),
                                                 v: (item.value ?? 0).toFixed(2),
-                                                c: item.container
+                                                c: item.container,
+                                                s: item.source
                                             }
                                         })
 

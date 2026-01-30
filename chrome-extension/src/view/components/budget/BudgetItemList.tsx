@@ -72,7 +72,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
         editingLine?.itemName === itemName && editingLine?.lineIdx === lineIdx
 
     return <div className='trade-item-data'>
-        <h2 className='pointer img-hover-containerr' onClick={() => navigate('/budget')}>
+        <h2 className='pointer img-hover-container' onClick={() => navigate('/budget')}>
             Budget: {viewData.title} <img src='img/left.png' />
         </h2>
 
@@ -120,7 +120,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                 onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
                                 style={{ fontSize: '12px', padding: '2px 6px' }}
                             >
-                                Clear All
+                                🧹 Clear All
                             </button>
                         )}
                     </div>
@@ -228,7 +228,7 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
 
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-hover-containerr' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
+            <h2 className='pointer img-hover-container' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
                 Material: {viewData.materialName} <img src='img/left.png' />
             </h2>
             <p>Markup: {(viewData.markup * 100).toFixed(2)}%</p>

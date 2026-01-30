@@ -4,19 +4,19 @@ import { SettingsState, isFeatureEnabled, Feature } from "../state/settings"
 import { Location } from "react-router-dom"
 
 const tabTitle = {
-    [TabId.MONITOR]: 'Monitor',
-    [TabId.INVENTORY]: 'Inventory',
-    [TabId.TRADE]: 'Trading',
-    [TabId.CRAFT]: 'Crafting',
-    [TabId.CLIENT]: 'Client',
-    [TabId.STREAM]: 'Stream',
-    [TabId.REFINED]: 'Refined',
-    [TabId.BUDGET]: 'Budget',
-    [TabId.ACTIVITY]: 'Activity',
-    [TabId.SETTING]: 'Settings',
-    [TabId.RAW_STORAGE]: 'Raw Storage',
-    [TabId.ATOM_DEBUG]: 'Atom Debug',
-    [TabId.ABOUT]: 'About'
+    [TabId.MONITOR]: '📊 Monitor',
+    [TabId.INVENTORY]: '📦 Inventory',
+    [TabId.TRADE]: '🤝 Trading',
+    [TabId.CRAFT]: '🔨 Crafting',
+    [TabId.CLIENT]: '🎮 Client',
+    [TabId.STREAM]: '📺 Stream',
+    [TabId.REFINED]: '⚗️ Refined',
+    [TabId.BUDGET]: '💰 Budget',
+    [TabId.ACTIVITY]: '📝 Activity',
+    [TabId.SETTING]: '⚙️ Settings',
+    [TabId.RAW_STORAGE]: '💾 Raw Storage',
+    [TabId.ATOM_DEBUG]: '🐛 Atom Debug',
+    [TabId.ABOUT]: 'ℹ️ About'
 }
 
 const tabSubtitle = {

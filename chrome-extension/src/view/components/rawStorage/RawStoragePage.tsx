@@ -235,61 +235,20 @@ const RawStoragePage: React.FC = () => {
                     placeholder="Search keys..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #e1e4e8',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        boxSizing: 'border-box'
-                    }}
                 />
             </div>
 
             {/* Action Bar */}
             <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderBottom: '1px solid #e1e4e8' }}>
-                <button
-                    onClick={handleRefresh}
-                    style={{
-                        padding: '6px 12px',
-                        border: '1px solid #0366d6',
-                        borderRadius: '4px',
-                        backgroundColor: '#e8f5ff',
-                        color: '#0366d6',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                    }}
-                >
+                <button onClick={handleRefresh}>
                     🔄 Refresh
                 </button>
-                <button
-                    onClick={handleExport}
-                    style={{
-                        padding: '6px 12px',
-                        border: '1px solid #0366d6',
-                        borderRadius: '4px',
-                        backgroundColor: '#e8f5ff',
-                        color: '#0366d6',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                    }}
-                >
+                <button onClick={handleExport}>
                     📥 Export
                 </button>
                 <button
                     onClick={handleClearStorage}
-                    style={{
-                        padding: '6px 12px',
-                        border: '1px solid #d73a49',
-                        borderRadius: '4px',
-                        backgroundColor: '#ffeef0',
-                        color: '#d73a49',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        marginLeft: 'auto'
-                    }}
+                    style={{ marginLeft: 'auto' }}
                 >
                     🗑️ Clear All
                 </button>

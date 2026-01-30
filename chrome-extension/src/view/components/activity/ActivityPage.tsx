@@ -159,40 +159,40 @@ function ActivityPage() {
     return (
         <section>
             {/* Toolbar */}
-            <div className='img-hover-containerr' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div className='img-hover-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button onClick={() => createNewSession()}>
-                    New Session
+                    ✨ New Session
                 </button>
                 {lastDeletedSession && (
                     <button onClick={() => undoDeleteSession()}>
-                        Undo Delete Session
+                        ↩️ Undo Delete Session
                     </button>
                 )}
                 <button onClick={async () => {
                     await clearAllAndReloadDirect()
                 }}>
-                    Reset Items
+                    🔁 Reset Items
                 </button>
                 <button
                     onClick={() => setShowActions('autoActions')}
                     style={{ fontWeight: showActions === 'autoActions' ? 'bold' : 'normal', opacity: showActions === 'autoActions' ? 1 : 0.6 }}
                     title='Show auto actions'
                 >
-                    Auto Actions
+                    🤖 Auto Actions
                 </button>
                 <button
                     onClick={() => setShowActions('userActions')}
                     style={{ fontWeight: showActions === 'userActions' ? 'bold' : 'normal', opacity: showActions === 'userActions' ? 1 : 0.6 }}
                     title='Show user actions'
                 >
-                    User Actions
+                    👤 User Actions
                 </button>
                 <button
                     onClick={() => setShowActions('items')}
                     style={{ fontWeight: showActions === 'items' ? 'bold' : 'normal', opacity: showActions === 'items' ? 1 : 0.6 }}
                     title='Show items list'
                 >
-                    Items
+                    📦 Items
                 </button>
             </div>
 

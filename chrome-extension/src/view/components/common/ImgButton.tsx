@@ -42,8 +42,6 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
                 alt={alt}
                 {...show ? { 'data-show': true } : {}}
                 {...disabled ? { disabled: true } : {}}
-                style={{
-                }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
             />

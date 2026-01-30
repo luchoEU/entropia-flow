@@ -84,13 +84,13 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
         </>
 
     return <section>
-        <h1 className='img-hover-containerr'>
+        <h1 className='img-hover-container'>
             <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${layout.name}`} show={true} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
             <button
                 title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}
                 className='stream-editor-button'
                 onClick={() => dispatch(setStreamAdvanced(!advanced))}>
-                {advanced ? 'Advanced' : 'Basic'}
+                {advanced ? '⚡ Advanced' : '📋 Basic'}
             </button>
         </h1>
         <table className='stream-layout-data-table'>
@@ -101,11 +101,11 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
                         <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
                             onClick={() => dispatch(cloneStreamLayout(navigate, layoutId))}
-                        >Clone</button>
+                        >📋 Clone</button>
                         <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title='Click here to export this layout to a file'
                             onClick={() => downloadExport(layout)}
-                        >Export</button>
+                        >💾 Export</button>
                     </td>
                 </tr>
                 <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>

@@ -84,7 +84,7 @@ const UserActionForm: React.FC<UserActionFormProps> = ({
                         opacity: isFormValid ? 1 : 0.5
                     }}
                 >
-                    Create Action
+                    ⚙️ Create Action
                 </button>
             </div>
         </div>

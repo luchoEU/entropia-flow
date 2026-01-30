@@ -144,7 +144,7 @@ const StorageEditModal: React.FC<StorageEditModalProps> = ({
                             fontSize: '12px'
                         }}
                     >
-                        Cancel
+                        ❌ Cancel
                     </button>
                     <button
                         onClick={handleSave}
@@ -160,7 +160,7 @@ const StorageEditModal: React.FC<StorageEditModalProps> = ({
                             opacity: isSaving ? 0.6 : 1
                         }}
                     >
-                        {isSaving ? 'Saving...' : 'Save'}
+                        {isSaving ? '⏳ Saving...' : '✅ Save'}
                     </button>
                 </div>
             </div>

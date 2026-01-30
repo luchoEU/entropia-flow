@@ -82,7 +82,7 @@ const SessionMeta: React.FC<SessionMetaProps> = ({
                 />
                 {!isPreSession && (
                     <button className='btn-reinfer' onClick={() => onReinfer()}>
-                        Re-infer
+                        🧠 Re-infer
                     </button>
                 )}
             </span>

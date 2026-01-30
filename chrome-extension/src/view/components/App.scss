@@ -187,12 +187,14 @@ nav .stream-view-section {
 // General
 section {
     background: rgba(0, 0, 0, 0.05);
-    padding: 10px;
+    padding: 15px;
     margin: 10px;
     border-radius: 15px;
-    width: fit-content;
+    width: 100%;
+    max-width: fit-content;
     height: fit-content;
     scrollbar-color: grey transparent;
+    box-sizing: border-box;
 }
 
 input {
@@ -289,23 +291,56 @@ form label {
 // Refined
 .calc-refined {
     display: grid;
-    grid-template-columns: 85px 50px 30px;
+    grid-template-columns: 120px 100px auto;
     grid-gap: 10px;
+    align-items: center;
 }
 
 .calc-refined input {
-    width: 40px;
+    width: 100%;
+}
+
+.calc-refined label {
+    text-align: end;
 }
 
 .buy-refined {
     display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: 20px 20px 20px 20px 20px;
-    grid-gap: 5px;
+    grid-template-columns: 120px 100px 80px 100px 80px;
+    grid-gap: 10px;
+    align-items: center;
 }
 
 .buy-refined input {
-    width: 50px;
+    width: 100%;
+}
+
+.buy-refined label {
+    text-align: end;
+}
+
+.buy-refined label:first-child {
+    text-align: start;
+}
+
+.buy-refined-markup {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.buy-refined-markup input {
+    flex: 1;
+    min-width: 0;
+}
+
+.buy-refined-markup span {
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.buy-refined-cost {
+    text-align: end;
 }
 
 .order-refined {
@@ -318,6 +353,19 @@ form label {
     display: grid;
     grid-template-columns: 85px 80px 0px 50px;
     grid-gap: 10px;
+}
+
+// Header row styling for buy-refined
+.buy-refined > label {
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+// Consistent button sizing in refined sections
+.buy-refined button {
+    white-space: nowrap;
+    min-width: 70px;
 }
 
 // Settings
@@ -404,17 +452,13 @@ form label {
     cursor: default;
 }
 
-.table-diff tr td img,
-.img-hover-containerr img {
+.table-diff tr td img {
     visibility: hidden;
     align-self: center;
 }
 
 .table-diff tr:hover td img,
-.table-diff tr td img[data-show],
-.img-hover-containerr:hover img,
-.img-hover-containerr img[data-show],
-.img-btn[data-show] img {
+.table-diff tr td img[data-show] {
     visibility: visible;
 }
 
@@ -492,7 +536,7 @@ form label {
     transition: opacity 0.2s;
 }
 
-.img-hover-containerr img {
+.img-hover-container img {
     visibility: hidden;
 }
 
@@ -650,21 +694,51 @@ input:read-only, textarea:read-only {
 }
 
 // buttons
-button, .img-btn-trash {
-    border: none;
-    background-color: green;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
+button {
+    padding: 6px 12px;
+    border: 1px solid #0366d6;
+    border-radius: 4px;
+    background-color: #e8f5ff;
+    color: #0366d6;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
     margin: 0px 5px;
 }
 
-button:disabled, .img-btn-trash.disabled {
+button:disabled {
     background-color: lightgrey;
+    color: #666;
+    cursor: not-allowed;
 }
 
-button:active {
-    background-color: grey;
+button:active:not(:disabled) {
+    background-color: #0366d6;
+    color: white;
+}
+
+// inputs
+input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.img-btn-trash {
+    border: 1px solid #0366d6;
+    background-color: #e8f5ff;
+    color: #0366d6;
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin: 0px 5px;
+}
+
+.img-btn-trash.disabled {
+    background-color: lightgrey;
+    color: #666;
 }
 
 .img-btn-trash {
@@ -805,11 +879,25 @@ button:active {
 }
 
 .start {
-    background-color: green;
+    border-color: #28a745;
+    background-color: #f0f8f0;
+    color: #28a745;
+
+    &:active:not(:disabled) {
+        background-color: #28a745;
+        color: white;
+    }
 }
 
 .stop {
-    background-color: red;
+    border-color: #dc3545;
+    background-color: #fff5f5;
+    color: #dc3545;
+
+    &:active:not(:disabled) {
+        background-color: #dc3545;
+        color: white;
+    }
 }
 
 // search

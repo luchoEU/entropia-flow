@@ -42,10 +42,10 @@ const Status = () => {
                 </span>
                 {isMonitoring ?
                     <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
-                        Stop Automatic Refresh
+                        ⏹️ Stop Automatic Refresh
                     </button> :
                     <button className="button-timer start" onClick={() => dispatch(timerOn)}>
-                        Start Automatic Refresh
+                        ▶️ Start Automatic Refresh
                     </button>
                 }
             </div>

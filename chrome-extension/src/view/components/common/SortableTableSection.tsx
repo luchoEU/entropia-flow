@@ -160,7 +160,7 @@ const ItemRow = <T extends any>(
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const data = getData(item);
-    const className = 'item-row' + (data.dispatch ? ' pointer' : '');
+    const className = 'item-row img-hover-container' + (data.dispatch ? ' pointer' : '');
 
     return (
     <div

@@ -23,18 +23,18 @@ const RefinedBuyMaterial = (p: {
     return (
         <>
             <label>{m.name}</label>
-            <div>
+            <div className='buy-refined-markup'>
                 <input
                     type='text'
                     value={m.markup.value}
                     onChange={(e) => dispatch(itemBuyMarkupChanged(m.name)(e.target.value))} />
-                <label>{m.markup.unit}</label>
+                <span>{m.markup.unit}</span>
             </div>
             <input
                 type='text'
                 value={m.refined.buyAmount}
                 onChange={(e) => dispatch(itemBuyAmountChanged(p.buyMaterial, e.target.value))} />
-            <div>{cost.toFixed(2)} PED</div>
+            <div className='buy-refined-cost'>{cost.toFixed(2)} PED</div>
             <RefinedButton title='Buy' pending={pending} action={refinedBuyMaterial(p.pageMaterial, p.buyMaterial, m.refined.buyAmount, cost)} />
         </>
     )

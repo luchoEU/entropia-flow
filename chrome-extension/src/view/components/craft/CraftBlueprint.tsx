@@ -41,7 +41,7 @@ function SessionInfo(p: {
     switch (p.session?.step) {
         case STEP_INACTIVE:
             return <>
-                <button onClick={() => dispatch(startCraftingSession(p.name))}>Start</button>
+                <button onClick={() => dispatch(startCraftingSession(p.name))}>🚀 Start</button>
                 { showMoveAll && false ? <button onClick={() => dispatch(moveAllBudgetPageMaterial(p.name))}>Move All</button> : <></> }
             </>
         case STEP_REFRESH_TO_START:
@@ -51,16 +51,16 @@ function SessionInfo(p: {
         case STEP_REFRESH_ERROR:
             return <>
                 <span className='error'>{p.session.errorText}</span>
-                <button className="wait-button" onClick={() => dispatch(clearCraftingSession(p.name))}>Clear</button>
-                <button className='wait-button' onClick={() => dispatch(startCraftingSession(p.name))}>Retry</button>
+                <button className="wait-button" onClick={() => dispatch(clearCraftingSession(p.name))}>🗑️ Clear</button>
+                <button className='wait-button' onClick={() => dispatch(startCraftingSession(p.name))}>🔄 Retry</button>
                 <span>{message}</span>
             </>
         case STEP_READY:
-            return <>Ready <button onClick={() => dispatch(endCraftingSession(p.name))}>End</button></>
+            return <>Ready <button onClick={() => dispatch(endCraftingSession(p.name))}>⏹️ End</button></>
         case STEP_SAVING:
             return <>Saving <img className='img-loading' src='img/loading.gif' /> {StageText[p.session.stage!]}...</>
         case STEP_DONE:
-            return <button onClick={() => dispatch(clearCraftingSession(p.name))}>Clear</button>
+            return <button onClick={() => dispatch(clearCraftingSession(p.name))}>🗑️ Clear</button>
         default:
             return <></>
     }
@@ -385,7 +385,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     const editMode = name && name === mat.editModeMaterialName
     return (
         <div className='craft-chain'>
-            <h2 className='pointer img-hover-containerr' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
+            <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
                 { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/> }
             </h2>
@@ -465,7 +465,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     return (
         <section>
             <div className='inline'>
-                <h1 className='img-hover-containerr'>
+                <h1 className='img-hover-container'>
                     <ImgButton
                         title='Back to list'
                         src='img/left.png'
@@ -488,7 +488,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                 <div className='inline'>
                     { chainNames.map(name =>
                         <div className='craft-chain'>
-                            <h2 className='pointer img-hover-containerr' onClick={(e) => {
+                            <h2 className='pointer img-hover-container' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(name, undefined))
                             }}>
@@ -498,7 +498,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                     )}
                     { lastBpChain &&
                         <div className='craft-chain'>
-                            <h2 className='pointer img-hover-containerr' onClick={(e) => {
+                            <h2 className='pointer img-hover-container' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined))
                             }}>

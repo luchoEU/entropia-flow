@@ -114,7 +114,7 @@ const Navigation = () => {
 
     return (
         <>
-            <nav ref={ref} className={'img-hover-containerr ' + (menuPinned ? 'nav-pinned' : '')}>
+            <nav ref={ref} className={'img-hover-container ' + (menuPinned ? 'nav-pinned' : '')}>
                 { showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>

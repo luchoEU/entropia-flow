@@ -13,9 +13,9 @@ function StreamLayoutChooser() {
     return <SortableTabularSection
         selector={STREAM_TABULAR_CHOOSER}
         afterSearch={(data) => [
-            { button: 'Add', dispatch: (n: NavigateFunction) => addStreamLayout(n) },
-            { button: 'Import', dispatch: (n: NavigateFunction, d: Dispatch<any>) => { openFileSelector(n, d); return undefined } },
-            { img: 'img/trash.png', title: data?.hasTrash ? 'Go to Trash' : 'Empty Trash', class: `img-btn-trash ${data?.hasTrash ? '' : 'disabled'}`, dispatch: (n: NavigateFunction) => data?.hasTrash ? goToTrash(n) : undefined }
+            { button: '➕ Add', dispatch: (n: NavigateFunction) => addStreamLayout(n) },
+            { button: '📥 Import', dispatch: (n: NavigateFunction, d: Dispatch<any>) => { openFileSelector(n, d); return undefined } },
+            { button: data?.hasTrash ? '🗑️ Go to Trash' : '🗑️ Empty Trash', dispatch: (n: NavigateFunction) => data?.hasTrash ? goToTrash(n) : undefined }
         ]}
         itemHeight={64}
         useTable={true}

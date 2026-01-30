@@ -147,7 +147,7 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                 </span>
 
                 {!isExpandable ? (
-                    <div className='img-hover-containerr' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
+                    <div className='img-hover-container' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
                         <div>
                             {renderPrimitive()}
                             {wasCompressed && <span style={{ color: '#999', fontSize: '10px' }}>[compressed]</span>}
@@ -169,7 +169,7 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <div className='img-hover-containerr' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
+                    <div className='img-hover-container' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
                         <span style={{ color: '#666' }}>
                             {type === 'array' ? `Array(${value.length})` : `Object(${Object.keys(value).length})`}
                         </span>
