@@ -134,8 +134,21 @@ function ActivityPage() {
     const expandedSessions = new Set(expandedArray)
     const expandedActionRowsSet = new Set(expandedActionRows)
 
-    // Calculate session deltas
+    // Calculate session time ranges (based on sorted sessions, not reversed virtualSessions)
+    const sessionTimeRanges = new Map<string, { start: number; end: number }>()
+    for (let i = 0; i < sessions.length; i++) {
+        const session = sessions[i]
+        const start = session.startTime
+        const end = i + 1 < sessions.length ? sessions[i + 1].startTime : Infinity
+        sessionTimeRanges.set(session.id, { start, end })
+    }
+    // Pre-session time range
+    const preSessionEnd = sessions.length > 0 ? sessions[0].startTime : Infinity
+    sessionTimeRanges.set(preSessionKey, { start: 0, end: preSessionEnd })
+
+    // Calculate session deltas and inventory summaries
     const sessionDeltas = new Map<string, number>()
+    const sessionInventorySummaries = new Map<string, { total: number; items: number }>()
     for (const session of virtualSessions) {
         const sessionActions = groupedActions.get(session.id) || []
         const delta = sessionActions.reduce((sum, action) => {
@@ -149,6 +162,25 @@ function ActivityPage() {
             }, 0)
         }, 0)
         sessionDeltas.set(session.id, delta)
+
+        // Calculate inventory summary (all unique items in session, excluding blacklisted items)
+        const itemIdSet = new Set<number>()
+        sessionActions.forEach(action => {
+            getAllItemIds(action).forEach(itemId => itemIdSet.add(itemId))
+        })
+        let totalValue = 0
+        let totalItems = 0
+        itemIdSet.forEach(itemId => {
+            const item = getInventoryItem(itemId)
+            if (item && !sessionBlacklist?.[session.id]?.includes(item.name)) {
+                if (typeof item.value === 'number') {
+                    totalValue += item.value
+                }
+                const quantity = typeof item.quantity === 'number' ? item.quantity : 1
+                totalItems += quantity
+            }
+        })
+        sessionInventorySummaries.set(session.id, { total: totalValue, items: totalItems })
     }
 
     const toggleSession = (sessionId: string) => {
@@ -218,9 +250,12 @@ function ActivityPage() {
                 const sessionActions = groupedActions.get(session.id) || []
                 const isPreSession = session.id === preSessionKey
                 const start = isPreSession ? Math.min(...sessionActions.map(a => getActionTimestamp(a, getInventoryItem))) : session.startTime
-                const isExpanded = expandedSessions.has(session.id)
 
-                if (sessionActions.length === 0) return null
+                // Get the correct session time range (handles both normal sessions and pre-session)
+                const timeRange = sessionTimeRanges.get(session.id) || { start, end: Infinity }
+                const end = timeRange.end
+
+                const isExpanded = expandedSessions.has(session.id)
 
                 return (
                     <div key={session.id} className='actions-group'>
@@ -254,7 +289,7 @@ function ActivityPage() {
                                     sessionName={session.name}
                                     typeIcon={typeIcon[session.type as keyof typeof typeIcon]}
                                     isPreSession={isPreSession}
-                                    inventory={session.inventory}
+                                    inventory={sessionInventorySummaries.get(session.id)}
                                     showActions={showActions}
                                     onUpdateType={(type) => updateSessionType({ sessionId: session.id, sessionType: type })}
                                     onCopy={() => copyToClipboard('')}
@@ -301,6 +336,8 @@ function ActivityPage() {
                                                     onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
                                                     onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
                                                 }}
+                                                sessionStartTime={start}
+                                                sessionEndTime={end}
                                             />
                                         )
                                     } else if (showActions === 'userActions') {

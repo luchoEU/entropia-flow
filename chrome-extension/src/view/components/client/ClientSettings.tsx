@@ -25,6 +25,7 @@ function EntropiaFlowClient() {
                         title='Try to connect again'
                         src='img/reload.png'
                         className='img-btn-delta-zero'
+                        show
                         dispatch={() => webSocketRetry} />
                 </p>
                 {!s.client.status.startsWith('connected') && <p>
