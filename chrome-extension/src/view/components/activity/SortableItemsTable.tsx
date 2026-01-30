@@ -116,7 +116,7 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
                                     />
                                 </td>
                             )}
-                            <td style={{ textAlign: 'left' }}>{item.t ? new Date(item.t).toLocaleString() : '-'}</td>
+                            <td style={{ textAlign: 'left' }}>{typeof item.t === 'number' && !isNaN(item.t) ? new Date(item.t).toLocaleString() : '-'}</td>
                             <td><ItemText text={item.n} /></td>
                             {exclusionConfig && (
                                 <td>

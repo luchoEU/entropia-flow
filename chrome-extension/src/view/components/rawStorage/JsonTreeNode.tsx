@@ -1,5 +1,6 @@
 import React from 'react'
 import { tryDecompress, isCompressed } from '../../services/rawStorageService'
+import ImgButton from '../common/ImgButton'
 
 interface JsonTreeNodeProps {
     keyPath: string
@@ -146,41 +147,23 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                 </span>
 
                 {!isExpandable ? (
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
+                    <div className='img-container-hover' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
                         <div>
                             {renderPrimitive()}
                             {wasCompressed && <span style={{ color: '#999', fontSize: '10px' }}>[compressed]</span>}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                            <img
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <ImgButton
                                 src="/img/edit.png"
                                 alt="Edit"
                                 title="Edit value"
-                                onClick={() => onEdit(nodeKey, value)}
-                                style={{
-                                    width: '16px',
-                                    height: '16px',
-                                    cursor: 'pointer',
-                                    opacity: 0.7,
-                                    transition: 'opacity 0.2s'
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                                dispatch={() => onEdit(nodeKey, value)}
                             />
-                            <img
+                            <ImgButton
                                 src="/img/copy.png"
                                 alt="Copy"
                                 title="Copy to clipboard"
-                                onClick={handleCopyValue}
-                                style={{
-                                    width: '16px',
-                                    height: '16px',
-                                    cursor: 'pointer',
-                                    opacity: 0.7,
-                                    transition: 'opacity 0.2s'
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                                dispatch={handleCopyValue}
                             />
                         </div>
                     </div>

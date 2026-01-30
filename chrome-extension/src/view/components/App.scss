@@ -471,7 +471,7 @@ form label {
     margin-right: 10px;
 }
 
-.img-btn img, .img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img {
+.img-btn-delta-zero img, .img-btn-copy img, .img-btn-actions img {
     height: 15px;
 }
 
@@ -481,6 +481,14 @@ form label {
 
 .img-btn-edit img {
     height: 14px;
+}
+
+.img-btn img {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
 .img-btn {

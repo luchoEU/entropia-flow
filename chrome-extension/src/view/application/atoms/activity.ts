@@ -1173,3 +1173,28 @@ export const availableItemsAtom = atom(get => {
     // Filter items to only include those not already in an action
     return current.data.items.filter(item => !usedItemIds.has(item.id))
 })
+
+// Computed atom that groups items by session
+export const itemsBySessionAtom = atom(get => {
+    const current = get(activityAtom)
+    const { items, sessions } = current.data
+    const preSessionKey = 'pre-session'
+
+    const map = new Map<string, ActivityItem[]>()
+
+    for (const item of items) {
+        // Find which session this item belongs to
+        let sessionId = preSessionKey
+        for (const session of sessions) {
+            if (item.timestamp >= session.startTime) {
+                sessionId = session.id
+            } else {
+                break
+            }
+        }
+        if (!map.has(sessionId)) map.set(sessionId, [])
+        map.get(sessionId)!.push(item)
+    }
+
+    return map
+})

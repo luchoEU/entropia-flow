@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { useAtomValue } from 'jotai'
 import { SessionType, getActionTimestamp } from '../../application/state/activity'
+import { itemsBySessionAtom } from '../../application/atoms/activity'
 import { preSessionKey, groupBySession } from './activityPageUtils'
 import { useActivityPage, useClearAllAndReload } from './useActivityPage'
 import SessionHeader from './SessionHeader'
@@ -39,6 +41,7 @@ function ActivityPage() {
         copyToClipboard,
     } = useActivityPage()
     const clearAllAndReloadDirect = useClearAllAndReload()
+    const itemsBySession = useAtomValue(itemsBySessionAtom)
 
     const activityData = activity
 
@@ -150,29 +153,20 @@ function ActivityPage() {
     const sessionDeltas = new Map<string, number>()
     const sessionInventorySummaries = new Map<string, { total: number; items: number }>()
     for (const session of virtualSessions) {
-        const sessionActions = groupedActions.get(session.id) || []
-        const delta = sessionActions.reduce((sum, action) => {
-            const itemIds = getAllItemIds(action)
-            return sum + itemIds.reduce((itemSum, itemId) => {
-                const item = getInventoryItem(itemId)
-                if (item && !sessionBlacklist?.[session.id]?.includes(item.name) && typeof item.value === 'number') {
-                    return itemSum + item.value
-                }
-                return itemSum
-            }, 0)
+        const sessionItems = itemsBySession.get(session.id) || []
+        const delta = sessionItems.reduce((sum: number, item: any) => {
+            if (!sessionBlacklist?.[session.id]?.includes(item.name) && typeof item.value === 'number') {
+                return sum + item.value
+            }
+            return sum
         }, 0)
         sessionDeltas.set(session.id, delta)
 
         // Calculate inventory summary (all unique items in session, excluding blacklisted items)
-        const itemIdSet = new Set<number>()
-        sessionActions.forEach(action => {
-            getAllItemIds(action).forEach(itemId => itemIdSet.add(itemId))
-        })
         let totalValue = 0
         let totalItems = 0
-        itemIdSet.forEach(itemId => {
-            const item = getInventoryItem(itemId)
-            if (item && !sessionBlacklist?.[session.id]?.includes(item.name)) {
+        sessionItems.forEach((item: any) => {
+            if (!sessionBlacklist?.[session.id]?.includes(item.name)) {
                 if (typeof item.value === 'number') {
                     totalValue += item.value
                 }
