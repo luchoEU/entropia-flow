@@ -1,11 +1,13 @@
 import React from 'react'
+import { useAtomValue } from 'jotai'
 import { SessionType, StoredAction, ActivityItem, getActionTimestamp } from '../../application/state/activity'
 import ImgButton from '../common/ImgButton'
+import { activityAtom } from '../../application/atoms/activity'
+import { getSessionActions as getSessionActionsUtil } from './activityUtils'
 
 interface SessionMetaProps {
     sessionId: string
     sessionType: SessionType
-    sessionActions: StoredAction[]
     sessionName: string
     typeIcon: string
     isPreSession: boolean
@@ -26,7 +28,6 @@ interface SessionMetaProps {
 const SessionMeta: React.FC<SessionMetaProps> = ({
     sessionId,
     sessionType,
-    sessionActions,
     sessionName,
     typeIcon,
     isPreSession,
@@ -40,6 +41,8 @@ const SessionMeta: React.FC<SessionMetaProps> = ({
     buildCopyTextForItems,
     getInventoryItem,
 }) => {
+    const activity = useAtomValue(activityAtom)
+    const sessionActions = getSessionActionsUtil(sessionId, activity)
     return (
         <div className='session-meta'>
             <span className='session-type'>

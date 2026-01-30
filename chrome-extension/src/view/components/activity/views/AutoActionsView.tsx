@@ -1,14 +1,16 @@
 import React from 'react'
+import { useAtomValue } from 'jotai'
 import { StoredAction, ActivityItem, SessionType, getActionTimestamp } from '../../../application/state/activity'
 import { formatDate } from '../../../../common/time'
 import ActionRow, { ActionExclusionConfig } from '../ActionRow'
 import { ItemExclusionConfig } from '../SortableItemsTable'
 import { NavigateFunction } from 'react-router-dom'
+import { activityAtom } from '../../../application/atoms/activity'
+import { getSessionActions } from '../activityUtils'
 
 interface AutoActionsViewProps {
     sessionId: string
     sessionType: SessionType
-    sessionActions: StoredAction[]
     expandedActionRows: Set<string>
     editingActionId: string | null
     onToggleActionRow: (actionId: string) => void
@@ -28,7 +30,6 @@ interface AutoActionsViewProps {
 const AutoActionsView: React.FC<AutoActionsViewProps> = ({
     sessionId,
     sessionType,
-    sessionActions,
     expandedActionRows,
     editingActionId,
     onToggleActionRow,
@@ -44,6 +45,9 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
     buildCopyTextForAction,
     copyToClipboard,
 }) => {
+    const activity = useAtomValue(activityAtom)
+    const sessionActions = getSessionActions(sessionId, activity)
+
     // Group actions by date
     const dateGroups: Map<string, StoredAction[]> = new Map()
     sessionActions.sort((a, b) => getActionTimestamp(b, getInventoryItem) - getActionTimestamp(a, getInventoryItem)).forEach(action => {

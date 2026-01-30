@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { useAtomValue } from 'jotai'
-import { SessionType, getActionTimestamp } from '../../application/state/activity'
-import { itemsBySessionAtom } from '../../application/atoms/activity'
-import { preSessionKey, groupBySession } from './activityPageUtils'
+import { ActivitySession } from '../../application/state/activity'
+import { virtualSessionsAtom } from '../../application/atoms/activity'
+import { preSessionKey } from './activityPageUtils'
 import { useActivityPage, useClearAllAndReload } from './useActivityPage'
+import { getSessionActions } from './activityUtils'
 import SessionHeader from './SessionHeader'
 import SessionMeta from './SessionMeta'
 import AutoActionsView from './views/AutoActionsView'
@@ -41,7 +42,7 @@ function ActivityPage() {
         copyToClipboard,
     } = useActivityPage()
     const clearAllAndReloadDirect = useClearAllAndReload()
-    const itemsBySession = useAtomValue(itemsBySessionAtom)
+    const virtualSessions = useAtomValue(virtualSessionsAtom)
 
     const activityData = activity
 
@@ -132,50 +133,8 @@ function ActivityPage() {
     }
 
     // Derived state
-    const virtualSessions = [{ id: preSessionKey, name: 'Pre-Session', type: 'unknown' as SessionType, startTime: 0 }, ...sessions].reverse()
-    const groupedActions = groupBySession(actions, sessions, inventoryItems)
     const expandedSessions = new Set(expandedArray)
     const expandedActionRowsSet = new Set(expandedActionRows)
-
-    // Calculate session time ranges (based on sorted sessions, not reversed virtualSessions)
-    const sessionTimeRanges = new Map<string, { start: number; end: number }>()
-    for (let i = 0; i < sessions.length; i++) {
-        const session = sessions[i]
-        const start = session.startTime
-        const end = i + 1 < sessions.length ? sessions[i + 1].startTime : Infinity
-        sessionTimeRanges.set(session.id, { start, end })
-    }
-    // Pre-session time range
-    const preSessionEnd = sessions.length > 0 ? sessions[0].startTime : Infinity
-    sessionTimeRanges.set(preSessionKey, { start: 0, end: preSessionEnd })
-
-    // Calculate session deltas and inventory summaries
-    const sessionDeltas = new Map<string, number>()
-    const sessionInventorySummaries = new Map<string, { total: number; items: number }>()
-    for (const session of virtualSessions) {
-        const sessionItems = itemsBySession.get(session.id) || []
-        const delta = sessionItems.reduce((sum: number, item: any) => {
-            if (!sessionBlacklist?.[session.id]?.includes(item.name) && typeof item.value === 'number') {
-                return sum + item.value
-            }
-            return sum
-        }, 0)
-        sessionDeltas.set(session.id, delta)
-
-        // Calculate inventory summary (all unique items in session, excluding blacklisted items)
-        let totalValue = 0
-        let totalItems = 0
-        sessionItems.forEach((item: any) => {
-            if (!sessionBlacklist?.[session.id]?.includes(item.name)) {
-                if (typeof item.value === 'number') {
-                    totalValue += item.value
-                }
-                const quantity = typeof item.quantity === 'number' ? item.quantity : 1
-                totalItems += quantity
-            }
-        })
-        sessionInventorySummaries.set(session.id, { total: totalValue, items: totalItems })
-    }
 
     const toggleSession = (sessionId: string) => {
         const newSet = new Set(expandedSessions)
@@ -240,16 +199,11 @@ function ActivityPage() {
             </div>
 
             {/* Sessions */}
-            {virtualSessions.filter(session => session.id !== 'pre-session' || (groupedActions.get(session.id) || []).length > 0).map((session) => {
-                const sessionActions = groupedActions.get(session.id) || []
+            {virtualSessions.filter((session: ActivitySession) => session.id !== 'pre-session' || getSessionActions(session.id, activityData).length > 0).map((session) => {
                 const isPreSession = session.id === preSessionKey
-                const start = isPreSession ? Math.min(...sessionActions.map(a => getActionTimestamp(a, getInventoryItem))) : session.startTime
-
-                // Get the correct session time range (handles both normal sessions and pre-session)
-                const timeRange = sessionTimeRanges.get(session.id) || { start, end: Infinity }
-                const end = timeRange.end
 
                 const isExpanded = expandedSessions.has(session.id)
+                const sessionActions = getSessionActions(session.id, activityData)
 
                 return (
                     <div key={session.id} className='actions-group'>
@@ -261,8 +215,8 @@ function ActivityPage() {
                             isExpanded={isExpanded}
                             isEditing={editingSessionId === session.id}
                             isPreSession={isPreSession}
-                            startTime={start}
-                            delta={sessionDeltas.get(session.id)}
+                            startTime={session.start}
+                            delta={session.delta}
                             onToggleExpand={() => toggleSession(session.id)}
                             onStartEdit={() => setEditingSessionId(session.id)}
                             onSaveName={(name) => {
@@ -279,11 +233,10 @@ function ActivityPage() {
                                 <SessionMeta
                                     sessionId={session.id}
                                     sessionType={session.type}
-                                    sessionActions={sessionActions}
                                     sessionName={session.name}
                                     typeIcon={typeIcon[session.type as keyof typeof typeIcon]}
                                     isPreSession={isPreSession}
-                                    inventory={sessionInventorySummaries.get(session.id)}
+                                    inventory={session.inventory}
                                     showActions={showActions}
                                     onUpdateType={(type) => updateSessionType({ sessionId: session.id, sessionType: type })}
                                     onCopy={() => copyToClipboard('')}
@@ -301,7 +254,6 @@ function ActivityPage() {
                                             <AutoActionsView
                                                 sessionId={session.id}
                                                 sessionType={session.type}
-                                                sessionActions={sessionActions}
                                                 expandedActionRows={expandedActionRowsSet}
                                                 editingActionId={editingActionId}
                                                 onToggleActionRow={toggleActionRow}
@@ -330,8 +282,8 @@ function ActivityPage() {
                                                     onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
                                                     onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
                                                 }}
-                                                sessionStartTime={start}
-                                                sessionEndTime={end}
+                                                sessionStartTime={session.start}
+                                                sessionEndTime={session.end}
                                             />
                                         )
                                     } else if (showActions === 'userActions') {
@@ -340,7 +292,6 @@ function ActivityPage() {
                                         return (
                                             <ActionsView
                                                 sessionId={session.id}
-                                                sessionActions={sessionActions}
                                                 userActions={userActions}
                                                 actionTypeDefinitions={actionTypeDefinitions}
                                                 onCreateAction={handleCreateAction}

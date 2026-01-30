@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
+import { useAtomValue } from 'jotai'
 import { StoredAction, ActivityItem } from '../../../application/state/activity'
 import { ViewItemData } from '../../../application/state/history'
 import { formatDate } from '../../../../common/time'
 import UnknownAction from '../UnknownAction'
 import ActionItem from '../ActionItem'
+import { activityAtom } from '../../../application/atoms/activity'
+import { getSessionActions } from '../activityUtils'
 
 interface ActionsViewProps {
     sessionId: string
-    sessionActions: StoredAction[]
     userActions: any[]
     actionTypeDefinitions: any[]
     onCreateAction: (emoji: string, name: string, items: ViewItemData[]) => void | Promise<void>
@@ -25,7 +27,6 @@ type MergedAction =
 
 const ActionsView: React.FC<ActionsViewProps> = ({
     sessionId,
-    sessionActions,
     userActions,
     actionTypeDefinitions,
     onCreateAction,
@@ -36,6 +37,8 @@ const ActionsView: React.FC<ActionsViewProps> = ({
     isValidEmoji,
     onSaveActionType,
 }) => {
+    const activity = useAtomValue(activityAtom)
+    const sessionActions = getSessionActions(sessionId, activity)
     const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set())
 
     // Helper to check if item is in any user action
@@ -47,7 +50,7 @@ const ActionsView: React.FC<ActionsViewProps> = ({
 
     // Extract all items from session actions not in user actions
     const unassignedItemIds = new Set<number>()
-    sessionActions.forEach(action => {
+    sessionActions.forEach((action: StoredAction) => {
         getAllItemIds(action).forEach(itemId => {
             if (!itemsInUserActions.has(itemId)) {
                 unassignedItemIds.add(itemId)

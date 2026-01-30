@@ -1175,26 +1175,50 @@ export const availableItemsAtom = atom(get => {
 })
 
 // Computed atom that groups items by session
-export const itemsBySessionAtom = atom(get => {
+type VirtualSession = ActivitySession & { delta: number; start: number; end: number }
+export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
     const current = get(activityAtom)
     const { items, sessions } = current.data
     const preSessionKey = 'pre-session'
 
-    const map = new Map<string, ActivityItem[]>()
+    // Calculate session time ranges (based on sorted sessions)
+    const sessionTimeRanges = new Map<string, { start: number; end: number }>()
+    for (let i = 0; i < sessions.length; i++) {
+        const session = sessions[i]
+        const start = session.startTime
+        const end = i + 1 < sessions.length ? sessions[i + 1].startTime : Infinity
+        sessionTimeRanges.set(session.id, { start, end })
+    }
+
+    // Pre-session time range
+    const preSessionEnd = sessions.length > 0 ? sessions[0].startTime : Infinity
+    sessionTimeRanges.set(preSessionKey, { start: 0, end: preSessionEnd })
+
+    const map = new Map<string, { session: ActivitySession, items: ActivityItem[] }>()
 
     for (const item of items) {
         // Find which session this item belongs to
-        let sessionId = preSessionKey
+        let matchSession = {
+            id: preSessionKey,
+            name: 'Pre-Session',
+            type: 'unknown' as SessionType,
+            startTime: 0
+        }
         for (const session of sessions) {
             if (item.timestamp >= session.startTime) {
-                sessionId = session.id
+                matchSession = session
             } else {
                 break
             }
         }
-        if (!map.has(sessionId)) map.set(sessionId, [])
-        map.get(sessionId)!.push(item)
+        if (!map.has(matchSession.id)) map.set(matchSession.id, { session: matchSession, items: [] })
+        map.get(matchSession.id)!.items.push(item)
     }
 
-    return map
+    return Object.values(map).map(({ session, items }) => {
+        const validItems = items.filter((item: ActivityItem) => !current.blacklist.session?.[session.id]?.includes(item.name) && typeof item.value === 'number')
+        const delta = validItems.reduce((sum: number, item: ActivityItem) => sum + item.value, 0)
+        const timeRange = sessionTimeRanges.get(session.id) || { start: 0, end: Infinity }
+        return { ...session, delta, start: timeRange.start, end: timeRange.end }
+    })
 })
