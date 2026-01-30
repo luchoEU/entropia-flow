@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { ViewItemData } from '../../application/state/history'
 import { SortableItemsTable } from './SortableItemsTable'
 import BaseActionRow from './BaseActionRow'
+import ActionNameDisplay from './ActionNameDisplay'
+import { useActionEdit } from './useActionEdit'
+import { calculateViewItemsTotal } from './calculateActionTotal'
 
 interface UnknownActionProps {
     items: ViewItemData[]
@@ -20,34 +23,39 @@ const UnknownAction: React.FC<UnknownActionProps> = ({
     isExpanded,
     onToggleExpand,
 }) => {
-    const [isEditing, setIsEditing] = useState(false)
-    const [editEmoji, setEditEmoji] = useState('🎯')
-    const [editName, setEditName] = useState('')
+    const {
+        isEditing,
+        setIsEditing,
+        editingEmoji,
+        setEditingEmoji,
+        editingName,
+        setEditingName,
+        handleStartEdit,
+        handleCancelEdit,
+    } = useActionEdit({
+        initialEmoji: '🎯',
+        initialName: '',
+    })
 
-    const hasValidEmoji = !editEmoji.trim() || isValidEmoji(editEmoji)
-    const hasValidName = editName.trim().length > 0
+    const hasValidEmoji = !editingEmoji.trim() || isValidEmoji(editingEmoji)
+    const hasValidName = editingName.trim().length > 0
     const isFormValid = hasValidName && hasValidEmoji
 
     const handleSave = async () => {
         if (!isFormValid) return
-        await onCreateAction(editEmoji, editName, items)
+        await onCreateAction(editingEmoji, editingName, items)
         setIsEditing(false)
     }
 
-    const handleCancel = () => {
-        setIsEditing(false)
-    }
-
-    const displayEmoji = isEditing ? editEmoji : '❓'
-    const displayName = isEditing ? editName : ''
-
-    const total = 0
+    const total = calculateViewItemsTotal(items)
 
     const nameContent = (
-        <span style={{ fontWeight: 'bold' }}>
-            <span>{displayEmoji} {displayName}</span>
-            { !isEditing && <span style={{ marginLeft: '10px', fontSize: '12px', opacity: 0.7 }}>({items.length} item{items.length !== 1 ? 's' : ''})</span> }
-        </span>
+        <ActionNameDisplay
+            emoji={isEditing ? editingEmoji : '❓'}
+            name={isEditing ? editingName : ''}
+            itemCount={items.length}
+            isEditing={isEditing}
+        />
     )
 
     const actionsContent = null
@@ -60,14 +68,14 @@ const UnknownAction: React.FC<UnknownActionProps> = ({
                 isExpanded={isExpanded}
                 onToggleExpand={onToggleExpand}
                 isEditing={isEditing}
-                onStartEdit={() => setIsEditing(true)}
+                onStartEdit={handleStartEdit}
                 onSave={handleSave}
-                onCancel={handleCancel}
+                onCancel={handleCancelEdit}
                 isSaveDisabled={!isFormValid}
-                emoji={editEmoji}
-                name={editName}
-                onEmojiChange={setEditEmoji}
-                onNameChange={setEditName}
+                emoji={editingEmoji}
+                name={editingName}
+                onEmojiChange={setEditingEmoji}
+                onNameChange={setEditingName}
                 isValidEmoji={isValidEmoji}
             >
                 {[nameContent, actionsContent]}
@@ -92,7 +100,7 @@ const UnknownAction: React.FC<UnknownActionProps> = ({
             {isEditing && (
                 <tr>
                     <td colSpan={5} style={{ padding: '10px', borderBottom: '1px solid #ddd', backgroundColor: '#fafafa' }}>
-                        {editEmoji.trim() && !hasValidEmoji && (
+                        {editingEmoji.trim() && !hasValidEmoji && (
                             <div style={{ color: '#ff6b6b', fontSize: '12px', marginBottom: '8px' }}>
                                 ⚠ Please enter a single emoji (e.g., 💰 or 🎁)
                             </div>

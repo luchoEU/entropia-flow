@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { ActivityItem, ActivityAction, UserActionTypeDefinition } from '../../application/state/activity'
 import { activityAtom, updateExpandedActionRowsAtom } from '../../application/atoms/activity'
@@ -6,6 +6,9 @@ import ItemText from '../common/ItemText'
 import BaseActionRow from './BaseActionRow'
 import ImgButton from '../common/ImgButton'
 import InferenceRuleEditor from './InferenceRuleEditor'
+import ActionNameDisplay from './ActionNameDisplay'
+import { useActionEdit } from './useActionEdit'
+import { calculateActionTotal } from './calculateActionTotal'
 
 interface ActionItemProps {
     action: ActivityAction
@@ -26,10 +29,22 @@ const ActionItem: React.FC<ActionItemProps> = ({
     onSaveActionType,
     isValidEmoji,
 }) => {
-    const [isEditing, setIsEditing] = useState(false)
-    const [editingRule, setEditingRule] = useState<any>(null)
-    const [editingEmoji, setEditingEmoji] = useState(actionTypeDef?.emoji || '🎯')
-    const [editingName, setEditingName] = useState(actionTypeDef?.name || '')
+    const {
+        isEditing,
+        setIsEditing,
+        editingEmoji,
+        setEditingEmoji,
+        editingName,
+        setEditingName,
+        editingRule,
+        setEditingRule,
+        handleStartEdit,
+        handleCancelEdit,
+    } = useActionEdit({
+        initialEmoji: actionTypeDef?.emoji || '🎯',
+        initialName: actionTypeDef?.name || '',
+        initialRule: actionTypeDef?.inferenceRule,
+    })
 
     // Jotai state management for expanded rows
     const activity = useAtomValue(activityAtom)
@@ -65,10 +80,6 @@ const ActionItem: React.FC<ActionItemProps> = ({
         }
     }, [isEditing, actionTypeDef])
 
-    const handleStartEdit = () => {
-        setIsEditing(true)
-    }
-
     const handleSaveActionType = async () => {
         if (!editingName.trim() || !isValidEmoji(editingEmoji)) return
 
@@ -92,23 +103,18 @@ const ActionItem: React.FC<ActionItemProps> = ({
         setEditingRule(updatedRule)
     }
 
-    const handleCancelEdit = () => {
-        setEditingEmoji(actionTypeDef?.emoji || '🎯')
-        setEditingName(actionTypeDef?.name || '')
-        setIsEditing(false)
-    }
-
     // Calculate total value
-    const total = itemIds.reduce((sum, itemId) => {
-        const item = getInventoryItem(itemId)
-        return sum + (item ? item.value : 0)
-    }, 0)
+    const total = calculateActionTotal(itemIds, getInventoryItem)
 
-    const normalNameContent = (
-        <span style={{ fontWeight: 'bold' }}>
-            <span>{actionTypeDef ? `${actionTypeDef.emoji} ${actionTypeDef.name}` : 'Unknown type'}</span>
-            {itemIds.length > 0 && <span style={{ marginLeft: '10px', fontSize: '12px', opacity: 0.7 }}>({itemIds.length} item{itemIds.length !== 1 ? 's' : ''})</span>}
-        </span>
+    const normalNameContent = actionTypeDef ? (
+        <ActionNameDisplay
+            emoji={actionTypeDef.emoji}
+            name={actionTypeDef.name}
+            itemCount={itemIds.length}
+            isEditing={isEditing}
+        />
+    ) : (
+        <span style={{ fontWeight: 'bold' }}>Unknown type</span>
     )
 
     const actionsContent = (
