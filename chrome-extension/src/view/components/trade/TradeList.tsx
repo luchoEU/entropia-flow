@@ -52,7 +52,7 @@ const TradeList = (p: {
                     sortType={list.sortType}
                     sortBy={p.sort}
                     columns={[NAME, -1, QUANTITY, VALUE]}
-                    className='img-container-hover'
+                    className='img-hover-containerr'
                     definition={sortColumnDefinition}>
                     {
                         list.items.map((item: ItemData) =>

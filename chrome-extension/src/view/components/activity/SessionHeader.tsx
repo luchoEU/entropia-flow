@@ -46,7 +46,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
     }
 
     return (
-        <div className='session-header img-container-hover' onClick={onToggleExpand} style={{ cursor: 'pointer' }}>
+        <div className='session-header img-hover-containerr' onClick={onToggleExpand} style={{ cursor: 'pointer' }}>
             <div className='session-header-main'>
                 <span className='session-expand'>{isExpanded ? '▼' : '▶'}</span>
                 {isEditing ? (

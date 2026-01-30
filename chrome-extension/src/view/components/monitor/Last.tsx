@@ -87,7 +87,7 @@ const Last = () => {
 
     return (
         <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
-            <p className="img-container-hover flex" style={{ alignItems: 'center', gap: '10px' }}>
+            <p className="img-hover-containerr flex" style={{ alignItems: 'center', gap: '10px' }}>
                 <span onClick={() => setExpanded(!expanded)}>
                     <ExpandablePlusButton
                         expanded={expanded}

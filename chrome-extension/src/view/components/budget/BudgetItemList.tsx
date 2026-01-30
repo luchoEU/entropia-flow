@@ -72,7 +72,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
         editingLine?.itemName === itemName && editingLine?.lineIdx === lineIdx
 
     return <div className='trade-item-data'>
-        <h2 className='pointer img-container-hover' onClick={() => navigate('/budget')}>
+        <h2 className='pointer img-hover-containerr' onClick={() => navigate('/budget')}>
             Budget: {viewData.title} <img src='img/left.png' />
         </h2>
 
@@ -228,7 +228,7 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
 
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-container-hover' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
+            <h2 className='pointer img-hover-containerr' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
                 Material: {viewData.materialName} <img src='img/left.png' />
             </h2>
             <p>Markup: {(viewData.markup * 100).toFixed(2)}%</p>

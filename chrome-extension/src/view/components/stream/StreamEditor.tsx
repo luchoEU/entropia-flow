@@ -84,7 +84,7 @@ function StreamEditor({ layoutId: parmlayoutId }: { layoutId: string }) {
         </>
 
     return <section>
-        <h1 className='img-container-hover'>
+        <h1 className='img-hover-containerr'>
             <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${layout.name}`} show={true} dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
             <button
                 title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}

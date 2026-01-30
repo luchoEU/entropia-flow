@@ -15,6 +15,7 @@ const tabTitle = {
     [TabId.ACTIVITY]: 'Activity',
     [TabId.SETTING]: 'Settings',
     [TabId.RAW_STORAGE]: 'Raw Storage',
+    [TabId.ATOM_DEBUG]: 'Atom Debug',
     [TabId.ABOUT]: 'About'
 }
 
@@ -30,6 +31,7 @@ const tabSubtitle = {
     [TabId.ACTIVITY]: 'Timeline of activities inferred from your activity',
     [TabId.SETTING]: 'Settings for Entropia Flow',
     [TabId.RAW_STORAGE]: 'View and edit Chrome storage data',
+    [TabId.ATOM_DEBUG]: 'Debug view for all Jotai atom values',
     [TabId.ABOUT]: 'Information about Entropia Flow'
 }
 
@@ -44,6 +46,7 @@ const tabShow = (id: TabId, anyInventory: boolean, settings: SettingsState): boo
         case TabId.REFINED: return isFeatureEnabled(settings, Feature.refined)
         case TabId.BUDGET: return isFeatureEnabled(settings, Feature.budget)
         case TabId.ACTIVITY: return isFeatureEnabled(settings, Feature.activity)
+        case TabId.ATOM_DEBUG: return isFeatureEnabled(settings, Feature.atomDebug)
         default: return true
     }
 }

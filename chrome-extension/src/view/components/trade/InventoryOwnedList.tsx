@@ -83,7 +83,7 @@ const TradeItemDetailsChain = () => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
             const editMode = tradeItemData.name && tradeItemData.name === matEditModeMaterialName
             return <div key={tradeItemData.name} className='trade-item-data'>
-                <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
+                <h2 className='pointer img-hover-containerr' onClick={(e) => { e.stopPropagation(); dispatch(showTradingItemData(chainNext ? tradeItemData.name : undefined, chainIndex)) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
                     { tradeItemData.name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(tradeItemData.name)}/> }
                 </h2>

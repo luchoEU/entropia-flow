@@ -385,7 +385,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     const editMode = name && name === mat.editModeMaterialName
     return (
         <div className='craft-chain'>
-            <h2 className='pointer img-container-hover' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
+            <h2 className='pointer img-hover-containerr' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
                 { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/> }
             </h2>
@@ -465,7 +465,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     return (
         <section>
             <div className='inline'>
-                <h1 className='img-container-hover'>
+                <h1 className='img-hover-containerr'>
                     <ImgButton
                         title='Back to list'
                         src='img/left.png'
@@ -488,7 +488,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                 <div className='inline'>
                     { chainNames.map(name =>
                         <div className='craft-chain'>
-                            <h2 className='pointer img-container-hover' onClick={(e) => {
+                            <h2 className='pointer img-hover-containerr' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(name, undefined))
                             }}>
@@ -498,7 +498,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                     )}
                     { lastBpChain &&
                         <div className='craft-chain'>
-                            <h2 className='pointer img-container-hover' onClick={(e) => {
+                            <h2 className='pointer img-hover-containerr' onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch(showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined))
                             }}>

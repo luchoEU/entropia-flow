@@ -15,7 +15,7 @@ function StreamTrashPage() {
     const trashLayouts = useSelector(getStreamTrashLayouts);
     const isEmpty = Object.keys(trashLayouts).length === 0;
     return <section>
-        <h1 className='img-container-hover'>
+        <h1 className='img-hover-containerr'>
             <ImgButton title='Back to list' src='img/left.png' beforeText='Trashed layouts' dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.STREAM)}/>
         </h1>
         {isEmpty ? <p>Trash is empty</p> : <>

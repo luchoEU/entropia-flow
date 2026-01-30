@@ -13,6 +13,7 @@
         "prestream-dev": "npm run build:schema",
         "build": "webpack --config webpack.dev.js",
         "build:prod": "webpack --config webpack.prod.js",
+        "build:extension": "webpack --config webpack.dev.js",
         "watch": "webpack -w --config webpack.dev.js",
         "stream-types": "tsc --project tsconfig.stream-types.json",
         "stream": "npm run stream-types && webpack --config webpack.stream.prod.js",

@@ -202,7 +202,7 @@ function ActivityPage() {
     return (
         <section>
             {/* Toolbar */}
-            <div className='img-container-hover' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div className='img-hover-containerr' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <button onClick={() => createNewSession()}>
                     New Session
                 </button>

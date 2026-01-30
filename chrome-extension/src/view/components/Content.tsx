@@ -13,6 +13,7 @@ import BudgetPage from './budget/BudgetPage'
 import ClientPage from './client/ClientPage'
 import ActivityPage from './activity/ActivityPage'
 import RawStoragePage from './rawStorage/RawStoragePage'
+import AtomDebugPage from './atomDebug/AtomDebugPage'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { TabId } from '../application/state/navigation'
 import { useSelector } from 'react-redux'
@@ -58,6 +59,7 @@ function ContentPage() {
         { id: TabId.CLIENT, routes: [ { path: TabId.CLIENT, component: ClientPage } ] },
         { id: TabId.SETTING, routes: [ { path: TabId.SETTING, component: SettingsPage } ] },
         { id: TabId.RAW_STORAGE, routes: [ { path: TabId.RAW_STORAGE, component: RawStoragePage } ] },
+        { id: TabId.ATOM_DEBUG, routes: [ { path: TabId.ATOM_DEBUG, component: AtomDebugPage } ] },
         { id: TabId.ABOUT, routes: [ { path: TabId.ABOUT, component: AboutPage } ] }
     ]
 

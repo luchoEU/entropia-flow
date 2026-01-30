@@ -11,6 +11,7 @@ enum Feature {
     commaDecimalSeparator,
     notification,
     activity,
+    atomDebug,
 }
 
 const featureList: FeatureInfo[] = [
@@ -72,6 +73,12 @@ Alternatively, you can choose to handle this manually by opening the tab yoursel
         id: Feature.activity,
         title: 'Activity',
         description: 'Show Activity tab with timeline of inferred activities',
+        development: true,
+    },
+    {
+        id: Feature.atomDebug,
+        title: 'Atom Debug',
+        description: 'Show Atom Debug page with all Jotai atom values',
         development: true,
     },
 ]

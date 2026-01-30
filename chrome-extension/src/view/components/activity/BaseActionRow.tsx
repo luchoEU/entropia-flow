@@ -140,7 +140,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
     )
 
     return (
-        <tr className="item-row img-container-hover">
+        <tr className="item-row img-hover-containerr">
             <td>
                 <span style={{ cursor: 'pointer', marginRight: '5px' }} onClick={onToggleExpand}>
                     {isExpanded ? '▼' : '▶'}

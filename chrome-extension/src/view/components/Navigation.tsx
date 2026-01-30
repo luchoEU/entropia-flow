@@ -114,7 +114,7 @@ const Navigation = () => {
 
     return (
         <>
-            <nav ref={ref} className={'img-container-hover ' + (menuPinned ? 'nav-pinned' : '')}>
+            <nav ref={ref} className={'img-hover-containerr ' + (menuPinned ? 'nav-pinned' : '')}>
                 { showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>
@@ -134,7 +134,7 @@ const Navigation = () => {
                                 dispatch={() => setShowSubtitles(false)} />
                         </div>
                     </div> :
-                    <div className='nav-row'>
+                    <div className='nav-row img-hover-container'>
                         <FirstRow />
                         <div style={{ flex: 1 }} />
                         <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' dispatch={() => setShowSubtitles(true)} />
