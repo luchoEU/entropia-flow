@@ -199,7 +199,7 @@ function ActivityPage() {
             </div>
 
             {/* Sessions */}
-            {virtualSessions.filter((session: ActivitySession) => session.id !== 'pre-session' || getSessionActions(session.id, activityData).length > 0).map((session) => {
+            {virtualSessions.map((session) => {
                 const isPreSession = session.id === preSessionKey
 
                 const isExpanded = expandedSessions.has(session.id)

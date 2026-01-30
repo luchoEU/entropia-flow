@@ -163,14 +163,26 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                                 src="/img/copy.png"
                                 alt="Copy"
                                 title="Copy to clipboard"
+                                clickPopup="Copied!"
                                 dispatch={handleCopyValue}
                             />
                         </div>
                     </div>
                 ) : (
-                    <span style={{ color: '#666' }}>
-                        {type === 'array' ? `Array(${value.length})` : `Object(${Object.keys(value).length})`}
-                    </span>
+                    <div className='img-hover-containerr' style={{ display: 'flex', alignItems: 'flex-start', gap: '2px', flex: 1 }}>
+                        <span style={{ color: '#666' }}>
+                            {type === 'array' ? `Array(${value.length})` : `Object(${Object.keys(value).length})`}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: 'auto' }}>
+                            <ImgButton
+                                src="/img/copy.png"
+                                alt="Copy"
+                                title="Copy to clipboard"
+                                clickPopup="Copied!"
+                                dispatch={handleCopyValue}
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
 

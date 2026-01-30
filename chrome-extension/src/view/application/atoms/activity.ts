@@ -1215,7 +1215,7 @@ export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
         map.get(matchSession.id)!.items.push(item)
     }
 
-    return Object.values(map).map(({ session, items }) => {
+    return Array.from(map.values()).map(({ session, items }) => {
         const validItems = items.filter((item: ActivityItem) => !current.blacklist.session?.[session.id]?.includes(item.name) && typeof item.value === 'number')
         const delta = validItems.reduce((sum: number, item: ActivityItem) => sum + item.value, 0)
         const timeRange = sessionTimeRanges.get(session.id) || { start: 0, end: Infinity }
