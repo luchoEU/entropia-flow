@@ -10,7 +10,6 @@ import { getSessionActions } from '../activityUtils'
 
 interface AutoActionsViewProps {
     sessionId: string
-    sessionType: SessionType
     expandedActionRows: Set<string>
     editingActionId: string | null
     onToggleActionRow: (actionId: string) => void
@@ -29,7 +28,6 @@ interface AutoActionsViewProps {
 
 const AutoActionsView: React.FC<AutoActionsViewProps> = ({
     sessionId,
-    sessionType,
     expandedActionRows,
     editingActionId,
     onToggleActionRow,

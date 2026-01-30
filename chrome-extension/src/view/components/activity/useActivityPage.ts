@@ -27,7 +27,6 @@ import {
     removeUserActionAtom,
     applyInferenceRuleAtom,
     clearAllAtom,
-    onHistoryChangeAtom,
     clearAllAndReloadAtom,
 } from '../../application/atoms/activity'
 import { getSettings } from '../../application/selectors/settings'
@@ -64,7 +63,6 @@ export const useActivityPage = () => {
     const removeUserAction = useSetAtom(removeUserActionAtom)
     const applyInferenceRule = useSetAtom(applyInferenceRuleAtom)
     const clearAll = useSetAtom(clearAllAtom)
-    const onHistoryChange = useSetAtom(onHistoryChangeAtom)
     const clearAllAndReload = useSetAtom(clearAllAndReloadAtom)
 
     // Redux state (for settings only)
@@ -218,7 +216,6 @@ export const useActivityPage = () => {
         removeUserAction,
         applyInferenceRule,
         clearAll,
-        onHistoryChange,
         clearAllAndReload,
 
         // Helper functions

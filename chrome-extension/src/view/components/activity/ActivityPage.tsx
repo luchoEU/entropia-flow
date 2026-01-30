@@ -245,7 +245,6 @@ function ActivityPage() {
                                         return (
                                             <AutoActionsView
                                                 sessionId={session.id}
-                                                sessionType={session.type}
                                                 expandedActionRows={expandedActionRowsSet}
                                                 editingActionId={editingActionId}
                                                 onToggleActionRow={toggleActionRow}
