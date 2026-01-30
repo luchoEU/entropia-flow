@@ -5,7 +5,7 @@ import {
     activityAtom,
     activityLoadingAtom,
     initializeActivityAtom,
-    addActionsAtom,
+    addActionsAndItemsAtom,
     setLastProcessedLogSerialAtom,
     subscribeToActivityAtom,
     updateActionBudgetNameAtom,
@@ -17,7 +17,7 @@ import { getGameLog } from '../../application/selectors/log'
 import { getBudget } from '../../application/selectors/budget'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
-import { StoredAction } from '../../application/state/activity'
+import { StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 
 export function ActivityBridge() {
@@ -34,7 +34,7 @@ export function ActivityBridge() {
     const [activity] = useAtom(activityAtom)
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
-    const addActions = useSetAtom(addActionsAtom)
+    const addActionsAndItems = useSetAtom(addActionsAndItemsAtom)
     const setLastProcessedLogSerial = useSetAtom(setLastProcessedLogSerialAtom)
     const subscribe = useSetAtom(subscribeToActivityAtom)
     const updateActionBudgetName = useSetAtom(updateActionBudgetNameAtom)
@@ -137,27 +137,46 @@ export function ActivityBridge() {
 
         // Create one action per timestamp with all loot items
         const newLootActions: StoredAction[] = []
-        for (const lootItems of lootByTimestamp.values()) {
+        const newLootItems: ActivityItem[] = []
+        let nextItemId = Math.max(0, ...activity.data.items.map(item => item.id)) + 1
+
+        for (const [timestamp, lootItems] of lootByTimestamp.entries()) {
             const minSerial = Math.min(...lootItems.map(item => item.serial))
+            const itemIds: number[] = []
+
+            // Create ActivityItems for each loot entry
+            for (const { loot } of lootItems) {
+                const itemId = nextItemId++
+                itemIds.push(itemId)
+                newLootItems.push({
+                    id: itemId,
+                    name: loot.name,
+                    quantity: loot.quantity,
+                    value: loot.value,
+                    container: 'LOOT',
+                    timestamp,
+                    source: 'client'
+                })
+            }
 
             const storedAction: StoredAction = {
                 type: 'loot',
-                relatedItems: { items: [] }, // Will be populated when merged with inventory items
+                relatedItems: { items: itemIds },
                 id: `loot-${minSerial}`,
                 sources: ['client']
             }
             newLootActions.push(storedAction)
         }
 
-        if (newLootActions.length > 0) {
-            addActions(newLootActions)
+        if (newLootActions.length > 0 || newLootItems.length > 0) {
+            addActionsAndItems({ actions: newLootActions, items: newLootItems })
         }
 
         // Update lastProcessedLogSerial
         if (maxSerial > (prevLastLogSerial || 0)) {
             setLastProcessedLogSerial(maxSerial)
         }
-    }, [gameLog, isLoading, activity.lastProcessed.clientLogSerial, addActions, setLastProcessedLogSerial])
+    }, [gameLog, isLoading, activity.lastProcessed.clientLogSerial, addActionsAndItems, setLastProcessedLogSerial])
 
     // Process history changes
     useEffect(() => {

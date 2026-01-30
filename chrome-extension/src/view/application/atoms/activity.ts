@@ -255,6 +255,27 @@ export const addActionsAtom = atom(
     }
 )
 
+export const addActionsAndItemsAtom = atom(
+    null,
+    async (get, set, { actions, items }: { actions: StoredAction[]; items: ActivityItem[] }) => {
+        const current = get(activityAtom)
+        const newState = {
+            ...current,
+            data: {
+                ...current.data,
+                items: [...items, ...current.data.items],
+                autoActions: [...actions, ...current.data.autoActions]
+            }
+        }
+        set(activityAtom, newState)
+        await saveToStorage(newState)
+
+        // Notify subscribers
+        const subscribers = get(activitySubscribersAtom)
+        subscribers.onActionsAdded.forEach(cb => cb(actions))
+    }
+)
+
 export const removeActionsAtom = atom(
     null,
     async (get, set, actionIds: string[]) => {

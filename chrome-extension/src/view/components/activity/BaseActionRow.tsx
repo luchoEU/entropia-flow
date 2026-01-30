@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react'
 import { formatTime } from '../../../common/time'
 import ImgButton from '../common/ImgButton'
+import { suggestEmojiForAction } from '../../../common/emojiSuggester'
 
 interface BaseActionRowProps {
     timestamp: number
@@ -70,7 +71,17 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                         type="text"
                         placeholder="Action name"
                         value={name}
-                        onChange={(e) => onNameChange(e.target.value)}
+                        onChange={(e) => {
+                            const newName = e.target.value
+                            onNameChange(newName)
+                            // Auto-suggest emoji based on action name
+                            if (onEmojiChange && newName.trim()) {
+                                const suggestedEmoji = suggestEmojiForAction(newName)
+                                if (suggestedEmoji) {
+                                    onEmojiChange(suggestedEmoji)
+                                }
+                            }
+                        }}
                         style={{
                             padding: '5px 8px',
                             fontSize: '14px',
@@ -93,16 +104,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                         <button
                             onClick={onSave}
                             disabled={isSaveDisabled}
-                            style={{
-                                padding: '4px 12px',
-                                fontSize: '12px',
-                                backgroundColor: isSaveDisabled ? '#ccc' : '#4CAF50',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '3px',
-                                cursor: isSaveDisabled ? 'not-allowed' : 'pointer',
-                                opacity: isSaveDisabled ? 0.5 : 1
-                            }}
+                            className="start"
                         >
                             ✅ Save
                         </button>
@@ -110,15 +112,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                     {onCancel && (
                         <button
                             onClick={onCancel}
-                            style={{
-                                padding: '4px 12px',
-                                fontSize: '12px',
-                                backgroundColor: '#999',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '3px',
-                                cursor: 'pointer'
-                            }}
+                            className="stop"
                         >
                             ❌ Cancel
                         </button>
