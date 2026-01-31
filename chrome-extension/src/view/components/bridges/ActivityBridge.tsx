@@ -13,7 +13,7 @@ import {
 } from '../../application/atoms/activity'
 import { historyAtom } from '../../application/atoms/history'
 import { lastComputedAtom } from '../../application/atoms/last'
-import { getGameLog } from '../../application/selectors/log'
+import { currentGameLogDataAtom, initializeGameLogAtom } from '../../application/atoms/gameLog'
 import { getBudget } from '../../application/selectors/budget'
 import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
@@ -23,9 +23,8 @@ import { GameLogData } from '../../../background/client/gameLogData'
 export function ActivityBridge() {
     const dispatch = useDispatch()
 
-    // Redux selectors
-    const gameLog: GameLogData = useSelector(getGameLog)
     // Jotai atoms
+    const gameLog = useAtomValue(currentGameLogDataAtom)
     const history = useAtomValue(historyAtom)
     const budget = useSelector(getBudget)
     const last = useAtomValue(lastComputedAtom)
@@ -34,6 +33,7 @@ export function ActivityBridge() {
     const [activity] = useAtom(activityAtom)
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
+    const initializeGameLog = useSetAtom(initializeGameLogAtom)
     const addActionsAndItems = useSetAtom(addActionsAndItemsAtom)
     const setLastProcessedLogSerial = useSetAtom(setLastProcessedLogSerialAtom)
     const subscribe = useSetAtom(subscribeToActivityAtom)
@@ -58,7 +58,8 @@ export function ActivityBridge() {
     // Initialize activity state from storage
     useEffect(() => {
         initializeActivity()
-    }, [initializeActivity])
+        initializeGameLog()
+    }, [initializeActivity, initializeGameLog])
 
     // Subscribe to activity changes for budget and notification integration
     useEffect(() => {

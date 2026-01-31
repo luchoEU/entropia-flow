@@ -16,7 +16,6 @@ import craft from './craft'
 import settings from './settings'
 import refined from './refined'
 import items from './items'
-import log from './log'
 import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
@@ -44,7 +43,6 @@ export default [
     ...craft,
     ...settings,
     ...refined,
-    ...log,
     ...connection,
     ...budget,
     ...ttService,

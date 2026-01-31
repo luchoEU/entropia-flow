@@ -16,7 +16,6 @@ import craft from './craft'
 import settings from './settings'
 import refined from './refined'
 import items from './items'
-import log from './log'
 import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
@@ -28,6 +27,6 @@ import app from '../slice/app'
 
 export default combineReducers({
     status, items, calculator, actives, order, sweat, stackable,
-    refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined, log,
+    refine, stream, inventory, about, sheets, fruit, use, craft, settings, refined,
     connection, budget, ttService, tabular, expandable, trade, mode, app
 })

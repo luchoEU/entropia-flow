@@ -1,1 +1,0 @@
-export const getGameLog = state => state.log

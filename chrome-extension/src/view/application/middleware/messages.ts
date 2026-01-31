@@ -1,7 +1,6 @@
 import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
 import { setCurrentInventory } from '../actions/inventory'
-import { setCurrentGameLog } from '../actions/log'
 import { REFRESH, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
@@ -16,6 +15,7 @@ import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
 import { setLastTimestampAtom, lastComputedAtom } from '../atoms/last'
 import { inventoryListAtom } from '../atoms/history'
+import { processGameLogAtom } from '../atoms/gameLog'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -34,8 +34,9 @@ const refreshViewHandler = (m: ViewState): any[] => {
     }
     if (m.status)
         actions.push(setStatus(m.status))
-    if (m.gameLog)
-        actions.push(setCurrentGameLog(m.gameLog))
+    if (m.gameLog) {
+        getDefaultStore().set(processGameLogAtom, m.gameLog)
+    }
     if (m.clientState) {
         actions.push(webSocketStateChanged(m.clientState.code))
         actions.push(setConnectionStatus(m.clientState.message + (m.clientVersion ? ` (version ${m.clientVersion})` : '')))
