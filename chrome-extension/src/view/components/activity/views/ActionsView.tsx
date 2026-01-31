@@ -19,6 +19,8 @@ interface ActionsViewProps {
     getAllItemIds: (action: StoredAction) => number[]
     isValidEmoji: (str: string) => boolean
     onSaveActionType?: (actionType: any) => Promise<void>
+    sessionStartTime?: number
+    sessionEndTime?: number
 }
 
 type MergedAction =
@@ -36,6 +38,8 @@ const ActionsView: React.FC<ActionsViewProps> = ({
     getAllItemIds,
     isValidEmoji,
     onSaveActionType,
+    sessionStartTime,
+    sessionEndTime,
 }) => {
     const activity = useAtomValue(activityAtom)
     const sessionActions = getSessionActions(sessionId, activity)
@@ -58,15 +62,22 @@ const ActionsView: React.FC<ActionsViewProps> = ({
         })
     })
 
-    // Group unassigned items by timestamp
+    // Group unassigned items by timestamp, filtering by session time range
     const unknownActionsByTimestamp = new Map<number, number[]>()
     Array.from(unassignedItemIds).forEach(itemId => {
         const item = getInventoryItemWithFallback(itemId)
         const timestamp = item.timestamp
-        if (!unknownActionsByTimestamp.has(timestamp)) {
-            unknownActionsByTimestamp.set(timestamp, [])
+
+        // Only include items within the session's time range
+        const withinRange = (sessionStartTime === undefined || timestamp >= sessionStartTime) &&
+                            (sessionEndTime === undefined || timestamp <= sessionEndTime)
+
+        if (withinRange) {
+            if (!unknownActionsByTimestamp.has(timestamp)) {
+                unknownActionsByTimestamp.set(timestamp, [])
+            }
+            unknownActionsByTimestamp.get(timestamp)!.push(itemId)
         }
-        unknownActionsByTimestamp.get(timestamp)!.push(itemId)
     })
 
     // Merge all actions (user actions + unknown actions)

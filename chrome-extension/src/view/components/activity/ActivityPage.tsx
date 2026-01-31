@@ -292,6 +292,8 @@ function ActivityPage() {
                                                 getAllItemIds={getAllItemIds}
                                                 isValidEmoji={isValidEmoji}
                                                 onSaveActionType={updateActionTypeDefinition}
+                                                sessionStartTime={session.start}
+                                                sessionEndTime={session.end}
                                             />
                                         )
                                     }

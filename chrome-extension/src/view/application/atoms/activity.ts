@@ -259,7 +259,7 @@ export const addActionsAndItemsAtom = atom(
     null,
     async (get, set, { actions, items }: { actions: StoredAction[]; items: ActivityItem[] }) => {
         const current = get(activityAtom)
-        const newState = {
+        const newState: ActivityState = {
             ...current,
             data: {
                 ...current.data,
