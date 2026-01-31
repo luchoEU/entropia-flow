@@ -10,12 +10,14 @@ import { AppDispatch } from '../store'
 import { setBlueprintList } from '../actions/craft'
 import { SET_STREAM_SHOWING_LAYOUT_ID, setStreamData, setStreamVariables } from '../actions/stream'
 import { Feature, isFeatureEnabled } from '../state/settings'
-import { getSettings } from '../selectors/settings'
 import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
 import { setLastTimestampAtom, lastComputedAtom } from '../atoms/last'
 import { inventoryListAtom } from '../atoms/history'
 import { processGameLogAtom } from '../atoms/gameLog'
+import { rawInventoryItemsAtom, hideCriteriaAtom } from '../atoms/inventory'
+import { settingsAtom } from '../atoms/settings'
+import { getOwned } from '../helpers/inventory'
 
 const refreshViewHandler = (m: ViewState): any[] => {
     const actions: any[] = [];
@@ -29,8 +31,13 @@ const refreshViewHandler = (m: ViewState): any[] => {
         else if (m.list.length > 0 && m.list[0].log === undefined)
             getDefaultStore().set(createNewSessionAtom)
         const newest = m.list.find(e => e.log === undefined && e.itemlist !== undefined)
-        if (newest !== undefined)
+        if (newest !== undefined && newest.itemlist) {
             actions.push(setCurrentInventory(newest))
+            // Populate rawInventoryItemsAtom with transformed data
+            const hideCriteria = getDefaultStore().get(hideCriteriaAtom)
+            const ownedItems = getOwned(newest.itemlist, hideCriteria)
+            getDefaultStore().set(rawInventoryItemsAtom, ownedItems)
+        }
     }
     if (m.status)
         actions.push(setStatus(m.status))
@@ -63,7 +70,7 @@ const blueprintListHandler = (dispatch: AppDispatch) => async (m: ViewBlueprintL
 }
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             await new Promise<void>(resolve => {
@@ -88,7 +95,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case COPY_LAST: {
             const computed = getDefaultStore().get(lastComputedAtom)
             if (computed.diff) {
-                const settings = getSettings(getState())
+                const settings = getDefaultStore().get(settingsAtom)
                 const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator);
                 const text = computed.diff.map((d: any) => `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`).join('\n')
                 navigator.clipboard.writeText(text).catch(err => console.error('Failed to copy text: ', err));
@@ -101,6 +108,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_WEB_SOCKET_URL: { api.messages.setWebSocketUrl(action.payload.url); break }
         case RETRY_WEB_SOCKET: { api.messages.retryWebSocket(); break }
     }
+
+    return result
 }
 
 export default [

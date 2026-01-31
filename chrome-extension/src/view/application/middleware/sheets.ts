@@ -2,15 +2,16 @@ import { Component, traceError } from "../../../common/trace"
 import { endLoading, setLoadingError, setLoadingStage, startLoading } from "../actions/actives"
 import { ADD_PENDING_CHANGE, donePendingChanges, performChange, PERFORM_CHANGE, setTimeoutId } from "../actions/sheets"
 import { loadSheetFunc, loadSheetParams, operationChangeFunc, operationDoneFunc } from "../helpers/sheets"
-import { getSettings } from "../selectors/settings"
 import { getSheets } from "../selectors/sheets"
 import { SettingsState } from "../state/settings"
 import { SheetsState } from "../state/sheets"
+import { getDefaultStore } from 'jotai'
+import { settingsAtom } from '../atoms/settings'
 
 const TIMEOUT_MILLISECONDS = 3000
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case ADD_PENDING_CHANGE: {
             const state: SheetsState = getSheets(getState())
@@ -26,7 +27,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case PERFORM_CHANGE: {
             try {
                 const state: SheetsState = getSheets(getState())
-                const settings: SettingsState = getSettings(getState())
+                const settings: SettingsState = getDefaultStore().get(settingsAtom)
                 const loadingMessage = `${state.pending.length} changes`
                 dispatch(startLoading(loadingMessage))
                 const setStage = (stage: number) => dispatch(setLoadingStage(stage))
@@ -70,6 +71,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

@@ -3,7 +3,7 @@ import { EntropiaNexus } from "./nexus";
 import { ISource, IWebSource, SourceLoadResponse } from "./sources";
 import { EntropiaWiki } from "./wiki";
 
-const WebSources: IWebSource[]  = [ new EntropiaNexus(), new EntropiaWiki() ]
+export const WebSources: IWebSource[]  = [ new EntropiaNexus(), new EntropiaWiki() ]
 
 interface WebLoadResponse<T> {
     loading?: {

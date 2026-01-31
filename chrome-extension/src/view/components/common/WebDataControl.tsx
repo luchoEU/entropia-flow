@@ -1,7 +1,6 @@
-import { JSX, useEffect } from "react"
+import React, { JSX, useEffect } from "react"
 import { WebLoadResponse } from "../../../web/loader"
 import ImgButton, { multiDispatch } from "./ImgButton"
-import React from "react"
 import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
 
@@ -34,7 +33,7 @@ function WebDataControl<T>({
     }, [w])
 
     return <>
-        { !w ? <p>{name}{ reload() }</p> : (
+        { !w ? <p style={{ display: 'flex', gap: '5px' }}>{name}{ reload() }</p> : (
             w.loading ?
                 <p>
                     <img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...

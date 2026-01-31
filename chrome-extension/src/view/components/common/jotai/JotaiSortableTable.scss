@@ -1,0 +1,95 @@
+.jotai-sortable-table {
+  display: flex;
+}
+
+.table-search-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.search-info {
+  display: flex;
+  gap: 4px;
+  font-size: 14px;
+  color: #666;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-before-controls {
+  margin-bottom: 12px;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-header {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.table-header-cell {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  user-select: none;
+
+  &:hover {
+    font-weight: bold;
+  }
+}
+
+.table-body {
+  // Body container
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+
+  &:hover {
+    font-weight: bold;
+  }
+}
+
+.table-data-cell {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+}
+
+.inventory-hidden-item {
+  color: #999;
+
+  &:hover {
+    font-weight: bold;
+  }
+}

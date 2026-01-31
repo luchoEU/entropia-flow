@@ -11,9 +11,8 @@ const ItemMarkup = ({ name }: { name: string }) => {
     return (
         <Field label='Markup:' value={item.markup?.value ?? ''}
                 getChangeAction={itemBuyMarkupChanged(name)}>
-            <span>%</span>
             { item.markup?.modified ?
-                <span> (Modified on { new Date(item.markup.modified).toLocaleDateString() })</span> : '' }
+                <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>% (Modified on { new Date(item.markup.modified).toLocaleDateString() })</span> : '' }
         </Field>
     )
 }

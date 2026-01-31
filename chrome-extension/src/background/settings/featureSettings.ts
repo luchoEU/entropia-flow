@@ -1,7 +1,16 @@
 import { mergeDeep } from "../../common/merge";
-import { initialState } from "../../view/application/helpers/settings";
 import { Feature, isFeatureEnabled, SettingsState } from "../../view/application/state/settings";
 import apiStorage from "../../view/services/api/storage";
+
+const initialState: SettingsState = {
+    sheet: {
+        budgetDocumentId: undefined,
+        ttServiceDocumentId: undefined,
+        googleServiceAccountEmail: undefined,
+        googlePrivateKey: undefined
+    },
+    features: [Feature.unfreezeTab]
+}
 
 async function _getSettings(): Promise<SettingsState> {
     const state = await apiStorage.loadSettings()

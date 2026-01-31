@@ -1,9 +1,8 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { reloadBlueprint, setBlueprintStared, setStaredBlueprintsFilter, sortBlueprintsBy } from '../../application/actions/craft'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { blueprintsAtom, staredAtom, reloadBlueprintAtom, setBlueprintStaredAtom, setStaredBlueprintsFilterAtom, sortBlueprintsByAtom, filteredStaredBlueprintsAtom } from '../../application/atoms/craft'
 import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCost, getItemType, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition, TYPE } from '../../application/helpers/craftSort'
-import { getCraft, getStaredBlueprintItem } from '../../application/selectors/craft'
-import { BlueprintData, CraftState } from '../../application/state/craft'
+import { BlueprintData } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
 import { NavigateFunction } from 'react-router-dom'
 import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation'
@@ -23,7 +22,8 @@ const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
     title: `${errors.length === 0 ? '' : errors.map(e => e.message).join(' ')+' '}Click to try to load blueprint again`,
     compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
 }]
-const getRowData = (d: BlueprintData): ItemRowData => ({
+
+const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared: (name: string, stared: boolean) => void) => (d: BlueprintData): ItemRowData => ({
     dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(d.name)),
     columns: {
         [NAME]: {
@@ -85,19 +85,26 @@ const getRowData = (d: BlueprintData): ItemRowData => ({
 });
 
 function CraftFavoriteList() {
-    const s: CraftState = useSelector(getCraft)
+    const blueprints = useAtomValue(blueprintsAtom)
+    const stared = useAtomValue(staredAtom)
+    const filteredStared = useAtomValue(filteredStaredBlueprintsAtom)
 
-    const blueprints = Object.values(s.blueprints)
-    if (blueprints.length == 0)
+    const reloadBlueprint = useSetAtom(reloadBlueprintAtom)
+    const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
+    const setStaredBlueprintsFilter = useSetAtom(setStaredBlueprintsFilterAtom)
+    const sortBlueprintsBy = useSetAtom(sortBlueprintsByAtom)
+
+    const blueprintValues = Object.values(blueprints)
+    if (blueprintValues.length == 0)
         return <></>
-    
-    var clicks = blueprints.some(d => d.c?.clicks)
-    var limit = blueprints.some(d => d.c?.clicks?.limitingItems?.length > 0)
-    var items = blueprints.some(d => getItemAvailable(d) > 0)
-    var budget = blueprints.some(d => d.budget?.sheet?.total !== undefined)
-    var cash = blueprints.some(d => d.budget?.sheet?.peds !== undefined)
-    var type = blueprints.some(d => getItemType(d))
-    var clickTTCost = blueprints.some(d => getItemClickTTCost(d) > 0)
+
+    var clicks = blueprintValues.some(d => d.c?.clicks)
+    var limit = blueprintValues.some(d => d.c?.clicks?.limitingItems?.length > 0)
+    var items = blueprintValues.some(d => getItemAvailable(d) > 0)
+    var budget = blueprintValues.some(d => d.budget?.sheet?.total !== undefined)
+    var cash = blueprintValues.some(d => d.budget?.sheet?.peds !== undefined)
+    var type = blueprintValues.some(d => getItemType(d))
+    var clickTTCost = blueprintValues.some(d => getItemClickTTCost(d) > 0)
 
     const columns: number[] = [NAME]
     if (clicks) columns.push(CLICKS)
@@ -113,21 +120,21 @@ function CraftFavoriteList() {
             selector='CraftCollapsedList'
             title='Favorite Blueprints'
             subtitle='Your favorite blueprints, for easy access'
-            expanded={s.stared.expanded}
-            filter={s.stared.filter}
-            stats={{ count: s.c.filteredStaredBlueprints.length, itemTypeName: 'blueprint' }}
+            expanded={stared.expanded}
+            filter={stared.filter}
+            stats={{ count: filteredStared.length, itemTypeName: 'blueprint' }}
             setFilter={setStaredBlueprintsFilter}
             table={{
-                widthItems: blueprints,
-                showItems: s.c.filteredStaredBlueprints,
-                sortType: s.stared.sortType,
+                widthItems: blueprintValues,
+                showItems: filteredStared,
+                sortType: stared.sortType,
                 sortBy: sortBlueprintsBy,
-                itemSelector: getStaredBlueprintItem,
+                itemSelector: (index: number) => () => filteredStared[index],
                 tableData: {
                     columns,
                     definition: sortColumnDefinition,
                     sortRow: sortRowData,
-                    getRow: getRowData
+                    getRow: getRowData(reloadBlueprint, setBlueprintStared)
                 }
             }}
             afterTitle={<CraftPlanet />}

@@ -1,11 +1,13 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getItem } from "../../application/selectors/items";
-import { setItemCalculatorQuantity, setItemCalculatorTotal, setItemCalculatorTotalMU } from "../../application/actions/items";
+import { useAtomValue, useSetAtom } from "jotai";
+import { getItemAtom, setItemCalculatorQuantityAtom, setItemCalculatorTotalAtom, setItemCalculatorTotalMUAtom } from "../../application/atoms/inventory";
 
 const ItemCalculator = ({ name }: { name: string }) => {
-    const dispatch = useDispatch()
-    const item = useSelector(getItem(name))
+    const item = useAtomValue(getItemAtom(name))
+    const setQuantity = useSetAtom(setItemCalculatorQuantityAtom)
+    const setTotal = useSetAtom(setItemCalculatorTotalAtom)
+    const setTotalMU = useSetAtom(setItemCalculatorTotalMUAtom)
+
     if (!item) return <></>
 
     return (
@@ -15,15 +17,15 @@ const ItemCalculator = ({ name }: { name: string }) => {
                 <tbody>
                     <tr>
                         <td>Quantity</td>
-                        <td><input type='text' value={item.calc?.quantity ?? ''} onChange={(e) => dispatch(setItemCalculatorQuantity(name, e.target.value))} /></td>
+                        <td><input type='text' value={item.calc?.quantity ?? ''} onChange={(e) => setQuantity(name, e.target.value)} /></td>
                     </tr>
                     <tr>
                         <td>Total</td>
-                        <td><input type='text' value={item.calc?.total ?? ''} onChange={(e) => dispatch(setItemCalculatorTotal(name, e.target.value))} /></td>
+                        <td><input type='text' value={item.calc?.total ?? ''} onChange={(e) => setTotal(name, e.target.value)} /></td>
                     </tr>
                     <tr>
                         <td>Total+MU</td>
-                        <td><input type='text' value={item.calc?.totalMU ?? ''} onChange={(e) => dispatch(setItemCalculatorTotalMU(name, e.target.value))} /></td>
+                        <td><input type='text' value={item.calc?.totalMU ?? ''} onChange={(e) => setTotalMU(name, e.target.value)} /></td>
                     </tr>
                 </tbody>
             </table>

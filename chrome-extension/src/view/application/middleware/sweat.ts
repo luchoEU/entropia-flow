@@ -6,7 +6,7 @@ import { AppAction } from "../slice/app"
 import { SweatStateIn } from "../state/sweat"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: SweatStateIn = await api.storage.loadSweat()
@@ -21,6 +21,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

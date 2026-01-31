@@ -9,7 +9,7 @@ import { getItems, getItemsMap } from "../selectors/items"
 import { ItemsState } from "../state/items"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             let state: ItemsState = await api.storage.loadItems()
@@ -85,6 +85,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

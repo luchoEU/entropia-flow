@@ -65,7 +65,7 @@ const _isHiddenByValue = (c: OwnedHideCriteria, d: ItemData): boolean =>
 const _getAuction = (list: Array<ItemData>): Array<ItemData> =>
   list.filter((d) => d.c === "AUCTION");
 
-const _getOwned = (list: Array<ItemData>, c: OwnedHideCriteria): Array<ItemOwned> =>
+export const getOwned = (list: Array<ItemData>, c: OwnedHideCriteria): Array<ItemOwned> =>
   list.map(d => {
     const hidden = {
       name: _isHiddenByName(c, d),
@@ -77,6 +77,8 @@ const _getOwned = (list: Array<ItemData>, c: OwnedHideCriteria): Array<ItemOwned
       c: { hidden: { ...hidden, any: hidden.name || hidden.container || hidden.value } }
     }
   });
+
+const _getOwned = getOwned;
 
 const joinDuplicates = (
   list: Array<ItemData>,

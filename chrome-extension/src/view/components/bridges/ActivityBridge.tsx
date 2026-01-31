@@ -45,6 +45,7 @@ export function ActivityBridge() {
     const prevHistoryRef = useRef(history)
     const budgetRef = useRef(budget)
     const lastRef = useRef(last)
+    const prevLastLogSerialRef = useRef<number | undefined>(activity.lastProcessed.clientLogSerial)
 
     // Keep refs updated
     useEffect(() => {
@@ -99,6 +100,11 @@ export function ActivityBridge() {
         })
     }, [isLoading, subscribe, dispatch, updateActionBudgetName])
 
+    // Keep ref to lastProcessedLogSerial updated
+    useEffect(() => {
+        prevLastLogSerialRef.current = activity.lastProcessed.clientLogSerial
+    }, [activity.lastProcessed.clientLogSerial])
+
     // Process game log changes (equivalent to SET_CURRENT_GAME_LOG handling)
     useEffect(() => {
         if (isLoading) return
@@ -108,7 +114,7 @@ export function ActivityBridge() {
         if (prevGameLogRef.current === gameLog) return
         prevGameLogRef.current = gameLog
 
-        const prevLastLogSerial = activity.lastProcessed.clientLogSerial
+        const prevLastLogSerial = prevLastLogSerialRef.current
 
         // Group loot events by timestamp
         const lootByTimestamp = new Map<number, { serial: number; loot: { name: string; quantity: number; value: number } }[]>()
@@ -177,7 +183,7 @@ export function ActivityBridge() {
         if (maxSerial > (prevLastLogSerial || 0)) {
             setLastProcessedLogSerial(maxSerial)
         }
-    }, [gameLog, isLoading, activity.lastProcessed.clientLogSerial, addActionsAndItems, setLastProcessedLogSerial])
+    }, [gameLog, isLoading, addActionsAndItems, setLastProcessedLogSerial])
 
     // Process history changes
     useEffect(() => {

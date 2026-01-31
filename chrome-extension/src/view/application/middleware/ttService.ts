@@ -3,15 +3,16 @@ import { ISheetSource, SourceLoadResponse } from "../../../web/sources";
 import { SetStage } from "../../services/api/sheets/sheetsStages";
 import { TTServiceInventorySheet } from "../../services/api/sheets/sheetsTTServiceInventory";
 import { LOAD_TT_SERVICE, setTTServicePartialWebData } from "../actions/ttService"
-import { getSettings } from "../selectors/settings";
 import { Feature, isFeatureEnabled, SettingsState, SheetAccessInfo } from "../state/settings";
 import { TTServiceInventoryWebData } from "../state/ttService";
+import { getDefaultStore } from 'jotai'
+import { settingsAtom } from '../atoms/settings';
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case LOAD_TT_SERVICE: {
-            const settings: SettingsState = getSettings(getState());
+            const settings: SettingsState = getDefaultStore().get(settingsAtom);
             if (!isFeatureEnabled(settings, Feature.ttService)) break;
 
             const source: ISheetSource = new SheetSource(api, settings.sheet)
@@ -21,6 +22,8 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+
+    return result
 }
 
 class SheetSource implements ISheetSource {

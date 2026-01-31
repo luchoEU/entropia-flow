@@ -1,17 +1,17 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getSettings } from "../../application/selectors/settings";
+import { useSelector } from "react-redux";
 import { featureList, SettingsState } from "../../application/state/settings";
 import ExpandableSection from "../common/ExpandableSection2";
-import { enableFeature } from "../../application/actions/settings";
 import ModeState from "../../application/state/mode";
 import { getMode } from "../../application/selectors/mode";
 import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
+import { useAtomValue, useSetAtom } from "jotai";
+import { settingsAtom, setFeatureEnabledAtom } from "../../application/atoms/settings";
 
 function FeatureSelector() {
-    const s: SettingsState = useSelector(getSettings);
+    const s: SettingsState = useAtomValue(settingsAtom);
     const { showSubtitles }: ModeState = useSelector(getMode)
-    const dispatch = useDispatch();
+    const setFeatureEnabled = useSetAtom(setFeatureEnabledAtom);
 
     return (
         <>
@@ -21,10 +21,10 @@ function FeatureSelector() {
                         if (f.development && !SHOW_FEATURES_IN_DEVELOPMENT) return <></>
                         const enabled = s.features.includes(f.id)
                         return (
-                            <div className='feature-container' key={f.id} onClick={() => dispatch(enableFeature(f.id, !enabled))}>
+                            <div className='feature-container' key={f.id} onClick={() => setFeatureEnabled(f.id, !enabled)}>
                                 <input type='checkbox' checked={enabled} onChange={e => {
                                     const checked = (e.target as HTMLInputElement).checked
-                                    dispatch(enableFeature(f.id, checked))
+                                    setFeatureEnabled(f.id, checked)
                                 }} />
                                 <span className='feature-title'>{f.title}</span>
                                 <span className='feature-description' dangerouslySetInnerHTML={{ __html: f.description }} {...(!showSubtitles && f.explanation ? { title: f.explanation } : {}) }></span>

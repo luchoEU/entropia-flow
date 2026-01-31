@@ -40,6 +40,7 @@ export {
     RawMaterialWebData,
     ItemWebData,
     ItemUsageWebData,
+    RefiningWebData,
     BlueprintWebData,
     BlueprintWebMaterial,
 }

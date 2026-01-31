@@ -9,7 +9,7 @@ import { ItemsMap } from "../state/items"
 import { RefinedState } from "../state/refined"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: RefinedState = await api.storage.loadRefined()
@@ -35,6 +35,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

@@ -29,6 +29,7 @@ const getValuePreview = (value: any): string => {
     if (type === 'number') return value.toString()
     if (type === 'boolean') return value.toString()
     if (type === 'null') return 'null'
+    if (type === 'undefined') return 'undefined'
     if (type === 'array') return `[${value.length}]`
     if (type === 'object') {
         const keys = Object.keys(value)

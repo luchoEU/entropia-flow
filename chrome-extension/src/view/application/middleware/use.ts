@@ -6,7 +6,7 @@ import { mergeDeep } from "../../../common/merge"
 import { AppAction } from "../slice/app";
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: UseState = await api.storage.loadUse()
@@ -20,6 +20,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

@@ -105,10 +105,10 @@ interface SettingsState {
 }
 
 interface SheetAccessInfo {
-    budgetDocumentId: string
-    ttServiceDocumentId: string
-    googleServiceAccountEmail: string
-    googlePrivateKey: string
+    budgetDocumentId?: string
+    ttServiceDocumentId?: string
+    googleServiceAccountEmail?: string
+    googlePrivateKey?: string
 }
 
 export {

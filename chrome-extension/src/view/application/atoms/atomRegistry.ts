@@ -1,3 +1,5 @@
+import * as settingsAtoms from './settings'
+import * as inventoryAtoms from './inventory'
 import * as activityAtoms from './activity'
 import * as lastAtoms from './last'
 import * as historyAtoms from './history'
@@ -7,6 +9,8 @@ export type AtomType = 'state' | 'computed' | 'action' | 'loading'
 
 // Module metadata - defined once, derived everywhere else
 export const moduleRegistry = [
+    { id: 'settings', name: 'Settings' },
+    { id: 'inventory', name: 'Inventory' },
     { id: 'activity', name: 'Activity' },
     { id: 'last', name: 'Last' },
     { id: 'history', name: 'History' },
@@ -40,6 +44,8 @@ const discoverAtoms = (module: any, moduleName: ModuleType): AtomMetadata[] => {
 
 // Auto-discovered registry - automatically includes all atoms from all modules
 export const atomRegistry: AtomMetadata[] = [
+    ...discoverAtoms(settingsAtoms, 'settings'),
+    ...discoverAtoms(inventoryAtoms, 'inventory'),
     ...discoverAtoms(activityAtoms, 'activity'),
     ...discoverAtoms(lastAtoms, 'last'),
     ...discoverAtoms(historyAtoms, 'history'),

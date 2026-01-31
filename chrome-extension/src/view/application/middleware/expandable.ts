@@ -7,7 +7,7 @@ import { getExpandable } from "../selectors/expandable"
 import ExpandableState from "../state/expandable"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: ExpandableState = await api.storage.loadExpandable()
@@ -22,6 +22,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

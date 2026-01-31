@@ -13,7 +13,6 @@ import sheets from './sheets'
 import fruit from './fruit'
 import use from './use'
 import craft from './craft'
-import settings from './settings'
 import refined from './refined'
 import items from './items'
 import connection from './connection'
@@ -41,7 +40,6 @@ export default [
     ...fruit,
     ...use,
     ...craft,
-    ...settings,
     ...refined,
     ...connection,
     ...budget,

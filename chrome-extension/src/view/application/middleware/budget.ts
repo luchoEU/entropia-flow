@@ -6,14 +6,15 @@ import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/budget"
 import { getBudget } from "../selectors/budget"
 import { getItems } from "../selectors/items"
-import { getSettings } from "../selectors/settings"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
 import { SET_CURRENT_INVENTORY } from "../actions/inventory"
+import { getDefaultStore } from 'jotai'
+import { settingsAtom } from '../atoms/settings'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: BudgetState = await api.storage.loadBudget()
@@ -46,7 +47,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case REFRESH_BUDGET:
         case SEND_BUDGET_PENDING_LINES: {
-            const settings: SettingsState = getSettings(getState())
+            const settings: SettingsState = getDefaultStore().get(settingsAtom)
             const budget = getBudget(getState())
             const materials = getItems(getState())
 
@@ -100,6 +101,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

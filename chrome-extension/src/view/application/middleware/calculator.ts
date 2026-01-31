@@ -6,7 +6,7 @@ import { AppAction } from "../slice/app"
 import { CalculatorStateIn } from "../state/calculator"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: CalculatorStateIn = await api.storage.loadCalculator()
@@ -30,6 +30,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

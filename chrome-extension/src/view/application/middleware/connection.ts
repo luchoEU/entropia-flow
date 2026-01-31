@@ -6,10 +6,11 @@ import { cleanForSave, initialState } from "../helpers/connection"
 import { getConnection, getWebSocketUrl } from "../selectors/connection"
 import { ConnectionState } from "../state/connection"
 import { Feature } from "../state/settings"
-import { selectIsFeatureEnabled } from "../selectors/settings"
+import { isFeatureEnabledAtom } from '../atoms/settings'
+import { getDefaultStore } from 'jotai'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: ConnectionState = await api.storage.loadConnection()
@@ -20,7 +21,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case AppAction.LOADED: {
             const url: string = getWebSocketUrl(getState())
-            if (url && selectIsFeatureEnabled(Feature.client)(getState()))
+            if (url && getDefaultStore().get(isFeatureEnabledAtom(Feature.client)))
                 dispatch(setWebSocketUrl(url)) // recover the connection
             break
         }
@@ -36,6 +37,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [

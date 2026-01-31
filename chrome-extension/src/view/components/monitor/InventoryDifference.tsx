@@ -3,7 +3,7 @@ import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inve
 import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useDispatch, useSelector } from 'react-redux'
-import { useSetAtom } from 'jotai'
+import { useSetAtom, useAtomValue } from 'jotai'
 import { ViewPedData } from '../../application/state/last'
 import { addPedsAtom, removePedsAtom } from '../../application/atoms/last'
 import ImgButton from '../common/ImgButton'
@@ -14,7 +14,7 @@ import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
 import { useNavigate } from 'react-router-dom'
-import { selectIsFeatureEnabled } from '../../application/selectors/settings'
+import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
 
 interface Config {
@@ -38,7 +38,7 @@ const ItemRow = ({ item, c }: {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const material = useSelector(getItem(item.n))
-    const showActionLink = useSelector(selectIsFeatureEnabled(Feature.actionLink))
+    const showActionLink = useAtomValue(isFeatureEnabledAtom(Feature.actionLink))
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
         dispatch(c.sortBy(part))

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useAtomValue } from 'jotai'
+import { loadable } from 'jotai/utils'
 import { AtomType } from '../../application/atoms/atomRegistry'
 import { typeEmojis } from './atomTypeConstants'
 import JsonTreeNode from '../rawStorage/JsonTreeNode'
@@ -19,27 +20,11 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
     expandedKeys,
     onToggleExpand
 }) => {
-    const [error, setError] = useState<string | null>(null)
-    const [value, setValue] = useState<any>(null)
-    const [isLoading, setIsLoading] = useState(true)
+    // Use loadable to safely handle atoms that might throw or be write-only
+    const loadableAtom = React.useMemo(() => loadable(atom), [atom])
+    const state = useAtomValue(loadableAtom)
 
-    try {
-        // Try to read the atom value
-        const atomValue = useAtomValue(atom)
-
-        useEffect(() => {
-            setValue(atomValue)
-            setError(null)
-            setIsLoading(false)
-        }, [atomValue])
-    } catch (e) {
-        useEffect(() => {
-            setError(e instanceof Error ? e.message : 'Cannot read atom value')
-            setIsLoading(false)
-        }, [])
-    }
-
-    if (isLoading) {
+    if (state.state === 'loading') {
         return (
             <div style={{ padding: '8px', color: '#666', fontSize: '12px' }}>
                 Loading...
@@ -47,7 +32,7 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
         )
     }
 
-    if (error) {
+    if (state.state === 'hasError') {
         return (
             <div style={{
                 padding: '8px',
@@ -61,6 +46,8 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
             </div>
         )
     }
+
+    const value = state.state === 'hasData' ? state.data : null
 
     return (
         <div style={{ marginBottom: '4px' }}>

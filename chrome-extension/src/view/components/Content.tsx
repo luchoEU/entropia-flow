@@ -19,7 +19,7 @@ import { TabId } from '../application/state/navigation'
 import { useSelector } from 'react-redux'
 import { getVisibleByExpandable } from '../application/selectors/expandable'
 import { tabShow } from '../application/helpers/navigation'
-import { getSettings } from '../application/selectors/settings'
+import { settingsAtom } from '../application/atoms/settings'
 import { lastComputedAtom } from '../application/atoms/last'
 import { getExpandable } from '../application/selectors/expandable'
 import { getShowVisibility, getStreamViewPinned } from '../application/selectors/mode'
@@ -28,7 +28,7 @@ import StreamTrashPage from './stream/StreamTrashPage'
 function ContentPage() {
     const lastComputed = useAtomValue(lastComputedAtom)
     const anyInventory = lastComputed.anyInventory
-    const settings = useSelector(getSettings)
+    const settings = useAtomValue(settingsAtom)
     const expandable = useSelector(getExpandable)
     const showVisibility = useSelector(getShowVisibility);
     const isTabVisible = (id: TabId) => getVisibleByExpandable(expandable, `tab.${id}`)

@@ -1,4 +1,5 @@
 import { atom } from 'jotai'
+import { atomWithDefault } from 'jotai/utils'
 import { ActivityState, StoredAction, ActivityItem, ActivitySession, SessionType, ActionType, ActionSource, ShowActionsType, UserActionTypeDefinition, ActivityAction, getActionTimestamp } from '../state/activity'
 import { ViewInventory, ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
@@ -40,15 +41,8 @@ const initialActivityState: ActivityState = {
 }
 
 // Writable atom for deleted session
-export const lastDeletedSessionAtom = atom<
-    { session: ActivitySession; actions: StoredAction[] } | null,
-    [{ session: ActivitySession; actions: StoredAction[] } | null],
-    void
->(
-    null,
-    (_get, set, newValue) => {
-        set(lastDeletedSessionAtom as any, newValue)
-    }
+export const lastDeletedSessionAtom = atomWithDefault<{ session: ActivitySession; actions: StoredAction[] } | null>(
+    null
 )
 
 // Base atom for activity state

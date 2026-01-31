@@ -3,11 +3,12 @@ import { backgroundList, BackgroundSpec } from "../../../stream/background";
 import { getLogoUrl } from "../../../stream/backgroundGetLogo";
 import ExpandableSection from "../common/ExpandableSection2";
 import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue } from "jotai";
 import { getStreamLayout } from "../../application/selectors/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { setStreamBackgroundSelected } from "../../application/actions/stream";
-import { getSettings } from "../../application/selectors/settings";
+import { settingsAtom } from "../../application/atoms/settings";
 
 const StreamBackground = ({ background, layoutId, isSelected }: {
     background: BackgroundSpec,
@@ -44,7 +45,7 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 }
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
-    const settings = useSelector(getSettings)
+    const settings = useAtomValue(settingsAtom)
     const { layout: c } = useSelector(getStreamLayout(layoutId))
     if (!c) return <></>
 

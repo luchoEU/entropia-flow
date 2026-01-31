@@ -11,7 +11,7 @@ import { lastComputedAtom } from '../application/atoms/last';
 import { getBudgetPendingCount } from '../application/selectors/budget';
 import { getVisible } from '../application/selectors/expandable';
 import { setVisible } from '../application/actions/expandable';
-import { getSettings } from '../application/selectors/settings';
+import { settingsAtom } from '../application/atoms/settings';
 import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId, tabOrder } from '../application/state/navigation';
@@ -78,7 +78,7 @@ const FirstRow = () => {
     const anyInventory = lastComputed.anyInventory
     const status = useSelector(getClientStatus)
     const message = useSelector(getStatusMessage);
-    const settings = useSelector(getSettings)
+    const settings = useAtomValue(settingsAtom)
     const showVisibility = useSelector(getShowVisibility)
     const menuPinned = useSelector(getMenuPinned)
     const budgetPendingCount = useSelector(getBudgetPendingCount)

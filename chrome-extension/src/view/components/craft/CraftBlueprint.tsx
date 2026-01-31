@@ -4,10 +4,11 @@ import { useAtomValue } from 'jotai'
 import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
 import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
-import { getCraft } from '../../application/selectors/craft'
 import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { lastComputedAtom } from '../../application/atoms/last'
+import { blueprintsAtom, activeSessionAtom, editModeBlueprintNameAtom } from '../../application/atoms/craft'
+import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
 import { getItems, getItemsMap } from '../../application/selectors/items'
@@ -26,7 +27,6 @@ import { TabId } from '../../application/state/navigation'
 import { navigateToTab } from '../../application/actions/navigation'
 import { NavigateFunction } from 'react-router-dom'
 import { Feature } from '../../application/state/settings'
-import { selectIsFeatureEnabled } from '../../application/selectors/settings'
 import { useElementSize } from '../common/useElementSize'
 import AutocompleteInput from '../common/AutocompleteInput'
 
@@ -79,7 +79,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
 }) => {
     const dispatch = useDispatch()
     const mat: ItemsMap = useSelector(getItemsMap)
-    const showBudget = useSelector(selectIsFeatureEnabled(Feature.budget));
+    const showBudget = useAtomValue(isFeatureEnabledAtom(Feature.budget));
     const { ref: tableRef, size: { width: tableWidth } } = useElementSize<HTMLTableElement>();
 
     let markupLoaded = bp.budget?.sheet?.clickMUCost !== undefined
@@ -426,10 +426,12 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
 }
 
 const CraftBlueprint = ({bpName}: {bpName: string}) => {
-    const s: CraftState = useSelector(getCraft)
+    const blueprints = useAtomValue(blueprintsAtom)
+    const activeSession = useAtomValue(activeSessionAtom)
+    const editModeBlueprintName = useAtomValue(editModeBlueprintNameAtom)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
-    const bp = s.blueprints[bpName]
+    const bp = blueprints[bpName]
 
     useEffect(() => {
         if (bp) return // already loaded
@@ -450,7 +452,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
             break
         }
 
-        const nextBp = bpDataFromItemName(s, chainMaterialName)
+        const nextBp = bpDataFromItemName({ blueprints } as CraftState, chainMaterialName)
         if (nextBp) {
             if (lastBpChain)
                 chainNames.push(lastBpChain.name)
@@ -461,7 +463,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
         chainMaterialName = nextBp?.chain
     }
 
-    const editMode = s.editModeBlueprintName === bp.name
+    const editMode = editModeBlueprintName === bp.name
     return (
         <section>
             <div className='inline'>
@@ -481,7 +483,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                 </h1>
                 {editMode ?
                     <CraftEdit bp={bp} /> :
-                    <CraftSingle key={bp.name} bp={bp} activeSession={s.activeSession} message={message} />
+                    <CraftSingle key={bp.name} bp={bp} activeSession={activeSession} message={message} />
                 }
             </div>
             {!editMode &&

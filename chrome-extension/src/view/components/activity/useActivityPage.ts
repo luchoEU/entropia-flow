@@ -1,5 +1,4 @@
 import { useSetAtom, useAtomValue } from 'jotai'
-import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import {
     activityAtom,
@@ -29,8 +28,8 @@ import {
     clearAllAtom,
     clearAllAndReloadAtom,
 } from '../../application/atoms/activity'
-import { getSettings } from '../../application/selectors/settings'
-import { isFeatureEnabled, Feature } from '../../application/state/settings'
+import { settingsAtom, isFeatureEnabledAtom } from '../../application/atoms/settings'
+import { Feature } from '../../application/state/settings'
 import { StoredAction, ActivityItem, formatActionDescription, getActionTimestamp } from '../../application/state/activity'
 import { formatTime } from '../../../common/time'
 
@@ -65,11 +64,11 @@ export const useActivityPage = () => {
     const clearAll = useSetAtom(clearAllAtom)
     const clearAllAndReload = useSetAtom(clearAllAndReloadAtom)
 
-    // Redux state (for settings only)
-    const settings = useSelector(getSettings)
+    // Jotai state (for settings)
+    const settings = useAtomValue(settingsAtom)
     const navigate = useNavigate()
-    const isBudgetEnabled = isFeatureEnabled(settings, Feature.budget)
-    const useComma = isFeatureEnabled(settings, Feature.commaDecimalSeparator)
+    const isBudgetEnabled = useAtomValue(isFeatureEnabledAtom(Feature.budget))
+    const useComma = useAtomValue(isFeatureEnabledAtom(Feature.commaDecimalSeparator))
 
     // Helper to extract all item IDs from relatedItems structure
     const getAllItemIds = (action: StoredAction): number[] => {

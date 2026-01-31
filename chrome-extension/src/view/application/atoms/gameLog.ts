@@ -1,12 +1,14 @@
 import { atom } from 'jotai'
+import { getDefaultStore } from 'jotai'
+import { atomWithDefault } from 'jotai/utils'
 import { GameLogData, GameLogTrade } from '../../../background/client/gameLogData'
 import { GameLogState } from '../state/log'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_GAME_LOG } from '../../../common/const'
 import { gameLogTabularData, gameLogTabularDefinitions } from '../tabular/log'
 import { setTabularData } from '../actions/tabular'
-import { selectIsFeatureEnabled } from '../selectors/settings'
 import { Feature } from '../state/settings'
+import { isFeatureEnabledAtom } from './settings'
 import { getTrade } from '../selectors/trade'
 import { setLastTradeMessageCheckSerial } from '../actions/trade'
 import { GAME_LOG_TABULAR_TRADE } from '../state/log'
@@ -36,15 +38,8 @@ export const gameLogAtom = atom<GameLogState>(initialGameLogState)
 export const gameLogLoadingAtom = atom<boolean>(true)
 
 // Current transient game log data atom (writable)
-export const currentGameLogDataAtom = atom<
-    GameLogData | null,
-    [GameLogData | null],
-    void
->(
-    null,
-    (_get, set, newValue) => {
-        set(currentGameLogDataAtom as any, newValue)
-    }
+export const currentGameLogDataAtom = atomWithDefault<GameLogData | null>(
+    () => null
 )
 
 // Initialize game log from storage
@@ -67,7 +62,7 @@ const handleStoragePersistence = async (get: any, gameLog: GameLogData) => {
     const state = get(gameLogAtom)
 
     // Check if feature is enabled
-    if (!selectIsFeatureEnabled(Feature.client)(store.getState())) {
+    if (!getDefaultStore().get(isFeatureEnabledAtom(Feature.client))) {
         return
     }
 
@@ -76,9 +71,7 @@ const handleStoragePersistence = async (get: any, gameLog: GameLogData) => {
 
 // Side effect: Generate and dispatch tabular data
 const handleTabularData = async (get: any, gameLog: GameLogData) => {
-    const reduxState = store.getState()
-
-    if (!selectIsFeatureEnabled(Feature.client)(reduxState)) {
+    if (!getDefaultStore().get(isFeatureEnabledAtom(Feature.client))) {
         return
     }
 

@@ -1,9 +1,6 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { getCraft } from '../../application/selectors/craft'
-import { selectIsFeatureEnabled } from '../../application/selectors/settings'
-import { CraftState } from '../../application/state/craft'
+import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
 import { ViewItemData } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
@@ -28,6 +25,7 @@ import {
     copyLastAtom
 } from '../../application/atoms/last'
 import { createNewSessionAtom } from '../../application/atoms/activity'
+import { activeSessionAtom } from '../../application/atoms/craft'
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005)
@@ -42,9 +40,10 @@ function getDeltaClass(delta: number | undefined) {
 }
 
 const Last = () => {
-    // Redux state (only for craft session check and settings)
-    const craft: CraftState = useSelector(getCraft)
-    const useComma = useSelector(selectIsFeatureEnabled(Feature.commaDecimalSeparator))
+    // Jotai state for craft
+    const activeSession = useAtomValue(activeSessionAtom)
+    // Jotai state (for settings)
+    const useComma = useAtomValue(isFeatureEnabledAtom(Feature.commaDecimalSeparator))
 
     // Jotai state
     const { expanded, showMarkup, showActions, peds } = useAtomValue(lastPersistedAtom)
@@ -110,7 +109,7 @@ const Last = () => {
                             return undefined
                         }} />
                 }
-                { diff && craft.activeSession === undefined &&
+                { diff && activeSession === undefined &&
                     <ImgButton
                         title='Set as Session Start'
                         src='img/tick.png'

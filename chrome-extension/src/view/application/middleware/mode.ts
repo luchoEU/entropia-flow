@@ -6,7 +6,7 @@ import { getMode } from "../selectors/mode"
 import ModeState from "../state/mode"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             const state: ModeState = await api.storage.loadMode()
@@ -23,6 +23,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
     }
+    return result
 }
 
 export default [ requests ]

@@ -4,7 +4,7 @@ import { NEW_DAY } from "../actions/helpers"
 import { getCalculatorOutME } from "../selectors/calculator"
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case NEW_DAY: {
             try {
@@ -20,6 +20,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             }
         }
     }
+    return result
 }
 
 export default [

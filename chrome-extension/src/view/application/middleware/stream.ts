@@ -12,7 +12,7 @@ import { streamTabularDataFromLayouts, streamTabularDataFromVariables, streamTab
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const beforeState: StreamState = getStream(getState())
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             setTabularDefinitions(streamTabularDefinitions)
@@ -84,6 +84,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break;
         }
     }
+    return result
 }
 
 export default [

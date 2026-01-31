@@ -8,7 +8,6 @@ import { AppAction } from '../slice/app'
 import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getInventory } from '../selectors/inventory'
-import { getSettings } from '../selectors/settings'
 import { CraftState } from '../state/craft'
 import { InventoryState } from '../state/inventory'
 import { SettingsState } from '../state/settings'
@@ -27,6 +26,17 @@ import { ItemData } from '../../../common/state'
 import { IWebSource } from '../../../web/sources'
 import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
+import {
+    setCraftStateAtom,
+    blueprintsAtom,
+    staredAtom,
+    craftOptionsAtom,
+    activeSessionAtom,
+    activePlanetAtom,
+    editModeBlueprintNameAtom,
+    craftWebDataAtom
+} from '../atoms/craft'
+import { settingsAtom } from '../atoms/settings'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     let editModeBlueprintName: string | undefined;
@@ -35,7 +45,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         editModeBlueprintName = state.editModeBlueprintName;
     }
 
-    await next(action)
+    const result = await next(action)
     switch (action.type) {
         case AppAction.INITIALIZE: {
             setTabularDefinitions(craftTabularDefinitions)
@@ -164,7 +174,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case START_BUDGET_PAGE_LOADING:
         case AppAction.INITIALIZE: {
             const state: CraftState = getCraft(getState())
-            const settings: SettingsState = getSettings(getState())
+            const settings: SettingsState = getDefaultStore().get(settingsAtom)
             const mat: ItemsMap = getItemsMap(getState())
 
             const loadBudget = async (bpName: string): Promise<void> => {
@@ -316,7 +326,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SAVE_CRAFT_SESSION: {
             try {
                 const state: CraftState = getCraft(getState())
-                const settings: SettingsState = getSettings(getState())
+                const settings: SettingsState = getDefaultStore().get(settingsAtom)
                 const mat: ItemsMap = getItemsMap(getState())
 
                 const activeSessionBp = state.blueprints[state.activeSession ?? '']
@@ -351,7 +361,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const bpName = action.payload.name
             try {
                 const state: CraftState = getCraft(getState())
-                const settings: SettingsState = getSettings(getState())
+                const settings: SettingsState = getDefaultStore().get(settingsAtom)
                 const mat: ItemsMap = getItemsMap(getState())
                 const activeSessionBp = state.blueprints[bpName]
                 const materialName = action.payload.materialName
@@ -413,6 +423,31 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const inventory: InventoryState = getInventory(getState())
             dispatch(setTabularData(craftTabularData(state, inventory)))
             break
+    }
+
+    // Sync Redux craft state to Jotai atoms for gradual migration
+    syncCraftStateToJotai(getState)
+
+    return result
+}
+
+/**
+ * Sync Redux craft state to Jotai atoms during migration
+ * This allows Jotai components to read the current Redux state
+ */
+function syncCraftStateToJotai(getState: () => any) {
+    const craftState: CraftState = getCraft(getState())
+    const store = getDefaultStore()
+
+    // Only sync if we have state (avoid syncing during initialization)
+    if (craftState && craftState.blueprints) {
+        store.set(blueprintsAtom, craftState.blueprints)
+        store.set(staredAtom, craftState.stared)
+        store.set(craftOptionsAtom, craftState.options)
+        store.set(activeSessionAtom, craftState.activeSession)
+        store.set(activePlanetAtom, craftState.activePlanet)
+        store.set(editModeBlueprintNameAtom, craftState.editModeBlueprintName)
+        store.set(craftWebDataAtom, craftState.web)
     }
 }
 

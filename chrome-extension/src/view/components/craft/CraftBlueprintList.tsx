@@ -1,22 +1,26 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { setBlueprintStared, setCraftOptions } from '../../application/actions/craft'
-import { getCraftOptions, isBlueprintStared } from '../../application/selectors/craft'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { staredAtom, setBlueprintStaredAtom, craftOptionsAtom, setCraftOptionsAtom } from '../../application/atoms/craft'
 import { CRAFT_TABULAR_BLUEPRINTS } from '../../application/state/craft'
 import ImgButton from '../common/ImgButton'
 import SortableTabularSection from '../common/SortableTabularSection'
 import { getSwitchButton } from '../common/SortableTabularSection.control'
 
 const StarButton = ({ bpName }: { bpName: string }) => {
-    const stared = useSelector(isBlueprintStared(bpName))
+    const staredList = useAtomValue(staredAtom)
+    const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
+
+    const isStared = staredList.list.includes(bpName)
+
     return <ImgButton
-        title={`${stared ? 'Remove from' : 'Add to'} Favorite Blueprints`}
-        src={stared ? 'img/staron.png' : 'img/staroff.png'}
-        dispatch={() => setBlueprintStared(bpName, !stared)} />
+        title={`${isStared ? 'Remove from' : 'Add to'} Favorite Blueprints`}
+        src={isStared ? 'img/staron.png' : 'img/staroff.png'}
+        dispatch={() => setBlueprintStared(bpName, !isStared)} />
 }
 
 function CraftBlueprintList() {
-    const opt = useSelector(getCraftOptions)
+    const opt = useAtomValue(craftOptionsAtom)
+    const setCraftOptions = useSetAtom(setCraftOptionsAtom)
 
     return <SortableTabularSection
         selector={CRAFT_TABULAR_BLUEPRINTS}
