@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai'
 import AboutPage from './about/AboutPage'
 import CraftPage from './craft/CraftPage'
 import InventoryPage from './inventory/InventoryPage'
-import MonitorPage from './monitor/MonitorPage'
+import { MonitorPage } from './monitor/MonitorPage'
 import RefinedPage from './refined/RefinedPage'
 import SettingsPage from './settings/SettingsPage'
 import StreamPage from './stream/StreamPage'
@@ -84,7 +84,7 @@ const NotFoundPage = () => {
     )
 }
 
-function Content() {
+export function Content() {
     const streamViewPinned = useSelector(getStreamViewPinned);
     return (
         <>
@@ -93,5 +93,3 @@ function Content() {
         </>
     )
 }
-
-export default Content

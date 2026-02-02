@@ -1,9 +1,9 @@
 import React from 'react'
 import History from './History'
-import Last from './Last'
+import { Last } from './Last'
 import Status from './Status'
 
-function MonitorPage() {
+export function MonitorPage() {
     return (
         <>
             <div className='flex'>
@@ -14,5 +14,3 @@ function MonitorPage() {
         </>
     )
 }
-
-export default MonitorPage

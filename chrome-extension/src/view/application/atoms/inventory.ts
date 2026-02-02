@@ -371,7 +371,6 @@ export const loadItemDataAtom = atom(null, async (get, set, itemName: string) =>
  * Replaces Redux loadItemUsageData action
  */
 export const loadItemUsageDataAtom = atom(null, async (get, set, itemName: string) => {
-  console.log(`[loadItemUsageDataAtom] Start loading usage for: ${itemName}`)
   const { loadFromWeb } = await import('../../../web/loader')
   const itemsMap = get(itemsMapAtom)
   const current = itemsMap[itemName]
@@ -381,12 +380,9 @@ export const loadItemUsageDataAtom = atom(null, async (get, set, itemName: strin
     let finalUpdate: any = current ? { ...current } : {}
     let updateCount = 0
 
-    console.log(`[loadItemUsageDataAtom] Starting for-await loop for ${itemName}`)
     try {
       for await (const r of loadFromWeb(s => s.loadUsage(itemName))) {
         updateCount++
-        console.log(`[loadItemUsageDataAtom] Received result ${updateCount} for ${itemName}:`, r)
-        console.log(`[loadItemUsageDataAtom] Result has data:`, !!r.data, 'has loading:', !!r.loading, 'has errors:', !!r.errors)
         if (r.data) {
           finalUpdate = current ? {
             ...current,

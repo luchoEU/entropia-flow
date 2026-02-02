@@ -4,7 +4,7 @@ import { Provider as JotaiProvider, getDefaultStore } from 'jotai';
 import './App.scss'
 import { store } from '../application/store';
 import Navigation from './Navigation';
-import Content from './Content';
+import { Content } from './Content';
 import { HashRouter } from 'react-router-dom';
 import { useAppDispatch } from '../application/store';
 import { useSelector } from 'react-redux';
@@ -23,14 +23,14 @@ function _AppWithInitializer() {
         dispatch(initialize());
         const timeout = setTimeout(() => { setShowSoftLoader(false); }, 500); // show a soft loader for 500ms
         return () => clearTimeout(timeout);
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         if (!isLoaded) return
         dispatch(appAction.loaded);
         const timeout = setTimeout(() => { setAppInvisible(false); }, 100); // let it calculate stream layout sizes
         return () => clearTimeout(timeout);
-    }, [isLoaded]);
+    }, [isLoaded, dispatch]);
 
     return <>
         { isLoaded && <div className={appInvisible ? 'app-invisible' : ''}>

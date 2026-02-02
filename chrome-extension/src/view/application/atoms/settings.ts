@@ -1,4 +1,4 @@
-import { atom } from 'jotai'
+import { atom, Atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { Feature, SettingsState, SheetAccessInfo } from '../state/settings'
 import { isFeatureEnabled } from '../state/settings'
@@ -44,13 +44,22 @@ export const sheetSettingsAtom = atom((get) => get(sheetAccessAtom))
 /**
  * Atom factory: Check if a specific feature is enabled
  * Returns a read-only computed atom that checks feature status
+ * Memoized to prevent creating new atom instances on every call
  * Usage: useAtomValue(isFeatureEnabledAtom(Feature.budget))
  */
-export const isFeatureEnabledAtom = (feature: Feature) =>
-  atom((get) => {
-    const settings = get(settingsAtom)
-    return isFeatureEnabled(settings, feature)
-  })
+const featureAtomCache = new Map<Feature, Atom<boolean>>()
+export const isFeatureEnabledAtom = (feature: Feature): Atom<boolean> => {
+  if (!featureAtomCache.has(feature)) {
+    featureAtomCache.set(
+      feature,
+      atom((get) => {
+        const settings = get(settingsAtom)
+        return isFeatureEnabled(settings, feature)
+      })
+    )
+  }
+  return featureAtomCache.get(feature)!
+}
 
 /**
  * Write atom: Set entire settings state

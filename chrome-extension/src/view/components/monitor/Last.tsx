@@ -39,7 +39,7 @@ function getDeltaClass(delta: number | undefined) {
     }
 }
 
-const Last = () => {
+export const Last = () => {
     // Jotai state for craft
     const activeSession = useAtomValue(activeSessionAtom)
     // Jotai state (for settings)
@@ -154,5 +154,3 @@ const Last = () => {
         </ExpandableSection>
     )
 }
-
-export default Last
