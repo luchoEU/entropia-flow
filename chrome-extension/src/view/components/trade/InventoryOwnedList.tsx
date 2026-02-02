@@ -39,7 +39,7 @@ import {
   getOtherBlueprintsAtom,
   loadTTServiceAtom,
   getItemWebAtom,
-  loadItemUsageAtom,
+  loadItemUsageWebAtom,
   loadItemWebAtom,
   getTTServiceWebAtom,
 } from '../../application/atoms/inventory'
@@ -189,7 +189,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
             }} />
         </> }
         <p style={{ height: '5px' }} />
-        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageAtom} itemName={tradeItemData.name} name='TT Inventory' content={(usage: ItemUsageWebData | undefined) => {
+        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageWebAtom} itemName={tradeItemData.name} name='Item Usage' content={(usage: ItemUsageWebData | undefined) => {
             if (!usage) return <></>
             return <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
                 <div>

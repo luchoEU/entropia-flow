@@ -1,6 +1,7 @@
 import { fetchJson } from "./fetch";
 import { mapResponse } from "./loader";
 import { NEXUS_API_BASE_URL, nexusApiUrl, nexusWwwUrl } from "./nexus.url";
+import { renameNewBlueprintName, renameOldBlueprintName } from "./rename";
 import { IWebSource, SourceLoadResponse } from "./sources";
 import { BlueprintWebData, BlueprintWebMaterial, ItemUsageWebData, ItemWebData, RawMaterialWebData } from "./state";
 
@@ -23,8 +24,7 @@ export class EntropiaNexus implements IWebSource {
             const url = nexusApiUrl(`items/${itemName}`)
             item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(itemName))
             if (!item.ok) {
-                // 'T1 Weapon Economy Enhancer Blueprint (L)' to 'Weapon Economy Enhancer 1 Blueprint (L)'
-                const renamedItemName = itemName.replace(/^T(\d+) (.*?) Enhancer(.*)?$/, "$2 Enhancer $1$3");
+                const renamedItemName = renameNewBlueprintName(itemName)
                 if (renamedItemName !== itemName) {
                     const url = nexusApiUrl(`items/${renamedItemName}`)
                     item = await mapResponse(fetchJson<EntropiaNexusItem>(url), _extractItem(renamedItemName))
@@ -66,7 +66,16 @@ export class EntropiaNexus implements IWebSource {
 
     public async loadUsage(itemName: string): Promise<SourceLoadResponse<ItemUsageWebData>> {
         const url = nexusApiUrl(`usage/${itemName}`)
-        return await mapResponse(fetchJson<EntropiaNexusUsage>(url), _extractUsage(itemName))
+        var result = await mapResponse(fetchJson<EntropiaNexusUsage>(url), _extractUsage(itemName))
+        if (result.ok && result.data?.blueprints) {
+            result.data.blueprints = result.data.blueprints.map(bp => {
+                return {
+                    ...bp,
+                    name: renameOldBlueprintName(bp.name)
+                }
+            })
+        }
+        return result
     }
 
     public async loadBlueprint(bpName: string): Promise<SourceLoadResponse<BlueprintWebData>> {

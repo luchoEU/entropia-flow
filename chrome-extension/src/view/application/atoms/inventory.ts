@@ -1,9 +1,9 @@
-import { Atom, atom, getDefaultStore } from 'jotai'
-import { atomWithStorage, loadable } from 'jotai/utils'
+import { Atom, atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData } from '../state/inventory'
 import { ItemsMap, ItemState, ItemsState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
-import { CraftState } from '../state/craft'
+import { BlueprintData, CraftState } from '../state/craft'
 import { joinDuplicates } from '../helpers/inventory'
 import { ItemData } from '../../../common/state'
 import { BlueprintWebData, ItemUsageWebData, ItemWebData } from '../../../web/state'
@@ -21,22 +21,22 @@ export const rawInventoryItemsAtom = atom<ItemOwned[]>([])
 /**
  * Items map atom for looking up reserve amounts and item states
  */
-export const itemsMapAtom = atomWithStorage<ItemsMap>('inventory-itemsMap', {})
+export const itemsMapAtom = atomWithStorage<ItemsMap>('jotai-v1-inventory-itemsMap', {})
 
 /**
  * TTService state atom for loading status and values
  */
-export const ttServiceAtom = atomWithStorage<TTServiceState | null>('inventory-ttService', null)
+export const ttServiceAtom = atomWithStorage<TTServiceState | null>('jotai-v1-inventory-ttService', null)
 
 /**
  * Trade item data chain atom for showing which item is being traded
  */
-export const tradeItemChainAtom = atomWithStorage<TradeItemData[] | undefined>('inventory-tradeItemChain', undefined)
+export const tradeItemChainAtom = atomWithStorage<TradeItemData[] | undefined>('jotai-v1-inventory-tradeItemChain', undefined)
 
 /**
  * Hide criteria atom - local state for filtering hidden items
  */
-export const hideCriteriaAtom = atomWithStorage<OwnedHideCriteria>('inventory-hideCriteria', {
+export const hideCriteriaAtom = atomWithStorage<OwnedHideCriteria>('jotai-v1-inventory-hideCriteria', {
   show: false,
   name: [],
   container: [],
@@ -46,7 +46,7 @@ export const hideCriteriaAtom = atomWithStorage<OwnedHideCriteria>('inventory-hi
 /**
  * Owned options atom - local state for reserve and auction options
  */
-export const ownedOptionsAtom = atomWithStorage<OwnedOptions>('inventory-ownedOptions', {
+export const ownedOptionsAtom = atomWithStorage<OwnedOptions>('jotai-v1-inventory-ownedOptions', {
   reserve: undefined,
   auction: undefined
 })
@@ -62,7 +62,7 @@ export interface InventoryFilterOptions {
 /**
  * Inventory filter options atom
  */
-export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('inventory-filterOptions', {
+export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('jotai-v1-inventory-filterOptions', {
   reserve: false,
   auction: false
 })
@@ -70,7 +70,7 @@ export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('invent
 /**
  * Edit mode material name atom - tracks which item is being edited
  */
-export const editModeMaterialNameAtom = atomWithStorage<string | undefined>('inventory-editModeMaterialName', undefined)
+export const editModeMaterialNameAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-editModeMaterialName', undefined)
 
 /**
  * Atom factory to get a single item by name
@@ -256,7 +256,7 @@ export const setItemCalculatorTotalMUAtom = atom(null, (get, set, itemName: stri
 })
 
 export const loadItemWebAtom = (itemName: string) => loadItemDataAtom('item', s => s.loadItem(itemName), itemName)
-export const loadItemUsageAtom = (itemName: string) => loadItemDataAtom('usage', s => s.loadUsage(itemName), itemName)
+export const loadItemUsageWebAtom = (itemName: string) => loadItemDataAtom('usage', s => s.loadUsage(itemName), itemName)
 
 /**
  * Write atom to load item data from web
@@ -368,32 +368,6 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
 })
 
 /**
- * Craft state atom - kept for backward compatibility
- * Now sourced directly from craft atoms instead of Redux sync
- */
-export const craftStateAtom = atom((get) => {
-  const blueprints = get(blueprintsAtom)
-  const stared = get(staredAtom)
-  const options = get(craftOptionsAtom)
-  const activeSession = get(activeSessionAtom)
-  const activePlanet = get(activePlanetAtom)
-  const editModeBlueprintName = get(editModeBlueprintNameAtom)
-  const web = get(craftWebDataAtom)
-  const computed = get(craftComputedAtom)
-
-  return {
-    blueprints,
-    stared,
-    options,
-    activeSession,
-    activePlanet,
-    editModeBlueprintName,
-    web,
-    c: computed
-  } as CraftState
-})
-
-/**
  * Helper: Convert BlueprintWebData to TradeBlueprintLineData for a specific item
  */
 const bpToLineData = (bp: BlueprintWebData, itemName: string): TradeBlueprintLineData => ({
@@ -411,19 +385,21 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   owned: TradeBlueprintLineData[]
   other: TradeBlueprintLineData[]
 }>((get) => {
-  const craftState = get(craftStateAtom)
+  const blueprintsState = get(blueprintsAtom)
+  const staredState = get(staredAtom)
   const itemUsage = get(getItemUsageWebAtom(itemName))
+  const rawInventory = get(rawInventoryItemsAtom)
 
-  if (!craftState || !itemUsage) {
+  if (!blueprintsState || !itemUsage) {
     return { favorite: [], owned: [], other: [] }
   }
 
-  const usageBPs = itemUsage as any  // itemUsage is WebLoadResponse<ItemUsageWebData>, access via .data?.value
-  const blueprints = usageBPs?.data?.value?.blueprints ?? []
-  const starredNames = new Set(craftState.stared.list)
+  const blueprints = itemUsage?.data?.value?.blueprints ?? []
+  const starredNames = new Set(staredState.list)
+  const ownedItemNames = new Set(rawInventory.map(item => item.data.n))
 
   // Convert blueprint data
-  const getWebBp = (bp: any): BlueprintWebData | undefined =>
+  const getWebBp = (bp: BlueprintData): BlueprintWebData | undefined =>
     bp.web?.blueprint?.data?.value ?? blueprints.find((b: any) => b.name === bp.name)
 
   // Categorize blueprints
@@ -432,8 +408,8 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   const usedBpNames = new Set<string>()
 
   // Process starred blueprints (favorites)
-  craftState.stared.list.forEach((name: string) => {
-    const bp = craftState.blueprints[name]
+  staredState.list.forEach((name: string) => {
+    const bp = blueprintsState[name]
     if (bp) {
       const webBp = getWebBp(bp)
       if (webBp) {
@@ -447,7 +423,7 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   })
 
   // Process non-starred blueprints (owned)
-  Object.values(craftState.blueprints).forEach((bp: any) => {
+  Object.values(blueprintsState).forEach((bp: any) => {
     if (!starredNames.has(bp.name)) {
       const webBp = getWebBp(bp)
       if (webBp) {
@@ -456,6 +432,17 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
           owned.push(lineData)
           usedBpNames.add(webBp.name)
         }
+      }
+    }
+  })
+
+  // Check if item is in inventory and add those blueprints to owned
+  blueprints.forEach((bp: any) => {
+    if (!usedBpNames.has(bp.name) && ownedItemNames.has(bp.name)) {
+      const lineData = bpToLineData(bp, bp.name)
+      if (lineData.quantity !== 0) {
+        owned.push(lineData)
+        usedBpNames.add(bp.name)
       }
     }
   })

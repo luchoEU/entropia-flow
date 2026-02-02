@@ -2,12 +2,9 @@ import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import {
   BlueprintData,
-  BlueprintSession,
-  BlueprintBudgetMaterial,
   CraftState,
   CraftOptions,
   CraftingWebData,
-  CraftingUserData,
   BlueprintStateWebData,
   STEP_INACTIVE,
   STEP_REFRESH_TO_START,
@@ -20,6 +17,8 @@ import {
 import { STAGE_INITIALIZING } from '../../services/api/sheets/sheetsStages'
 import * as Sort from '../helpers/craftSort'
 import { multiIncludes } from '../../../common/filter'
+import { IWebSource } from '../../../web/sources'
+import { renameNewBlueprintName } from '../../../web/rename'
 
 /**
  * Base atom for all blueprints
@@ -1199,3 +1198,39 @@ export const setCraftStateAtom = atom(
     set(craftWebDataAtom, newState.web)
   }
 )
+
+/**
+ * Write atom to load item data from web
+ * Replaces Redux loadItemUsageData action
+ */
+export const loadCraftBlueprintAtom = atom(null, async (get, set, bpName: string) => {
+
+  const { loadFromWebMultiple } = await import('../../../web/loader')
+  try {
+    const renamedBpName = renameNewBlueprintName(bpName)
+    let names: string[] = renamedBpName !== bpName ? [bpName, renamedBpName] : [bpName]
+
+    for await (const r of loadFromWebMultiple(names, (s: IWebSource, n: string) => s.loadBlueprint(n))) {
+      if (renamedBpName !== bpName && r.data?.value.name === renamedBpName) {
+        r.data.value.name = bpName
+        r.data.value.item.name = itemNameFromBpName(bpName)
+      }
+
+      const blueprints = get(blueprintsAtom)
+      const current = blueprints[bpName]
+      const update: BlueprintData = {
+        ...current,
+        web: {
+          ...current?.web,
+          blueprint: r
+        }
+      }
+      set(blueprintsAtom, {
+        ...blueprints,
+        [bpName]: update
+      })
+    }
+  } catch (error) {
+    console.error(`Failed to load blueprint ${bpName} data:`, error)
+  }
+})

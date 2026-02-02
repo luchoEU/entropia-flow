@@ -57,7 +57,7 @@ const isLimited = (name: string): boolean => name?.endsWith('(L)') ?? false
 
 const budgetInfoFromBp = (bp: BlueprintData, mat: ItemsMap): BudgetInfoData => ({
     itemName: bp.c!.itemName,
-    materials: bp.c!.materials!.map(m => ({
+    materials: bp.c?.materials?.map(m => ({
         name: itemStringFromName(bp, m.name),
         unitValue: m.value,
         markup: Number(mat[m.name]?.markup?.value ?? 100) / 100

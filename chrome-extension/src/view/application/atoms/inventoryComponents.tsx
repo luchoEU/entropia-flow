@@ -1,16 +1,16 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
 import { ItemOwned, TradeBlueprintLineData } from '../state/inventory'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
 import { TTServiceSheetItem } from '../state/ttService'
-import { NavigateFunction } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   hideCriteriaAtom,
   filterOptionsAtom,
   tradeItemChainAtom
 } from './inventory'
-import { setBlueprintStared } from '../actions/craft'
 import { craftBlueprintUrl, navigateTo } from '../actions/navigation'
+import { loadCraftBlueprintAtom, setBlueprintStaredAtom } from './craft'
 
 /**
  * Switch button for filter options
@@ -338,6 +338,50 @@ export const getInventoryColumnConfig = (isShowingTradeItem: boolean, showReserv
 }
 
 /**
+ * Blueprint quantity cell component that auto-loads when needed
+ */
+const BlueprintQuantityCell: React.FC<{
+  item: TradeBlueprintLineData
+  type: string
+}> = ({ item, type }) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | undefined>(undefined)
+  const loadCraftBlueprint = useSetAtom(loadCraftBlueprintAtom)
+
+  // Check if this is a favorite or owned blueprint
+  const shouldAutoLoad = item.quantity === -1 && (type === 'Favorite' || type === 'Owned')
+
+  useEffect(() => {
+    if (shouldAutoLoad && !isLoading) {
+      setIsLoading(true)
+      setError(undefined)
+
+      loadCraftBlueprint(item.bpName)
+        .catch((err) => {
+          console.error(`Failed to load blueprint ${item.bpName}:`, err)
+          setError('Error loading')
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    }
+  }, [shouldAutoLoad, item.bpName, loadCraftBlueprint])
+
+  // While loading
+  if (isLoading) {
+    return <img src="img/loading.gif" title="Loading blueprint data..." style={{ width: '16px', height: '16px' }} />
+  }
+
+  // Show error if loading failed
+  if (error) {
+    return <span title={error} style={{ color: '#d32f2f' }}>{error}</span>
+  }
+
+  // Show the quantity value or "not loaded"
+  return <span>{item.quantity === -1 ? 'not loaded' : item.quantity?.toString()}</span>
+}
+
+/**
  * Blueprint star button component for trade item details
  */
 const BlueprintStarButton: React.FC<{
@@ -345,6 +389,8 @@ const BlueprintStarButton: React.FC<{
   isStarred: boolean
   chainIndex?: number
 }> = ({ bpName, isStarred, chainIndex = 0 }) => {
+  const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
+
   const handleClick = () => {
     setBlueprintStared(bpName, !isStarred)
   }
@@ -364,12 +410,11 @@ const BlueprintStarButton: React.FC<{
  */
 const BlueprintLinkButton: React.FC<{
   bpName: string
-  navigate?: NavigateFunction
-}> = ({ bpName, navigate }) => {
+}> = ({ bpName }) => {
+  const navigate = useNavigate()
+
   const handleClick = () => {
-    if (navigate) {
-      navigateTo(navigate, craftBlueprintUrl(bpName))
-    }
+    navigateTo(navigate, craftBlueprintUrl(bpName))
   }
 
   return (
@@ -419,11 +464,9 @@ export const createBlueprintTableConfig = (
         id: 'quantity',
         header: 'Quantity per Click',
         renderRowCell: (item: TradeBlueprintLineData) =>
-          item.quantity === -1 ? 'not loaded' : item.quantity?.toString(),
+          <BlueprintQuantityCell item={item} type={type} />,
         sortAccessor: (item: TradeBlueprintLineData) =>
           item.quantity === -1 ? Number.MAX_VALUE : item.quantity,
-        filterAccessor: (item: TradeBlueprintLineData) =>
-          item.quantity === -1 ? 'not loaded' : item.quantity?.toString(),
         width: 100,
         justifyContent: 'center'
       }

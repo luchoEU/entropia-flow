@@ -9,7 +9,6 @@ export function JotaiWebDataControl<T>({
     loadGet,
     name,
     itemName,
-    onReload,
     showWithErrors,
     content
 }: {
@@ -17,7 +16,6 @@ export function JotaiWebDataControl<T>({
     loadGet: (itemName: string) => WritableAtom<unknown, [], Promise<void>>,
     name: string,
     itemName: string,
-    onReload?: () => void,
     showWithErrors?: boolean,
     content: (data: T | undefined) => JSX.Element,
 }) {
@@ -31,11 +29,11 @@ export function JotaiWebDataControl<T>({
         }
     }, [load])
 
-    const reload = () => onReload && <SimpleImgButton
-    title={`Try to load ${name} again`}
-    src='img/reload.png'
-    className='img-btn-delta-zero'
-    onClick={onReload} />
+    const reload = () => <SimpleImgButton
+        title={`Try to load ${name} again`}
+        src='img/reload.png'
+        className='img-btn-delta-zero'
+        onClick={load} />
 
     if (!value || value.loading) {
         return <>
@@ -57,7 +55,7 @@ export function JotaiWebDataControl<T>({
     }
 
     return <>
-        <p>{ reload() }</p>
+        <p>{ reload() } Reload {name}</p>
         { content(value.data?.value) }
     </>
 }

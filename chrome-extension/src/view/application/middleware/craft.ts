@@ -1,14 +1,15 @@
+import { getDefaultStore } from 'jotai'
 import { Component, traceError } from '../../../common/trace'
 import { mergeDeep } from '../../../common/merge'
 import { BudgetLineData, BudgetSheet, BudgetSheetGetInfo } from '../../services/api/sheets/sheetsBudget'
 import { BUDGET_MOVE, BUDGET_SELL, BUY_BUDGET_PAGE_MATERIAL, BUY_BUDGET_PAGE_MATERIAL_CLEAR, BUY_BUDGET_PAGE_MATERIAL_DONE, CHANGE_BUDGET_PAGE_BUY_COST, CHANGE_BUDGET_PAGE_BUY_FEE, clearBuyBudget, CLEAR_CRAFT_SESSION, doneBuyBudget, doneCraftingSession, DONE_CRAFT_SESSION, endBudgetPageLoading, END_BUDGET_PAGE_LOADING, END_CRAFT_SESSION, errorCraftingSession, ERROR_BUDGET_PAGE_LOADING, ERROR_CRAFT_SESSION, MOVE_ALL_BUDGET_PAGE_MATERIAL, readyCraftingSession, READY_CRAFT_SESSION, REMOVE_BLUEPRINT, SAVE_CRAFT_SESSION, setBlueprintQuantity, setBudgetPageInfo, setBudgetPageLoadingError, setBudgetPageStage, setCraftingSessionStage, setCraftState, SET_BUDGET_PAGE_INFO, SET_BUDGET_PAGE_LOADING_STAGE, SET_CRAFT_SAVE_STAGE, SORT_BLUEPRINTS_BY, START_BUDGET_PAGE_LOADING, START_CRAFT_SESSION, RELOAD_BLUEPRINT, removeBlueprint, SET_STARED_BLUEPRINTS_FILTER, SHOW_BLUEPRINT_MATERIAL_DATA, SET_BLUEPRINT_STARED, SET_CRAFT_ACTIVE_PLANET, SET_BLUEPRINT_PARTIAL_WEB_DATA, setBlueprintPartialWebData, ADD_BLUEPRINT, addBlueprint, setBlueprintMaterialTypeAndValue, SET_CRAFT_STATE, SET_CRAFT_OPTIONS, ADD_BLUEPRINT_MATERIAL, REMOVE_BLUEPRINT_MATERIAL, CHANGE_BLUEPRINT_MATERIAL_QUANTITY, CHANGE_BLUEPRINT_MATERIAL_NAME, MOVE_BLUEPRINT_MATERIAL, START_BLUEPRINT_EDIT_MODE, END_BLUEPRINT_EDIT_MODE, setBlueprintSuggestedMaterials, SET_BLUEPRINT_LIST } from '../actions/craft'
-import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import { refresh } from '../actions/messages'
 import { AppAction } from '../slice/app'
-import { bpDataFromItemName, bpNameFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
+import { bpDataFromItemName, budgetInfoFromBp, cleanForSave, cleanWeb, initialState, isLimited, itemNameFromBpName, itemStringFromName } from '../helpers/craft'
 import { getCraft } from '../selectors/craft'
 import { getInventory } from '../selectors/inventory'
-import { CraftState } from '../state/craft'
+import { rawInventoryItemsAtom } from '../atoms/inventory'
+import { BlueprintData, CraftState } from '../state/craft'
 import { InventoryState } from '../state/inventory'
 import { SettingsState } from '../state/settings'
 import { ItemsMap } from '../state/items'
@@ -21,13 +22,11 @@ import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { setTabularDefinitions } from '../helpers/tabular'
 import { craftTabularData, craftTabularDefinitions } from '../tabular/craft'
 import { setTabularData } from '../actions/tabular'
-import { getItemList } from '../helpers/inventory'
 import { ItemData } from '../../../common/state'
 import { IWebSource } from '../../../web/sources'
-import { getDefaultStore } from 'jotai'
 import { createNewSessionAtom } from '../atoms/activity'
+import { LOAD_INVENTORY_STATE, SET_CURRENT_INVENTORY } from '../actions/inventory'
 import {
-    setCraftStateAtom,
     blueprintsAtom,
     staredAtom,
     craftOptionsAtom,
@@ -114,12 +113,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
         }
         case SHOW_BLUEPRINT_MATERIAL_DATA: {
-            const inv: InventoryState = getInventory(getState())
             const state: CraftState = getCraft(getState())
-            let bp = state.blueprints[action.payload.name]
+            let bp: BlueprintData | undefined = state.blueprints[action.payload.name]
             let materialName = action.payload.materialName
 
-            while (materialName && materialName !== bp.c.itemName) {
+            while (materialName && materialName !== bp?.c?.itemName) {
                 bp = bpDataFromItemName(state, materialName)
                 if (bp) {
                     materialName = bp.chain
@@ -127,7 +125,14 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         await loadBlueprintLoop(bp.name, dispatch)
                     }
                 } else {
-                    const addBpName = bpNameFromItemName(inv, materialName)
+                    // Get blueprint name from raw inventory using Jotai
+                    const rawItems = getDefaultStore().get(rawInventoryItemsAtom)
+                    const blueprintItems = rawItems
+                        .map(item => item.data)
+                        .filter(item => item.n.includes("Blueprint"))
+                    const addBpName = blueprintItems
+                        .find(bp => itemNameFromBpName(bp.n) === materialName)?.n
+
                     if (addBpName) {
                         dispatch(addBlueprint(addBpName))
                         materialName = undefined
@@ -150,9 +155,11 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         case SET_CRAFT_ACTIVE_PLANET:
         case SET_CURRENT_INVENTORY: {
             const s: CraftState = getCraft(getState())
-            const inv: InventoryState = getInventory(getState())
+            // Get inventory from Jotai instead of Redux
+            const rawItems = getDefaultStore().get(rawInventoryItemsAtom)
             let itemMap: { [k: string]: number } = {}
-            inv.byStore.flat.original.forEach(i => {
+            rawItems.forEach(owned => {
+                const i = owned.data
                 let q: number
                 if (i.c !== 'Carried' && i.c !== s.activePlanet) {
                     q = 0 // send zero so it can check if the blueprint is owned
@@ -190,7 +197,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                         dispatch(setBudgetPageInfo(bpName, info))
                     }
                 } catch (e) {
-                    dispatch(setBudgetPageLoadingError(bpName, e.message))
+                    dispatch(setBudgetPageLoadingError(bpName, (e as Error).message))
                     traceError(Component.CraftMiddleware, 'exception loading budget sheet:', e)
                 } finally {
                     dispatch(endBudgetPageLoading(bpName))
@@ -218,7 +225,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
     switch (action.type) {
         case SET_BLUEPRINT_PARTIAL_WEB_DATA:
         case END_BLUEPRINT_EDIT_MODE: {
-            let materials: { name: string, m?: BlueprintWebMaterial }[];
+            let materials: { name: string, m?: BlueprintWebMaterial }[] | undefined;
             if (action.type === SET_BLUEPRINT_PARTIAL_WEB_DATA) {
                 const bp: WebLoadResponse<BlueprintWebData> = action.payload.change.blueprint
                 const bpValue = bp?.data?.value
@@ -237,7 +244,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             }
 
             if (materials) {
-                const inv: ItemData[] = getItemList(getInventory(getState()))
+                // Get inventory from Jotai instead of Redux
+                const rawItems = getDefaultStore().get(rawInventoryItemsAtom)
+                const inv: ItemData[] = rawItems.map(item => item.data)
                 const mat: ItemsMap = getItemsMap(getState())
                 const list: ItemWebData[] = []
                 materials.forEach(({ name, m }: { name: string, m?: BlueprintWebMaterial }) => {
@@ -272,7 +281,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case SET_ITEMS_STATE:
         case SET_CURRENT_INVENTORY: {
-            const inv: ItemData[] = getItemList(getInventory(getState()))
+            // Get inventory from Jotai instead of Redux
+            const rawItems = getDefaultStore().get(rawInventoryItemsAtom)
+            const inv: ItemData[] = rawItems.map(item => item.data)
             const mat: ItemsMap = getItemsMap(getState());
             const matList = Object.values(mat)
                 .map(m => m.user ?? m.web?.item?.data?.value)
@@ -289,8 +300,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             const bpName = action.payload.name
             const materialName = action.payload.materialName
             const mat: ItemsMap = getItemsMap(getState());
-            const inv: InventoryState = getInventory(getState())
-            const ownedItems = new Set([ ...Object.keys(mat), ...inv.owned.items.map(i => i.data.n) ])
+            // Get inventory from Jotai instead of Redux
+            const rawItems = getDefaultStore().get(rawInventoryItemsAtom)
+            const ownedItems = new Set([ ...Object.keys(mat), ...rawItems.map(i => i.data.n) ])
             const suggestedMaterials = Array.from(ownedItems)
                 .filter(m => m.length > materialName.length && m.startsWith(materialName))
                 .sort()

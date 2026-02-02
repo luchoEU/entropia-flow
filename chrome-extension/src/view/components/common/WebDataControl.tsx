@@ -35,10 +35,10 @@ function WebDataControl<T>({
     return <>
         { !w ? <p style={{ display: 'flex', gap: '5px' }}>{name}{ reload() }</p> : (
             w.loading ?
-                <p>
+                <div>
                     <img data-show className='img-loading' src='img/loading.gif' /> Loading from {w.loading.source}...
                     { content(w.data?.value) }
-                </p> :
+                </div> :
             (w.errors ?
                 <>
                     { w.errors.map((e, index) =>
