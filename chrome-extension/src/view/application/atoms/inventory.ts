@@ -6,9 +6,11 @@ import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
 import { CraftState } from '../state/craft'
 import { joinDuplicates } from '../helpers/inventory'
 import { ItemData } from '../../../common/state'
-import { BlueprintWebData, ItemWebData } from '../../../web/state'
+import { BlueprintWebData, ItemUsageWebData, ItemWebData } from '../../../web/state'
 import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, activePlanetAtom, editModeBlueprintNameAtom, craftWebDataAtom, craftComputedAtom } from './craft'
 import { settingsAtom } from './settings'
+import { WebLoadResponse } from '../../../web/loader'
+import { IWebSource, SourceLoadResponse } from '../../../web/sources'
 
 /**
  * Base atom for raw inventory items
@@ -73,7 +75,7 @@ export const editModeMaterialNameAtom = atomWithStorage<string | undefined>('inv
 /**
  * Atom factory to get a single item by name
  */
-export const getItemAtom = (itemName: string) => atom((get) => {
+export const getItemAtom = (itemName: string) => atom<ItemState | undefined>((get) => {
   const itemsMap = get(itemsMapAtom)
   return itemsMap[itemName]
 })
@@ -81,7 +83,7 @@ export const getItemAtom = (itemName: string) => atom((get) => {
 /**
  * Atom factory to get the web item data for a specific item
  */
-export const getItemWebAtom = (itemName: string) => atom((get) => {
+export const getItemWebAtom = (itemName: string): Atom<WebLoadResponse<ItemWebData> | undefined> => atom<WebLoadResponse<ItemWebData> | undefined>((get) => {
   const item = get(getItemAtom(itemName))
   return item?.web?.item
 })
@@ -89,7 +91,7 @@ export const getItemWebAtom = (itemName: string) => atom((get) => {
 /**
  * Atom factory to get the usage data for a specific item
  */
-export const getItemUsageWebAtom = (itemName: string) => atom((get) => {
+export const getItemUsageWebAtom = (itemName: string) => atom<WebLoadResponse<ItemUsageWebData> | undefined>((get) => {
   const item = get(getItemAtom(itemName))
   return item?.web?.usage
 })
@@ -97,92 +99,9 @@ export const getItemUsageWebAtom = (itemName: string) => atom((get) => {
 /**
  * Atom factory to get the TTService web inventory data
  */
-export const getTTServiceWebAtom = () => atom((get) => {
+export const getTTServiceWebAtom = () => atom<WebLoadResponse<TTServiceInventoryWebData> | undefined>((get) => {
   const ttService = get(ttServiceAtom)
   return ttService?.web?.inventory
-})
-
-/**
- * Async atom factory to load item data from web
- * Returns ItemWebData directly (not wrapped in WebLoadResponse)
- * Also persists the full WebLoadResponse to itemsMapAtom for availability in enrichedItemsAtom
- */
-export const getItemWebAsyncAtom = (itemName: string) => atom<Promise<ItemWebData>>(async (get) => {
-  // Check cache first to avoid unnecessary loads
-  const itemsMap = get(itemsMapAtom)
-  const cached = itemsMap[itemName]?.web?.item?.data?.value
-  if (cached) {
-    return cached
-  }
-
-  const { loadFromWeb } = await import('../../../web/loader')
-  const store = getDefaultStore()
-  let lastData: ItemWebData | undefined = undefined
-
-  for await (const response of loadFromWeb(s => s.loadItem(itemName, undefined))) {
-    if (response.data?.value) {
-      lastData = response.data.value
-    }
-
-    // Side effect: Update itemsMapAtom via store
-    const currentMap = store.get(itemsMapAtom)
-    const current = currentMap[itemName]
-    const updated = current ? {
-      ...current,
-      web: {
-        ...current.web,
-        item: response
-      }
-    } : { web: { item: response } }
-
-    store.set(itemsMapAtom, {
-      ...currentMap,
-      [itemName]: updated as any
-    })
-  }
-
-  if (!lastData) {
-    throw new Error(`Failed to load item data for ${itemName}`)
-  }
-
-  return lastData
-})
-
-export type LoadableState<T> =
-  | { state: 'loading' }
-  | { state: 'hasError'; error: unknown }
-  | { state: 'hasData'; data: T }
-
-/**
- * Loadable atom factory for item web data
- */
-export const getItemWebLoadableAtom = (itemName: string): Atom<LoadableState<ItemWebData>> => loadable(getItemWebAsyncAtom(itemName))
-
-
-/**
- * Wrapper atom to convert TTService WebLoadResponse to loadable-like format
- * TTService uses Redux for loading, so we convert the WebLoadResponse pattern to LoadableState
- */
-export const getTTServiceLoadableAtom = () => atom((get) => {
-  const w = get(getTTServiceWebAtom())
-
-  if (!w) {
-    return { state: 'loading' } as const
-  }
-
-  if (w.errors && w.errors.length > 0) {
-    return { state: 'hasError', error: new Error(w.errors[0]?.message || 'Unknown error') } as const
-  }
-
-  if (w.data?.value) {
-    return { state: 'hasData', data: w.data.value } as const
-  }
-
-  if (w.loading) {
-    return { state: 'loading' } as const
-  }
-
-  return { state: 'loading' } as const
 })
 
 /**
@@ -196,7 +115,6 @@ export const itemsStateAtom = atom<ItemsState>((get) => {
     editModeMaterialName
   }
 })
-
 
 /**
  * Write atom to set the trade item chain
@@ -337,72 +255,34 @@ export const setItemCalculatorTotalMUAtom = atom(null, (get, set, itemName: stri
   }
 })
 
+export const loadItemWebAtom = (itemName: string) => loadItemDataAtom('item', s => s.loadItem(itemName), itemName)
+export const loadItemUsageAtom = (itemName: string) => loadItemDataAtom('usage', s => s.loadUsage(itemName), itemName)
+
 /**
  * Write atom to load item data from web
- * Replaces Redux loadItemData action
+ * Replaces Redux loadItemUsageData action
  */
-export const loadItemDataAtom = atom(null, async (get, set, itemName: string) => {
+export const loadItemDataAtom = <T>(field: string, _loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>, itemName: string) =>
+  atom(null, async (get, set) => {
   const { loadFromWeb } = await import('../../../web/loader')
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-
   try {
-    for await (const r of loadFromWeb(s => s.loadItem(itemName, undefined))) {
-      const updated = current ? {
+    for await (const r of loadFromWeb(_loadFrom)) {
+      const itemsMap = get(itemsMapAtom)
+      const current = itemsMap[itemName]
+      const update = {
         ...current,
         web: {
-          ...current.web,
-          item: r
+          ...current?.web,
+          [field]: r
         }
-      } : { web: { item: r } }
-
+      }
       set(itemsMapAtom, {
         ...itemsMap,
-        [itemName]: updated as any
+        [itemName]: update
       })
     }
   } catch (error) {
-    console.error(`Failed to load item data for ${itemName}:`, error)
-  }
-})
-
-/**
- * Write atom to load item usage data from web
- * Replaces Redux loadItemUsageData action
- */
-export const loadItemUsageDataAtom = atom(null, async (get, set, itemName: string) => {
-  const { loadFromWeb } = await import('../../../web/loader')
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-
-  try {
-    // Collect all results before updating to batch the update and prevent cascading re-renders
-    let finalUpdate: any = current ? { ...current } : {}
-    let updateCount = 0
-
-    try {
-      for await (const r of loadFromWeb(s => s.loadUsage(itemName))) {
-        updateCount++
-        if (r.data) {
-          finalUpdate = current ? {
-            ...current,
-            web: {
-              ...current?.web,
-              usage: r.data.value
-            }
-          } : { web: { usage: r.data.value } }
-        }
-      }
-    } catch (loopError) {
-    }
-
-    // Only update once after all results are collected
-    set(itemsMapAtom, {
-      ...itemsMap,
-      [itemName]: finalUpdate as any
-    })
-  } catch (error) {
-    console.error(`Failed to load item usage data for ${itemName}:`, error)
+    console.error(`Failed to load item ${field} data for ${itemName}:`, error)
   }
 })
 

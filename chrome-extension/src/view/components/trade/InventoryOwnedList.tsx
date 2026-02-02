@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useMemo, useEffect } from 'react'
 import { useAtomValue, useSetAtom, atom } from 'jotai'
 import { ItemOwned, TradeItemData } from '../../application/state/inventory'
 import { JotaiWebDataControl } from '../common/JotaiWebDataControl';
-import { ItemWebData, RefiningWebData } from '../../../web/state';
+import { ItemUsageWebData, ItemWebData } from '../../../web/state';
 import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftBlueprint';
 import ItemNotes from '../item/ItemNotes';
@@ -23,10 +23,7 @@ import {
   tradeItemChainAtom,
   itemsStateAtom,
   getItemAtom,
-  getItemWebLoadableAtom,
   getItemUsageWebAtom,
-  loadItemUsageDataAtom,
-  getTTServiceLoadableAtom,
   filterOptionsAtom,
   setTradeItemChainAtom,
   setMaterialValueAtom,
@@ -41,13 +38,17 @@ import {
   getOwnedBlueprintsAtom,
   getOtherBlueprintsAtom,
   loadTTServiceAtom,
+  getItemWebAtom,
+  loadItemUsageAtom,
+  loadItemWebAtom,
+  getTTServiceWebAtom,
 } from '../../application/atoms/inventory'
 import ExpandableSection from '../common/ExpandableSection2';
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
 
 const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, setTradeItemChain }: {
   refinings: any[]
-  chainNext: string
+  chainNext: string | undefined
   chainIndex: number
   setTradeItemChain: any
 }) => {
@@ -87,8 +88,8 @@ const TradeItemDetailsChain = () => {
 
     return <>
         { tradeItemDataChain.map((tradeItemData, chainIndex) => {
-            const chainNext = tradeItemDataChain.length > chainIndex + 1 && tradeItemDataChain[chainIndex + 1]?.name;
-            const editMode = tradeItemData.name && tradeItemData.name === matEditModeMaterialName
+            const chainNext = tradeItemDataChain.length > chainIndex + 1 ? tradeItemDataChain[chainIndex + 1]?.name : undefined;
+            const editMode = tradeItemData.name ? tradeItemData.name === matEditModeMaterialName : false
             return <div key={tradeItemData.name} className='trade-item-data'>
                 <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); setTradeItemChain(chainNext ? tradeItemData.name : undefined, chainIndex) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
@@ -105,47 +106,40 @@ const TradeItemDetailsChain = () => {
     </>
 }
 
-const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemData: TradeItemData, chainIndex: number, chainNext: string }) => {
+const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
+     { tradeItemData: TradeItemData, chainIndex: number, chainNext: string | undefined}
+) => {
     const setMaterialValue = useSetAtom(setMaterialValueAtom)
     const setMaterialType = useSetAtom(setMaterialTypeAtom)
     const setReserveAmount = useSetAtom(setReserveAmountAtom)
     const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
-    const loadTTService = useSetAtom(loadTTServiceAtom)
     const mat = useAtomValue(itemsStateAtom)
     const { reserve } = useAtomValue(filterOptionsAtom)
 
     const name = tradeItemData.name
+    if (!name) return <></> // Guard against undefined name
+
     const editMode = name && name === mat.editModeMaterialName
 
-    // Memoize atom factory calls to prevent new atoms on every render
-    const itemAtom = React.useMemo(() => getItemAtom(name), [name])
-    const featureEnabledAtom = React.useMemo(() => isFeatureEnabledAtom(Feature.ttService), [])
-    const itemWebLoadableAtom = React.useMemo(() => getItemWebLoadableAtom(name), [name])
-    const itemUsageAtom = React.useMemo(() => getItemUsageWebAtom(name), [name])
-    const ttServiceLoadableAtom = React.useMemo(() => getTTServiceLoadableAtom(), [])
+    const itemAtom = useMemo(() => getItemAtom(name), [name])
+    const featureEnabledAtom = useMemo(() => isFeatureEnabledAtom(Feature.ttService), [])
 
     // Read values from atoms
     const item = useAtomValue(itemAtom)
     const showTTService = useAtomValue(featureEnabledAtom)
-    const usage = useAtomValue(itemUsageAtom)
-    const loadItemUsage = useSetAtom(loadItemUsageDataAtom)
-
-    // Load usage data on mount or when item name changes
-    React.useEffect(() => {
-      loadItemUsage(name)
-    }, [name, loadItemUsage])
 
     // Create atoms for lazy-loaded blueprint tables
-    const favoriteAtom = React.useMemo(() => getFavoriteBlueprintsAtom(name), [name])
-    const ownedAtom = React.useMemo(() => getOwnedBlueprintsAtom(name), [name])
-    const otherAtom = React.useMemo(() => getOtherBlueprintsAtom(name), [name])
+    const favoriteAtom = useMemo(() => getFavoriteBlueprintsAtom(name), [name])
+    const ownedAtom = useMemo(() => getOwnedBlueprintsAtom(name), [name])
+    const otherAtom = useMemo(() => getOtherBlueprintsAtom(name), [name])
 
     // Read blueprint data to check if empty
     const favoriteBlueprints = useAtomValue(favoriteAtom)
     const ownedBlueprints = useAtomValue(ownedAtom)
     const otherBlueprints = useAtomValue(otherAtom)
+
     return <>
-        <JotaiWebDataControl loadableAtom={itemWebLoadableAtom} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
+        {<JotaiWebDataControl valueGet={getItemWebAtom} loadGet={loadItemWebAtom} itemName={name} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
             const user = mat.map[name]?.user
             return <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', marginBottom: '15px' }}>
@@ -173,16 +167,16 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                 </div> }
                 <div style={{ borderTop: '1px solid #ddd', marginTop: '12px' }}>
                     <ItemMarkup name={tradeItemData.name} />
-                    <div style={{ marginTop: '12px' }}>
+                    {<div style={{ marginTop: '12px' }}>
                         <ItemCalculator name={tradeItemData.name} />
-                    </div>
+                    </div>}
                 </div>
             </>
-        }} />
+        }} />}
         <ItemNotes name={tradeItemData.name} />
         { showTTService && <>
             <p style={{ height: '5px' }} />
-            <JotaiWebDataControl loadableAtom={ttServiceLoadableAtom} name='TT Inventory' onReload={loadTTService} content={(inventory: TTServiceInventoryWebData | undefined) => {
+            <JotaiWebDataControl valueGet={getTTServiceWebAtom} loadGet={() => loadTTServiceAtom} itemName={tradeItemData.name} name='TT Inventory' content={(inventory: TTServiceInventoryWebData | undefined) => {
                 const list = React.useMemo(() => inventory?.filter(d => d.name === tradeItemData.name), [inventory, tradeItemData.name])
                 const ttServiceAtom = React.useMemo(() => atom(list ?? []), [list])
                 return list?.length === 0 ?
@@ -195,7 +189,9 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
             }} />
         </> }
         <p style={{ height: '5px' }} />
-        {usage?.data?.value && <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
+        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageAtom} itemName={tradeItemData.name} name='TT Inventory' content={(usage: ItemUsageWebData | undefined) => {
+            if (!usage) return <></>
+            return <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
                 <div>
                     { favoriteBlueprints.length > 0 ?
                         <JotaiSortableTable
@@ -221,14 +217,14 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }: { tradeItemD
                     />
                 </div> }
 
-                { usage.data.value.refinings && usage.data.value.refinings.length > 0 && <RefiningTableSection
-                    refinings={usage.data.value.refinings}
+                { usage.refinings && usage.refinings.length > 0 && <RefiningTableSection
+                    refinings={usage.refinings}
                     chainNext={chainNext}
                     chainIndex={chainIndex}
                     setTradeItemChain={setTradeItemChain}
                 />}
             </div>
-        }
+        }} />
         <ItemInventory filter={filterExact(tradeItemData.name)} />
     </>
 }

@@ -16,13 +16,13 @@ import { InventoryOwnedList } from './InventoryOwnedList'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
 
-function TradePage() {
+export function TradePage() {
     const s: InventoryState = useSelector(getInventory)
     const t: TradeState = useSelector(getTrade)
     const gameLogTrade = useSelector(getTabularData(GAME_LOG_TABULAR_TRADE))
     const isClientEnabled = useAtomValue(isFeatureEnabledAtom(Feature.client))
 
-    let toAuction = {}
+    let toAuction: Record<string, string> = {}
     for (let availableItem of s.available.items)
         if (!s.auction.items.some(i => i.n == availableItem.n))
             toAuction[availableItem.n] = 'to-auction'
@@ -51,5 +51,3 @@ function TradePage() {
         </>
     )
 }
-
-export default TradePage
