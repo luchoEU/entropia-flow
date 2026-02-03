@@ -47,6 +47,7 @@ function ActivityPage() {
     // Local state
     const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
     const [editingActionId, setEditingActionId] = useState<string | null>(null)
+    const [showActions, setShowActionsLocal] = useState<'items' | 'userActions'>('items')
 
     // Guard against undefined activity
     if (!activityData) {
@@ -57,7 +58,7 @@ function ActivityPage() {
         )
     }
 
-    const { data: { items: inventoryItems, autoActions: actions, sessions, userActions, actionTypeDefinitions }, ui: { expanded: { sessions: expandedArray, actionRows: expandedActionRows }, showActions }, blacklist: { session: sessionBlacklist, sessionAction: sessionActionBlacklist, permanentItem: permanentItemBlacklist, permanentAction: permanentActionBlacklist } } = activityData
+    const { data: { items: inventoryItems, autoActions: actions, userActions, actionTypeDefinitions }, ui: { expanded: { sessions: expandedArray, actionRows: expandedActionRows }, showActions: globalShowActions }, blacklist: { session: sessionBlacklist, permanentItem: permanentItemBlacklist } } = activityData
 
     // Guard against undefined arrays
     if (!inventoryItems || !actions) {
@@ -174,25 +175,18 @@ function ActivityPage() {
                     🔁 Reset Items
                 </button>
                 <button
-                    onClick={() => setShowActions('autoActions')}
-                    style={{ fontWeight: showActions === 'autoActions' ? 'bold' : 'normal', opacity: showActions === 'autoActions' ? 1 : 0.6 }}
-                    title='Show auto actions'
-                >
-                    🤖 Auto Actions
-                </button>
-                <button
-                    onClick={() => setShowActions('userActions')}
-                    style={{ fontWeight: showActions === 'userActions' ? 'bold' : 'normal', opacity: showActions === 'userActions' ? 1 : 0.6 }}
-                    title='Show user actions'
-                >
-                    👤 User Actions
-                </button>
-                <button
-                    onClick={() => setShowActions('items')}
+                    onClick={() => setShowActionsLocal('items')}
                     style={{ fontWeight: showActions === 'items' ? 'bold' : 'normal', opacity: showActions === 'items' ? 1 : 0.6 }}
                     title='Show items list'
                 >
                     📦 Items
+                </button>
+                <button
+                    onClick={() => setShowActionsLocal('userActions')}
+                    style={{ fontWeight: showActions === 'userActions' ? 'bold' : 'normal', opacity: showActions === 'userActions' ? 1 : 0.6 }}
+                    title='Show user actions'
+                >
+                    👤 User Actions
                 </button>
             </div>
 
@@ -239,65 +233,70 @@ function ActivityPage() {
                                     buildCopyTextForItems={buildCopyTextForItems}
                                 />
 
-                                {/* Views */}
-                                {(() => {
-                                    if (showActions === 'autoActions') {
-                                        return (
-                                            <AutoActionsView
-                                                sessionId={session.id}
-                                                expandedActionRows={expandedActionRowsSet}
-                                                editingActionId={editingActionId}
-                                                onToggleActionRow={toggleActionRow}
-                                                onStartEditAction={(id) => setEditingActionId(id)}
-                                                onUpdateActionType={(actionId, type) => updateActionType({ actionId, type: type as any })}
-                                                isBudgetEnabled={isBudgetEnabled}
-                                                navigate={navigate}
-                                                getInventoryItem={getInventoryItem}
-                                                getInventoryItemWithFallback={getInventoryItemWithFallback}
-                                                getAllItemIds={getAllItemIds}
-                                                buildCopyTextForAction={buildCopyTextForAction}
-                                                copyToClipboard={copyToClipboard}
-                                            />
-                                        )
-                                    } else if (showActions === 'items') {
-                                        const itemSessionList = sessionBlacklist?.[session.id] || []
-                                        const itemPermanentList = permanentItemBlacklist?.[session.type] || []
-                                        return (
-                                            <ItemsView
-                                                itemExclusionConfig={{
-                                                    sessionId: session.id,
-                                                    sessionType: session.type,
-                                                    sessionBlacklist: itemSessionList,
-                                                    permanentBlacklist: itemPermanentList,
-                                                    onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
-                                                    onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
-                                                    onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
-                                                }}
-                                                sessionStartTime={session.start}
-                                                sessionEndTime={session.end}
-                                            />
-                                        )
-                                    } else if (showActions === 'userActions') {
-                                        const itemSessionList = sessionBlacklist?.[session.id] || []
-                                        const itemPermanentList = permanentItemBlacklist?.[session.type] || []
-                                        return (
-                                            <ActionsView
-                                                sessionId={session.id}
-                                                userActions={userActions}
-                                                actionTypeDefinitions={actionTypeDefinitions}
-                                                onCreateAction={handleCreateAction}
-                                                onRemoveUserAction={removeUserAction}
-                                                getInventoryItem={getInventoryItem}
-                                                getInventoryItemWithFallback={getInventoryItemWithFallback}
-                                                getAllItemIds={getAllItemIds}
-                                                isValidEmoji={isValidEmoji}
-                                                onSaveActionType={updateActionTypeDefinition}
-                                                sessionStartTime={session.start}
-                                                sessionEndTime={session.end}
-                                            />
-                                        )
-                                    }
-                                })()}
+                                {/* Main Layout: Items/User Actions on left, Auto Actions on right */}
+                                <div style={{ display: 'flex', gap: '20px' }}>
+                                    {/* Left: Items/User Actions toggle view */}
+                                    <div style={{ flex: 1 }}>
+                                        {(() => {
+                                            if (showActions === 'items') {
+                                                const itemSessionList = sessionBlacklist?.[session.id] || []
+                                                const itemPermanentList = permanentItemBlacklist?.[session.type] || []
+                                                return (
+                                                    <ItemsView
+                                                        itemExclusionConfig={{
+                                                            sessionId: session.id,
+                                                            sessionType: session.type,
+                                                            sessionBlacklist: itemSessionList,
+                                                            permanentBlacklist: itemPermanentList,
+                                                            onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
+                                                            onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
+                                                            onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
+                                                        }}
+                                                        sessionStartTime={session.start}
+                                                        sessionEndTime={session.end}
+                                                    />
+                                                )
+                                            } else if (showActions === 'userActions') {
+                                                return (
+                                                    <ActionsView
+                                                        sessionId={session.id}
+                                                        userActions={userActions}
+                                                        actionTypeDefinitions={actionTypeDefinitions}
+                                                        onCreateAction={handleCreateAction}
+                                                        onRemoveUserAction={removeUserAction}
+                                                        getInventoryItem={getInventoryItem}
+                                                        getInventoryItemWithFallback={getInventoryItemWithFallback}
+                                                        getAllItemIds={getAllItemIds}
+                                                        isValidEmoji={isValidEmoji}
+                                                        onSaveActionType={updateActionTypeDefinition}
+                                                        sessionStartTime={session.start}
+                                                        sessionEndTime={session.end}
+                                                    />
+                                                )
+                                            }
+                                        })()}
+                                    </div>
+
+                                    {/* Right: Auto Actions */}
+                                    <div style={{ flex: 1 }}>
+                                        <h3>Auto Actions</h3>
+                                        <AutoActionsView
+                                            sessionId={session.id}
+                                            expandedActionRows={expandedActionRowsSet}
+                                            editingActionId={editingActionId}
+                                            onToggleActionRow={toggleActionRow}
+                                            onStartEditAction={(id) => setEditingActionId(id)}
+                                            onUpdateActionType={(actionId, type) => updateActionType({ actionId, type: type as any })}
+                                            isBudgetEnabled={isBudgetEnabled}
+                                            navigate={navigate}
+                                            getInventoryItem={getInventoryItem}
+                                            getInventoryItemWithFallback={getInventoryItemWithFallback}
+                                            getAllItemIds={getAllItemIds}
+                                            buildCopyTextForAction={buildCopyTextForAction}
+                                            copyToClipboard={copyToClipboard}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
