@@ -49,6 +49,9 @@ const JotaiSortableTableComponent = function<TItem>(
   // Handle sort by column
   const handleSortColumn = useCallback(
     (columnIndex: number) => {
+      if (config.columns[columnIndex].sortAccessor === undefined) {
+        return
+      }
       setUIState({
         sortColumn: columnIndex,
         sortAscending: uiState.sortColumn === columnIndex ? !uiState.sortAscending : true,

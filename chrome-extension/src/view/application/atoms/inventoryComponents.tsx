@@ -10,7 +10,7 @@ import {
   tradeItemChainAtom
 } from './inventory'
 import { craftBlueprintUrl, navigateTo } from '../actions/navigation'
-import { loadCraftBlueprintAtom, setBlueprintStaredAtom } from './craft'
+import { loadCraftBlueprintAtom, setBlueprintStaredAtom, blueprintsAtom } from './craft'
 
 /**
  * Switch button for filter options
@@ -341,44 +341,46 @@ export const getInventoryColumnConfig = (isShowingTradeItem: boolean, showReserv
  * Blueprint quantity cell component that auto-loads when needed
  */
 const BlueprintQuantityCell: React.FC<{
-  item: TradeBlueprintLineData
+  bpName: string
   type: string
-}> = ({ item, type }) => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | undefined>(undefined)
+  itemName?: string
+}> = ({ bpName, type, itemName }) => {
   const loadCraftBlueprint = useSetAtom(loadCraftBlueprintAtom)
+  const blueprints = useAtomValue(blueprintsAtom)
 
-  // Check if this is a favorite or owned blueprint
-  const shouldAutoLoad = item.quantity === -1 && (type === 'Favorite' || type === 'Owned')
+  // Get quantity from blueprint data
+  const getQuantity = (): number | undefined => {
+    if (!itemName || !blueprints[bpName]) return undefined
+    const bp = blueprints[bpName]
+    const webBp = bp.web?.blueprint?.data?.value
+    if (webBp?.materials) {
+      return webBp.materials.find((m: any) => m.name === itemName)?.quantity
+    }
+    return undefined
+  }
+
+  // Check if this is a favorite or owned blueprint and quantity is not loaded
+  const bp = blueprints[bpName]
+  const hasWebData = bp?.web?.blueprint?.data?.value?.materials !== undefined
+  const shouldAutoLoad = !hasWebData && (type === 'Favorite' || type === 'Owned')
+  const quantity = getQuantity()
 
   useEffect(() => {
-    if (shouldAutoLoad && !isLoading) {
-      setIsLoading(true)
-      setError(undefined)
-
-      loadCraftBlueprint(item.bpName)
+    if (shouldAutoLoad) {
+      loadCraftBlueprint(bpName)
         .catch((err) => {
-          console.error(`Failed to load blueprint ${item.bpName}:`, err)
-          setError('Error loading')
-        })
-        .finally(() => {
-          setIsLoading(false)
+          console.error(`Failed to load blueprint ${bpName}:`, err)
         })
     }
-  }, [shouldAutoLoad, item.bpName, loadCraftBlueprint])
+  }, [shouldAutoLoad, bpName, loadCraftBlueprint])
 
   // While loading
-  if (isLoading) {
+  if (shouldAutoLoad && !hasWebData) {
     return <img src="img/loading.gif" title="Loading blueprint data..." style={{ width: '16px', height: '16px' }} />
   }
 
-  // Show error if loading failed
-  if (error) {
-    return <span title={error} style={{ color: '#d32f2f' }}>{error}</span>
-  }
-
   // Show the quantity value or "not loaded"
-  return <span>{item.quantity === -1 ? 'not loaded' : item.quantity?.toString()}</span>
+  return <span>{quantity === undefined ? 'not loaded' : quantity?.toString()}</span>
 }
 
 /**
@@ -432,8 +434,9 @@ const BlueprintLinkButton: React.FC<{
  */
 export const createBlueprintTableConfig = (
   type: string,
-  isStarred: boolean | undefined
-): JotaiTableConfig<TradeBlueprintLineData> => {
+  isStarred: boolean | undefined,
+  itemName?: string
+): JotaiTableConfig<string> => {
   return {
     title: `${type} Blueprint`,
     itemTypeName: 'blueprint',
@@ -441,32 +444,30 @@ export const createBlueprintTableConfig = (
       {
         id: 'bpName',
         header: `${type} Blueprint`,
-        renderRowCell: (item: TradeBlueprintLineData) => {
+        renderRowCell: (bpName: string) => {
           return (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ flex: 1 }}>{item.bpName}</span>
+              <span style={{ flex: 1 }}>{bpName}</span>
               {isStarred !== undefined && (
                 <BlueprintStarButton
-                  bpName={item.bpName}
+                  bpName={bpName}
                   isStarred={isStarred}
                 />
               )}
-              <BlueprintLinkButton bpName={item.bpName} />
+              <BlueprintLinkButton bpName={bpName} />
             </div>
           )
         },
-        sortAccessor: (item: TradeBlueprintLineData) => item.bpName,
-        filterAccessor: (item: TradeBlueprintLineData) => item.bpName,
+        sortAccessor: (bpName: string) => bpName,
+        filterAccessor: (bpName: string) => bpName,
         width: 300,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity per Click',
-        renderRowCell: (item: TradeBlueprintLineData) =>
-          <BlueprintQuantityCell item={item} type={type} />,
-        sortAccessor: (item: TradeBlueprintLineData) =>
-          item.quantity === -1 ? Number.MAX_VALUE : item.quantity,
+        renderRowCell: (bpName: string) =>
+          <BlueprintQuantityCell bpName={bpName} type={type} itemName={itemName} />,
         width: 100,
         justifyContent: 'center'
       }
@@ -533,7 +534,7 @@ export const createTTServiceTableConfig = (): JotaiTableConfig<TTServiceSheetIte
         id: 'date',
         header: 'Date',
         renderRowCell: (item: TTServiceSheetItem) => item.date,
-        sortAccessor: (item: TTServiceSheetItem) => item.date,
+        sortAccessor: (item: TTServiceSheetItem) => new Date(item.date).getTime(), // TODO: returns NaN
         filterAccessor: (item: TTServiceSheetItem) => item.date,
         width: 120,
         justifyContent: 'start'

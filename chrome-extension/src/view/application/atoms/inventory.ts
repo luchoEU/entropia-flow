@@ -381,9 +381,9 @@ const bpToLineData = (bp: BlueprintWebData, itemName: string): TradeBlueprintLin
  * Compute all blueprint categories for a given item name in one pass
  */
 export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
-  favorite: TradeBlueprintLineData[]
-  owned: TradeBlueprintLineData[]
-  other: TradeBlueprintLineData[]
+  favorite: string[]
+  owned: string[]
+  other: string[]
 }>((get) => {
   const blueprintsState = get(blueprintsAtom)
   const staredState = get(staredAtom)
@@ -403,8 +403,8 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
     bp.web?.blueprint?.data?.value ?? blueprints.find((b: any) => b.name === bp.name)
 
   // Categorize blueprints
-  const favorite: TradeBlueprintLineData[] = []
-  const owned: TradeBlueprintLineData[] = []
+  const favorite: string[] = []
+  const owned: string[] = []
   const usedBpNames = new Set<string>()
 
   // Process starred blueprints (favorites)
@@ -413,9 +413,11 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
     if (bp) {
       const webBp = getWebBp(bp)
       if (webBp) {
-        const lineData = bpToLineData(webBp, itemName)
-        if (lineData.quantity !== 0) {
-          favorite.push(lineData)
+        const quantity = webBp.materials
+          ? (webBp.materials.find(m => m.name === itemName)?.quantity ?? 0)
+          : -1
+        if (quantity !== 0) {
+          favorite.push(webBp.name)
           usedBpNames.add(webBp.name)
         }
       }
@@ -427,9 +429,11 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
     if (!starredNames.has(bp.name)) {
       const webBp = getWebBp(bp)
       if (webBp) {
-        const lineData = bpToLineData(webBp, itemName)
-        if (lineData.quantity !== 0) {
-          owned.push(lineData)
+        const quantity = webBp.materials
+          ? (webBp.materials.find(m => m.name === itemName)?.quantity ?? 0)
+          : -1
+        if (quantity !== 0) {
+          owned.push(webBp.name)
           usedBpNames.add(webBp.name)
         }
       }
@@ -439,9 +443,11 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   // Check if item is in inventory and add those blueprints to owned
   blueprints.forEach((bp: any) => {
     if (!usedBpNames.has(bp.name) && ownedItemNames.has(bp.name)) {
-      const lineData = bpToLineData(bp, bp.name)
-      if (lineData.quantity !== 0) {
-        owned.push(lineData)
+      const quantity = bp.materials
+        ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
+        : -1
+      if (quantity !== 0) {
+        owned.push(bp.name)
         usedBpNames.add(bp.name)
       }
     }
@@ -449,8 +455,13 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
 
   // Process usage blueprints (other)
   const other = blueprints
-    .map((bp: any) => bpToLineData(bp, itemName))
-    .filter((bp: TradeBlueprintLineData) => bp.quantity !== 0 && !usedBpNames.has(bp.bpName))
+    .filter((bp: any) => {
+      const quantity = bp.materials
+        ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
+        : -1
+      return quantity !== 0 && !usedBpNames.has(bp.name)
+    })
+    .map((bp: any) => bp.name)
 
   return { favorite, owned, other }
 })
@@ -459,7 +470,7 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
  * Compute favorite blueprints for a given item name lazily
  * Favorite = blueprints starred in craft tab that use the item
  */
-export const getFavoriteBlueprintsAtom = (itemName: string) => atom<TradeBlueprintLineData[]>((get) => {
+export const getFavoriteBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
   const categories = get(getBlueprintCategoriesAtom(itemName))
   return categories.favorite
 })
@@ -468,7 +479,7 @@ export const getFavoriteBlueprintsAtom = (itemName: string) => atom<TradeBluepri
  * Compute owned blueprints for a given item name lazily
  * Owned = blueprints opened in craft tab (not starred) that use the item
  */
-export const getOwnedBlueprintsAtom = (itemName: string) => atom<TradeBlueprintLineData[]>((get) => {
+export const getOwnedBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
   const categories = get(getBlueprintCategoriesAtom(itemName))
   return categories.owned
 })
@@ -477,7 +488,7 @@ export const getOwnedBlueprintsAtom = (itemName: string) => atom<TradeBlueprintL
  * Compute other blueprints for a given item name lazily
  * Other = blueprints from usage API that aren't favorites or owned
  */
-export const getOtherBlueprintsAtom = (itemName: string) => atom<TradeBlueprintLineData[]>((get) => {
+export const getOtherBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
   const categories = get(getBlueprintCategoriesAtom(itemName))
   return categories.other
 })

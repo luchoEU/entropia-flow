@@ -18,8 +18,8 @@ export interface JotaiTableColumn<TItem = any> {
   header: string
   /** Transforms item to React node for rendering */
   renderRowCell: (item: TItem) => React.ReactNode
-  /** Optional: Transform item to value for sorting (defaults to renderRowCell) */
-  sortAccessor?: (item: TItem) => any
+  /** Optional: Transform item to value for sorting */
+  sortAccessor?: (item: TItem) => string | number
   /** Optional: Transform item to string for filtering */
   filterAccessor?: (item: TItem) => string
   /** Optional: Column width in pixels */

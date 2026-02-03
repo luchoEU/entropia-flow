@@ -437,30 +437,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             break
     }
 
-    // Sync Redux craft state to Jotai atoms for gradual migration
-    syncCraftStateToJotai(getState)
-
     return result
-}
-
-/**
- * Sync Redux craft state to Jotai atoms during migration
- * This allows Jotai components to read the current Redux state
- */
-function syncCraftStateToJotai(getState: () => any) {
-    const craftState: CraftState = getCraft(getState())
-    const store = getDefaultStore()
-
-    // Only sync if we have state (avoid syncing during initialization)
-    if (craftState && craftState.blueprints) {
-        store.set(blueprintsAtom, craftState.blueprints)
-        store.set(staredAtom, craftState.stared)
-        store.set(craftOptionsAtom, craftState.options)
-        store.set(activeSessionAtom, craftState.activeSession)
-        store.set(activePlanetAtom, craftState.activePlanet)
-        store.set(editModeBlueprintNameAtom, craftState.editModeBlueprintName)
-        store.set(craftWebDataAtom, craftState.web)
-    }
 }
 
 async function loadBlueprintLoop(bpName: string, dispatch: Dispatch<any>) {

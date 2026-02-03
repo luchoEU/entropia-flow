@@ -92,8 +92,13 @@ export function createComputedTableDataAtom<TItem>(
 
     // Apply sort
     const sorted = [...filtered].sort((a, b) => {
-      const aVal = sortColumn.sortAccessor ? sortColumn.sortAccessor(a) : sortColumn.renderRowCell(a)
-      const bVal = sortColumn.sortAccessor ? sortColumn.sortAccessor(b) : sortColumn.renderRowCell(b)
+      if (!sortColumn.sortAccessor) {
+        console.log('No sort accessor for column', sortColumn)
+        return 0
+      }
+
+      const aVal = sortColumn.sortAccessor(a)
+      const bVal = sortColumn.sortAccessor(b)
 
       // Type-aware comparison
       let compare: number

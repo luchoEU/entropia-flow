@@ -196,7 +196,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     { favoriteBlueprints.length > 0 ?
                         <JotaiSortableTable
                             itemsAtom={favoriteAtom}
-                            config={createBlueprintTableConfig('Favorite', true)}
+                            config={createBlueprintTableConfig('Favorite', true, tradeItemData.name)}
                             useFixedSizeList={false}
                         /> :
                         <p style={{ color: '#666' }}>Not used on any {ownedBlueprints.length > 0 ? 'Favorite' : 'Owned'} Blueprint</p>
@@ -205,14 +205,14 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 { ownedBlueprints.length > 0 && <div>
                     <JotaiSortableTable
                         itemsAtom={ownedAtom}
-                        config={createBlueprintTableConfig('Owned', false)}
+                        config={createBlueprintTableConfig('Owned', false, tradeItemData.name)}
                         useFixedSizeList={false}
                     />
                 </div> }
                 { otherBlueprints.length > 0 && <div>
                     <JotaiSortableTable
                         itemsAtom={otherAtom}
-                        config={createBlueprintTableConfig('Not Owned', undefined)}
+                        config={createBlueprintTableConfig('Not Owned', undefined, tradeItemData.name)}
                         useFixedSizeList={false}
                     />
                 </div> }
