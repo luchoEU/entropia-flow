@@ -333,7 +333,7 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             dispatch(refresh)
             break
         }
-        // Note: This logic now triggers via ActivityBridge/LastBridge Jotai atom changes
+        // Note: This logic now triggers via ActivityBridge Jotai atom changes
         // We no longer need to handle these Redux actions here
         case SAVE_CRAFT_SESSION: {
             try {

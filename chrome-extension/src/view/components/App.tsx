@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { appAction, initialize, isAppLoaded } from '../application/slice/app';
 import { ActivityBridge } from './bridges/ActivityBridge';
 import { HistoryBridge } from './bridges/HistoryBridge';
-import { LastBridge } from './bridges/LastBridge';
 
 function _AppWithInitializer() {
     const dispatch = useAppDispatch();
@@ -51,7 +50,6 @@ function App() {
         <HashRouter>
           <ActivityBridge />
           <HistoryBridge />
-          <LastBridge />
           <_AppWithInitializer />
         </HashRouter>
       </JotaiProvider>

@@ -50,7 +50,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
             </td>
             <td>
                 { isLast ?
-                    <span className='label-up img-btn'>Session Start</span> :
+                    <span className='label-up'>Session Start</span> :
                     (item.canBeLast &&
                         <ImgButton
                             title='Set this moment as the start of the session'

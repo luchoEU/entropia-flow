@@ -7,9 +7,8 @@ import { getDifference } from '../helpers/diff'
 import { getLatestFromInventoryList, getText } from '../helpers/history'
 import { _applyExcludes, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
 import messagesApi from '../../services/api/messages'
-import { historyAtom, inventoryListAtom, INVENTORY_KEY_SCALE } from './history'
-
-const STORAGE_KEY = 'view.last'
+import { historyAtom, INVENTORY_KEY_SCALE } from './history'
+import { atomWithStorage } from 'jotai/utils'
 
 // Extended computed state with additional UI state
 interface ComputedStateExtended extends ComputedLastState {
@@ -34,7 +33,7 @@ const initialPersistedState: PersistedLastState = {
 }
 
 // Base atom for persisted last state
-export const lastPersistedAtom = atom(initialPersistedState)
+export const lastPersistedAtom = atomWithStorage<PersistedLastState>('last-persisted', initialPersistedState)
 
 // Timestamp of the last inventory being viewed
 export const lastTimestampAtom = atom<number>(0)
@@ -55,7 +54,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
     const lastInv = getLatestFromInventoryList(
         history.list.map(v => v.rawInventory)
     )
-    const inv = history.list.find(v => Math.floor(v.key / INVENTORY_KEY_SCALE) === lastTimestamp)?.rawInventory ?? lastInv
+    const inv = history.list.find(v => v.key === lastTimestamp * INVENTORY_KEY_SCALE)?.rawInventory ?? lastInv
 
     const latestInventoryKey = lastInv?.meta?.date
     if (inv === lastInv) {
@@ -89,26 +88,6 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
     }
 })
 
-// Persistence helper
-const saveToStorage = async (state: typeof initialPersistedState) => {
-    await LOCAL_STORAGE.set(STORAGE_KEY, state)
-}
-
-// Initialize last state from storage
-export const initializeLastAtom = atom(
-    null,
-    async (get, set) => {
-        const stored = await LOCAL_STORAGE.get(STORAGE_KEY)
-        if (stored) {
-            set(lastPersistedAtom, {
-                ...initialPersistedState,
-                ...stored
-            })
-        }
-        set(lastLoadingAtom, false)
-    }
-)
-
 // Set the timestamp of the last inventory being viewed
 export const setLastTimestampAtom = atom(
     null,
@@ -125,7 +104,6 @@ export const setExpandedAtom = atom(
         const current = get(lastPersistedAtom)
         const newState = { ...current, expanded }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -135,7 +113,6 @@ export const setLastShowMarkupAtom = atom(
         const current = get(lastPersistedAtom)
         const newState = { ...current, showMarkup }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -145,7 +122,6 @@ export const setLastShowActionsAtom = atom(
         const current = get(lastPersistedAtom)
         const newState = { ...current, showActions }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -156,7 +132,6 @@ export const sortByAtom = atom(
         const sortType = nextSortType(part, current.sortType)
         const newState = { ...current, sortType }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -174,7 +149,6 @@ export const includeItemAtom = atom(
 
         const newState = { ...current, blacklist }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -195,7 +169,6 @@ export const excludeItemAtom = atom(
 
         const newState = { ...current, blacklist }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -222,7 +195,6 @@ export const permanentExcludeOnAtom = atom(
 
         const newState = { ...current, permanentBlacklist }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -238,7 +210,6 @@ export const permanentExcludeOffAtom = atom(
 
         const newState = { ...current, permanentBlacklist }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -258,7 +229,6 @@ export const addPedsAtom = atom(
 
         const newState = { ...current, peds }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -270,7 +240,6 @@ export const removePedsAtom = atom(
 
         const newState = { ...current, peds }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -285,7 +254,6 @@ export const resetLastAtom = atom(
             notificationsDone: []
         }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -296,7 +264,6 @@ export const addNotificationsDoneAtom = atom(
         const notificationsDone = [...current.notificationsDone, ...messages]
         const newState = { ...current, notificationsDone }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
@@ -317,7 +284,6 @@ export const setLastAtom = atom(
             notificationsDone: []
         }
         set(lastPersistedAtom, newState)
-        await saveToStorage(newState)
     }
 )
 
