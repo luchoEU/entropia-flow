@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Provider } from 'react-redux';
-import { Provider as JotaiProvider, getDefaultStore } from 'jotai';
+import { Provider as JotaiProvider, getDefaultStore, useSetAtom } from 'jotai';
 import './App.scss'
 import { store } from '../application/store';
 import Navigation from './Navigation';
@@ -11,12 +11,17 @@ import { useSelector } from 'react-redux';
 import { appAction, initialize, isAppLoaded } from '../application/slice/app';
 import { ActivityBridge } from './bridges/ActivityBridge';
 import { HistoryBridge } from './bridges/HistoryBridge';
+import { initializeCraftStateAtom } from '../application/atoms/craft';
+import { initializeInventoryStateAtom } from '../application/atoms/inventory';
+import { initializeInventoryAtoms } from '../application/effects/inventory-initialization';
 
 function _AppWithInitializer() {
     const dispatch = useAppDispatch();
     const isLoaded = useSelector(isAppLoaded);
     const [showSoftLoader, setShowSoftLoader] = useState(true);
     const [appInvisible, setAppInvisible] = useState(true);
+    const initializeCraftState = useSetAtom(initializeCraftStateAtom);
+    const initializeInventoryState = useSetAtom(initializeInventoryStateAtom);
 
     useEffect(() => {
         dispatch(initialize());
@@ -27,9 +32,22 @@ function _AppWithInitializer() {
     useEffect(() => {
         if (!isLoaded) return
         dispatch(appAction.loaded);
+
+        // Initialize Jotai state (load blueprints, inventory, etc.)
+        initializeCraftState();
+        // Call initializeInventoryAtoms directly with API
+        (async () => {
+            try {
+                const { default: api } = await import('../services/api')
+                await initializeInventoryAtoms(api)
+            } catch (error) {
+                console.error('Failed to initialize inventory atoms:', error)
+            }
+        })()
+
         const timeout = setTimeout(() => { setAppInvisible(false); }, 100); // let it calculate stream layout sizes
         return () => clearTimeout(timeout);
-    }, [isLoaded, dispatch]);
+    }, [isLoaded, dispatch, initializeCraftState]);
 
     return <>
         { isLoaded && <div className={appInvisible ? 'app-invisible' : ''}>

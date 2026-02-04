@@ -1,13 +1,13 @@
 import React, { Dispatch, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useAtomValue } from 'jotai'
-import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startBudgetPageLoading, startCraftingSession, endBlueprintEditMode } from '../../application/actions/craft'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { addBlueprint, addBlueprintMaterial, BUDGET_BUY, BUDGET_MOVE, BUDGET_SELL, buyBudgetPageMaterial, changeBlueprintMaterialName, changeBlueprintMaterialQuantity, changeBudgetPageBuyCost, changeBudgetPageBuyFee, clearCraftingSession, endCraftingSession, moveAllBudgetPageMaterial, moveBlueprintMaterial, reloadBlueprint, removeBlueprintMaterial, startBlueprintEditMode, showBlueprintMaterialData, startCraftingSession, endBlueprintEditMode } from '../../application/actions/craft'
 import { auctionFee } from '../../application/helpers/calculator'
-import { bpDataFromItemName, itemStringFromName } from '../../application/helpers/craft'
+import { itemStringFromName, bpDataFromItemName, itemNameFromBpName } from '../../application/helpers/craft-utils'
 import { getStatus } from '../../application/selectors/status'
 import { BlueprintData, BlueprintSession, CraftState, STEP_DONE, STEP_REFRESH_ERROR, STEP_INACTIVE, STEP_READY, STEP_REFRESH_TO_END, STEP_REFRESH_TO_START, STEP_SAVING, BlueprintMaterial } from '../../application/state/craft'
 import { lastComputedAtom } from '../../application/atoms/last'
-import { blueprintsAtom, activeSessionAtom, editModeBlueprintNameAtom } from '../../application/atoms/craft'
+import { blueprintsAtom, activeSessionAtom, editModeBlueprintNameAtom, blueprintAutoCalcAtom, suggestionMaterialsUIAtom, loadBudgetSheetAtom } from '../../application/atoms/craft'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
@@ -72,10 +72,12 @@ function addZeroes(n: number) {
     return Number(n).toFixed(len)
 }
 
-const CraftSingle = ({ bp, activeSession, message }: {
+const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }: {
     bp: BlueprintData
     activeSession?: string,
-    message?: string
+    message?: string,
+    bpAutoCalc?: any,
+    loadBudgetSheet?: (bpName: string) => Promise<void>
 }) => {
     const dispatch = useDispatch()
     const mat: ItemsMap = useSelector(getItemsMap)
@@ -100,9 +102,9 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 budgetMap[k] = m.count
             }
         })
-    } else if (bp.c?.materials) {
+    } else if (bpAutoCalc?.materials) {
         clickMUCost = 0;
-        markupMap = Object.fromEntries(bp.c.materials.map((m: BlueprintMaterial) => {
+        markupMap = Object.fromEntries(bpAutoCalc.materials.map((m: BlueprintMaterial) => {
             const nMarkup = Number(mat[m.name]?.markup?.value);
             const markup = isNaN(nMarkup) ? 1 : nMarkup / 100;
             clickMUCost! += m.quantity * m.value * markup;
@@ -166,7 +168,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
         const lastComputed = useAtomValue(lastComputedAtom)
         const diff = lastComputed.diff
         if (diff) {
-            bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
+            bpAutoCalc?.materials?.forEach((m: BlueprintWebMaterial) => {
                 const item = diff.find((x: any) => x.n == m.name && Number(x.q) !== 0)
                 const budgetM = bp.budget!.sheet?.materials[m.name]
                 if (item !== undefined && budgetM && !budgetM.buyDone) {
@@ -195,7 +197,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
         const diff = lastComputed.diff;
         if (diff) {
             let onNeeded = false
-            bp.c!.materials?.forEach((m: BlueprintWebMaterial) => {
+            bpAutoCalc?.materials?.forEach((m: BlueprintWebMaterial) => {
                 const sum = diff.filter((x: any) => x.n == m.name && !x.c.includes('⭢'))
                     .reduce((p: any, c: any) => ({ v: Number(c.v) + p.v, q: Number(c.q) + p.q }), { v: 0, q: 0 });
                 if (sum.v !== 0) {
@@ -232,7 +234,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                     <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
                     <button onClick={(e) => {
                         e.stopPropagation();
-                        dispatch(startBudgetPageLoading(bp.name))
+                        loadBudgetSheet(bp.name).catch((err) => console.error(`Failed to load budget sheet: ${err}`))
                     }}>{bp.budget?.hasPage ? 'Refresh' : 'Create'}</button>
                 }</p>
                 <p>Crafting Session: {
@@ -242,8 +244,8 @@ const CraftSingle = ({ bp, activeSession, message }: {
             </> }
             <p className='item-row pointer' onClick={(e) => {
                 e.stopPropagation();
-                dispatch(showBlueprintMaterialData(bp.name, bp.chain === bp.c?.itemName ? undefined : bp.c?.itemName))
-            }}>Item: {bp.c?.itemName} <img src={bp.chain === bp.c?.itemName ? 'img/left.png' : 'img/right.png'}/></p>
+                dispatch(showBlueprintMaterialData(bp.name, bp.chain === bpAutoCalc?.itemName ? undefined : bpAutoCalc?.itemName))
+            }}>Item: {bpAutoCalc?.itemName} <img src={bp.chain === bpAutoCalc?.itemName ? 'img/left.png' : 'img/right.png'}/></p>
             <p>{webBp && `Type: ${webBp.type.toString()}`}</p>
             <table ref={tableRef}>
                 <thead>
@@ -264,7 +266,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 </thead>
                 <tbody>
                     {
-                        bp.c?.materials?.map((m: BlueprintMaterial) => {
+                        bpAutoCalc?.materials?.map((m: BlueprintMaterial) => {
                             const name = itemStringFromName(bp, m.name)
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
@@ -317,16 +319,16 @@ const CraftSingle = ({ bp, activeSession, message }: {
                 </tbody>
             </table>
             {
-                bp.c?.clicks && <>
-                    <p style={{ width: tableWidth }}>Clicks available: {bp.c.clicks.available} { bp.c.owned ?
-                        `(limited by ${bp.c.clicks.limitingItems.join(', ')})` :
+                bpAutoCalc?.clicks && <>
+                    <p style={{ width: tableWidth }}>Clicks available: {bpAutoCalc.clicks.available} { bpAutoCalc.owned ?
+                        `(limited by ${bpAutoCalc.clicks.limitingItems.join(', ')})` :
                         <>(not owned) <img style={{height: '17px', marginLeft: '2px'}} title='Not Owned' src='img/warning.png' /></> }
                     </p>
-                    <p>Click TT cost: {bp.c.clicks.ttCost.toFixed(2)} PED</p>
+                    <p>Click TT cost: {bpAutoCalc.clicks.ttCost.toFixed(2)} PED</p>
                     { clickMUCost &&
                         <p>Click with markup cost: {clickMUCost.toFixed(2)} PED</p> }
-                    { bp.c.clicks.residueNeeded > 0 &&
-                        <p>Residue needed per click: {bp.c.clicks.residueNeeded.toFixed(2)} PED</p> }
+                    { bpAutoCalc.clicks.residueNeeded > 0 &&
+                        <p>Residue needed per click: {bpAutoCalc.clicks.residueNeeded.toFixed(2)} PED</p> }
                     { sessionTTprofit !== undefined &&
                         <p>Session TT profit: {sessionTTprofit.toFixed(2)} PED</p>}
                     { sessionMUprofit !== undefined &&
@@ -337,7 +339,7 @@ const CraftSingle = ({ bp, activeSession, message }: {
     )
 }
 
-const CraftEdit = ({bp}: {bp: BlueprintData}) => {
+const CraftEdit = ({bp, bpSuggestedMaterials}: {bp: BlueprintData, bpSuggestedMaterials?: any}) => {
     const dispatch = useDispatch()
     return (
         <>
@@ -352,7 +354,7 @@ const CraftEdit = ({bp}: {bp: BlueprintData}) => {
                     {bp.user?.materials?.map((m, i) => (
                         <tr key={i}>
                             <td><input type='text' value={m.quantity} onChange={(e) => dispatch(changeBlueprintMaterialQuantity(bp.name, i, e.target.value))}/></td>
-                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} suggestions={i === bp.c?.suggestedMaterials?.index ? bp.c?.suggestedMaterials?.list : undefined}/></td>
+                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} suggestions={i === bpSuggestedMaterials?.index ? bpSuggestedMaterials?.list : undefined}/></td>
                             <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bp.name, i)}/></td>
                             <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bp.name, i, i - 1)}/>}</td>
                             <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bp.name, i, i + 1)}/>}</td>
@@ -427,11 +429,16 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
 
 const CraftBlueprint = ({bpName}: {bpName: string}) => {
     const blueprints = useAtomValue(blueprintsAtom)
+    const autoCalcData = useAtomValue(blueprintAutoCalcAtom)
+    const suggestedMaterials = useAtomValue(suggestionMaterialsUIAtom)
     const activeSession = useAtomValue(activeSessionAtom)
     const editModeBlueprintName = useAtomValue(editModeBlueprintNameAtom)
+    const loadBudgetSheet = useSetAtom(loadBudgetSheetAtom)
     const dispatch = useDispatch()
     const { message } = useSelector(getStatus);
     const bp = blueprints[bpName]
+    const bpAutoCalc = autoCalcData[bpName]
+    const bpSuggestedMaterials = suggestedMaterials[bpName]
 
     useEffect(() => {
         if (bp) return // already loaded
@@ -447,12 +454,12 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     let chainMaterialName = bp.chain
     while (chainMaterialName) {
         afterBpChain = lastBpChain ?? bp
-        if (chainMaterialName == afterBpChain?.c?.itemName) {
+        if (chainMaterialName == itemNameFromBpName(afterBpChain?.name || '')) {
             afterChainMaterialName = chainMaterialName
             break
         }
 
-        const nextBp = bpDataFromItemName({ blueprints } as CraftState, chainMaterialName)
+        const nextBp = bpDataFromItemName(blueprints, chainMaterialName)
         if (nextBp) {
             if (lastBpChain)
                 chainNames.push(lastBpChain.name)
@@ -482,8 +489,8 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                     <CraftPlanet />
                 </h1>
                 {editMode ?
-                    <CraftEdit bp={bp} /> :
-                    <CraftSingle key={bp.name} bp={bp} activeSession={activeSession} message={message} />
+                    <CraftEdit bp={bp} bpSuggestedMaterials={bpSuggestedMaterials} /> :
+                    <CraftSingle key={bp.name} bp={bp} activeSession={activeSession} message={message} bpAutoCalc={bpAutoCalc} loadBudgetSheet={loadBudgetSheet} />
                 }
             </div>
             {!editMode &&
@@ -507,7 +514,7 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                                 { lastBpChain.name }<img title='Close blueprint' src='img/left.png' />
                                 <StarButton bpName={lastBpChain.name} />
                             </h2>
-                            <CraftSingle key={bp.chain} bp={lastBpChain} />
+                            <CraftSingle key={bp.chain} bp={lastBpChain} bpAutoCalc={autoCalcData[lastBpChain.name]} loadBudgetSheet={loadBudgetSheet} />
                         </div>
                     }
                     { afterChainMaterialName && <CraftItemDetails name={afterChainMaterialName} bp={afterBpChain} /> }

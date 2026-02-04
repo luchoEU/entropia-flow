@@ -7,12 +7,10 @@ import sweat from './sweat'
 import stackable from './stackable'
 import refine from './refine'
 import stream from './stream'
-import inventory from './inventory'
 import about from './about'
 import sheets from './sheets'
 import fruit from './fruit'
 import use from './use'
-import craft from './craft'
 import refined from './refined'
 import items from './items'
 import connection from './connection'
@@ -34,12 +32,10 @@ export default [
     ...stackable,
     ...refine,
     ...stream,
-    ...inventory,
     ...about,
     ...sheets,
     ...fruit,
     ...use,
-    ...craft,
     ...refined,
     ...connection,
     ...budget,

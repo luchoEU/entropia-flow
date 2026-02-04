@@ -1,6 +1,5 @@
 import { ViewBlueprintList, ViewDispatch, ViewNotification, ViewState } from '../../../common/state'
 import { setConnectionStatus, webSocketStateChanged } from '../actions/connection'
-import { setCurrentInventory } from '../actions/inventory'
 import { REFRESH, TIMER_OFF, TIMER_ON, SET_WEB_SOCKET_URL, COPY_LAST, RETRY_WEB_SOCKET } from '../actions/messages'
 import { onNotificationClicked } from '../actions/notification'
 import { setStatus } from '../actions/status'
@@ -32,8 +31,7 @@ const refreshViewHandler = (m: ViewState): any[] => {
             getDefaultStore().set(createNewSessionAtom)
         const newest = m.list.find(e => e.log === undefined && e.itemlist !== undefined)
         if (newest !== undefined && newest.itemlist) {
-            actions.push(setCurrentInventory(newest))
-            // Populate rawInventoryItemsAtom with transformed data
+            // Directly update Jotai atoms instead of Redux dispatch
             const hideCriteria = getDefaultStore().get(hideCriteriaAtom)
             const ownedItems = getOwned(newest.itemlist, hideCriteria)
             getDefaultStore().set(rawInventoryItemsAtom, ownedItems)

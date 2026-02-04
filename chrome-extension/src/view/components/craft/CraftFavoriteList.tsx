@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { blueprintsAtom, staredAtom, reloadBlueprintAtom, setBlueprintStaredAtom, setStaredBlueprintsFilterAtom, sortBlueprintsByAtom, filteredStaredBlueprintsAtom } from '../../application/atoms/craft'
+import { blueprintsAtom, staredAtom, reloadBlueprintAtom, setBlueprintStaredAtom, setStaredBlueprintsFilterAtom, sortBlueprintsByAtom, filteredStaredBlueprintsAtom, blueprintAutoCalcAtom } from '../../application/atoms/craft'
 import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCost, getItemType, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition, TYPE } from '../../application/helpers/craftSort'
 import { BlueprintData } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
@@ -23,12 +23,14 @@ const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
     compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
 }]
 
-const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared: (name: string, stared: boolean) => void) => (d: BlueprintData): ItemRowData => ({
+const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared: (name: string, stared: boolean) => void, autoCalcData: {[name: string]: any}) => (d: BlueprintData): ItemRowData => {
+    const dAutoCalc = autoCalcData[d.name]
+    return {
     dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(d.name)),
     columns: {
         [NAME]: {
             sub: [{
-                itemText: d.c?.itemName ?? d.name
+                itemText: dAutoCalc?.itemName ?? d.name
             }, {
                 flex: 1,
                 img: { src: 'img/right.png' }
@@ -51,7 +53,7 @@ const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared:
                         [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
                         (d.web?.blueprint.errors && !d.user ?
                             reloadSub(d.web.blueprint.errors) :
-                            [{ itemText: d.c.clicks?.available?.toString() }]))
+                            [{ itemText: dAutoCalc?.clicks?.available?.toString() }]))
         },
         [LIMIT]: {
             sub: [{ itemText: getLimitText(d) }]
@@ -82,10 +84,12 @@ const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared:
             }]
         }
     }
-});
+    }
+}
 
 function CraftFavoriteList() {
     const blueprints = useAtomValue(blueprintsAtom)
+    const autoCalcData = useAtomValue(blueprintAutoCalcAtom)
     const stared = useAtomValue(staredAtom)
     const filteredStared = useAtomValue(filteredStaredBlueprintsAtom)
 
@@ -98,8 +102,8 @@ function CraftFavoriteList() {
     if (blueprintValues.length == 0)
         return <></>
 
-    var clicks = blueprintValues.some(d => d.c?.clicks)
-    var limit = blueprintValues.some(d => d.c?.clicks?.limitingItems?.length > 0)
+    var clicks = blueprintValues.some(d => autoCalcData[d.name]?.clicks)
+    var limit = blueprintValues.some(d => autoCalcData[d.name]?.clicks?.limitingItems?.length > 0)
     var items = blueprintValues.some(d => getItemAvailable(d) > 0)
     var budget = blueprintValues.some(d => d.budget?.sheet?.total !== undefined)
     var cash = blueprintValues.some(d => d.budget?.sheet?.peds !== undefined)
@@ -134,7 +138,7 @@ function CraftFavoriteList() {
                     columns,
                     definition: sortColumnDefinition,
                     sortRow: sortRowData,
-                    getRow: getRowData(reloadBlueprint, setBlueprintStared)
+                    getRow: getRowData(reloadBlueprint, setBlueprintStared, autoCalcData)
                 }
             }}
             afterTitle={<CraftPlanet />}

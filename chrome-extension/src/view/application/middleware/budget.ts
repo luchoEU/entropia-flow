@@ -9,7 +9,6 @@ import { getItems } from "../selectors/items"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
-import { SET_CURRENT_INVENTORY } from "../actions/inventory"
 import { getDefaultStore } from 'jotai'
 import { settingsAtom } from '../atoms/settings'
 
@@ -73,13 +72,9 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
             
             break
         }
-        case SET_ITEMS_STATE:
-        case SET_CURRENT_INVENTORY: {
-            const budget = getBudget(getState())
-            // Recalculate selected status with updated inventory
-            if (Object.keys(budget.materials.map).length > 0) {
-                dispatch(setBudgetFromSheet(budget.materials.map, budget.list.items, budget.loadPercentage))
-            }
+        case SET_ITEMS_STATE: {
+            // SET_CURRENT_INVENTORY removed (handled entirely through Jotai atoms now)
+            // Items state still handled for web data updates
             break
         }
         case SET_ITEM_PARTIAL_WEB_DATA: {

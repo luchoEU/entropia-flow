@@ -1,8 +1,9 @@
 import React, { useState, DragEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useAtomValue } from 'jotai'
 import ExpandableSection from '../common/ExpandableSection2'
 import { getBudget } from '../../application/selectors/budget'
-import { getInventory } from '../../application/selectors/inventory'
+import { inventoryStateAtom } from '../../application/atoms/inventory'
 import { getItemList } from '../../application/helpers/inventory'
 import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, enableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded, toggleBudgetShowDisabled, enableBudgetGroup, disableBudgetGroup } from '../../application/actions/budget'
 import ImgButton from '../common/ImgButton'
@@ -296,7 +297,8 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
 
 function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
     const budgetState = useSelector(getBudget)
-    const inventoryState = useSelector(getInventory)
+    // Use Jotai atom instead of Redux selector for inventory
+    const inventoryState = useAtomValue(inventoryStateAtom)
     const inventory = getItemList(inventoryState)
     const dispatch = useDispatch()
     const navigate = useNavigate()

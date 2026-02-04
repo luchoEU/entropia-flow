@@ -91,19 +91,25 @@ const sortColumnDefinition = {
     },
 }
 
-const getLimitText = (d: BlueprintData): string =>
-    d.c?.clicks?.limitingItems.length > 2 ? 
-        `${d.c.clicks?.limitingItems.slice(0, 2).join(', ')}, ${d.c.clicks?.limitingItems.length - 2} more` : 
-        d.c?.clicks?.limitingItems.join(', ') ?? '';
+const getLimitText = (d: BlueprintData, autoCalcData?: any): string => {
+    const autoCalc = autoCalcData?.[d.name] || d.user?.materials?.length > 0 ? { clicks: undefined } : { clicks: undefined };
+    return autoCalc?.clicks?.limitingItems?.length > 2 ?
+        `${autoCalc.clicks?.limitingItems.slice(0, 2).join(', ')}, ${autoCalc.clicks?.limitingItems.length - 2} more` :
+        autoCalc?.clicks?.limitingItems?.join(', ') ?? '';
+}
 
-const getItemAvailable = (d: BlueprintData): number =>
-    d.c?.materials?.find(m => m.name === d.c.itemName)?.available ?? 0;
+const getItemAvailable = (d: BlueprintData, autoCalcData?: any): number => {
+    const autoCalc = autoCalcData?.[d.name];
+    return autoCalc?.materials?.find(m => m.name === autoCalc?.itemName)?.available ?? 0;
+}
 
 const getItemType = (d: BlueprintData): string =>
     d.web?.blueprint.data?.value.type ?? '';
 
-const getItemClickTTCost = (d: BlueprintData): number =>
-    d.c?.clicks?.ttCost ?? 0;
+const getItemClickTTCost = (d: BlueprintData, autoCalcData?: any): number => {
+    const autoCalc = autoCalcData?.[d.name];
+    return autoCalc?.clicks?.ttCost ?? 0;
+}
 
 const comparer = [
     (a: BlueprintData, b: BlueprintData) => {
@@ -114,16 +120,20 @@ const comparer = [
         // SORT_NAME_DESCENDING
         return -a.name.localeCompare(b.name)
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: BlueprintData, b: BlueprintData, autoCalcData?: any) => {
         // SORT_CLICKS_ASCENDING
-        const c = Math.abs(Number(a.c.clicks?.available ?? '0')) - Math.abs(Number(b.c.clicks?.available ?? '0'))
+        const aAutoCalc = autoCalcData?.[a.name];
+        const bAutoCalc = autoCalcData?.[b.name];
+        const c = Math.abs(Number(aAutoCalc?.clicks?.available ?? '0')) - Math.abs(Number(bAutoCalc?.clicks?.available ?? '0'))
         if (c != 0)
             return c
         return a.name.localeCompare(b.name)
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: BlueprintData, b: BlueprintData, autoCalcData?: any) => {
         // SORT_CLICKS_DESCENDING
-        const c = - Math.abs(Number(a.c.clicks?.available ?? '0')) + Math.abs(Number(b.c.clicks?.available ?? '0'))
+        const aAutoCalc = autoCalcData?.[a.name];
+        const bAutoCalc = autoCalcData?.[b.name];
+        const c = - Math.abs(Number(aAutoCalc?.clicks?.available ?? '0')) + Math.abs(Number(bAutoCalc?.clicks?.available ?? '0'))
         if (c != 0)
             return c
         return -a.name.localeCompare(b.name)

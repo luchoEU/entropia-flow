@@ -4,7 +4,7 @@ import { craftBlueprintUrl } from "../actions/navigation";
 import { ViewItemAction, ViewItemData } from "../state/history";
 import { InventoryState } from "../state/inventory";
 import { TabId } from "../state/navigation";
-import { bpNameFromItemName } from "./craft";
+import { bpNameFromItemName } from "./craft-utils";
 import { REFINED_LME, REFINED_ME, REFINED_NB } from "./items";
 
 function getItemAction(item: ViewItemData, inventory: InventoryState): ViewItemAction {

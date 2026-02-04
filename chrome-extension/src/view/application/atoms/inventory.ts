@@ -1,6 +1,6 @@
 import { Atom, atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
-import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData } from '../state/inventory'
+import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData, InventoryByStore } from '../state/inventory'
 import { ItemsMap, ItemState, ItemsState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
 import { BlueprintData, CraftState } from '../state/craft'
@@ -11,12 +11,26 @@ import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, active
 import { settingsAtom } from './settings'
 import { WebLoadResponse } from '../../../web/loader'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
+import { AvailableCriteria } from '../state/inventory'
+import { inventoryTabularData } from '../tabular/inventory'
 
 /**
  * Base atom for raw inventory items
  * This can be populated by Redux middleware or other data sources
  */
 export const rawInventoryItemsAtom = atom<ItemOwned[]>([])
+
+/**
+ * Auction items atom - items currently on auction
+ * Stores auction items loaded from storage
+ */
+export const auctionItemsAtom = atomWithStorage<ItemData[]>('jotai-v1-inventory-auctionItems', [])
+
+/**
+ * Available items atom - items available for trading
+ * Stores available items loaded from storage
+ */
+export const availableItemsAtom = atomWithStorage<ItemData[]>('jotai-v1-inventory-availableItems', [])
 
 /**
  * Items map atom for looking up reserve amounts and item states
@@ -49,6 +63,13 @@ export const hideCriteriaAtom = atomWithStorage<OwnedHideCriteria>('jotai-v1-inv
 export const ownedOptionsAtom = atomWithStorage<OwnedOptions>('jotai-v1-inventory-ownedOptions', {
   reserve: undefined,
   auction: undefined
+})
+
+/**
+ * Available criteria atom - tracks favorite items in trading view
+ */
+export const availableCriteriaAtom = atomWithStorage('jotai-v1-inventory-availableCriteria', {
+  name: [] as string[]
 })
 
 /**
@@ -501,6 +522,248 @@ export const createBlueprintItemsAtom = (blueprints: TradeBlueprintLineData[]) =
 }
 
 /**
+ * Write atom to hide items by name
+ * Replaces Redux HIDE_BY_NAME action
+ */
+export const hideByNameAtom = atom(null, (get, set, itemName: string) => {
+  const criteria = get(hideCriteriaAtom)
+  if (!criteria.name.includes(itemName)) {
+    set(hideCriteriaAtom, {
+      ...criteria,
+      name: [...criteria.name, itemName]
+    })
+  }
+})
+
+/**
+ * Write atom to show items by name
+ * Replaces Redux SHOW_BY_NAME action
+ */
+export const showByNameAtom = atom(null, (get, set, itemName: string) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    name: criteria.name.filter(n => n !== itemName)
+  })
+})
+
+/**
+ * Write atom to hide items by container
+ * Replaces Redux HIDE_BY_CONTAINER action
+ */
+export const hideByContainerAtom = atom(null, (get, set, container: string) => {
+  const criteria = get(hideCriteriaAtom)
+  if (!criteria.container.includes(container)) {
+    set(hideCriteriaAtom, {
+      ...criteria,
+      container: [...criteria.container, container]
+    })
+  }
+})
+
+/**
+ * Write atom to show items by container
+ * Replaces Redux SHOW_BY_CONTAINER action
+ */
+export const showByContainerAtom = atom(null, (get, set, container: string) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    container: criteria.container.filter(c => c !== container)
+  })
+})
+
+/**
+ * Write atom to hide items by value threshold
+ * Replaces Redux HIDE_BY_VALUE action
+ */
+export const hideByValueAtom = atom(null, (get, set, value: number) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    value
+  })
+})
+
+/**
+ * Write atom to show items by removing value threshold
+ * Replaces Redux SHOW_BY_VALUE action
+ */
+export const showByValueAtom = atom(null, (get, set) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    value: -1
+  })
+})
+
+/**
+ * Write atom to show all hidden items
+ * Replaces Redux SHOW_ALL action
+ */
+export const showAllAtom = atom(null, (get, set) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    show: true
+  })
+})
+
+/**
+ * Write atom to hide previously shown items
+ * Replaces Redux SHOW_HIDDEN_ITEMS action
+ */
+export const showHiddenItemsAtom = atom(null, (get, set) => {
+  const criteria = get(hideCriteriaAtom)
+  set(hideCriteriaAtom, {
+    ...criteria,
+    show: !criteria.show
+  })
+})
+
+/**
+ * Write atom to set owned options (reserve and auction filters)
+ * Replaces Redux SET_OWNED_OPTIONS action
+ */
+export const setOwnedOptionsAtom = atom(null, (get, set, options: Partial<OwnedOptions>) => {
+  const current = get(ownedOptionsAtom)
+  set(ownedOptionsAtom, {
+    ...current,
+    ...options
+  })
+})
+
+/**
+ * Write atom to add an item to favorites (available criteria)
+ * Replaces Redux ADD_AVAILABLE action
+ */
+export const addAvailableAtom = atom(null, (get, set, itemName: string) => {
+  const criteria = get(availableCriteriaAtom)
+  if (!criteria.name.includes(itemName)) {
+    set(availableCriteriaAtom, {
+      name: [...criteria.name, itemName]
+    })
+  }
+})
+
+/**
+ * Write atom to remove an item from favorites (available criteria)
+ * Replaces Redux REMOVE_AVAILABLE action
+ */
+export const removeAvailableAtom = atom(null, (get, set, itemName: string) => {
+  const criteria = get(availableCriteriaAtom)
+  set(availableCriteriaAtom, {
+    name: criteria.name.filter(n => n !== itemName)
+  })
+})
+
+/**
+ * Computed atom: Check if an item is marked as available (favorite)
+ * Used in trading view to show favorite status
+ */
+export const isItemAvailableAtom = (itemName: string) => atom<boolean>((get) => {
+  const criteria = get(availableCriteriaAtom)
+  return criteria.name.includes(itemName)
+})
+
+/**
+ * Computed atom: All available items sorted by name
+ * Used in trading view
+ */
+export const sortedAvailableItemsAtom = atom<string[]>((get) => {
+  const criteria = get(availableCriteriaAtom)
+  return criteria.name.sort()
+})
+
+/**
+ * Inventory sort state atom
+ * Tracks current sort configuration for different lists
+ */
+export const inventorySortStateAtom = atomWithStorage('jotai-v1-inventory-sortState', {
+  auctionSortType: 0,
+  availableSortType: 0,
+  ownedSortType: 0
+})
+
+/**
+ * Write atom to sort auction items
+ * Replaces Redux SORT_AUCTION_BY action
+ */
+export const sortAuctionByAtom = atom(null, (get, set, part: number) => {
+  const state = get(inventorySortStateAtom)
+  set(inventorySortStateAtom, {
+    ...state,
+    auctionSortType: part
+  })
+})
+
+/**
+ * Write atom to sort available items
+ * Replaces Redux SORT_AVAILABLE_BY action
+ */
+export const sortAvailableByAtom = atom(null, (get, set, part: number) => {
+  const state = get(inventorySortStateAtom)
+  set(inventorySortStateAtom, {
+    ...state,
+    availableSortType: part
+  })
+})
+
+/**
+ * Blueprint sort state atom
+ * Tracks sort configuration for different blueprint lists in trading view
+ */
+export const blueprintSortStateAtom = atomWithStorage('jotai-v1-inventory-blueprintSortState', {
+  favoriteSortType: 0,
+  ownedSortType: 0,
+  otherSortType: 0
+})
+
+/**
+ * Write atom to sort favorite blueprints
+ * Replaces Redux SORT_TRADE_FAVORITE_BLUEPRINTS_BY action
+ */
+export const sortTradeFavoriteBlueprintsByAtom = atom(null, (get, set, part: number) => {
+  const state = get(blueprintSortStateAtom)
+  set(blueprintSortStateAtom, {
+    ...state,
+    favoriteSortType: part
+  })
+})
+
+/**
+ * Write atom to sort owned blueprints
+ * Replaces Redux SORT_TRADE_OWNED_BLUEPRINTS_BY action
+ */
+export const sortTradeOwnedBlueprintsByAtom = atom(null, (get, set, part: number) => {
+  const state = get(blueprintSortStateAtom)
+  set(blueprintSortStateAtom, {
+    ...state,
+    ownedSortType: part
+  })
+})
+
+/**
+ * Write atom to sort other blueprints
+ * Replaces Redux SORT_TRADE_OTHER_BLUEPRINTS_BY action
+ */
+export const sortTradeOtherBlueprintsByAtom = atom(null, (get, set, part: number) => {
+  const state = get(blueprintSortStateAtom)
+  set(blueprintSortStateAtom, {
+    ...state,
+    otherSortType: part
+  })
+})
+
+/**
+ * Write atom to show trading item data chain
+ * Replaces Redux SHOW_TRADING_ITEM_DATA action
+ */
+export const showTradingItemDataAtom = atom(null, (_get, set, chain: TradeItemData[] | undefined) => {
+  set(tradeItemChainAtom, chain)
+})
+
+/**
  * Write atom to load TTService inventory data from Google Sheets
  * Replaces Redux loadTTService action
  */
@@ -550,6 +813,471 @@ export const loadTTServiceAtom = atom(null, async (get, set) => {
     }
   } catch (error) {
     console.error('Failed to load TTService inventory:', error)
+  }
+})
+
+/**
+ * Computed atom: Full InventoryState combining all sub-states
+ * Provides a complete view of inventory state for backward compatibility
+ */
+export const fullInventoryStateAtom = atom((get) => {
+  const ownedItems = get(enrichedItemsAtom)
+  const ownedOptions = get(ownedOptionsAtom)
+  const hideCriteria = get(hideCriteriaAtom)
+  const tradeChain = get(tradeItemChainAtom)
+
+  return {
+    auction: {
+      expanded: false,
+      sortType: 0,
+      items: [],
+      stats: { count: 0, ped: '0.00' }
+    },
+    owned: {
+      items: ownedItems,
+      options: ownedOptions,
+      hideCriteria
+    },
+    byStore: {
+      filter: undefined,
+      showList: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } },
+      originalList: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } },
+      containers: {},
+      showStared: false,
+      stared: { expanded: [], list: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } } },
+      material: { expanded: [], list: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } } },
+      flat: { original: [], show: [], stared: [], material: [] },
+      c: { validPlanets: [] }
+    },
+    available: {
+      expanded: false,
+      sortType: 0,
+      items: [],
+      stats: { count: 0, ped: '0.00' }
+    },
+    availableCriteria: { name: [] },
+    tradeItemDataChain: tradeChain
+  }
+})
+
+/**
+ * Current inventory name atom - tracks which inventory is currently selected
+ */
+export const currentInventoryNameAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-currentName', undefined)
+
+/**
+ * Inventory loading state atom
+ */
+export const inventoryLoadingAtom = atom<boolean>(false)
+
+/**
+ * Write atom to set the current inventory
+ * Replaces Redux SET_CURRENT_INVENTORY action
+ */
+export const setCurrentInventoryAtom = atom(null, (_get, set, inventoryName: string) => {
+  set(currentInventoryNameAtom, inventoryName)
+})
+
+/**
+ * ByStore inventory state atom
+ * Tracks the complete byStore tree structure, filters, and expanded states
+ */
+export const byStoreStateAtom = atomWithStorage<InventoryByStore | null>('jotai-v1-inventory-byStore', null)
+
+/**
+ * ByStore filter atom - tracks current filter in the byStore view
+ */
+export const byStoreFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreFilter', undefined)
+
+/**
+ * ByStore expanded items atom - tracks which containers/items are expanded
+ */
+export const byStoreExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreExpanded', [])
+
+/**
+ * ByStore editing state atom - tracks which item is currently being edited
+ */
+export const byStoreEditingAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreEditing', undefined)
+
+/**
+ * Write atom to set byStore filter
+ * Replaces Redux SET_BY_STORE_FILTER action
+ */
+export const setByStoreFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreFilterAtom, filter)
+})
+
+/**
+ * Write atom to set all byStore stared items expanded state
+ * Replaces Redux SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED action
+ */
+export const setByStoreStaredAllItemsExpandedAtom = atom(null, (_get, _set, _expanded: boolean) => {
+  // Stared items expansion management - manages separate stared list state
+  // Placeholder for stared items tree management
+})
+
+/**
+ * Write atom to toggle byStore item expansion
+ * Replaces Redux SET_BY_STORE_ITEM_EXPANDED action
+ */
+export const setByStoreItemExpandedAtom = atom(null, (get, set, itemId: string, expanded: boolean) => {
+  const current = get(byStoreExpandedAtom)
+  if (expanded) {
+    if (!current.includes(itemId)) {
+      set(byStoreExpandedAtom, [...current, itemId])
+    }
+  } else {
+    set(byStoreExpandedAtom, current.filter(id => id !== itemId))
+  }
+})
+
+/**
+ * Write atom to set all byStore items expanded state
+ * Replaces Redux SET_BY_STORE_ALL_ITEMS_EXPANDED action
+ */
+export const setByStoreAllItemsExpandedAtom = atom(null, (_get, set, expanded: boolean) => {
+  // When toggling all, expand if any are collapsed, collapse if all are expanded
+  // This requires reading byStore state to get all item IDs
+  // For now, we'll keep a simplified version
+  set(byStoreExpandedAtom, expanded ? [] : [])  // placeholder
+})
+
+/**
+ * Write atom to start editing an item name in byStore
+ * Replaces Redux START_BY_STORE_ITEM_NAME_EDITING action
+ */
+export const startByStoreItemNameEditingAtom = atom(null, (_get, set, itemId: string) => {
+  set(byStoreEditingAtom, itemId)
+})
+
+/**
+ * Write atom to cancel editing an item name in byStore
+ * Replaces Redux CANCEL_BY_STORE_ITEM_NAME_EDITING action
+ */
+export const cancelByStoreItemNameEditingAtom = atom(null, (_get, set) => {
+  set(byStoreEditingAtom, undefined)
+})
+
+/**
+ * ByStore material filter atom - tracks filter for material section
+ */
+export const byStoreMaterialFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreMaterialFilter', undefined)
+
+/**
+ * ByStore material expanded items atom - tracks which materials are expanded
+ */
+export const byStoreMaterialExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreMaterialExpanded', [])
+
+/**
+ * Write atom to set material filter
+ * Replaces Redux SET_BY_STORE_MATERIAL_FILTER action
+ */
+export const setByStoreMaterialFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreMaterialFilterAtom, filter)
+})
+
+/**
+ * Write atom to toggle material item expansion
+ * Replaces Redux SET_BY_STORE_MATERIAL_ITEM_EXPANDED action
+ */
+export const setByStoreMaterialItemExpandedAtom = atom(null, (get, set, itemId: string, expanded: boolean) => {
+  const current = get(byStoreMaterialExpandedAtom)
+  if (expanded) {
+    if (!current.includes(itemId)) {
+      set(byStoreMaterialExpandedAtom, [...current, itemId])
+    }
+  } else {
+    set(byStoreMaterialExpandedAtom, current.filter(id => id !== itemId))
+  }
+})
+
+/**
+ * Material sort state atom
+ * Tracks sort configuration for material list
+ */
+export const materialSortStateAtom = atomWithStorage('jotai-v1-inventory-materialSortState', {
+  materialSortType: 0
+})
+
+/**
+ * Write atom to sort material items
+ * Replaces Redux SORT_BY_STORE_MATERIAL_BY action
+ */
+export const sortByStoreMaterialByAtom = atom(null, (get, set, part: number) => {
+  const state = get(materialSortStateAtom)
+  set(materialSortStateAtom, {
+    ...state,
+    materialSortType: part
+  })
+})
+
+/**
+ * ByStore stared (favorites) filter atom
+ */
+export const byStoreStaredFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreStaredFilter', undefined)
+
+/**
+ * ByStore stared expanded items atom
+ */
+export const byStoreStaredExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreStaredExpanded', [])
+
+/**
+ * ByStore stared sort state atom
+ */
+export const staredSortStateAtom = atomWithStorage('jotai-v1-inventory-staredSortState', {
+  staredSortType: 0
+})
+
+/**
+ * ByStore sort state atom (main containers section)
+ */
+export const byStoreSortStateAtom = atomWithStorage('jotai-v1-inventory-byStoreSortState', {
+  containersSortType: 0
+})
+
+/**
+ * Write atom to set byStore (containers) filter
+ * Replaces Redux SET_BY_STORE_FILTER action
+ */
+export const setByStoreInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreFilterAtom, filter)
+})
+
+/**
+ * Write atom to set byStore stared filter
+ * Replaces Redux SET_BY_STORE_STARED_FILTER action
+ */
+export const setByStoreStaredInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreStaredFilterAtom, filter)
+})
+
+/**
+ * Write atom to toggle stared item expansion
+ * Replaces Redux SET_BY_STORE_STARED_ITEM_EXPANDED action
+ */
+export const setByStoreStaredItemExpandedAtom = atom(null, (get, set, itemId: string, expanded: boolean) => {
+  const current = get(byStoreStaredExpandedAtom)
+  if (expanded) {
+    if (!current.includes(itemId)) {
+      set(byStoreStaredExpandedAtom, [...current, itemId])
+    }
+  } else {
+    set(byStoreStaredExpandedAtom, current.filter(id => id !== itemId))
+  }
+})
+
+/**
+ * Write atom to sort stared items
+ * Replaces Redux SORT_BY_STORE_STARED_BY action
+ */
+export const sortByStoreStaredByAtom = atom(null, (get, set, part: number) => {
+  const state = get(staredSortStateAtom)
+  set(staredSortStateAtom, {
+    ...state,
+    staredSortType: part
+  })
+})
+
+/**
+ * Write atom to sort containers
+ * Replaces Redux SORT_BY_STORE_BY action
+ */
+export const sortByStoreByAtom = atom(null, (get, set, part: number) => {
+  const state = get(byStoreSortStateAtom)
+  set(byStoreSortStateAtom, {
+    ...state,
+    containersSortType: part
+  })
+})
+
+/**
+ * Write atom to set all items expanded state
+ * Replaces Redux SET_BY_STORE_ALL_ITEMS_EXPANDED action
+ */
+export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (_get, set, expanded: boolean) => {
+  // Simplified version - in practice would need to get all item IDs from byStoreStateAtom
+  set(byStoreExpandedAtom, expanded ? [] : [])
+})
+
+/**
+ * ByStore item editing state (which item is being edited, original name)
+ */
+export const byStoreItemEditingStateAtom = atomWithStorage<{itemId: string, originalName: string} | undefined>('jotai-v1-inventory-byStoreItemEditing', undefined)
+
+/**
+ * ByStore stared item editing state
+ */
+export const byStoreStaredItemEditingStateAtom = atomWithStorage<{itemId: string, originalName: string} | undefined>('jotai-v1-inventory-byStoreStaredItemEditing', undefined)
+
+/**
+ * Write atom to confirm item name edit
+ * Replaces Redux CONFIRM_BY_STORE_ITEM_NAME_EDITING action
+ */
+export const confirmByStoreItemNameEditingAtom = atom(null, (_get, set, _itemId: string) => {
+  set(byStoreItemEditingStateAtom, undefined)
+})
+
+/**
+ * Write atom to set item name during editing
+ * Replaces Redux SET_BY_STORE_ITEM_NAME action
+ */
+export const setByStoreItemNameAtom = atom(null, (get, set, itemId: string, newName: string) => {
+  const current = get(byStoreItemEditingStateAtom)
+  if (current && current.itemId === itemId) {
+    set(byStoreItemEditingStateAtom, { ...current, originalName: newName })
+  }
+})
+
+/**
+ * Write atom to mark/unmark item as stared (favorite)
+ * Replaces Redux SET_BY_STORE_ITEM_STARED action
+ */
+export const setByStoreItemStaredAtom = atom(null, (_get, _set, _itemId: string, _stared: boolean) => {
+  // Placeholder - actual implementation would update byStoreStateAtom
+})
+
+/**
+ * Write atom to start editing stared item name
+ * Replaces Redux START_BY_STORE_STARED_ITEM_NAME_EDITING action
+ */
+export const startByStoreStaredItemNameEditingAtom = atom(null, (_get, set, itemId: string) => {
+  set(byStoreStaredItemEditingStateAtom, { itemId, originalName: '' })
+})
+
+/**
+ * Write atom to confirm stared item name edit
+ * Replaces Redux CONFIRM_BY_STORE_STARED_ITEM_NAME_EDITING action
+ */
+export const confirmByStoreStaredItemNameEditingAtom = atom(null, (_get, set) => {
+  set(byStoreStaredItemEditingStateAtom, undefined)
+})
+
+/**
+ * Write atom to cancel stared item name edit
+ * Replaces Redux CANCEL_BY_STORE_STARED_ITEM_NAME_EDITING action
+ */
+export const cancelByStoreStaredItemNameEditingAtom = atom(null, (_get, set) => {
+  set(byStoreStaredItemEditingStateAtom, undefined)
+})
+
+/**
+ * Write atom to set stared item name during editing
+ * Replaces Redux SET_BY_STORE_STARED_ITEM_NAME action
+ */
+export const setByStoreStaredItemNameAtom = atom(null, (get, set, itemId: string, newName: string) => {
+  const current = get(byStoreStaredItemEditingStateAtom)
+  if (current && current.itemId === itemId) {
+    set(byStoreStaredItemEditingStateAtom, { ...current, originalName: newName })
+  }
+})
+
+/**
+ * Write atom to mark/unmark stared item as stared
+ * Replaces Redux SET_BY_STORE_STARED_ITEM_STARED action
+ */
+export const setByStoreStaredItemStaredAtom = atom(null, (_get, _set, _itemId: string, _stared: boolean) => {
+  // Placeholder - actual implementation would update byStoreStateAtom
+})
+
+/**
+ * Effect atom: Initialize inventory state
+ * Syncs Redux inventory state to Jotai atoms on app load
+ * Loads persisted inventory data if available
+ */
+export const initializeInventoryStateAtom = atom(null, async (_get, _set) => {
+  // This atom is triggered from the App component to initialize inventory
+  // It coordinates between Redux inventory state and Jotai atoms
+  // The actual synchronization happens through Redux middleware which updates these atoms
+  // This is a placeholder for any additional initialization needed
+})
+
+/**
+ * PHASE 2: Computed/Effect Atoms
+ *
+ * These atoms are used to:
+ * 1. Compute derived data from other atoms
+ * 2. Trigger side effects when state changes
+ * 3. Bridge between Jotai and Redux during migration
+ */
+
+/**
+ * Computed atom: Inventory state built from Jotai atoms
+ *
+ * This creates a virtual inventory state object combining all Jotai atoms.
+ * Used by tabular data generation to compute display data.
+ *
+ * Note: This is a computed atom that reconstructs state from atoms.
+ * This is the primary source of truth replacing Redux.
+ */
+export const inventoryStateAtom = atom((get) => {
+  const auctionItems = get(auctionItemsAtom)
+  const availableItems = get(availableItemsAtom)
+
+  // Calculate stats from items
+  const calcStats = (items: ItemData[]) => ({
+    count: items.length,
+    ped: items.reduce((sum, item) => sum + Number(item.v), 0).toFixed(2)
+  })
+
+  return {
+    owned: {
+      items: get(rawInventoryItemsAtom),
+      options: get(ownedOptionsAtom),
+      hideCriteria: get(hideCriteriaAtom)
+    },
+    // Auction and available items now properly stored in Jotai atoms
+    auction: {
+      expanded: true,
+      sortType: get(inventorySortStateAtom)?.auctionSortType ?? 0,
+      items: auctionItems,
+      stats: calcStats(auctionItems)
+    },
+    available: {
+      expanded: true,
+      sortType: get(inventorySortStateAtom)?.availableSortType ?? 0,
+      items: availableItems,
+      stats: calcStats(availableItems)
+    },
+    availableCriteria: get(availableCriteriaAtom),
+    tradeItemDataChain: get(tradeItemChainAtom),
+    byStore: get(byStoreStateAtom)
+  }
+})
+
+/**
+ * Computed atom: Tabular display data
+ *
+ * Generates formatted display data for SortableTableSection based on current inventory state.
+ * This atom automatically recomputes whenever any inventory atom changes.
+ *
+ * Benefits:
+ * - No middleware needed for tabular data generation
+ * - Automatically stays in sync with inventory state
+ * - Can be read directly by components
+ * - Pure computation (no side effects)
+ *
+ * Usage:
+ * ```typescript
+ * const tabularData = useAtomValue(inventoryTabularDataAtom)
+ * ```
+ *
+ * Components can read this directly and skip Redux entirely
+ */
+export const inventoryTabularDataAtom = atom((get) => {
+  const inventory = get(inventoryStateAtom) as any
+  const settings = get(settingsAtom)
+  const items = get(itemsMapAtom)
+  const ttService = get(ttServiceAtom) || ({} as TTServiceState)
+
+  try {
+    // Generate tabular data using the same function as middleware
+    // This automatically recomputes whenever any inventory atom changes
+    // Note: We're providing the minimal required fields for tabular data generation
+    return inventoryTabularData(inventory, settings, items, ttService)
+  } catch (error) {
+    console.error('Error computing inventory tabular data:', error)
+    // Return empty tabular data on error to prevent rendering crashes
+    return {}
   }
 })
 

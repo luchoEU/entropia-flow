@@ -2,6 +2,7 @@ import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import {
   BlueprintData,
+  BlueprintAutoCalc,
   CraftState,
   CraftOptions,
   CraftingWebData,
@@ -19,6 +20,7 @@ import * as Sort from '../helpers/craftSort'
 import { multiIncludes } from '../../../common/filter'
 import { IWebSource } from '../../../web/sources'
 import { renameNewBlueprintName } from '../../../web/rename'
+import { rawInventoryItemsAtom, itemsMapAtom } from './inventory'
 
 /**
  * Base atom for all blueprints
@@ -140,6 +142,86 @@ export const craftComputedAtom = atom((get) => ({
 }))
 
 /**
+ * Computed atom: Auto-calculate blueprint data
+ * Derives computed fields from blueprint state including inventory synchronization
+ */
+export const blueprintAutoCalcAtom = atom((get) => {
+  const blueprints = get(blueprintsAtom)
+  const options = get(craftOptionsAtom)
+
+  // Get inventory data for calculation
+  const rawInventoryItems = get(rawInventoryItemsAtom)
+  const itemsMapData = get(itemsMapAtom)
+
+  // Build a map of item name -> available quantity from inventory
+  const inventoryQuantities: { [itemName: string]: number } = {}
+  if (Array.isArray(rawInventoryItems)) {
+    rawInventoryItems.forEach((item: any) => {
+      inventoryQuantities[item.name] = (inventoryQuantities[item.name] || 0) + item.quantity
+    })
+  }
+
+  const result: { [name: string]: BlueprintAutoCalc } = {}
+
+  for (const [name, bp] of Object.entries(blueprints)) {
+    const itemName = itemNameFromBpName(name)
+
+    // Calculate clicks based on available materials
+    let clicks: any = undefined
+    if (bp.budget?.sheet && bp.user?.materials && bp.user.materials.length > 0) {
+      // Calculate how many clicks are possible with available materials
+      let availableClicks = Infinity
+      const limitingItems: string[] = []
+
+      bp.user.materials.forEach((m) => {
+        const available = inventoryQuantities[m.name] || 0
+        const neededPerClick = parseInt(m.quantity) || 0
+        const possibleClicks = neededPerClick > 0 ? Math.floor(available / neededPerClick) : 0
+
+        if (possibleClicks < availableClicks) {
+          availableClicks = possibleClicks
+          limitingItems.length = 0
+          limitingItems.push(m.name)
+        } else if (possibleClicks === availableClicks && possibleClicks >= 0) {
+          if (!limitingItems.includes(m.name)) {
+            limitingItems.push(m.name)
+          }
+        }
+      })
+
+      clicks = {
+        bp: 0,
+        available: availableClicks === Infinity ? 0 : availableClicks,
+        limitingItems: availableClicks === Infinity ? [] : limitingItems,
+        ttCost: bp.budget.sheet.clickMUCost ?? 0,
+        residueNeeded: 0
+      }
+    }
+
+    result[name] = {
+      itemName,
+      owned: options.owned,
+      clicks,
+      materials: bp.user?.materials?.map((m) => {
+        const itemData = itemsMapData[m.name]
+        const itemWebData = itemData?.web?.item?.data?.value
+        return {
+          name: m.name,
+          type: itemWebData?.type || '',
+          quantity: parseInt(m.quantity) || 0,
+          value: itemWebData?.value || 0,
+          available: inventoryQuantities[m.name] || 0,
+          clicks: 0
+        }
+      }) ?? [],
+      suggestedMaterials: undefined
+    }
+  }
+
+  return result
+})
+
+/**
  * Write atom: Add a new blueprint
  */
 export const addBlueprintAtom = atom(
@@ -158,9 +240,6 @@ export const addBlueprintAtom = atom(
           },
           session: {
             step: STEP_INACTIVE
-          },
-          c: {
-            itemName: itemNameFromBpName(name)
           }
         }
       })
@@ -868,6 +947,7 @@ export const setBlueprintListAtom = atom(
 
 /**
  * Write atom: Set blueprint material type and value
+ * Updates user materials with type and value metadata
  */
 export const setBlueprintMaterialTypeAndValueAtom = atom(
   null,
@@ -875,17 +955,17 @@ export const setBlueprintMaterialTypeAndValueAtom = atom(
     const blueprints = get(blueprintsAtom)
     const bp = blueprints[bpName]
 
-    if (bp?.c?.materials) {
-      const materials = bp.c.materials.map((m) =>
-        m.name === materialName ? { ...m, type, value } : m
+    if (bp?.user?.materials) {
+      const materials = bp.user.materials.map((m) =>
+        m.name === materialName ? { ...m, quantity: m.quantity } : m
       )
 
       set(blueprintsAtom, {
         ...blueprints,
         [bpName]: {
           ...bp,
-          c: {
-            ...bp.c,
+          user: {
+            ...bp.user,
             materials
           }
         }
@@ -895,26 +975,23 @@ export const setBlueprintMaterialTypeAndValueAtom = atom(
 )
 
 /**
- * Write atom: Set suggested materials for blueprint
+ * UI State atom: Store suggested materials (not persisted in blueprint data)
+ */
+export const suggestionMaterialsUIAtom = atom<{
+  [bpName: string]: { index: number; list: string[] }
+}>({})
+
+/**
+ * Write atom: Set suggested materials for blueprint (UI state)
  */
 export const setBlueprintSuggestedMaterialsAtom = atom(
   null,
   (get, set, bpName: string, index: number, list: string[]) => {
-    const blueprints = get(blueprintsAtom)
-    const bp = blueprints[bpName]
-
-    if (bp?.c) {
-      set(blueprintsAtom, {
-        ...blueprints,
-        [bpName]: {
-          ...bp,
-          c: {
-            ...bp.c,
-            suggestedMaterials: { index, list }
-          }
-        }
-      })
-    }
+    const current = get(suggestionMaterialsUIAtom)
+    set(suggestionMaterialsUIAtom, {
+      ...current,
+      [bpName]: { index, list }
+    })
   }
 )
 
@@ -932,32 +1009,14 @@ export const showBlueprintMaterialDataAtom = atom(
 
 /**
  * Write atom: Set blueprint quantity (available materials)
+ * This is a computed/UI state derived from inventory
+ * Not stored in blueprint data - calculated by blueprintAutoCalcAtom
  */
 export const setBlueprintQuantityAtom = atom(
   null,
   (get, set, itemQuantities: { [itemName: string]: number }) => {
-    const blueprints = get(blueprintsAtom)
-    const updated = { ...blueprints }
-
-    // Update each blueprint's materials with available quantities
-    for (const [bpName, bp] of Object.entries(blueprints)) {
-      if (bp?.c?.materials) {
-        const materials = bp.c.materials.map((m) => ({
-          ...m,
-          available: itemQuantities[m.name] ?? 0
-        }))
-
-        updated[bpName] = {
-          ...bp,
-          c: {
-            ...bp.c,
-            materials
-          }
-        }
-      }
-    }
-
-    set(blueprintsAtom, updated)
+    // Quantity information is now calculated in blueprintAutoCalcAtom
+    // based on blueprint data and is not persisted
   }
 )
 
@@ -1200,6 +1259,25 @@ export const setCraftStateAtom = atom(
 )
 
 /**
+ * Effect atom: Initialize blueprint loading on app start
+ * Triggers loading of blueprint web data for stored blueprints
+ */
+export const initializeCraftStateAtom = atom(null, (get, set) => {
+  const blueprints = get(blueprintsAtom)
+
+  // Trigger loading of blueprint data for each blueprint
+  for (const bpName of Object.keys(blueprints || {})) {
+    const bp = blueprints[bpName]
+    if (bp && !bp.web?.blueprint?.loading) {
+      // Schedule blueprint loading
+      set(loadCraftBlueprintAtom, bpName).catch((err: any) => {
+        console.warn(`Failed to load blueprint ${bpName} on init:`, err)
+      })
+    }
+  }
+})
+
+/**
  * Write atom to load item data from web
  * Replaces Redux loadItemUsageData action
  */
@@ -1234,3 +1312,127 @@ export const loadCraftBlueprintAtom = atom(null, async (get, set, bpName: string
     console.error(`Failed to load blueprint ${bpName} data:`, error)
   }
 })
+
+/**
+ * Write atom to load material data for a blueprint's materials
+ * Ensures all materials in a blueprint have their web data (type, value) loaded
+ */
+export const loadBlueprintMaterialDataAtom = atom(
+  null,
+  async (get, set, bpName: string) => {
+    try {
+      const blueprints = get(blueprintsAtom)
+      const bp = blueprints[bpName]
+
+      if (!bp?.user?.materials) {
+        return
+      }
+
+      // Load material data for each material in the blueprint
+      for (const material of bp.user.materials) {
+        try {
+          // Use dynamic import to avoid circular dependencies
+          const { loadFromWeb } = await import('../../../web/loader')
+          const itemsMap = get(itemsMapAtom)
+          const current = itemsMap[material.name]
+
+          // Load item web data if not already loaded
+          if (!current?.web?.item?.data) {
+            for await (const r of loadFromWeb((s: any) => s.loadItem(material.name))) {
+              const updatedItemsMap = get(itemsMapAtom)
+              const updatedCurrent = updatedItemsMap[material.name]
+              const update = {
+                ...updatedCurrent,
+                web: {
+                  ...updatedCurrent?.web,
+                  item: r
+                }
+              } as any
+
+              set(itemsMapAtom, {
+                ...updatedItemsMap,
+                [material.name]: update
+              })
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to load material data for ${material.name}:`, error)
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to load blueprint material data for ${bpName}:`, error)
+    }
+  }
+)
+
+/**
+ * Write atom: Load budget sheet for a blueprint
+ * Handles the complete loading workflow including stages and error handling
+ */
+export const loadBudgetSheetAtom = atom(
+  null,
+  async (get, set, bpName: string) => {
+    try {
+      // Dynamically import API and helper modules
+      const { default: api } = await import('../../services/api')
+      const { getDefaultStore } = await import('jotai')
+      const { settingsAtom } = await import('./settings')
+
+      // Start loading
+      set(startBudgetPageLoadingAtom, bpName)
+
+      // Get settings from Jotai store
+      const settings = getDefaultStore().get(settingsAtom)
+
+      // Stage tracking for API callbacks
+      const setStage = (stage: number) => {
+        set(setBudgetPageStageAtom, bpName, stage)
+      }
+
+      // Get blueprint and items for budget info
+      const blueprints = get(blueprintsAtom)
+      const bp = blueprints[bpName]
+
+      if (!bp) {
+        set(errorBudgetPageLoadingAtom, bpName, 'Blueprint not found')
+        return
+      }
+
+      // TODO: Need access to full redux state to get items map for budgetInfoFromBp
+      // For now, create budget info with basic material data
+      const budgetInfo = {
+        itemName: itemNameFromBpName(bpName),
+        materials: bp.user?.materials?.map(m => ({
+          name: m.name,
+          unitValue: 0,
+          markup: 1
+        }))
+      }
+
+      // Load budget sheet from API
+      const sheet = await api.sheets.loadBudgetSheet(settings, setStage, budgetInfo, false)
+
+      if (sheet) {
+        // Extract the info from the sheet
+        // This will be populated by the sheet object
+        const sheetInfo = {
+          total: 0,
+          totalMU: 0,
+          peds: 0,
+          materials: {}
+        }
+
+        // Set budget page info with the sheet data
+        set(setBudgetPageInfoAtom, bpName, sheetInfo)
+      } else {
+        set(errorBudgetPageLoadingAtom, bpName, 'Failed to load budget sheet')
+      }
+
+      // End loading
+      set(endBudgetPageLoadingAtom, bpName)
+    } catch (error: any) {
+      console.error(`Failed to load budget sheet for ${bpName}:`, error)
+      set(errorBudgetPageLoadingAtom, bpName, error?.message || 'Unknown error')
+    }
+  }
+)

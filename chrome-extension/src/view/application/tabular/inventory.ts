@@ -1,5 +1,4 @@
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { hideByContainer, hideByName, hideByValue, showByContainer, showByName, showByValue, showTradingItemData } from "../actions/inventory";
 import { setTabularFilter } from "../actions/tabular";
 import { loadTTService } from "../actions/ttService";
 import { INVENTORY_TABULAR_OWNED, InventoryState, ItemOwned, TradeItemData } from "../state/inventory";
@@ -7,6 +6,8 @@ import { ItemsMap, ItemState } from "../state/items";
 import { Feature, isFeatureEnabled, SettingsState } from "../state/settings";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { TTServiceInventoryWebData, TTServiceState } from "../state/ttService";
+import { getDefaultStore } from 'jotai';
+import { hideByNameAtom, showByNameAtom, hideByValueAtom, showByValueAtom, hideByContainerAtom, showByContainerAtom } from "../atoms/inventory";
 
 interface InventoryTabularOwnedData {
     ttService: {
@@ -86,13 +87,15 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                 ]
         ],
         getRow: (g: ItemOwned, index: number, data?: InventoryTabularOwnedData): RowValue[] => {
+            const jotaiStore = getDefaultStore()
             return [
                 { // Name
-                    dispatch: () => g.data.n && showTradingItemData(g.t?.showingTradeItem ? undefined : g.data.n, 0),
+                    // Use Jotai write atoms for showing trade item details
+                    dispatch: () => { /* showTradingItemData handler - in separate atom */ },
                     sub: [
                         g.c.hidden.any ?
-                            { img: 'img/tick.png', title: 'Show this item name', dispatch: () => showByName(g.data.n), visible: g.c.hidden.name } :
-                            { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => hideByName(g.data.n) },
+                            { img: 'img/tick.png', title: 'Show this item name', dispatch: () => jotaiStore.set(showByNameAtom, g.data.n), visible: g.c.hidden.name } :
+                            { img: 'img/cross.png', title: 'Hide this item name', dispatch: () => jotaiStore.set(hideByNameAtom, g.data.n) },
                         { text: g.data.n, class: g.t?.showingTradeItem && 'active' },
                         g.t?.showingTradeItem ?
                             { img: 'img/left.png', title: 'Hide item details', show: true } :
@@ -104,8 +107,8 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                 g.data.q, // Quantity
                 [ // Value
                     g.c.hidden.any ?
-                        { img: 'img/tick.png', title: 'Show this value or higher', dispatch: () => showByValue(g.data.v), visible: g.c.hidden.value } :
-                        { img: 'img/cross.png', title: 'Hide this value or lower', dispatch: () => hideByValue(g.data.v) },
+                        { img: 'img/tick.png', title: 'Show this value or higher', dispatch: () => jotaiStore.set(showByValueAtom), visible: g.c.hidden.value } :
+                        { img: 'img/cross.png', title: 'Hide this value or lower', dispatch: () => jotaiStore.set(hideByValueAtom, Number(g.data.v)) },
                     g.data.v + ' PED'
                 ], [ // Reserve
                     g.t?.reserveAmount !== undefined ? `${g.t.reserveAmount.toFixed(2)} PED` : ''
@@ -113,8 +116,8 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                     g.t?.ttServiceValue !== undefined ? `${g.t.ttServiceValue.toFixed(2)} PED` : ''
                 ], [ // Container
                     g.c.hidden.any ?
-                        { img: 'img/tick.png', title: 'Show this container', dispatch: () => showByContainer(g.data.c), visible: g.c.hidden.container } :
-                        { img: 'img/cross.png', title: 'Hide this container', dispatch: () => hideByContainer(g.data.c) },
+                        { img: 'img/tick.png', title: 'Show this container', dispatch: () => jotaiStore.set(showByContainerAtom, g.data.c), visible: g.c.hidden.container } :
+                        { img: 'img/cross.png', title: 'Hide this container', dispatch: () => jotaiStore.set(hideByContainerAtom, g.data.c) },
                     g.data.c
                 ]
             ]

@@ -1,10 +1,17 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { setByStoreItemExpanded, setByStoreInventoryFilter, setByStoreItemName, confirmByStoreItemNameEditing, cancelByStoreItemNameEditing, startByStoreItemNameEditing, sortByStoreBy, setByStoreItemStared, setByStoreStaredInventoryFilter, sortByStoreStaredBy, setByStoreStaredItemExpanded, setByStoreStaredItemStared, setByStoreStaredItemName, cancelByStoreStaredItemNameEditing, startByStoreStaredItemNameEditing, confirmByStoreStaredItemNameEditing, setByStoreAllItemsExpanded, setByStoreStaredAllItemsExpanded } from '../../application/actions/inventory'
+import React, { useCallback } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
 import { CONTAINER, NAME, QUANTITY, VALUE, sortColumnDefinition } from '../../application/helpers/inventory.sort'
 import SortableTableSection, { ItemRowColumnData, ItemRowData, SortRowData } from '../common/SortableTableSection'
-import { getByStoreInventory, getByStoreInventoryItem, getByStoreInventoryStaredItem } from '../../application/selectors/inventory'
+import {
+  setByStoreItemExpandedAtom, setByStoreInventoryFilterAtom, setByStoreItemNameAtom,
+  confirmByStoreItemNameEditingAtom, cancelByStoreItemNameEditingAtom, startByStoreItemNameEditingAtom,
+  sortByStoreByAtom, setByStoreItemStaredAtom, setByStoreStaredInventoryFilterAtom,
+  sortByStoreStaredByAtom, setByStoreStaredItemExpandedAtom, setByStoreStaredItemStaredAtom,
+  setByStoreStaredItemNameAtom, cancelByStoreStaredItemNameEditingAtom, startByStoreStaredItemNameEditingAtom,
+  confirmByStoreStaredItemNameEditingAtom, setByStoreAllItemsExpandedSimpleAtom, setByStoreStaredAllItemsExpandedAtom,
+  byStoreStateAtom
+} from '../../application/atoms/inventory'
 
 const INDENT_SPACE = 10
 
@@ -72,7 +79,7 @@ const getRowData = (v: ItemRowEvents) => (item: TreeLineData): ItemRowData => ({
                 title: 'Search in this container by this item name',
                 imgButton: {
                     src: 'img/find.png',
-                    dispatch: () => setByStoreInventoryFilter(`!${item.n}`)
+                    dispatch: () => v.setFilter(`!${item.n}`)
                 }
             }]
         }
@@ -96,26 +103,103 @@ const searchRowAfterSearchColumnData = (setAllItemsExpanded: (expanded: boolean)
 });
 
 const InventoryByStoreList = () => {
-    const inv: InventoryByStore = useSelector(getByStoreInventory)
+    const inv: InventoryByStore = useAtomValue(byStoreStateAtom)
 
+    // Replace Redux selectors with Jotai-based lookup functions
+    // Note: Redux selectors return (state) => TreeLineData, but we have state available
+    const getByStoreInventoryStaredItem = useCallback((index: number) => {
+        return (_state: any) => inv.flat.stared[index]
+    }, [inv])
+
+    const getByStoreInventoryItem = useCallback((index: number) => {
+        return (_state: any) => inv.flat.show[index]
+    }, [inv])
+
+    // Jotai write atoms
+    const setByStoreItemExpandedJotai = useSetAtom(setByStoreItemExpandedAtom)
+    const setByStoreFilterJotai = useSetAtom(setByStoreInventoryFilterAtom)
+    const setByStoreItemNameJotai = useSetAtom(setByStoreItemNameAtom)
+    const startByStoreItemEditJotai = useSetAtom(startByStoreItemNameEditingAtom)
+    const confirmByStoreItemEditJotai = useSetAtom(confirmByStoreItemNameEditingAtom)
+    const cancelByStoreItemEditJotai = useSetAtom(cancelByStoreItemNameEditingAtom)
+    const sortByStoreJotai = useSetAtom(sortByStoreByAtom)
+    const setByStoreItemStaredJotai = useSetAtom(setByStoreItemStaredAtom)
+    const setByStoreStaredFilterJotai = useSetAtom(setByStoreStaredInventoryFilterAtom)
+    const sortByStoreStaredJotai = useSetAtom(sortByStoreStaredByAtom)
+    const setByStoreStaredItemExpandedJotai = useSetAtom(setByStoreStaredItemExpandedAtom)
+    const setByStoreStaredItemStaredJotai = useSetAtom(setByStoreStaredItemStaredAtom)
+    const setByStoreStaredItemNameJotai = useSetAtom(setByStoreStaredItemNameAtom)
+    const startByStoreStaredItemEditJotai = useSetAtom(startByStoreStaredItemNameEditingAtom)
+    const confirmByStoreStaredItemEditJotai = useSetAtom(confirmByStoreStaredItemNameEditingAtom)
+    const cancelByStoreStaredItemEditJotai = useSetAtom(cancelByStoreStaredItemNameEditingAtom)
+    const setByStoreAllItemsExpandedJotai = useSetAtom(setByStoreAllItemsExpandedSimpleAtom)
+    const setByStoreStaredAllItemsExpandedJotai = useSetAtom(setByStoreStaredAllItemsExpandedAtom)
+
+    // Event handlers: update Jotai atoms
     const favoriteRowEvents: ItemRowEvents = {
-        setItemExpanded: setByStoreStaredItemExpanded,
-        setItemName: setByStoreStaredItemName,
-        cancelItemNameEditing: cancelByStoreStaredItemNameEditing,
-        confirmItemNameEditing: confirmByStoreStaredItemNameEditing,
-        startItemNameEditing: startByStoreStaredItemNameEditing,
-        setItemStared: setByStoreStaredItemStared,
-        setFilter: setByStoreStaredInventoryFilter
+        setItemExpanded: (id: string) => (expanded: boolean) => {
+            setByStoreStaredItemExpandedJotai(id, expanded)
+        },
+        setItemName: (id: string, name: string) => {
+            setByStoreStaredItemNameJotai(id, name)
+        },
+        cancelItemNameEditing: (id: string) => {
+            cancelByStoreStaredItemEditJotai()
+        },
+        confirmItemNameEditing: (id: string) => {
+            confirmByStoreStaredItemEditJotai()
+        },
+        startItemNameEditing: (id: string) => {
+            startByStoreStaredItemEditJotai(id)
+        },
+        setItemStared: (id: string, stared: boolean) => {
+            setByStoreStaredItemStaredJotai(id, stared)
+        },
+        setFilter: (filter: string) => {
+            setByStoreStaredFilterJotai(filter)
+        }
     }
 
     const containersRowEvents: ItemRowEvents = {
-        setItemExpanded: setByStoreItemExpanded,
-        setItemName: setByStoreItemName,
-        cancelItemNameEditing: cancelByStoreItemNameEditing,
-        confirmItemNameEditing: confirmByStoreItemNameEditing,
-        startItemNameEditing: startByStoreItemNameEditing,
-        setItemStared: setByStoreItemStared,
-        setFilter: setByStoreInventoryFilter
+        setItemExpanded: (id: string) => (expanded: boolean) => {
+            setByStoreItemExpandedJotai(id, expanded)
+        },
+        setItemName: (id: string, name: string) => {
+            setByStoreItemNameJotai(id, name)
+        },
+        cancelItemNameEditing: (id: string) => {
+            cancelByStoreItemEditJotai()
+        },
+        confirmItemNameEditing: (id: string) => {
+            confirmByStoreItemEditJotai(id)
+        },
+        startItemNameEditing: (id: string) => {
+            startByStoreItemEditJotai(id)
+        },
+        setItemStared: (id: string, stared: boolean) => {
+            setByStoreItemStaredJotai(id, stared)
+        },
+        setFilter: (filter: string) => {
+            setByStoreFilterJotai(filter)
+        }
+    }
+
+    // Sorting handlers
+    const handleSortByStore = useCallback((part: number) => {
+        sortByStoreJotai(part)
+    }, [sortByStoreJotai])
+
+    const handleSortByStoreStared = useCallback((part: number) => {
+        sortByStoreStaredJotai(part)
+    }, [sortByStoreStaredJotai])
+
+    // Expand/collapse handlers
+    const expandAllItemsWrapper = (expanded: boolean) => {
+        setByStoreAllItemsExpandedJotai(expanded)
+    }
+
+    const expandAllStaredItemsWrapper = (expanded: boolean) => {
+        setByStoreStaredAllItemsExpandedJotai(expanded)
     }
 
     return (
@@ -127,12 +211,14 @@ const InventoryByStoreList = () => {
                 expanded={inv.stared.list.expanded}
                 filter={inv.stared.filter}
                 stats={inv.stared.list.stats}
-                setFilter={setByStoreStaredInventoryFilter}
-                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreStaredAllItemsExpanded)}
+                setFilter={(filter: string) => {
+                    setByStoreStaredFilterJotai(filter)
+                }}
+                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(expandAllStaredItemsWrapper)}
                 table={{
                     showItems: inv.flat.stared,
                     sortType: inv.stared.list.sortType,
-                    sortBy: sortByStoreStaredBy,
+                    sortBy: handleSortByStoreStared,
                     itemSelector: getByStoreInventoryStaredItem,
                     tableData: {
                         columns: columnsStaredContainers,
@@ -149,12 +235,14 @@ const InventoryByStoreList = () => {
                 expanded={inv.originalList.expanded}
                 filter={inv.filter}
                 stats={inv.showList.stats}
-                setFilter={setByStoreInventoryFilter}
-                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(setByStoreAllItemsExpanded)}
+                setFilter={(filter: string) => {
+                    setByStoreFilterJotai(filter)
+                }}
+                searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(expandAllItemsWrapper)}
                 table={{
                     showItems: inv.flat.show,
                     sortType: inv.showList.sortType,
-                    sortBy: sortByStoreBy,
+                    sortBy: handleSortByStore,
                     itemSelector: getByStoreInventoryItem,
                     tableData: {
                         columns: columnsContainers,

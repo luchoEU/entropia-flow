@@ -5,8 +5,9 @@ import { InventoryList } from '../../application/state/inventory'
 import ExpandableSection from '../common/ExpandableSection2'
 import SortableTable from '../common/SortableTable'
 import ImgButton from '../common/ImgButton'
-import { addAvailable, removeAvailable } from '../../application/actions/inventory'
 import ItemText from '../common/ItemText'
+import { useSetAtom } from 'jotai'
+import { addAvailableAtom, removeAvailableAtom } from '../../application/atoms/inventory'
 
 const ItemRow = (p: {
     item: ItemData,
@@ -16,6 +17,8 @@ const ItemRow = (p: {
     }
 }) => {
     const { item, param } = p
+    const setAdd = useSetAtom(addAvailableAtom)
+    const setRemove = useSetAtom(removeAvailableAtom)
 
     return (
         <tr className='item-row'>
@@ -24,8 +27,8 @@ const ItemRow = (p: {
             </td>
             <td>
                 { param.isFavorite(item.n) ?
-                    <ImgButton title='Remove from Favorites' src='img/staron.png' dispatch={() => removeAvailable(item.n)} /> :
-                    <ImgButton title='Add to Favorites' src='img/staroff.png' dispatch={() => addAvailable(item.n)} />
+                    <ImgButton title='Remove from Favorites' src='img/staron.png' dispatch={() => setRemove(item.n)} /> :
+                    <ImgButton title='Add to Favorites' src='img/staroff.png' dispatch={() => setAdd(item.n)} />
                 }
             </td>
             <td><ItemText text={item.q} /></td>

@@ -3,6 +3,14 @@ import { BlueprintWebData } from "../../../web/state"
 
 const CRAFT_TABULAR_BLUEPRINTS = '[craft] blueprints'
 
+interface BlueprintAutoCalc {
+    itemName: string
+    owned?: boolean
+    clicks?: BlueprintClicks
+    materials?: BlueprintMaterial[]
+    suggestedMaterials?: { index: number, list: string[] }
+}
+
 interface CraftState {
     activeSession?: string
     activePlanet?: string
@@ -47,14 +55,6 @@ interface BlueprintData {
 
     web?: BlueprintStateWebData
     user?: CraftingUserData
-
-    c?: { // calculated
-        itemName: string
-        owned?: boolean
-        clicks?: BlueprintClicks
-        materials?: BlueprintMaterial[]
-        suggestedMaterials?: { index: number, list: string[] }
-    }
 }
 
 interface BlueprintClicks {
@@ -133,6 +133,7 @@ export {
     BlueprintBudget,
     BlueprintBudgetMaterial,
     BlueprintBudgetMaterials,
+    BlueprintAutoCalc,
     STEP_INACTIVE,
     STEP_REFRESH_TO_START,
     STEP_REFRESH_ERROR,
