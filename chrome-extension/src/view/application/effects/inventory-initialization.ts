@@ -67,39 +67,39 @@ export async function initializeInventoryAtoms(api: any): Promise<void> {
     }
 
     // Step 3: Initialize atoms from loaded state
-    if (state || byStore) {
-      // Ensure we have a valid state object
-      state = state || initialState
+    // Ensure we have a valid state object
+    state = state || initialState
 
-      // Merge with initial state to fill in any missing fields
-      const mergedState = mergeDeep(initialState, state)
+    // Merge with initial state to fill in any missing fields
+    const mergedState = mergeDeep(initialState, state)
 
-      // Set individual atoms from merged state
-      // These atoms are marked with atomWithStorage, so they persist automatically
+    // Set individual atoms from merged state
+    // These atoms are marked with atomWithStorage, so they persist automatically
 
-      // Owned inventory items and options
-      store.set(rawInventoryItemsAtom, mergedState.owned.items)
-      store.set(ownedOptionsAtom, mergedState.owned.options)
-      store.set(hideCriteriaAtom, mergedState.owned.hideCriteria)
+    // Owned inventory items and options
+    store.set(rawInventoryItemsAtom, mergedState.owned.items)
+    store.set(ownedOptionsAtom, mergedState.owned.options)
+    store.set(hideCriteriaAtom, mergedState.owned.hideCriteria)
 
-      // Auction and available items
-      store.set(auctionItemsAtom, mergedState.auction?.items ?? [])
-      store.set(availableItemsAtom, mergedState.available?.items ?? [])
+    // Auction and available items
+    store.set(auctionItemsAtom, mergedState.auction?.items ?? [])
+    store.set(availableItemsAtom, mergedState.available?.items ?? [])
 
-      // Sort states (auction, available, owned)
-      store.set(inventorySortStateAtom, {
-        auctionSortType: mergedState.auction?.sortType ?? 0,
-        availableSortType: mergedState.available?.sortType ?? 0,
-        ownedSortType: 0  // Not stored in inventory, defaults to 0
-      })
+    // Sort states (auction, available, owned)
+    store.set(inventorySortStateAtom, {
+      auctionSortType: mergedState.auction?.sortType ?? 0,
+      availableSortType: mergedState.available?.sortType ?? 0,
+      ownedSortType: 0  // Not stored in inventory, defaults to 0
+    })
 
-      // Trade and available criteria
-      store.set(tradeItemChainAtom, mergedState.tradeItemDataChain)
-      store.set(availableCriteriaAtom, mergedState.availableCriteria)
+    // Trade and available criteria
+    store.set(tradeItemChainAtom, mergedState.tradeItemDataChain)
+    store.set(availableCriteriaAtom, mergedState.availableCriteria)
 
+    if (state !== initialState) {
       console.log('Inventory atoms initialized from storage')
     } else {
-      console.log('No stored inventory state found, using initial values')
+      console.log('No stored inventory state found, initialized with default values')
     }
 
     // Step 4: Initialize byStore state separately (has complex structure)

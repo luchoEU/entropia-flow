@@ -1180,20 +1180,6 @@ export const setByStoreStaredItemStaredAtom = atom(null, (_get, _set, _itemId: s
 })
 
 /**
- * Effect atom: Initialize inventory state
- * Syncs Redux inventory state to Jotai atoms on app load
- * Loads persisted inventory data if available
- */
-export const initializeInventoryStateAtom = atom(null, async (_get, _set) => {
-  // This atom is triggered from the App component to initialize inventory
-  // It coordinates between Redux inventory state and Jotai atoms
-  // The actual synchronization happens through Redux middleware which updates these atoms
-  // This is a placeholder for any additional initialization needed
-})
-
-/**
- * PHASE 2: Computed/Effect Atoms
- *
  * These atoms are used to:
  * 1. Compute derived data from other atoms
  * 2. Trigger side effects when state changes
