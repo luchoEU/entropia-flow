@@ -2,6 +2,7 @@ import { Feature, isFeatureEnabled, SettingsState, SheetAccessInfo } from '../..
 import { BudgetInfoData, BudgetSheet } from './sheetsBudget'
 import { SetStage } from './sheetsStages'
 import { TTServiceInventorySheet } from './sheetsTTServiceInventory'
+import { ItemsSheet } from './sheetsItems'
 import { getSpreadsheet, listBudgetSheet } from './sheetsUtils'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 
@@ -69,8 +70,27 @@ async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage
     }
 }
 
+async function loadItemsSheet(settings: SettingsState, setStage: SetStage, create: boolean = true): Promise<ItemsSheet | undefined> {
+    if (!isFeatureEnabled(settings, Feature.budget)) return undefined
+
+    const doc = await budgetDoc.load(settings.sheet, setStage)
+    if (!doc)
+        return undefined
+
+    const sheet = new ItemsSheet(setStage)
+    if (await sheet.load(doc)) {
+        return sheet
+    } else if (create) {
+        await sheet.create(doc)
+        return sheet
+    } else {
+        return undefined
+    }
+}
+
 export default {
     getBudgetSheetList,
     loadBudgetSheet,
     loadTTServiceInventorySheet,
+    loadItemsSheet,
 }

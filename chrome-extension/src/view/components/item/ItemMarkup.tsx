@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Field } from "../common/Field";
 import { getItemAtom, itemBuyMarkupChangedAtom } from "../../application/atoms/items";
+import ItemSyncStatus from "./ItemSyncStatus";
 
 const ItemMarkup = ({ name }: { name: string }) => {
     const itemAtom = useMemo(() => getItemAtom(name), [name])
@@ -13,8 +14,11 @@ const ItemMarkup = ({ name }: { name: string }) => {
     return (
         <Field label='Markup:' value={item.markup?.value ?? ''}
                 getChangeAction={(value) => setMarkup(name, value)}>
-            { item.markup?.modified ?
-                <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>% (Modified on { new Date(item.markup.modified).toLocaleDateString() })</span> : '' }
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                { item.markup?.modified ?
+                    <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>% (Modified on { new Date(item.markup.modified).toLocaleDateString() })</span> : '' }
+                <ItemSyncStatus />
+            </div>
         </Field>
     )
 }

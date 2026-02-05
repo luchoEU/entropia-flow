@@ -109,6 +109,7 @@ interface SheetAccessInfo {
     ttServiceDocumentId?: string
     googleServiceAccountEmail?: string
     googlePrivateKey?: string
+    itemsSheetPersistenceMode?: 'sheet' | 'browser' // 'sheet' = Google Sheet, 'browser' = localStorage (default)
 }
 
 export {

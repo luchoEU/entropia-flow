@@ -11,6 +11,9 @@ const BudgetSheetName = {
 const TTServiceSheetName = {
     inventory: 'Inventory'
 }
+const ItemsSheetName = {
+    items: 'Items - Entropia Flow'
+}
 
 async function getSpreadsheet(documentId: string, accessInfo: SheetAccessInfo, setStage: SetStage): Promise<GoogleSpreadsheet> {
     setStage(STAGE_LOADING_SPREADSHEET)
@@ -71,6 +74,30 @@ async function getTTServiceInventorySheet(doc: GoogleSpreadsheet, setStage: SetS
     return await _getSheet(doc, TTServiceSheetName.inventory, setStage, STATE_LOADING_BUDGET_SHEET)
 }
 
+async function hasItemsSheet(doc: GoogleSpreadsheet, setStage: SetStage): Promise<boolean> {
+    setStage(STAGE_BUDGET_HAS_SHEET)
+    return doc.sheetsByTitle[ItemsSheetName.items] !== undefined
+}
+
+async function getItemsSheet(doc: GoogleSpreadsheet, setStage: SetStage): Promise<any> {
+    return await _getSheet(doc, ItemsSheetName.items, setStage, STATE_LOADING_BUDGET_SHEET)
+}
+
+async function createItemsSheet(doc: GoogleSpreadsheet, setStage: SetStage): Promise<any> {
+    setStage(STAGE_CREATING_BUDGET_SHEET)
+    const sheet = await doc.addSheet()
+    await sheet.updateProperties({
+        title: ItemsSheetName.items,
+        gridProperties: {
+            rowCount: 1000,
+            columnCount: 4,
+            frozenRowCount: 1
+        }
+    })
+    await sheet.loadCells()
+    return sheet
+}
+
 async function saveUpdatedCells(sheet: any, setStage: SetStage): Promise<void> {
     setStage(STAGE_SAVING)
     await sheet.saveUpdatedCells()
@@ -121,6 +148,9 @@ export {
     createBudgetSheet,
     listBudgetSheet,
     getTTServiceInventorySheet,
+    hasItemsSheet,
+    getItemsSheet,
+    createItemsSheet,
     saveUpdatedCells,
     getLastRow,
     setDayDate,

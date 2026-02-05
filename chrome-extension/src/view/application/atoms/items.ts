@@ -88,6 +88,7 @@ export const itemBuyMarkupChangedAtom = atom(
     const newState = reduceItemBuyMarkupChanged({ map }, item, value)
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
+    set(triggerItemsSheetSyncAtom)
   }
 )
 
@@ -101,6 +102,7 @@ export const itemOrderMarkupChangedAtom = atom(
     const newState = reduceItemOrderMarkupChanged({ map }, item, value)
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
+    set(triggerItemsSheetSyncAtom)
   }
 )
 
@@ -382,6 +384,7 @@ export const itemNotesValueChangedAtom = atom(
     const newState = reduceItemNotesValueChanged({ map }, item, notes)
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
+    set(triggerItemsSheetSyncAtom)
   }
 )
 
@@ -395,6 +398,7 @@ export const itemReserveValueChangedAtom = atom(
     const newState = reduceItemReserveValueChanged({ map }, item, reserveAmount)
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
+    set(triggerItemsSheetSyncAtom)
   }
 )
 
@@ -431,5 +435,95 @@ export const initializeItemsStateAtom = atom(
     } catch (error) {
       console.error('Failed to initialize items:', error)
     }
+  }
+)
+
+/**
+ * ============================================================================
+ * GOOGLE SHEETS SYNC (DEBOUNCED)
+ * ============================================================================
+ */
+
+/**
+ * Atom to track debounce timeout for items sheet sync
+ * Stored as a primitive atom with read+write capability
+ */
+export const itemsSyncTimeoutAtom = atom<any>(
+  undefined
+) as WritableAtom<any, [any], void>
+
+/**
+ * Trigger debounced sync to Google Sheets
+ * This sets a timeout that will sync items to the sheet after DEBOUNCE_MS with no changes
+ */
+export const triggerItemsSheetSyncAtom = atom(
+  null,
+  async (get, set) => {
+    // Clear existing timeout
+    const existingTimeout = get(itemsSyncTimeoutAtom)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
+    }
+
+    // Import here to avoid circular dependencies
+    const { startItemsSheetSyncDebounce } = await import('../helpers/itemsSheetHelper')
+
+    // Delegate to helper which manages the debounce and countdown
+    await startItemsSheetSyncDebounce(set, setItemsSyncStatusAtom, setItemsDebounceTimeAtom)
+  }
+)
+
+/**
+ * Manually reload items from Google Sheet
+ */
+export const reloadItemsFromSheetAtom = atom(
+  null,
+  async (get, set) => {
+    try {
+      // Import here to avoid circular dependencies
+      const { reloadItemsSheetFunc } = await import('../helpers/itemsSheetHelper')
+      await reloadItemsSheetFunc()
+    } catch (error) {
+      console.error('Failed to reload items from sheet:', error)
+      throw error
+    }
+  }
+)
+
+/**
+ * ============================================================================
+ * SYNC STATUS TRACKING
+ * ============================================================================
+ */
+
+/**
+ * Track sync status: 'idle' | 'pending' | 'syncing' | 'error'
+ * Used to display save status indicators
+ */
+export const itemsSyncStatusAtom = atom<'idle' | 'pending' | 'syncing' | 'error'>('idle')
+
+/**
+ * Track remaining debounce time in milliseconds
+ * Used to display countdown timer
+ */
+export const itemsDebounceTimeAtom = atom<number>(0)
+
+/**
+ * Update sync status
+ */
+export const setItemsSyncStatusAtom = atom(
+  null,
+  (get, set, status: 'idle' | 'pending' | 'syncing' | 'error') => {
+    set(itemsSyncStatusAtom, status)
+  }
+)
+
+/**
+ * Update debounce countdown time
+ */
+export const setItemsDebounceTimeAtom = atom(
+  null,
+  (get, set, time: number) => {
+    set(itemsDebounceTimeAtom, time)
   }
 )

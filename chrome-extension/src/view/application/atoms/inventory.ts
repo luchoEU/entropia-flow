@@ -13,6 +13,7 @@ import { WebLoadResponse } from '../../../web/loader'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
 import { AvailableCriteria } from '../state/inventory'
 import { inventoryTabularData } from '../tabular/inventory'
+import { saveItemsToStorage } from './itemsStorage'
 
 /**
  * Base atom for raw inventory items
@@ -179,13 +180,24 @@ export const setReserveAmountAtom = atom(null, (get, set, itemName: string, rese
   const itemsMap = get(itemsMapAtom)
   const current = itemsMap[itemName]
   if (current) {
-    set(itemsMapAtom, {
+    const newItemsMap = {
       ...itemsMap,
       [itemName]: {
         ...current,
         reserveAmount
       } as any
-    })
+    }
+    set(itemsMapAtom, newItemsMap)
+
+    // Save to storage
+    saveItemsToStorage(newItemsMap)
+
+    // Trigger sheet sync (deferred import to avoid circular dependencies)
+    ;(async () => {
+      const { triggerItemsSheetSyncAtom } = await import('./items')
+      const store = (await import('jotai')).getDefaultStore()
+      store.set(triggerItemsSheetSyncAtom)
+    })()
   }
 })
 

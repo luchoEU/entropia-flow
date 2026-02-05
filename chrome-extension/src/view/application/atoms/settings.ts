@@ -13,7 +13,8 @@ export const sheetAccessAtom = atomWithStorage<SheetAccessInfo>(
     budgetDocumentId: undefined,
     ttServiceDocumentId: undefined,
     googleServiceAccountEmail: undefined,
-    googlePrivateKey: undefined
+    googlePrivateKey: undefined,
+    itemsSheetPersistenceMode: undefined
   }
 )
 
@@ -135,6 +136,17 @@ export const setFeatureEnabledAtom = atom(
       : features.filter((f) => f !== featureId)
 
     set(featuresAtom, newFeatures)
+  }
+)
+
+/**
+ * Write atom: Update items sheet persistence mode
+ */
+export const setItemsSheetPersistenceModeAtom = atom(
+  null,
+  (get, set, mode: 'sheet' | 'browser' | undefined) => {
+    const sheet = get(sheetAccessAtom)
+    set(sheetAccessAtom, { ...sheet, itemsSheetPersistenceMode: mode })
   }
 )
 
