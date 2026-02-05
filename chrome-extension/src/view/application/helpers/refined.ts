@@ -1,6 +1,7 @@
 import { objectMap } from "../../../common/object"
 import { BudgetInfoData } from "../../services/api/sheets/sheetsBudget"
-import { getItem } from "../selectors/items"
+import { getDefaultStore } from 'jotai'
+import { itemsMapAtom } from '../atoms/items'
 import { getOneRefined } from "../selectors/refined"
 import { ItemsMap } from "../state/items"
 import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedRefine, RefinedState } from "../state/refined"
@@ -172,12 +173,17 @@ const cleanForSave = (state: RefinedState): RefinedState => {
 function budgetGetCreateParams(state: any, material: string): any[] {
     const oneState: RefinedOneState = getOneRefined(material)(state)
     const calc = oneState.calculator.in
+
+    // Access items from Jotai atoms since items state is no longer in Redux
+    const jotaiStore = getDefaultStore()
+    const itemsMap = jotaiStore.get(itemsMapAtom)
+
     const info: BudgetInfoData = {
         itemName: material,
         materials: [ calc.refinedMaterial, ...calc.sourceMaterials ].map(m => ({
             name: m,
-            unitValue: getItem(m)(state).refined!.kValue / 1000,
-            markup: Number(getItem(m)(state).markup.value) / 100
+            unitValue: itemsMap[m]?.refined?.kValue ? itemsMap[m].refined.kValue / 1000 : 0,
+            markup: itemsMap[m]?.markup?.value ? Number(itemsMap[m].markup.value) / 100 : 1
         }))
     }
     return [ info, true ]

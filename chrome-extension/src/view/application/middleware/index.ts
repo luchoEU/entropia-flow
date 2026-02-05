@@ -12,7 +12,6 @@ import sheets from './sheets'
 import fruit from './fruit'
 import use from './use'
 import refined from './refined'
-import items from './items'
 import connection from './connection'
 import budget from './budget'
 import ttService from './ttService'
@@ -23,7 +22,6 @@ import mode from './mode'
 
 export default [
     ...messages,
-    ...items,
     ...calculator,
     ...actives,
     ...helpers,

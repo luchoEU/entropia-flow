@@ -103,7 +103,7 @@ const searchRowAfterSearchColumnData = (setAllItemsExpanded: (expanded: boolean)
 });
 
 const InventoryByStoreList = () => {
-    const inv: InventoryByStore = useAtomValue(byStoreStateAtom)
+    const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
 
     // Replace Redux selectors with Jotai-based lookup functions
     // Note: Redux selectors return (state) => TreeLineData, but we have state available
@@ -202,22 +202,27 @@ const InventoryByStoreList = () => {
         setByStoreStaredAllItemsExpandedJotai(expanded)
     }
 
+    // Return loading state if data not loaded yet
+    if (!inv) {
+        return <div className='flex'>Loading inventory data...</div>
+    }
+
     return (
         <div className='flex'>
             { inv.showStared && <SortableTableSection
                 selector='InventoryByStoreList.staredContainers'
                 title='Favorite Containers'
                 subtitle='Your favorite containers'
-                expanded={inv.stared.list.expanded}
-                filter={inv.stared.filter}
-                stats={inv.stared.list.stats}
+                expanded={inv.stared?.list?.expanded ?? false}
+                filter={inv.stared?.filter}
+                stats={inv.stared?.list?.stats ?? { count: 0, ped: '0' }}
                 setFilter={(filter: string) => {
                     setByStoreStaredFilterJotai(filter)
                 }}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(expandAllStaredItemsWrapper)}
                 table={{
-                    showItems: inv.flat.stared,
-                    sortType: inv.stared.list.sortType,
+                    showItems: inv.flat?.stared ?? [],
+                    sortType: inv.stared?.list?.sortType ?? 0,
                     sortBy: handleSortByStoreStared,
                     itemSelector: getByStoreInventoryStaredItem,
                     tableData: {
@@ -232,16 +237,16 @@ const InventoryByStoreList = () => {
                 selector='InventoryByStoreList.byContainers'
                 title='List by Containers'
                 subtitle='Your items organized by containers'
-                expanded={inv.originalList.expanded}
+                expanded={inv.originalList?.expanded ?? false}
                 filter={inv.filter}
-                stats={inv.showList.stats}
+                stats={inv.showList?.stats ?? { count: 0, ped: '0' }}
                 setFilter={(filter: string) => {
                     setByStoreFilterJotai(filter)
                 }}
                 searchRowAfterSearchColumnData={searchRowAfterSearchColumnData(expandAllItemsWrapper)}
                 table={{
-                    showItems: inv.flat.show,
-                    sortType: inv.showList.sortType,
+                    showItems: inv.flat?.show ?? [],
+                    sortType: inv.showList?.sortType ?? 0,
                     sortBy: handleSortByStore,
                     itemSelector: getByStoreInventoryItem,
                     tableData: {

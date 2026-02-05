@@ -7,7 +7,7 @@ import { setByStoreMaterialFilterAtom, setByStoreMaterialItemExpandedAtom, sortB
 
 const INDENT_SPACE = 10
 const ItemInventory = ({ filter }: { filter: string }) => {
-    const inv: InventoryByStore = useAtomValue(byStoreStateAtom)
+    const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
     const setFilter = useSetAtom(setByStoreMaterialFilterAtom)
     const setExpanded = useSetAtom(setByStoreMaterialItemExpandedAtom)
     const setSortMaterial = useSetAtom(sortByStoreMaterialByAtom)
@@ -60,9 +60,14 @@ const ItemInventory = ({ filter }: { filter: string }) => {
     }
 
     useEffect(() => {
-        if (filter === inv.material.filter) return // already set
+        if (!inv || filter === inv.material.filter) return // already set
         setFilter(filter)
-    }, [filter, setFilter])
+    }, [filter, setFilter, inv])
+
+    // Return loading state if data not loaded yet
+    if (!inv) {
+        return <p><strong>Loading inventory data...</strong></p>
+    }
 
     return <>
         { !inv?.flat?.material || inv.flat.material.length === 0 ?

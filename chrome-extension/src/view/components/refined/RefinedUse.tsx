@@ -1,18 +1,19 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { getItem } from '../../application/selectors/items'
+import React, { useMemo } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { itemUseAmountChangedAtom, getItemAtom } from '../../application/atoms/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { ItemState } from '../../application/state/items'
-import { itemUseAmountChanged } from '../../application/actions/items'
 import { refinedUseMaterial } from '../../application/actions/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
 }) => {
     const { material } = p
-    const m: ItemState = useSelector(getItem(material.name))
+    const itemAtom = useMemo(() => getItemAtom(material.name), [material.name])
+    const m: ItemState = useAtomValue(itemAtom)
+    const setAmount = useSetAtom(itemUseAmountChangedAtom)
 
     return (
         <section>
@@ -22,7 +23,7 @@ const RefinedUse = (p: {
                     label={m.name}
                     value={m.refined.useAmount}
                     unit=''
-                    getChangeAction={itemUseAmountChanged(m.name)} />
+                    getChangeAction={(value) => setAmount(m.name, value)} />
                 <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.refined.useAmount)} />
             </div>
         </section>

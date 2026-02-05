@@ -1,16 +1,15 @@
 import { mergeDeep } from "../../../common/merge"
 import { BudgetLineData, BudgetSheet } from "../../services/api/sheets/sheetsBudget"
 import { ADD_BUDGET_GROUP, ADD_BUDGET_ITEM_PENDING_LINES, CLEAR_BUDGET_ITEM_PENDING_LINES, DISABLE_BUDGET_ITEM, DISABLE_BUDGET_MATERIAL, ENABLE_BUDGET_ITEM, ENABLE_BUDGET_MATERIAL, MOVE_ITEM_TO_GROUP, REFRESH_BUDGET, REMOVE_BUDGET_GROUP, RENAME_BUDGET_GROUP, SEND_BUDGET_PENDING_LINES, SET_BUDGET_MATERIAL_EXPANDED, TOGGLE_BUDGET_GROUP_EXPANDED, TOGGLE_BUDGET_UNGROUPED_EXPANDED, setBudgetFromSheet, setBudgetStage, setBudgetState, DELETE_BUDGET_PENDING_LINE, removeBudgetItemPendingLines, UPDATE_BUDGET_PENDING_LINE, TOGGLE_BUDGET_SHOW_DISABLED, ENABLE_BUDGET_GROUP, DISABLE_BUDGET_GROUP } from "../actions/budget"
-import { SET_ITEM_PARTIAL_WEB_DATA, SET_ITEMS_STATE } from "../actions/items"
 import { AppAction } from "../slice/app"
 import { cleanForSave, initialState } from "../helpers/budget"
 import { getBudget } from "../selectors/budget"
-import { getItems } from "../selectors/items"
 import { BudgetItem, BudgetMaterialsMap, BudgetState } from "../state/budget"
 import { SettingsState } from "../state/settings"
 import { BudgetSheetInterfaceCallbacks, refreshBudgetData, sendBudgetPendingLinesFunc } from "../helpers/budgetSheetSynchronization"
 import { getDefaultStore } from 'jotai'
 import { settingsAtom } from '../atoms/settings'
+import { itemsStateAtom } from '../atoms/inventory'
 
 const requests = ({ api }) => ({ dispatch, getState }) => next => async (action: any) => {
     const result = await next(action)
@@ -46,9 +45,10 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
         }
         case REFRESH_BUDGET:
         case SEND_BUDGET_PENDING_LINES: {
-            const settings: SettingsState = getDefaultStore().get(settingsAtom)
+            const store = getDefaultStore()
+            const settings: SettingsState = store.get(settingsAtom)
             const budget = getBudget(getState())
-            const materials = getItems(getState())
+            const materials = store.get(itemsStateAtom)
 
             const setStage = (stage: number) => dispatch(setBudgetStage(stage))
             const callbacks: BudgetSheetInterfaceCallbacks = {
@@ -70,29 +70,6 @@ const requests = ({ api }) => ({ dispatch, getState }) => next => async (action:
                 await sendBudgetPendingLinesFunc(settings, budget, materials, lines, callbacks)
             }
             
-            break
-        }
-        case SET_ITEMS_STATE: {
-            // SET_CURRENT_INVENTORY removed (handled entirely through Jotai atoms now)
-            // Items state still handled for web data updates
-            break
-        }
-        case SET_ITEM_PARTIAL_WEB_DATA: {
-            const materialName: string = action.payload.item
-            const budget = getBudget(getState())
-            const material = budget.materials.map[materialName]
-
-            if (material && material.unitValue === 0) {
-                const materials = getItems(getState())
-                const matInfo = materials.map[materialName]
-                const unitValue = matInfo?.web?.item?.data?.value.value ?? 0
-
-                if (unitValue !== 0) {
-                    const map: BudgetMaterialsMap = { ...budget.materials.map }
-                    map[materialName] = { ...map[materialName], unitValue }
-                    dispatch(setBudgetFromSheet(map, budget.list.items, budget.loadPercentage))
-                }
-            }
             break
         }
     }

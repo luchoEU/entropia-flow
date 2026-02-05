@@ -11,9 +11,8 @@ import { blueprintsAtom, activeSessionAtom, editModeBlueprintNameAtom, blueprint
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { StageText } from '../../services/api/sheets/sheetsStages'
 import { ItemsMap, ItemsState } from '../../application/state/items'
-import { getItems, getItemsMap } from '../../application/selectors/items'
 import { BlueprintWebData, BlueprintWebMaterial, RawMaterialWebData } from '../../../web/state'
-import { changeMaterialType, changeMaterialValue, endMaterialEditMode, loadItemData, loadItemRawMaterials, startMaterialEditMode } from '../../application/actions/items'
+import { changeMaterialTypeAtom, changeMaterialValueAtom, endMaterialEditModeAtom, loadItemDataAtom, loadItemRawMaterialsAtom, startMaterialEditModeAtom, itemsMapAtom, editModeMaterialNameAtom } from '../../application/atoms/items'
 import WebDataControl from '../common/WebDataControl'
 import ItemInventory from '../item/ItemInventory'
 import ItemNotes from '../item/ItemNotes'
@@ -80,7 +79,7 @@ const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }
     loadBudgetSheet?: (bpName: string) => Promise<void>
 }) => {
     const dispatch = useDispatch()
-    const mat: ItemsMap = useSelector(getItemsMap)
+    const mat: ItemsMap = useAtomValue(itemsMapAtom)
     const showBudget = useAtomValue(isFeatureEnabledAtom(Feature.budget));
     const { ref: tableRef, size: { width: tableWidth } } = useElementSize<HTMLTableElement>();
 
@@ -378,30 +377,37 @@ const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse
 
 const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     const dispatch = useDispatch()
-    const mat: ItemsState = useSelector(getItems)
+    const itemsMap = useAtomValue(itemsMapAtom)
+    const editModeMaterialName = useAtomValue(editModeMaterialNameAtom)
+    const setMaterialType = useSetAtom(changeMaterialTypeAtom)
+    const setMaterialValue = useSetAtom(changeMaterialValueAtom)
+    const setEditModeEnd = useSetAtom(endMaterialEditModeAtom)
+    const setEditModeStart = useSetAtom(startMaterialEditModeAtom)
+    const loadRawMaterials = useSetAtom(loadItemRawMaterialsAtom)
+    const loadItemDataFn = useSetAtom(loadItemDataAtom)
 
-    const raw = name && mat.map[name]?.web?.rawMaterials
+    const raw = name && itemsMap[name]?.web?.rawMaterials
     const afterChainBpMat = name && bp.web?.blueprint?.data?.value.materials.find(m => m.name === name)
-    const afterChainMat = name && (mat.map[name]?.user ?? mat.map[name]?.web?.item?.data?.value ?? afterChainBpMat)
+    const afterChainMat = name && (itemsMap[name]?.user ?? itemsMap[name]?.web?.item?.data?.value ?? afterChainBpMat)
 
-    const editMode = name && name === mat.editModeMaterialName
+    const editMode = name && name === editModeMaterialName
     return (
         <div className='craft-chain'>
             <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); dispatch(showBlueprintMaterialData(bp.name, undefined)) }}>
                 { name }<img src='img/left.png' />
-                { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? endMaterialEditMode : startMaterialEditMode(name)}/> }
+                { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? setEditModeEnd() : setEditModeStart(name)}/> }
             </h2>
             <div>
                 { editMode ? <>
-                    <p><label>Type:</label> <AutocompleteInput value={mat.map[name].user.type?.toString() ?? ''} getChangeAction={(v) => changeMaterialType(name, v)} suggestions={mat.map[name].user?.suggestedTypes ?? []}/></p>
-                    <p><label>Value:</label> <input type='text' value={mat.map[name].user.valueOnEdit} onChange={(e) => dispatch(changeMaterialValue(name, e.target.value))}/></p>
+                    <p><label>Type:</label> <AutocompleteInput value={itemsMap[name].user.type?.toString() ?? ''} getChangeAction={(v) => setMaterialType(name, v)} suggestions={itemsMap[name].user?.suggestedTypes ?? []}/></p>
+                    <p><label>Value:</label> <input type='text' value={itemsMap[name].user.valueOnEdit} onChange={(e) => setMaterialValue(name, e.target.value)}/></p>
                 </> : afterChainMat && <>
                     <p>Type: { afterChainMat.type?.toString() ?? '' }</p>
                     <p>Value: { addZeroes(afterChainMat.value) }</p>
                 </>}
                 <ItemMarkup name={name} />
                 <WebDataControl w={raw} name='Raw Materials'
-                    dispatchReload={() => [loadItemRawMaterials(name), loadItemData(name, afterChainBpMat)]}
+                    dispatchReload={() => [loadRawMaterials(name), loadItemDataFn(name, afterChainBpMat)]}
                     content={d => d && d.length > 0 &&
                         <table style={{ marginBottom: '10px' }}>
                             <thead>

@@ -1,11 +1,11 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getItem } from '../../application/selectors/items'
+import React, { useMemo } from 'react'
+import { useDispatch } from 'react-redux'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { itemOrderMarkupChangedAtom, itemOrderValueChangedAtom, getItemAtom } from '../../application/atoms/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { ItemState } from '../../application/state/items'
-import { itemOrderMarkupChanged, itemOrderValueChanged } from '../../application/actions/items'
 import { refinedOrderMaterial } from '../../application/actions/sheets'
 
 const RefinedOrder = (p: {
@@ -13,7 +13,10 @@ const RefinedOrder = (p: {
 }) => {
     const { material } = p
     const dispatch = useDispatch()
-    const m: ItemState = useSelector(getItem(material.name))
+    const itemAtom = useMemo(() => getItemAtom(material.name), [material.name])
+    const m: ItemState = useAtomValue(itemAtom)
+    const setMarkup = useSetAtom(itemOrderMarkupChangedAtom)
+    const setValue = useSetAtom(itemOrderValueChangedAtom)
 
     return (
         <section>
@@ -24,11 +27,11 @@ const RefinedOrder = (p: {
                     label={m.name}
                     value={m.refined.orderMarkup}
                     unit={m.markup.unit}
-                    getChangeAction={itemOrderMarkupChanged(m.name)} />
+                    getChangeAction={(value) => setMarkup(m.name, value)} />
                 <input
                     type='text'
                     value={m.refined.orderValue}
-                    onChange={(e) => dispatch(itemOrderValueChanged(material.name, e.target.value))} />
+                    onChange={(e) => setValue(material.name, e.target.value)} />
 
                 <RefinedButton title='Order' pending={false} action={refinedOrderMaterial(material.name, m.refined.orderValue, m.refined.orderMarkup)} />
             </div>

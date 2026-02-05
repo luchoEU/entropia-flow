@@ -1,15 +1,17 @@
-import React from "react";
-import { itemNotesValueChanged } from "../../application/actions/items";
+import React, { useMemo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { getItemAtom, itemNotesValueChangedAtom } from "../../application/atoms/items";
 import { FieldArea } from "../common/Field";
-import { useSelector } from "react-redux";
-import { getItem } from "../../application/selectors/items";
 
 const ItemNotes = ({ name }: { name: string }) => {
-    const item = useSelector(getItem(name))
+    const itemAtom = useMemo(() => getItemAtom(name), [name])
+    const item = useAtomValue(itemAtom)
+    const setNotes = useSetAtom(itemNotesValueChangedAtom)
+
     if (!item) return <></>
-    
+
     return (
-        <FieldArea label='Notes:' value={item?.notes} getChangeAction={itemNotesValueChanged(name)} />
+        <FieldArea label='Notes:' value={item?.notes} getChangeAction={(value) => setNotes(name, value)} />
     )
 }
 

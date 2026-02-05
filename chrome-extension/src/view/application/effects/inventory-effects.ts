@@ -20,7 +20,6 @@ import { cleanForSaveByStore } from '../helpers/inventory.byStore'
 import { getDefaultStore } from 'jotai'
 import {
   rawInventoryItemsAtom,
-  itemsMapAtom,
   ownedOptionsAtom,
   hideCriteriaAtom,
   tradeItemChainAtom,
@@ -28,6 +27,7 @@ import {
   inventorySortStateAtom,
   byStoreStateAtom
 } from '../atoms/inventory'
+import { itemsMapAtom } from '../atoms/items'
 
 /**
  * Effect: Update tabular display data
@@ -70,11 +70,10 @@ export const updateTabularDataEffect = (
 export const syncReduxToJotaiEffect = (getState: () => any): void => {
   try {
     const { getInventory } = require('../selectors/inventory')
-    const { getItemsMap } = require('../selectors/items')
 
     const state: InventoryState = getInventory(getState())
-    const items: ItemsMap = getItemsMap(getState())
     const jotaiStore = getDefaultStore()
+    const items: ItemsMap = jotaiStore.get(itemsMapAtom)
 
     // Sync owned items
     if (state?.owned?.items) {
@@ -219,14 +218,13 @@ export const triggerInventoryMutationEffects = (
   if (shouldUpdateTabular) {
     try {
       const { getInventory } = require('../selectors/inventory')
-      const { getItemsMap } = require('../selectors/items')
       const { getTTService } = require('../selectors/ttService')
-      const { getDefaultStore } = require('jotai')
       const { settingsAtom } = require('../atoms/settings')
 
+      const jotaiStore = getDefaultStore()
       const state: InventoryState = getInventory(getState())
-      const settings: SettingsState = getDefaultStore().get(settingsAtom)
-      const items: ItemsMap = getItemsMap(getState())
+      const settings: SettingsState = jotaiStore.get(settingsAtom)
+      const items: ItemsMap = jotaiStore.get(itemsMapAtom)
       const ttService: TTServiceState = getTTService(getState())
 
       updateTabularDataEffect(dispatch, state, settings, items, ttService)

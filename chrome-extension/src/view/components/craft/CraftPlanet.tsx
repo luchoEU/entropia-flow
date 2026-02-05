@@ -10,13 +10,15 @@ const CraftPlanet = () => {
     const inv: InventoryState = useAtomValue(inventoryStateAtom)
     const setCraftActivePlanet = useSetAtom(setCraftActivePlanetAtom)
 
+    const validPlanets = inv.byStore?.c?.validPlanets ?? []
+
     return (
         <div className='craft-planet'>
             <label title='Set your current planet to view available materials for this blueprint'>Planet</label>
-            { inv.byStore.c.validPlanets.length === 0 ?
+            { validPlanets.length === 0 ?
                 <span>{activePlanet ?? 'No valid planets'}</span> :
                 <select value={activePlanet ?? ''} onChange={(e) => setCraftActivePlanet(e.target.value)}>
-                    {inv.byStore.c.validPlanets.map((p) => <option key={p} value={p}>{p}</option>)}
+                    {validPlanets.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
             }
         </div>

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { getItemAtom, setItemCalculatorQuantityAtom, setItemCalculatorTotalAtom, setItemCalculatorTotalMUAtom } from "../../application/atoms/inventory";
+import { getItemAtom, setItemCalculatorQuantityAtom, setItemCalculatorTotalAtom, setItemCalculatorTotalMUAtom } from "../../application/atoms/items";
 
 const ItemCalculator = ({ name }: { name: string }) => {
     const itemWebAtom = useMemo(() => getItemAtom(name), [name])

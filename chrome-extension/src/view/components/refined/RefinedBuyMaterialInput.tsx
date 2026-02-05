@@ -1,14 +1,15 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { itemBuyMarkupChanged } from '../../application/actions/items'
-import { getItem } from '../../application/selectors/items'
+import React, { useMemo } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { itemBuyMarkupChangedAtom, getItemAtom } from '../../application/atoms/items'
 import { ItemState } from '../../application/state/items'
 import RefinedInput from './RefinedInput'
 
 function RefinedBuyMaterialInput(p: {
     name: string,
 }) {
-    const m: ItemState = useSelector(getItem(p.name))
+    const itemAtom = useMemo(() => getItemAtom(p.name), [p.name])
+    const m: ItemState = useAtomValue(itemAtom)
+    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
 
     return (
         <>
@@ -16,7 +17,7 @@ function RefinedBuyMaterialInput(p: {
                 label={m.name}
                 value={m.markup.value}
                 unit={m.markup.unit}
-                getChangeAction={itemBuyMarkupChanged(m.name)} />
+                getChangeAction={(value) => setMarkup(m.name, value)} />
         </>
     )
 }

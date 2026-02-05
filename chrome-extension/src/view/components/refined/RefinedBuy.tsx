@@ -1,6 +1,6 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { getItemsMap } from '../../application/selectors/items'
+import { useAtomValue } from 'jotai'
+import { itemsMapAtom } from '../../application/atoms/items'
 import { RefinedCalculatorState, RefinedOneState } from '../../application/state/refined'
 import RefinedBuyMaterial from './RefinedBuyMaterial'
 import { ItemsMap } from '../../application/state/items'
@@ -10,7 +10,7 @@ const RefinedBuy = (p: {
 }) => {
     const { material } = p
     const c: RefinedCalculatorState = material.calculator
-    const m: ItemsMap = useSelector(getItemsMap)
+    const m: ItemsMap = useAtomValue(itemsMapAtom)
 
     return (
         <section>

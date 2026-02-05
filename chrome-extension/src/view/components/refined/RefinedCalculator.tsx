@@ -1,7 +1,8 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
+import { useAtomValue } from 'jotai'
 import { refinedValueChanged } from '../../application/actions/refined'
-import { getItemsMap } from '../../application/selectors/items'
+import { itemsMapAtom } from '../../application/atoms/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedMaterialInput from './RefinedBuyMaterialInput'
@@ -14,7 +15,7 @@ const RefineCaculator = (p: {
 }) => {
     const { material } = p
     const c = material.calculator
-    const m = useSelector(getItemsMap)
+    const m = useAtomValue(itemsMapAtom)
     const pending = useSelector(sheetPendingRefinedAuction(material.name))
 
     return (

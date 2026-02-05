@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { itemBuyAmountChanged, itemBuyMarkupChanged } from '../../application/actions/items'
-import { getItem } from '../../application/selectors/items'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { itemBuyAmountChangedAtom, itemBuyMarkupChangedAtom, getItemAtom } from '../../application/atoms/items'
 import { ItemState } from '../../application/state/items'
 import RefinedButton from './RefinedButton'
 import { refinedBuyMaterial } from '../../application/actions/sheets'
@@ -13,7 +13,10 @@ const RefinedBuyMaterial = (p: {
     buyMaterial: string
 }) => {
     const dispatch = useDispatch()
-    const m: ItemState = useSelector(getItem(p.buyMaterial))
+    const itemAtom = useMemo(() => getItemAtom(p.buyMaterial), [p.buyMaterial])
+    const m: ItemState = useAtomValue(itemAtom)
+    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
+    const setAmount = useSetAtom(itemBuyAmountChangedAtom)
     const pending = useSelector(sheetPendingRefinedBuy(p.pageMaterial, p.buyMaterial))
 
     const kAmount = Number(m.refined.buyAmount) / 1000
@@ -27,13 +30,13 @@ const RefinedBuyMaterial = (p: {
                 <input
                     type='text'
                     value={m.markup.value}
-                    onChange={(e) => dispatch(itemBuyMarkupChanged(m.name)(e.target.value))} />
+                    onChange={(e) => setMarkup(m.name, e.target.value)} />
                 <span>{m.markup.unit}</span>
             </div>
             <input
                 type='text'
                 value={m.refined.buyAmount}
-                onChange={(e) => dispatch(itemBuyAmountChanged(p.buyMaterial, e.target.value))} />
+                onChange={(e) => setAmount(p.buyMaterial, e.target.value)} />
             <div className='buy-refined-cost'>{cost.toFixed(2)} PED</div>
             <RefinedButton title='Buy' pending={pending} action={refinedBuyMaterial(p.pageMaterial, p.buyMaterial, m.refined.buyAmount, cost)} />
         </>
