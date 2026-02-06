@@ -5,7 +5,8 @@ import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCo
 import { BlueprintData } from '../../application/state/craft'
 import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
 import { NavigateFunction } from 'react-router-dom'
-import { craftBlueprintUrl, navigateTo } from '../../application/actions/navigation'
+import { formatToUrl } from '../../application/helpers/navigation'
+import { TabId } from '../../application/state/navigation'
 import CraftPlanet from './CraftPlanet'
 
 const sortRowData: SortRowData = {
@@ -26,7 +27,7 @@ const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
 const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared: (name: string, stared: boolean) => void, autoCalcData: {[name: string]: any}) => (d: BlueprintData): ItemRowData => {
     const dAutoCalc = autoCalcData[d.name]
     return {
-    dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(d.name)),
+    dispatch: (n: NavigateFunction) => n(`${TabId.CRAFT}/${formatToUrl(d.name)}`),
     columns: {
         [NAME]: {
             sub: [{

@@ -1,5 +1,4 @@
 import React, { CSSProperties, JSX, useCallback, useRef } from 'react'
-import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
 import ImgButton, { multiDispatch } from './ImgButton';
@@ -130,14 +129,13 @@ const ItemSubRowRender = (p: {sub: ItemRowSubColumnData[], width: number[]}): JS
 </>
 
 const Input = (p: { value: string, onChange: (value: string) => any }): JSX.Element => {
-    const dispatch = useDispatch()
     return <input
         style={{ width: INPUT_WIDTH, font: FONT }}
         value={p.value}
         onClick={(e) => { e.stopPropagation() }}
         onChange={(e) => {
             e.stopPropagation();
-            dispatch(p.onChange(e.target.value))
+            p.onChange(e.target.value)
         }}
     />
 }
@@ -150,10 +148,10 @@ const ItemRow = <T extends any>(
     itemSelector: (index: number) => (state: any) => T;
     columns: ColumnWidthData[];
 }) => {
-    const item: T = useSelector(itemSelector(index));
+    const getItem = itemSelector(index);
+    const item: T = getItem(null);
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
-    const dispatch = useDispatch();
     const data = getData(item);
     const className = 'item-row' + (data.dispatch ? ' pointer' : '');
 
@@ -162,7 +160,7 @@ const ItemRow = <T extends any>(
         className={className}
         style={style}
         {...(data.dispatch
-        ? { onClick: (e) => { e.stopPropagation(); dispatch(data.dispatch()); } }
+        ? { onClick: (e) => { e.stopPropagation(); data.dispatch?.(); } }
         : {})}
     >
         <ItemRowRender data={data} columns={columns} />
@@ -180,13 +178,12 @@ const ItemRowRender = (p: {
     data: ItemRowData,
     columns: ColumnWidthData[]
 }): JSX.Element => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
     return <>
         { p.columns.map((c: ColumnWidthData, i: number) => {
             const d = p.data.columns[i]
             return d && <div key={i} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); multiDispatch(dispatch, navigate, d.dispatch) }, className: 'pointer' } : {}}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); multiDispatch(navigate, d.dispatch) }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>

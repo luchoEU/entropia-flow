@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
-import { executeStreamClickAction } from "../../application/actions/stream.click"
+import { executeStreamClickAction } from "../../application/helpers/streamClick"
 import { Component, traceError } from "../../../common/trace"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {

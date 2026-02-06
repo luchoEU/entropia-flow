@@ -1,18 +1,45 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { removeActive } from '../../application/actions/actives'
-import { getActiveList, getLoading } from '../../application/selectors/actives'
-import { sheetPendingRefinedSold } from '../../application/selectors/sheets'
+import React, { useCallback } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { removeActiveAtom, activesAtom } from '../../application/atoms/actives'
+import { addSheetsPendingChangeAtom, sheetsAtom } from '../../application/atoms/sheets'
 import { ActivesItem, ActivesLoadingState } from '../../application/state/actives'
+import { OPERATION_TYPE_REFINED_SOLD_ACTIVE } from '../../application/state/sheets'
+import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
 import RefinedButton from './RefinedButton'
-import { refinedSoldActive } from '../../application/actions/sheets'
 import ImgButton from '../common/ImgButton'
 
 function RefinedActiveItem(p: { item: ActivesItem }) {
-    const loading: ActivesLoadingState = useSelector(getLoading)
-    const pending: boolean = useSelector(sheetPendingRefinedSold(p.item.date))
+    const loading: ActivesLoadingState = useAtomValue(activesAtom).loading
+    const addPendingChange = useSetAtom(addSheetsPendingChangeAtom)
+    const removeActive = useSetAtom(removeActiveAtom)
 
     const item = p.item
+
+    // Check if there's a pending change for this item
+    const sheets = useAtomValue(sheetsAtom)
+    const pending: boolean = sheets.pending.some((p: any) => p.date === item.date && p.operationType === OPERATION_TYPE_REFINED_SOLD_ACTIVE)
+
+    const handleSell = useCallback(() => {
+        const line: BudgetLineData = {
+            date: item.date,
+            reason: 'Sold',
+            ped: Number(item.buyout) - Number(item.buyoutFee) + Number(item.openingFee),
+            materials: [
+                {
+                    name: item.material,
+                    quantity: -Number(item.quantity)
+                }
+            ]
+        }
+        addPendingChange(
+            OPERATION_TYPE_REFINED_SOLD_ACTIVE,
+            item.date,
+            item.material,
+            [line],
+            [item.date]
+        )
+    }, [item, addPendingChange])
+
     const date = new Date()
     date.setTime(item.date)
     const dateStr = date.toString().slice(0, 24)
@@ -23,16 +50,16 @@ function RefinedActiveItem(p: { item: ActivesItem }) {
             <td>{item.quantity}</td>
             <td>{item.opening}</td>
             <td>{item.buyout}</td>
-            <td><RefinedButton title='Sell' pending={pending} action={refinedSoldActive(item)} /></td>
+            <td><RefinedButton title='Sell' pending={pending} onClick={handleSell} /></td>
             <td>{ loading === undefined &&
-                <ImgButton title='Remove' src='img/cross.png' dispatch={() => removeActive(0, item.date)} />
+                <ImgButton title='Remove' src='img/cross.png' dispatch={() => { removeActive(item.date); return true }} />
             }</td>
         </tr >
     )
 }
 
 function RefinedActiveList() {
-    const list: ActivesItem[] = useSelector(getActiveList)
+    const { list } = useAtomValue(activesAtom)
 
     if (list === undefined)
         return <></>

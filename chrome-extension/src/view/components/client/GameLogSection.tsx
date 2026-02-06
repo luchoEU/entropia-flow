@@ -1,16 +1,17 @@
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GameLogState } from '../../application/state/log'
 import SortableTabularSection from '../common/SortableTabularSection'
 import ExpandableSection from '../common/ExpandableSection2'
 import { TabularStateData } from '../../application/state/tabular'
-import { useSelector } from 'react-redux'
-import { getTabularData } from '../../application/selectors/tabular'
-import { getConnection } from '../../application/selectors/connection'
+import { useAtomValue } from 'jotai'
+import { tabularAtom } from '../../application/atoms/tabular'
+import { connectionAtom } from '../../application/atoms/connection'
 
 function GameLogSection() {
-    const s: TabularStateData = useSelector(getTabularData(GAME_LOG_TABULAR_RAW))
-    const { client: { status } } = useSelector(getConnection)
+    const allTabular = useAtomValue(tabularAtom)
+    const s: TabularStateData = useMemo(() => allTabular[GAME_LOG_TABULAR_RAW], [allTabular])
+    const { client: { status } } = useAtomValue(connectionAtom)
     if (!status.startsWith('connected') && !s?.items)
         return <></>
 

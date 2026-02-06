@@ -9,7 +9,8 @@ import {
   filterOptionsAtom,
   tradeItemChainAtom
 } from './inventory'
-import { craftBlueprintUrl, navigateTo } from '../actions/navigation'
+import { formatToUrl } from '../helpers/navigation'
+import { TabId } from '../state/navigation'
 import { loadCraftBlueprintAtom, setBlueprintStaredAtom, blueprintsAtom } from './craft'
 
 /**
@@ -416,7 +417,7 @@ const BlueprintLinkButton: React.FC<{
   const navigate = useNavigate()
 
   const handleClick = () => {
-    navigateTo(navigate, craftBlueprintUrl(bpName))
+    navigate(`${TabId.CRAFT}/${formatToUrl(bpName)}`)
   }
 
   return (

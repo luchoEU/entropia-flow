@@ -3,7 +3,7 @@ import { NavigateFunction } from 'react-router-dom'
 import { StoredAction, ActivityItem, formatActionDescription, actionTypeInfo, SessionType, getActionTimestamp } from '../../application/state/activity'
 import ItemText from '../common/ItemText'
 import ImgButton from '../common/ImgButton'
-import { budgetItemUrl } from '../../application/actions/navigation'
+import { TabId } from '../../application/state/navigation'
 import { ItemExclusionConfig } from './SortableItemsTable'
 import BaseActionRow from './BaseActionRow'
 
@@ -68,7 +68,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
                     style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
                     onClick={(e) => {
                         e.stopPropagation()
-                        navigate(budgetItemUrl(action.budgetName!))
+                        navigate(`${TabId.BUDGET}/${action.budgetName!}`)
                     }}
                 >
                     [📊Budget]
@@ -93,7 +93,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
                     style={{ marginLeft: '10px', textDecoration: 'underline', cursor: 'pointer', color: 'blue' }}
                     onClick={(e) => {
                         e.stopPropagation()
-                        navigate(budgetItemUrl(action.budgetName!))
+                        navigate(`${TabId.BUDGET}/${action.budgetName!}`)
                     }}
                 >
                     [📊Budget]

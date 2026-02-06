@@ -6,16 +6,14 @@ import { GameLogState } from '../state/log'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_GAME_LOG } from '../../../common/const'
 import { gameLogTabularData, gameLogTabularDefinitions } from '../tabular/log'
-import { setTabularData } from '../actions/tabular'
 import { Feature } from '../state/settings'
 import { isFeatureEnabledAtom } from './settings'
-import { getTrade } from '../selectors/trade'
-import { setLastTradeMessageCheckSerial } from '../actions/trade'
 import { GAME_LOG_TABULAR_TRADE } from '../state/log'
 import { TradeState } from '../state/trade'
 import { itemMatchesFilter, setTabularDefinitions } from '../helpers/tabular'
 import { createListNotification } from '../../../common/notifications'
-import { store } from '../store'
+import { tabularAtom } from './tabular'
+import { tradeAtom, setLastTradeMessageCheckSerialAtom } from './trade'
 
 const NOTIFICATION_ID = "entropiaFlowTrading"
 
@@ -70,23 +68,22 @@ const handleStoragePersistence = async (get: any, gameLog: GameLogData) => {
 }
 
 // Side effect: Generate and dispatch tabular data
-const handleTabularData = async (get: any, gameLog: GameLogData) => {
+const handleTabularData = async (get: any, set: any, gameLog: GameLogData) => {
     if (!getDefaultStore().get(isFeatureEnabledAtom(Feature.client))) {
         return
     }
 
     const data = gameLogTabularData(gameLog)
-    store.dispatch(setTabularData(data))
+    set(tabularAtom, (prev: any) => ({ ...prev, [GAME_LOG_TABULAR_TRADE]: data }))
 }
 
 // Side effect: Process trade notifications
-const handleTradeNotifications = async (get: any, gameLog: GameLogData) => {
+const handleTradeNotifications = async (get: any, set: any, gameLog: GameLogData) => {
     if (gameLog.trade.length === 0) {
         return
     }
 
-    const reduxState = store.getState()
-    const trade: TradeState = getTrade(reduxState)
+    const trade: TradeState = get(tradeAtom)
 
     if (!trade || !trade.notifications || trade.notifications.length === 0) {
         return
@@ -121,7 +118,7 @@ const handleTradeNotifications = async (get: any, gameLog: GameLogData) => {
     }
 
     if (gameLog.trade.length > 0) {
-        store.dispatch(setLastTradeMessageCheckSerial(gameLog.trade[0].serial))
+        set(setLastTradeMessageCheckSerialAtom, gameLog.trade[0].serial)
     }
 }
 
@@ -134,7 +131,7 @@ export const processGameLogAtom = atom<null, [GameLogData], Promise<void>>(
 
         // Trigger side effects
         await handleStoragePersistence(get, gameLog)
-        await handleTabularData(get, gameLog)
-        await handleTradeNotifications(get, gameLog)
+        await handleTabularData(get, set, gameLog)
+        await handleTradeNotifications(get, set, gameLog)
     }
 )

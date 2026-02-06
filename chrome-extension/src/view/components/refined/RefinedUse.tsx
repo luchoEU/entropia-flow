@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { itemUseAmountChangedAtom, getItemAtom } from '../../application/atoms/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
 import { ItemState } from '../../application/state/items'
-import { refinedUseMaterial } from '../../application/actions/sheets'
 
 const RefinedUse = (p: {
     material: RefinedOneState
@@ -14,6 +13,11 @@ const RefinedUse = (p: {
     const itemAtom = useMemo(() => getItemAtom(material.name), [material.name])
     const m: ItemState = useAtomValue(itemAtom)
     const setAmount = useSetAtom(itemUseAmountChangedAtom)
+
+    const handleUse = useCallback(() => {
+        // TODO: Implement refined material use sheet operation in Jotai
+        console.log(`Use ${material.name}: ${m.refined.useAmount}`)
+    }, [material.name, m.refined.useAmount])
 
     return (
         <section>
@@ -24,7 +28,7 @@ const RefinedUse = (p: {
                     value={m.refined.useAmount}
                     unit=''
                     getChangeAction={(value) => setAmount(m.name, value)} />
-                <RefinedButton title='Use' pending={false} action={refinedUseMaterial(material.name, m.refined.useAmount)} />
+                <RefinedButton title='Use' pending={false} onClick={handleUse} />
             </div>
         </section>
     )

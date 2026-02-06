@@ -3,10 +3,12 @@ import { StreamComputedVariable, StreamRenderLayout, StreamSavedLayoutSet, Strea
 import { computeFormulas } from "../../../stream/formulaCompute";
 import { formulaHelp } from "../../../stream/formulaParser";
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { removeStreamLayout, removeStreamUser, restoreStreamLayout, setStreamStared, setStreamUserPartial } from "../actions/stream";
+import { removeStreamLayoutAtom, restoreStreamLayoutAtom, setStreamStaredAtom, removeStreamUserAtom, setStreamUserPartialAtom } from "../atoms/stream";
 import { STREAM_TABULAR_CHOOSER, STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_TRASH, STREAM_TABULAR_VARIABLES } from "../state/stream";
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
-import { navigateTo, streamEditorUrl } from "../actions/navigation";
+import { formatToUrl } from "../helpers/navigation";
+import { TabId } from "../state/navigation";
+import { getDefaultStore } from 'jotai';
 
 interface StreamChooserLine {
     id: string,
@@ -70,9 +72,9 @@ const streamTabularDataFromVariables = (variables: StreamStateVariablesSet, data
 
 const _field = (g: StreamComputedVariable, layoutId: string, selector: string, maxWidth: number, flag: Record<string, boolean> = {}): RowValue => {
     if (!flag.readonly && g.source === 'layout') {
-        const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => setStreamUserPartial(layoutId, g.id!, { [selector]: v }) }
+        const w = { input: g[selector], width: maxWidth, dispatchChange: (v: string) => getDefaultStore().set(setStreamUserPartialAtom, layoutId, g.id!, { [selector]: v }) }
         const img: RowValue =
-            flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => removeStreamUser(layoutId, g.id!) } ||
+            flag.addRemove && { img: 'img/cross.png', title: 'Remove variable', dispatch: () => getDefaultStore().set(removeStreamUserAtom, layoutId, g.id!) } ||
             flag.formulaHelp && { text: 'i', class: 'img-txt-info', title: formulaHelp, width: 16 } || ''
         return img ? { sub: [ w, img ] } : w;
     } else if (maxWidth) {
@@ -95,7 +97,7 @@ const streamTabularDefinitions: TabularDefinitions = {
                 g.source,
                 _field(g, layoutId, 'name', 100, { addRemove: true, readonly: data.readonly }),
                 g.source === 'layout' && !data.readonly ? [ img, {
-                    file: 'img/edit.png', dispatchChange: (value: string) => setStreamUserPartial(layoutId, g.id!, {value})
+                    file: 'img/edit.png', dispatchChange: (value: string) => getDefaultStore().set(setStreamUserPartialAtom, layoutId, g.id!, {value})
                 }] : img,
                 _field(g, layoutId, 'description', 300, { readonly: data.readonly }),
             ];
@@ -143,9 +145,9 @@ const streamTabularDefinitions: TabularDefinitions = {
         getRow: (g: StreamChooserLine, i: number) => [
             [ g.name,
                 { flex: 1 },
-                { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => setStreamStared(g.id)(!g.stared) },
-                { img: 'img/edit.png', title: 'Edit layout', dispatch: (n: NavigateFunction) => navigateTo(n, streamEditorUrl(g.id)) },
-                { img: 'img/cross.png', title: 'Remove layout', dispatch: () => removeStreamLayout(g.id), visible: !g.readonly },
+                { img: g.stared ? 'img/staron.png' : 'img/staroff.png', title: 'Set as default', show: true, dispatch: () => getDefaultStore().set(setStreamStaredAtom, g.id, !g.stared) },
+                { img: 'img/edit.png', title: 'Edit layout', dispatch: (n: NavigateFunction) => n(`${TabId.STREAM}/layout/${g.id}`) },
+                { img: 'img/cross.png', title: 'Remove layout', dispatch: () => getDefaultStore().set(removeStreamLayoutAtom, g.id), visible: !g.readonly },
             ], {
                 layout: g.layout, layoutId: g.id, id: `stream-chooser-${i}`, scale: 0.4, width: 200
             }],
@@ -158,7 +160,7 @@ const streamTabularDefinitions: TabularDefinitions = {
         getRow: (g: StreamTrashLine, i: number) => [ 
             [ g.name,
                 { flex: 1 },
-                { img: 'img/recycle.png', title: 'Restore layout', show: true, class: 'img-btn-recycle', dispatch: () => restoreStreamLayout(g.id) },
+                { img: 'img/recycle.png', title: 'Restore layout', show: true, class: 'img-btn-recycle', dispatch: () => getDefaultStore().set(restoreStreamLayoutAtom, g.id) },
             ], {
                 layout: g.layout, layoutId: g.id, id: `stream-trash-${i}`, scale: 0.4, width: 200
             }],

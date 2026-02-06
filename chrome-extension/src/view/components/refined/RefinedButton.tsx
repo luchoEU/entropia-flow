@@ -1,15 +1,14 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getLoading } from '../../application/selectors/actives'
+import { useAtomValue } from 'jotai'
+import { activesAtom } from '../../application/atoms/actives'
 import { ActivesLoadingState } from '../../application/state/actives'
 
 function RefinedButton(p: {
     title: string,
     pending: boolean,
-    action: { type: string }
+    onClick: () => void
 }) {
-    const dispatch = useDispatch()
-    const loading: ActivesLoadingState = useSelector(getLoading)
+    const loading: ActivesLoadingState = useAtomValue(activesAtom).loading
 
     if (p.pending) {
         return (
@@ -24,7 +23,7 @@ function RefinedButton(p: {
                 <div>
                     <button
                         className='button-sell'
-                        onClick={() => dispatch(p.action)}>
+                        onClick={p.onClick}>
                         {p.title}
                     </button>
                 </div>

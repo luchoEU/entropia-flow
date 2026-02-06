@@ -20,11 +20,7 @@ function ActivityPage() {
         updateSessionType,
         updateExpandedSessions,
         updateExpandedActionRows,
-        setShowActions,
         reinferSessionActions,
-        excludeItem,
-        includeItem,
-        permanentExcludeItem,
         updateActionType,
         deleteSession,
         undoDeleteSession,
@@ -239,19 +235,8 @@ function ActivityPage() {
                                     <div style={{ flex: 1 }}>
                                         {(() => {
                                             if (showActions === 'items') {
-                                                const itemSessionList = sessionBlacklist?.[session.id] || []
-                                                const itemPermanentList = permanentItemBlacklist?.[session.type] || []
                                                 return (
                                                     <ItemsView
-                                                        itemExclusionConfig={{
-                                                            sessionId: session.id,
-                                                            sessionType: session.type,
-                                                            sessionBlacklist: itemSessionList,
-                                                            permanentBlacklist: itemPermanentList,
-                                                            onExclude: (itemName: string) => excludeItem({ sessionId: session.id, itemName }),
-                                                            onInclude: (itemName: string) => includeItem({ sessionId: session.id, itemName }),
-                                                            onPermanentExclude: (itemName: string, value: boolean) => permanentExcludeItem({ sessionType: session.type, itemName, value })
-                                                        }}
                                                         sessionStartTime={session.start}
                                                         sessionEndTime={session.end}
                                                     />

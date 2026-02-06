@@ -1,9 +1,9 @@
 // Auction Sold Detector
 
-import { craftBlueprintUrl } from "../actions/navigation";
 import { ViewItemAction, ViewItemData } from "../state/history";
 import { InventoryState } from "../state/inventory";
 import { TabId } from "../state/navigation";
+import { formatToUrl } from "./navigation";
 import { bpNameFromItemName } from "./craft-utils";
 import { REFINED_LME, REFINED_ME, REFINED_NB } from "./items";
 
@@ -19,7 +19,7 @@ function getItemAction(item: ViewItemData, inventory: InventoryState): ViewItemA
             default:
                 const addBpName = bpNameFromItemName(inventory, item.n)
                 if (addBpName)
-                    navigateTo = craftBlueprintUrl(addBpName) // open blueprint to craft more
+                    navigateTo = `${TabId.CRAFT}/${formatToUrl(addBpName)}` // open blueprint to craft more
                 break
         }
         return {

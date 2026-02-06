@@ -1,17 +1,21 @@
 import React from "react"
-import { useDispatch } from "react-redux"
 import ImgButton from "./ImgButton"
 
 function SearchInput(p: {
     filter: string,
     setFilter: (v: string) => any
 }) {
-    const dispatch = useDispatch()
+    const handleChange = (value: string) => {
+        const result = p.setFilter(value)
+        if (result instanceof Promise) {
+            result.catch(err => console.error('Filter change error:', err))
+        }
+    }
 
     return (
         <span className='search-input'>
-            {p.filter && <ImgButton title='Clear filter' src='img/cross.png' dispatch={() => p.setFilter('')} />}
-            <input type='text' className='form-control' placeholder='search' value={p.filter ?? ''} onChange={(e) => dispatch(p.setFilter(e.target.value))} />
+            {p.filter && <ImgButton title='Clear filter' src='img/cross.png' dispatch={() => { handleChange(''); return true }} />}
+            <input type='text' className='form-control' placeholder='search' value={p.filter ?? ''} onChange={(e) => handleChange(e.target.value)} />
         </span>
     )
 }

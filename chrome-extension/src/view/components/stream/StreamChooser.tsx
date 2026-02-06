@@ -1,21 +1,43 @@
-import React from "react"
-import { Dispatch } from "react"
-import { addStreamLayout, goToTrash, importStreamLayoutFromFile } from "../../application/actions/stream"
+import React, { useCallback } from "react"
+import { useSetAtom } from "jotai"
+import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom } from "../../application/atoms/stream"
 import SortableTabularSection from "../common/SortableTabularSection"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
 import LayoutRowValueRender from "../common/SortableTabularSection.layoutRender"
-import { NavigateFunction } from "react-router-dom"
+import { NavigateFunction, useNavigate } from "react-router-dom"
 import { StreamExportLayout } from "../../../stream/data"
 import schema from "../../../stream/stream-export-layout.schema.json"
 import { Validator } from "jsonschema"
 
 function StreamLayoutChooser() {
+    const navigate = useNavigate()
+    const addStreamLayout = useSetAtom(addStreamLayoutAtom)
+    const importStreamLayout = useSetAtom(importStreamLayoutFromFileAtom)
+    const goToTrash = useSetAtom(goToTrashAtom)
+
+    const handleAddLayout = useCallback(() => {
+        addStreamLayout('new-layout-' + Date.now(), 'New Layout')
+        return true
+    }, [addStreamLayout])
+
+    const handleImport = useCallback(() => {
+        openFileSelector(navigate, (layout) => importStreamLayout('imported-' + Date.now(), layout))
+        return true
+    }, [importStreamLayout, navigate])
+
+    const handleTrash = useCallback((data: any) => {
+        if (data?.hasTrash) {
+            goToTrash()
+        }
+        return true
+    }, [goToTrash])
+
     return <SortableTabularSection
         selector={STREAM_TABULAR_CHOOSER}
         afterSearch={(data) => [
-            { button: '➕ Add', dispatch: (n: NavigateFunction) => addStreamLayout(n) },
-            { button: '📥 Import', dispatch: (n: NavigateFunction, d: Dispatch<any>) => { openFileSelector(n, d); return undefined } },
-            { button: data?.hasTrash ? '🗑️ Go to Trash' : '🗑️ Empty Trash', dispatch: (n: NavigateFunction) => data?.hasTrash ? goToTrash(n) : undefined }
+            { button: '➕ Add', dispatch: () => handleAddLayout() },
+            { button: '📥 Import', dispatch: () => handleImport() },
+            { button: data?.hasTrash ? '🗑️ Go to Trash' : '🗑️ Empty Trash', dispatch: () => handleTrash(data) }
         ]}
         itemHeight={64}
         useTable={true}
@@ -23,15 +45,15 @@ function StreamLayoutChooser() {
    />
 }
 
-function openFileSelector(n: NavigateFunction, dispatch: Dispatch<any>) {
+function openFileSelector(navigate: NavigateFunction, importStreamLayout: (layout: StreamExportLayout) => void) {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json";
-    input.onchange = (event: Event) => handleFileChange(event, n, dispatch);
+    input.onchange = (event: Event) => handleFileChange(event, navigate, importStreamLayout);
     input.click();
 }
 
-function handleFileChange(event: Event, n: NavigateFunction, dispatch: Dispatch<any>) {
+function handleFileChange(event: Event, navigate: NavigateFunction, importStreamLayout: (layout: StreamExportLayout) => void) {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
         const file = target.files[0];
@@ -49,11 +71,11 @@ function handleFileChange(event: Event, n: NavigateFunction, dispatch: Dispatch<
                 const validator = new Validator();
                 const result = validator.validate(data, schema);
                 if (result.valid) {
-                    dispatch(importStreamLayoutFromFile(data));
+                    importStreamLayout(data);
                 } else {
                     console.error("Validation errors:", result.errors);
                 }
-            } catch (error) { 
+            } catch (error) {
                 console.error('Error parsing JSON:', error);
             }
         };

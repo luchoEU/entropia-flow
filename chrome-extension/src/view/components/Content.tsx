@@ -16,22 +16,21 @@ import RawStoragePage from './rawStorage/RawStoragePage'
 import AtomDebugPage from './atomDebug/AtomDebugPage'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { TabId } from '../application/state/navigation'
-import { useSelector } from 'react-redux'
-import { getVisibleByExpandable } from '../application/selectors/expandable'
-import { tabShow } from '../application/helpers/navigation'
 import { settingsAtom } from '../application/atoms/settings'
 import { lastComputedAtom } from '../application/atoms/last'
-import { getExpandable } from '../application/selectors/expandable'
-import { getShowVisibility, getStreamViewPinned } from '../application/selectors/mode'
+import { expandableAtom } from '../application/atoms/expandable'
+import { modeAtom } from '../application/atoms/mode'
 import StreamTrashPage from './stream/StreamTrashPage'
+import { tabShow } from '../application/helpers/navigation'
 
 function ContentPage() {
     const lastComputed = useAtomValue(lastComputedAtom)
     const anyInventory = lastComputed.anyInventory
     const settings = useAtomValue(settingsAtom)
-    const expandable = useSelector(getExpandable)
-    const showVisibility = useSelector(getShowVisibility);
-    const isTabVisible = (id: TabId) => getVisibleByExpandable(expandable, `tab.${id}`)
+    const expandable = useAtomValue(expandableAtom)
+    const mode = useAtomValue(modeAtom)
+    const showVisibility = mode.showVisibleToggle
+    const isTabVisible = (id: TabId) => !expandable.hidden.includes(`tab.${id}`)
 
     const tabs: { id: TabId, routes: { path: string, component: React.ComponentType }[] }[] = [
         { id: TabId.MONITOR, routes: [
@@ -85,7 +84,8 @@ const NotFoundPage = () => {
 }
 
 export function Content() {
-    const streamViewPinned = useSelector(getStreamViewPinned);
+    const mode = useAtomValue(modeAtom)
+    const streamViewPinned = mode.streamViewPinned
     return (
         <>
             {!streamViewPinned && <StreamView />}

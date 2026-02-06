@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { useSelector, useDispatch } from 'react-redux'
 import {
     activityAtom,
     activityLoadingAtom,
@@ -14,19 +13,16 @@ import {
 import { historyAtom } from '../../application/atoms/history'
 import { lastComputedAtom } from '../../application/atoms/last'
 import { currentGameLogDataAtom, initializeGameLogAtom } from '../../application/atoms/gameLog'
-import { getBudget } from '../../application/selectors/budget'
-import { addBudgetItemPendingLines, setBudgetFromSheet } from '../../application/actions/budget'
+import { budgetStateAtom, addBudgetItemPendingLinesAtom, setBudgetFromSheetAtom } from '../../application/atoms/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 
 export function ActivityBridge() {
-    const dispatch = useDispatch()
-
     // Jotai atoms
     const gameLog = useAtomValue(currentGameLogDataAtom)
     const history = useAtomValue(historyAtom)
-    const budget = useSelector(getBudget)
+    const budget = useAtomValue(budgetStateAtom)
     const last = useAtomValue(lastComputedAtom)
 
     // Jotai atoms
@@ -39,6 +35,8 @@ export function ActivityBridge() {
     const subscribe = useSetAtom(subscribeToActivityAtom)
     const updateActionBudgetName = useSetAtom(updateActionBudgetNameAtom)
     const processHistoryChange = useSetAtom(onHistoryChangeAtom)
+    const addBudgetItemPendingLines = useSetAtom(addBudgetItemPendingLinesAtom)
+    const setBudgetFromSheet = useSetAtom(setBudgetFromSheetAtom)
 
     // Refs to track previous values for comparison
     const prevGameLogRef = useRef<GameLogData | null>(null)
@@ -73,7 +71,7 @@ export function ActivityBridge() {
                 const results = inferBudgetLinesFromActions(actions, currentBudget, activity.data.items)
 
                 for (const result of results) {
-                    dispatch(addBudgetItemPendingLines(result.budgetName, [result.budgetLine]))
+                    addBudgetItemPendingLines(result.budgetName, [result.budgetLine])
                     // Update action with budget name in Jotai
                     updateActionBudgetName({ actionId: result.action.id, budgetName: result.budgetName })
                 }
@@ -93,12 +91,12 @@ export function ActivityBridge() {
                                 )
                             }
                         }
-                        dispatch(setBudgetFromSheet(updatedMap, currentBudget.list.items, currentBudget.loadPercentage))
+                        setBudgetFromSheet(updatedMap, currentBudget.list.items, currentBudget.loadPercentage)
                     }
                 }
             }
         })
-    }, [isLoading, subscribe, dispatch, updateActionBudgetName])
+    }, [isLoading, subscribe, updateActionBudgetName, addBudgetItemPendingLines, setBudgetFromSheet])
 
     // Keep ref to lastProcessedLogSerial updated
     useEffect(() => {

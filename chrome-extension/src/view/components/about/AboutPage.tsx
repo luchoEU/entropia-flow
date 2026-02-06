@@ -1,7 +1,6 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { setExpanded } from '../../application/actions/about'
-import { isExpanded } from '../../application/selectors/about'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { aboutAtom, setAboutExpandedAtom } from '../../application/atoms/about'
 import { QUESTION } from '../../application/state/about'
 import ExpandableSection from '../common/ExpandableSection2'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
@@ -10,12 +9,13 @@ const VERSION = '0.6.1'
 const LUCHO = 'Lucho MUCHO Ireton'
 
 const ExpandableQuestion = (p: { q: Question }) => {
-    const expanded = useSelector(isExpanded(QUESTION(p.q.id)))
-    const expand = setExpanded(QUESTION(p.q.id))
+    const about = useAtomValue(aboutAtom)
+    const setExpanded = useSetAtom(setAboutExpandedAtom)
+    const expanded = about.expanded.includes(QUESTION(p.q.id))
 
     return (
         <>
-            <h3>{p.q.question} <ExpandableArrowButton expanded={expanded} setExpanded={expand} /></h3>
+            <h3>{p.q.question} <ExpandableArrowButton expanded={expanded} setExpanded={() => setExpanded(QUESTION(p.q.id), !expanded)} /></h3>
             {  
                 expanded ? <>
                     { p.q.response.map((str: string) => <p key={str}>{str}</p>) }

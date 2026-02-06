@@ -1,16 +1,14 @@
 import React, { useState, DragEvent } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import ExpandableSection from '../common/ExpandableSection2'
-import { getBudget } from '../../application/selectors/budget'
+import { budgetStateAtom, addBudgetGroupAtom, clearBudgetItemPendingLinesAtom, deleteBudgetPendingLineAtom, updateBudgetPendingLineAtom, disableBudgetItemAtom, enableBudgetItemAtom, disableBudgetMaterialAtom, enableBudgetMaterialAtom, moveBudgetItemToGroupAtom, toggleBudgetGroupExpandedAtom, toggleBudgetUngroupedExpandedAtom, toggleBudgetShowDisabledAtom, enableBudgetGroupAtom, disableBudgetGroupAtom, removeBudgetGroupAtom, renameBudgetGroupAtom } from '../../application/atoms/budget'
 import { inventoryStateAtom } from '../../application/atoms/inventory'
 import { getItemList } from '../../application/helpers/inventory'
-import { addBudgetGroup, clearBudgetItemPendingLines, deleteBudgetPendingLine, updateBudgetPendingLine, disableBudgetItem, enableBudgetItem, disableBudgetMaterial, enableBudgetMaterial, moveItemToGroup, refreshBudget, removeBudgetGroup, renameBudgetGroup, sendBudgetPendingLines, toggleBudgetGroupExpanded, toggleBudgetUngroupedExpanded, toggleBudgetShowDisabled, enableBudgetGroup, disableBudgetGroup } from '../../application/actions/budget'
 import ImgButton from '../common/ImgButton'
 import { STAGE_INITIALIZING, StageText } from '../../services/api/sheets/sheetsStages'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 import { formatDateTime } from '../../../common/time'
-import { budgetItemMaterialUrl, budgetItemUrl } from '../../application/actions/navigation'
+import { TabId } from '../../application/state/navigation'
 import { useNavigate } from 'react-router-dom'
 import { BudgetDetailsViewData, calculateBudgetViewData, calculateMaterialDetailsViewData, GroupViewData, ItemViewData, MaterialDetailsViewData, UrlSelection } from '../../application/helpers/budgetViewData'
 
@@ -22,8 +20,10 @@ interface EditingPendingLine {
 }
 
 const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | null }) => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
+    const updateBudgetPendingLine = useSetAtom(updateBudgetPendingLineAtom)
+    const deleteBudgetPendingLine = useSetAtom(deleteBudgetPendingLineAtom)
+    const clearBudgetItemPendingLines = useSetAtom(clearBudgetItemPendingLinesAtom)
     const [editingLine, setEditingLine] = useState<EditingPendingLine | null>(null)
 
     if (!viewData) {
@@ -52,7 +52,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
         const materials = editingLine.materials
             .filter(m => m.quantity !== '')
             .map(m => ({ name: m.name, quantity: parseFloat(m.quantity) || 0 }))
-        dispatch(updateBudgetPendingLine(editingLine.itemName, editingLine.lineIdx, ped, materials))
+        updateBudgetPendingLine(editingLine.itemName, editingLine.lineIdx, ped, materials)
         setEditingLine(null)
     }
 
@@ -97,7 +97,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                 <tbody>
                     {viewData.materials.map(mat => (
                         <tr key={mat.name}>
-                            <td className='pointer' onClick={() => navigate(budgetItemMaterialUrl(viewData.selectedItem!, mat.name))}>{mat.name}</td>
+                            <td className='pointer' onClick={() => navigate(`${TabId.BUDGET}/${viewData.selectedItem!}/${mat.name}`)}>{mat.name}</td>
                             <td align='right'>{mat.budgetQuantity}</td>
                             <td align='right'>{mat.budgetValue.toFixed(2)} PED</td>
                             <td align='right'>{mat.budgetWithMarkup.toFixed(2)} PED</td>
@@ -118,7 +118,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                         <h4>{itemName}</h4>
                         {lines.filter(l => l.reason != 'Balance').length > 0 && (
                             <button
-                                onClick={() => dispatch(clearBudgetItemPendingLines(itemName))}
+                                onClick={() => clearBudgetItemPendingLines(itemName)}
                                 style={{ fontSize: '12px', padding: '2px 6px' }}
                             >
                                 🧹 Clear All
@@ -146,7 +146,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                 <ImgButton
                                                     title='Delete pending line'
                                                     src='img/cross.png'
-                                                    dispatch={() => dispatch(deleteBudgetPendingLine(itemName, line.index))}
+                                                    dispatch={() => deleteBudgetPendingLine(itemName, line.index)}
                                                 />
                                             )}
                                         </td>
@@ -214,14 +214,15 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                 </div>
             ))}
             <br />
-            <button onClick={() => dispatch(sendBudgetPendingLines(viewData.pendingLinesForAction))} disabled={viewData.stage !== STAGE_INITIALIZING}>Apply Pending Lines</button>
+            {/* TODO: Implement Apply Pending Lines functionality */}
         </>}
     </div>
 }
 
 const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDetailsViewData | null, selectedItem: string | null }) => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
+    const enableBudgetMaterial = useSetAtom(enableBudgetMaterialAtom)
+    const disableBudgetMaterial = useSetAtom(disableBudgetMaterialAtom)
 
     if (!viewData) {
         return null
@@ -229,7 +230,7 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
 
     return (
         <div className='trade-item-data'>
-            <h2 className='pointer img-hover-container' onClick={() => navigate(budgetItemUrl(selectedItem!))}>
+            <h2 className='pointer img-hover-container' onClick={() => navigate(`${TabId.BUDGET}/${selectedItem!}`)}>
                 Material: {viewData.materialName} <img src='img/left.png' />
             </h2>
             <p>Markup: {(viewData.markup * 100).toFixed(2)}%</p>
@@ -254,10 +255,10 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
                                     <>
                                         {item.real.disabled ? (
                                             <ImgButton title='Enable this material' src='img/tick.png'
-                                                dispatch={() => dispatch(enableBudgetMaterial(viewData.sheetName, item.itemName))} />
+                                                dispatch={() => enableBudgetMaterial(viewData.sheetName, item.itemName)} />
                                         ) : (
                                             <ImgButton title='Disable this material' src='img/cross.png'
-                                                dispatch={() => dispatch(disableBudgetMaterial(viewData.sheetName, item.itemName))} />
+                                                dispatch={() => disableBudgetMaterial(viewData.sheetName, item.itemName)} />
                                         )}
                                         {item.itemName}
                                     </>
@@ -296,12 +297,22 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
 }
 
 function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected: string | null, selectedMaterial: string | null }) {
-    const budgetState = useSelector(getBudget)
+    const budgetState = useAtomValue(budgetStateAtom)
     // Use Jotai atom instead of Redux selector for inventory
     const inventoryState = useAtomValue(inventoryStateAtom)
     const inventory = getItemList(inventoryState)
-    const dispatch = useDispatch()
     const navigate = useNavigate()
+    const moveItemToGroup = useSetAtom(moveBudgetItemToGroupAtom)
+    const addBudgetGroup = useSetAtom(addBudgetGroupAtom)
+    const removeBudgetGroup = useSetAtom(removeBudgetGroupAtom)
+    const renameBudgetGroup = useSetAtom(renameBudgetGroupAtom)
+    const toggleBudgetGroupExpanded = useSetAtom(toggleBudgetGroupExpandedAtom)
+    const toggleBudgetUngroupedExpanded = useSetAtom(toggleBudgetUngroupedExpandedAtom)
+    const enableBudgetItem = useSetAtom(enableBudgetItemAtom)
+    const disableBudgetItem = useSetAtom(disableBudgetItemAtom)
+    const toggleBudgetShowDisabled = useSetAtom(toggleBudgetShowDisabledAtom)
+    const enableBudgetGroup = useSetAtom(enableBudgetGroupAtom)
+    const disableBudgetGroup = useSetAtom(disableBudgetGroupAtom)
     const [draggedItem, setDraggedItem] = useState<string | null>(null)
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
     const [editingName, setEditingName] = useState('')
@@ -395,7 +406,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const handleDropOnGroup = (e: DragEvent<HTMLTableSectionElement>, groupId: string | null) => {
         e.preventDefault()
         if (draggedItem) {
-            dispatch(moveItemToGroup(draggedItem, groupId))
+            moveItemToGroup(draggedItem, groupId)
             setDraggedItem(null)
         }
     }
@@ -403,7 +414,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const handleAddGroup = () => {
         const name = prompt('Enter group name:')
         if (name && name.trim()) {
-            dispatch(addBudgetGroup(name.trim()))
+            addBudgetGroup(name.trim())
         }
     }
 
@@ -414,7 +425,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
 
     const handleFinishRename = () => {
         if (editingGroupId && editingName.trim()) {
-            dispatch(renameBudgetGroup(editingGroupId, editingName.trim()))
+            renameBudgetGroup(editingGroupId, editingName.trim())
         }
         setEditingGroupId(null)
         setEditingName('')
@@ -463,7 +474,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     cursor: 'grab',
                     opacity: isLoading || disabled ? 0.6 : 1
                 }}
-                onClick={() => navigate(budgetItemUrl(name))}
+                onClick={() => navigate(`${TabId.BUDGET}/${name}`)}
             >
                 <td align='center'>
                     {isLoading && (
@@ -485,9 +496,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {disabled ? (
-                            <ImgButton title='Enable' src='img/tick.png' dispatch={() => dispatch(enableBudgetItem(name))} />
+                            <ImgButton title='Enable' src='img/tick.png' dispatch={() => enableBudgetItem(name)} />
                         ) : (
-                            <ImgButton title='Disable' src='img/cross.png' dispatch={() => dispatch(disableBudgetItem(name))} />
+                            <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(name)} />
                         )}
                         <span style={{
                             fontStyle: isLoading ? 'italic' : 'normal',
@@ -514,7 +525,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
         return (
             <tr
                 className={`budget-group-header pointer ${isGroupSelected(groupData.id) ? 'selected' : ''} ${groupData.disabled ? 'budget-item-disabled' : ''}`}
-                onClick={() => navigate(budgetItemUrl(groupData.id))}
+                onClick={() => navigate(`${TabId.BUDGET}/${groupData.id}`)}
                 style={{ opacity: groupData.disabled ? 0.6 : 1 }}
             >
                 <td align='center'>
@@ -530,9 +541,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         setExpanded={() => toggleBudgetGroupExpanded(groupData.id)}
                     />
                     {groupData.disabled ? (
-                        <ImgButton title='Enable group' src='img/tick.png' dispatch={() => dispatch(enableBudgetGroup(groupData.id))} />
+                        <ImgButton title='Enable group' src='img/tick.png' dispatch={() => enableBudgetGroup(groupData.id)} />
                     ) : (
-                        <ImgButton title='Disable group' src='img/cross.png' dispatch={() => dispatch(disableBudgetGroup(groupData.id))} />
+                        <ImgButton title='Disable group' src='img/cross.png' dispatch={() => disableBudgetGroup(groupData.id)} />
                     )}
                     {isEditing ? (
                         <input
@@ -562,7 +573,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     <ImgButton
                         title='Delete group'
                         src='img/cross.png'
-                        dispatch={() => removeBudgetGroup(groupData.id)}
+                        dispatch={() => {removeBudgetGroup(groupData.id)}}
                         style={{ marginLeft: '8px' }}
                     />
                 </td>
@@ -630,9 +641,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
             <p>
-                <ImgButton title='Refresh' src='img/reload.png' className='img-btn-refresh' dispatch={() => refreshBudget} disabled={viewData.stage !== STAGE_INITIALIZING}></ImgButton>
+                <ImgButton title='Refresh' src='img/reload.png' className='img-btn-refresh' dispatch={handleAddGroup} disabled={viewData.stage !== STAGE_INITIALIZING}></ImgButton>
                 <ImgButton title='Add Group' src='img/add.png' className='img-btn-add' dispatch={handleAddGroup} />
-                <ImgButton title={showDisabled ? 'Hide Disabled' : 'Show Disabled'} className='img-btn-disabled' src={showDisabled ? 'img/eyeOpen.png' : 'img/eyeClose.png'} dispatch={() => dispatch(toggleBudgetShowDisabled())} />
+                <ImgButton title={showDisabled ? 'Hide Disabled' : 'Show Disabled'} className='img-btn-disabled' src={showDisabled ? 'img/eyeOpen.png' : 'img/eyeClose.png'} dispatch={() => toggleBudgetShowDisabled()} />
                 { viewData.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[viewData.stage]}... {viewData.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>
@@ -652,7 +663,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                       {viewData.groups.map(renderGroup)}
                       {viewData.ungrouped.items.length > 0 && renderUngroupedSection()}
                       <tbody>
-                          <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(budgetItemUrl('totals'))}>
+                          <tr className={`budget-group-header pointer ${isTotalsSelected ? 'selected' : ''}`} onClick={() => navigate(`${TabId.BUDGET}/totals`)}>
                               <td></td>
                               <td><strong>TOTAL</strong></td>
                               <td align='right'><strong>{viewData.totals.peds.toFixed(2)}</strong></td>

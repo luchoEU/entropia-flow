@@ -1,14 +1,12 @@
 import React, { CSSProperties, MouseEventHandler } from "react"
-import { useDispatch } from "react-redux"
 import { NavigateFunction, useNavigate } from "react-router-dom"
-import { Dispatch, UnknownAction } from "redux"
 
 const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, clickPopup, className, disabled, style, alt, show }: {
     title: string,
     beforeText?: string,
     afterText?: string,
     src: string,
-    dispatch: (navigate: NavigateFunction) => any,
+    dispatch: (navigate?: NavigateFunction) => any,
     clickPopup?: string
     className?: string
     disabled?: boolean
@@ -16,7 +14,6 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     alt?: string
     show?: boolean
 }) => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
     const onClick: MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation()
@@ -27,7 +24,7 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
             setTimeout(() => { popup.style.display = 'none' }, 1000)
         }
 
-        multiDispatch(dispatch, navigate, pDispatch)
+        multiDispatch(navigate, pDispatch)
     }
 
     return <>
@@ -52,11 +49,10 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
 }
 
 function multiDispatch(
-    dispatch: Dispatch<UnknownAction>,
     navigate: NavigateFunction,
-    getDispatchAction: (navigate: NavigateFunction, dispatch: Dispatch<UnknownAction>) => any
+    getDispatchAction: (navigate?: NavigateFunction) => any
 ) {
-    const action = getDispatchAction(navigate, dispatch)
+    const action = getDispatchAction(navigate)
     if (!action) return
 
     // Handle promises (e.g., from async Jotai atom setters)
@@ -67,10 +63,9 @@ function multiDispatch(
         return
     }
 
-    if (Array.isArray(action)) {
-        action.forEach((a) => dispatch(a))
-    } else {
-        dispatch(action)
+    // For Jotai atoms, we call the action directly
+    if (typeof action === 'function') {
+        action()
     }
 }
 

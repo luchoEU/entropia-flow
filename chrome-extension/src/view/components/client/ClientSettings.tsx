@@ -1,14 +1,16 @@
 import React from 'react'
 import { ConnectionState } from '../../application/state/connection';
-import { getConnection } from '../../application/selectors/connection';
-import { webSocketConnectionChanged, webSocketRetry } from '../../application/actions/connection';
+import { setConnectionWebSocketAtom, setConnectionStatusAtom } from '../../application/atoms/connection';
 import ImgButton from '../common/ImgButton';
-import { useSelector } from 'react-redux';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { connectionAtom } from '../../application/atoms/connection';
 import ExpandableSection from '../common/ExpandableSection2';
 import { Field } from '../common/Field';
 
 function EntropiaFlowClient() {
-    const s: ConnectionState = useSelector(getConnection)
+    const s: ConnectionState = useAtomValue(connectionAtom)
+    const setWebSocket = useSetAtom(setConnectionWebSocketAtom)
+    const setConnectionStatus = useSetAtom(setConnectionStatusAtom)
     
     return (
         <>
@@ -17,7 +19,7 @@ function EntropiaFlowClient() {
                     <Field
                         label='URI'
                         value={s.client.webSocket}
-                        getChangeAction={webSocketConnectionChanged} />
+                        getChangeAction={(uri: string) => setWebSocket(uri)} />
                 </div>
                 <p>
                     Status: {s.client.status}
@@ -26,7 +28,7 @@ function EntropiaFlowClient() {
                         src='img/reload.png'
                         className='img-btn-delta-zero'
                         show
-                        dispatch={() => webSocketRetry} />
+                        dispatch={() => setConnectionStatus('retrying')} />
                 </p>
                 {!s.client.status.startsWith('connected') && <p>
                     <a href="https://github.com/luchoEU/entropia-flow/releases/download/client-0.1.0/EntropiaFlowClient_v0.1.0.zip" target="_blank">You can download the client from here</a>

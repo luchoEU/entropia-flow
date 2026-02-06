@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
-import { getMenuPinned, getMode, getShowVisibility } from '../application/selectors/mode';
-import { pinMenu, setShowSubtitles, setShowVisibleToggle } from '../application/actions/mode';
-import { getClientStatus } from '../application/selectors/connection';
-import { getStatusMessage } from '../application/selectors/status';
+import { modeAtom, setShowSubtitlesAtom, setShowVisibleToggleAtom, pinMenuAtom } from '../application/atoms/mode';
+import { connectionAtom } from '../application/atoms/connection';
+import { statusAtom } from '../application/atoms/status';
 import { lastComputedAtom } from '../application/atoms/last';
-import { getBudgetPendingCount } from '../application/selectors/budget';
-import { getVisible } from '../application/selectors/expandable';
-import { setVisible } from '../application/actions/expandable';
+import { budgetStateAtom } from '../application/atoms/budget';
+import { expandableAtom, setVisibleAtom } from '../application/atoms/expandable';
 import { settingsAtom } from '../application/atoms/settings';
 import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -43,9 +40,12 @@ const Tab = (p: {
         }
     };
 
-    const showVisibility = useSelector(getShowVisibility);
+    const mode = useAtomValue(modeAtom);
+    const expandable = useAtomValue(expandableAtom);
+    const setVisible = useSetAtom(setVisibleAtom);
     const visibleSelector = `tab.${p.id}`;
-    const visible: boolean = useSelector(getVisible(visibleSelector));
+    const showVisibility = mode.showVisibleToggle;
+    const visible: boolean = !expandable.hidden.includes(visibleSelector);
 
     if (!visible && !showVisibility)
         return <></>
@@ -67,7 +67,7 @@ const Tab = (p: {
                 <ImgButton title={visible ? 'click to Hide Tab' : 'click to Show Tab'}
                     className='img-btn-visible-tab'
                     src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
-                    dispatch={() => setVisible(visibleSelector)(!visible)} />
+                    dispatch={() => setVisible(visibleSelector, !visible)} />
             }
         </button>
     )
@@ -76,12 +76,17 @@ const Tab = (p: {
 const FirstRow = () => {
     const lastComputed = useAtomValue(lastComputedAtom)
     const anyInventory = lastComputed.anyInventory
-    const status = useSelector(getClientStatus)
-    const message = useSelector(getStatusMessage);
+    const connection = useAtomValue(connectionAtom)
+    const status = connection.client.status
+    const statusData = useAtomValue(statusAtom)
+    const message = statusData.message;
     const settings = useAtomValue(settingsAtom)
-    const showVisibility = useSelector(getShowVisibility)
-    const menuPinned = useSelector(getMenuPinned)
-    const budgetPendingCount = useSelector(getBudgetPendingCount)
+    const mode = useAtomValue(modeAtom)
+    const showVisibility = mode.showVisibleToggle
+    const menuPinned = mode.menuPinned
+    const budgetState = useAtomValue(budgetStateAtom)
+    const budgetPendingCount = budgetState.list.items.filter(item => (item.pendingLines?.length ?? 0) > 0).length
+    const pinMenu = useSetAtom(pinMenuAtom)
 
     return (
         <>
@@ -108,7 +113,10 @@ const FirstRow = () => {
 }
 
 const Navigation = () => {
-    const { showSubtitles, showVisibleToggle, menuPinned, streamViewPinned }: ModeState = useSelector(getMode)
+    const mode: ModeState = useAtomValue(modeAtom)
+    const { showSubtitles, showVisibleToggle, menuPinned, streamViewPinned } = mode
+    const setShowSubtitles = useSetAtom(setShowSubtitlesAtom)
+    const setShowVisibleToggle = useSetAtom(setShowVisibleToggleAtom)
     const tabId = getTabIdFromLocation(useLocation())
     const { ref, size: { height } } = useElementSize<HTMLElement>();
 

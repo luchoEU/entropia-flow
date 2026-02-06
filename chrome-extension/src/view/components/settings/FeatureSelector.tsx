@@ -1,16 +1,16 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { featureList, SettingsState } from "../../application/state/settings";
 import ExpandableSection from "../common/ExpandableSection2";
 import ModeState from "../../application/state/mode";
-import { getMode } from "../../application/selectors/mode";
 import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
 import { useAtomValue, useSetAtom } from "jotai";
 import { settingsAtom, setFeatureEnabledAtom } from "../../application/atoms/settings";
+import { modeAtom } from "../../application/atoms/mode";
 
 function FeatureSelector() {
     const s: SettingsState = useAtomValue(settingsAtom);
-    const { showSubtitles }: ModeState = useSelector(getMode)
+    const mode: ModeState = useAtomValue(modeAtom);
+    const { showSubtitles } = mode;
     const setFeatureEnabled = useSetAtom(setFeatureEnabledAtom);
 
     return (

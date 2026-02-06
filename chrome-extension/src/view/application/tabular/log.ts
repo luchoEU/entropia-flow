@@ -2,9 +2,10 @@ import { GameLogData, GameLogEnhancerBroken, GameLogEvent, GameLogGlobal, GameLo
 import { GAME_LOG_TABULAR_ENHANCER_BROKEN, GAME_LOG_TABULAR_EVENT, GAME_LOG_TABULAR_GLOBAL, GAME_LOG_TABULAR_LOOT, GAME_LOG_TABULAR_MISSING, GAME_LOG_TABULAR_RAW, GAME_LOG_TABULAR_SKILL, GAME_LOG_TABULAR_STATISTICS, GAME_LOG_TABULAR_TIER, GAME_LOG_TABULAR_TRADE, GameLogState } from "../state/log"
 import { TabularDefinitions, TabularRawData } from "../state/tabular";
 import { TemporalValue } from "../../../common/state";
-import { setTabularFilter } from "../actions/tabular";
+import { setTabularFilterAtom } from "../atoms/tabular";
 import { filterExact } from "../../../common/filter";
 import { dateToString } from "../../../common/date";
+import { getDefaultStore } from 'jotai';
 
 function _separateCamelCase(s: string): string {
     return s
@@ -75,12 +76,12 @@ const gameLogTabularDefinitions: TabularDefinitions = {
         columns: ['Time', 'Channel', 'Player', 'Message'],
         getRow: (g: GameLogTrade) => [ dateToString(g.time),
             [ g.channel,
-                { img: 'img/find.png', title: 'Search by this channel', dispatch: () => setTabularFilter(GAME_LOG_TABULAR_TRADE)(filterExact(g.channel)) } ],
+                { img: 'img/find.png', title: 'Search by this channel', dispatch: () => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, filterExact(g.channel)) } ],
             { maxWidth: 180, sub: [ g.player,
-                { img: 'img/find.png', title: 'Search by this player', dispatch: () => setTabularFilter(GAME_LOG_TABULAR_TRADE)(filterExact(g.player)) }] },
+                { img: 'img/find.png', title: 'Search by this player', dispatch: () => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, filterExact(g.player)) }] },
             { class: 'trade-item', maxWidth: 400, sub:
                 (g.message.match(/\[[^\]]+\]|\s+|[^\[\]\s]+/g) || []).map(t => t.startsWith('[') && t.endsWith(']') ?
-                [ t, { img: 'img/find.png', title: 'Search by this item', dispatch: () => setTabularFilter(GAME_LOG_TABULAR_TRADE)(t) } ] : t)}
+                [ t, { img: 'img/find.png', title: 'Search by this item', dispatch: () => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, t) } ] : t)}
         ],
         getRowForSort: (g: GameLogTrade) => [, g.channel, g.player, g.message],
     },

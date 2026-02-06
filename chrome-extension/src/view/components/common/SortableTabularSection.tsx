@@ -1,19 +1,18 @@
 import React, { JSX, useCallback, useRef } from 'react'
-import { useSelector } from "react-redux"
+import { useAtomValue, useSetAtom } from "jotai"
 import { FixedSizeList } from 'react-window';
 import isEqual from 'lodash.isequal';
 import SearchInput from './SearchInput';
 import ExpandableSection from './ExpandableSection2';
-import { getTabularData, getTabularDataItem } from '../../application/selectors/tabular';
+import { tabularAtom, sortTabularByAtom, setTabularFilterAtom } from '../../application/atoms/tabular';
 import { TabularDefinition, TabularStateData } from '../../application/state/tabular';
-import { setTabularFilter, sortTabularBy } from '../../application/actions/tabular';
 import { SortSecuence } from '../../application/state/sort';
 import { getTabularDefinition } from '../../application/helpers/tabular';
 import { COLUMN_PADDING, FONT, IMG_SORT_WIDTH, IMG_WIDTH, ITEM_HEIGHT, LIST_TOTAL_HEIGHT, RowValue, RowValueRender, SCROLL_BAR_WIDTH } from './SortableTabularSection.data';
 import BaseRowValueRender, { getRowValueWidth } from './SortableTabularSection.baseRender';
 
-const _getSortRow = (selector: string, columns: string[], columnHeaderAfterName?: RowValue[], sortSecuence?: SortSecuence): RowValue[] => columns.map((text, i) => ({
-    dispatch: () => sortTabularBy(selector, i),
+const _getSortRow = (selector: string, columns: string[], onSort: (columnIndex: number) => void, columnHeaderAfterName?: RowValue[], sortSecuence?: SortSecuence): RowValue[] => columns.map((text, i) => ({
+    dispatch: () => onSort(i),
     style: { justifyContent: 'center' },
     sub: [
         { strong: text },
@@ -122,13 +121,13 @@ const _ItemRow = <T extends any>(
     style: React.CSSProperties;
     getRow: (item: T, index: number, data: any) => RowValue[];
     getRowClass?: (item: T, index: number, data: any) => string | undefined;
-    itemSelector: (index: number) => (state: any) => T;
+    itemSelector: (index: number) => any;  // Changed from selector function to direct item getter
     columns: ColumnWidthData[];
     height: number;
     data: any,
     rowValueRender: RowValueRender;
 }) => {
-    const item: T = useSelector(itemSelector(index));
+    const item: T = useAtomValue(itemSelector(index)) as T;
     if (!item) return <p>{`Item ${index} not found`}</p>;
 
     const row = getRow(item, index, data);
@@ -201,18 +200,21 @@ const SortableTabularFixedTable = <TItem extends any>({ selector, rowValueRender
     useWidthFromAll?: boolean
     itemHeight?: number
 }) => {
-    const s: TabularStateData = useSelector(getTabularData(selector))
+    const s: TabularStateData = useAtomValue(tabularAtom)[selector]
+    const sortBy = useSetAtom(sortTabularByAtom)
+
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
     const { columns, columnHeaderAfterName, getRow: getItemRow, getRowClass } = getTabularDefinition(selector, s.items?.show, s.data)
-    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
+    const onSort = useCallback((columnIndex: number) => sortBy(selector, columnIndex), [selector, sortBy])
+    const sortRow = _getSortRow(selector, columns, onSort, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const table: TableParameters<TItem> = {
         width: _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, s.data, getItemRow),
         itemCount: s.items.show.length,
         sortRow,
         getItemRow,
         getRowClass,
-        itemSelector: getTabularDataItem(selector),
+        itemSelector: (index: number) => () => s.items.show[index],
         itemHeight,
         data: s.data,
         rowValueRender: rowValueRender ?? BaseRowValueRender
@@ -226,12 +228,15 @@ const SortableTabularTable = ({ selector, rowValueRender, useWidthFromAll }: {
     rowValueRender?: RowValueRender,
     useWidthFromAll?: boolean
 }) => {
-    const s: TabularStateData = useSelector(getTabularData(selector))
+    const s: TabularStateData = useAtomValue(tabularAtom)[selector]
+    const sortBy = useSetAtom(sortTabularByAtom)
+
     if (!s?.items) return <p>{selector} is not loaded with items</p>
 
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
     const { columns, columnHeaderAfterName, getRow: getItemRow, getRowKey: getItemRowKey } = getTabularDefinition(selector, s.items?.show, s.data)
-    const sortRow = _getSortRow(selector, columns, columnHeaderAfterName?.(s.data), s.sortSecuence)
+    const onSort = useCallback((columnIndex: number) => sortBy(selector, columnIndex), [selector, sortBy])
+    const sortRow = _getSortRow(selector, columns, onSort, columnHeaderAfterName?.(s.data), s.sortSecuence)
     const width = _calculateWidths(useWidthFromAll ? s.items.all : s.items.show, sortRow, s.data, getItemRow)
 
     return <div style={{ maxHeight: LIST_TOTAL_HEIGHT, overflowX: 'hidden', overflowY: 'auto' }}>
@@ -267,10 +272,14 @@ const SortableTabularSearch = ({
     afterSearch?: (data: any) => RowValue[],
     rowValueRender?: RowValueRender
 }) => {
-    const s: TabularStateData = useSelector(getTabularData(selector))
+    const allTabular = useAtomValue(tabularAtom)
+    const s: TabularStateData = allTabular[selector]
+    const setFilter = useSetAtom(setTabularFilterAtom)
     const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined!, undefined)
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
     const stats = s.items?.stats ?? { count: 0 }
+
+    const handleSetFilter = useCallback((filter: string) => setFilter(selector, filter), [selector, setFilter])
 
     return <div className='search-container'>
         <p><span>{ stats.ped ? `Total value ${stats.ped} PED for` : 'Listing'}</span>
@@ -278,7 +287,7 @@ const SortableTabularSearch = ({
             <span> {definition.itemTypeName ?? 'item'}{stats.count == 1 ? '' : 's'}</span>
         </p>
         <p className='search-input-container'>
-            <SearchInput filter={s.filter} setFilter={setTabularFilter(selector)} />
+            <SearchInput filter={s.filter} setFilter={handleSetFilter} />
             { afterSearch && <RowValueRenderComponent v={afterSearch(s.data)} /> }
         </p>
     </div>
@@ -307,7 +316,8 @@ const SortableTabularSection = ({
 }) => {
     const RowValueRenderComponent = rowValueRender ?? BaseRowValueRender
     const definition: TabularDefinition<any, any> = getTabularDefinition(selector, undefined!, undefined)
-    const s: TabularStateData = useSelector(getTabularData(selector))
+    const allTabular = useAtomValue(tabularAtom)
+    const s: TabularStateData = allTabular[selector]
 
     if (!definition) return <p>{selector} is not defined</p>
     if (!s?.items) return <p>{selector} is not loaded with items</p>

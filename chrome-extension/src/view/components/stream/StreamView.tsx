@@ -1,26 +1,21 @@
-import React from 'react'
-import { useSelector } from 'react-redux';
-import { getStream } from '../../application/selectors/stream';
+import React, { useMemo } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai';
+import { streamStateAtom, setStreamShowingLayoutIdAtom } from '../../application/atoms/stream';
+import { modeAtom, pinStreamViewAtom } from '../../application/atoms/mode';
 import StreamViewLayout from './StreamViewLayout';
 import { StreamState } from '../../application/state/stream';
-import { createSelector } from '@reduxjs/toolkit';
 import ExpandableSection from '../common/ExpandableSection2';
 import ImgButton from '../common/ImgButton';
-import { getShowVisibility, getStreamViewPinned } from '../../application/selectors/mode';
-import { pinStreamView } from '../../application/actions/mode';
-
-const selectEnabledViewAndData = createSelector(
-    getStream,
-    (stream: StreamState) => ({
-        view: stream.in.view,
-        d: stream.out?.data,
-    })
-);
 
 function StreamView() {
-    const { view, d } = useSelector(selectEnabledViewAndData)
-    const showVisibility = useSelector(getShowVisibility);
-    const streamViewPinned = useSelector(getStreamViewPinned);
+    const streamState = useAtomValue(streamStateAtom)
+    const modeState = useAtomValue(modeAtom)
+    const setPinStreamView = useSetAtom(pinStreamViewAtom)
+
+    const view = useMemo(() => streamState.in.view, [streamState.in.view])
+    const d = useMemo(() => streamState.out?.data, [streamState.out?.data])
+    const showVisibility = useMemo(() => modeState.showVisibleToggle, [modeState.showVisibleToggle])
+    const streamViewPinned = useMemo(() => modeState.streamViewPinned, [modeState.streamViewPinned])
 
     return view.some((w, _) => d?.layoutData[w]) && (
         <ExpandableSection selector='StreamView' title='' subtitle='Stream View' hideExpandableArrow className='stream-view-section'
@@ -29,10 +24,10 @@ function StreamView() {
                 className='img-btn-stream-view-pin'
                 src={streamViewPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                 show
-                dispatch={() => pinStreamView(!streamViewPinned)}
+                dispatch={() => { setPinStreamView(!streamViewPinned); return true }}
             /> : undefined}
         >
-            {view.map((w, i) => d.layoutData[w] && <StreamViewLayout key={i} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}
+            {view.map((w, i) => d.layoutData[w] && <StreamViewLayout key={w} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}
         </ExpandableSection>
     )
 }

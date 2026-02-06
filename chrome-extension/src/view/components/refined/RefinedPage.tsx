@@ -1,12 +1,12 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { getRefined } from '../../application/selectors/refined'
+import { useAtomValue } from 'jotai'
+import { refinedMapAtom } from '../../application/atoms/refined'
 import { RefinedState } from '../../application/state/refined'
 import RefinedMaterial from './RefinedMaterial'
 import RefinedActive from './RefinedActive'
 
 function RefinedPage() {
-    const state: RefinedState = useSelector(getRefined)
+    const state: RefinedState = useAtomValue(refinedMapAtom)
 
     return (
         <>

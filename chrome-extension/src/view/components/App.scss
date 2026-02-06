@@ -531,6 +531,11 @@ form label {
     align-self: center;
 }
 
+.img-btn {
+    padding: 0px;
+    margin: 0px;
+}
+
 .img-btn img {
     width: 16px;
     height: 16px;
@@ -560,6 +565,7 @@ form label {
 }
 
 .img-btn-export img {
+    width: 14px;
     height: 14px;
 }
 
@@ -582,8 +588,8 @@ form label {
 }
 
 .img-btn-warning img, .img-warning {
+    width: 25px;
     height: 25px;
-    margin-left: 10px;
 }
 
 .img-about {
@@ -598,6 +604,7 @@ form label {
     cursor: default;
 }
 .img-btn-up img {
+    width: 10px;
     height: 10px;
     margin-right: 2px;
     margin-bottom: 2px;
@@ -822,8 +829,6 @@ input {
     background-color: transparent;
     color: black;
     border: solid 1px gray;
-    margin: 7px 2px;
-    padding: 6px 10px;
     border-radius: 8px;
     min-width: 28px;
     min-height: 28px;
@@ -838,12 +843,10 @@ input {
 }
 
 .button-markup {
-    margin-left: 10px;
     border-color: transparent;
 }
 
 .button-actions {
-    margin-left: 10px;
     border-color: transparent;
 }
 

@@ -1,38 +1,99 @@
-import React from 'react'
-import { useAtom } from 'jotai'
-import { ViewItemData } from '../../../application/state/history'
-import { ItemExclusionConfig, SortableItemsTable } from '../SortableItemsTable'
+import React, { useMemo } from 'react'
+import { useAtomValue } from 'jotai'
+import { atom } from 'jotai'
 import { activityAtom } from '../../../application/atoms/activity'
+import { JotaiSortableTable } from '../../common/jotai/JotaiSortableTable'
+import ItemText from '../../common/ItemText'
 
 interface ItemsViewProps {
-    itemExclusionConfig: ItemExclusionConfig
     sessionStartTime?: number
     sessionEndTime?: number
 }
 
 const ItemsView: React.FC<ItemsViewProps> = ({
-    itemExclusionConfig,
     sessionStartTime = 0,
     sessionEndTime = Infinity,
 }) => {
-    const [activity] = useAtom(activityAtom)
+    const activity = useAtomValue(activityAtom)
 
-    const items: ViewItemData[] = activity.data.items
-        .filter(item => item.timestamp >= sessionStartTime && item.timestamp < sessionEndTime)
-        .map(item => ({
-            t: item.timestamp,
-            s: item.source,
-            key: item.id,
-            n: item.name,
-            q: (item.quantity ?? 0).toString(),
-            v: (item.value ?? 0).toFixed(2),
-            c: item.container
-        }))
+    // Create atom for filtered items
+    const itemsAtom = useMemo(() => {
+        return atom((get) => {
+            const act = get(activityAtom)
+            return act.data.items
+                .filter(item => item.timestamp >= sessionStartTime && item.timestamp < sessionEndTime)
+                .map(item => ({
+                    id: item.id,
+                    timestamp: item.timestamp,
+                    source: item.source,
+                    name: item.name,
+                    quantity: item.quantity ?? 0,
+                    value: item.value ?? 0,
+                    container: item.container
+                }))
+        })
+    }, [sessionStartTime, sessionEndTime])
+
+    // Column configuration
+    const columns = useMemo(() => [
+        {
+            id: 'timestamp' as const,
+            header: 'Time',
+            width: 180,
+            sortAccessor: (item: any) => item.timestamp,
+            renderRowCell: (item: any) => {
+                const date = new Date(item.timestamp)
+                return !isNaN(date.getTime()) ? date.toLocaleString() : '-'
+            }
+        },
+        {
+            id: 'name' as const,
+            header: 'Item',
+            width: 150,
+            sortAccessor: (item: any) => item.name,
+            renderRowCell: (item: any) => <ItemText text={item.name} />
+        },
+        {
+            id: 'quantity' as const,
+            header: 'Quantity',
+            width: 100,
+            sortAccessor: (item: any) => item.quantity,
+            renderRowCell: (item: any) => item.quantity.toString(),
+            justifyContent: 'end' as const
+        },
+        {
+            id: 'value' as const,
+            header: 'Value',
+            width: 120,
+            sortAccessor: (item: any) => item.value,
+            renderRowCell: (item: any) => `${item.value.toFixed(2)} PED`,
+            justifyContent: 'end' as const
+        },
+        {
+            id: 'container' as const,
+            header: 'Container',
+            width: 150,
+            sortAccessor: (item: any) => item.container,
+            renderRowCell: (item: any) => item.container || '-'
+        },
+        {
+            id: 'source' as const,
+            header: 'Source',
+            width: 120,
+            sortAccessor: (item: any) => item.source,
+            renderRowCell: (item: any) => item.source || '-'
+        }
+    ], [])
 
     return (
-        <SortableItemsTable
-            items={items}
-            exclusionConfig={itemExclusionConfig}
+        <JotaiSortableTable
+            itemsAtom={itemsAtom}
+            config={{
+                title: 'Items',
+                columns,
+                itemTypeName: 'item',
+                getRowKey: (item: any) => item.id
+            }}
         />
     )
 }

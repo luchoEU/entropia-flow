@@ -1,6 +1,6 @@
 import { RowValue } from "../../components/common/SortableTabularSection.data";
-import { setTabularFilter } from "../actions/tabular";
-import { loadTTService } from "../actions/ttService";
+import { setTabularFilterAtom } from "../atoms/tabular";
+import { loadTTServiceAtom } from "../atoms/inventory";
 import { INVENTORY_TABULAR_OWNED, InventoryState, ItemOwned, TradeItemData } from "../state/inventory";
 import { ItemsMap, ItemState } from "../state/items";
 import { Feature, isFeatureEnabled, SettingsState } from "../state/settings";
@@ -83,7 +83,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                 { img: 'img/loading.gif', title: `Loading from ${data.ttService.loadingSource}`, class: 'img-tt-service-loading' } :
                 [
                     ...(data?.ttService.loadingError ? [{ img: 'img/error.png', title: data.ttService.loadingError, class: 'img-tt-service-error' }] : []),
-                    { img: 'img/reload.png', title: 'Reload TT Service from sheet', class: 'img-tt-service-reload', dispatch: loadTTService }
+                    { img: 'img/reload.png', title: 'Reload TT Service from sheet', class: 'img-tt-service-reload', dispatch: () => getDefaultStore().set(loadTTServiceAtom) }
                 ]
         ],
         getRow: (g: ItemOwned, index: number, data?: InventoryTabularOwnedData): RowValue[] => {
@@ -101,7 +101,7 @@ const inventoryTabularDefinitions: TabularDefinitions = {
                             { img: 'img/left.png', title: 'Hide item details', show: true } :
                             { img: 'img/right.png', title: 'Show item details' },
                         { flex: 1 },
-                        { img: 'img/find.png', title: 'Search by this item name', dispatch: () => setTabularFilter(INVENTORY_TABULAR_OWNED)(`!${g.data.n}`) }
+                        { img: 'img/find.png', title: 'Search by this item name', dispatch: () => jotaiStore.set(setTabularFilterAtom, INVENTORY_TABULAR_OWNED, `!${g.data.n}`) }
                     ]
                 },
                 g.data.q, // Quantity

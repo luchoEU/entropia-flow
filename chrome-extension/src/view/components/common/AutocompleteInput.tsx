@@ -1,14 +1,19 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 export default function AutocompleteInput({ value, getChangeAction, suggestions }: {
     value: string,
     getChangeAction: (v: string) => any,
     suggestions?: string[]
 }) {
-    const dispatch = useDispatch()
     const [highlightIndex, setHighlightIndex] = React.useState(-1);
     const [hideSuggestions, setHideSuggestions] = React.useState(false);
+
+    const handleChange = (newValue: string) => {
+        const result = getChangeAction(newValue)
+        if (result instanceof Promise) {
+            result.catch(err => console.error('Change error:', err))
+        }
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!suggestions || suggestions.length === 0) return;
@@ -29,7 +34,7 @@ export default function AutocompleteInput({ value, getChangeAction, suggestions 
             case 'Enter':
                 e.preventDefault();
                 if (highlightIndex >= 0 && highlightIndex < suggestions.length) {
-                    dispatch(getChangeAction(suggestions[highlightIndex]));
+                    handleChange(suggestions[highlightIndex]);
                     setHideSuggestions(true);
                     setHighlightIndex(-1);
                 }
@@ -45,7 +50,7 @@ export default function AutocompleteInput({ value, getChangeAction, suggestions 
     return (
         <span className='autocomplete-container'>
             <input value={value} onChange={(e) => {
-                dispatch(getChangeAction(e.target.value))
+                handleChange(e.target.value)
                 setHideSuggestions(false)
             }} onBlur={() => {
                 setHideSuggestions(true)
@@ -54,7 +59,7 @@ export default function AutocompleteInput({ value, getChangeAction, suggestions 
                 <div className='autocomplete-suggestions'>
                     {suggestions.map((s, i) => (
                         <div key={i} className={highlightIndex === i ? 'autocomplete-suggestion-highlight' : ''} onClick={() => {
-                            dispatch(getChangeAction(s));
+                            handleChange(s);
                             setHideSuggestions(true);
                             setHighlightIndex(-1);
                         }}>

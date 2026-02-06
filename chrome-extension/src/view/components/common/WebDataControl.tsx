@@ -1,7 +1,6 @@
 import React, { JSX, useEffect } from "react"
 import { WebLoadResponse } from "../../../web/loader"
 import ImgButton, { multiDispatch } from "./ImgButton"
-import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
 
 function WebDataControl<T>({
@@ -17,20 +16,19 @@ function WebDataControl<T>({
     showWithErrors?: boolean,
     content: (data: T | undefined) => JSX.Element,
 }) {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
 
     const reload = () => dispatchReload && <ImgButton
         title={`Try to load ${name} again`}
         src='img/reload.png'
         className='img-btn-delta-zero'
-        dispatch={dispatchReload} />
+        dispatch={() => dispatchReload()} />
 
     useEffect(() => {
         if (!w && dispatchReload) {
-            multiDispatch(dispatch, navigate, dispatchReload);
+            dispatchReload();
         }
-    }, [w])
+    }, [w, dispatchReload])
 
     return <>
         { !w ? <p style={{ display: 'flex', gap: '5px' }}>{name}{ reload() }</p> : (

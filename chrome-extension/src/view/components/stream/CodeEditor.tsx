@@ -4,7 +4,6 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-css';
-import { useDispatch } from 'react-redux';
 
 const mustache = {
     pattern: /{{.*?}}/,
@@ -17,10 +16,15 @@ Prism.languages.insertBefore('css', 'selector', { mustache });
 Prism.languages.insertBefore('markup', 'tag', { mustache });
 
 const CodeEditor = (p: { language: 'html'|'css'|'javascript', readOnly: boolean, value: string, dispatchChange: (value: string) => any }) => {
-    const dispatch = useDispatch()
-
     const prismLanguage = p.language === 'css' ? 'css' : p.language === 'javascript' ? 'javascript' : 'markup';
     const highlightCode = (code: string) => code && Prism.highlight(code, Prism.languages[prismLanguage], prismLanguage)
+
+    const handleChange = (value: string) => {
+        const result = p.dispatchChange(value)
+        if (result instanceof Promise) {
+            result.catch(err => console.error('Code change error:', err))
+        }
+    }
 
     return (
         <div style={{
@@ -32,7 +36,7 @@ const CodeEditor = (p: { language: 'html'|'css'|'javascript', readOnly: boolean,
         }}>
             <Editor
                 value={p.value}
-                onValueChange={(v) => { dispatch(p.dispatchChange(v)) }}
+                onValueChange={handleChange}
                 highlight={highlightCode}
                 padding={10}
                 readOnly={p.readOnly}

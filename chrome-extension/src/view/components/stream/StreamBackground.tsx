@@ -1,21 +1,19 @@
-import React, { JSX } from "react";
+import React, { JSX, useMemo } from "react";
 import { backgroundList, BackgroundSpec } from "../../../stream/background";
 import { getLogoUrl } from "../../../stream/backgroundGetLogo";
 import ExpandableSection from "../common/ExpandableSection2";
-import { useDispatch, useSelector } from "react-redux";
-import { useAtomValue } from "jotai";
-import { getStreamLayout } from "../../application/selectors/stream";
+import { useAtomValue, useSetAtom } from "jotai";
+import { streamStateAtom, setStreamBackgroundSelectedAtom } from "../../application/atoms/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
-import { setStreamBackgroundSelected } from "../../application/actions/stream";
 import { settingsAtom } from "../../application/atoms/settings";
 
 const StreamBackground = ({ background, layoutId, isSelected }: {
     background: BackgroundSpec,
     layoutId: string,
-    isSelected: boolean,    
+    isSelected: boolean,
 }): JSX.Element => {
-    const dispatch = useDispatch()
+    const setBackgroundSelected = useSetAtom(setStreamBackgroundSelectedAtom)
 
     const single: StreamRenderSingle = {
         data: {
@@ -38,7 +36,7 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 
     return (
         <div {...(isSelected ? { className: 'stream-selected' } : {})}
-            onClick={() => dispatch(setStreamBackgroundSelected(layoutId, background.type))}>
+            onClick={() => setBackgroundSelected(layoutId, background.type)}>
             <StreamViewLayout id={`stream-background-${background.type}`} layoutId={'entropiaflow.background'} single={single} />
         </div>
     )
@@ -46,7 +44,9 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
     const settings = useAtomValue(settingsAtom)
-    const { layout: c } = useSelector(getStreamLayout(layoutId))
+    const streamState = useAtomValue(streamStateAtom)
+    const layoutData = useMemo(() => streamState.in.layouts[layoutId], [streamState.in.layouts, layoutId])
+    const c = layoutData
     if (!c) return <></>
 
     return (

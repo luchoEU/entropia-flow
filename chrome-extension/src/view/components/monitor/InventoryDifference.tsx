@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
-import { useDispatch, useSelector } from 'react-redux'
 import { useSetAtom, useAtomValue } from 'jotai'
 import { ViewPedData } from '../../application/state/last'
 import { addPedsAtom, removePedsAtom } from '../../application/atoms/last'
@@ -34,7 +33,6 @@ const ItemRow = ({ item, c }: {
     item: ViewItemData,
     c: Config
 }) => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
     const material = useAtomValue(getItemAtom(item.n))
     const showActionLink = useAtomValue(isFeatureEnabledAtom(Feature.actionLink))
@@ -42,7 +40,10 @@ const ItemRow = ({ item, c }: {
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()
-        dispatch(c.sortBy(part))
+        const result = c.sortBy(part)
+        if (result instanceof Promise) {
+            result.catch(err => console.error('Sort error:', err))
+        }
     }
 
     let valueMU = material?.markup?.value === undefined ? undefined : getValueWithMarkup(item.q, item.v, material);

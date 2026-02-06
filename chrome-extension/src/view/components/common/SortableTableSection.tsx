@@ -1,5 +1,4 @@
 import React, { CSSProperties, JSX, useCallback, useRef } from 'react'
-import { useDispatch, useSelector } from "react-redux"
 import { FixedSizeList } from 'react-window';
 import ItemText from './ItemText';
 import ImgButton from './ImgButton';
@@ -185,12 +184,11 @@ const ItemRowRender = (p: {
     data: ItemRowData,
     columns: ColumnWidthData[]
 }): JSX.Element => {
-    const dispatch = useDispatch()
     return <>
         { p.columns.map((c: ColumnWidthData) => {
             const d = p.data.columns[c.part]
             return d && <div key={c.part} style={{ ...d.style, width: c.width - _getPadding(d), font: FONT, display: 'inline-flex' }}
-                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); dispatch(d.dispatch()) }, className: 'pointer' } : {}}
+                {...d.dispatch ? { onClick: (e) => { e.stopPropagation(); d.dispatch?.() }, className: 'pointer' } : {}}
             >
                 <ItemSubRowRender sub={d.sub} width={c.subWidth} />
             </div>

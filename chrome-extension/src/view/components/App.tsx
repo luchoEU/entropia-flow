@@ -1,51 +1,33 @@
 import React, { useEffect, useState } from 'react'
-import { Provider } from 'react-redux';
-import { Provider as JotaiProvider, getDefaultStore, useSetAtom } from 'jotai';
+import { Provider as JotaiProvider, useAtomValue, useSetAtom } from 'jotai';
 import './App.scss'
-import { store } from '../application/store';
 import Navigation from './Navigation';
 import { Content } from './Content';
 import { HashRouter } from 'react-router-dom';
-import { useAppDispatch } from '../application/store';
-import { useSelector } from 'react-redux';
-import { appAction, initialize, isAppLoaded } from '../application/slice/app';
 import { ActivityBridge } from './bridges/ActivityBridge';
 import { HistoryBridge } from './bridges/HistoryBridge';
-import { initializeCraftStateAtom } from '../application/atoms/craft';
-//import { initializeInventoryAtoms } from '../application/effects/inventory-initialization';
+import { initializeAppAtom, appInitializedAtom } from '../application/atoms/app';
 
 function _AppWithInitializer() {
-    const dispatch = useAppDispatch();
-    const isLoaded = useSelector(isAppLoaded);
+    const isLoaded = useAtomValue(appInitializedAtom);
     const [showSoftLoader, setShowSoftLoader] = useState(true);
     const [appInvisible, setAppInvisible] = useState(true);
-    const initializeCraftState = useSetAtom(initializeCraftStateAtom);
+    const initializeApp = useSetAtom(initializeAppAtom);
 
     useEffect(() => {
-        dispatch(initialize());
+        initializeApp();
         const timeout = setTimeout(() => { setShowSoftLoader(false); }, 500); // show a soft loader for 500ms
         return () => clearTimeout(timeout);
-    }, [dispatch]);
+    }, [initializeApp]);
 
     useEffect(() => {
         if (!isLoaded) return
-        dispatch(appAction.loaded);
 
-        // Initialize Jotai state (load blueprints, inventory, etc.)
-        initializeCraftState();
-        // Call initializeInventoryAtoms directly with API
-        /*(async () => {
-            try {
-                const { default: api } = await import('../services/api')
-                await initializeInventoryAtoms(api)
-            } catch (error) {
-                console.error('Failed to initialize inventory atoms:', error)
-            }
-        })()*/
-
-        const timeout = setTimeout(() => { setAppInvisible(false); }, 100); // let it calculate stream layout sizes
+        // App is now initialized, make it visible after brief delay
+        // This gives time to calculate stream layout sizes
+        const timeout = setTimeout(() => { setAppInvisible(false); }, 100);
         return () => clearTimeout(timeout);
-    }, [isLoaded, dispatch, initializeCraftState]);
+    }, [isLoaded]);
 
     return <>
         { isLoaded && <div className={appInvisible ? 'app-invisible' : ''}>
@@ -61,15 +43,13 @@ function _AppWithInitializer() {
 
 function App() {
   return (
-    <Provider store={store}>
-      <JotaiProvider store={getDefaultStore()}>
-        <HashRouter>
-          <ActivityBridge />
-          <HistoryBridge />
-          <_AppWithInitializer />
-        </HashRouter>
-      </JotaiProvider>
-    </Provider>
+    <JotaiProvider>
+      <HashRouter>
+        <ActivityBridge />
+        <HistoryBridge />
+        <_AppWithInitializer />
+      </HashRouter>
+    </JotaiProvider>
   )
 }
 

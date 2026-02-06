@@ -1,6 +1,5 @@
 import React, { JSX, useRef, useState } from 'react'
 import { FONT, FONT_BOLD, IMG_WIDTH, INPUT_PADDING, INPUT_WIDTH, ITEM_TEXT_PADDING, RowValue, RowValueRender } from './SortableTabularSection.data'
-import { useDispatch } from 'react-redux'
 import ItemText from './ItemText'
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import ImgButton, { multiDispatch } from './ImgButton';
@@ -42,7 +41,6 @@ const getRowValueWidth = (v: RowValue, imgWidth: number = IMG_WIDTH): number[] =
 
 const BaseRowValueRender: RowValueRender = (p) => {
     const { v } = p;
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const style = typeof v === 'object' && {
@@ -54,12 +52,16 @@ const BaseRowValueRender: RowValueRender = (p) => {
     if (style)
         delete style['justifyContent']
     const className = typeof v === 'object' && 'class' in v && v.class;
+
+    // Dummy dispatch function for Redux compatibility
+    const dummyDispatch = (action: any) => { console.log('Dispatch:', action); };
+
     const extra = typeof v === 'object' && {
         ...'title' in v && { title: v.title },
         ...className && { className },
         ...style && { style },
         ...'dispatch' in v && {
-            onClick: (e: React.MouseEvent) => { e.stopPropagation(); multiDispatch(dispatch, navigate, v.dispatch!) },
+            onClick: (e: React.MouseEvent) => { e.stopPropagation(); v.dispatch?.(navigate, dummyDispatch as any) },
             className: className ? className + ' pointer' : 'pointer'
         },
     }
@@ -70,7 +72,7 @@ const BaseRowValueRender: RowValueRender = (p) => {
         typeof v === 'object' ? (
             ('flex' in v ? <div style={{ flex: v.flex }} /> :
             ('img' in v ? 'clickPopup' in v ?
-                <ImgButton src={v.img} clickPopup={v.clickPopup} dispatch={(n: NavigateFunction) => v.dispatch!(n, dispatch)} {...v.show && { 'data-show': true }} {...extra} /> :
+                <ImgButton src={v.img} clickPopup={v.clickPopup} dispatch={(navigate) => v.dispatch?.(navigate, dummyDispatch as any)} {...v.show && { 'data-show': true }} {...extra} /> :
                 <img src={v.img} {...v.show && { 'data-show': true }} {...extra} /> :
             ('button' in v ? <button {...extra}>{v.button}</button> :
             ('text' in v ? <ItemText text={v.text} extra={extra} /> :
@@ -84,7 +86,6 @@ const BaseRowValueRender: RowValueRender = (p) => {
 }
 
 const _Input = (p: { value: string, width: number, dispatchChange: (value: string) => any }): JSX.Element => {
-    const dispatch = useDispatch()
     const [ text, setText ] = useState(p.value); // don't use p.value directly to avoid losing the cursor position
 
     return <input
@@ -95,33 +96,42 @@ const _Input = (p: { value: string, width: number, dispatchChange: (value: strin
         onChange={(e) => {
             e.stopPropagation();
             setText(e.target.value)
-            dispatch(p.dispatchChange(e.target.value))
+            const result = p.dispatchChange(e.target.value)
+            // Handle promises and direct returns
+            if (result instanceof Promise) {
+                result.catch(err => console.error('Change error:', err))
+            }
         }}
     />
 }
 
 const _File = (p: { value: string, dispatchChange: (value: string) => any }): JSX.Element => {
-    const dispatch = useDispatch()
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleButtonClick = () => {
       fileInputRef.current?.click(); // Programmatically trigger the file input click
     };
-  
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]; // Get the selected file
       if (file) {
         const reader = new FileReader();
-  
+
         reader.onload = (e) => {
-            dispatch(p.dispatchChange(e.target?.result as string))
+            const result = p.dispatchChange(e.target?.result as string)
+            if (result instanceof Promise) {
+                result.catch(err => console.error('File load error:', err))
+            }
         };
-  
+
         reader.onerror = (err) => {
             console.error("Error reading file:", err);
-            dispatch(p.dispatchChange(''));
+            const result = p.dispatchChange('')
+            if (result instanceof Promise) {
+                result.catch(e => console.error('File error dispatch error:', e))
+            }
         };
-  
+
         reader.readAsDataURL(file);
       }
     };

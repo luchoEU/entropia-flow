@@ -1,5 +1,4 @@
 import React from "react"
-import { useDispatch } from "react-redux"
 import { useSetAtom } from "jotai"
 
 const Field = ({ label, value, title, getChangeAction, children }: {
@@ -9,15 +8,13 @@ const Field = ({ label, value, title, getChangeAction, children }: {
     getChangeAction: (v: string) => any,
     children?: any
 }) => {
-    const dispatch = useDispatch()
-
     return (
         <p>
             <label title={title}>{label}</label>
             <input
                 type='text'
                 value={value}
-                onChange={(e) => dispatch(getChangeAction(e.target.value))} />
+                onChange={(e) => getChangeAction(e.target.value)} />
             { children }
         </p>
     )
@@ -28,14 +25,12 @@ const FieldArea = ({ label, value, getChangeAction }: {
     value: string,
     getChangeAction: (v: string) => any
 }) => {
-    const dispatch = useDispatch()
-
     return (
         <p>
             <label>{label}</label>
             <textarea
                 value={value}
-                onChange={(e) => dispatch(getChangeAction(e.target.value))} />
+                onChange={(e) => getChangeAction(e.target.value)} />
         </p>
     )
 }

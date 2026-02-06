@@ -1,10 +1,12 @@
 import { CRAFT_TABULAR_BLUEPRINTS, CraftState } from "../state/craft"
 import { TabularDefinitions, TabularRawData } from "../state/tabular"
 import { InventoryState } from "../state/inventory"
-import { setBlueprintStared } from "../actions/craft";
-import { craftBlueprintUrl, navigateTo } from "../actions/navigation";
+import { setBlueprintStaredAtom } from "../atoms/craft";
+import { formatToUrl } from "../helpers/navigation";
+import { TabId } from "../state/navigation";
 import { NavigateFunction } from "react-router-dom";
 import { getBlueprintList } from "../helpers/inventory";
+import { getDefaultStore } from 'jotai';
 
 interface BlueprintTabularItem {
     name: string;
@@ -60,12 +62,12 @@ const craftTabularDefinitions: TabularDefinitions = {
                 {
                     img: 'img/right.png',
                     title: 'Show item details',
-                    dispatch: (n: NavigateFunction) => navigateTo(n, craftBlueprintUrl(g.name)) },
+                    dispatch: (n: NavigateFunction) => n(`${TabId.CRAFT}/${formatToUrl(g.name)}`) },
                 { flex: 1 },
                 {
                     img: g.stared ? 'img/staron.png' : 'img/staroff.png',
                     title: g.stared ? 'Remove from Favorites' : 'Add to Favorites',
-                    dispatch: () => setBlueprintStared(g.name, !g.stared)
+                    dispatch: () => getDefaultStore().set(setBlueprintStaredAtom, g.name, !g.stared)
                 },
             ],
             g.quantity.toString()

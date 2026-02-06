@@ -1,13 +1,12 @@
 import React from "react"
-import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue, useSetAtom } from "jotai";
 import { ActivesLoadingState } from "../../application/state/actives";
-import { getLoading } from "../../application/selectors/actives";
-import { endLoading } from "../../application/actions/actives";
+import { activesAtom, endActivesLoadingAtom } from "../../application/atoms/actives";
 import { StageText } from "../../services/api/sheets/sheetsStages";
 
 function RefinedStatus() {
-    const dispatch = useDispatch()
-    const loading: ActivesLoadingState = useSelector(getLoading)
+    const loading: ActivesLoadingState = useAtomValue(activesAtom).loading
+    const endLoading = useSetAtom(endActivesLoadingAtom)
 
     if (loading !== undefined) {
         if (loading.errorText !== undefined) {
@@ -17,7 +16,7 @@ function RefinedStatus() {
                     <img
                         className='img-loading'
                         src='img/cross.png'
-                        onClick={() => dispatch(endLoading)}>
+                        onClick={() => endLoading()}>
                     </img>
                     {loading.errorText}
                 </p>

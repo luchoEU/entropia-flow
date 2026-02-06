@@ -1,4 +1,3 @@
-import { addActive, removeActive } from "../actions/actives"
 import { SheetsState } from "../state/sheets"
 import { budgetGetCreateParams } from "./refined"
 
@@ -26,7 +25,7 @@ const clearPendingChanges = (state: SheetsState): SheetsState => ({
     pending: []
 })
 
-const setTimeoutId = (state: SheetsState, timeoutId: number) => ({
+const setTimeoutId = (state: SheetsState, timeoutId: NodeJS.Timeout) => ({
     ...state,
     timeoutId
 })
@@ -55,14 +54,8 @@ const operationChangeFunc: string[] = [
     'addLine', // OPERATION_TYPE_REFINED_REFINE_MATERIAL
 ]
 
-const operationDoneFunc = [
-    removeActive, // OPERATION_TYPE_REFINED_SOLD_ACTIVE
-    addActive, // OPERATION_TYPE_REFINED_AUCTION_MATERIAL
-    undefined, // OPERATION_TYPE_REFINED_BUY_MATERIAL
-    undefined, // OPERATION_TYPE_REFINED_ORDER_MATERIAL
-    undefined, // OPERATION_TYPE_REFINED_USE_MATERIAL
-    undefined, // OPERATION_TYPE_REFINED_REFINE_MATERIAL
-]
+// operationDoneFunc removed - no longer used in Jotai-based implementation
+// Previously mapped Redux actions to operation callbacks
 
 export {
     initialState,
@@ -73,5 +66,4 @@ export {
     loadSheetFunc,
     loadSheetParams,
     operationChangeFunc,
-    operationDoneFunc,
 }

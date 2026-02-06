@@ -86,7 +86,7 @@ export const Last = () => {
 
     return (
         <ExpandableSection selector='Last' title='Current Session' subtitle='Changes in your inventory since your session started'>
-            <p className="img-hover-container flex" style={{ alignItems: 'center', gap: '10px' }}>
+            <p className="img-hover-container flex" style={{ alignItems: 'center', gap: '10px', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
                 <span onClick={() => setExpanded(!expanded)}>
                     <ExpandablePlusButton
                         expanded={expanded}
@@ -100,6 +100,7 @@ export const Last = () => {
                         title={ expanded ? 'Exclude all items with warnings from the sum' : 'Items with warnings, click to expand' }
                         src='img/warning.png'
                         className='img-btn-warning'
+                        show
                         dispatch={() => {
                             if (expanded) {
                                 excludeWarnings()

@@ -1,6 +1,6 @@
 interface SheetsState {
     pending: SheetsPending[],
-    timeoutId: NodeJS.Timeout
+    timeoutId: NodeJS.Timeout | undefined
 }
 
 interface SheetsPending {

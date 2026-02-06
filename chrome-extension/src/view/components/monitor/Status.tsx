@@ -1,19 +1,20 @@
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { Status } from '../../../common/state'
-import { refresh, timerOff, timerOn } from '../../application/actions/messages';
 import { historyAtom } from '../../application/atoms/history';
-import { getStatus } from '../../application/selectors/status';
+import { statusAtom, requestTimerOnAtom, requestTimerOffAtom, requestRefreshAtom } from '../../application/atoms/status';
 import { STRING_PLEASE_LOG_IN, URL_MY_ITEMS_PAGE } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
 import ExpandableSection from '../common/ExpandableSection2';
-import { setExpanded } from '../../application/actions/expandable';
+import { setExpandedAtom } from '../../application/atoms/expandable';
 
 const Status = () => {
-    const dispatch = useDispatch()
     const history = useAtomValue(historyAtom)
-    const { class: className, message, showLoading, isMonitoring } = useSelector(getStatus);
+    const { class: className, message, showLoading, isMonitoring } = useAtomValue(statusAtom);
+    const setExpanded = useSetAtom(setExpandedAtom)
+    const requestTimerOn = useSetAtom(requestTimerOnAtom)
+    const requestTimerOff = useSetAtom(requestTimerOffAtom)
+    const requestRefresh = useSetAtom(requestRefreshAtom)
 
     return (
         <ExpandableSection selector='MonitorStatus' title='Entropia Universe Items' subtitle='Status of connection' actionRequired={message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined}>
@@ -25,14 +26,14 @@ const Status = () => {
                         title='Refresh'
                         src='img/reload.png'
                         show
-                        dispatch={() => refresh} />
+                        dispatch={requestRefresh} />
                 }
                 { history.hiddenError &&
                     <ImgButton
                         title={history.hiddenError}
                         src='img/error.png'
                         show
-                        dispatch={() => setExpanded('MonitorStatus')(true)} />
+                        dispatch={() => setExpanded('MonitorStatus', true)} />
                 }
                 <span className={className}>
                     {message === STRING_PLEASE_LOG_IN ?
@@ -41,10 +42,10 @@ const Status = () => {
                     }
                 </span>
                 {isMonitoring ?
-                    <button className="button-timer stop" onClick={() => dispatch(timerOff)}>
+                    <button className="button-timer stop" onClick={requestTimerOff}>
                         ⏹️ Stop Automatic Refresh
                     </button> :
-                    <button className="button-timer start" onClick={() => dispatch(timerOn)}>
+                    <button className="button-timer start" onClick={requestTimerOn}>
                         ▶️ Start Automatic Refresh
                     </button>
                 }
