@@ -1,17 +1,24 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { itemsSyncStatusAtom, itemsDebounceTimeAtom } from "../../application/atoms/items";
+import { itemsSyncStatusAtom, itemsDebounceTimeAtom, itemsSheetUrlAtom } from "../../application/atoms/items";
 import { settingsAtom } from "../../application/atoms/settings";
 
 const ItemSyncStatus = () => {
     const syncStatus = useAtomValue(itemsSyncStatusAtom);
     const debounceTime = useAtomValue(itemsDebounceTimeAtom);
     const settings = useAtomValue(settingsAtom);
+    const itemsSheetUrl = useAtomValue(itemsSheetUrlAtom);
 
     // Only show if sheet persistence mode is enabled
     if (settings.sheet.itemsSheetPersistenceMode !== 'sheet') {
         return null;
     }
+
+    const handleOpenSheet = () => {
+        if (itemsSheetUrl) {
+            window.open(itemsSheetUrl, '_blank');
+        }
+    };
 
     const getStatusIcon = () => {
         switch (syncStatus) {
@@ -59,21 +66,34 @@ const ItemSyncStatus = () => {
     };
 
     return (
-        <div
+        <span
+            onClick={handleOpenSheet}
             style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 fontSize: '0.75em',
                 color: getStatusColor(),
                 marginLeft: '15px',
-                fontWeight: syncStatus === 'pending' ? 'bold' : 'normal'
+                fontWeight: syncStatus === 'pending' ? 'bold' : 'normal',
+                cursor: itemsSheetUrl ? 'pointer' : 'default',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
             }}
-            title={`Sheet sync status: ${getStatusText()}`}
+            onMouseEnter={(e) => {
+                if (itemsSheetUrl) {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                }
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            title={itemsSheetUrl ? `${getStatusText()} (Click to open Items sheet)` : getStatusText()}
         >
             {getStatusIcon()}
             <span>{getStatusText()}</span>
-        </div>
+        </span>
     );
 };
 

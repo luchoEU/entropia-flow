@@ -163,10 +163,10 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 </div>
                 { reserve && item && <div style={{ borderTop: '1px solid #ddd', marginBottom: '12px' }}>
                     <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(tradeItemData.name, v)}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                             <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</span>
                             <ItemSyncStatus />
-                        </div>
+                        </span>
                     </Field>
                 </div> }
                 <div style={{ borderTop: '1px solid #ddd', marginTop: '12px' }}>

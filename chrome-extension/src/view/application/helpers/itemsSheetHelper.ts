@@ -1,6 +1,6 @@
 import { getDefaultStore } from 'jotai'
-import { itemsMapAtom } from '../atoms/items'
-import { settingsAtom } from '../atoms/settings'
+import { itemsMapAtom, itemsSheetUrlAtom } from '../atoms/items'
+import { sheetAccessAtom, featuresAtom } from '../atoms/settings'
 import { ItemsSheetInterfaceCallbacks, syncItemsToSheet, reloadItemsFromSheet } from './itemsSheetSynchronization'
 import sheetsApi from '../../services/api/sheets/sheets'
 import { saveItemsToStorage } from '../atoms/itemsStorage'
@@ -22,10 +22,15 @@ const getCallbacks = (setStage: (stage: number) => void): ItemsSheetInterfaceCal
 export async function syncItemsSheetFunc() {
     const store = getDefaultStore()
     const itemsState = store.get(itemsMapAtom)
-    const settings = store.get(settingsAtom)
+    const sheet = store.get(sheetAccessAtom)
+    const features = store.get(featuresAtom)
 
-    // Skip if persistence mode is 'browser'
-    if (settings.sheet.itemsSheetPersistenceMode === 'browser') {
+    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
+    if (
+        sheet.itemsSheetPersistenceMode === 'browser' ||
+        !sheet.budgetDocumentId ||
+        sheet.itemsSheetPersistenceMode === undefined
+    ) {
         return
     }
 
@@ -37,6 +42,15 @@ export async function syncItemsSheetFunc() {
 
     const setStage = (stage: number) => {
         currentStage = stage
+    }
+
+    // Construct SettingsState for API calls
+    const settings = { sheet, features }
+
+    // Load the sheet and cache its URL
+    const itemsSheet = await sheetsApi.loadItemsSheet(settings, setStage)
+    if (itemsSheet) {
+        store.set(itemsSheetUrlAtom, itemsSheet.getUrl())
     }
 
     await syncItemsToSheet(settings, itemsStateWithMap, getCallbacks(setStage))
@@ -73,30 +87,46 @@ export async function startItemsSheetSyncDebounce(
     debounceTimeoutId = setTimeout(async () => {
         if (countdownIntervalId) clearInterval(countdownIntervalId)
 
+        const store = getDefaultStore()
+
         try {
-            set(setItemsSyncStatusAtom, 'syncing')
+            store.set(setItemsSyncStatusAtom, 'syncing')
             await syncItemsSheetFunc()
-            set(setItemsSyncStatusAtom, 'idle')
+            store.set(setItemsSyncStatusAtom, 'idle')
         } catch (error) {
             console.error('Failed to sync items to sheet:', error)
-            set(setItemsSyncStatusAtom, 'error')
+            store.set(setItemsSyncStatusAtom, 'error')
         }
     }, DEBOUNCE_MS) as any
 }
 
 export async function reloadItemsSheetFunc(): Promise<void> {
     const store = getDefaultStore()
-    const settings = store.get(settingsAtom)
+    const sheet = store.get(sheetAccessAtom)
+    const features = store.get(featuresAtom)
     const currentItems = store.get(itemsMapAtom)
 
-    // Skip if persistence mode is 'browser'
-    if (settings.sheet.itemsSheetPersistenceMode === 'browser') {
-        console.log('Items persistence mode is browser storage, skipping sheet reload')
+    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
+    if (
+        sheet.itemsSheetPersistenceMode === 'browser' ||
+        !sheet.budgetDocumentId ||
+        sheet.itemsSheetPersistenceMode === undefined
+    ) {
+        console.log('Items persistence mode is browser storage or not configured, skipping sheet reload')
         return
     }
 
     const setStage = (stage: number) => {
         currentStage = stage
+    }
+
+    // Construct SettingsState for API calls
+    const settings = { sheet, features }
+
+    // Load the sheet and cache its URL
+    const itemsSheet = await sheetsApi.loadItemsSheet(settings, setStage)
+    if (itemsSheet) {
+        store.set(itemsSheetUrlAtom, itemsSheet.getUrl())
     }
 
     try {

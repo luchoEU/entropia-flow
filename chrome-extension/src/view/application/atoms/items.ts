@@ -530,3 +530,9 @@ export const setItemsDebounceTimeAtom = atom(
     set(itemsDebounceTimeAtom, time)
   }
 )
+
+/**
+ * Cache the items sheet URL when it's loaded
+ * Used to open the correct sheet from ItemSyncStatus
+ */
+export const itemsSheetUrlAtom = atom<string | undefined>(undefined) as WritableAtom<string | undefined, [string | undefined], void>

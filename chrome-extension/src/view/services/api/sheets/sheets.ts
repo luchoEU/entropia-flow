@@ -71,8 +71,6 @@ async function loadTTServiceInventorySheet(accessInfo: SheetAccessInfo, setStage
 }
 
 async function loadItemsSheet(settings: SettingsState, setStage: SetStage, create: boolean = true): Promise<ItemsSheet | undefined> {
-    if (!isFeatureEnabled(settings, Feature.budget)) return undefined
-
     const doc = await budgetDoc.load(settings.sheet, setStage)
     if (!doc)
         return undefined
