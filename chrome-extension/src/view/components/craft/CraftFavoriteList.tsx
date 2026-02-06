@@ -23,8 +23,6 @@ function CraftFavoriteList() {
     const setStaredBlueprintsFilter = useSetAtom(setStaredBlueprintsFilterAtom)
 
     const blueprintValues = Object.values(blueprints)
-    if (blueprintValues.length === 0)
-        return <></>
 
     // Determine which columns to show based on available data
     const clicks = blueprintValues.some(d => autoCalcData[d.name]?.clicks)
@@ -35,10 +33,10 @@ function CraftFavoriteList() {
     const type = blueprintValues.some(d => getItemType(d))
     const clickTTCost = blueprintValues.some(d => getItemClickTTCost(d) > 0)
 
-    // Create atom for filtered blueprints
+    // Create atom for filtered blueprints (MUST be before early return)
     const filteredBlueprintsAtom = useMemo(() => atom(filteredStared), [filteredStared])
 
-    // Build column configuration dynamically
+    // Build column configuration dynamically (MUST be before early return)
     const columns = useMemo(() => {
         const cols: Array<any> = [
             {
@@ -195,6 +193,9 @@ function CraftFavoriteList() {
 
         return cols
     }, [clicks, limit, items, budget, cash, type, clickTTCost, autoCalcData, reloadBlueprint, setBlueprintStared])
+
+    if (blueprintValues.length === 0)
+        return <></>
 
     return (
         <JotaiSortableTableSection

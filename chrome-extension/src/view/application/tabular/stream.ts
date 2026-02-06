@@ -172,4 +172,6 @@ export {
     streamTabularDefinitions,
     streamTabularDataFromLayouts,
     streamTabularDataFromVariables,
+    type StreamChooserLine,
+    type StreamTrashLine,
 }

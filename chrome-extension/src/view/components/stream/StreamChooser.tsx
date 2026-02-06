@@ -1,19 +1,21 @@
-import React, { useCallback } from "react"
-import { useSetAtom } from "jotai"
-import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom } from "../../application/atoms/stream"
-import SortableTabularSection from "../common/SortableTabularSection"
+import React, { useCallback, useMemo } from "react"
+import { useSetAtom, useAtomValue } from "jotai"
+import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamStateAtom } from "../../application/atoms/stream"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
-import LayoutRowValueRender from "../common/SortableTabularSection.layoutRender"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 import { StreamExportLayout } from "../../../stream/data"
 import schema from "../../../stream/stream-export-layout.schema.json"
 import { Validator } from "jsonschema"
+import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
+import { streamChooserItemsAtom } from "../../application/atoms/streamTables"
+import { streamChooserConfig } from "../../application/configs/streamTableConfigs"
 
 function StreamLayoutChooser() {
     const navigate = useNavigate()
     const addStreamLayout = useSetAtom(addStreamLayoutAtom)
     const importStreamLayout = useSetAtom(importStreamLayoutFromFileAtom)
     const goToTrash = useSetAtom(goToTrashAtom)
+    const streamState = useAtomValue(streamStateAtom)
 
     const handleAddLayout = useCallback(() => {
         addStreamLayout('new-layout-' + Date.now(), 'New Layout')
@@ -25,24 +27,39 @@ function StreamLayoutChooser() {
         return true
     }, [importStreamLayout, navigate])
 
-    const handleTrash = useCallback((data: any) => {
-        if (data?.hasTrash) {
+    const handleTrash = useCallback(() => {
+        const hasTrash = Object.keys(streamState.in.trashLayouts).length > 0
+        if (hasTrash) {
             goToTrash()
         }
         return true
-    }, [goToTrash])
+    }, [goToTrash, streamState.in.trashLayouts])
 
-    return <SortableTabularSection
-        selector={STREAM_TABULAR_CHOOSER}
-        afterSearch={(data) => [
-            { button: '➕ Add', dispatch: () => handleAddLayout() },
-            { button: '📥 Import', dispatch: () => handleImport() },
-            { button: data?.hasTrash ? '🗑️ Go to Trash' : '🗑️ Empty Trash', dispatch: () => handleTrash(data) }
-        ]}
-        itemHeight={64}
-        useTable={true}
-        rowValueRender={LayoutRowValueRender}
-   />
+    const hasTrash = useMemo(() => {
+        return Object.keys(streamState.in.trashLayouts).length > 0
+    }, [streamState.in.trashLayouts])
+
+    const afterSearch = useMemo(() => (
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
+            <button className="button-option" onClick={handleAddLayout}>➕ Add</button>
+            <button className="button-option" onClick={handleImport}>📥 Import</button>
+            <button className="button-option" onClick={handleTrash}>
+                {hasTrash ? '🗑️ Go to Trash' : '🗑️ Empty Trash'}
+            </button>
+        </div>
+    ), [handleAddLayout, handleImport, handleTrash, hasTrash])
+
+    return (
+        <JotaiSortableTableSection
+            selector={STREAM_TABULAR_CHOOSER}
+            title="Layouts"
+            subtitle="Available layouts"
+            itemsAtom={streamChooserItemsAtom}
+            config={streamChooserConfig}
+            afterSearch={afterSearch}
+            itemHeight={64}
+        />
+    )
 }
 
 function openFileSelector(navigate: NavigateFunction, importStreamLayout: (layout: StreamExportLayout) => void) {

@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { staredAtom, setBlueprintStaredAtom, craftOptionsAtom, setCraftOptionsAtom } from '../../application/atoms/craft'
 import { CRAFT_TABULAR_BLUEPRINTS } from '../../application/state/craft'
 import ImgButton from '../common/ImgButton'
-import SortableTabularSection from '../common/SortableTabularSection'
-import { getSwitchButton } from '../common/SortableTabularSection.control'
+import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
+import { craftBlueprintsItemsAtom } from '../../application/atoms/craftTables'
+import { craftBlueprintConfig } from '../../application/configs/craftTableConfigs'
 
 const StarButton = ({ bpName }: { bpName: string }) => {
     const staredList = useAtomValue(staredAtom)
@@ -22,14 +23,36 @@ function CraftBlueprintList() {
     const opt = useAtomValue(craftOptionsAtom)
     const setCraftOptions = useSetAtom(setCraftOptionsAtom)
 
-    return <SortableTabularSection
-        selector={CRAFT_TABULAR_BLUEPRINTS}
-        beforeTable={ () => [
-            { flex: 1 },
-            getSwitchButton('E', 'Show only edited blueprints', opt.custom, () => setCraftOptions({ custom: !opt.custom })),
-            getSwitchButton('O', 'Show only owned blueprints', opt.owned, () => setCraftOptions({ owned: !opt.owned })),
-        ]}
-    />
+    const beforeTable = useMemo(() => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ flex: 1 }} />
+            <button
+                className={`button-option-switch ${opt.custom ? 'active' : ''}`}
+                title="Show only edited blueprints"
+                onClick={() => setCraftOptions({ custom: !opt.custom })}
+            >
+                E
+            </button>
+            <button
+                className={`button-option-switch ${opt.owned ? 'active' : ''}`}
+                title="Show only owned blueprints"
+                onClick={() => setCraftOptions({ owned: !opt.owned })}
+            >
+                O
+            </button>
+        </div>
+    ), [opt.custom, opt.owned, setCraftOptions])
+
+    return (
+        <JotaiSortableTableSection
+            selector={CRAFT_TABULAR_BLUEPRINTS}
+            title="Blueprints"
+            subtitle="List of Blueprints"
+            itemsAtom={craftBlueprintsItemsAtom}
+            config={craftBlueprintConfig}
+            beforeTable={beforeTable}
+        />
+    )
 }
 
 export default CraftBlueprintList

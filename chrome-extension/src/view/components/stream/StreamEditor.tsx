@@ -3,9 +3,10 @@ import React, { useMemo } from "react"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atom } from "jotai"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
-import SortableTabularSection from "../common/SortableTabularSection"
 import { streamStateAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom } from "../../application/atoms/stream"
-import { tabularAtom } from "../../application/atoms/tabular"
+import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
+import { streamVariablesConfig, streamImagesConfig, streamParametersConfig } from "../../application/configs/streamTableConfigs"
+import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
 import ExpandableSection from "../common/ExpandableSection2"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
@@ -147,21 +148,43 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         <div className='flex'>
             <StreamBackgroundChooser layoutId={layoutId} />
             { advanced && <>
-                <SortableTabularSection
+                <JotaiSortableTableSection
                     selector={STREAM_TABULAR_VARIABLES}
+                    title="Variables"
+                    subtitle="Available variables to use on template"
+                    itemsAtom={streamVariablesItemsAtom}
+                    config={streamVariablesConfig}
                 />
-                <SortableTabularSection
+                <JotaiSortableTableSection
                     selector={STREAM_TABULAR_IMAGES}
+                    title="Images"
+                    subtitle="Available images to use on template"
+                    itemsAtom={streamImagesItemsAtom}
+                    config={streamImagesConfig}
                     itemHeight={50}
-                    afterSearch={ () => layout.readonly ? [] : [ { button: 'Add', dispatch: () => { addStreamUserImageSetter(layoutId); return true } } ]}
-                    useTable={true} // use table since it support getRowKey, needed to visually delete the correct one
+                    afterSearch={layout.readonly ? undefined : (
+                        <button className="button-option" onClick={() => addStreamUserImageSetter(layoutId)}>
+                            Add
+                        </button>
+                    )}
+                    useFixedSizeList={true}
                 />
             </>}
-            { (advanced || (layout.parameters?.length ?? 0) > 0) && <SortableTabularSection
-                selector={STREAM_TABULAR_PARAMETERS}
-                afterSearch={ () => layout.readonly ? [] : [ { button: 'Add', dispatch: () => { addStreamUserParameterSetter(layoutId); return true } } ]}
-                useTable={true} // use table since it support getRowKey, needed to visually delete the correct one
-            />}
+            { (advanced || (layout.parameters?.length ?? 0) > 0) && (
+                <JotaiSortableTableSection
+                    selector={STREAM_TABULAR_PARAMETERS}
+                    title="Parameters"
+                    subtitle="Available parameters of the layout"
+                    itemsAtom={streamParametersItemsAtom}
+                    config={streamParametersConfig}
+                    afterSearch={layout.readonly ? undefined : (
+                        <button className="button-option" onClick={() => addStreamUserParameterSetter(layoutId)}>
+                            Add
+                        </button>
+                    )}
+                    useFixedSizeList={true}
+                />
+            )}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
                 <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: stream.out?.data?.commonData ?? {}, layout }} />
             </ExpandableSection>
