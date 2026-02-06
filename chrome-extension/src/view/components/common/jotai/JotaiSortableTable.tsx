@@ -73,9 +73,15 @@ const JotaiSortableTableComponent = function<TItem>(
     [setUIState, uiState.sortColumn, uiState.sortAscending]
   )
 
-  // Get column widths
+  // Get column widths and flex values
   const columnWidths = useMemo(() => {
-    return config.columns.map((col) => col.width ?? 80)
+    return config.columns.map((col) => {
+      // If flex is specified, use minWidth or default width; otherwise use width or default 80
+      if (col.flex !== undefined) {
+        return col.minWidth ?? col.width ?? 80
+      }
+      return col.width ?? 80
+    })
   }, [config.columns])
 
   const totalWidth = useMemo(() => {
@@ -98,7 +104,8 @@ const JotaiSortableTableComponent = function<TItem>(
           key={col.id}
           onClick={() => handleSortColumn(index)}
           style={{
-            flex: `0 0 ${columnWidths[index]}px`,
+            flex: col.flex !== undefined ? col.flex : `0 0 ${columnWidths[index]}px`,
+            minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
             justifyContent: col.justifyContent ?? 'start',
             padding: `0 ${COLUMN_PADDING}px`
           }}
@@ -127,7 +134,8 @@ const JotaiSortableTableComponent = function<TItem>(
           <div
             key={`${col.id}-${index}`}
             style={{
-              flex: `0 0 ${columnWidths[colIndex]}px`,
+              flex: col.flex !== undefined ? col.flex : `0 0 ${columnWidths[colIndex]}px`,
+              minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
               justifyContent: col.justifyContent ?? 'start',
               padding: `0 ${COLUMN_PADDING}px`,
               width: col.width ? `${col.width}px` : undefined,

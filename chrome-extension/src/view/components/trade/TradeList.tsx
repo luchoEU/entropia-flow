@@ -38,7 +38,8 @@ const TradeList = (p: TradeListProps) => {
         {
             id: 'name',
             header: 'Name',
-            width: 150,
+            minWidth: 200,
+            flex: 1,
             sortAccessor: (item: ItemData) => item.n,
             filterAccessor: (item: ItemData) => item.n,
             renderRowCell: (item: ItemData) => (

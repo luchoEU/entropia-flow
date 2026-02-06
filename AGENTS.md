@@ -1,8 +1,8 @@
 # Entropia Flow - Agent Guidelines
 
-## Important: Never Commit Without Explicit Instruction
+## Important: Never Commit - Only Provide Commit Message
 
-**CRITICAL**: Never use `git add` or `git commit` without explicit instruction from the user. Always leave changes staged or unstaged for the user to commit manually.
+**CRITICAL**: Never use `git add` or `git commit`. Always provide the commit message to the user and let them commit manually. This ensures the user has full control over commits.
 
 ---
 

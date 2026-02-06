@@ -24,6 +24,10 @@ export interface JotaiTableColumn<TItem = any> {
   filterAccessor?: (item: TItem) => string
   /** Optional: Column width in pixels */
   width?: number
+  /** Optional: Minimum column width in pixels (enables auto-growth) */
+  minWidth?: number
+  /** Optional: CSS flex value for responsive sizing */
+  flex?: number | string
   /** Optional: CSS justify-content value */
   justifyContent?: 'start' | 'center' | 'end'
 }
