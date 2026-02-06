@@ -33,6 +33,7 @@ import {
 import { saveItemsToStorage, saveItemsWebCache } from './itemsStorage'
 import { BlueprintWebMaterial } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
+import { refinedMaterialChangedAtom } from './refined'
 
 /**
  * Base atom for items map - writable atom
@@ -89,6 +90,7 @@ export const itemBuyMarkupChangedAtom = atom(
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
     set(triggerItemsSheetSyncAtom)
+    set(refinedMaterialChangedAtom)
   }
 )
 
@@ -103,6 +105,7 @@ export const itemOrderMarkupChangedAtom = atom(
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
     set(triggerItemsSheetSyncAtom)
+    set(refinedMaterialChangedAtom)
   }
 )
 
