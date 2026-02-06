@@ -24,10 +24,18 @@ export function TradePage() {
     const removeNotification = useSetAtom(removeTradeMessageNotificationAtom)
     const setFilter = useSetAtom(setTabularFilterAtom)
 
-    let toAuction: Record<string, string> = {}
-    for (let availableItem of s.available.items)
-        if (!s.auction.items.some(i => i.n == availableItem.n))
-            toAuction[availableItem.n] = 'to-auction'
+    // Compute toAuction classMap with memoization to ensure it updates when atoms change
+    // Items not in auction get the 'to-auction' class to display them in bold
+    const toAuction = useMemo(() => {
+        const map: Record<string, string> = {}
+        const auctionNames = new Set(s.auction.items.map(i => i.n))
+        for (let availableItem of s.available.items) {
+            if (!auctionNames.has(availableItem.n)) {
+                map[availableItem.n] = 'to-auction'
+            }
+        }
+        return map
+    }, [s.available.items, s.auction.items])
 
     const notifyButton = useMemo(() => (
         <button

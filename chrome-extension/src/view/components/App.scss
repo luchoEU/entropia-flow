@@ -815,7 +815,7 @@ input {
 
 .item-row:hover,
 .item-row:hover .item-text,
-.item-row .to-auction.item-text,
+.table-row .to-auction.item-text,
 .item-row.stable:hover [data-text]::after,
 .item-row.stable:hover [data-text-right]::after {
     font-weight: bold;
