@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
@@ -10,7 +10,7 @@ import { tabularAtom, setTabularFilterAtom } from '../../application/atoms/tabul
 import { InventoryOwnedList } from './InventoryOwnedList'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
-import { sortAuctionByAtom, sortAvailableByAtom, inventoryStateAtom, availableCriteriaAtom } from '../../application/atoms/inventory'
+import { inventoryStateAtom, availableCriteriaAtom } from '../../application/atoms/inventory'
 
 export function TradePage() {
     // Use Jotai atoms instead of Redux selectors
@@ -19,21 +19,10 @@ export function TradePage() {
     const allTabular = useAtomValue(tabularAtom)
     const gameLogTrade = useMemo(() => allTabular[GAME_LOG_TABULAR_TRADE], [allTabular])
     const isClientEnabled = useAtomValue(isFeatureEnabledAtom(Feature.client))
-    const setSortAuction = useSetAtom(sortAuctionByAtom)
-    const setSortAvailable = useSetAtom(sortAvailableByAtom)
     const availableCriteria = useAtomValue(availableCriteriaAtom)
     const addNotification = useSetAtom(addTradeMessageNotificationAtom)
     const removeNotification = useSetAtom(removeTradeMessageNotificationAtom)
     const setFilter = useSetAtom(setTabularFilterAtom)
-
-    // Handlers: update Jotai atoms for consistency
-    const handleSortAuction = useCallback((part: number) => {
-        setSortAuction(part)
-    }, [setSortAuction])
-
-    const handleSortAvailable = useCallback((part: number) => {
-        setSortAvailable(part)
-    }, [setSortAvailable])
 
     let toAuction: Record<string, string> = {}
     for (let availableItem of s.available.items)
@@ -44,9 +33,9 @@ export function TradePage() {
         <>
             <div className='flex'>
                 <TradeList selector='TradePage.CurrentlyOnAuction' title='Currently on Auction' subtitle='Items currently on auction, selling or pending to retrieve'
-                    list={s.auction} isFavorite={(n) => availableCriteria.name.includes(n)} classMap={{}} sort={handleSortAuction} />
+                    list={s.auction} isFavorite={(n) => availableCriteria.name.includes(n)} classMap={{}} />
                 <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
-                    list={s.available} isFavorite={() => true} classMap={toAuction} sort={handleSortAvailable} />
+                    list={s.available} isFavorite={() => true} classMap={toAuction} />
                 { isClientEnabled && <SortableTabularSection selector={GAME_LOG_TABULAR_TRADE} useTable={true}
                     afterSearch={ () => gameLogTrade ? [ { button: 'Notify', title: 'Notify when a new message matching the filter is added', dispatch: () => { addNotification(gameLogTrade?.filter); return true } } ] : [] }
                     beforeTable={ () => t.notifications.length === 0 ? undefined : [ { class: 'notification-item-container', sub:

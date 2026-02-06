@@ -1,94 +1,18 @@
-import React from 'react'
+import React, { useMemo } from 'react'
+import { atom } from 'jotai'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { blueprintsAtom, staredAtom, reloadBlueprintAtom, setBlueprintStaredAtom, setStaredBlueprintsFilterAtom, sortBlueprintsByAtom, filteredStaredBlueprintsAtom, blueprintAutoCalcAtom } from '../../application/atoms/craft'
-import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCost, getItemType, getLimitText, ITEMS, LIMIT, NAME, sortColumnDefinition, TYPE } from '../../application/helpers/craftSort'
+import { blueprintsAtom, staredAtom, reloadBlueprintAtom, setBlueprintStaredAtom, setStaredBlueprintsFilterAtom, filteredStaredBlueprintsAtom, blueprintAutoCalcAtom } from '../../application/atoms/craft'
+import { BUDGET, CASH, CLICK_TT_COST, CLICKS, getItemAvailable, getItemClickTTCost, getItemType, getLimitText, ITEMS, LIMIT, NAME, TYPE } from '../../application/helpers/craftSort'
 import { BlueprintData } from '../../application/state/craft'
-import SortableTableSection, { ItemRowData, ItemRowSubColumnData, SortRowData } from '../common/SortableTableSection'
-import { NavigateFunction } from 'react-router-dom'
+import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
+import { useNavigate } from 'react-router-dom'
 import { formatToUrl } from '../../application/helpers/navigation'
 import { TabId } from '../../application/state/navigation'
 import CraftPlanet from './CraftPlanet'
-
-const sortRowData: SortRowData = {
-    [CLICKS]: { justifyContent: 'center' },
-    [ITEMS]: { justifyContent: 'center' },
-    [LIMIT]: { justifyContent: 'start' },
-    [CASH]: { justifyContent: 'end' },
-    [BUDGET]: { justifyContent: 'end' },
-    [TYPE]: { justifyContent: 'start' },
-    [CLICK_TT_COST]: { justifyContent: 'end' },
-}
-const reloadSub = (errors: { message: string }[]): ItemRowSubColumnData[] => [{
-    class: 'clicks-error',
-    title: `${errors.length === 0 ? '' : errors.map(e => e.message).join(' ')+' '}Click to try to load blueprint again`,
-    compose: [ { itemText: 'Error' }, { img: { src:'img/reload.png', show: true } }]
-}]
-
-const getRowData = (reloadBlueprint: (name: string) => void, setBlueprintStared: (name: string, stared: boolean) => void, autoCalcData: {[name: string]: any}) => (d: BlueprintData): ItemRowData => {
-    const dAutoCalc = autoCalcData[d.name]
-    return {
-    dispatch: (n: NavigateFunction) => n(`${TabId.CRAFT}/${formatToUrl(d.name)}`),
-    columns: {
-        [NAME]: {
-            sub: [{
-                itemText: dAutoCalc?.itemName ?? d.name
-            }, {
-                flex: 1,
-                img: { src: 'img/right.png' }
-            }, {
-                title: 'Remove this blueprint from Favorites',
-                imgButton: {
-                    src: 'img/staron.png',
-                    dispatch: () => setBlueprintStared(d.name, false)
-                }
-            }]
-        },
-        [TYPE]: {
-            sub: [{ itemText: getItemType(d) }]
-        },
-        [CLICKS]: {
-            style: { justifyContent: 'center' },
-            dispatch: !d.web?.blueprint.loading && !d.user && (() => reloadBlueprint(d.name)),
-            sub: !d.web && !d.user ? reloadSub([]) :
-                    (d.web?.blueprint.loading ?
-                        [{ img: { src: 'img/loading.gif', show: true}, class: 'img-loading' }] :
-                        (d.web?.blueprint.errors && !d.user ?
-                            reloadSub(d.web.blueprint.errors) :
-                            [{ itemText: dAutoCalc?.clicks?.available?.toString() }]))
-        },
-        [LIMIT]: {
-            sub: [{ itemText: getLimitText(d) }]
-        },
-        [ITEMS]: {
-            style: { justifyContent: 'center' },
-            sub: [{
-                visible: getItemAvailable(d) > 0,
-                itemText: getItemAvailable(d).toString()
-            }]
-        },
-        [CLICK_TT_COST]: {
-            style: { justifyContent: 'end' },
-            sub: [{
-                itemText: getItemClickTTCost(d) > 0 ? getItemClickTTCost(d).toFixed(2) + ' PED' : ''
-            }]
-        },
-        [CASH]: {
-            style: { justifyContent: 'end' },
-            sub: [{
-                itemText: d.budget?.sheet ? d.budget.sheet.peds.toFixed(2) + ' PED' : ''
-            }]
-        },
-        [BUDGET]: {
-            style: { justifyContent: 'end' },
-            sub: [{
-                itemText: d.budget?.sheet ? d.budget.sheet.total.toFixed(2) + ' PED' : ''
-            }]
-        }
-    }
-    }
-}
+import ImgButton from '../common/ImgButton'
 
 function CraftFavoriteList() {
+    const navigate = useNavigate()
     const blueprints = useAtomValue(blueprintsAtom)
     const autoCalcData = useAtomValue(blueprintAutoCalcAtom)
     const stared = useAtomValue(staredAtom)
@@ -97,54 +21,199 @@ function CraftFavoriteList() {
     const reloadBlueprint = useSetAtom(reloadBlueprintAtom)
     const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
     const setStaredBlueprintsFilter = useSetAtom(setStaredBlueprintsFilterAtom)
-    const sortBlueprintsBy = useSetAtom(sortBlueprintsByAtom)
 
     const blueprintValues = Object.values(blueprints)
-    if (blueprintValues.length == 0)
+    if (blueprintValues.length === 0)
         return <></>
 
-    var clicks = blueprintValues.some(d => autoCalcData[d.name]?.clicks)
-    var limit = blueprintValues.some(d => autoCalcData[d.name]?.clicks?.limitingItems?.length > 0)
-    var items = blueprintValues.some(d => getItemAvailable(d) > 0)
-    var budget = blueprintValues.some(d => d.budget?.sheet?.total !== undefined)
-    var cash = blueprintValues.some(d => d.budget?.sheet?.peds !== undefined)
-    var type = blueprintValues.some(d => getItemType(d))
-    var clickTTCost = blueprintValues.some(d => getItemClickTTCost(d) > 0)
+    // Determine which columns to show based on available data
+    const clicks = blueprintValues.some(d => autoCalcData[d.name]?.clicks)
+    const limit = blueprintValues.some(d => autoCalcData[d.name]?.clicks?.limitingItems?.length > 0)
+    const items = blueprintValues.some(d => getItemAvailable(d) > 0)
+    const budget = blueprintValues.some(d => d.budget?.sheet?.total !== undefined)
+    const cash = blueprintValues.some(d => d.budget?.sheet?.peds !== undefined)
+    const type = blueprintValues.some(d => getItemType(d))
+    const clickTTCost = blueprintValues.some(d => getItemClickTTCost(d) > 0)
 
-    const columns: number[] = [NAME]
-    if (clicks) columns.push(CLICKS)
-    if (limit) columns.push(LIMIT)
-    if (type) columns.push(TYPE)
-    if (items) columns.push(ITEMS)
-    if (clickTTCost) columns.push(CLICK_TT_COST)
-    if (budget) columns.push(BUDGET)
-    if (cash) columns.push(CASH)
+    // Create atom for filtered blueprints
+    const filteredBlueprintsAtom = useMemo(() => atom(filteredStared), [filteredStared])
 
-    return <>
-        <SortableTableSection
+    // Build column configuration dynamically
+    const columns = useMemo(() => {
+        const cols: Array<any> = [
+            {
+                id: 'name',
+                header: 'Name',
+                width: 200,
+                sortAccessor: (d: BlueprintData) => d.name,
+                filterAccessor: (d: BlueprintData) => d.name,
+                renderRowCell: (d: BlueprintData) => {
+                    const dAutoCalc = autoCalcData[d.name]
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>{dAutoCalc?.itemName ?? d.name}</span>
+                            <img src='img/right.png' alt='' style={{ width: '16px', opacity: 0.6 }} />
+                            <ImgButton
+                                title='Remove this blueprint from Favorites'
+                                src='img/staron.png'
+                                dispatch={() => setBlueprintStared(d.name, false)}
+                            />
+                        </div>
+                    )
+                }
+            }
+        ]
+
+        if (clicks) {
+            cols.push({
+                id: 'clicks',
+                header: 'Clicks',
+                width: 100,
+                sortAccessor: (d: BlueprintData) => {
+                    const autoCalc = autoCalcData?.[d.name]
+                    return autoCalc?.clicks?.available ?? 0
+                },
+                filterAccessor: (d: BlueprintData) => {
+                    const autoCalc = autoCalcData?.[d.name]
+                    return autoCalc?.clicks?.available?.toString() ?? ''
+                },
+                justifyContent: 'center' as const,
+                renderRowCell: (d: BlueprintData) => {
+                    if (!d.web && !d.user) {
+                        return (
+                            <button
+                                onClick={() => reloadBlueprint(d.name)}
+                                title='Click to try to load blueprint again'
+                                style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'red' }}
+                            >
+                                Error <img src='img/reload.png' alt='reload' style={{ width: '12px', marginLeft: '4px' }} />
+                            </button>
+                        )
+                    }
+                    if (d.web?.blueprint.loading) {
+                        return <img src='img/loading.gif' alt='loading' style={{ width: '16px' }} />
+                    }
+                    if (d.web?.blueprint.errors && !d.user) {
+                        const errorMsg = d.web.blueprint.errors.map(e => e.message).join(' ')
+                        return (
+                            <button
+                                onClick={() => reloadBlueprint(d.name)}
+                                title={`${errorMsg} Click to try to load blueprint again`}
+                                style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'red' }}
+                            >
+                                Error <img src='img/reload.png' alt='reload' style={{ width: '12px', marginLeft: '4px' }} />
+                            </button>
+                        )
+                    }
+                    const dAutoCalc = autoCalcData[d.name]
+                    return <>{dAutoCalc?.clicks?.available?.toString() ?? '-'}</>
+                }
+            })
+        }
+
+        if (limit) {
+            cols.push({
+                id: 'limit',
+                header: 'Limits clicks',
+                width: 150,
+                sortAccessor: (d: BlueprintData) => getLimitText(d),
+                filterAccessor: (d: BlueprintData) => getLimitText(d),
+                renderRowCell: (d: BlueprintData) => <>{getLimitText(d)}</>
+            })
+        }
+
+        if (type) {
+            cols.push({
+                id: 'type',
+                header: 'Type',
+                width: 100,
+                sortAccessor: (d: BlueprintData) => getItemType(d),
+                filterAccessor: (d: BlueprintData) => getItemType(d),
+                renderRowCell: (d: BlueprintData) => <>{getItemType(d)}</>
+            })
+        }
+
+        if (items) {
+            cols.push({
+                id: 'items',
+                header: 'Items',
+                width: 80,
+                sortAccessor: (d: BlueprintData) => getItemAvailable(d),
+                filterAccessor: (d: BlueprintData) => getItemAvailable(d).toString(),
+                justifyContent: 'center' as const,
+                renderRowCell: (d: BlueprintData) => {
+                    const available = getItemAvailable(d)
+                    return available > 0 ? <>{available}</> : <></>
+                }
+            })
+        }
+
+        if (clickTTCost) {
+            cols.push({
+                id: 'clickTTCost',
+                header: 'Click TT Cost',
+                width: 120,
+                sortAccessor: (d: BlueprintData) => getItemClickTTCost(d),
+                filterAccessor: (d: BlueprintData) => getItemClickTTCost(d).toString(),
+                justifyContent: 'end' as const,
+                renderRowCell: (d: BlueprintData) => {
+                    const cost = getItemClickTTCost(d)
+                    return <>{cost > 0 ? cost.toFixed(2) + ' PED' : ''}</>
+                }
+            })
+        }
+
+        if (budget) {
+            cols.push({
+                id: 'budget',
+                header: 'Budget',
+                width: 100,
+                sortAccessor: (d: BlueprintData) => d.budget?.sheet?.total ?? 0,
+                filterAccessor: (d: BlueprintData) => d.budget?.sheet?.total?.toString() ?? '',
+                justifyContent: 'end' as const,
+                renderRowCell: (d: BlueprintData) => {
+                    const total = d.budget?.sheet?.total
+                    return <>{total ? total.toFixed(2) + ' PED' : ''}</>
+                }
+            })
+        }
+
+        if (cash) {
+            cols.push({
+                id: 'cash',
+                header: 'Cash',
+                width: 100,
+                sortAccessor: (d: BlueprintData) => d.budget?.sheet?.peds ?? 0,
+                filterAccessor: (d: BlueprintData) => d.budget?.sheet?.peds?.toString() ?? '',
+                justifyContent: 'end' as const,
+                renderRowCell: (d: BlueprintData) => {
+                    const peds = d.budget?.sheet?.peds
+                    return <>{peds ? peds.toFixed(2) + ' PED' : ''}</>
+                }
+            })
+        }
+
+        return cols
+    }, [clicks, limit, items, budget, cash, type, clickTTCost, autoCalcData, reloadBlueprint, setBlueprintStared])
+
+    return (
+        <JotaiSortableTableSection
             selector='CraftCollapsedList'
             title='Favorite Blueprints'
             subtitle='Your favorite blueprints, for easy access'
-            expanded={stared.expanded}
-            filter={stared.filter}
-            stats={{ count: filteredStared.length, itemTypeName: 'blueprint' }}
-            setFilter={setStaredBlueprintsFilter}
-            table={{
-                widthItems: blueprintValues,
-                showItems: filteredStared,
-                sortType: stared.sortType,
-                sortBy: sortBlueprintsBy,
-                itemSelector: (index: number) => () => filteredStared[index],
-                tableData: {
-                    columns,
-                    definition: sortColumnDefinition,
-                    sortRow: sortRowData,
-                    getRow: getRowData(reloadBlueprint, setBlueprintStared, autoCalcData)
+            itemsAtom={filteredBlueprintsAtom}
+            config={{
+                title: 'Favorite Blueprints',
+                columns,
+                itemTypeName: 'blueprint',
+                getRowKey: (item: BlueprintData) => item.name,
+                onRowClick: (item: BlueprintData) => {
+                    navigate(`${TabId.CRAFT}/${formatToUrl(item.name)}`)
                 }
             }}
             afterTitle={<CraftPlanet />}
         />
-    </>
+    )
 }
 
 export default CraftFavoriteList

@@ -33,7 +33,7 @@ interface ViewInventory {
     class: string
     info: string
     expanded: boolean
-    diff: Array<ViewItemData> | null
+    diff: Array<ViewItemData> | undefined
     sortType: number
     canBeLast: boolean
     rawInventory: Inventory

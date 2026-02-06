@@ -1,63 +1,60 @@
 import { useAtomValue, useSetAtom } from "jotai"
-import { NAME, QUANTITY, sortColumnDefinition, VALUE } from "../../application/helpers/inventory.sort"
 import { InventoryByStore, TreeLineData } from "../../application/state/inventory"
-import { SortableFixedSizeTable, TableData } from "../common/SortableTableSection"
-import React, { useEffect, useCallback } from "react"
-import { setByStoreMaterialFilterAtom, setByStoreMaterialItemExpandedAtom, sortByStoreMaterialByAtom, byStoreStateAtom } from "../../application/atoms/inventory"
+import { JotaiSortableTable } from "../common/jotai/JotaiSortableTable"
+import React, { useEffect, useMemo } from "react"
+import { atom } from "jotai"
+import { setByStoreMaterialFilterAtom, setByStoreMaterialItemExpandedAtom, byStoreStateAtom } from "../../application/atoms/inventory"
+import ExpandablePlusButton from "../common/ExpandablePlusButton"
 
 const INDENT_SPACE = 10
+
 const ItemInventory = ({ filter }: { filter: string }) => {
     const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
     const setFilter = useSetAtom(setByStoreMaterialFilterAtom)
     const setExpanded = useSetAtom(setByStoreMaterialItemExpandedAtom)
-    const setSortMaterial = useSetAtom(sortByStoreMaterialByAtom)
 
-    // Replace Redux selector with Jotai-based lookup function
-    // Note: Redux selector returns (state) => TreeLineData, but we have state available, so return a function
-    const getByStoreInventoryMaterialItem = useCallback((index: number) => {
-        return (_state: any) => inv.flat.material[index]
-    }, [inv])
+    // Create atom for material items
+    const materialItemsAtom = useMemo(() => atom(inv?.flat?.material ?? []), [inv?.flat?.material])
 
-    // Handlers: update Jotai atoms
-    const handleSetExpanded = useCallback((itemId: string) => (expanded: boolean) => {
-        setExpanded(itemId, expanded)
-    }, [setExpanded])
-
-    // Handler for sorting
-    const handleSortMaterial = useCallback((part: number) => {
-        setSortMaterial(part)
-    }, [setSortMaterial])
-
-    // Create inventory table data with Jotai-aware handlers
-    const inventoryTableData: TableData<TreeLineData> = {
-        columns: [NAME, QUANTITY, VALUE],
-        definition: sortColumnDefinition,
-        sortRow: {
-            [NAME]: { justifyContent: 'center', text: 'Name in Inventory' },
-            [QUANTITY]: { justifyContent: 'end' },
-            [VALUE]: { justifyContent: 'end' },
+    // Column configuration
+    const columns = useMemo(() => [
+        {
+            id: 'name',
+            header: 'Name in Inventory',
+            width: 200,
+            sortAccessor: (item: TreeLineData) => item.n,
+            filterAccessor: (item: TreeLineData) => item.n,
+            renderRowCell: (item: TreeLineData) => (
+                <div style={{ display: 'flex', alignItems: 'center', paddingLeft: `${item.indent * INDENT_SPACE}px` }}>
+                    {item.expanded !== undefined && (
+                        <ExpandablePlusButton
+                            expanded={item.expanded}
+                            setExpanded={(expanded: boolean) => setExpanded(item.id, expanded)}
+                        />
+                    )}
+                    <span>{item.n}</span>
+                </div>
+            )
         },
-        getRow: (item: TreeLineData) => ({
-            dispatch: item.expanded !== undefined ? () => handleSetExpanded(item.id)(!item.expanded) : undefined,
-            columns: {
-                [NAME]: {
-                    style: { paddingLeft: item.indent * INDENT_SPACE },
-                    sub: [
-                        { plusButton: { expanded: item.expanded, setExpanded: handleSetExpanded(item.id) } },
-                        { itemText: item.n }
-                    ]
-                },
-                [QUANTITY]: {
-                    style: { justifyContent: 'center' },
-                    sub: [{ itemText: item.q }]
-                },
-                [VALUE]: {
-                    style: { justifyContent: 'center' },
-                    sub: [{ itemText: item.v }]
-                }
-            }
-        })
-    }
+        {
+            id: 'quantity',
+            header: 'Quantity',
+            width: 120,
+            sortAccessor: (item: TreeLineData) => parseFloat(item.q),
+            filterAccessor: (item: TreeLineData) => item.q,
+            justifyContent: 'center' as const,
+            renderRowCell: (item: TreeLineData) => <>{item.q}</>
+        },
+        {
+            id: 'value',
+            header: 'Value',
+            width: 120,
+            sortAccessor: (item: TreeLineData) => parseFloat(item.v),
+            filterAccessor: (item: TreeLineData) => item.v,
+            justifyContent: 'center' as const,
+            renderRowCell: (item: TreeLineData) => <>{item.v}</>
+        }
+    ], [setExpanded])
 
     useEffect(() => {
         if (!inv || filter === inv.material.filter) return // already set
@@ -69,20 +66,23 @@ const ItemInventory = ({ filter }: { filter: string }) => {
         return <p><strong>Loading inventory data...</strong></p>
     }
 
-    return <>
-        { !inv?.flat?.material || inv.flat.material.length === 0 ?
-            <p><strong>None on Inventory</strong></p> :
-            <SortableFixedSizeTable
-                data={{
-                    showItems: inv.flat.material,
-                    sortType: inv.material.list.sortType,
-                    sortBy: handleSortMaterial,
-                    itemSelector: getByStoreInventoryMaterialItem,
-                    tableData: inventoryTableData
-                }}
-            />
-        }
-    </>
+    if (!inv?.flat?.material || inv.flat.material.length === 0) {
+        return <p><strong>None on Inventory</strong></p>
+    }
+
+    return (
+        <JotaiSortableTable
+            itemsAtom={materialItemsAtom}
+            config={{
+                title: 'Inventory Materials',
+                columns,
+                itemTypeName: 'material',
+                getRowKey: (item: TreeLineData) => item.id,
+                getPedValue: (item: TreeLineData) => parseFloat(item.v)
+            }}
+            useFixedSizeList={true}
+        />
+    )
 }
 
 export default ItemInventory
