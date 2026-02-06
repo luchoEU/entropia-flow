@@ -9,7 +9,7 @@ import { setTabularFilterAtom } from '../../application/atoms/tabular'
 import { InventoryOwnedList } from './InventoryOwnedList'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
-import { inventoryStateAtom, availableCriteriaAtom } from '../../application/atoms/inventory'
+import { inventoryStateAtom, availableCriteriaAtom, auctionItemsAtom, availableItemsAtom } from '../../application/atoms/inventory'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import { gameLogTradeItemsAtom } from '../../application/atoms/gameLogTables'
 import { gameLogTradeConfig } from '../../application/configs/gameLogTableConfigs'
@@ -73,9 +73,9 @@ export function TradePage() {
         <>
             <div className='flex'>
                 <TradeList selector='TradePage.CurrentlyOnAuction' title='Currently on Auction' subtitle='Items currently on auction, selling or pending to retrieve'
-                    list={s.auction} isFavorite={(n) => availableCriteria.name.includes(n)} classMap={{}} />
+                    list={s.auction} isFavorite={(n) => availableCriteria.name.includes(n)} classMap={{}} itemsAtom={auctionItemsAtom} />
                 <TradeList selector='TradePage.FavoritesToAuction' title='Favorites to Auction' subtitle='You favorite items that you sell, in bold if they are not on auction'
-                    list={s.available} isFavorite={() => true} classMap={toAuction} />
+                    list={s.available} isFavorite={() => true} classMap={toAuction} itemsAtom={availableItemsAtom} />
                 { isClientEnabled && (
                     <JotaiSortableTableSection
                         selector={GAME_LOG_TABULAR_TRADE}

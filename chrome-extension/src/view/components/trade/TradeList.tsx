@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react'
-import { atom } from 'jotai'
+import { atom, Atom } from 'jotai'
 import { ItemData } from '../../../common/state'
 import { InventoryList } from '../../application/state/inventory'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
 import { useSetAtom } from 'jotai'
-import { addAvailableAtom, removeAvailableAtom } from '../../application/atoms/inventory'
+import { addAvailableAtom, removeAvailableAtom, auctionItemsAtom, availableItemsAtom } from '../../application/atoms/inventory'
 
 interface TradeListProps {
     selector: string,
@@ -14,16 +14,24 @@ interface TradeListProps {
     subtitle: string,
     list: InventoryList<ItemData>,
     isFavorite: (name: string) => boolean,
-    classMap: { [k: string]: string }
+    classMap: { [k: string]: string },
+    itemsAtom?: Atom<ItemData[]>  // Optional: pass the source atom directly
 }
 
 const TradeList = (p: TradeListProps) => {
-    const { selector, title, subtitle, list, isFavorite, classMap } = p
+    const { selector, title, subtitle, list, isFavorite, classMap, itemsAtom: sourceAtom } = p
     const setAdd = useSetAtom(addAvailableAtom)
     const setRemove = useSetAtom(removeAvailableAtom)
 
-    // Create atom for the items in this list
-    const itemsAtom = useMemo(() => atom(list.items), [list.items])
+    // Use source atom if provided, otherwise create a derived atom from the list
+    // This ensures the component stays reactive to upstream atom changes
+    const itemsAtom = useMemo(() => {
+        if (sourceAtom) {
+            return sourceAtom
+        }
+        // Fallback: create a derived atom that always reflects the current list
+        return atom((get) => list.items)
+    }, [sourceAtom, list.items])
 
     // Column configuration
     const columns = useMemo(() => [

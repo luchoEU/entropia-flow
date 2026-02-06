@@ -21,9 +21,7 @@ import {
   tradeItemChainAtom,
   availableCriteriaAtom,
   inventorySortStateAtom,
-  byStoreStateAtom,
-  auctionItemsAtom,
-  availableItemsAtom
+  byStoreStateAtom
 } from '../atoms/inventory'
 import { InventoryState, InventoryByStore } from '../state/inventory'
 
@@ -81,9 +79,9 @@ export async function initializeInventoryAtoms(api: any): Promise<void> {
     store.set(ownedOptionsAtom, mergedState.owned.options)
     store.set(hideCriteriaAtom, mergedState.owned.hideCriteria)
 
-    // Auction and available items
-    store.set(auctionItemsAtom, mergedState.auction?.items ?? [])
-    store.set(availableItemsAtom, mergedState.available?.items ?? [])
+    // Note: auctionItemsAtom and availableItemsAtom are now derived atoms that
+    // automatically filter rawInventoryItemsAtom, so we don't set them here.
+    // They will recompute automatically when rawInventoryItemsAtom changes.
 
     // Sort states (auction, available, owned)
     store.set(inventorySortStateAtom, {
@@ -235,7 +233,10 @@ export function resetInventoryAtoms(): void {
     })
     store.set(byStoreStateAtom, null)
 
-    // Note: atomWithStorage will update localStorage automatically
+    // Note: auctionItemsAtom and availableItemsAtom are derived atoms and will
+    // automatically recompute from rawInventoryItemsAtom, so we don't reset them directly
+
+    // atomWithStorage atoms will update localStorage automatically
     console.log('Inventory atoms reset to initial state')
   } catch (error) {
     console.error('Error resetting inventory atoms:', error)

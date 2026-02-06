@@ -3,8 +3,10 @@ import { initializeCraftStateAtom } from './craft'
 import { statusAtom } from './status'
 import { inventoryListAtom } from './history'
 import { lastTimestampAtom } from './last'
+import { rawInventoryItemsAtom } from './inventory'
 import messagesApi from '../../services/api/messages'
-import { ViewState, ViewDispatch, ViewNotification } from '../../../common/state'
+import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../common/state'
+import { ItemOwned } from '../state/inventory'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -33,10 +35,29 @@ export const initializeAppAtom = atom(
           if (m.status) {
             set(statusAtom, m.status as any)
           }
-          // Update inventory history list
+          // Update inventory history list and extract current items
           if (m.list) {
             m.list.reverse() // newer first
             set(inventoryListAtom, m.list)
+
+            // Extract current inventory items from the latest inventory
+            // The first item in the list is the most recent (after reverse)
+            const currentInventory = m.list?.[0]
+            if (currentInventory?.itemlist && currentInventory.itemlist.length > 0) {
+              // Convert ItemData[] to ItemOwned[] format for rawInventoryItemsAtom
+              const itemsOwned: ItemOwned[] = currentInventory.itemlist.map((item: ItemData) => ({
+                data: item,
+                c: {
+                  hidden: {
+                    name: false,
+                    container: false,
+                    value: false,
+                    any: false
+                  }
+                }
+              }))
+              set(rawInventoryItemsAtom, itemsOwned)
+            }
           }
           // Update last inventory timestamp
           if (m.last !== undefined) {

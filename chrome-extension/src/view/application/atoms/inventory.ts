@@ -23,15 +23,34 @@ export const rawInventoryItemsAtom = atom<ItemOwned[]>([])
 
 /**
  * Auction items atom - items currently on auction
- * Stores auction items loaded from storage
+ * Derived atom that automatically filters rawInventoryItemsAtom for items in AUCTION container
+ * Recomputes whenever rawInventoryItemsAtom changes
  */
-export const auctionItemsAtom = atomWithStorage<ItemData[]>('jotai-v1-inventory-auctionItems', [])
+export const auctionItemsAtom = atom<ItemData[]>((get) => {
+  const rawItems = get(rawInventoryItemsAtom)
+  return rawItems
+    .filter(item => item.data.c === 'AUCTION')
+    .map(item => item.data)
+})
 
 /**
  * Available items atom - items available for trading
- * Stores available items loaded from storage
+ * Derived atom that automatically filters rawInventoryItemsAtom for favorite items
+ * Filters based on availableCriteriaAtom (list of favorite item names)
+ * Aggregates items with the same name into a single row with combined quantity and value
+ * Recomputes whenever rawInventoryItemsAtom or availableCriteriaAtom changes
  */
-export const availableItemsAtom = atomWithStorage<ItemData[]>('jotai-v1-inventory-availableItems', [])
+export const availableItemsAtom = atom<ItemData[]>((get) => {
+  const rawItems = get(rawInventoryItemsAtom)
+  const criteria = get(availableCriteriaAtom)
+
+  const filtered = rawItems
+    .filter(item => criteria.name.includes(item.data.n))
+    .map(item => item.data)
+
+  // Aggregate items with the same name (e.g., Light Mind Essence in CARRIED + AUCTION becomes one row)
+  return joinDuplicates(filtered)
+})
 
 /**
  * Items map atom for looking up reserve amounts and item states
