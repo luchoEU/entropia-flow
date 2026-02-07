@@ -5,7 +5,7 @@
     "author": "Lucho MUCHO Ireton",
     "license": "MIT",
     "scripts": {
-        "build:schema": "npx ts-json-schema-generator --path src/stream/data.ts --type StreamExportLayout --no-top-ref --expose all > src/stream/stream-export-layout.schema.json",
+        "build:schema": "npx ts-json-schema-generator --path src/stream/data.ts --type StreamExportLayout --no-top-ref --expose all --additional-properties > src/stream/stream-export-layout.schema.json",
         "prebuild": "npm run build:schema",
         "predev": "npm run build:schema",
         "prewatch": "npm run build:schema",
@@ -58,7 +58,6 @@
     },
     "dependencies": {
         "@babel/standalone": "^7.28.1",
-        "@reduxjs/toolkit": "^2.5.0",
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.1.0",
         "dompurify": "^3.2.3",
@@ -74,13 +73,9 @@
         "prismjs": "^1.29.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
-        "react-redux": "^9.2.0",
         "react-router-dom": "^7.5.0",
         "react-simple-code-editor": "^0.14.1",
         "react-window": "^1.8.11",
-        "redux": "^5.0.1",
-        "redux-logger": "^3.0.6",
-        "redux-mock-store": "^1.5.5",
         "sass": "^1.83.0",
         "snabbdom": "^3.6.2",
         "three": "^0.172.0"

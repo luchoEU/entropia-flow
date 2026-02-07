@@ -5,15 +5,13 @@ import { GameLogData, GameLogTrade } from '../../../background/client/gameLogDat
 import { GameLogState } from '../state/log'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_GAME_LOG } from '../../../common/const'
-import { gameLogTabularData, gameLogTabularDefinitions } from '../tabular/log'
 import { Feature } from '../state/settings'
 import { isFeatureEnabledAtom } from './settings'
 import { GAME_LOG_TABULAR_TRADE } from '../state/log'
 import { TradeState } from '../state/trade'
-import { itemMatchesFilter, setTabularDefinitions } from '../helpers/tabular'
 import { createListNotification } from '../../../common/notifications'
-import { tabularAtom } from './tabular'
 import { tradeAtom, setLastTradeMessageCheckSerialAtom } from './trade'
+import { multiIncludes } from '../../../common/filter'
 
 const NOTIFICATION_ID = "entropiaFlowTrading"
 
@@ -44,9 +42,6 @@ export const currentGameLogDataAtom = atomWithDefault<GameLogData | null>(
 export const initializeGameLogAtom = atom(
     null,
     async (get, set) => {
-        // Set up tabular definitions for game log UI
-        setTabularDefinitions(gameLogTabularDefinitions)
-
         const stored = await loadFromStorage()
         if (stored) {
             set(gameLogAtom, stored)
@@ -65,16 +60,6 @@ const handleStoragePersistence = async (get: any, gameLog: GameLogData) => {
     }
 
     await saveToStorage(state)
-}
-
-// Side effect: Generate and dispatch tabular data
-const handleTabularData = async (get: any, set: any, gameLog: GameLogData) => {
-    if (!getDefaultStore().get(isFeatureEnabledAtom(Feature.client))) {
-        return
-    }
-
-    const data = gameLogTabularData(gameLog)
-    set(tabularAtom, (prev: any) => ({ ...prev, [GAME_LOG_TABULAR_TRADE]: data }))
 }
 
 // Side effect: Process trade notifications
@@ -97,7 +82,10 @@ const handleTradeNotifications = async (get: any, set: any, gameLog: GameLogData
         }
 
         for (const n of trade.notifications) {
-            if (itemMatchesFilter(t, 0, null, GAME_LOG_TABULAR_TRADE, n.filter)) {
+            // Check if trade matches filter by searching in all trade fields
+            const tradeStr = `${t.time} ${t.channel} ${t.player} ${t.message}`.toLowerCase()
+            const filterStr = n.filter.toLowerCase()
+            if (multiIncludes(filterStr, tradeStr)) {
                 if (!linesByFilter[n.filter]) {
                     linesByFilter[n.filter] = []
                 }
@@ -131,7 +119,6 @@ export const processGameLogAtom = atom<null, [GameLogData], Promise<void>>(
 
         // Trigger side effects
         await handleStoragePersistence(get, gameLog)
-        await handleTabularData(get, set, gameLog)
         await handleTradeNotifications(get, set, gameLog)
     }
 )

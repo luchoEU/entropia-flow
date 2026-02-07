@@ -1,7 +1,6 @@
 import { ItemData } from "../../../common/state";
 import { multiIncludes } from "../../../common/filter";
 import {
-    InventoryState,
     InventoryList,
     InventoryTree,
     InventoryByStore,
@@ -9,21 +8,12 @@ import {
     ContainerMapDataItem,
     BasicItemData,
     TreeLineData,
-    InventoryListWithFilter,
 } from "../state/inventory";
-import { cleanForSaveInventoryList, initialList } from "./inventory";
 import {
     cloneSortListSelect,
-    nextSortType,
     sortListSelect,
     SORT_NAME_ASCENDING,
 } from "./inventory.sort";
-
-const initialListWithFilter = <D>(expanded: boolean, sortType: number): InventoryListWithFilter<D> => ({
-    filter: undefined,
-    showList: initialList(true, sortType),
-    originalList: initialList(expanded, sortType),
-});
 
 const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
     containers: {},

@@ -12,7 +12,7 @@ import { traceId, traceOff } from "../common/trace"
 import { isUnfreezeTabEnabled } from "./settings/featureSettings"
 import WebSocketClient from "./client/webSocketClient"
 import TabStorage from "./tabStorage"
-import ApiStorage from "../view/services/api/storage"
+import atomStorageBridge from "./client/atomStorageBridge"
 import wiring from "./wiring"
 import { getLogoUrl } from "../stream/backgroundGetLogo"
 
@@ -38,7 +38,7 @@ class BackgroundInitializer {
 
         // wiring
         await wiring(messages, notifications, ajaxAlarm, frozenAlarm, sleepAlarm, deadAlarm, tickAlarm, tabs, actions, webSocketClient,
-            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, ApiStorage, isUnfreezeTabEnabled, getLogoUrl, true)
+            portManagerFactory, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, LOCAL_STORAGE, atomStorageBridge, isUnfreezeTabEnabled, getLogoUrl, true)
 
         async function test() {
             traceOff()

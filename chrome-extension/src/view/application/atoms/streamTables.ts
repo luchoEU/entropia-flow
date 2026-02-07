@@ -1,59 +1,109 @@
 import { atom } from 'jotai'
 import { streamStateAtom } from './stream'
-import { streamTabularDataFromLayouts, streamTabularDataFromVariables } from '../tabular/stream'
-import {
-  STREAM_TABULAR_CHOOSER,
-  STREAM_TABULAR_TRASH,
-  STREAM_TABULAR_VARIABLES,
-  STREAM_TABULAR_IMAGES,
-  STREAM_TABULAR_PARAMETERS
-} from '../state/stream'
-import { StreamChooserLine, StreamTrashLine } from '../tabular/stream'
-import { StreamComputedVariable } from '../../../stream/data'
+import { StreamComputedVariable, StreamRenderLayout } from '../../../stream/data'
+import { computeFormulas } from '../../../stream/formulaCompute'
+
+/**
+ * Stream Table Data Types
+ */
+export interface StreamChooserLine {
+  id: string
+  name: string
+  readonly: boolean
+  stared: boolean
+  layout: StreamRenderLayout
+}
+
+export interface StreamTrashLine {
+  id: string
+  name: string
+  layout: StreamRenderLayout
+}
 
 /**
  * Stream Table Atoms
  * Derived atoms that extract specific data from streamStateAtom for each table type
  */
 
-export const streamChooserItemsAtom = atom((get) => {
+/**
+ * Stream chooser items - available layouts
+ */
+export const streamChooserItemsAtom = atom<StreamChooserLine[]>((get) => {
   const stream = get(streamStateAtom)
-  const data = streamTabularDataFromLayouts(stream.in.layouts, stream.in.trashLayouts)
-  return data[STREAM_TABULAR_CHOOSER].items as StreamChooserLine[]
+
+  return Object.entries(stream.in.layouts).map(([id, layout]) => ({
+    id,
+    name: layout.name,
+    readonly: !!layout.readonly,
+    stared: !!layout.stared,
+    layout
+  }))
 })
 
-export const streamTrashItemsAtom = atom((get) => {
+/**
+ * Stream trash items - trashed layouts
+ */
+export const streamTrashItemsAtom = atom<StreamTrashLine[]>((get) => {
   const stream = get(streamStateAtom)
-  const data = streamTabularDataFromLayouts(stream.in.layouts, stream.in.trashLayouts)
-  return data[STREAM_TABULAR_TRASH].items as StreamTrashLine[]
+
+  return Object.entries(stream.in.trashLayouts).map(([id, layout]) => ({
+    id,
+    name: layout.name,
+    layout
+  }))
 })
 
-export const streamVariablesItemsAtom = atom((get) => {
+/**
+ * Stream variables items - computed variables for the current layout
+ */
+export const streamVariablesItemsAtom = atom<StreamComputedVariable[]>((get) => {
   const stream = get(streamStateAtom)
-  const layoutId = stream.ui.showingLayoutId
-  const tabularData = streamTabularDataFromVariables(stream.variables, {
-    layoutId: layoutId ?? '',
-    readonly: false
-  })
-  return tabularData[STREAM_TABULAR_VARIABLES].items as StreamComputedVariable[]
+  const variables = stream.variables
+
+  // Get all variables from all sources, flatten
+  const allVars = Object.entries(variables.single)
+    .map(([source, data]) => data.map(v => ({ source, ...v })))
+    .flat()
+
+  // Filter to non-image, non-parameter variables
+  const noImages = allVars.filter(v => !v.isImage && !v.isParameter)
+
+  // Compute formulas
+  const obj = Object.fromEntries(noImages.map(v => [v.name, v.value]))
+  obj.img = Object.fromEntries(
+    allVars.filter(v => v.isImage).map(v => [v.name, `img.${v.name}`])
+  )
+  const tObj = Object.fromEntries(
+    Object.values(variables.temporal).flat().map(v => [v.name, v.value])
+  )
+  const computedObj = computeFormulas(obj, tObj)
+
+  // Add computed values to each variable
+  return noImages.map(v => ({ ...v, computed: computedObj[v.name] }))
 })
 
-export const streamImagesItemsAtom = atom((get) => {
+/**
+ * Stream images items
+ */
+export const streamImagesItemsAtom = atom<StreamComputedVariable[]>((get) => {
   const stream = get(streamStateAtom)
-  const layoutId = stream.ui.showingLayoutId
-  const tabularData = streamTabularDataFromVariables(stream.variables, {
-    layoutId: layoutId ?? '',
-    readonly: false
-  })
-  return tabularData[STREAM_TABULAR_IMAGES].items as StreamComputedVariable[]
+  const variables = stream.variables
+
+  return Object.entries(variables.single)
+    .map(([source, data]) => data.map(v => ({ source, ...v })))
+    .flat()
+    .filter(v => v.isImage)
 })
 
-export const streamParametersItemsAtom = atom((get) => {
+/**
+ * Stream parameters items
+ */
+export const streamParametersItemsAtom = atom<StreamComputedVariable[]>((get) => {
   const stream = get(streamStateAtom)
-  const layoutId = stream.ui.showingLayoutId
-  const tabularData = streamTabularDataFromVariables(stream.variables, {
-    layoutId: layoutId ?? '',
-    readonly: false
-  })
-  return tabularData[STREAM_TABULAR_PARAMETERS].items as StreamComputedVariable[]
+  const variables = stream.variables
+
+  return Object.entries(variables.single)
+    .map(([source, data]) => data.map(v => ({ source, ...v })))
+    .flat()
+    .filter(v => v.isParameter)
 })

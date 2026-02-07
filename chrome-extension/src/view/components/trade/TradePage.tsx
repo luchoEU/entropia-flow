@@ -1,11 +1,8 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { InventoryState } from '../../application/state/inventory'
 import TradeList from './TradeList'
-import { GAME_LOG_TABULAR_TRADE } from '../../application/state/log'
 import { tradeAtom, addTradeMessageNotificationAtom, removeTradeMessageNotificationAtom } from '../../application/atoms/trade'
 import { TradeState } from '../../application/state/trade'
-import { setTabularFilterAtom } from '../../application/atoms/tabular'
 import { InventoryOwnedList } from './InventoryOwnedList'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
@@ -15,14 +12,13 @@ import { gameLogTradeItemsAtom } from '../../application/atoms/gameLogTables'
 import { gameLogTradeConfig } from '../../application/configs/gameLogTableConfigs'
 
 export function TradePage() {
-    // Use Jotai atoms instead of Redux selectors
-    const s: InventoryState = useAtomValue(inventoryStateAtom) as InventoryState
+    // Use Jotai computed atom for inventory state
+    const s = useAtomValue(inventoryStateAtom)
     const t: TradeState = useAtomValue(tradeAtom)
     const isClientEnabled = useAtomValue(isFeatureEnabledAtom(Feature.client))
     const availableCriteria = useAtomValue(availableCriteriaAtom)
     const addNotification = useSetAtom(addTradeMessageNotificationAtom)
     const removeNotification = useSetAtom(removeTradeMessageNotificationAtom)
-    const setFilter = useSetAtom(setTabularFilterAtom)
 
     // Compute toAuction classMap with memoization to ensure it updates when atoms change
     // Items not in auction get the 'to-auction' class to display them in bold
@@ -60,8 +56,7 @@ export function TradePage() {
                     >
                         <span
                             style={{ cursor: 'pointer' }}
-                            onClick={() => setFilter(GAME_LOG_TABULAR_TRADE, n.filter)}
-                            title="Apply this filter"
+                            title="Use search box in Trade table to filter"
                         >
                             {n.filter}
                         </span>
@@ -75,7 +70,7 @@ export function TradePage() {
                 ))}
             </div>
         )
-    }, [t.notifications, setFilter, removeNotification])
+    }, [t.notifications, removeNotification])
 
     return (
         <>
@@ -86,7 +81,7 @@ export function TradePage() {
                     list={s.available} isFavorite={() => true} classMap={toAuction} itemsAtom={availableItemsAtom} />
                 { isClientEnabled && (
                     <JotaiSortableTableSection
-                        selector={GAME_LOG_TABULAR_TRADE}
+                        selector="TradePage.Trade"
                         title="Trade"
                         subtitle="List of trade related messages on chat"
                         itemsAtom={gameLogTradeItemsAtom}

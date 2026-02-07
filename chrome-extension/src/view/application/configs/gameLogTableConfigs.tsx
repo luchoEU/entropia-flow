@@ -14,10 +14,8 @@ import {
 import { TemporalValue } from '../../../common/state'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
 import { dateToString } from '../../../common/date'
-import { setTabularFilterAtom } from '../atoms/tabular'
 import { filterExact } from '../../../common/filter'
 import { GAME_LOG_TABULAR_TRADE } from '../state/log'
-import { getDefaultStore } from 'jotai'
 import ItemText from '../../components/common/ItemText'
 
 function _separateCamelCase(s: string): string {
@@ -394,7 +392,6 @@ export const gameLogTradeConfig: JotaiTableConfig<GameLogTrade> = {
             src="img/find.png"
             title="Search by this channel"
             style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-            onClick={() => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, filterExact(item.channel))}
           />
         </div>
       )
@@ -412,7 +409,6 @@ export const gameLogTradeConfig: JotaiTableConfig<GameLogTrade> = {
             src="img/find.png"
             title="Search by this player"
             style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-            onClick={() => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, filterExact(item.player))}
           />
         </div>
       )
@@ -433,7 +429,6 @@ export const gameLogTradeConfig: JotaiTableConfig<GameLogTrade> = {
                   src="img/find.png"
                   title="Search by this item"
                   style={{ cursor: 'pointer', width: '12px', height: '12px' }}
-                  onClick={() => getDefaultStore().set(setTabularFilterAtom, GAME_LOG_TABULAR_TRADE, t)}
                 />
               </div>
             ) : (

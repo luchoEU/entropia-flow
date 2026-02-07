@@ -1,14 +1,14 @@
 // Auction Sold Detector
 
 import { ViewItemAction, ViewItemData } from "../state/history";
-import { InventoryState } from "../state/inventory";
+import { AvailableCriteria, ItemOwned } from "../state/inventory";
 import { TabId } from "../state/navigation";
 import { formatToUrl } from "./navigation";
 import { bpNameFromItemName } from "./craft-utils";
 import { REFINED_LME, REFINED_ME, REFINED_NB } from "./items";
 
-function getItemAction(item: ViewItemData, inventory: InventoryState): ViewItemAction {
-    if (item.c === 'AUCTION' && item.q[0] === '-' && inventory.availableCriteria.name.includes(item.n)) {
+function getItemAction(item: ViewItemData, availableCriteria: AvailableCriteria, ownedItems: ItemOwned[]): ViewItemAction {
+    if (item.c === 'AUCTION' && item.q[0] === '-' && availableCriteria.name.includes(item.n)) {
         let navigateTo: string = undefined
         switch (item.n) {
             case REFINED_ME:
@@ -17,7 +17,7 @@ function getItemAction(item: ViewItemData, inventory: InventoryState): ViewItemA
                 navigateTo = TabId.REFINED // open to sell more
                 break
             default:
-                const addBpName = bpNameFromItemName(inventory, item.n)
+                const addBpName = bpNameFromItemName(ownedItems, item.n)
                 if (addBpName)
                     navigateTo = `${TabId.CRAFT}/${formatToUrl(addBpName)}` // open blueprint to craft more
                 break

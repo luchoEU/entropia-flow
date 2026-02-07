@@ -1,11 +1,30 @@
 import { refinedInitialMap, cleanForSaveMain, cleanForSaveCache } from '../helpers/items'
-import storageApi from '../../services/api/storage'
+import { SYNC_STORAGE, LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
+import { STORAGE_VIEW_ITEMS } from '../../../common/const'
 import { mergeDeep } from '../../../common/merge'
 import { ItemsMap } from '../state/items'
+import pako from 'pako'
 
 // Initialize items with defaults
 export let itemsCache: ItemsMap = JSON.parse(JSON.stringify(refinedInitialMap))
 let isInitialized = false
+
+/**
+ * Compression/decompression utilities for items storage
+ * Uses pako deflate for efficient storage quota usage
+ */
+function _compress(json: object): string {
+  const jsonString = JSON.stringify(json)
+  const compressed = pako.deflate(jsonString, { to: 'string' })
+  return Buffer.from(compressed).toString('base64')
+}
+
+function _uncompress(compressed: any): any {
+  if (!compressed) return compressed
+  const compressedData = Buffer.from(compressed, 'base64')
+  const uncompressed = pako.inflate(compressedData, { to: 'string' })
+  return JSON.parse(uncompressed)
+}
 
 /**
  * Synchronous storage interface for atomWithStorage
@@ -37,8 +56,12 @@ export async function initializeItemsCache(): Promise<ItemsMap> {
   }
 
   try {
-    const mainState = await storageApi.loadItems()
-    const cacheState = await storageApi.loadItemsCache()
+    // Load main state (compressed in SYNC_STORAGE)
+    const compressedMainState = await SYNC_STORAGE.get(STORAGE_VIEW_ITEMS)
+    const mainState = _uncompress(compressedMainState)
+
+    // Load cache state (uncompressed in LOCAL_STORAGE)
+    const cacheState = await LOCAL_STORAGE.get(STORAGE_VIEW_ITEMS)
 
     let merged = JSON.parse(JSON.stringify(refinedInitialMap))
 
@@ -64,13 +87,14 @@ export async function initializeItemsCache(): Promise<ItemsMap> {
  */
 async function saveItemsToStorageAsync(itemsMap: ItemsMap): Promise<void> {
   try {
-    // Save main state (without web data)
+    // Save main state (without web data) - compressed in SYNC_STORAGE
     const mainState = cleanForSaveMain({ map: itemsMap })
-    await storageApi.saveItems(mainState)
+    const compressedMainState = _compress(mainState)
+    await SYNC_STORAGE.set(STORAGE_VIEW_ITEMS, compressedMainState)
 
-    // Also save web cache for faster reloads
+    // Also save web cache for faster reloads - uncompressed in LOCAL_STORAGE
     const cacheState = cleanForSaveCache({ map: itemsMap })
-    await storageApi.saveItemsCache(cacheState)
+    await LOCAL_STORAGE.set(STORAGE_VIEW_ITEMS, cacheState)
   } catch (error) {
     console.error('Failed to save items to storage:', error)
   }
@@ -92,7 +116,7 @@ export async function saveItemsWebCache(itemsMap: ItemsMap): Promise<void> {
   try {
     itemsCache = itemsMap
     const cacheState = cleanForSaveCache({ map: itemsMap })
-    await storageApi.saveItemsCache(cacheState)
+    await LOCAL_STORAGE.set(STORAGE_VIEW_ITEMS, cacheState)
   } catch (error) {
     console.error('Failed to save items web cache:', error)
   }

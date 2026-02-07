@@ -300,7 +300,7 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     const budgetState = useAtomValue(budgetStateAtom)
     // Use Jotai atom instead of Redux selector for inventory
     const inventoryState = useAtomValue(inventoryStateAtom)
-    const inventory = getItemList(inventoryState)
+    const inventory = getItemList(inventoryState.owned.items)
     const navigate = useNavigate()
     const moveItemToGroup = useSetAtom(moveBudgetItemToGroupAtom)
     const addBudgetGroup = useSetAtom(addBudgetGroupAtom)

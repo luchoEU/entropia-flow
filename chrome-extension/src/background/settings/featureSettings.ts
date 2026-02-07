@@ -1,6 +1,7 @@
 import { mergeDeep } from "../../common/merge";
 import { Feature, isFeatureEnabled, SettingsState } from "../../view/application/state/settings";
-import apiStorage from "../../view/services/api/storage";
+import { SYNC_STORAGE } from "../../chrome/chromeStorageArea";
+import { STORAGE_VIEW_SETTINGS } from "../../common/const";
 
 const initialState: SettingsState = {
     sheet: {
@@ -13,7 +14,7 @@ const initialState: SettingsState = {
 }
 
 async function _getSettings(): Promise<SettingsState> {
-    const state = await apiStorage.loadSettings()
+    const state = await SYNC_STORAGE.get(STORAGE_VIEW_SETTINGS)
     return state ? mergeDeep(initialState, state) : initialState
 }
 

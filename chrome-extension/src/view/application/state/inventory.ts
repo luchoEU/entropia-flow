@@ -26,12 +26,6 @@ interface InventoryTree<T> {
   showItemValueRow?: boolean
 }
 
-interface InventoryListWithFilter<T> {
-  filter?: string
-  showList: InventoryList<T>
-  originalList: InventoryList<T>
-}
-
 interface InventoryByStore {
   containers: ContainerMapData
   staredExpanded: Array<string>
@@ -131,19 +125,6 @@ interface TradeBlueprintLineData {
   quantity: number;
 }
 
-interface InventoryState {
-  auction: InventoryList<ItemData>;
-  owned: {
-    items: Array<ItemOwned>;
-    options: OwnedOptions;
-    hideCriteria: OwnedHideCriteria;
-  }
-  byStore: InventoryByStore;
-  available: InventoryList<ItemData>;
-  availableCriteria: AvailableCriteria; // favorite trade items
-  tradeItemDataChain?: TradeItemData[];
-}
-
 export {
   INVENTORY_TABULAR_OWNED,
   OwnedOptions,
@@ -158,7 +139,5 @@ export {
   TradeBlueprintLineData,
   InventoryList,
   InventoryTree,
-  InventoryListWithFilter,
   InventoryByStore,
-  InventoryState,
 };

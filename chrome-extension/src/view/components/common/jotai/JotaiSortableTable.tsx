@@ -5,11 +5,14 @@ import { FixedSizeList } from 'react-window'
 import { JotaiSortableTableProps } from './JotaiTableTypes'
 import { TableUIState } from './JotaiTableTypes'
 import SearchInput from '../SearchInput'
-import { ITEM_HEIGHT, COLUMN_PADDING } from '../SortableTabularSection.data'
 import './JotaiSortableTable.scss'
 
 // Import the data computation utility
 import { createComputedTableDataAtom } from '../../../application/atoms/tableUtils'
+
+// Constants for table layout
+const ITEM_HEIGHT = 32
+const COLUMN_PADDING = 4
 
 /**
  * A modern, jotai-based sortable table component

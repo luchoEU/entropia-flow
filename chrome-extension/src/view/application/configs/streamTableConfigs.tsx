@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
-import { StreamChooserLine, StreamTrashLine } from '../tabular/stream'
+import { StreamChooserLine, StreamTrashLine } from '../atoms/streamTables'
 import { StreamComputedVariable } from '../../../stream/data'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
 import { useNavigate } from 'react-router-dom'

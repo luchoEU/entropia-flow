@@ -1,7 +1,7 @@
 import { BlueprintData, BlueprintMaterial, CraftState, BlueprintBudgetMaterial } from '../state/craft';
 import { ItemsMap } from '../state/items';
 import { BudgetInfoData } from '../../services/api/sheets/sheetsBudget';
-import { InventoryState } from '../state/inventory';
+import { ItemOwned } from '../state/inventory';
 import { getBlueprintList } from './inventory';
 import { loadFromWebMultiple, WebLoadResponse } from '../../../web/loader';
 import { IWebSource } from '../../../web/sources';
@@ -9,8 +9,8 @@ import { Dispatch } from 'react';
 import { BlueprintWebData } from '../../../web/state';
 
 const itemNameFromBpName = (bpName: string): string => bpName?.split('Blueprint')[0].trim()
-const bpNameFromItemName = (inv: InventoryState, itemName: string): string | undefined =>
-    getBlueprintList(inv).find(bp => itemNameFromBpName(bp.n) == itemName)?.n
+const bpNameFromItemName = (ownedItems: ItemOwned[], itemName: string): string | undefined =>
+    getBlueprintList(ownedItems).find(bp => itemNameFromBpName(bp.n) == itemName)?.n
 
 const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'

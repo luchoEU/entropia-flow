@@ -23,33 +23,33 @@ const InventoryByStoreList = () => {
     const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
 
     // Jotai write atoms
-    const setByStoreItemExpandedJotai = useSetAtom(setByStoreItemExpandedAtom)
-    const setByStoreItemNameJotai = useSetAtom(setByStoreItemNameAtom)
-    const startByStoreItemEditJotai = useSetAtom(startByStoreItemNameEditingAtom)
-    const confirmByStoreItemEditJotai = useSetAtom(confirmByStoreItemNameEditingAtom)
-    const cancelByStoreItemEditJotai = useSetAtom(cancelByStoreItemNameEditingAtom)
-    const setByStoreItemStaredJotai = useSetAtom(setByStoreItemStaredAtom)
-    const setByStoreStaredItemExpandedJotai = useSetAtom(setByStoreStaredItemExpandedAtom)
-    const setByStoreStaredItemStaredJotai = useSetAtom(setByStoreStaredItemStaredAtom)
-    const setByStoreStaredItemNameJotai = useSetAtom(setByStoreStaredItemNameAtom)
-    const startByStoreStaredItemEditJotai = useSetAtom(startByStoreStaredItemNameEditingAtom)
-    const confirmByStoreStaredItemEditJotai = useSetAtom(confirmByStoreStaredItemNameEditingAtom)
-    const cancelByStoreStaredItemEditJotai = useSetAtom(cancelByStoreStaredItemNameEditingAtom)
-    const setByStoreAllItemsExpandedJotai = useSetAtom(setByStoreAllItemsExpandedSimpleAtom)
-    const setByStoreStaredAllItemsExpandedJotai = useSetAtom(setByStoreStaredAllItemsExpandedAtom)
-    const sortByStoreByJotai = useSetAtom(sortByStoreByAtom)
-    const sortByStoreStaredByJotai = useSetAtom(sortByStoreStaredByAtom)
+    const setByStoreItemExpanded = useSetAtom(setByStoreItemExpandedAtom)
+    const setByStoreItemName = useSetAtom(setByStoreItemNameAtom)
+    const startByStoreItemEdit = useSetAtom(startByStoreItemNameEditingAtom)
+    const confirmByStoreItemEdit = useSetAtom(confirmByStoreItemNameEditingAtom)
+    const cancelByStoreItemEdit = useSetAtom(cancelByStoreItemNameEditingAtom)
+    const setByStoreItemStared = useSetAtom(setByStoreItemStaredAtom)
+    const setByStoreStaredItemExpanded = useSetAtom(setByStoreStaredItemExpandedAtom)
+    const setByStoreStaredItemStared = useSetAtom(setByStoreStaredItemStaredAtom)
+    const setByStoreStaredItemName = useSetAtom(setByStoreStaredItemNameAtom)
+    const startByStoreStaredItemEdit = useSetAtom(startByStoreStaredItemNameEditingAtom)
+    const confirmByStoreStaredItemEdit = useSetAtom(confirmByStoreStaredItemNameEditingAtom)
+    const cancelByStoreStaredItemEdit = useSetAtom(cancelByStoreStaredItemNameEditingAtom)
+    const setByStoreAllItemsExpanded = useSetAtom(setByStoreAllItemsExpandedSimpleAtom)
+    const setByStoreStaredAllItemsExpanded = useSetAtom(setByStoreStaredAllItemsExpandedAtom)
+    const sortByStoreBy = useSetAtom(sortByStoreByAtom)
+    const sortByStoreStaredBy = useSetAtom(sortByStoreStaredByAtom)
 
     // Sort handlers for tree-aware sorting
     const handleSortContainers = useCallback((columnIndex: number, ascending: boolean) => {
         const sortType = columnIndexToSortType(columnIndex, ascending)
-        sortByStoreByJotai(sortType)
-    }, [sortByStoreByJotai])
+        sortByStoreBy(sortType)
+    }, [sortByStoreBy])
 
     const handleSortStared = useCallback((columnIndex: number, ascending: boolean) => {
         const sortType = columnIndexToSortType(columnIndex, ascending)
-        sortByStoreStaredByJotai(sortType)
-    }, [sortByStoreStaredByJotai])
+        sortByStoreStaredBy(sortType)
+    }, [sortByStoreStaredBy])
 
     // Create computed atoms that derive from byStoreStateAtom
     // These atoms are created once and always reflect the current state
@@ -71,49 +71,49 @@ const InventoryByStoreList = () => {
     const renderNameColumn = (_showContainer: boolean, isFavorite: boolean) => (item: TreeLineData) => {
         const handleExpandToggle = () => {
             if (isFavorite) {
-                setByStoreStaredItemExpandedJotai(item.id, !item.expanded)
+                setByStoreStaredItemExpanded(item.id, !item.expanded)
             } else {
-                setByStoreItemExpandedJotai(item.id, !item.expanded)
+                setByStoreItemExpanded(item.id, !item.expanded)
             }
         }
 
         const handleEditStart = () => {
             if (isFavorite) {
-                startByStoreStaredItemEditJotai(item.id)
+                startByStoreStaredItemEdit(item.id)
             } else {
-                startByStoreItemEditJotai(item.id)
+                startByStoreItemEdit(item.id)
             }
         }
 
         const handleEditCancel = () => {
             if (isFavorite) {
-                cancelByStoreStaredItemEditJotai()
+                cancelByStoreStaredItemEdit()
             } else {
-                cancelByStoreItemEditJotai()
+                cancelByStoreItemEdit()
             }
         }
 
         const handleEditConfirm = () => {
             if (isFavorite) {
-                confirmByStoreStaredItemEditJotai()
+                confirmByStoreStaredItemEdit()
             } else {
-                confirmByStoreItemEditJotai(item.id)
+                confirmByStoreItemEdit(item.id)
             }
         }
 
         const handleNameChange = (value: string) => {
             if (isFavorite) {
-                setByStoreStaredItemNameJotai(item.id, value)
+                setByStoreStaredItemName(item.id, value)
             } else {
-                setByStoreItemNameJotai(item.id, value)
+                setByStoreItemName(item.id, value)
             }
         }
 
         const handleSetStared = (stared: boolean) => {
             if (isFavorite) {
-                setByStoreStaredItemStaredJotai(item.id, stared)
+                setByStoreStaredItemStared(item.id, stared)
             } else {
-                setByStoreItemStaredJotai(item.id, stared)
+                setByStoreItemStared(item.id, stared)
             }
         }
 
@@ -155,12 +155,12 @@ const InventoryByStoreList = () => {
     // Memoize renderNameColumn to avoid recreating it
     const memoizedRenderNameStared = useMemo(
         () => renderNameColumn(true, true),
-        [setByStoreStaredItemExpandedJotai, startByStoreStaredItemEditJotai, confirmByStoreStaredItemEditJotai, cancelByStoreStaredItemEditJotai, setByStoreStaredItemNameJotai, setByStoreStaredItemStaredJotai]
+        [setByStoreStaredItemExpanded, startByStoreStaredItemEdit, confirmByStoreStaredItemEdit, cancelByStoreStaredItemEdit, setByStoreStaredItemName, setByStoreStaredItemStared]
     )
 
     const memoizedRenderNameRegular = useMemo(
         () => renderNameColumn(false, false),
-        [setByStoreItemExpandedJotai, startByStoreItemEditJotai, confirmByStoreItemEditJotai, cancelByStoreItemEditJotai, setByStoreItemNameJotai, setByStoreItemStaredJotai]
+        [setByStoreItemExpanded, startByStoreItemEdit, confirmByStoreItemEdit, cancelByStoreItemEdit, setByStoreItemName, setByStoreItemStared]
     )
 
     // Column config for stared containers
@@ -243,17 +243,17 @@ const InventoryByStoreList = () => {
 
     // Expand/collapse all controls
     const expandAllStaredButton = (
-        <button onClick={() => setByStoreStaredAllItemsExpandedJotai(true)} title='Expand All'>+</button>
+        <button onClick={() => setByStoreStaredAllItemsExpanded(true)} title='Expand All'>+</button>
     )
     const collapseAllStaredButton = (
-        <button onClick={() => setByStoreStaredAllItemsExpandedJotai(false)} title='Collapse All'>-</button>
+        <button onClick={() => setByStoreStaredAllItemsExpanded(false)} title='Collapse All'>-</button>
     )
 
     const expandAllButton = (
-        <button onClick={() => setByStoreAllItemsExpandedJotai(true)} title='Expand All'>+</button>
+        <button onClick={() => setByStoreAllItemsExpanded(true)} title='Expand All'>+</button>
     )
     const collapseAllButton = (
-        <button onClick={() => setByStoreAllItemsExpandedJotai(false)} title='Collapse All'>-</button>
+        <button onClick={() => setByStoreAllItemsExpanded(false)} title='Collapse All'>-</button>
     )
 
     return (

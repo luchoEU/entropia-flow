@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useAtom } from 'jotai'
 import {
     getAllSyncStorage,
     getAllLocalStorage,
@@ -10,15 +11,16 @@ import {
 } from '../../services/rawStorageService'
 import JsonTreeViewer from './JsonTreeViewer'
 import StorageEditModal from './StorageEditModal'
-
-type SelectedStorage = 'sync' | 'local'
+import { rawStoragePreferencesAtom, type SelectedStorage } from '../../application/atoms/rawStorage'
 
 const RawStoragePage: React.FC = () => {
-    const [selectedStorage, setSelectedStorage] = useState<SelectedStorage>('sync')
+    const [preferences, setPreferences] = useAtom(rawStoragePreferencesAtom)
+    const selectedStorage = preferences.selectedStorage
+    const expandedKeys = new Set(preferences.expandedKeys)
+    const searchQuery = preferences.searchQuery
+
     const [syncData, setSyncData] = useState<Record<string, any>>({})
     const [localData, setLocalData] = useState<Record<string, any>>({})
-    const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
-    const [searchQuery, setSearchQuery] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
@@ -71,13 +73,13 @@ const RawStoragePage: React.FC = () => {
     const currentData = selectedStorage === 'sync' ? syncData : localData
 
     const handleToggleExpand = (keyPath: string) => {
-        const newExpanded = new Set(expandedKeys)
+        const newExpanded = new Set(preferences.expandedKeys)
         if (newExpanded.has(keyPath)) {
             newExpanded.delete(keyPath)
         } else {
             newExpanded.add(keyPath)
         }
-        setExpandedKeys(newExpanded)
+        setPreferences(p => ({ ...p, expandedKeys: Array.from(newExpanded) }))
     }
 
     const handleEdit = (key: string, value: any) => {
@@ -196,7 +198,7 @@ const RawStoragePage: React.FC = () => {
                 {(['sync', 'local'] as const).map(storage => (
                     <button
                         key={storage}
-                        onClick={() => setSelectedStorage(storage)}
+                        onClick={() => setPreferences(p => ({ ...p, selectedStorage: storage }))}
                         style={{
                             padding: '8px 16px',
                             border: selectedStorage === storage ? '2px solid #0366d6' : '1px solid #ccc',
@@ -234,7 +236,7 @@ const RawStoragePage: React.FC = () => {
                     type="text"
                     placeholder="Search keys..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => setPreferences(p => ({ ...p, searchQuery: e.target.value }))}
                 />
             </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import ImgButton from './common/ImgButton';
 import ModeState from '../application/state/mode';
 import { modeAtom, setShowSubtitlesAtom, setShowVisibleToggleAtom, pinMenuAtom } from '../application/atoms/mode';
@@ -9,6 +9,7 @@ import { lastComputedAtom } from '../application/atoms/last';
 import { budgetStateAtom } from '../application/atoms/budget';
 import { expandableAtom, setVisibleAtom } from '../application/atoms/expandable';
 import { settingsAtom } from '../application/atoms/settings';
+import { lastVisitedByTabAtom } from '../application/atoms/navigation';
 import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId, tabOrder } from '../application/state/navigation';
@@ -25,13 +26,15 @@ const Tab = (p: {
     const location = useLocation();
     const tabId = getTabIdFromLocation(location);
 
-    const [lastVisited, setLastVisited] = useState<string | null>(null);
+    const [lastVisitedMap, setLastVisitedMap] = useAtom(lastVisitedByTabAtom);
+    const lastVisited = lastVisitedMap[p.id] || null;
     const isCurrentTab = tabId === p.id;
+
     useEffect(() => {
         if (isCurrentTab) {
-            setLastVisited(location.pathname);
+            setLastVisitedMap(prev => ({ ...prev, [p.id]: location.pathname }));
         }
-    }, [isCurrentTab, location.pathname]);
+    }, [isCurrentTab, location.pathname, p.id, setLastVisitedMap]);
 
     const handleClick = () => {
         const fallback = getLocationFromTabId(p.id);

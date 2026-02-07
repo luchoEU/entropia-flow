@@ -12,7 +12,6 @@ import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, active
 import { settingsAtom } from './settings'
 import { WebLoadResponse } from '../../../web/loader'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
-import { inventoryTabularData } from '../tabular/inventory'
 
 /**
  * Base atom for raw inventory items
@@ -936,15 +935,6 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
 export const byStoreEditingAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreEditing', undefined)
 
 /**
- * Write atom to set byStore filter
- * Replaces Redux SET_BY_STORE_FILTER action
- * Note: Filtering is now handled internally by JotaiSortableTable
- */
-export const setByStoreFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
-  // Filtering is handled by JotaiSortableTable component internally
-})
-
-/**
  * Write atom to set all byStore stared items expanded state
  * Replaces Redux SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED action
  */
@@ -1136,6 +1126,17 @@ export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (get, set, expand
     return acc
   }, {} as ContainerMapData)
   set(byStoreContainersAtom, updatedContainers)
+
+  // Also expand/collapse all material items
+  if (expanded) {
+    const inventory = get(byStoreStateAtom)
+    if (inventory?.materialItems) {
+      const allMaterialIds = inventory.materialItems.map(item => item.id)
+      set(byStoreMaterialExpandedAtom, allMaterialIds)
+    }
+  } else {
+    set(byStoreMaterialExpandedAtom, [])
+  }
 })
 
 /**
@@ -1269,42 +1270,6 @@ export const inventoryStateAtom = atom((get) => {
   }
 })
 
-/**
- * Computed atom: Tabular display data
- *
- * Generates formatted display data for SortableTableSection based on current inventory state.
- * This atom automatically recomputes whenever any inventory atom changes.
- *
- * Benefits:
- * - No middleware needed for tabular data generation
- * - Automatically stays in sync with inventory state
- * - Can be read directly by components
- * - Pure computation (no side effects)
- *
- * Usage:
- * ```typescript
- * const tabularData = useAtomValue(inventoryTabularDataAtom)
- * ```
- *
- * Components can read this directly and skip Redux entirely
- */
-export const inventoryTabularDataAtom = atom((get) => {
-  const inventory = get(inventoryStateAtom) as any
-  const settings = get(settingsAtom)
-  const items = get(itemsMapAtom)
-  const ttService = get(ttServiceAtom) || ({} as TTServiceState)
-
-  try {
-    // Generate tabular data using the same function as middleware
-    // This automatically recomputes whenever any inventory atom changes
-    // Note: We're providing the minimal required fields for tabular data generation
-    return inventoryTabularData(inventory, settings, items, ttService)
-  } catch (error) {
-    console.error('Error computing inventory tabular data:', error)
-    // Return empty tabular data on error to prevent rendering crashes
-    return {}
-  }
-})
 
 // Re-export components from inventoryComponents.tsx
 export {
