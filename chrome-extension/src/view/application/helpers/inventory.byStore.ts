@@ -27,7 +27,6 @@ const initialListWithFilter = <D>(expanded: boolean, sortType: number): Inventor
 
 const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
     ...initialListWithFilter(expanded, sortType),
-    showStared: false,
     containers: { },
     stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
     material: { filter: undefined, expanded: [], list: initialList(true, sortType) },
@@ -722,10 +721,7 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
     c: undefined
 })
 
-const fillFromLoadByStore = (state: InventoryByStore): InventoryByStore => ({
-    ...state,
-    showStared: state.showStared !== undefined ? state.showStared : Object.values(state.containers).some(c => c.stared)
-})
+const fillFromLoadByStore = (state: InventoryByStore): InventoryByStore => state
 
 export {
     initialListByStore,

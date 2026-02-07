@@ -209,6 +209,7 @@ const JotaiSortableTableComponent = function<TItem>(
                   itemCount={data.items.length}
                   itemSize={itemHeight}
                   width={totalWidth}
+                  style={{ overflow: 'hidden' }}
                 >
                   {VirtualizedRow}
                 </FixedSizeList>

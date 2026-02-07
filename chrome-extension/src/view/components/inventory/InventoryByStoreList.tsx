@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { atom } from 'jotai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
-import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import ImgButton from '../common/ImgButton'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
@@ -256,7 +255,7 @@ const InventoryByStoreList = () => {
 
     return (
         <div className='flex'>
-            {inv.showStared && (
+            {inv.flat.stared.length > 0 && (
                 <JotaiSortableTableSection
                     selector='InventoryByStoreList.staredContainers'
                     title='Favorite Containers'

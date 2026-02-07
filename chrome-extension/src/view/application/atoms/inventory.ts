@@ -844,7 +844,6 @@ export const fullInventoryStateAtom = atom((get) => {
       showList: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } },
       originalList: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } },
       containers: {},
-      showStared: false,
       stared: { expanded: [], list: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } } },
       material: { expanded: [], list: { expanded: false, sortType: 0, items: [], stats: { count: 0, ped: '0.00' } } },
       flat: { original: [], show: [], stared: [], material: [] },
