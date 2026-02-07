@@ -24,6 +24,30 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
     expandedKeys,
     onToggleExpand
 }) => {
+    // Validate atom before attempting to use it
+    if (!atom || typeof atom !== 'object' || (!('read' in atom) && !('write' in atom) && !('init' in atom))) {
+        return (
+            <div style={{
+                marginBottom: '4px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px'
+            }}>
+                <div style={{
+                    flex: 1,
+                    padding: '8px',
+                    backgroundColor: '#f8d7da',
+                    border: '1px solid #f5c6cb',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    color: '#721c24'
+                }}>
+                    <strong>❌ {atomName}:</strong> Invalid atom object (not a valid Jotai atom)
+                </div>
+            </div>
+        )
+    }
+
     // Use loadable to safely handle atoms that might throw or be write-only
     const loadableAtom = React.useMemo(() => loadable(atom), [atom])
     const state = useAtomValue(loadableAtom)

@@ -78,6 +78,19 @@ const detectAtomType = (atom: any, name: string): AtomType => {
 }
 
 /**
+ * Validates that a value is a valid Jotai Atom object
+ * Jotai atoms have specific internal properties (read, write, init, etc.)
+ */
+const isValidAtom = (value: any): boolean => {
+    if (!value || typeof value !== 'object') return false
+    // Jotai atoms have at least a 'read' property (can be a function or a value)
+    // Valid atoms are objects with internal Jotai structure
+    return typeof value === 'object' && (
+        'read' in value || 'write' in value || 'init' in value
+    )
+}
+
+/**
  * Auto-discover all atoms from a module by looking for exports ending with "Atom"
  * Automatically detects atom type by inspecting structure
  */
@@ -85,6 +98,7 @@ const discoverAtoms = (module: any, moduleName: ModuleType): AtomMetadata[] => {
     return Object.entries(module)
         .filter(([name]) => name.endsWith('Atom'))
         .filter(([, value]) => typeof value !== 'function') // Skip atom factories (functions)
+        .filter(([, value]) => isValidAtom(value)) // Skip invalid/non-atom exports
         .map(([name, atom]) => ({
             name,
             atom,
