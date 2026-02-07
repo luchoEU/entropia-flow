@@ -4,6 +4,7 @@ import * as activityAtoms from './activity'
 import * as lastAtoms from './last'
 import * as historyAtoms from './history'
 import * as gameLogAtoms from './gameLog'
+import * as itemsAtoms from './items'
 
 export type AtomType = 'state' | 'computed' | 'action' | 'loading'
 
@@ -14,7 +15,8 @@ export const moduleRegistry = [
     { id: 'activity', name: 'Activity' },
     { id: 'last', name: 'Last' },
     { id: 'history', name: 'History' },
-    { id: 'gameLog', name: 'Game Log' }
+    { id: 'gameLog', name: 'Game Log' },
+    { id: 'items', name: 'Items' }
 ] as const
 
 export type ModuleType = typeof moduleRegistry[number]['id']
@@ -50,6 +52,7 @@ export const atomRegistry: AtomMetadata[] = [
     ...discoverAtoms(lastAtoms, 'last'),
     ...discoverAtoms(historyAtoms, 'history'),
     ...discoverAtoms(gameLogAtoms, 'gameLog'),
+    ...discoverAtoms(itemsAtoms, 'items')
 ]
 
 export const getAtomsByModule = (moduleName: ModuleType): AtomMetadata[] => {

@@ -34,6 +34,7 @@ import { saveItemsToStorage, saveItemsWebCache } from './itemsStorage'
 import { BlueprintWebMaterial } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { refinedMaterialChangedAtom } from './refined'
+import { startItemsSheetSyncDebounce, syncItemsSheetFunc } from '../helpers/itemsSheetHelper'
 
 /**
  * Base atom for items map - writable atom
@@ -461,18 +462,19 @@ export const itemsSyncTimeoutAtom = atom<any>(
  */
 export const triggerItemsSheetSyncAtom = atom(
   null,
-  async (get, set) => {
+  (get, set) => {
     // Clear existing timeout
     const existingTimeout = get(itemsSyncTimeoutAtom)
     if (existingTimeout) {
       clearTimeout(existingTimeout)
     }
 
-    // Import here to avoid circular dependencies
-    const { startItemsSheetSyncDebounce } = await import('../helpers/itemsSheetHelper')
-
-    // Delegate to helper which manages the debounce and countdown
-    await startItemsSheetSyncDebounce(set, setItemsSyncStatusAtom, setItemsDebounceTimeAtom)
+    // Delegate to helper with callbacks
+    startItemsSheetSyncDebounce(
+      (status) => set(itemsSyncStatusAtom, status),
+      (time) => set(itemsDebounceTimeAtom, time),
+      syncItemsSheetFunc
+    )
   }
 )
 
@@ -511,25 +513,6 @@ export const itemsSyncStatusAtom = atom<'idle' | 'pending' | 'syncing' | 'error'
  */
 export const itemsDebounceTimeAtom = atom<number>(0)
 
-/**
- * Update sync status
- */
-export const setItemsSyncStatusAtom = atom(
-  null,
-  (get, set, status: 'idle' | 'pending' | 'syncing' | 'error') => {
-    set(itemsSyncStatusAtom, status)
-  }
-)
-
-/**
- * Update debounce countdown time
- */
-export const setItemsDebounceTimeAtom = atom(
-  null,
-  (get, set, time: number) => {
-    set(itemsDebounceTimeAtom, time)
-  }
-)
 
 /**
  * Cache the items sheet URL when it's loaded

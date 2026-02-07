@@ -9,8 +9,8 @@ import { saveItemsToStorage } from '../atoms/itemsStorage'
 let currentStage = 0
 
 // Track debounce timeout ID
-let debounceTimeoutId: NodeJS.Timeout | null = null
-let countdownIntervalId: NodeJS.Timeout | null = null
+let debounceTimeoutId: ReturnType<typeof setTimeout> | null = null
+let countdownIntervalId: ReturnType<typeof setInterval> | null = null
 
 const getCallbacks = (setStage: (stage: number) => void): ItemsSheetInterfaceCallbacks => ({
     setStage,
@@ -56,11 +56,11 @@ export async function syncItemsSheetFunc() {
     await syncItemsToSheet(settings, itemsStateWithMap, getCallbacks(setStage))
 }
 
-export async function startItemsSheetSyncDebounce(
-    set: any,
-    setItemsSyncStatusAtom: any,
-    setItemsDebounceTimeAtom: any
-): Promise<void> {
+export function startItemsSheetSyncDebounce(
+    setSyncStatus: (status: 'pending' | 'syncing' | 'idle' | 'error') => void,
+    setDebounceTime: (time: number) => void,
+    syncFunc: () => Promise<void>
+): void {
     const DEBOUNCE_MS = 3000
 
     // Clear any existing timers
@@ -68,36 +68,34 @@ export async function startItemsSheetSyncDebounce(
     if (countdownIntervalId) clearInterval(countdownIntervalId)
 
     // Set status to pending
-    set(setItemsSyncStatusAtom, 'pending')
-    set(setItemsDebounceTimeAtom, DEBOUNCE_MS)
+    setSyncStatus('pending')
+    setDebounceTime(DEBOUNCE_MS)
 
     // Start countdown timer
     let remaining = DEBOUNCE_MS
     countdownIntervalId = setInterval(() => {
         remaining -= 100
         if (remaining > 0) {
-            set(setItemsDebounceTimeAtom, remaining)
+            setDebounceTime(remaining)
         } else {
             if (countdownIntervalId) clearInterval(countdownIntervalId)
-            set(setItemsDebounceTimeAtom, 0)
+            setDebounceTime(0)
         }
-    }, 100) as any
+    }, 100)
 
     // Set debounce timeout
     debounceTimeoutId = setTimeout(async () => {
         if (countdownIntervalId) clearInterval(countdownIntervalId)
 
-        const store = getDefaultStore()
-
         try {
-            store.set(setItemsSyncStatusAtom, 'syncing')
-            await syncItemsSheetFunc()
-            store.set(setItemsSyncStatusAtom, 'idle')
+            setSyncStatus('syncing')
+            await syncFunc()
+            setSyncStatus('idle')
         } catch (error) {
             console.error('Failed to sync items to sheet:', error)
-            store.set(setItemsSyncStatusAtom, 'error')
+            setSyncStatus('error')
         }
-    }, DEBOUNCE_MS) as any
+    }, DEBOUNCE_MS)
 }
 
 export async function reloadItemsSheetFunc(): Promise<void> {
