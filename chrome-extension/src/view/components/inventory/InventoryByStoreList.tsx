@@ -6,9 +6,9 @@ import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSec
 import ImgButton from '../common/ImgButton'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import {
-  setByStoreItemExpandedAtom, setByStoreInventoryFilterAtom, setByStoreItemNameAtom,
+  setByStoreItemExpandedAtom, setByStoreItemNameAtom,
   confirmByStoreItemNameEditingAtom, cancelByStoreItemNameEditingAtom, startByStoreItemNameEditingAtom,
-  setByStoreItemStaredAtom, setByStoreStaredInventoryFilterAtom,
+  setByStoreItemStaredAtom,
   setByStoreStaredItemExpandedAtom, setByStoreStaredItemStaredAtom,
   setByStoreStaredItemNameAtom, cancelByStoreStaredItemNameEditingAtom, startByStoreStaredItemNameEditingAtom,
   confirmByStoreStaredItemNameEditingAtom, setByStoreAllItemsExpandedSimpleAtom, setByStoreStaredAllItemsExpandedAtom,
@@ -22,13 +22,11 @@ const InventoryByStoreList = () => {
 
     // Jotai write atoms
     const setByStoreItemExpandedJotai = useSetAtom(setByStoreItemExpandedAtom)
-    const setByStoreFilterJotai = useSetAtom(setByStoreInventoryFilterAtom)
     const setByStoreItemNameJotai = useSetAtom(setByStoreItemNameAtom)
     const startByStoreItemEditJotai = useSetAtom(startByStoreItemNameEditingAtom)
     const confirmByStoreItemEditJotai = useSetAtom(confirmByStoreItemNameEditingAtom)
     const cancelByStoreItemEditJotai = useSetAtom(cancelByStoreItemNameEditingAtom)
     const setByStoreItemStaredJotai = useSetAtom(setByStoreItemStaredAtom)
-    const setByStoreStaredFilterJotai = useSetAtom(setByStoreStaredInventoryFilterAtom)
     const setByStoreStaredItemExpandedJotai = useSetAtom(setByStoreStaredItemExpandedAtom)
     const setByStoreStaredItemStaredJotai = useSetAtom(setByStoreStaredItemStaredAtom)
     const setByStoreStaredItemNameJotai = useSetAtom(setByStoreStaredItemNameAtom)
@@ -43,14 +41,14 @@ const InventoryByStoreList = () => {
     const staredItemsAtom = useMemo(() =>
         atom((get) => {
             const inventory = get(byStoreStateAtom)
-            return inventory?.flat?.stared ?? []
+            return inventory?.staredItems ?? []
         })
     , [])
 
     const regularItemsAtom = useMemo(() =>
         atom((get) => {
             const inventory = get(byStoreStateAtom)
-            return inventory?.flat?.show ?? []
+            return inventory?.items ?? []
         })
     , [])
 
@@ -104,14 +102,6 @@ const InventoryByStoreList = () => {
             }
         }
 
-        const handleSetFilter = (filter: string) => {
-            if (isFavorite) {
-                setByStoreStaredFilterJotai(filter)
-            } else {
-                setByStoreFilterJotai(filter)
-            }
-        }
-
         return (
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: `${item.indent * INDENT_SPACE}px` }}>
                 {item.expanded !== undefined && (
@@ -143,7 +133,6 @@ const InventoryByStoreList = () => {
                         dispatch={() => handleSetStared(!item.stared)}
                     />
                 )}
-                <ImgButton title='Search by this item name' src='img/find.png' dispatch={() => handleSetFilter(`!${item.n}`)} />
             </div>
         )
     }
@@ -151,12 +140,12 @@ const InventoryByStoreList = () => {
     // Memoize renderNameColumn to avoid recreating it
     const memoizedRenderNameStared = useMemo(
         () => renderNameColumn(true, true),
-        [setByStoreStaredItemExpandedJotai, startByStoreStaredItemEditJotai, confirmByStoreStaredItemEditJotai, cancelByStoreStaredItemEditJotai, setByStoreStaredItemNameJotai, setByStoreStaredItemStaredJotai, setByStoreStaredFilterJotai]
+        [setByStoreStaredItemExpandedJotai, startByStoreStaredItemEditJotai, confirmByStoreStaredItemEditJotai, cancelByStoreStaredItemEditJotai, setByStoreStaredItemNameJotai, setByStoreStaredItemStaredJotai]
     )
 
     const memoizedRenderNameRegular = useMemo(
         () => renderNameColumn(false, false),
-        [setByStoreItemExpandedJotai, startByStoreItemEditJotai, confirmByStoreItemEditJotai, cancelByStoreItemEditJotai, setByStoreItemNameJotai, setByStoreItemStaredJotai, setByStoreFilterJotai]
+        [setByStoreItemExpandedJotai, startByStoreItemEditJotai, confirmByStoreItemEditJotai, cancelByStoreItemEditJotai, setByStoreItemNameJotai, setByStoreItemStaredJotai]
     )
 
     // Column config for stared containers
@@ -179,7 +168,6 @@ const InventoryByStoreList = () => {
             renderRowCell: (item: TreeLineData) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{item.c}</span>
-                    <ImgButton title='Search in this container by this item name' src='img/find.png' dispatch={() => setByStoreStaredFilterJotai(`!${item.n}`)} />
                 </div>
             )
         },
@@ -201,7 +189,7 @@ const InventoryByStoreList = () => {
             justifyContent: 'end' as const,
             renderRowCell: (item: TreeLineData) => <>{item.v} PED</>
         }
-    ], [memoizedRenderNameStared, setByStoreStaredFilterJotai])
+    ], [memoizedRenderNameStared])
 
     // Column config for regular containers
     const regularColumnsConfig = useMemo(() => [

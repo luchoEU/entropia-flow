@@ -32,27 +32,13 @@ interface InventoryListWithFilter<T> {
   originalList: InventoryList<T>
 }
 
-interface InventoryByStore extends InventoryListWithFilter<InventoryTree<ItemData>> {
+interface InventoryByStore {
   containers: ContainerMapData
-  stared: {
-    filter?: string
-    expanded: Array<string>
-    list: InventoryList<InventoryTree<ItemData>>
-  }
-  material: {
-    filter?: string
-    expanded: Array<string>
-    list: InventoryList<InventoryTree<ItemData>>
-  }
-  flat: {
-    original: Array<TreeLineData>
-    show: Array<TreeLineData>
-    stared: Array<TreeLineData>
-    material: Array<TreeLineData>
-  }
-  c: {
-    validPlanets: Array<string>
-  }
+  staredExpanded: Array<string>
+  materialExpanded: Array<string>
+  items: Array<TreeLineData>
+  staredItems: Array<TreeLineData>
+  materialItems: Array<TreeLineData>
 }
 
 type ContainerMapData = { [id: string] : ContainerMapDataItem };

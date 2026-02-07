@@ -16,7 +16,6 @@ import { ItemsMap } from '../state/items'
 import { SettingsState } from '../state/settings'
 import { TTServiceState } from '../state/ttService'
 import { inventoryTabularData } from '../tabular/inventory'
-import { cleanForSaveByStore } from '../helpers/inventory.byStore'
 import { getDefaultStore } from 'jotai'
 import {
   rawInventoryItemsAtom,
@@ -109,10 +108,8 @@ export const syncReduxToJotaiEffect = (getState: () => any): void => {
       })
     }
 
-    // Sync byStore state
-    if (state?.byStore) {
-      jotaiStore.set(byStoreStateAtom, state.byStore)
-    }
+    // Note: byStore state is now derived from rawInventoryItemsAtom and persistent user preference atoms
+    // No need to sync it directly - it will compute automatically
 
     // Sync items map
     if (items) {
@@ -126,21 +123,20 @@ export const syncReduxToJotaiEffect = (getState: () => any): void => {
 /**
  * Effect: Persist byStore state to browser storage
  *
- * Saves the byStore tree state to persistent storage via the API.
- * Called after any byStore operation (expand, filter, edit, etc.)
+ * Note: This is now a no-op. ByStore persistence is handled automatically
+ * by atomWithStorage for the persistent user preference atoms:
+ * - byStoreContainersAtom
+ * - byStoreStaredExpandedAtom
+ * - byStoreMaterialExpandedAtom
  *
- * @param api - API service object with storage methods
- * @param state - ByStore state to persist
+ * @param api - API service object with storage methods (unused)
+ * @param state - ByStore state (unused)
  */
 export const persistByStoreStateEffect = async (
   api: any,
   state: InventoryByStore
 ): Promise<void> => {
-  try {
-    await api.storage.saveInventoryByStoreState(cleanForSaveByStore(state))
-  } catch (error) {
-    console.error('Error persisting byStore state:', error)
-  }
+  // ByStore persistence is now automatic via atomWithStorage
 }
 
 /**

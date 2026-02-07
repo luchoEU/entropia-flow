@@ -1,10 +1,11 @@
 import { Atom, atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
-import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData, InventoryByStore } from '../state/inventory'
+import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData, InventoryByStore, ContainerMapData } from '../state/inventory'
 import { ItemsMap, ItemState, ItemsState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
 import { BlueprintData, CraftState } from '../state/craft'
 import { joinDuplicates } from '../helpers/inventory'
+import { loadInventoryByStore, initialListByStore } from '../helpers/inventory.byStore'
 import { ItemData } from '../../../common/state'
 import { BlueprintWebData, ItemUsageWebData, ItemWebData } from '../../../web/state'
 import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, activePlanetAtom, editModeBlueprintNameAtom, craftWebDataAtom, craftComputedAtom } from './craft'
@@ -879,20 +880,51 @@ export const setCurrentInventoryAtom = atom(null, (_get, set, inventoryName: str
 })
 
 /**
- * ByStore inventory state atom
- * Tracks the complete byStore tree structure, filters, and expanded states
+ * ByStore containers atom - stores user preferences (expanded, stared, custom names)
+ * Derived from rawInventoryItemsAtom to build tree structure
  */
-export const byStoreStateAtom = atomWithStorage<InventoryByStore | null>('jotai-v1-inventory-byStore', null)
+export const byStoreContainersAtom = atomWithStorage<ContainerMapData>('jotai-v1-inventory-byStoreContainers', {})
 
 /**
- * ByStore filter atom - tracks current filter in the byStore view
+ * ByStore stared expanded items atom - tracks which stared items are expanded
  */
-export const byStoreFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreFilter', undefined)
+export const byStoreStaredExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreStaredExpanded', [])
 
 /**
- * ByStore expanded items atom - tracks which containers/items are expanded
+ * ByStore material expanded items atom - tracks which material items are expanded
  */
-export const byStoreExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreExpanded', [])
+export const byStoreMaterialExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreMaterialExpanded', [])
+
+/**
+ * ByStore inventory state atom - DERIVED from rawInventoryItemsAtom and user preferences
+ * Automatically recomputes when raw items or preferences change
+ * No longer a stored atom - computed on demand from source of truth (rawInventoryItemsAtom)
+ */
+export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
+  const rawItems = get(rawInventoryItemsAtom)
+  if (!rawItems || rawItems.length === 0) return null
+
+  const containers = get(byStoreContainersAtom)
+  const staredExpanded = get(byStoreStaredExpandedAtom)
+  const materialExpanded = get(byStoreMaterialExpandedAtom)
+
+  // Convert ItemOwned[] to ItemData[]
+  const itemDataList = rawItems.map(item => item.data)
+
+  // Build initial byStore structure with user preferences
+  const initialByStore: InventoryByStore = {
+    containers,
+    staredExpanded,
+    materialExpanded,
+    items: [],
+    staredItems: [],
+    materialItems: []
+  }
+
+  // Use existing helper to build and flatten the tree structure
+  // This will populate items, staredItems, and materialItems
+  return loadInventoryByStore(initialByStore, itemDataList)
+})
 
 /**
  * ByStore editing state atom - tracks which item is currently being edited
@@ -902,9 +934,10 @@ export const byStoreEditingAtom = atomWithStorage<string | undefined>('jotai-v1-
 /**
  * Write atom to set byStore filter
  * Replaces Redux SET_BY_STORE_FILTER action
+ * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
-  set(byStoreFilterAtom, filter)
+export const setByStoreFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
+  // Filtering is handled by JotaiSortableTable component internally
 })
 
 /**
@@ -921,25 +954,27 @@ export const setByStoreStaredAllItemsExpandedAtom = atom(null, (_get, _set, _exp
  * Replaces Redux SET_BY_STORE_ITEM_EXPANDED action
  */
 export const setByStoreItemExpandedAtom = atom(null, (get, set, itemId: string, expanded: boolean) => {
-  const current = get(byStoreExpandedAtom)
-  if (expanded) {
-    if (!current.includes(itemId)) {
-      set(byStoreExpandedAtom, [...current, itemId])
-    }
+  const current = get(byStoreContainersAtom)
+  const updated = { ...current }
+  if (updated[itemId]) {
+    updated[itemId] = { ...updated[itemId], expanded }
   } else {
-    set(byStoreExpandedAtom, current.filter(id => id !== itemId))
+    updated[itemId] = { displayName: '', expanded, stared: false }
   }
+  set(byStoreContainersAtom, updated)
 })
 
 /**
  * Write atom to set all byStore items expanded state
  * Replaces Redux SET_BY_STORE_ALL_ITEMS_EXPANDED action
  */
-export const setByStoreAllItemsExpandedAtom = atom(null, (_get, set, expanded: boolean) => {
-  // When toggling all, expand if any are collapsed, collapse if all are expanded
-  // This requires reading byStore state to get all item IDs
-  // For now, we'll keep a simplified version
-  set(byStoreExpandedAtom, expanded ? [] : [])  // placeholder
+export const setByStoreAllItemsExpandedAtom = atom(null, (get, set, expanded: boolean) => {
+  const current = get(byStoreContainersAtom)
+  const updated: ContainerMapData = {}
+  for (const [id, container] of Object.entries(current)) {
+    updated[id] = { ...container, expanded }
+  }
+  set(byStoreContainersAtom, updated)
 })
 
 /**
@@ -959,21 +994,12 @@ export const cancelByStoreItemNameEditingAtom = atom(null, (_get, set) => {
 })
 
 /**
- * ByStore material filter atom - tracks filter for material section
- */
-export const byStoreMaterialFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreMaterialFilter', undefined)
-
-/**
- * ByStore material expanded items atom - tracks which materials are expanded
- */
-export const byStoreMaterialExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreMaterialExpanded', [])
-
-/**
  * Write atom to set material filter
  * Replaces Redux SET_BY_STORE_MATERIAL_FILTER action
+ * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreMaterialFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
-  set(byStoreMaterialFilterAtom, filter)
+export const setByStoreMaterialFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
+  // Filtering is handled by JotaiSortableTable component internally
 })
 
 /**
@@ -1012,16 +1038,6 @@ export const sortByStoreMaterialByAtom = atom(null, (get, set, part: number) => 
 })
 
 /**
- * ByStore stared (favorites) filter atom
- */
-export const byStoreStaredFilterAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-byStoreStaredFilter', undefined)
-
-/**
- * ByStore stared expanded items atom
- */
-export const byStoreStaredExpandedAtom = atomWithStorage<string[]>('jotai-v1-inventory-byStoreStaredExpanded', [])
-
-/**
  * ByStore stared sort state atom
  */
 export const staredSortStateAtom = atomWithStorage('jotai-v1-inventory-staredSortState', {
@@ -1038,17 +1054,19 @@ export const byStoreSortStateAtom = atomWithStorage('jotai-v1-inventory-byStoreS
 /**
  * Write atom to set byStore (containers) filter
  * Replaces Redux SET_BY_STORE_FILTER action
+ * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
-  set(byStoreFilterAtom, filter)
+export const setByStoreInventoryFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
+  // Filtering is handled by JotaiSortableTable component internally
 })
 
 /**
  * Write atom to set byStore stared filter
  * Replaces Redux SET_BY_STORE_STARED_FILTER action
+ * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreStaredInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
-  set(byStoreStaredFilterAtom, filter)
+export const setByStoreStaredInventoryFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
+  // Filtering is handled by JotaiSortableTable component internally
 })
 
 /**

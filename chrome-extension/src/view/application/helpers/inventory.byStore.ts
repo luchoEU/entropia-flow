@@ -396,10 +396,11 @@ const loadInventoryByStore = (
 ): InventoryByStore => {
     const { items, containers } = _getByStore(list, byStore.containers);
     const originalList = {
-        ...byStore.originalList,
+        expanded: false,
+        sortType: SORT_NAME_ASCENDING,
         items
     }
-    
+
     function getPlanetName(name: string): string {
         if (name.startsWith('STORAGE (')) {
             return name.replace('STORAGE (', '').replace(')', '').replace('Planet', '').trim()
@@ -407,20 +408,44 @@ const loadInventoryByStore = (
             return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
         }
     }
-    function setPlanet(list: InventoryList<InventoryTree<ItemData>>, planet?: string) {
-        for (const i of list.items) {
+    function setPlanet(listToUpdate: InventoryList<InventoryTree<ItemData>>, planet?: string) {
+        for (const i of listToUpdate.items) {
             const iPlanet = planet ?? getPlanetName(i.displayName)
             i.data = { ...i.data, c: iPlanet }
             if (i.list) setPlanet(i.list, iPlanet)
-            }
+        }
     }
     setPlanet(originalList)
-    
-    return _loadByStoreShowAndStaredList({
-        ...byStore,
+
+    // Build flattened tree for main view
+    const flatItems = _flatTree(originalList, 0, true)
+
+    // Extract stared items (those with stared property in containers)
+    const staredTreeItems: Array<InventoryTree<ItemData>> = []
+    const gatherStared = (treeList: InventoryList<InventoryTree<ItemData>>) => {
+        for (const tree of treeList.items) {
+            if (tree.stared) staredTreeItems.push(tree)
+            if (tree.list) gatherStared(tree.list)
+        }
+    }
+    gatherStared(originalList)
+
+    const staredList: InventoryList<InventoryTree<ItemData>> = {
+        expanded: false,
+        sortType: SORT_NAME_ASCENDING,
+        items: staredTreeItems,
+        stats: { count: staredTreeItems.length, ped: '0' }
+    }
+    const flatStaredItems = _flatTree(staredList, 0)
+
+    return {
         containers,
-        originalList,
-    })
+        staredExpanded: byStore.staredExpanded,
+        materialExpanded: byStore.materialExpanded,
+        items: flatItems,
+        staredItems: flatStaredItems,
+        materialItems: []
+    }
 };
 
 const _applyByStoreItemsChange = (

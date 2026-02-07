@@ -11,7 +11,6 @@
 import { getDefaultStore } from 'jotai'
 import { mergeDeep } from '../../../common/merge'
 import { initialState } from '../helpers/inventory'
-import { fillFromLoadByStore } from '../helpers/inventory.byStore'
 import { setTabularDefinitions } from '../helpers/tabular'
 import { inventoryTabularDefinitions } from '../tabular/inventory'
 import {
@@ -21,9 +20,11 @@ import {
   tradeItemChainAtom,
   availableCriteriaAtom,
   inventorySortStateAtom,
-  byStoreStateAtom
+  byStoreContainersAtom,
+  byStoreStaredExpandedAtom,
+  byStoreMaterialExpandedAtom
 } from '../atoms/inventory'
-import { InventoryState, InventoryByStore } from '../state/inventory'
+import { InventoryState } from '../state/inventory'
 
 /**
  * Initializes all inventory Jotai atoms from storage
@@ -48,7 +49,6 @@ export async function initializeInventoryAtoms(api: any): Promise<void> {
 
     // Step 2: Load inventory state from storage
     let state: InventoryState | null = null
-    let byStore: InventoryByStore | null = null
 
     try {
       state = await api.storage.loadInventoryState()
@@ -57,12 +57,9 @@ export async function initializeInventoryAtoms(api: any): Promise<void> {
       state = null
     }
 
-    try {
-      byStore = await api.storage.loadInventoryByStoreState()
-    } catch (error) {
-      console.warn('Failed to load byStore state from storage:', error)
-      byStore = null
-    }
+    // Note: byStore state is now derived from rawInventoryItemsAtom and persistent user preference atoms
+    // (byStoreContainersAtom, byStoreStaredExpandedAtom, byStoreMaterialExpandedAtom)
+    // These atoms use atomWithStorage and will auto-load from localStorage
 
     // Step 3: Initialize atoms from loaded state
     // Ensure we have a valid state object
@@ -100,17 +97,7 @@ export async function initializeInventoryAtoms(api: any): Promise<void> {
       console.log('No stored inventory state found, initialized with default values')
     }
 
-    // Step 4: Initialize byStore state separately (has complex structure)
-    if (byStore) {
-      try {
-        const filledByStore = fillFromLoadByStore(byStore)
-        store.set(byStoreStateAtom, filledByStore)
-        console.log('ByStore atoms initialized from storage')
-      } catch (error) {
-        console.warn('Failed to initialize byStore state:', error)
-        // Continue with default empty byStore state
-      }
-    }
+    console.log('ByStore state will be computed automatically from rawInventoryItemsAtom and user preferences')
   } catch (error) {
     console.error('Error initializing inventory atoms:', error)
     // If initialization fails, atoms will have their default values
@@ -231,8 +218,14 @@ export function resetInventoryAtoms(): void {
       availableSortType: 0,
       ownedSortType: 0
     })
-    store.set(byStoreStateAtom, null)
 
+    // Reset byStore user preferences
+    store.set(byStoreContainersAtom, {})
+    store.set(byStoreStaredExpandedAtom, [])
+    store.set(byStoreMaterialExpandedAtom, [])
+
+    // Note: byStoreStateAtom is a derived atom and will automatically recompute
+    // from rawInventoryItemsAtom and the persistent preference atoms
     // Note: auctionItemsAtom and availableItemsAtom are derived atoms and will
     // automatically recompute from rawInventoryItemsAtom, so we don't reset them directly
 
