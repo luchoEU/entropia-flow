@@ -57,8 +57,9 @@ const detectAtomType = (atom: any, name: string): AtomType => {
             return 'action'
         }
 
-        // Computed atoms (derived, has read function, no init value)
-        if (typeof atom.read === 'function' && atom.init === undefined) {
+        // Computed atoms (derived, has read function, no init value, no write function)
+        // Note: atomWithStorage has both read and write, so we need to exclude it
+        if (typeof atom.read === 'function' && atom.init === undefined && typeof atom.write !== 'function') {
             return 'computed'
         }
 
