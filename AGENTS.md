@@ -5,11 +5,13 @@
 **DO NOT commit changes until the user tests and confirms they work.**
 
 When making changes to the codebase:
-1. Implement the changes
-2. **Build the project** to ensure there are no TypeScript or compilation errors
-3. Alert the user that changes are ready for testing
-4. Wait for the user to test and confirm everything works
-5. Only commit AFTER receiving explicit confirmation that tests pass
+1. **Reproduce the problem** - Understand and document the issue that needs to be fixed
+2. Implement the changes
+3. **Build the project** to ensure there are no TypeScript or compilation errors
+4. **Check for test regression** - Verify that the fix doesn't break other related functionality
+5. Alert the user that changes are ready for testing
+6. Wait for the user to test and confirm everything works
+7. Only commit AFTER receiving explicit confirmation that tests pass
 
 This prevents committing broken or incomplete changes to git history.
 

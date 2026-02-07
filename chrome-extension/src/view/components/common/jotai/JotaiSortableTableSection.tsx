@@ -25,6 +25,7 @@ export interface JotaiSortableTableSectionProps<TItem> {
   children?: React.ReactNode
   itemHeight?: number
   useFixedSizeList?: boolean
+  onSortChange?: (columnIndex: number, ascending: boolean) => void
 }
 
 /**
@@ -47,7 +48,8 @@ const JotaiSortableTableSectionComponent = function<TItem>(
     beforeTable,
     children,
     itemHeight,
-    useFixedSizeList
+    useFixedSizeList,
+    onSortChange
   } = props
 
   return (
@@ -66,6 +68,7 @@ const JotaiSortableTableSectionComponent = function<TItem>(
         beforeTable={beforeTable}
         itemHeight={itemHeight}
         useFixedSizeList={useFixedSizeList}
+        onSortChange={onSortChange}
       >
         {children}
       </JotaiSortableTable>

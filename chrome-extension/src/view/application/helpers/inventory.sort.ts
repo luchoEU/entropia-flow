@@ -160,6 +160,23 @@ function cloneSortListSelect<I extends SortItemData, D>(list: Array<D> | undefin
     return newList
 }
 
+/**
+ * Convert JotaiSortableTable column index + direction to sortType enum
+ * Column 0 = Name, 1 = Quantity, 2 = Value, 3 = Container
+ */
+function columnIndexToSortType(columnIndex: number, ascending: boolean): number {
+    return columnIndex * 2 + (ascending ? 0 : 1)
+}
+
+/**
+ * Convert sortType enum to column index + direction
+ */
+function sortTypeToColumnIndex(sortType: number): { column: number; ascending: boolean } {
+    const column = Math.floor(sortType / 2)
+    const ascending = sortType % 2 === 0
+    return { column, ascending }
+}
+
 export {
     NAME,
     QUANTITY,
@@ -180,4 +197,6 @@ export {
     sortListSelect,
     cloneSortList,
     cloneSortListSelect,
+    columnIndexToSortType,
+    sortTypeToColumnIndex,
 }

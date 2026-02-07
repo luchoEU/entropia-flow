@@ -192,7 +192,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
                     displayName: containers[d.id]?.displayName ?? d.n,
                     stared: containers[d.id]?.stared ?? false,
                     list,
-                    showItemValueRow: true
+                    showItemValueRow: false
                 }
             }),
             stats: undefined
@@ -263,6 +263,8 @@ const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number,
 const loadInventoryByStore = (
     byStore: InventoryByStore,
     list: Array<ItemData>,
+    containersSortType: number = SORT_NAME_ASCENDING,
+    staredSortType: number = SORT_NAME_ASCENDING
 ): InventoryByStore => {
     const { items, containers } = _getByStore(list, byStore.containers);
     const originalList = {
@@ -288,8 +290,15 @@ const loadInventoryByStore = (
     }
     setPlanet(originalList)
 
+    // Compute stats (count, ped) at every tree level before sorting,
+    // because _byStoreSelectToSort uses stats for container sort keys
+    const listWithStats = _addStats(originalList)
+
+    // Apply tree-aware sorting before flattening to preserve hierarchy
+    const sortedList = _cloneSortByStoreTreeList(listWithStats, containersSortType)
+
     // Build flattened tree for main view
-    const flatItems = _flatTree(originalList, 0, true)
+    const flatItems = _flatTree(sortedList, 0, true)
 
     // Extract stared items (those with stared property in containers)
     const staredTreeItems: Array<InventoryTree<ItemData>> = []
@@ -299,7 +308,7 @@ const loadInventoryByStore = (
             if (tree.list) gatherStared(tree.list)
         }
     }
-    gatherStared(originalList)
+    gatherStared(sortedList)
 
     const staredList: InventoryList<InventoryTree<ItemData>> = {
         expanded: false,
@@ -307,7 +316,10 @@ const loadInventoryByStore = (
         items: staredTreeItems,
         stats: { count: staredTreeItems.length, ped: '0' }
     }
-    const flatStaredItems = _flatTree(staredList, 0)
+
+    // Apply tree-aware sorting to stared items
+    const sortedStaredList = _cloneSortByStoreTreeList(staredList, staredSortType)
+    const flatStaredItems = _flatTree(sortedStaredList, 0)
 
     return {
         containers,

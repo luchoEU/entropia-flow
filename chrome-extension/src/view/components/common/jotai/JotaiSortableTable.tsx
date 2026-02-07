@@ -38,8 +38,9 @@ const JotaiSortableTableComponent = function<TItem>(
   }))
 
   // Create computed data atom using the raw items atom and internal UI state
+  // Disable sorting if custom onSortChange handler is provided (e.g., for tree data)
   const computedDataAtomRef = React.useRef(
-    createComputedTableDataAtom(itemsAtom, uiStateAtomRef.current, config)
+    createComputedTableDataAtom(itemsAtom, uiStateAtomRef.current, config, !!props.onSortChange)
   )
 
   const data = useAtomValue(computedDataAtomRef.current)
@@ -52,13 +53,22 @@ const JotaiSortableTableComponent = function<TItem>(
       if (config.columns[columnIndex].sortAccessor === undefined) {
         return
       }
+
+      const newAscending = uiState.sortColumn === columnIndex ? !uiState.sortAscending : true
+
+      // Always update internal state for UI indicators (arrows)
       setUIState({
         sortColumn: columnIndex,
-        sortAscending: uiState.sortColumn === columnIndex ? !uiState.sortAscending : true,
+        sortAscending: newAscending,
         filter: uiState.filter
       })
+
+      // If custom handler provided, call it to trigger external sort logic
+      if (props.onSortChange) {
+        props.onSortChange(columnIndex, newAscending)
+      }
     },
-    [setUIState, uiState.sortColumn, uiState.sortAscending, uiState.filter]
+    [setUIState, uiState.sortColumn, uiState.sortAscending, uiState.filter, props.onSortChange, config.columns]
   )
 
   // Handle filter change

@@ -72,4 +72,6 @@ export interface JotaiSortableTableProps<TItem = any> {
   itemHeight?: number
   useFixedSizeList?: boolean
   children?: React.ReactNode
+  /** Optional: Custom sort handler - when provided, disables internal sorting */
+  onSortChange?: (columnIndex: number, ascending: boolean) => void
 }

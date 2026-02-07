@@ -7,5 +7,8 @@ module.exports = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: './tsconfig.extension.json'
     }]
+  },
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
   }
 };

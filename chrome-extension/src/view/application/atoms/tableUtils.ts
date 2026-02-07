@@ -64,7 +64,8 @@ export function createTableStateAtom(tableId: string) {
 export function createComputedTableDataAtom<TItem>(
   sourceDataAtom: Atom<TItem[]>,
   uiStateAtom: Atom<TableUIState>,
-  config: JotaiTableConfig<TItem>
+  config: JotaiTableConfig<TItem>,
+  disableSorting: boolean = false
 ): Atom<ComputedTableData<TItem>> {
   return atom((get) => {
     const sourceData = get(sourceDataAtom)
@@ -90,28 +91,31 @@ export function createComputedTableDataAtom<TItem>(
       })
     }
 
-    // Apply sort
-    const sorted = [...filtered].sort((a, b) => {
-      if (!sortColumn.sortAccessor) {
-        console.log('No sort accessor for column', sortColumn)
-        return 0
-      }
+    // Apply sort (skip if disabled, e.g., for tree data with custom sort handler)
+    let sorted = filtered
+    if (!disableSorting) {
+      sorted = [...filtered].sort((a, b) => {
+        if (!sortColumn.sortAccessor) {
+          console.log('No sort accessor for column', sortColumn)
+          return 0
+        }
 
-      const aVal = sortColumn.sortAccessor(a)
-      const bVal = sortColumn.sortAccessor(b)
+        const aVal = sortColumn.sortAccessor(a)
+        const bVal = sortColumn.sortAccessor(b)
 
-      // Type-aware comparison
-      let compare: number
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        compare = aVal - bVal
-      } else {
-        const aStr = String(aVal)
-        const bStr = String(bVal)
-        compare = aStr.localeCompare(bStr)
-      }
+        // Type-aware comparison
+        let compare: number
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          compare = aVal - bVal
+        } else {
+          const aStr = String(aVal)
+          const bStr = String(bVal)
+          compare = aStr.localeCompare(bStr)
+        }
 
-      return uiState.sortAscending ? compare : -compare
-    })
+        return uiState.sortAscending ? compare : -compare
+      })
+    }
 
     // Calculate stats
     let pedTotal: string | undefined = undefined

@@ -908,6 +908,10 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
   const staredExpanded = get(byStoreStaredExpandedAtom)
   const materialExpanded = get(byStoreMaterialExpandedAtom)
 
+  // Read sort state from atoms
+  const containersSortType = get(byStoreSortStateAtom).containersSortType
+  const staredSortType = get(staredSortStateAtom).staredSortType
+
   // Convert ItemOwned[] to ItemData[]
   const itemDataList = rawItems.map(item => item.data)
 
@@ -922,8 +926,8 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
   }
 
   // Use existing helper to build and flatten the tree structure
-  // This will populate items, staredItems, and materialItems
-  return loadInventoryByStore(initialByStore, itemDataList)
+  // Pass sort types to apply tree-aware sorting before flattening
+  return loadInventoryByStore(initialByStore, itemDataList, containersSortType, staredSortType)
 })
 
 /**

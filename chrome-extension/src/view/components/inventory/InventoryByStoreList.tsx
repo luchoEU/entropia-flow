@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { atom } from 'jotai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
@@ -12,8 +12,10 @@ import {
   setByStoreStaredItemExpandedAtom, setByStoreStaredItemStaredAtom,
   setByStoreStaredItemNameAtom, cancelByStoreStaredItemNameEditingAtom, startByStoreStaredItemNameEditingAtom,
   confirmByStoreStaredItemNameEditingAtom, setByStoreAllItemsExpandedSimpleAtom, setByStoreStaredAllItemsExpandedAtom,
-  byStoreStateAtom
+  byStoreStateAtom,
+  sortByStoreByAtom, sortByStoreStaredByAtom
 } from '../../application/atoms/inventory'
+import { columnIndexToSortType } from '../../application/helpers/inventory.sort'
 
 const INDENT_SPACE = 10
 
@@ -35,6 +37,19 @@ const InventoryByStoreList = () => {
     const cancelByStoreStaredItemEditJotai = useSetAtom(cancelByStoreStaredItemNameEditingAtom)
     const setByStoreAllItemsExpandedJotai = useSetAtom(setByStoreAllItemsExpandedSimpleAtom)
     const setByStoreStaredAllItemsExpandedJotai = useSetAtom(setByStoreStaredAllItemsExpandedAtom)
+    const sortByStoreByJotai = useSetAtom(sortByStoreByAtom)
+    const sortByStoreStaredByJotai = useSetAtom(sortByStoreStaredByAtom)
+
+    // Sort handlers for tree-aware sorting
+    const handleSortContainers = useCallback((columnIndex: number, ascending: boolean) => {
+        const sortType = columnIndexToSortType(columnIndex, ascending)
+        sortByStoreByJotai(sortType)
+    }, [sortByStoreByJotai])
+
+    const handleSortStared = useCallback((columnIndex: number, ascending: boolean) => {
+        const sortType = columnIndexToSortType(columnIndex, ascending)
+        sortByStoreStaredByJotai(sortType)
+    }, [sortByStoreStaredByJotai])
 
     // Create computed atoms that derive from byStoreStateAtom
     // These atoms are created once and always reflect the current state
@@ -256,6 +271,7 @@ const InventoryByStoreList = () => {
                         getRowKey: (item: TreeLineData) => item.id,
                         getPedValue: (item: TreeLineData) => parseFloat(item.v)
                     }}
+                    onSortChange={handleSortStared}
                     afterSearch={
                         <div style={{ display: 'flex', gap: '8px' }}>
                             {expandAllStaredButton}
@@ -276,6 +292,7 @@ const InventoryByStoreList = () => {
                     getRowKey: (item: TreeLineData) => item.id,
                     getPedValue: (item: TreeLineData) => parseFloat(item.v)
                 }}
+                onSortChange={handleSortContainers}
                 afterSearch={
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {expandAllButton}
