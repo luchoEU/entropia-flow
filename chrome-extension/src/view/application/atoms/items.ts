@@ -27,8 +27,7 @@ import {
   reduceEndMaterialEditMode,
   reduceChangeMaterialType,
   reduceChangeMaterialValue,
-  reduceSetMaterialSuggestedTypes,
-  reduceSetState
+  reduceSetMaterialSuggestedTypes
 } from '../helpers/items'
 import { saveItemsToStorage, saveItemsWebCache } from './itemsStorage'
 import { BlueprintWebMaterial } from '../../../web/state'

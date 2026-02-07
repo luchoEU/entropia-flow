@@ -5,6 +5,7 @@ import * as lastAtoms from './last'
 import * as historyAtoms from './history'
 import * as gameLogAtoms from './gameLog'
 import * as itemsAtoms from './items'
+import * as debugAtoms from './debug'
 
 /**
  * Categorizes atoms by their purpose:
@@ -23,7 +24,8 @@ export const moduleRegistry = [
     { id: 'last', name: 'Last', module: lastAtoms },
     { id: 'history', name: 'History', module: historyAtoms },
     { id: 'gameLog', name: 'Game Log', module: gameLogAtoms },
-    { id: 'items', name: 'Items', module: itemsAtoms }
+    { id: 'items', name: 'Items', module: itemsAtoms },
+    { id: 'debug', name: 'Debug', module: debugAtoms }
 ] as const
 
 export type ModuleType = typeof moduleRegistry[number]['id']

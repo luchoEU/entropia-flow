@@ -13,6 +13,7 @@ import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow,
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId, tabOrder } from '../application/state/navigation';
 import StreamView from './stream/StreamView';
+import PinnedAtomsView from './atomDebug/PinnedAtomsView';
 import { useElementSize } from './common/useElementSize';
 
 const Tab = (p: {
@@ -148,6 +149,7 @@ const Navigation = () => {
                         <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' dispatch={() => setShowSubtitles(true)} />
                     </div>
                 }
+                <PinnedAtomsView />
                 { streamViewPinned && <StreamView /> }
             </nav>
             { menuPinned && <div style={{ height }} /> }

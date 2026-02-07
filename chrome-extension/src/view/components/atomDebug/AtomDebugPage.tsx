@@ -1,12 +1,14 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { useAtom } from 'jotai'
 import { atomRegistry, getAtomsByModule, getModules, ModuleType } from '../../application/atoms/atomRegistry'
+import { debugPageUiAtom } from '../../application/atoms/debug'
 import AtomModuleSection from './AtomModuleSection'
 
 const MODULES = getModules()
 
 const AtomDebugPage: React.FC = () => {
-    const [searchQuery, setSearchQuery] = useState('')
-    const [selectedModule, setSelectedModule] = useState<'all' | ModuleType>('all')
+    const [debugPageUi, setDebugPageUi] = useAtom(debugPageUiAtom)
+    const { searchQuery, selectedModule } = debugPageUi
 
     const moduleAtoms = MODULES.reduce((acc, mod) => {
         acc[mod.id] = getAtomsByModule(mod.id)
@@ -59,7 +61,7 @@ const AtomDebugPage: React.FC = () => {
                     type="text"
                     placeholder="Search atoms by name..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => setDebugPageUi({ ...debugPageUi, searchQuery: e.target.value })}
                     style={{
                         flex: '1 1 auto',
                         minWidth: '200px',
@@ -75,7 +77,7 @@ const AtomDebugPage: React.FC = () => {
                 {/* Module filter */}
                 <select
                     value={selectedModule}
-                    onChange={(e) => setSelectedModule(e.target.value as any)}
+                    onChange={(e) => setDebugPageUi({ ...debugPageUi, selectedModule: e.target.value as any })}
                     style={{
                         padding: '8px 12px',
                         border: '1px solid #e1e4e8',

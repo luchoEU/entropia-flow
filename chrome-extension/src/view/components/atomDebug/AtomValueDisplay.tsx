@@ -1,9 +1,13 @@
 import React from 'react'
-import { useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { loadable } from 'jotai/utils'
 import { AtomType } from '../../application/atoms/atomRegistry'
 import { typeEmojis } from './atomTypeConstants'
 import JsonTreeNode from '../rawStorage/JsonTreeNode'
+import { pinnedAtomsAtom, toggleAtomPinnedAtom } from '../../application/atoms/debug'
+import { isFeatureEnabledAtom } from '../../application/atoms/settings'
+import { Feature } from '../../application/state/settings'
+import ImgButton from '../common/ImgButton'
 
 interface AtomValueDisplayProps {
     atomName: string
@@ -24,10 +28,37 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
     const loadableAtom = React.useMemo(() => loadable(atom), [atom])
     const state = useAtomValue(loadableAtom)
 
+    // Pin feature state
+    const pinnedAtoms = useAtomValue(pinnedAtomsAtom)
+    const togglePin = useSetAtom(toggleAtomPinnedAtom)
+    const isPinned = pinnedAtoms.list.includes(atomName)
+
+    const renderPinButton = () => {
+        return (
+            <ImgButton
+                title={isPinned ? 'Unpin atom' : 'Pin atom'}
+                src={isPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
+                show={true}
+                dispatch={() => {
+                    togglePin(atomName)
+                    return true
+                }}
+            />
+        )
+    }
+
     if (state.state === 'loading') {
         return (
-            <div style={{ padding: '8px', color: '#666', fontSize: '12px' }}>
-                Loading...
+            <div style={{
+                marginBottom: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+            }}>
+                <div style={{ flex: 1, padding: '8px', color: '#666', fontSize: '12px' }}>
+                    Loading...
+                </div>
+                {renderPinButton()}
             </div>
         )
     }
@@ -35,14 +66,22 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
     if (state.state === 'hasError') {
         return (
             <div style={{
-                padding: '8px',
-                backgroundColor: '#fff3cd',
-                border: '1px solid #ffc107',
-                borderRadius: '4px',
-                fontSize: '12px',
-                marginBottom: '4px'
+                marginBottom: '4px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px'
             }}>
-                <strong>{typeEmojis[atomType]} {atomName}:</strong> <span style={{ color: '#856404' }}>Write-only atom</span>
+                <div style={{
+                    flex: 1,
+                    padding: '8px',
+                    backgroundColor: '#fff3cd',
+                    border: '1px solid #ffc107',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                }}>
+                    <strong>{typeEmojis[atomType]} {atomName}:</strong> <span style={{ color: '#856404' }}>Write-only atom</span>
+                </div>
+                {renderPinButton()}
             </div>
         )
     }
@@ -50,18 +89,26 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
     const value = state.state === 'hasData' ? state.data : null
 
     return (
-        <div style={{ marginBottom: '4px' }}>
-            <JsonTreeNode
-                keyPath={atomName}
-                nodeKey={`${typeEmojis[atomType]} ${atomName}`}
-                value={value}
-                depth={0}
-                isExpanded={expandedKeys.has(atomName)}
-                expandedKeys={expandedKeys}
-                onToggleExpand={onToggleExpand}
-                onEdit={() => {}} // Read-only
-                onDelete={() => {}} // Read-only
-            />
+        <div style={{
+            marginBottom: '4px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '8px'
+        }}>
+            <div style={{ flex: 1 }}>
+                <JsonTreeNode
+                    keyPath={atomName}
+                    nodeKey={`${typeEmojis[atomType]} ${atomName}`}
+                    value={value}
+                    depth={0}
+                    isExpanded={expandedKeys.has(atomName)}
+                    expandedKeys={expandedKeys}
+                    onToggleExpand={onToggleExpand}
+                    onEdit={() => {}} // Read-only
+                    onDelete={() => {}} // Read-only
+                />
+            </div>
+            {renderPinButton()}
         </div>
     )
 }
