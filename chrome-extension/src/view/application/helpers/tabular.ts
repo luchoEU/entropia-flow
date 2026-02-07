@@ -4,16 +4,6 @@ import { byTypeComparer, cloneAndSort, nextSortSecuence, SortColumnDefinition } 
 
 const initialState: TabularState = { }
 
-const reduceSetTabularState = (state: TabularState, inState: TabularState): TabularState => inState
-
-const reduceSetTabularFilter = (state: TabularState, selector: string, filter: string): TabularState => ({
-    ...state,
-    [selector]: _applyFilterAndSort(selector, {
-        ...state[selector],
-        filter
-    })
-})
-
 const itemMatchesFilter = (d: any, index: number, data: any, selector: string, filter: string): boolean =>
     _tabularDefinitions[selector].getRowForFilter?.(d, index, data).some((t: any) => t !== undefined && typeof t === 'string' && multiIncludes(filter, t)) ?? false
 
@@ -21,7 +11,7 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
     const sortDefinition = _getTabularSortDefinition(selector);
     const filtered = data.items?.all.filter((d, index) => itemMatchesFilter(d, index, data.data, selector, data.filter));
     const show = cloneAndSort<any>(filtered ?? [], data.sortSecuence ?? [], sortDefinition);
-    const pedSelector: (d: any) => number = _getTabularPedSelector(selector);  
+    const pedSelector: (d: any) => number = _getTabularPedSelector(selector);
     const sumPed = pedSelector && show.reduce((partialSum, item) => partialSum + pedSelector(item), 0);
 
     return {
@@ -36,6 +26,16 @@ const _applyFilterAndSort = (selector: string, data: TabularStateData): TabularS
         }
     }
 }
+
+const reduceSetTabularState = (state: TabularState, inState: TabularState): TabularState => inState
+
+const reduceSetTabularFilter = (state: TabularState, selector: string, filter: string): TabularState => ({
+    ...state,
+    [selector]: _applyFilterAndSort(selector, {
+        ...state[selector],
+        filter
+    })
+})
 
 const reduceSetTabularData = (state: TabularState, data: TabularRawData): TabularState => ({
     ...state,

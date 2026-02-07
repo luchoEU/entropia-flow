@@ -1,16 +1,18 @@
 import { atom } from 'jotai'
-import { TTServiceState, TTServiceStateWebData } from '../state/ttService'
-import {
-  initialState,
-  reduceSetTTServicePartialWebData
-} from '../helpers/ttService'
+import { TTServiceState, TTServiceStateWebData, initialState } from '../state/ttService'
 
 export const ttServiceAtom = atom<TTServiceState>(initialState)
 
 export const setTTServicePartialWebDataAtom = atom(
   null,
   (get, set, change: Partial<TTServiceStateWebData>) => {
-    const updated = reduceSetTTServicePartialWebData(get(ttServiceAtom), change)
-    set(ttServiceAtom, updated)
+    const state = get(ttServiceAtom)
+    set(ttServiceAtom, {
+      ...state,
+      web: {
+        ...state.web,
+        ...change
+      }
+    })
   }
 )

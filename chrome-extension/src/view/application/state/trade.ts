@@ -8,6 +8,12 @@ interface TradeNotification {
     filter: string
 }
 
+const initialState: TradeState = {
+    lastMessageCheckSerial: 0,
+    notifications: []
+}
+
 export {
-    TradeState
+    TradeState,
+    initialState
 }

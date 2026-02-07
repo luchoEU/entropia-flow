@@ -126,8 +126,6 @@ const initialState: ItemsState = {
     map: refinedInitialMap
 }
 
-const reduceSetState = (state: ItemsState, inState: ItemsState): ItemsState => inState
-
 const _itemChanged = (state: ItemsState, item: string, change: Partial<ItemState>): ItemsState => ({
     ...state,
     map: {
@@ -164,35 +162,6 @@ const reduceItemBuyMarkupChanged = (state: ItemsState, item: string, buyMarkup: 
         return { markup: { ...s?.markup, value, modified: new Date().toString() }, calc }
     })
 
-const _refined = (change: Partial<ItemStateRefinedData>) => (s?: ItemState): Partial<ItemState> => ({ refined: { ...s?.refined, ...change } })
-const _markup = (change: Partial<ItemStateMarkupData>) => (s?: ItemState): Partial<ItemState> => ({ markup: { ...s?.markup, ...change } })
-
-const reduceItemOrderMarkupChanged = (state: ItemsState, item: string, orderMarkup: string): ItemsState =>
-    _itemChangedMod(state, item, _refined({ orderMarkup }))
-
-const reduceItemUseAmountChanged = (state: ItemsState, item: string, useAmount: string): ItemsState =>
-    _itemChangedMod(state, item, _refined({ useAmount }))
-
-const reduceItemRefineAmountChanged = (state: ItemsState, item: string, refineAmount: string): ItemsState =>
-    _itemChangedMod(state, item, _refined({ refineAmount }))
-
-const reduceItemBuyAmountChanged = (state: ItemsState, item: string, buyAmount: string): ItemsState =>
-    _itemChangedMod(state, item, _refined({ buyAmount }))
-
-const reduceSetItemMarkupUnit = (state: ItemsState, item: string, markupUnit: MarkupUnit): ItemsState =>
-    _itemChangedMod(state, item, _markup({ unit: markupUnit }))
-
-const reduceItemOrderValueChanged = (state: ItemsState, item: string, orderValue: string): ItemsState =>
-    _itemChangedMod(state, item, _refined({ orderValue }))
-
-const reduceItemNotesValueChanged = (state: ItemsState, item: string, notes: string): ItemsState =>
-    _itemChanged(state, item, { notes })
-
-const reduceItemReserveValueChanged = (state: ItemsState, item: string, reserveAmount: string): ItemsState =>
-    _itemChanged(state, item, { reserveAmount })
-
-const reduceSetItemPartialWebData = (state: ItemsState, item: string, change: Partial<ItemStateWebData>): ItemsState =>
-    _itemChangedMod(state, item, s => ({ web: { ...s?.web, ...change } }))
 
 const _itemChangedCalc = (state: ItemsState, item: string, str: string, partial: Partial<ItemStateCalcData>, getCalc: (n: number, v: number, mu: number) => ItemStateCalcData): ItemsState => {
     const n = parseFloat(str)
@@ -331,20 +300,10 @@ export {
     refinedInitialMap,
     getMarkupMultiplier,
     getValueWithMarkup,
-    reduceSetState,
     reduceItemBuyMarkupChanged,
-    reduceItemOrderMarkupChanged,
-    reduceItemUseAmountChanged,
-    reduceItemRefineAmountChanged,
-    reduceItemBuyAmountChanged,
-    reduceItemOrderValueChanged,
-    reduceItemNotesValueChanged,
-    reduceItemReserveValueChanged,
-    reduceSetItemPartialWebData,
     reduceSetItemCalculatorQuantity,
     reduceSetItemCalculatorTotal,
     reduceSetItemCalculatorTotalMU,
-    reduceSetItemMarkupUnit,
     reduceStartMaterialEditMode,
     reduceEndMaterialEditMode,
     reduceChangeMaterialType,

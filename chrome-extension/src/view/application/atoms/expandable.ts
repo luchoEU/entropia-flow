@@ -1,34 +1,34 @@
 import { atom } from 'jotai'
 import ExpandableState from '../state/expandable'
-import {
-  initialExpandableState,
-  reduceSetExpandableState,
-  reduceSetExpanded,
-  reduceSetVisible
-} from '../helpers/expandable'
+import { initialExpandableState } from '../helpers/expandable'
 
 export const expandableAtom = atom<ExpandableState>(initialExpandableState)
 
 export const setExpandableStateAtom = atom(
   null,
   (get, set, newState: ExpandableState) => {
-    const updated = reduceSetExpandableState(get(expandableAtom), newState)
-    set(expandableAtom, updated)
+    set(expandableAtom, newState)
   }
 )
 
 export const setExpandedAtom = atom(
   null,
   (get, set, selector: string, expanded: boolean) => {
-    const updated = reduceSetExpanded(get(expandableAtom), selector, expanded)
-    set(expandableAtom, updated)
+    const state = get(expandableAtom)
+    set(expandableAtom, {
+      ...state,
+      collapsed: expanded ? state.collapsed.filter(x => x !== selector) : [...state.collapsed, selector]
+    })
   }
 )
 
 export const setVisibleAtom = atom(
   null,
   (get, set, selector: string, visible: boolean) => {
-    const updated = reduceSetVisible(get(expandableAtom), selector, visible)
-    set(expandableAtom, updated)
+    const state = get(expandableAtom)
+    set(expandableAtom, {
+      ...state,
+      hidden: visible ? state.hidden.filter(x => x !== selector) : [...state.hidden, selector]
+    })
   }
 )

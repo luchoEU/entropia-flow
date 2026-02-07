@@ -1,52 +1,43 @@
 import { atom } from 'jotai'
-import ModeState from '../state/mode'
-import {
-  initialState,
-  reduceSetModeState,
-  reduceSetShowSubtitles,
-  reduceSetShowVisibleToggle,
-  reduceSetMenuPinned,
-  reduceSetStreamViewPinned
-} from '../helpers/mode'
+import ModeState, { initialState } from '../state/mode'
 
 export const modeAtom = atom<ModeState>(initialState)
 
 export const setModeStateAtom = atom(
   null,
   (get, set, newState: ModeState) => {
-    const updated = reduceSetModeState(get(modeAtom), newState)
-    set(modeAtom, updated)
+    set(modeAtom, newState)
   }
 )
 
 export const setShowSubtitlesAtom = atom(
   null,
   (get, set, showSubtitles: boolean) => {
-    const updated = reduceSetShowSubtitles(get(modeAtom), showSubtitles)
-    set(modeAtom, updated)
+    const state = get(modeAtom)
+    set(modeAtom, { ...state, showSubtitles })
   }
 )
 
 export const setShowVisibleToggleAtom = atom(
   null,
   (get, set, showVisibleToggle: boolean) => {
-    const updated = reduceSetShowVisibleToggle(get(modeAtom), showVisibleToggle)
-    set(modeAtom, updated)
+    const state = get(modeAtom)
+    set(modeAtom, { ...state, showVisibleToggle })
   }
 )
 
 export const pinMenuAtom = atom(
   null,
   (get, set, pinned: boolean) => {
-    const updated = reduceSetMenuPinned(get(modeAtom), pinned)
-    set(modeAtom, updated)
+    const state = get(modeAtom)
+    set(modeAtom, { ...state, menuPinned: pinned })
   }
 )
 
 export const pinStreamViewAtom = atom(
   null,
   (get, set, pinned: boolean) => {
-    const updated = reduceSetStreamViewPinned(get(modeAtom), pinned)
-    set(modeAtom, updated)
+    const state = get(modeAtom)
+    set(modeAtom, { ...state, streamViewPinned: pinned })
   }
 )

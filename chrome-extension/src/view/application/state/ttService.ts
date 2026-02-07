@@ -18,9 +18,12 @@ interface TTServiceSheetItem {
     value: number
 }
 
+const initialState: TTServiceState = { }
+
 export {
     TTServiceState,
     TTServiceStateWebData,
     TTServiceInventoryWebData,
     TTServiceSheetItem,
+    initialState,
 }

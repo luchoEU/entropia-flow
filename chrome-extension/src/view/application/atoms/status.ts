@@ -1,7 +1,6 @@
 import { atom } from 'jotai'
 import { Status } from '../../../common/state'
 import { CLASS_INFO, STRING_CONNECTING } from '../../../common/const'
-import { reduceSetStatus } from '../helpers/status'
 
 interface StatusState extends Status {
   showLoading: boolean
@@ -19,8 +18,10 @@ export const statusAtom = atom<StatusState>(initialState)
 export const setStatusAtom = atom(
   null,
   (get, set, status: Status) => {
-    const newState = reduceSetStatus(initialState, status)
-    set(statusAtom, newState)
+    set(statusAtom, {
+      ...status,
+      showLoading: status.message.includes('...')
+    })
   }
 )
 

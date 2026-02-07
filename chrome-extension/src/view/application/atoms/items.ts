@@ -11,15 +11,6 @@ import {
   refinedInitialMap,
   cleanWeb,
   reduceItemBuyMarkupChanged,
-  reduceItemOrderMarkupChanged,
-  reduceSetItemMarkupUnit,
-  reduceItemBuyAmountChanged,
-  reduceItemUseAmountChanged,
-  reduceItemRefineAmountChanged,
-  reduceItemOrderValueChanged,
-  reduceItemNotesValueChanged,
-  reduceItemReserveValueChanged,
-  reduceSetItemPartialWebData,
   reduceSetItemCalculatorQuantity,
   reduceSetItemCalculatorTotal,
   reduceSetItemCalculatorTotalMU,
@@ -101,9 +92,15 @@ export const itemOrderMarkupChangedAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemOrderMarkupChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        refined: { ...map[item].refined, orderMarkup: value }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
     set(refinedMaterialChangedAtom)
   }
@@ -116,9 +113,15 @@ export const setItemMarkupUnitAtom = atom(
   null,
   (get, set, item: string, unit: MarkupUnit) => {
     const map = get(itemsMapAtom)
-    const newState = reduceSetItemMarkupUnit({ map }, item, unit)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        markup: { ...map[item].markup, unit }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
   }
 )
 
@@ -133,9 +136,15 @@ export const itemBuyAmountChangedAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemBuyAmountChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        refined: { ...map[item].refined, buyAmount: value }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
   }
 )
 
@@ -146,9 +155,15 @@ export const itemUseAmountChangedAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemUseAmountChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        refined: { ...map[item].refined, useAmount: value }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
   }
 )
 
@@ -159,9 +174,15 @@ export const itemRefineAmountChangedAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemRefineAmountChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        refined: { ...map[item].refined, refineAmount: value }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
   }
 )
 
@@ -172,9 +193,15 @@ export const itemOrderValueChangedAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemOrderValueChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        refined: { ...map[item].refined, orderValue: value }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
   }
 )
 
@@ -314,11 +341,17 @@ export const setItemPartialWebDataAtom = atom(
   null,
   async (get, set, item: string, change: Partial<ItemStateWebData>) => {
     const map = get(itemsMapAtom)
-    const newState = reduceSetItemPartialWebData({ map }, item, change)
-    set(itemsMapAtom, newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        web: { ...map[item].web, ...change }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
 
     // Side effect: Save cache to local storage
-    await saveItemsWebCache(newState.map)
+    await saveItemsWebCache(newMap)
   }
 )
 
@@ -384,9 +417,15 @@ export const itemNotesValueChangedAtom = atom(
   null,
   (get, set, item: string, notes: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemNotesValueChanged({ map }, item, notes)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        notes
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
   }
 )
@@ -398,9 +437,15 @@ export const itemReserveValueChangedAtom = atom(
   null,
   (get, set, item: string, reserveAmount: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemReserveValueChanged({ map }, item, reserveAmount)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const newMap = {
+      ...map,
+      [item]: {
+        ...map[item],
+        reserveAmount
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
   }
 )
