@@ -18,8 +18,8 @@ const ExpandablePlusButton = (p: {
     return p.expanded === undefined ?
         <span className={className}></span> :
         (p.expanded ?
-            <span className={className} onClick={handleClick(false)}>-</span> :
-            <span className={className} onClick={handleClick(true)}>+</span>)
+            <span className={className} onClick={handleClick(false)}>▼</span> :
+            <span className={className} onClick={handleClick(true)}>▶</span>)
 }
 
 export default ExpandablePlusButton
