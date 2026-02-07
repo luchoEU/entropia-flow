@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { itemRefineAmountChangedAtom, getItemAtom } from '../../application/atoms/items'
+import { setItemRefineAmountAtom, getItemAtom } from '../../application/atoms/items'
 import { addSheetsPendingChangeAtom, sheetsAtom } from '../../application/atoms/sheets'
 import { RefinedOneState } from '../../application/state/refined'
 import { OPERATION_TYPE_REFINED_REFINE_MATERIAL } from '../../application/state/sheets'
@@ -15,7 +15,7 @@ const RefinedUse = (p: {
     const { material } = p
     const itemAtom = useMemo(() => getItemAtom(material.name), [material.name])
     const m: ItemState = useAtomValue(itemAtom)
-    const setAmount = useSetAtom(itemRefineAmountChangedAtom)
+    const setAmount = useSetAtom(setItemRefineAmountAtom)
     const addPendingChange = useSetAtom(addSheetsPendingChangeAtom)
     const sheets = useAtomValue(sheetsAtom)
 

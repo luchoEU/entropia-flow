@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { getItemAtom, itemNotesValueChangedAtom } from "../../application/atoms/items";
+import { getItemAtom, setItemNotesAtom } from "../../application/atoms/items";
 import { FieldArea } from "../common/Field";
 import ItemSyncStatus from "./ItemSyncStatus";
 
 const ItemNotes = ({ name }: { name: string }) => {
     const itemAtom = useMemo(() => getItemAtom(name), [name])
     const item = useAtomValue(itemAtom)
-    const setNotes = useSetAtom(itemNotesValueChangedAtom)
+    const setNotes = useSetAtom(setItemNotesAtom)
 
     if (!item) return <></>
 

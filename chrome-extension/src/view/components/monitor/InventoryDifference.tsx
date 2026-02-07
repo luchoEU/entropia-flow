@@ -7,7 +7,7 @@ import { ViewPedData } from '../../application/state/last'
 import { addPedsAtom, removePedsAtom } from '../../application/atoms/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
-import { getItemAtom, itemBuyMarkupChangedAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
+import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
 import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
@@ -36,7 +36,7 @@ const ItemRow = ({ item, c }: {
     const navigate = useNavigate()
     const material = useAtomValue(getItemAtom(item.n))
     const showActionLink = useAtomValue(isFeatureEnabledAtom(Feature.actionLink))
-    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
+    const setMarkup = useSetAtom(setItemBuyMarkupAtom)
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
         e.stopPropagation()

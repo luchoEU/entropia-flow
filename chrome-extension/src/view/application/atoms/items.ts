@@ -23,7 +23,7 @@ import {
 import { saveItemsToStorage, saveItemsWebCache } from './itemsStorage'
 import { BlueprintWebMaterial } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
-import { refinedMaterialChangedAtom } from './refined'
+import { recalculateRefinedMaterialAtom } from './refined'
 import { startItemsSheetSyncDebounce, syncItemsSheetFunc } from '../helpers/itemsSheetHelper'
 
 /**
@@ -73,7 +73,7 @@ export const setItemsStateAtom = atom(
 /**
  * Change item buy markup
  */
-export const itemBuyMarkupChangedAtom = atom(
+export const setItemBuyMarkupAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -81,14 +81,14 @@ export const itemBuyMarkupChangedAtom = atom(
     set(itemsMapAtom, newState.map)
     saveItemsToStorage(newState.map)
     set(triggerItemsSheetSyncAtom)
-    set(refinedMaterialChangedAtom)
+    set(recalculateRefinedMaterialAtom)
   }
 )
 
 /**
  * Change item order markup
  */
-export const itemOrderMarkupChangedAtom = atom(
+export const setItemOrderMarkupAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -102,7 +102,7 @@ export const itemOrderMarkupChangedAtom = atom(
     set(itemsMapAtom, newMap)
     saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
-    set(refinedMaterialChangedAtom)
+    set(recalculateRefinedMaterialAtom)
   }
 )
 
@@ -132,7 +132,7 @@ export const setItemMarkupUnitAtom = atom(
 /**
  * Change refined buy amount
  */
-export const itemBuyAmountChangedAtom = atom(
+export const setItemBuyAmountAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -151,7 +151,7 @@ export const itemBuyAmountChangedAtom = atom(
 /**
  * Change refined use amount
  */
-export const itemUseAmountChangedAtom = atom(
+export const setItemUseAmountAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -170,7 +170,7 @@ export const itemUseAmountChangedAtom = atom(
 /**
  * Change refined refine amount
  */
-export const itemRefineAmountChangedAtom = atom(
+export const setItemRefineAmountAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -189,7 +189,7 @@ export const itemRefineAmountChangedAtom = atom(
 /**
  * Change refined order value
  */
-export const itemOrderValueChangedAtom = atom(
+export const setItemOrderValueAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
@@ -413,7 +413,7 @@ export const loadItemUsageDataAtom = atom(
 /**
  * Change item notes
  */
-export const itemNotesValueChangedAtom = atom(
+export const setItemNotesAtom = atom(
   null,
   (get, set, item: string, notes: string) => {
     const map = get(itemsMapAtom)
@@ -433,7 +433,7 @@ export const itemNotesValueChangedAtom = atom(
 /**
  * Change item reserve amount
  */
-export const itemReserveValueChangedAtom = atom(
+export const setItemReserveAmountAtom = atom(
   null,
   (get, set, item: string, reserveAmount: string) => {
     const map = get(itemsMapAtom)

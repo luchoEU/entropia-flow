@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { itemBuyMarkupChangedAtom, getItemAtom } from '../../application/atoms/items'
+import { setItemBuyMarkupAtom, getItemAtom } from '../../application/atoms/items'
 import { ItemState } from '../../application/state/items'
 import RefinedInput from './RefinedInput'
 
@@ -9,7 +9,7 @@ function RefinedBuyMaterialInput(p: {
 }) {
     const itemAtom = useMemo(() => getItemAtom(p.name), [p.name])
     const m: ItemState = useAtomValue(itemAtom)
-    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
+    const setMarkup = useSetAtom(setItemBuyMarkupAtom)
 
     return (
         <>

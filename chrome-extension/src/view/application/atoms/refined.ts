@@ -20,7 +20,7 @@ export const setRefinedStateAtom = atom(
   }
 )
 
-export const refinedValueChangedAtom = atom(
+export const setRefinedValueAtom = atom(
   null,
   (get, set, material: string, value: string) => {
     const itemsMap = get(itemsMapAtom)
@@ -29,7 +29,7 @@ export const refinedValueChangedAtom = atom(
   }
 )
 
-export const refinedMarkupChangedAtom = atom(
+export const setRefinedMarkupAtom = atom(
   null,
   (get, set, material: string, markup: string) => {
     const itemsMap = get(itemsMapAtom)
@@ -38,7 +38,7 @@ export const refinedMarkupChangedAtom = atom(
   }
 )
 
-export const refinedMaterialChangedAtom = atom(
+export const recalculateRefinedMaterialAtom = atom(
   null,
   (get, set) => {
     const itemsMap = get(itemsMapAtom)

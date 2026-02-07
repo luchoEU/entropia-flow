@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Field } from "../common/Field";
-import { getItemAtom, itemBuyMarkupChangedAtom } from "../../application/atoms/items";
+import { getItemAtom, setItemBuyMarkupAtom } from "../../application/atoms/items";
 import ItemSyncStatus from "./ItemSyncStatus";
 
 const ItemMarkup = ({ name }: { name: string }) => {
     const itemAtom = useMemo(() => getItemAtom(name), [name])
     const item = useAtomValue(itemAtom)
-    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
+    const setMarkup = useSetAtom(setItemBuyMarkupAtom)
 
     if (!item) return <></>
 

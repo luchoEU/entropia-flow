@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { itemUseAmountChangedAtom, getItemAtom } from '../../application/atoms/items'
+import { setItemUseAmountAtom, getItemAtom } from '../../application/atoms/items'
 import { RefinedOneState } from '../../application/state/refined'
 import RefinedInput from './RefinedInput'
 import RefinedButton from './RefinedButton'
@@ -12,7 +12,7 @@ const RefinedUse = (p: {
     const { material } = p
     const itemAtom = useMemo(() => getItemAtom(material.name), [material.name])
     const m: ItemState = useAtomValue(itemAtom)
-    const setAmount = useSetAtom(itemUseAmountChangedAtom)
+    const setAmount = useSetAtom(setItemUseAmountAtom)
 
     const handleUse = useCallback(() => {
         // TODO: Implement refined material use sheet operation in Jotai

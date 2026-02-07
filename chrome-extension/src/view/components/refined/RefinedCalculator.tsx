@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { refinedValueChanged } from '../../application/helpers/refined'
 import { itemsMapAtom } from '../../application/atoms/items'
 import { sheetsAtom, addSheetsPendingChangeAtom } from '../../application/atoms/sheets'
-import { refinedValueChangedAtom } from '../../application/atoms/refined'
+import { setRefinedValueAtom } from '../../application/atoms/refined'
 import { RefinedOneState } from '../../application/state/refined'
 import { OPERATION_TYPE_REFINED_AUCTION_MATERIAL } from '../../application/state/sheets'
 import { BudgetLineData } from '../../services/api/sheets/sheetsBudget'
@@ -20,7 +20,7 @@ const RefineCaculator = (p: {
     const m = useAtomValue(itemsMapAtom)
     const sheets = useAtomValue(sheetsAtom)
     const addPendingChange = useSetAtom(addSheetsPendingChangeAtom)
-    const setRefinedValue = useSetAtom(refinedValueChangedAtom)
+    const setRefinedValue = useSetAtom(setRefinedValueAtom)
 
     const pending = sheets.pending.some((pend: any) => pend.operationType === OPERATION_TYPE_REFINED_AUCTION_MATERIAL && pend.material === material.name)
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { itemBuyAmountChangedAtom, itemBuyMarkupChangedAtom, getItemAtom } from '../../application/atoms/items'
+import { setItemBuyAmountAtom, setItemBuyMarkupAtom, getItemAtom } from '../../application/atoms/items'
 import { ItemState } from '../../application/state/items'
 import RefinedButton from './RefinedButton'
 import { getMarkupMultiplier } from '../../application/helpers/items'
@@ -11,8 +11,8 @@ const RefinedBuyMaterial = (p: {
 }) => {
     const itemAtom = useMemo(() => getItemAtom(p.buyMaterial), [p.buyMaterial])
     const m: ItemState = useAtomValue(itemAtom)
-    const setMarkup = useSetAtom(itemBuyMarkupChangedAtom)
-    const setAmount = useSetAtom(itemBuyAmountChangedAtom)
+    const setMarkup = useSetAtom(setItemBuyMarkupAtom)
+    const setAmount = useSetAtom(setItemBuyAmountAtom)
 
     const kAmount = Number(m.refined.buyAmount) / 1000
     const nMarkup = getMarkupMultiplier(m)
