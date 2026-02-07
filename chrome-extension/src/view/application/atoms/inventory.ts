@@ -948,9 +948,21 @@ export const setByStoreFilterAtom = atom(null, (_get, _set, _filter: string | un
  * Write atom to set all byStore stared items expanded state
  * Replaces Redux SET_BY_STORE_STARED_ALL_ITEMS_EXPANDED action
  */
-export const setByStoreStaredAllItemsExpandedAtom = atom(null, (_get, _set, _expanded: boolean) => {
-  // Stared items expansion management - manages separate stared list state
-  // Placeholder for stared items tree management
+export const setByStoreStaredAllItemsExpandedAtom = atom(null, (get, set, expanded: boolean) => {
+  const current = get(byStoreStateAtom)
+  if (!current) return
+
+  // Get all stared item IDs from the flattened stared items
+  const allStaredIds = current.staredItems
+    .filter(item => item.isContainer)
+    .map(item => item.id)
+
+  // Update the stared expanded atom with all IDs if expanding, or clear if collapsing
+  if (expanded) {
+    set(byStoreStaredExpandedAtom, allStaredIds)
+  } else {
+    set(byStoreStaredExpandedAtom, [])
+  }
 })
 
 /**

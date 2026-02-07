@@ -152,7 +152,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     for (const [n, id] of Object.entries(listContainers.root)) { // Root containers
         if (!containers[id]) {
             containers[id] = {
-                expanded: false,
+                expanded: true,
                 stared: false,
                 displayName: n
             }
@@ -163,7 +163,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
         if (!ch) continue // skip, not a container
         if (!containers[d.id]) {
             containers[d.id] = {
-                expanded: false,
+                expanded: true,
                 stared: false,
                 displayName: d.n
             }
@@ -298,7 +298,8 @@ const loadInventoryByStore = (
     const sortedList = _cloneSortByStoreTreeList(listWithStats, containersSortType)
 
     // Build flattened tree for main view
-    const flatItems = _flatTree(sortedList, 0, true)
+    // Don't force expand all - let individual containers use their expanded state
+    const flatItems = _flatTree(sortedList, 0)
 
     // Extract stared items (those with stared property in containers)
     const staredTreeItems: Array<InventoryTree<ItemData>> = []
@@ -319,7 +320,22 @@ const loadInventoryByStore = (
 
     // Apply tree-aware sorting to stared items
     const sortedStaredList = _cloneSortByStoreTreeList(staredList, staredSortType)
-    const flatStaredItems = _flatTree(sortedStaredList, 0)
+
+    // Apply expanded state from byStore.staredExpanded to stared items
+    const applyStaredExpandedState = (list: InventoryList<InventoryTree<ItemData>>, expandedIds: string[]): InventoryList<InventoryTree<ItemData>> => ({
+        ...list,
+        items: list.items.map(tree => ({
+            ...tree,
+            list: tree.list ? {
+                ...tree.list,
+                expanded: expandedIds.includes(tree.data.id),
+                items: tree.list.items
+            } : undefined
+        }))
+    })
+
+    const staredListWithExpanded = applyStaredExpandedState(sortedStaredList, byStore.staredExpanded)
+    const flatStaredItems = _flatTree(staredListWithExpanded, 0)
 
     return {
         containers,
