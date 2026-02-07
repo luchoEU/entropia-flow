@@ -1112,9 +1112,14 @@ export const sortByStoreByAtom = atom(null, (get, set, part: number) => {
  * Write atom to set all items expanded state
  * Replaces Redux SET_BY_STORE_ALL_ITEMS_EXPANDED action
  */
-export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (_get, set, expanded: boolean) => {
-  // Simplified version - in practice would need to get all item IDs from byStoreStateAtom
-  set(byStoreExpandedAtom, expanded ? [] : [])
+export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (get, set, expanded: boolean) => {
+  // Set all containers in byStoreContainersAtom to the expanded state
+  const containers = get(byStoreContainersAtom)
+  const updatedContainers = Object.entries(containers).reduce((acc, [id, container]) => {
+    acc[id] = { ...container, expanded }
+    return acc
+  }, {} as ContainerMapData)
+  set(byStoreContainersAtom, updatedContainers)
 })
 
 /**

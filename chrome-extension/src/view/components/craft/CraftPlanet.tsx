@@ -10,7 +10,7 @@ const CraftPlanet = () => {
     const inv: InventoryState = useAtomValue(inventoryStateAtom)
     const setCraftActivePlanet = useSetAtom(setCraftActivePlanetAtom)
 
-    const validPlanets = inv.byStore?.c?.validPlanets ?? []
+    const validPlanets: string[] = []
 
     return (
         <div className='craft-planet'>

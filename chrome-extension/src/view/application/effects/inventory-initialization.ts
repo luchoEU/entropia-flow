@@ -24,7 +24,7 @@ import {
   byStoreStaredExpandedAtom,
   byStoreMaterialExpandedAtom
 } from '../atoms/inventory'
-import { InventoryState } from '../state/inventory'
+import { InventoryState, InventoryByStore } from '../state/inventory'
 
 /**
  * Initializes all inventory Jotai atoms from storage

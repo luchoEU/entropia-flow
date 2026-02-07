@@ -429,7 +429,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
                             </tbody>
                         </table>
                 }/>
-                <ItemInventory filter={craftMaterialFilter(name, raw)} />
+                <ItemInventory />
                 <ItemNotes name={name} />
             </div>
         </div>

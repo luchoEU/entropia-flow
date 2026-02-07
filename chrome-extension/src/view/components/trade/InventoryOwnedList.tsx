@@ -229,7 +229,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 />}
             </div>
         }} />
-        <ItemInventory filter={filterExact(tradeItemData.name)} />
+        <ItemInventory />
     </>
 }
 

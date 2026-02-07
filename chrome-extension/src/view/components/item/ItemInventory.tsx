@@ -1,20 +1,18 @@
-import { useAtomValue, useSetAtom } from "jotai"
+import { useAtomValue } from "jotai"
 import { InventoryByStore, TreeLineData } from "../../application/state/inventory"
 import { JotaiSortableTable } from "../common/jotai/JotaiSortableTable"
-import React, { useEffect, useMemo } from "react"
+import React, { useMemo } from "react"
 import { atom } from "jotai"
-import { setByStoreMaterialFilterAtom, setByStoreMaterialItemExpandedAtom, byStoreStateAtom } from "../../application/atoms/inventory"
+import { byStoreStateAtom } from "../../application/atoms/inventory"
 import ExpandablePlusButton from "../common/ExpandablePlusButton"
 
 const INDENT_SPACE = 10
 
-const ItemInventory = ({ filter }: { filter: string }) => {
+const ItemInventory = () => {
     const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
-    const setFilter = useSetAtom(setByStoreMaterialFilterAtom)
-    const setExpanded = useSetAtom(setByStoreMaterialItemExpandedAtom)
 
     // Create atom for material items
-    const materialItemsAtom = useMemo(() => atom(inv?.flat?.material ?? []), [inv?.flat?.material])
+    const materialItemsAtom = useMemo(() => atom(inv?.materialItems ?? []), [inv?.materialItems])
 
     // Column configuration
     const columns = useMemo(() => [
@@ -29,7 +27,7 @@ const ItemInventory = ({ filter }: { filter: string }) => {
                     {item.expanded !== undefined && (
                         <ExpandablePlusButton
                             expanded={item.expanded}
-                            setExpanded={(expanded: boolean) => setExpanded(item.id, expanded)}
+                            setExpanded={()=> {}}
                         />
                     )}
                     <span>{item.n}</span>
@@ -54,19 +52,14 @@ const ItemInventory = ({ filter }: { filter: string }) => {
             justifyContent: 'center' as const,
             renderRowCell: (item: TreeLineData) => <>{item.v}</>
         }
-    ], [setExpanded])
-
-    useEffect(() => {
-        if (!inv || filter === inv.material.filter) return // already set
-        setFilter(filter)
-    }, [filter, setFilter, inv])
+    ], [])
 
     // Return loading state if data not loaded yet
     if (!inv) {
         return <p><strong>Loading inventory data...</strong></p>
     }
 
-    if (!inv?.flat?.material || inv.flat.material.length === 0) {
+    if (!inv?.materialItems || inv.materialItems.length === 0) {
         return <p><strong>None on Inventory</strong></p>
     }
 

@@ -26,12 +26,12 @@ const initialListWithFilter = <D>(expanded: boolean, sortType: number): Inventor
 });
 
 const initialListByStore = (expanded: boolean, sortType: number): InventoryByStore => ({
-    ...initialListWithFilter(expanded, sortType),
-    containers: { },
-    stared: { filter: undefined, expanded: [], list: initialList(expanded, sortType) },
-    material: { filter: undefined, expanded: [], list: initialList(true, sortType) },
-    flat: { original: [], show: [], stared: [], material: [] },
-    c: { validPlanets: [] },
+    containers: {},
+    staredExpanded: [],
+    materialExpanded: [],
+    items: [],
+    staredItems: [],
+    materialItems: [],
 });
 
 const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
@@ -260,136 +260,6 @@ const _flatTree = (list: InventoryList<InventoryTree<ItemData>>, indent: number,
     ])
 );
 
-const _loadByStoreStaredList = (
-    byStore: InventoryByStore
-): InventoryByStore => {
-    const staredItems: Array<InventoryTree<ItemData>> = []
-    
-    const process = (path: Array<string>) => (i: InventoryTree<ItemData>): InventoryTree<ItemData> => {
-        // Fix id to be unique on all tree, load expanded, and set container with the root
-        const newPath = [ ...path, i.data.id ]
-        return {
-            ...i,
-            data: {
-                ...i.data,
-                id: newPath.join('.')
-            },
-            list: i.list ? {
-                ...i.list,
-                expanded: byStore.stared.expanded.includes(i.data.id),
-                items: i.list.items.map(process(newPath)),
-            }: undefined
-        }
-    }
-    function add(list: InventoryList<InventoryTree<ItemData>>, planet?: string) {
-        for (const i of list.items) {
-            if (i.stared) staredItems.push(process([])(i))
-                if (i.list) add(i.list)
-                }
-    }
-    add(byStore.originalList)
-    
-    byStore = {
-        ...byStore,
-        stared: {
-            ...byStore.stared,
-            list: _addStats(_applyByStoreFilter4('', {
-                ...byStore.stared.list,
-                items: staredItems
-            }, byStore.stared.filter, () => true))
-        }
-    }
-    byStore = _sortByStore(_staredListSelector, byStore)
-    return {
-        ...byStore,
-        flat: {
-            ...byStore.flat,
-            stared: _flatTree(byStore.stared.list, 0)
-        }
-    }
-}
-
-const _loadByStoreShowList = (
-    byStore: InventoryByStore
-): InventoryByStore => {
-    byStore = _sortByStore(_showListSelector, {
-        ...byStore,
-        showList: _addStats(_applyByStoreFilter(byStore.originalList, byStore.containers, byStore.filter)),
-    })
-    byStore.flat.show = _flatTree(byStore.showList, 0)
-    return byStore
-}
-
-const _loadByStoreMaterialList = (
-    byStore: InventoryByStore
-): InventoryByStore => {
-    if (byStore.material.filter === undefined || byStore.material.filter.length === 0) {
-        byStore = {
-            ...byStore,
-            material: {
-                ...byStore.material,
-                list: {
-                    ...byStore.material.list,
-                    items: []
-                }
-            }
-        }
-    } else {
-        byStore = _sortByStore(_materialListSelector, {
-            ...byStore,
-            material: {
-                ...byStore.material,
-                list: _addStats(_applyByStoreFilter4('', byStore.originalList, byStore.material.filter, () => true))
-            }
-        })
-    }
-    return {
-        ...byStore,
-        flat: {
-            ...byStore.flat,
-            material: _flatTree(byStore.material.list, 0)
-        }
-    }
-}
-
-const _loadByStoreOriginalList = (
-    byStore: InventoryByStore
-): InventoryByStore => {
-    const loadExpanded = (id: string, list: InventoryList<InventoryTree<ItemData>>): InventoryList<InventoryTree<ItemData>> => ({
-        ...list,
-        expanded: byStore.containers[id]?.expanded ?? list.expanded,
-        items: list.items.map((i) => ({
-            ...i,
-            list: i.list ? loadExpanded(i.data.id, i.list) : undefined
-        }))
-    })
-    const originalList = _addStats(loadExpanded('', byStore.originalList))
-    return {
-        ...byStore,
-        originalList,
-        flat: {
-            ...byStore.flat,
-            original: _flatTree(originalList, 0, true)
-        }
-    }
-}
-
-const _loadValidPlanets = (
-    byStore: InventoryByStore
-): InventoryByStore => {
-    return {
-        ...byStore,
-        c: {
-            ...byStore.c,
-            validPlanets: Array.from(new Set(byStore.flat.original.flatMap(i => i.c).sort())).filter(c => c !== 'Carried' && c !== 'Auction'),
-        }
-    }
-}
-
-const _loadByStoreShowAndStaredList = (
-    byStore: InventoryByStore
-): InventoryByStore => _loadValidPlanets(_loadByStoreMaterialList(_loadByStoreStaredList(_loadByStoreShowList(_loadByStoreOriginalList(byStore)))))
-
 const loadInventoryByStore = (
     byStore: InventoryByStore,
     list: Array<ItemData>,
@@ -398,7 +268,8 @@ const loadInventoryByStore = (
     const originalList = {
         expanded: false,
         sortType: SORT_NAME_ASCENDING,
-        items
+        items,
+        stats: { count: items.length, ped: '0' }
     }
 
     function getPlanetName(name: string): string {
@@ -447,154 +318,6 @@ const loadInventoryByStore = (
         materialItems: []
     }
 };
-
-const _applyByStoreItemsChange = (
-    items: Array<InventoryTree<ItemData>>,
-    id: string,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
-): { items: Array<InventoryTree<ItemData>>, tree: InventoryTree<ItemData> } => {
-    let resultTree = undefined
-    const resultItems = []
-    for (const tree of items) {
-        if (resultTree) {
-            resultItems.push(tree)
-        } else if (tree.data.id === id) {
-            resultTree = f(tree)
-            resultItems.push(resultTree)
-        } else if (tree.list) {
-            const { items: newItems, tree: newTree } = _applyByStoreItemsChange(tree.list.items, id, f)
-            if (!resultTree) {
-                resultTree = newTree
-            }
-            resultItems.push({
-                ...tree,
-                list: {
-                    ...tree.list,
-                    items: newItems
-                }
-            })
-        } else {
-            resultItems.push(tree)
-        }
-    }
-    return {
-        items: resultItems,
-        tree: resultTree
-    }
-}
-
-const _applyByStoreAllItemsChange = (
-    list: InventoryList<InventoryTree<ItemData>>,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
-): InventoryList<InventoryTree<ItemData>> => ({
-    ...list,
-    items: list.items.map(t => {
-        const t1 = f(t)
-        if (t1.list)
-            t1.list = _applyByStoreAllItemsChange(t1.list, f)
-        return t1
-    })
-})
-
-const _toContainerId = (id: string) => id.split('.').slice(-1)[0]
-
-const _findTreeById = (id: string, list: InventoryList<InventoryTree<ItemData>>): InventoryTree<ItemData> => {
-    for (const tree of list.items) {
-        if (tree.data.id === id) {
-            return tree
-        } else if (tree.list) {
-            const foundTree = _findTreeById(id, tree.list)
-            if (foundTree) {
-                return foundTree
-            }
-        }
-    }
-    return undefined
-}
-
-const _applyToAllByStoreList = (
-    list: InventoryList<InventoryTree<ItemData>>,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>
-): InventoryList<InventoryTree<ItemData>> => ({
-    ...list,
-    items: list.items.map(t => t.list ? { ...f(t), list: _applyToAllByStoreList(t.list, f) } : f(t))
-})
-
-const _partialSet = (sl: ListSelector, s: InventoryByStore, p: Partial<InventoryList<InventoryTree<ItemData>>>): InventoryByStore => sl.set(s, { ...sl.get(s), ...p })
-const _partialSetState = (sl: ListSelector, s: InventoryState, p: Partial<InventoryList<InventoryTree<ItemData>>>): InventoryState => ({ ...s, byStore: _partialSet(sl, s.byStore, p) })
-
-const _applyByStoreChange = (
-    byStore: InventoryByStore,
-    id: string,
-    sl: ListSelector,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
-    g?: ((i: InventoryTree<ItemData>, j: ContainerMapDataItem) => ContainerMapDataItem)
-): InventoryByStore => {
-    const { items, tree } = _applyByStoreItemsChange(sl.get(byStore).items, id, f)
-    const cid = _toContainerId(id)
-    return {
-        ..._partialSet(sl, byStore, { items }),
-        containers: g && byStore.containers[cid] ? { ...byStore.containers, [cid]: g(tree, byStore.containers[cid]) } : byStore.containers
-    }
-}
-
-const _applyByStoreAllChange = (
-    byStore: InventoryByStore,
-    sl: ListSelector,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
-    g?: (c: ContainerMapDataItem) => ContainerMapDataItem
-): InventoryByStore => ({
-    ...sl.set(byStore, _applyByStoreAllItemsChange(sl.get(byStore), f)),
-    containers: g ? Object.fromEntries(
-        Object.entries(byStore.containers).map(([k, v]) => [k, g(v)])
-    ) : byStore.containers
-})
-
-const _applyByStoreStateChange = (
-    state: InventoryState,
-    id: string,
-    sl: ListSelector,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
-    g?: ((i: InventoryTree<ItemData>, j: ContainerMapDataItem) => ContainerMapDataItem)
-): InventoryState => ({
-    ...state,
-    byStore: _applyByStoreChange(state.byStore, id, sl, f, g)
-})
-
-const _applyByStoreStateAllChange = (
-    state: InventoryState,
-    sl: ListSelector,
-    f: (i: InventoryTree<ItemData>) => InventoryTree<ItemData>,
-    g?: (c: ContainerMapDataItem) => ContainerMapDataItem
-): InventoryState => ({
-    ...state,
-    byStore: _applyByStoreAllChange(state.byStore, sl, f, g)
-})
-
-interface ListSelector {
-    get: (byStore: InventoryByStore) => InventoryList<InventoryTree<ItemData>>
-    set: (byStore: InventoryByStore, list: InventoryList<InventoryTree<ItemData>>) => InventoryByStore
-}
-
-const _originalListSelector: ListSelector = {
-    get: (byStore) => byStore.originalList,
-    set: (byStore, list) => ({...byStore, originalList: list, flat: { ...byStore.flat, original: _flatTree(list, 0, true) } }),
-}
-
-const _showListSelector: ListSelector = {
-    get: (byStore) => byStore.showList,
-    set: (byStore, list) => ({...byStore, showList: list, flat: { ...byStore.flat, show: _flatTree(list, 0) } }),
-}
-
-const _staredListSelector: ListSelector = {
-    get: (byStore) => byStore.stared.list,
-    set: (byStore, list) => ({...byStore, stared: { ...byStore.stared, list }, flat: { ...byStore.flat, stared: _flatTree(list, 0) } }),
-}
-
-const _materialListSelector: ListSelector = {
-    get: (byStore) => byStore.material.list,
-    set: (byStore, list) => ({...byStore, material: { ...byStore.material, list }, flat: { ...byStore.flat, material: _flatTree(list, 0) } }),
-}
 
 
 const _applyByStoreFilter = (
@@ -683,33 +406,6 @@ const _sortByStoreTreeList = (list: InventoryList<InventoryTree<ItemData>>, sort
     list.items.forEach(t => t.list && _sortByStoreTreeList(t.list, sortType));
 }
 
-const _nextSortByStore = (
-    sl: ListSelector,
-    byStore: InventoryByStore,
-    part: number,
-): InventoryByStore => {
-    const sortType = nextSortType(part, sl.get(byStore).sortType);
-    const cleanStable = (i: InventoryTree<ItemData>) => ({ ...i, stableName: undefined })
-    return sl.set({
-        ...byStore,
-        containers: Object.fromEntries(
-            Object.entries(byStore.containers).map(([key, value]) => [key, { ...value, stableName: undefined }])
-        ),
-        originalList: {
-            ..._applyToAllByStoreList(byStore.originalList, cleanStable),
-            sortType: sl === _showListSelector ? sortType : byStore.originalList.sortType
-        }
-    }, _cloneSortByStoreTreeList(_applyToAllByStoreList(sl.get(byStore), cleanStable), sortType))
-}
-
-const _sortByStore = (
-    sl: ListSelector,
-    byStore: InventoryByStore,
-): InventoryByStore => {
-    _sortByStoreTreeList(sl.get(byStore), sl.get(byStore).sortType);
-    return byStore;
-};
-
 const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData => {
     const map = { }
     for (const [id, c] of Object.entries(containers)) {
@@ -725,25 +421,13 @@ const _cleanForSaveContainers = (containers: ContainerMapData): ContainerMapData
     return map;
 }
 
-const cleanForSaveInventoryListWithFilter = <L extends InventoryListWithFilter<any>>(list: L): L=> ({
-    ...list,
-    showList: undefined,
-    originalList: cleanForSaveInventoryList(list.originalList)
-})
-
 const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
-    ...cleanForSaveInventoryListWithFilter(state),
     containers: _cleanForSaveContainers(state.containers),
-    stared: {
-        ...state.stared,
-        list: cleanForSaveInventoryList(state.stared.list)
-    },
-    material: {
-        ...state.material,
-        list: cleanForSaveInventoryList(state.material.list)
-    },
-    flat: undefined,
-    c: undefined
+    staredExpanded: state.staredExpanded,
+    materialExpanded: state.materialExpanded,
+    items: [],
+    staredItems: [],
+    materialItems: []
 })
 
 const fillFromLoadByStore = (state: InventoryByStore): InventoryByStore => state
