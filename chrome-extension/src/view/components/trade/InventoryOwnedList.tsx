@@ -28,7 +28,6 @@ import {
   filterOptionsAtom,
   setTradeItemChainAtom,
   setMaterialValueAtom,
-  setReserveAmountAtom,
   setMaterialTypeAtom,
   setEditModeMaterialNameAtom,
   editModeMaterialNameAtom,
@@ -44,6 +43,7 @@ import {
   loadItemWebAtom,
   getTTServiceWebAtom,
 } from '../../application/atoms/inventory'
+import { setItemReserveAmountAtom } from '../../application/atoms/items'
 import ExpandableSection from '../common/ExpandableSection2';
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
 
@@ -112,7 +112,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
 ) => {
     const setMaterialValue = useSetAtom(setMaterialValueAtom)
     const setMaterialType = useSetAtom(setMaterialTypeAtom)
-    const setReserveAmount = useSetAtom(setReserveAmountAtom)
+    const setReserveAmount = useSetAtom(setItemReserveAmountAtom)
     const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
     const mat = useAtomValue(itemsStateAtom)
     const { reserve } = useAtomValue(filterOptionsAtom)

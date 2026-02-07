@@ -1,11 +1,5 @@
 # Entropia Flow - Agent Guidelines
 
-## Important: Never Commit - Only Provide Commit Message
-
-**CRITICAL**: Never use `git add` or `git commit`. Always provide the commit message to the user and let them commit manually. This ensures the user has full control over commits.
-
----
-
 ## Planning Mode: Error Resolution
 
 ### First Instruction: Explain Errors with Chain of Reasoning and Source Links

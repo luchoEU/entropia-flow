@@ -11,9 +11,7 @@ import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, active
 import { settingsAtom } from './settings'
 import { WebLoadResponse } from '../../../web/loader'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
-import { AvailableCriteria } from '../state/inventory'
 import { inventoryTabularData } from '../tabular/inventory'
-import { saveItemsToStorage } from './itemsStorage'
 
 /**
  * Base atom for raw inventory items
@@ -189,34 +187,6 @@ export const setMaterialValueAtom = atom(null, (get, set, itemName: string, valu
         }
       } as any
     })
-  }
-})
-
-/**
- * Write atom to set the reserve amount for an item
- */
-export const setReserveAmountAtom = atom(null, (get, set, itemName: string, reserveAmount: string) => {
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-  if (current) {
-    const newItemsMap = {
-      ...itemsMap,
-      [itemName]: {
-        ...current,
-        reserveAmount
-      } as any
-    }
-    set(itemsMapAtom, newItemsMap)
-
-    // Save to storage
-    saveItemsToStorage(newItemsMap)
-
-    // Trigger sheet sync (deferred import to avoid circular dependencies)
-    ;(async () => {
-      const { triggerItemsSheetSyncAtom } = await import('./items')
-      const store = (await import('jotai')).getDefaultStore()
-      store.set(triggerItemsSheetSyncAtom)
-    })()
   }
 })
 
