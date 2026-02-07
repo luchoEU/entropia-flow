@@ -243,7 +243,7 @@ const InventoryByStoreList = () => {
 
     return (
         <div className='flex'>
-            {inv.flat.stared.length > 0 && (
+            {inv.staredItems.length > 0 && (
                 <JotaiSortableTableSection
                     selector='InventoryByStoreList.staredContainers'
                     title='Favorite Containers'
