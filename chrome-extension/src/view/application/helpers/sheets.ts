@@ -1,5 +1,4 @@
 import { SheetsState } from "../state/sheets"
-import { budgetGetCreateParams } from "./refined"
 
 const initialState: SheetsState = {
     pending: [],
@@ -41,10 +40,6 @@ const loadSheetFunc: string[] = [
     'loadBudgetSheet', // OPERATION_TYPE_REFINED_REFINE_MATERIAL
 ]
 
-const loadSheetParams: { [n: string]: any } = {
-    'loadBudgetSheet': budgetGetCreateParams,
-}
-
 const operationChangeFunc: string[] = [
     'addLine', // OPERATION_TYPE_REFINED_SOLD_ACTIVE
     'addLine', // OPERATION_TYPE_REFINED_AUCTION_MATERIAL
@@ -64,6 +59,5 @@ export {
     clearPendingChanges,
     clearPendingChangeAndTimeoutId,
     loadSheetFunc,
-    loadSheetParams,
     operationChangeFunc,
 }

@@ -1,10 +1,6 @@
 import { objectMap } from "../../../common/object"
-import { BudgetInfoData } from "../../services/api/sheets/sheetsBudget"
-import { getDefaultStore } from 'jotai'
-import { itemsMapAtom } from '../atoms/items'
-import { getRefinedAtom } from "../atoms/refined"
 import { ItemsMap } from "../state/items"
-import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedOneState, RefinedRefine, RefinedState } from "../state/refined"
+import { RefinedCalculatorStateIn, RefinedCalculatorStateOut, RefinedRefine, RefinedState } from "../state/refined"
 import { getMarkupMultiplier, REFINED_DW, REFINED_FT, REFINED_LME, REFINED_ME, REFINED_NB, REFINED_NX, REFINED_PED, REFINED_ST, REFINED_SW, refinedInitialMap, UNIT_PED_K, UNIT_PERCENTAGE } from "./items"
 
 const initialStateIn: { [n: string]: RefinedCalculatorStateIn } = {
@@ -170,24 +166,6 @@ const cleanForSave = (state: RefinedState): RefinedState => {
     return cState
 }
 
-function budgetGetCreateParams(state: any, material: string): any[] {
-    // Access refined and items from Jotai atoms (state parameter is ignored in Jotai version)
-    const jotaiStore = getDefaultStore()
-    const oneState: RefinedOneState = jotaiStore.get(getRefinedAtom(material))
-    const calc = oneState.calculator.in
-    const itemsMap = jotaiStore.get(itemsMapAtom)
-
-    const info: BudgetInfoData = {
-        itemName: material,
-        materials: [ calc.refinedMaterial, ...calc.sourceMaterials ].map(m => ({
-            name: m,
-            unitValue: itemsMap[m]?.refined?.kValue ? itemsMap[m].refined.kValue / 1000 : 0,
-            markup: itemsMap[m]?.markup?.value ? Number(itemsMap[m].markup.value) / 100 : 1
-        }))
-    }
-    return [ info, true ]
-}
-
 export {
     initialState,
     setState,
@@ -195,5 +173,4 @@ export {
     refinedMarkupChanged,
     refinedMaterialChanged,
     cleanForSave,
-    budgetGetCreateParams,
 }

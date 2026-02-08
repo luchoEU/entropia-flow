@@ -25,11 +25,14 @@ import { cleanForSaveMain, cleanForSaveCache } from '../helpers/items'
 import { BlueprintWebMaterial, ItemWebData, ItemUsageWebData, BlueprintWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { recalculateRefinedMaterialAtom } from './refined'
-import { startItemsSheetSyncDebounce, syncItemsSheetFunc } from '../helpers/itemsSheetHelper'
+import { startItemsSheetSyncDebounce } from '../helpers/itemsSheetHelper'
 import { WebLoadResponse } from '../../../web/loader'
+import sheetsApi from '../../services/api/sheets/sheets'
+import { syncItemsToSheet, reloadItemsFromSheet, ItemsSheetInterfaceCallbacks } from '../helpers/itemsSheetSynchronization'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
 import { blueprintsAtom, staredAtom } from './craft'
 import { rawInventoryItemsAtom } from './inventory'
+import { settingsAtom } from './settings'
 
 // Cached storage data - initialized asynchronously on app startup
 let cachedItemsData = JSON.parse(JSON.stringify(refinedInitialMap))
@@ -70,6 +73,18 @@ export async function initializeItemsFromStorage(): Promise<void> {
 
   await initPromise
 }
+
+/**
+ * Initialize items atom - loads from storage and syncs atom value
+ * Call once on app startup via: await store.set(initializeItemsAtom)
+ */
+export const initializeItemsAtom = atom(
+  null,
+  async (get, set) => {
+    await initializeItemsFromStorage()
+    set(itemsMapAtom, cachedItemsData)
+  }
+)
 
 /**
  * Base atom for items map - persisted with atomWithStorage
@@ -823,6 +838,100 @@ export const itemsSyncTimeoutAtom = atom<any>(
 ) as WritableAtom<any, [any], void>
 
 /**
+ * Sync items to Google Sheet - action atom
+ * Reads current items and syncs to configured sheet
+ */
+export const syncItemsToSheetAtom = atom(
+  null,
+  async (get, set) => {
+    const itemsState = get(itemsMapAtom)
+
+    // Read settings from both atom and localStorage to ensure we get the latest
+    let settings = get(settingsAtom) as any
+
+    // If atom shows undefined/empty, try to load from localStorage directly
+    if (!settings.sheet?.budgetDocumentId && !settings.sheet?.itemsSheetPersistenceMode) {
+      try {
+        const storedSheet = localStorage.getItem('settings-sheet')
+        const storedFeatures = localStorage.getItem('settings-features')
+
+        if (storedSheet) {
+          const sheet = JSON.parse(storedSheet)
+          const features = storedFeatures ? JSON.parse(storedFeatures) : []
+          settings = { sheet, features }
+        }
+      } catch (error) {
+        console.warn('[ItemsSync] Failed to load from localStorage:', error)
+      }
+    }
+
+    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
+    if (
+      !settings.sheet ||
+      settings.sheet.itemsSheetPersistenceMode === 'browser' ||
+      !settings.sheet.budgetDocumentId ||
+      settings.sheet.itemsSheetPersistenceMode === undefined
+    ) {
+      let errorMsg = 'Sheet sync disabled'
+      if (!settings.sheet) {
+        errorMsg = 'Sheet configuration not loaded'
+      } else if (settings.sheet.itemsSheetPersistenceMode === undefined) {
+        errorMsg = 'Sheet persistence mode not configured'
+      } else if (settings.sheet.itemsSheetPersistenceMode === 'browser') {
+        errorMsg = 'Using browser storage (sheet sync disabled)'
+      } else if (!settings.sheet.budgetDocumentId) {
+        errorMsg = 'Google Sheets not configured'
+      }
+      console.warn('[ItemsSync] Skipping sync -', errorMsg)
+      set(itemsSyncErrorAtom, errorMsg)
+      return
+    }
+
+    set(itemsSyncErrorAtom, undefined)
+
+    // Build the state object with the map
+    const itemsStateWithMap = {
+      map: itemsState,
+      editModeMaterialName: undefined
+    }
+
+    let currentStage = 0
+    const getCallbacks = (): ItemsSheetInterfaceCallbacks => ({
+      setStage: (stage: number) => {
+        currentStage = stage
+      },
+      getItemsSheet: async (sheetSettings: any) => {
+        const sheet = await sheetsApi.loadItemsSheet(sheetSettings, (stage: number) => {
+          currentStage = stage
+        })
+        if (!sheet) {
+          throw new Error('Failed to load items sheet')
+        }
+        return sheet
+      }
+    })
+
+    try {
+      // Load the sheet and cache its URL
+      const itemsSheet = await sheetsApi.loadItemsSheet(settings, (stage: number) => {
+        currentStage = stage
+      })
+      if (itemsSheet) {
+        const url = itemsSheet.getUrl()
+        set(itemsSheetUrlAtom, url)
+      } else {
+        console.warn('Failed to load items sheet - returned undefined')
+      }
+
+      await syncItemsToSheet(settings as any, itemsStateWithMap, getCallbacks())
+    } catch (error) {
+      console.error('Error in syncItemsToSheet:', error)
+      throw error
+    }
+  }
+)
+
+/**
  * Trigger debounced sync to Google Sheets
  * This sets a timeout that will sync items to the sheet after DEBOUNCE_MS with no changes
  */
@@ -835,11 +944,21 @@ export const triggerItemsSheetSyncAtom = atom(
       clearTimeout(existingTimeout)
     }
 
+    // Create async function that calls the sync action atom
+    const syncFunc = async (
+      setSheetUrl: (url: string) => void,
+      setError: (error: string | undefined) => void
+    ) => {
+      // Note: setSheetUrl and setError are already handled by the atom via set()
+      // The atom directly updates the atoms for URL and error
+      await set(syncItemsToSheetAtom)
+    }
+
     // Delegate to helper with callbacks
     startItemsSheetSyncDebounce(
       (status) => set(itemsSyncStatusAtom, status),
       (time) => set(itemsDebounceTimeAtom, time),
-      syncItemsSheetFunc,
+      syncFunc,
       (url) => set(itemsSheetUrlAtom, url),
       (error) => set(itemsSyncErrorAtom, error)
     )
@@ -847,15 +966,78 @@ export const triggerItemsSheetSyncAtom = atom(
 )
 
 /**
- * Manually reload items from Google Sheet
+ * Manually reload items from Google Sheet - action atom
+ * Loads items from configured sheet and merges with local data
  */
 export const reloadItemsFromSheetAtom = atom(
   null,
   async (get, set) => {
+    const settings = get(settingsAtom) as any
+    const currentItems = get(itemsMapAtom)
+
+    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
+    if (
+      !settings.sheet ||
+      settings.sheet.itemsSheetPersistenceMode === 'browser' ||
+      !settings.sheet.budgetDocumentId ||
+      settings.sheet.itemsSheetPersistenceMode === undefined
+    ) {
+      console.log('Items persistence mode is browser storage or not configured, skipping sheet reload')
+      return
+    }
+
+    let currentStage = 0
+    const getCallbacks = (): ItemsSheetInterfaceCallbacks => ({
+      setStage: (stage: number) => {
+        currentStage = stage
+      },
+      getItemsSheet: async (sheetSettings: any) => {
+        const sheet = await sheetsApi.loadItemsSheet(sheetSettings, (stage: number) => {
+          currentStage = stage
+        })
+        if (!sheet) {
+          throw new Error('Failed to load items sheet')
+        }
+        return sheet
+      }
+    })
+
     try {
-      // Import here to avoid circular dependencies
-      const { reloadItemsSheetFunc } = await import('../helpers/itemsSheetHelper')
-      await reloadItemsSheetFunc()
+      // Load the sheet and cache its URL
+      const itemsSheet = await sheetsApi.loadItemsSheet(settings as any, (stage: number) => {
+        currentStage = stage
+      })
+      if (itemsSheet) {
+        const url = itemsSheet.getUrl()
+        console.log('Items sheet loaded, URL:', url)
+        set(itemsSheetUrlAtom, url)
+      } else {
+        console.warn('Failed to load items sheet - returned undefined')
+      }
+
+      const sheetItems = await reloadItemsFromSheet(settings as any, getCallbacks())
+
+      // Merge sheet data with local data to preserve non-synced fields (web, user, refined)
+      const mergedItems = { ...currentItems }
+      for (const itemName in sheetItems) {
+        const sheetItem = sheetItems[itemName]
+        const localItem = currentItems[itemName]
+
+        // Merge: keep synced fields from sheet, preserve local-only fields
+        mergedItems[itemName] = {
+          ...localItem,
+          ...sheetItem,
+          // Ensure local-only fields are preserved
+          web: localItem?.web,
+          user: localItem?.user,
+          refined: localItem?.refined
+        }
+      }
+
+      // Update the atom with merged items (atomWithStorage will persist automatically)
+      set(itemsMapAtom, mergedItems)
+
+      console.log('Items reloaded from sheet:', Object.keys(sheetItems).length, 'items (merged with local data)')
     } catch (error) {
       console.error('Failed to reload items from sheet:', error)
       throw error

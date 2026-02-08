@@ -1,5 +1,4 @@
 import { atom } from 'jotai'
-import { getDefaultStore } from 'jotai'
 import { atomWithDefault } from 'jotai/utils'
 import { GameLogData, GameLogTrade } from '../../../background/client/gameLogData'
 import { GameLogState } from '../state/log'
@@ -7,7 +6,6 @@ import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_GAME_LOG } from '../../../common/const'
 import { Feature } from '../state/settings'
 import { isFeatureEnabledAtom } from './settings'
-import { GAME_LOG_TABULAR_TRADE } from '../state/log'
 import { TradeState } from '../state/trade'
 import { createListNotification } from '../../../common/notifications'
 import { tradeAtom, setLastTradeMessageCheckSerialAtom } from './trade'
@@ -55,7 +53,7 @@ const handleStoragePersistence = async (get: any, gameLog: GameLogData) => {
     const state = get(gameLogAtom)
 
     // Check if feature is enabled
-    if (!getDefaultStore().get(isFeatureEnabledAtom(Feature.client))) {
+    if (!get(isFeatureEnabledAtom(Feature.client))) {
         return
     }
 

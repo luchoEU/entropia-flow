@@ -1376,14 +1376,13 @@ export const loadBudgetSheetAtom = atom(
     try {
       // Dynamically import API and helper modules
       const { default: api } = await import('../../services/api')
-      const { getDefaultStore } = await import('jotai')
       const { settingsAtom } = await import('./settings')
 
       // Start loading
       set(startBudgetPageLoadingAtom, bpName)
 
-      // Get settings from Jotai store
-      const settings = getDefaultStore().get(settingsAtom)
+      // Get settings from Jotai store using atom context
+      const settings = get(settingsAtom)
 
       // Stage tracking for API callbacks
       const setStage = (stage: number) => {

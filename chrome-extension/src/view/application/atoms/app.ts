@@ -4,7 +4,7 @@ import { statusAtom } from './status'
 import { inventoryListAtom } from './history'
 import { lastTimestampAtom } from './last'
 import { rawInventoryItemsAtom } from './inventory'
-import { initializeItemsFromStorage } from './items'
+import { initializeItemsAtom } from './items'
 import messagesApi from '../../services/api/messages'
 import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../common/state'
 import { ItemOwned } from '../state/inventory'
@@ -83,8 +83,8 @@ export const initializeAppAtom = atom(
       // Initialize craft state (blueprints, etc.)
       await set(initializeCraftStateAtom)
 
-      // Initialize items from storage
-      await initializeItemsFromStorage()
+      // Initialize items from storage and sync atom value
+      await set(initializeItemsAtom)
 
       set(appInitializedAtom, true)
     } catch (error) {
