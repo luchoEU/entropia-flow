@@ -27,11 +27,11 @@ import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { recalculateRefinedMaterialAtom } from './refined'
 import { WebLoadResponse } from '../../../web/loader'
 import sheetsApi from '../../services/api/sheets/sheets'
-import { syncItemsToSheet, reloadItemsFromSheet, ItemsSheetInterfaceCallbacks } from '../helpers/itemsSheetSynchronization'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
 import { blueprintsAtom, staredAtom } from './craft'
 import { rawInventoryItemsAtom } from './inventory'
 import { settingsAtom } from './settings'
+import { SettingsState } from '../state/settings'
 
 // Cached storage data - initialized asynchronously on app startup
 let cachedItemsData = JSON.parse(JSON.stringify(refinedInitialMap))
@@ -640,15 +640,16 @@ export const loadItemUsageDataAtom = atom(
  */
 export const setItemNotesAtom = atom(
   null,
-  (get, set, item: string, notes: string) => {
+  (get, set, itemName: string, notes: string) => {
     const map = get(itemsMapAtom)
-    const newMap = {
+    const newMap: ItemsMap = {
       ...map,
-      [item]: {
-        ...map[item],
+      [itemName]: {
+        ...map[itemName],
+        name: itemName,
         notes
       }
-    } as ItemsMap
+    }
     set(itemsMapAtom, newMap)
     set(triggerItemsSheetSyncAtom)
   }
@@ -659,15 +660,16 @@ export const setItemNotesAtom = atom(
  */
 export const setItemReserveAmountAtom = atom(
   null,
-  (get, set, item: string, reserveAmount: string) => {
+  (get, set, itemName: string, reserveAmount: string) => {
     const map = get(itemsMapAtom)
-    const newMap = {
+    const newMap: ItemsMap = {
       ...map,
-      [item]: {
-        ...map[item],
+      [itemName]: {
+        ...map[itemName],
+        name: itemName,
         reserveAmount
       }
-    } as ItemsMap
+    }
     set(itemsMapAtom, newMap)
     set(triggerItemsSheetSyncAtom)
   }
@@ -829,6 +831,32 @@ export const getOtherBlueprintsAtom = (itemName: string) => atom<string[]>((get)
  */
 
 /**
+ * Validate sheet sync configuration and return error message if invalid
+ * Returns undefined if configuration is valid
+ */
+function validateSheetSyncConfiguration(settings: SettingsState): string | undefined {
+  if (
+    !settings.sheet ||
+    settings.sheet.itemsSheetPersistenceMode === 'browser' ||
+    !settings.sheet.budgetDocumentId ||
+    settings.sheet.itemsSheetPersistenceMode === undefined
+  ) {
+    let errorMsg = 'Sheet sync disabled'
+    if (!settings.sheet) {
+      errorMsg = 'Sheet configuration not loaded'
+    } else if (settings.sheet.itemsSheetPersistenceMode === undefined) {
+      errorMsg = 'Sheet persistence mode not configured'
+    } else if (settings.sheet.itemsSheetPersistenceMode === 'browser') {
+      errorMsg = 'Using browser storage (sheet sync disabled)'
+    } else if (!settings.sheet.budgetDocumentId) {
+      errorMsg = 'Google Sheets not configured'
+    }
+    return errorMsg
+  }
+  return undefined
+}
+
+/**
  * Atom to track debounce timeout for items sheet sync
  * Stored as a primitive atom with read+write capability
  */
@@ -854,67 +882,30 @@ export const syncItemsToSheetAtom = atom(
     const itemsState = get(itemsMapAtom)
     const settings = get(settingsAtom)
 
-    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
-    if (
-      !settings.sheet ||
-      settings.sheet.itemsSheetPersistenceMode === 'browser' ||
-      !settings.sheet.budgetDocumentId ||
-      settings.sheet.itemsSheetPersistenceMode === undefined
-    ) {
-      let errorMsg = 'Sheet sync disabled'
-      if (!settings.sheet) {
-        errorMsg = 'Sheet configuration not loaded'
-      } else if (settings.sheet.itemsSheetPersistenceMode === undefined) {
-        errorMsg = 'Sheet persistence mode not configured'
-      } else if (settings.sheet.itemsSheetPersistenceMode === 'browser') {
-        errorMsg = 'Using browser storage (sheet sync disabled)'
-      } else if (!settings.sheet.budgetDocumentId) {
-        errorMsg = 'Google Sheets not configured'
-      }
-      console.warn('[ItemsSync] Skipping sync -', errorMsg)
-      set(itemsSyncErrorAtom, errorMsg)
+    const validationError = validateSheetSyncConfiguration(settings)
+    if (validationError) {
+      console.warn('[ItemsSync] Skipping sync -', validationError)
+      set(itemsSyncErrorAtom, validationError)
       return
     }
 
     set(itemsSyncErrorAtom, undefined)
 
-    // Build the state object with the map
-    const itemsStateWithMap = {
-      map: itemsState,
-      editModeMaterialName: undefined
-    }
-
     let currentStage = 0
-    const getCallbacks = (): ItemsSheetInterfaceCallbacks => ({
-      setStage: (stage: number) => {
-        currentStage = stage
-      },
-      getItemsSheet: async (sheetSettings: any) => {
-        const sheet = await sheetsApi.loadItemsSheet(sheetSettings, (stage: number) => {
-          currentStage = stage
-        })
-        if (!sheet) {
-          throw new Error('Failed to load items sheet')
-        }
-        return sheet
-      }
-    })
-
     try {
       // Load the sheet and cache its URL
       const itemsSheet = await sheetsApi.loadItemsSheet(settings, (stage: number) => {
         currentStage = stage
       })
       if (itemsSheet) {
+        await itemsSheet.clearAndSyncItems(itemsState)
         const url = itemsSheet.getUrl()
         set(itemsSheetUrlAtom, url)
       } else {
         console.warn('Failed to load items sheet - returned undefined')
       }
-
-      await syncItemsToSheet(settings as any, itemsStateWithMap, getCallbacks())
     } catch (error) {
-      console.error('Error in syncItemsToSheet:', error)
+      set(itemsSyncErrorAtom, `Failed to sync items to sheet: ${error}`)
       throw error
     }
   }
@@ -980,50 +971,27 @@ export const triggerItemsSheetSyncAtom = atom(
 export const reloadItemsFromSheetAtom = atom(
   null,
   async (get, set) => {
-    const settings = get(settingsAtom) as any
     const currentItems = get(itemsMapAtom)
+    const settings = get(settingsAtom)
 
-    // Skip if persistence mode is 'browser' or if sheet credentials are not configured
-    if (
-      !settings.sheet ||
-      settings.sheet.itemsSheetPersistenceMode === 'browser' ||
-      !settings.sheet.budgetDocumentId ||
-      settings.sheet.itemsSheetPersistenceMode === undefined
-    ) {
-      console.log('Items persistence mode is browser storage or not configured, skipping sheet reload')
+    const validationError = validateSheetSyncConfiguration(settings)
+    if (validationError) {
+      console.log('[ItemsSync] Skipping reload -', validationError)
       return
     }
 
-    let currentStage = 0
-    const getCallbacks = (): ItemsSheetInterfaceCallbacks => ({
-      setStage: (stage: number) => {
-        currentStage = stage
-      },
-      getItemsSheet: async (sheetSettings: any) => {
-        const sheet = await sheetsApi.loadItemsSheet(sheetSettings, (stage: number) => {
-          currentStage = stage
-        })
-        if (!sheet) {
-          throw new Error('Failed to load items sheet')
-        }
-        return sheet
-      }
-    })
-
     try {
       // Load the sheet and cache its URL
-      const itemsSheet = await sheetsApi.loadItemsSheet(settings as any, (stage: number) => {
-        currentStage = stage
-      })
-      if (itemsSheet) {
-        const url = itemsSheet.getUrl()
-        console.log('Items sheet loaded, URL:', url)
-        set(itemsSheetUrlAtom, url)
-      } else {
+      const itemsSheet = await sheetsApi.loadItemsSheet(settings, () => {})
+      if (!itemsSheet) {
         console.warn('Failed to load items sheet - returned undefined')
+        return;
       }
 
-      const sheetItems = await reloadItemsFromSheet(settings as any, getCallbacks())
+      const sheetItems = await itemsSheet.readItemsFromSheet()
+      const url = itemsSheet.getUrl()
+      console.log('Items sheet loaded, URL:', url)
+      set(itemsSheetUrlAtom, url)
 
       // Merge sheet data with local data to preserve non-synced fields (web, user, refined)
       const mergedItems = { ...currentItems }

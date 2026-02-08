@@ -75,24 +75,28 @@ class ItemsSheet {
     }
 
     public async clearAndSyncItems(itemsMap: ItemsMap): Promise<void> {
-        // Clear all data rows (keep header)
         const lastRow = await this.getLastRow()
-        for (let row = START_ROW; row < lastRow; row++) {
-            for (let col = 0; col < 4; col++) {
-                this.sheet.getCell(row, col).clearAllFormatting()
-                this.sheet.getCell(row, col).value = null
-            }
-        }
 
         // Write all items from the map
         let row = START_ROW
         for (const itemName of Object.keys(itemsMap).sort()) {
             const item = itemsMap[itemName]
+            const markupNum = Number(item.markup?.value)
+            const reserveNum = Number(item.reserveAmount)
             this.sheet.getCell(row, NAME_COLUMN).value = item.name
-            this.sheet.getCell(row, MARKUP_COLUMN).value = item.markup.value || ''
+            this.sheet.getCell(row, MARKUP_COLUMN).value = isNaN(markupNum) ? '' : markupNum
             this.sheet.getCell(row, MARKUP_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
-            this.sheet.getCell(row, RESERVE_COLUMN).value = item.reserveAmount || ''
+            this.sheet.getCell(row, RESERVE_COLUMN).value = isNaN(reserveNum) ? '' : reserveNum
             this.sheet.getCell(row, NOTES_COLUMN).value = item.notes || ''
+            row++
+        }
+
+        // Clear all data remaining rows
+        while (row < lastRow) {
+            for (let col = 0; col < 4; col++) {
+                this.sheet.getCell(row, col).clearAllFormatting()
+                this.sheet.getCell(row, col).value = null
+            }
             row++
         }
 
