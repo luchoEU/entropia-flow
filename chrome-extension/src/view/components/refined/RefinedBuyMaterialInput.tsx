@@ -16,10 +16,10 @@ function RefinedBuyMaterialInput(p: {
     return (
         <>
             <RefinedInput
-                label={m.name}
+                label={p.name}
                 value={m.markup.value}
                 unit={m.markup.unit}
-                onChange={(value) => setMarkup(m.name, value)} />
+                onChange={(value) => setMarkup(p.name, value)} />
         </>
     )
 }

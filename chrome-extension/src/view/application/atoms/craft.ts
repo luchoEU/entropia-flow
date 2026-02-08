@@ -120,9 +120,11 @@ const _applyFilter = (
     ? stared.list.filter((name) => multiIncludes(stared.filter!, name))
     : stared.list
 
-  const blueprintData = filtered.map((name) => blueprints[name]).filter((bp) => bp)
+  const blueprintData = filtered.map((name) => [name, blueprints[name]] as [string, BlueprintData]).filter(([_, bp]) => bp)
 
-  return Sort.sortList(stared.sortType, blueprintData)
+  const sorted = Sort.sortList(stared.sortType, blueprintData)
+
+  return sorted.map(([_, bp]) => bp)
 }
 
 /**
@@ -233,7 +235,6 @@ export const addBlueprintAtom = atom(
       set(blueprintsAtom, {
         ...blueprints,
         [name]: {
-          name,
           budget: {
             loading: true,
             stage: STAGE_INITIALIZING,

@@ -212,13 +212,13 @@ export const loadItemFieldDataAtom = <T>(
     for await (const r of loadFromWeb(_loadFrom)) {
       const map = get(itemsMapAtom)
       const item = map[itemName]
-      const newMap = {
+      const newMap: ItemsMap = {
         ...map,
         [itemName]: {
           ...item,
           web: { ...(item?.web ?? {}), [field]: r }
         }
-      } as ItemsMap
+      }
       set(itemsMapAtom, newMap)
     }
   }
@@ -646,7 +646,6 @@ export const setItemNotesAtom = atom(
       ...map,
       [itemName]: {
         ...map[itemName],
-        name: itemName,
         notes
       }
     }
@@ -666,7 +665,6 @@ export const setItemReserveAmountAtom = atom(
       ...map,
       [itemName]: {
         ...map[itemName],
-        name: itemName,
         reserveAmount
       }
     }
@@ -726,12 +724,11 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   }
 
   const blueprints: Array<BlueprintWebData> = itemUsage?.data?.value?.blueprints ?? []
-  const starredNames = new Set(staredState.list)
   const ownedItemNames = new Set(rawInventory.map(item => item.data.n))
 
   // Convert blueprint data
-  const getWebBp = (bp: BlueprintData): BlueprintWebData | undefined =>
-    bp.web?.blueprint?.data?.value ?? blueprints.find((b: any) => b.name === bp.name)
+  const getWebBp = (bpName: string, bp: BlueprintData): BlueprintWebData | undefined =>
+    bp.web?.blueprint?.data?.value ?? blueprints.find((b: any) => b.name === bpName)
 
   // Categorize blueprints
   const favorite: string[] = []
@@ -742,7 +739,7 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   staredState.list.forEach((name: string) => {
     const bp = blueprintsState[name]
     if (bp) {
-      const webBp = getWebBp(bp)
+      const webBp = getWebBp(name, bp)
       if (webBp) {
         const quantity = webBp.materials
           ? (webBp.materials.find(m => m.name === itemName)?.quantity ?? 0)
@@ -756,12 +753,12 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   })
 
   // Process non-starred blueprints (owned)
-  Object.values(blueprintsState).forEach((bp: any) => {
-    if (!starredNames.has(bp.name)) {
-      const webBp = getWebBp(bp)
+  Object.entries(blueprintsState).forEach(([name, bp]: [string, BlueprintData]) => {
+    if (!usedBpNames.has(name)) {
+      const webBp = getWebBp(name, bp)
       if (webBp) {
         const quantity = webBp.materials
-          ? (webBp.materials.find((m: any) => m.name === itemName)?.quantity ?? 0)
+          ? (webBp.materials.find((m: BlueprintWebMaterial) => m.name === itemName)?.quantity ?? 0)
           : -1
         if (quantity !== 0) {
           owned.push(webBp.name)
@@ -772,10 +769,10 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
   })
 
   // Check if item is in inventory and add those blueprints to owned
-  blueprints.forEach((bp: any) => {
+  blueprints.forEach((bp: BlueprintWebData) => {
     if (!usedBpNames.has(bp.name) && ownedItemNames.has(bp.name)) {
       const quantity = bp.materials
-        ? (bp.materials.find((m: any) => m.name === itemName)?.quantity ?? 0)
+        ? (bp.materials.find((m: BlueprintWebMaterial) => m.name === itemName)?.quantity ?? 0)
         : -1
       if (quantity !== 0) {
         owned.push(bp.name)

@@ -24,10 +24,10 @@ const RefinedUse = (p: {
             <h2>Use Material</h2>
             <div className='use-refined'>
                 <RefinedInput
-                    label={m.name}
+                    label={material.name}
                     value={m.refined.useAmount}
                     unit=''
-                    getChangeAction={(value) => setAmount(m.name, value)} />
+                    getChangeAction={(value) => setAmount(material.name, value)} />
                 <RefinedButton title='Use' pending={false} onClick={handleUse} />
             </div>
         </section>

@@ -14,11 +14,11 @@ const bpNameFromItemName = (ownedItems: ItemOwned[], itemName: string): string |
 
 const BP_ITEM_NAME = 'Item'
 const BP_BLUEPRINT_NAME = 'Blueprint'
-const itemStringFromName = (bp: BlueprintData, name: string): string => {
+const itemStringFromName = (bpName: string, name: string): string => {
     // This needs to use the auto calc atom instead of bp.c
     // For now, derive from blueprint name
-    const itemName = itemNameFromBpName(bp.name)
-    return name === bp.name ? BP_BLUEPRINT_NAME : name === itemName ? BP_ITEM_NAME : name
+    const itemName = itemNameFromBpName(bpName)
+    return name === bpName ? BP_BLUEPRINT_NAME : name === itemName ? BP_ITEM_NAME : name
 }
 
 const itemStringFromNameLimited = (itemName: string, name: string): string =>
@@ -29,10 +29,10 @@ const nameFromItemStringLimited = (itemName: string, name: string): string =>
 
 const isLimited = (name: string): boolean => name?.endsWith('(L)') ?? false
 
-const budgetInfoFromBp = (bp: BlueprintData, mat: ItemsMap): BudgetInfoData => {
-    const itemName = itemNameFromBpName(bp.name)
+const budgetInfoFromBp = (bpName: string, bp: BlueprintData, mat: ItemsMap): BudgetInfoData => {
+    const itemName = itemNameFromBpName(bpName)
     const materials = bp.user?.materials?.map(m => ({
-        name: itemStringFromName(bp, m.name),
+        name: itemStringFromName(bpName, m.name),
         unitValue: 0, // Will be set by web data
         markup: Number(mat[m.name]?.markup?.value ?? 100) / 100
     })) ?? []
@@ -46,9 +46,16 @@ const budgetInfoFromBp = (bp: BlueprintData, mat: ItemsMap): BudgetInfoData => {
 /**
  * Find blueprint by item name
  * Searches through all blueprints to find one with matching item name
+ * Returns tuple of [blueprintName, blueprintData] or undefined
  */
-const bpDataFromItemName = (blueprints: { [name: string]: BlueprintData }, itemName: string): BlueprintData | undefined =>
-    Object.values(blueprints).find(bp => itemNameFromBpName(bp.name) === itemName)
+const bpDataFromItemName = (blueprints: { [name: string]: BlueprintData }, itemName: string): [string, BlueprintData] | undefined => {
+    for (const [name, bp] of Object.entries(blueprints)) {
+        if (itemNameFromBpName(name) === itemName) {
+            return [name, bp]
+        }
+    }
+    return undefined
+}
 
 /**
  * Clean web data from saved state

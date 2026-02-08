@@ -83,7 +83,7 @@ class ItemsSheet {
             const item = itemsMap[itemName]
             const markupNum = Number(item.markup?.value)
             const reserveNum = Number(item.reserveAmount)
-            this.sheet.getCell(row, NAME_COLUMN).value = item.name
+            this.sheet.getCell(row, NAME_COLUMN).value = itemName
             this.sheet.getCell(row, MARKUP_COLUMN).value = isNaN(markupNum) ? '' : markupNum
             this.sheet.getCell(row, MARKUP_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
             this.sheet.getCell(row, RESERVE_COLUMN).value = isNaN(reserveNum) ? '' : reserveNum
@@ -112,7 +112,6 @@ class ItemsSheet {
             if (nameCell) {
                 const name = String(nameCell)
                 itemsMap[name] = {
-                    name,
                     markup: {
                         value: this.sheet.getCell(row, MARKUP_COLUMN).value ? String(this.sheet.getCell(row, MARKUP_COLUMN).value) : undefined
                     },

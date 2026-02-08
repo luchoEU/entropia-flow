@@ -20,12 +20,12 @@ const RefinedBuyMaterial = (p: {
 
     return (
         <>
-            <label>{m.name}</label>
+            <label>{p.buyMaterial}</label>
             <div className='buy-refined-markup'>
                 <input
                     type='text'
                     value={m.markup.value}
-                    onChange={(e) => setMarkup(m.name, e.target.value)} />
+                    onChange={(e) => setMarkup(p.buyMaterial, e.target.value)} />
                 <span>{m.markup.unit}</span>
             </div>
             <input

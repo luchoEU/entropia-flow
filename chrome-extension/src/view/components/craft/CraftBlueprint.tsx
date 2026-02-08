@@ -76,7 +76,8 @@ function addZeroes(n: number) {
     return Number(n).toFixed(len)
 }
 
-const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }: {
+const CraftSingle = ({ bpName, bp, activeSession, message, bpAutoCalc, loadBudgetSheet }: {
+    bpName: string,
     bp: BlueprintData
     activeSession?: string,
     message?: string,
@@ -233,18 +234,18 @@ const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }
     bought = undefined!
 
     return (
-        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bp.name)} showWithErrors={true} content={(webBp: BlueprintWebData | undefined) => <>
+        <WebDataControl w={bp.web?.blueprint} name='Blueprint' dispatchReload={() => reloadBlueprint(bpName)} showWithErrors={true} content={(webBp: BlueprintWebData | undefined) => <>
             { showBudget && <>
                 <p>Budget Page: { bp.budget?.loading ?
                     <><img className='img-loading' src='img/loading.gif' />{StageText[bp.budget.stage]}...</> :
                     <button onClick={(e) => {
                         e.stopPropagation();
-                        loadBudgetSheet(bp.name).catch((err) => console.error(`Failed to load budget sheet: ${err}`))
+                        loadBudgetSheet(bpName).catch((err) => console.error(`Failed to load budget sheet: ${err}`))
                     }}>{bp.budget?.hasPage ? 'Refresh' : 'Create'}</button>
                 }</p>
                 <p>Crafting Session: {
-                    activeSession !== undefined && bp.name !== activeSession ? <>{activeSession}</> :
-                    <SessionInfo name={bp.name} session={bp.session} onClear={() => clearSession(bp.name)} message={message} showMoveAll={showMoveAll} />
+                    activeSession !== undefined && bpName !== activeSession ? <>{activeSession}</> :
+                    <SessionInfo name={bpName} session={bp.session} onClear={() => clearSession(bpName)} message={message} showMoveAll={showMoveAll} />
                 }</p>
             </> }
             <p className='item-row pointer' onClick={(e) => {
@@ -272,7 +273,7 @@ const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }
                 <tbody>
                     {
                         bpAutoCalc?.materials?.map((m: BlueprintMaterial) => {
-                            const name = itemStringFromName(bp, m.name)
+                            const name = itemStringFromName(bpName, m.name)
                             return <tr key={m.name} className='item-row stable pointer' onClick={(e) => {
                                 e.stopPropagation();
                                 // TODO: Implement blueprint material data display
@@ -343,7 +344,7 @@ const CraftSingle = ({ bp, activeSession, message, bpAutoCalc, loadBudgetSheet }
     )
 }
 
-const CraftEdit = ({bp, bpSuggestedMaterials}: {bp: BlueprintData, bpSuggestedMaterials?: any}) => {
+const CraftEdit = ({bpName, bp, bpSuggestedMaterials}: {bpName: string, bp: BlueprintData, bpSuggestedMaterials?: any}) => {
     return (
         <>
             <table className='blueprint-edit'>
@@ -356,16 +357,16 @@ const CraftEdit = ({bp, bpSuggestedMaterials}: {bp: BlueprintData, bpSuggestedMa
                 <tbody>
                     {bp.user?.materials?.map((m, i) => (
                         <tr key={m.name || i}>
-                            <td><input type='text' disabled value={m.quantity} onChange={(e) => changeBlueprintMaterialQuantity(bp.name, i, e.target.value)}/></td>
-                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bp.name, i, v)} suggestions={i === bpSuggestedMaterials?.index ? bpSuggestedMaterials?.list : undefined}/></td>
-                            <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bp.name, i)}/></td>
-                            <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bp.name, i, i - 1)}/>}</td>
-                            <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bp.name, i, i + 1)}/>}</td>
+                            <td><input type='text' disabled value={m.quantity} onChange={(e) => changeBlueprintMaterialQuantity(bpName, i, e.target.value)}/></td>
+                            <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bpName, i, v)} suggestions={i === bpSuggestedMaterials?.index ? bpSuggestedMaterials?.list : undefined}/></td>
+                            <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bpName, i)}/></td>
+                            <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bpName, i, i - 1)}/>}</td>
+                            <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bpName, i, i + 1)}/>}</td>
                         </tr>
                     ))}
                     <tr>
                         <td></td>
-                        <td><ImgButton src='img/add.png' title='Add Material' className='craft-add-material' afterText='Add Material' dispatch={() => addBlueprintMaterial(bp.name)}/></td>
+                        <td><ImgButton src='img/add.png' title='Add Material' className='craft-add-material' afterText='Add Material' dispatch={() => addBlueprintMaterial(bpName)}/></td>
                     </tr>
                 </tbody>
             </table>
@@ -379,7 +380,7 @@ const craftMaterialFilter = (materialName: string, rawMaterials: WebLoadResponse
             filterOr([ materialName, ...rawMaterials.data.value.map(m => m.name) ]) :
             materialName);
 
-const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
+const CraftItemDetails = ({name, bpName, bp}: {name: string, bpName: string, bp: BlueprintData}) => {
     const itemsMap = useAtomValue(itemsMapAtom)
     const editModeMaterialName = useAtomValue(editModeMaterialNameAtom)
     const setMaterialType = useSetAtom(changeMaterialTypeAtom)
@@ -396,7 +397,7 @@ const CraftItemDetails = ({name, bp}: {name: string, bp: BlueprintData}) => {
     const editMode = name && name === editModeMaterialName
     return (
         <div className='craft-chain'>
-            <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); showBlueprintMaterialData(bp.name, undefined) }}>
+            <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); showBlueprintMaterialData(bpName, undefined) }}>
                 { name }<img src='img/left.png' />
                 { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? setEditModeEnd() : setEditModeStart(name)}/> }
             </h2>
@@ -458,27 +459,32 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
     const chainNames: string[] = []
     let afterChainMaterialName: string | undefined = undefined
     let afterBpChain: BlueprintData | undefined = undefined
+    let afterBpChainName: string | undefined = undefined
     let lastBpChain: BlueprintData | undefined = undefined
+    let lastBpChainName: string | undefined = undefined
     let chainMaterialName = bp.chain
     while (chainMaterialName) {
         afterBpChain = lastBpChain ?? bp
-        if (chainMaterialName == itemNameFromBpName(afterBpChain?.name || '')) {
+        afterBpChainName = lastBpChainName ?? bpName
+        if (chainMaterialName == itemNameFromBpName(afterBpChainName)) {
             afterChainMaterialName = chainMaterialName
             break
         }
 
-        const nextBp = bpDataFromItemName(blueprints, chainMaterialName)
-        if (nextBp) {
+        const nextBpResult = bpDataFromItemName(blueprints, chainMaterialName)
+        if (nextBpResult) {
+            const [nextBpName, nextBp] = nextBpResult
             if (lastBpChain)
-                chainNames.push(lastBpChain.name)
+                chainNames.push(lastBpChainName!)
             lastBpChain = nextBp
+            lastBpChainName = nextBpName
         } else {
             afterChainMaterialName = chainMaterialName
         }
-        chainMaterialName = nextBp?.chain
+        chainMaterialName = lastBpChain?.chain
     }
 
-    const editMode = editModeBlueprintName === bp.name
+    const editMode = editModeBlueprintName === bpName
     return (
         <section>
             <div className='inline'>
@@ -486,19 +492,19 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                     <ImgButton
                         title='Back to list'
                         src='img/left.png'
-                        beforeText={bp.name}
+                        beforeText={bpName}
                         dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
-                    <StarButton bpName={bp.name} />
+                    <StarButton bpName={bpName} />
                     <ImgButton
                         show={editMode}
                         title={editMode ? 'Finish edit' : 'Edit Blueprint'}
                         src='img/edit.png'
-                        dispatch={() => editMode ? endBlueprintEditMode : startBlueprintEditMode(bp.name)}/>
+                        dispatch={() => editMode ? endBlueprintEditMode : startBlueprintEditMode(bpName)}/>
                     <CraftPlanet />
                 </h1>
                 {editMode ?
-                    <CraftEdit bp={bp} bpSuggestedMaterials={bpSuggestedMaterials} /> :
-                    <CraftSingle key={bp.name} bp={bp} activeSession={activeSession} message={message} bpAutoCalc={bpAutoCalc} loadBudgetSheet={loadBudgetSheet} />
+                    <CraftEdit bpName={bpName} bp={bp} bpSuggestedMaterials={bpSuggestedMaterials} /> :
+                    <CraftSingle key={bpName} bpName={bpName} bp={bp} activeSession={activeSession} message={message} bpAutoCalc={bpAutoCalc} loadBudgetSheet={loadBudgetSheet} />
                 }
             </div>
             {!editMode &&
@@ -513,19 +519,19 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                             </h2>
                         </div>
                     )}
-                    { lastBpChain &&
+                    { lastBpChain && lastBpChainName &&
                         <div className='craft-chain'>
                             <h2 className='pointer img-hover-container' onClick={(e) => {
                                 e.stopPropagation();
-                                showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bp.name, undefined)
+                                showBlueprintMaterialData(chainNames.length > 0 ? chainNames[chainNames.length - 1] : bpName, undefined)
                             }}>
-                                { lastBpChain.name }<img title='Close blueprint' src='img/left.png' />
-                                <StarButton bpName={lastBpChain.name} />
+                                { lastBpChainName }<img title='Close blueprint' src='img/left.png' />
+                                <StarButton bpName={lastBpChainName} />
                             </h2>
-                            <CraftSingle key={bp.chain} bp={lastBpChain} bpAutoCalc={autoCalcData[lastBpChain.name]} loadBudgetSheet={loadBudgetSheet} />
+                            <CraftSingle key={bp.chain} bpName={lastBpChainName} bp={lastBpChain} bpAutoCalc={autoCalcData[lastBpChainName]} loadBudgetSheet={loadBudgetSheet} />
                         </div>
                     }
-                    { afterChainMaterialName && <CraftItemDetails name={afterChainMaterialName} bp={afterBpChain} /> }
+                    { afterChainMaterialName && <CraftItemDetails name={afterChainMaterialName} bpName={afterBpChainName!} bp={afterBpChain} /> }
                 </div>
             }
         </section>

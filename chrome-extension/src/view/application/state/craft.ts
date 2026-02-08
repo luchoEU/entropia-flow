@@ -48,7 +48,6 @@ interface BlueprintStateWebData {
 }
 
 interface BlueprintData {
-    name: string
     budget?: BlueprintBudget
     session?: BlueprintSession
     chain?: string

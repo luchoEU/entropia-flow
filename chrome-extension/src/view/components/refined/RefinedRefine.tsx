@@ -48,10 +48,10 @@ const RefinedUse = (p: {
             <h2>Refine Material</h2>
             <div className='use-refined'>
                 <RefinedInput
-                    label={m.name}
+                    label={material.name}
                     value={m.refined.refineAmount}
                     unit=''
-                    onChange={(value) => setAmount(m.name, value)} />
+                    onChange={(value) => setAmount(material.name, value)} />
                 <RefinedButton title='Refine' pending={pending} onClick={handleRefine} />
             </div>
         </section>

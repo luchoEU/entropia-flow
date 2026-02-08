@@ -49,10 +49,10 @@ const RefinedOrder = (p: {
             <div className='order-refined'>
                 <div /><div>Markup</div><div /><div>PED</div><div />
                 <RefinedInput
-                    label={m.name}
+                    label={material.name}
                     value={m.refined.orderMarkup}
                     unit={m.markup.unit}
-                    onChange={(value) => setMarkup(m.name, value)} />
+                    onChange={(value) => setMarkup(material.name, value)} />
                 <input
                     type='text'
                     value={m.refined.orderValue}

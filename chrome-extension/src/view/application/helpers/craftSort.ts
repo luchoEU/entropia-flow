@@ -91,124 +91,124 @@ const sortColumnDefinition = {
     },
 }
 
-const getLimitText = (d: BlueprintData, autoCalcData?: any): string => {
-    const autoCalc = autoCalcData?.[d.name] || d.user?.materials?.length > 0 ? { clicks: undefined } : { clicks: undefined };
+const getLimitText = (dName: string, d: BlueprintData, autoCalcData?: any): string => {
+    const autoCalc = autoCalcData?.[dName] || d.user?.materials?.length > 0 ? { clicks: undefined } : { clicks: undefined };
     return autoCalc?.clicks?.limitingItems?.length > 2 ?
         `${autoCalc.clicks?.limitingItems.slice(0, 2).join(', ')}, ${autoCalc.clicks?.limitingItems.length - 2} more` :
         autoCalc?.clicks?.limitingItems?.join(', ') ?? '';
 }
 
-const getItemAvailable = (d: BlueprintData, autoCalcData?: any): number => {
-    const autoCalc = autoCalcData?.[d.name];
+const getItemAvailable = (dName: string, d: BlueprintData, autoCalcData?: any): number => {
+    const autoCalc = autoCalcData?.[dName];
     return autoCalc?.materials?.find(m => m.name === autoCalc?.itemName)?.available ?? 0;
 }
 
 const getItemType = (d: BlueprintData): string =>
     d.web?.blueprint.data?.value.type ?? '';
 
-const getItemClickTTCost = (d: BlueprintData, autoCalcData?: any): number => {
-    const autoCalc = autoCalcData?.[d.name];
+const getItemClickTTCost = (dName: string, d: BlueprintData, autoCalcData?: any): number => {
+    const autoCalc = autoCalcData?.[dName];
     return autoCalc?.clicks?.ttCost ?? 0;
 }
 
 const comparer = [
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_NAME_ASCENDING
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_NAME_DESCENDING
-        return -a.name.localeCompare(b.name)
+        return -a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData, autoCalcData?: any) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData], autoCalcData?: any) => {
         // SORT_CLICKS_ASCENDING
-        const aAutoCalc = autoCalcData?.[a.name];
-        const bAutoCalc = autoCalcData?.[b.name];
+        const aAutoCalc = autoCalcData?.[a[0]];
+        const bAutoCalc = autoCalcData?.[b[0]];
         const c = Math.abs(Number(aAutoCalc?.clicks?.available ?? '0')) - Math.abs(Number(bAutoCalc?.clicks?.available ?? '0'))
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData, autoCalcData?: any) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData], autoCalcData?: any) => {
         // SORT_CLICKS_DESCENDING
-        const aAutoCalc = autoCalcData?.[a.name];
-        const bAutoCalc = autoCalcData?.[b.name];
+        const aAutoCalc = autoCalcData?.[a[0]];
+        const bAutoCalc = autoCalcData?.[b[0]];
         const c = - Math.abs(Number(aAutoCalc?.clicks?.available ?? '0')) + Math.abs(Number(bAutoCalc?.clicks?.available ?? '0'))
         if (c != 0)
             return c
-        return -a.name.localeCompare(b.name)
+        return -a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_LIMIT_ASCENDING
-        return getLimitText(a).localeCompare(getLimitText(b))
+        return getLimitText(a[0], a[1]).localeCompare(getLimitText(b[0], b[1]))
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_LIMIT_DESCENDING
-        return -getLimitText(a).localeCompare(getLimitText(b))
+        return -getLimitText(a[0], a[1]).localeCompare(getLimitText(b[0], b[1]))
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_BUDGET_ASCENDING
-        const c = Math.abs(Number(a.budget.sheet.total ?? '0')) - Math.abs(Number(b.budget.sheet.total ?? '0'))
+        const c = Math.abs(Number(a[1].budget.sheet.total ?? '0')) - Math.abs(Number(b[1].budget.sheet.total ?? '0'))
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_BUDGET_DESCENDING
-        const c = - Math.abs(Number(a.budget.sheet.total ?? '0')) + Math.abs(Number(b.budget.sheet.total ?? '0'))
+        const c = - Math.abs(Number(a[1].budget.sheet.total ?? '0')) + Math.abs(Number(b[1].budget.sheet.total ?? '0'))
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_CASH_ASCENDING
-        const c = Math.abs(Number(a.budget.sheet.peds ?? '0')) - Math.abs(Number(b.budget.sheet.peds ?? '0'))
+        const c = Math.abs(Number(a[1].budget.sheet.peds ?? '0')) - Math.abs(Number(b[1].budget.sheet.peds ?? '0'))
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_CASH_DESCENDING
-        const c = - Math.abs(Number(a.budget.sheet.peds ?? '0')) + Math.abs(Number(b.budget.sheet.peds ?? '0'))
+        const c = - Math.abs(Number(a[1].budget.sheet.peds ?? '0')) + Math.abs(Number(b[1].budget.sheet.peds ?? '0'))
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_ITEMS_ASCENDING
-        const c = getItemAvailable(a) - getItemAvailable(b)
+        const c = getItemAvailable(a[0], a[1]) - getItemAvailable(b[0], b[1])
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_ITEM_DESCENDING
-        const c = - getItemAvailable(a) + getItemAvailable(b)
+        const c = - getItemAvailable(a[0], a[1]) + getItemAvailable(b[0], b[1])
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_TYPE_ASCENDING
-        return getItemType(a).localeCompare(getItemType(b))
+        return getItemType(a[1]).localeCompare(getItemType(b[1]))
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_TYPE_DESCENDING
-        return -getItemType(a).localeCompare(getItemType(b))
+        return -getItemType(a[1]).localeCompare(getItemType(b[1]))
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_CLICK_TT_COST_ASCENDING
-        const c = getItemClickTTCost(a) - getItemClickTTCost(b)
+        const c = getItemClickTTCost(a[0], a[1]) - getItemClickTTCost(b[0], b[1])
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
-    (a: BlueprintData, b: BlueprintData) => {
+    (a: [string, BlueprintData], b: [string, BlueprintData]) => {
         // SORT_CLICK_TT_COST_DESCENDING
-        const c = - getItemClickTTCost(a) + getItemClickTTCost(b)
+        const c = - getItemClickTTCost(a[0], a[1]) + getItemClickTTCost(b[0], b[1])
         if (c != 0)
             return c
-        return a.name.localeCompare(b.name)
+        return a[0].localeCompare(b[0])
     },
 ]
 
@@ -216,12 +216,12 @@ const nextSortType = (part: number, currentSortType: number): number =>
     (currentSortType === defaultSort[part]) ? contrarySort[part] : defaultSort[part]
 
 // warning: it mutates the list
-function sortList(sortType: number, list: Array<BlueprintData>): Array<BlueprintData> {
+function sortList(sortType: number, list: Array<[string, BlueprintData]>): Array<[string, BlueprintData]> {
     list.sort(comparer[sortType])
     return list
 }
 
-function cloneSortList(sortType: number, list: Array<BlueprintData>): Array<BlueprintData> {
+function cloneSortList(sortType: number, list: Array<[string, BlueprintData]>): Array<[string, BlueprintData]> {
     return sortList(sortType, [...list])
 }
 

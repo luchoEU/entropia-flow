@@ -22,19 +22,27 @@ function CraftFavoriteList() {
     const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
     const setStaredBlueprintsFilter = useSetAtom(setStaredBlueprintsFilterAtom)
 
-    const blueprintValues = Object.values(blueprints)
+    const blueprintEntries = Object.entries(blueprints)
 
     // Determine which columns to show based on available data
-    const clicks = blueprintValues.some(d => autoCalcData[d.name]?.clicks)
-    const limit = blueprintValues.some(d => autoCalcData[d.name]?.clicks?.limitingItems?.length > 0)
-    const items = blueprintValues.some(d => getItemAvailable(d) > 0)
-    const budget = blueprintValues.some(d => d.budget?.sheet?.total !== undefined)
-    const cash = blueprintValues.some(d => d.budget?.sheet?.peds !== undefined)
-    const type = blueprintValues.some(d => getItemType(d))
-    const clickTTCost = blueprintValues.some(d => getItemClickTTCost(d) > 0)
+    const clicks = blueprintEntries.some(([name]) => autoCalcData[name]?.clicks)
+    const limit = blueprintEntries.some(([name]) => (autoCalcData[name]?.clicks?.limitingItems?.length ?? 0) > 0)
+    const items = blueprintEntries.some(([name, d]) => getItemAvailable(name, d) > 0)
+    const budget = blueprintEntries.some(([name, d]) => d.budget?.sheet?.total !== undefined)
+    const cash = blueprintEntries.some(([name, d]) => d.budget?.sheet?.peds !== undefined)
+    const type = blueprintEntries.some(([name, d]) => getItemType(d))
+    const clickTTCost = blueprintEntries.some(([name, d]) => getItemClickTTCost(name, d) > 0)
+
+    // Wrap filtered blueprints with their names for table display
+    const filteredBlueprintsWithNames = useMemo(() =>
+        stared.list
+            .filter(name => filteredStared.some(bp => blueprints[name] === bp))
+            .map(name => ({ _bpName: name, ...blueprints[name] } as BlueprintData & { _bpName: string })),
+        [filteredStared, stared.list, blueprints]
+    )
 
     // Create atom for filtered blueprints (MUST be before early return)
-    const filteredBlueprintsAtom = useMemo(() => atom(filteredStared), [filteredStared])
+    const filteredBlueprintsAtom = useMemo(() => atom(filteredBlueprintsWithNames), [filteredBlueprintsWithNames])
 
     // Build column configuration dynamically (MUST be before early return)
     const columns = useMemo(() => {
@@ -43,18 +51,18 @@ function CraftFavoriteList() {
                 id: 'name',
                 header: 'Name',
                 width: 200,
-                sortAccessor: (d: BlueprintData) => d.name,
-                filterAccessor: (d: BlueprintData) => d.name,
-                renderRowCell: (d: BlueprintData) => {
-                    const dAutoCalc = autoCalcData[d.name]
+                sortAccessor: (d: BlueprintData & { _bpName: string }) => d._bpName,
+                filterAccessor: (d: BlueprintData & { _bpName: string }) => d._bpName,
+                renderRowCell: (d: BlueprintData & { _bpName: string }) => {
+                    const dAutoCalc = autoCalcData[d._bpName]
                     return (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>{dAutoCalc?.itemName ?? d.name}</span>
+                            <span>{dAutoCalc?.itemName ?? d._bpName}</span>
                             <img src='img/right.png' alt='' style={{ width: '16px', opacity: 0.6 }} />
                             <ImgButton
                                 title='Remove this blueprint from Favorites'
                                 src='img/staron.png'
-                                dispatch={() => setBlueprintStared(d.name, false)}
+                                dispatch={() => setBlueprintStared(d._bpName, false)}
                             />
                         </div>
                     )
@@ -67,20 +75,20 @@ function CraftFavoriteList() {
                 id: 'clicks',
                 header: 'Clicks',
                 width: 100,
-                sortAccessor: (d: BlueprintData) => {
-                    const autoCalc = autoCalcData?.[d.name]
+                sortAccessor: (d: BlueprintData & { _bpName: string }) => {
+                    const autoCalc = autoCalcData?.[d._bpName]
                     return autoCalc?.clicks?.available ?? 0
                 },
-                filterAccessor: (d: BlueprintData) => {
-                    const autoCalc = autoCalcData?.[d.name]
+                filterAccessor: (d: BlueprintData & { _bpName: string }) => {
+                    const autoCalc = autoCalcData?.[d._bpName]
                     return autoCalc?.clicks?.available?.toString() ?? ''
                 },
                 justifyContent: 'center' as const,
-                renderRowCell: (d: BlueprintData) => {
+                renderRowCell: (d: BlueprintData & { _bpName: string }) => {
                     if (!d.web && !d.user) {
                         return (
                             <button
-                                onClick={() => reloadBlueprint(d.name)}
+                                onClick={() => reloadBlueprint(d._bpName)}
                                 title='Click to try to load blueprint again'
                                 style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'red' }}
                             >
@@ -95,7 +103,7 @@ function CraftFavoriteList() {
                         const errorMsg = d.web.blueprint.errors.map(e => e.message).join(' ')
                         return (
                             <button
-                                onClick={() => reloadBlueprint(d.name)}
+                                onClick={() => reloadBlueprint(d._bpName)}
                                 title={`${errorMsg} Click to try to load blueprint again`}
                                 style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'red' }}
                             >
@@ -103,7 +111,7 @@ function CraftFavoriteList() {
                             </button>
                         )
                     }
-                    const dAutoCalc = autoCalcData[d.name]
+                    const dAutoCalc = autoCalcData[d._bpName]
                     return <>{dAutoCalc?.clicks?.available?.toString() ?? '-'}</>
                 }
             })
@@ -114,9 +122,9 @@ function CraftFavoriteList() {
                 id: 'limit',
                 header: 'Limits clicks',
                 width: 150,
-                sortAccessor: (d: BlueprintData) => getLimitText(d),
-                filterAccessor: (d: BlueprintData) => getLimitText(d),
-                renderRowCell: (d: BlueprintData) => <>{getLimitText(d)}</>
+                sortAccessor: (d: BlueprintData & { _bpName: string }) => getLimitText(d._bpName, d, autoCalcData),
+                filterAccessor: (d: BlueprintData & { _bpName: string }) => getLimitText(d._bpName, d, autoCalcData),
+                renderRowCell: (d: BlueprintData & { _bpName: string }) => <>{getLimitText(d._bpName, d, autoCalcData)}</>
             })
         }
 
@@ -136,11 +144,11 @@ function CraftFavoriteList() {
                 id: 'items',
                 header: 'Items',
                 width: 80,
-                sortAccessor: (d: BlueprintData) => getItemAvailable(d),
-                filterAccessor: (d: BlueprintData) => getItemAvailable(d).toString(),
+                sortAccessor: (d: BlueprintData & { _bpName: string }) => getItemAvailable(d._bpName, d, autoCalcData),
+                filterAccessor: (d: BlueprintData & { _bpName: string }) => getItemAvailable(d._bpName, d, autoCalcData).toString(),
                 justifyContent: 'center' as const,
-                renderRowCell: (d: BlueprintData) => {
-                    const available = getItemAvailable(d)
+                renderRowCell: (d: BlueprintData & { _bpName: string }) => {
+                    const available = getItemAvailable(d._bpName, d, autoCalcData)
                     return available > 0 ? <>{available}</> : <></>
                 }
             })
@@ -151,11 +159,11 @@ function CraftFavoriteList() {
                 id: 'clickTTCost',
                 header: 'Click TT Cost',
                 width: 120,
-                sortAccessor: (d: BlueprintData) => getItemClickTTCost(d),
-                filterAccessor: (d: BlueprintData) => getItemClickTTCost(d).toString(),
+                sortAccessor: (d: BlueprintData & { _bpName: string }) => getItemClickTTCost(d._bpName, d, autoCalcData),
+                filterAccessor: (d: BlueprintData & { _bpName: string }) => getItemClickTTCost(d._bpName, d, autoCalcData).toString(),
                 justifyContent: 'end' as const,
-                renderRowCell: (d: BlueprintData) => {
-                    const cost = getItemClickTTCost(d)
+                renderRowCell: (d: BlueprintData & { _bpName: string }) => {
+                    const cost = getItemClickTTCost(d._bpName, d, autoCalcData)
                     return <>{cost > 0 ? cost.toFixed(2) + ' PED' : ''}</>
                 }
             })
@@ -194,7 +202,7 @@ function CraftFavoriteList() {
         return cols
     }, [clicks, limit, items, budget, cash, type, clickTTCost, autoCalcData, reloadBlueprint, setBlueprintStared])
 
-    if (blueprintValues.length === 0)
+    if (blueprintEntries.length === 0)
         return <></>
 
     return (
@@ -207,9 +215,9 @@ function CraftFavoriteList() {
                 title: 'Favorite Blueprints',
                 columns,
                 itemTypeName: 'blueprint',
-                getRowKey: (item: BlueprintData) => item.name,
-                onRowClick: (item: BlueprintData) => {
-                    navigate(`${TabId.CRAFT}/${formatToUrl(item.name)}`)
+                getRowKey: (item: BlueprintData & { _bpName: string }) => item._bpName,
+                onRowClick: (item: BlueprintData & { _bpName: string }) => {
+                    navigate(`${TabId.CRAFT}/${formatToUrl(item._bpName)}`)
                 }
             }}
             afterTitle={<CraftPlanet />}

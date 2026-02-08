@@ -47,6 +47,7 @@ import {
 } from '../../application/atoms/items'
 import ExpandableSection from '../common/ExpandableSection';
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
+import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection';
 
 const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, setTradeItemChain }: {
   refinings: any[]
@@ -243,14 +244,17 @@ export const InventoryOwnedList = () => {
         [isShowingTradeItem, filterOptions.reserve]
     )
 
-    return <ExpandableSection selector='TradePage.OwnedList' title='Owned List' subtitle='List of the Items you own, excluding hidden ones'>
-        <JotaiSortableTable<ItemOwned>
+    return (
+        <JotaiSortableTableSection<ItemOwned>
+            selector='TradePage.OwnedList'
+            title='Owned List'
+            subtitle='List of the Items you own, excluding hidden ones'
             itemsAtom={enrichedItemsAtom}
             config={config}
             afterSearch={<InventoryOwnedListAfterSearch />}
             beforeTable={<InventoryOwnedListBeforeTable />}
         >
             <TradeItemDetailsChain />
-        </JotaiSortableTable>
-    </ExpandableSection>
+        </JotaiSortableTableSection>
+    )
 }

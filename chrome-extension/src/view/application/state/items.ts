@@ -15,7 +15,6 @@ interface ItemStateWebData {
 }
 
 interface ItemState {
-    name: string,
     markup: ItemStateMarkupData,
     reserveAmount?: string,
     notes?: string

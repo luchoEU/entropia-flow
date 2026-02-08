@@ -21,7 +21,6 @@ const refinedMap = {
 
 const refinedInitialMap: ItemsMap = {
     [REFINED_ME]: {
-        name: REFINED_ME,
         markup: {
             value: '120',
             unit: UNIT_PERCENTAGE,
@@ -36,7 +35,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_LME]: {
-        name: REFINED_LME,
         markup: {
             value: '110',
             unit: UNIT_PERCENTAGE,
@@ -51,7 +49,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_NB]: {
-        name: REFINED_NB,
         markup: {
             value: '150',
             unit: UNIT_PERCENTAGE,
@@ -66,7 +63,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_NX]: {
-        name: REFINED_NX,
         markup: {
             value: '101',
             unit: UNIT_PERCENTAGE,
@@ -77,7 +73,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_SW]: {
-        name: REFINED_SW,
         markup: {
             value: '1.6',
             unit: UNIT_PED_K,
@@ -88,7 +83,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_DW]: {
-        name: REFINED_DW,
         markup: {
             value: '101',
             unit: UNIT_PERCENTAGE,
@@ -99,7 +93,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_ST]: {
-        name: REFINED_ST,
         markup: {
             value: '110',
             unit: UNIT_PERCENTAGE,
@@ -110,7 +103,6 @@ const refinedInitialMap: ItemsMap = {
         }
     },
     [REFINED_FT]: {
-        name: REFINED_FT,
         markup: {
             value: '6',
             unit: UNIT_PED_K,
