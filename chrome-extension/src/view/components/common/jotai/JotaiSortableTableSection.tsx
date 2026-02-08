@@ -1,14 +1,14 @@
 import React, { JSX } from 'react'
 import { Atom } from 'jotai'
 import { JotaiSortableTable } from './JotaiSortableTable'
-import { JotaiTableConfig } from './JotaiTableTypes'
+import { JotaiSortableTableProps, JotaiTableConfig } from './JotaiTableTypes'
 import ExpandableSection from '../ExpandableSection'
 
 /**
  * Props for JotaiSortableTableSection component
  * Combines the section header functionality of ExpandableSection with the table from JotaiSortableTable
  */
-export interface JotaiSortableTableSectionProps<TItem> {
+export type JotaiSortableTableSectionProps<TItem> = {
   // Section properties
   selector: string           // For expandable state persistence
   title: string              // Section title
@@ -16,17 +16,7 @@ export interface JotaiSortableTableSectionProps<TItem> {
   className?: string         // CSS class for the section
   actionRequired?: string    // Action required message
   afterTitle?: JSX.Element   // Custom content in header
-
-  // Table properties (pass through to JotaiSortableTable)
-  itemsAtom: Atom<TItem[]>
-  config: JotaiTableConfig<TItem>
-  afterSearch?: JSX.Element
-  beforeTable?: JSX.Element
-  children?: React.ReactNode
-  itemHeight?: number
-  useFixedSizeList?: boolean
-  onSortChange?: (columnIndex: number, ascending: boolean) => void
-}
+} & JotaiSortableTableProps<TItem>
 
 /**
  * A modern Jotai-based table component with section header
@@ -42,14 +32,7 @@ const JotaiSortableTableSectionComponent = function<TItem>(
     className,
     actionRequired,
     afterTitle,
-    itemsAtom,
-    config,
-    afterSearch,
-    beforeTable,
-    children,
-    itemHeight,
-    useFixedSizeList,
-    onSortChange
+    ...tableProps
   } = props
 
   return (
@@ -61,16 +44,8 @@ const JotaiSortableTableSectionComponent = function<TItem>(
       actionRequired={actionRequired}
       afterTitle={afterTitle}
     >
-      <JotaiSortableTable
-        itemsAtom={itemsAtom}
-        config={config}
-        afterSearch={afterSearch}
-        beforeTable={beforeTable}
-        itemHeight={itemHeight}
-        useFixedSizeList={useFixedSizeList}
-        onSortChange={onSortChange}
-      >
-        {children}
+      <JotaiSortableTable {...tableProps}>
+        {tableProps.children}
       </JotaiSortableTable>
     </ExpandableSection>
   )

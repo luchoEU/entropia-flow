@@ -178,7 +178,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 </div>
             </>
         }} />}
-        <ItemNotes name={tradeItemData.name} />
+        <ItemNotes name={tradeItemData.name} style={{ marginTop: '12px' }}/>
         { showTTService && <>
             <p style={{ height: '5px' }} />
             <JotaiWebDataControl valueGet={getTTServiceWebAtom} loadGet={() => loadTTServiceAtom} itemName={tradeItemData.name} name='TT Inventory' content={(inventory: TTServiceInventoryWebData | undefined) => {
@@ -201,6 +201,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     { favoriteBlueprints.length > 0 ?
                         <JotaiSortableTable
                             itemsAtom={favoriteAtom}
+                            maxNumberOfLines={6}
                             config={createBlueprintTableConfig('Favorite', true, tradeItemData.name)}
                             useFixedSizeList={false}
                         /> :
@@ -210,6 +211,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 { ownedBlueprints.length > 0 && <div>
                     <JotaiSortableTable
                         itemsAtom={ownedAtom}
+                        maxNumberOfLines={6}
                         config={createBlueprintTableConfig('Owned', false, tradeItemData.name)}
                         useFixedSizeList={false}
                     />
@@ -217,6 +219,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 { otherBlueprints.length > 0 && <div>
                     <JotaiSortableTable
                         itemsAtom={otherAtom}
+                        maxNumberOfLines={6}
                         config={createBlueprintTableConfig('Not Owned', undefined, tradeItemData.name)}
                         useFixedSizeList={false}
                     />
@@ -251,6 +254,7 @@ export const InventoryOwnedList = () => {
             subtitle='List of the Items you own, excluding hidden ones'
             itemsAtom={enrichedItemsAtom}
             config={config}
+            maxNumberOfLines={30}
             afterSearch={<InventoryOwnedListAfterSearch />}
             beforeTable={<InventoryOwnedListBeforeTable />}
         >

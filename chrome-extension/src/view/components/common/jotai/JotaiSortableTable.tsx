@@ -29,6 +29,7 @@ const JotaiSortableTableComponent = function<TItem>(
     afterSearch,
     itemHeight = ITEM_HEIGHT,
     useFixedSizeList = true,
+    maxNumberOfLines = 10,
     children
   } = props
 
@@ -100,6 +101,10 @@ const JotaiSortableTableComponent = function<TItem>(
   const totalWidth = useMemo(() => {
     return columnWidths.reduce((a, b) => a + b, 0) + COLUMN_PADDING * 2 * columnWidths.length
   }, [columnWidths])
+
+  const tableMaxHeight = useMemo(() => {
+    return itemHeight * maxNumberOfLines + itemHeight * (useFixedSizeList ? 1/2 : 3/4)
+  }, [itemHeight, maxNumberOfLines, useFixedSizeList])
 
   // Render header row
   const renderHeaderRow = useCallback(() => {
@@ -213,16 +218,17 @@ const JotaiSortableTableComponent = function<TItem>(
             </div>
 
             {/* Body */}
-            <div className='table-body'>
+            {}
+            <div className='table-body' style={!useFixedSizeList ? { maxHeight: `${tableMaxHeight}px`, overflowY: 'auto' } : undefined}>
               {data.items.length === 0 ? (
                 <div className='table-empty-state'>No items found</div>
               ) : useFixedSizeList ? (
                 <FixedSizeList
-                  height={Math.min(data.items.length * itemHeight, 600)}
                   itemCount={data.items.length}
                   itemSize={itemHeight}
                   width={totalWidth}
-                  style={{ overflow: 'hidden' }}
+                  height={tableMaxHeight}
+                  style={{ overflow: 'auto' }}
                 >
                   {VirtualizedRow}
                 </FixedSizeList>
