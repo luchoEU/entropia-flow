@@ -90,6 +90,7 @@ class ItemsSheet {
             const item = itemsMap[itemName]
             this.sheet.getCell(row, NAME_COLUMN).value = item.name
             this.sheet.getCell(row, MARKUP_COLUMN).value = item.markup.value || ''
+            this.sheet.getCell(row, MARKUP_COLUMN).numberFormat = { type: 'NUMBER', pattern: '0.00' }
             this.sheet.getCell(row, RESERVE_COLUMN).value = item.reserveAmount || ''
             this.sheet.getCell(row, NOTES_COLUMN).value = item.notes || ''
             row++

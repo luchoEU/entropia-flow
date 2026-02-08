@@ -8,8 +8,10 @@ function RefinedBuyMaterialInput(p: {
     name: string,
 }) {
     const itemAtom = useMemo(() => getItemAtom(p.name), [p.name])
-    const m: ItemState = useAtomValue(itemAtom)
+    const m: ItemState | undefined = useAtomValue(itemAtom)
     const setMarkup = useSetAtom(setItemBuyMarkupAtom)
+
+    if (!m) return <>Item {p.name} not found</>
 
     return (
         <>

@@ -16,19 +16,87 @@ import {
   reduceChangeMaterialValue,
   reduceSetMaterialSuggestedTypes
 } from '../helpers/items'
-import { saveItemsToStorage, saveItemsWebCache } from './itemsStorage'
+import { compress, uncompress } from './compressionUtils'
+import { SYNC_STORAGE, LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
+import { STORAGE_VIEW_ITEMS } from '../../../common/const'
+import { mergeDeep } from '../../../common/merge'
+import { cleanForSaveMain, cleanForSaveCache } from '../helpers/items'
 import { BlueprintWebMaterial } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { recalculateRefinedMaterialAtom } from './refined'
 import { startItemsSheetSyncDebounce, syncItemsSheetFunc } from '../helpers/itemsSheetHelper'
 
+// Cached storage data - initialized asynchronously on app startup
+let cachedItemsData = JSON.parse(JSON.stringify(refinedInitialMap))
+let initPromise: Promise<void> | null = null
+
 /**
- * Base atom for items map - writable atom
- * Persistence handled by write atoms calling saveItemsToStorage
+ * Initialize items from storage
+ * Called on app startup to load persisted data
  */
-export const itemsMapAtom = atom<ItemsMap>(
-  JSON.parse(JSON.stringify(refinedInitialMap))
-) as WritableAtom<ItemsMap, [ItemsMap], void>
+export async function initializeItemsFromStorage(): Promise<void> {
+  if (initPromise) return initPromise
+
+  initPromise = (async () => {
+    try {
+      // Load main state (compressed in SYNC_STORAGE)
+      const compressedMainState = await SYNC_STORAGE.get(STORAGE_VIEW_ITEMS)
+      const mainState = compressedMainState ? uncompress(compressedMainState) : null
+
+      // Load cache state (uncompressed in LOCAL_STORAGE)
+      const cacheState = await LOCAL_STORAGE.get(STORAGE_VIEW_ITEMS)
+
+      let merged = JSON.parse(JSON.stringify(refinedInitialMap))
+
+      if (mainState?.map) {
+        merged = mergeDeep(merged, mainState.map)
+      }
+
+      if (cacheState?.map) {
+        merged = mergeDeep(merged, cacheState.map)
+      }
+
+      cachedItemsData = merged
+    } catch (error) {
+      console.error('Failed to initialize items from storage:', error)
+      cachedItemsData = JSON.parse(JSON.stringify(refinedInitialMap))
+    }
+  })()
+
+  await initPromise
+}
+
+/**
+ * Base atom for items map - persisted with atomWithStorage
+ * Uses SyncStorage with cached data to avoid Promise exposure
+ * Call initializeItemsFromStorage() on app startup to load persisted data
+ */
+export const itemsMapAtom = atomWithStorage<ItemsMap>(
+  'jotai-v1-items-map',
+  JSON.parse(JSON.stringify(refinedInitialMap)),
+  {
+    getItem: (_key: string): ItemsMap => cachedItemsData,
+    setItem: async (_key: string, value: ItemsMap): Promise<void> => {
+      try {
+        cachedItemsData = value
+
+        // Save main state (without web data) - compressed in SYNC_STORAGE
+        const mainState = cleanForSaveMain({ map: value })
+        const compressedMainState = compress(mainState)
+        await SYNC_STORAGE.set(STORAGE_VIEW_ITEMS, compressedMainState)
+
+        // Also save web cache for faster reloads - uncompressed in LOCAL_STORAGE
+        const cacheState = cleanForSaveCache({ map: value })
+        await LOCAL_STORAGE.set(STORAGE_VIEW_ITEMS, cacheState)
+      } catch (error) {
+        console.error('Failed to save items to storage:', error)
+      }
+    },
+    removeItem: (_key: string): void => {
+      // Not used
+    }
+  }
+)
 
 /**
  * Edit mode material name atom - which item is currently being edited
@@ -97,7 +165,6 @@ export const setItemsStateAtom = atom(
   (get, set, newState: ItemsState) => {
     set(itemsMapAtom, newState.map)
     set(editModeMaterialNameAtom, newState.editModeMaterialName)
-    saveItemsToStorage(newState.map)
   }
 )
 
@@ -124,7 +191,6 @@ export const setItemBuyMarkupAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
 
     // Recalculate totalMU in calculator if there's a total value
     const calcMap = get(itemsCalculatorMapAtom)
@@ -161,7 +227,6 @@ export const setItemOrderMarkupAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
     set(recalculateRefinedMaterialAtom)
   }
@@ -182,7 +247,6 @@ export const setItemMarkupUnitAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
   }
 )
 
@@ -205,7 +269,6 @@ export const setItemBuyAmountAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
   }
 )
 
@@ -224,7 +287,6 @@ export const setItemUseAmountAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
   }
 )
 
@@ -243,7 +305,6 @@ export const setItemRefineAmountAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
   }
 )
 
@@ -262,7 +323,6 @@ export const setItemOrderValueAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
   }
 )
 
@@ -350,7 +410,6 @@ export const startMaterialEditModeAtom = atom(
     const newState = reduceStartMaterialEditMode({ map, editModeMaterialName: undefined }, item)
     set(itemsMapAtom, newState.map)
     set(editModeMaterialNameAtom, item)
-    saveItemsToStorage(newState.map)
   }
 )
 
@@ -365,7 +424,6 @@ export const endMaterialEditModeAtom = atom(
     const newState = reduceEndMaterialEditMode({ map, editModeMaterialName })
     set(itemsMapAtom, newState.map)
     set(editModeMaterialNameAtom, undefined)
-    saveItemsToStorage(newState.map)
   }
 )
 
@@ -378,7 +436,6 @@ export const changeMaterialTypeAtom = atom(
     const map = get(itemsMapAtom)
     const newState = reduceChangeMaterialType({ map }, item, type)
     set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
 
     // Side effect: Auto-suggest types from existing items
     const allTypes = Object.values(newState.map)
@@ -401,7 +458,6 @@ export const changeMaterialValueAtom = atom(
     const map = get(itemsMapAtom)
     const newState = reduceChangeMaterialValue({ map }, item, value)
     set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
   }
 )
 
@@ -414,7 +470,6 @@ export const setMaterialSuggestedTypesAtom = atom(
     const map = get(itemsMapAtom)
     const newState = reduceSetMaterialSuggestedTypes({ map }, item, types)
     set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
   }
 )
 
@@ -437,9 +492,6 @@ export const setItemPartialWebDataAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-
-    // Side effect: Save cache to local storage
-    await saveItemsWebCache(newMap)
   }
 )
 
@@ -513,7 +565,6 @@ export const setItemNotesAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
   }
 )
@@ -533,7 +584,6 @@ export const setItemReserveAmountAtom = atom(
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)
-    saveItemsToStorage(newMap)
     set(triggerItemsSheetSyncAtom)
   }
 )
@@ -545,31 +595,21 @@ export const setItemReserveAmountAtom = atom(
  */
 
 /**
- * Initialize items state on app startup
+ * Handle CLEAR_WEB_ON_LOAD flag on app startup
+ * This should be called once after the app initializes, before users interact with items
  */
-export const initializeItemsStateAtom = atom(
+export const handleClearWebOnLoadAtom = atom(
   null,
   async (get, set) => {
+    if (!CLEAR_WEB_ON_LOAD) return
+
     try {
-      // Import here to avoid circular dependencies
-      const { initializeItemsCache } = await import('./itemsStorage')
-
-      // Load items from storage
-      const loadedMap = await initializeItemsCache()
-
-      // Update atom with loaded state
-      set(itemsMapAtom, loadedMap)
-
-      // Handle CLEAR_WEB_ON_LOAD flag if needed
-      if (CLEAR_WEB_ON_LOAD) {
-        const cleaned = cleanWeb({ map: loadedMap })
-        set(itemsMapAtom, cleaned.map)
-        await saveItemsToStorage(cleaned.map)
-      }
-
-      console.log('Items initialized with', Object.keys(loadedMap).length, 'items')
+      const map = get(itemsMapAtom)
+      const cleaned = cleanWeb({ map: map as ItemsMap })
+      set(itemsMapAtom, cleaned.map)
+      console.log('Cleared web data on load')
     } catch (error) {
-      console.error('Failed to initialize items:', error)
+      console.error('Failed to clear web data on load:', error)
     }
   }
 )

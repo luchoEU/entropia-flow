@@ -126,17 +126,6 @@ const initialState: ItemsState = {
     map: refinedInitialMap
 }
 
-const _itemChanged = (state: ItemsState, item: string, change: Partial<ItemState>): ItemsState => ({
-    ...state,
-    map: {
-        ...state.map,
-        [item]: {
-            ...state.map[item],
-            ...change
-        }
-    }
-})
-
 const _itemChangedMod = (state: ItemsState, item: string, change: (s?: ItemState) => Partial<ItemState>): ItemsState => ({
     ...state,
     map: {
@@ -147,7 +136,6 @@ const _itemChangedMod = (state: ItemsState, item: string, change: (s?: ItemState
         }
     }
 })
-
 
 const reduceStartMaterialEditMode = (state: ItemsState, item: string): ItemsState => _itemChangedMod(
     { ...state, editModeMaterialName: item }, item, s => ({

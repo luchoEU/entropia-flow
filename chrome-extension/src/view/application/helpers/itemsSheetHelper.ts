@@ -3,7 +3,6 @@ import { itemsMapAtom, itemsSheetUrlAtom } from '../atoms/items'
 import { sheetAccessAtom, featuresAtom } from '../atoms/settings'
 import { ItemsSheetInterfaceCallbacks, syncItemsToSheet, reloadItemsFromSheet } from './itemsSheetSynchronization'
 import sheetsApi from '../../services/api/sheets/sheets'
-import { saveItemsToStorage } from '../atoms/itemsStorage'
 
 // Track the current stage for progress updates
 let currentStage = 0
@@ -147,11 +146,8 @@ export async function reloadItemsSheetFunc(): Promise<void> {
             }
         }
 
-        // Update the atom with merged items
+        // Update the atom with merged items (atomWithStorage will persist automatically)
         store.set(itemsMapAtom, mergedItems)
-
-        // Save to storage
-        await saveItemsToStorage(mergedItems)
 
         console.log('Items reloaded from sheet:', Object.keys(sheetItems).length, 'items (merged with local data)')
     } catch (error) {
