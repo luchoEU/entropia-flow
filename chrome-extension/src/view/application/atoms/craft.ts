@@ -20,7 +20,8 @@ import * as Sort from '../helpers/craftSort'
 import { multiIncludes } from '../../../common/filter'
 import { IWebSource } from '../../../web/sources'
 import { renameNewBlueprintName } from '../../../web/rename'
-import { rawInventoryItemsAtom, itemsMapAtom } from './inventory'
+import { rawInventoryItemsAtom } from './inventory'
+import { itemsMapAtom } from './items'
 
 /**
  * Base atom for all blueprints

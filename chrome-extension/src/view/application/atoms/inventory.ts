@@ -12,6 +12,10 @@ import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, active
 import { settingsAtom } from './settings'
 import { WebLoadResponse } from '../../../web/loader'
 import { IWebSource, SourceLoadResponse } from '../../../web/sources'
+import {
+  itemsMapAtom,
+  editModeMaterialNameAtom
+} from './items'
 
 /**
  * Base atom for raw inventory items
@@ -49,11 +53,6 @@ export const availableItemsAtom = atom<ItemData[]>((get) => {
   // Aggregate items with the same name (e.g., Light Mind Essence in CARRIED + AUCTION becomes one row)
   return joinDuplicates(filtered)
 })
-
-/**
- * Items map atom for looking up reserve amounts and item states
- */
-export const itemsMapAtom = atomWithStorage<ItemsMap>('jotai-v1-inventory-itemsMap', {})
 
 /**
  * TTService state atom for loading status and values
@@ -107,52 +106,11 @@ export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('jotai-
 })
 
 /**
- * Edit mode material name atom - tracks which item is being edited
- */
-export const editModeMaterialNameAtom = atomWithStorage<string | undefined>('jotai-v1-inventory-editModeMaterialName', undefined)
-
-/**
- * Atom factory to get a single item by name
- */
-export const getItemAtom = (itemName: string) => atom<ItemState | undefined>((get) => {
-  const itemsMap = get(itemsMapAtom)
-  return itemsMap[itemName]
-})
-
-/**
- * Atom factory to get the web item data for a specific item
- */
-export const getItemWebAtom = (itemName: string): Atom<WebLoadResponse<ItemWebData> | undefined> => atom<WebLoadResponse<ItemWebData> | undefined>((get) => {
-  const item = get(getItemAtom(itemName))
-  return item?.web?.item
-})
-
-/**
- * Atom factory to get the usage data for a specific item
- */
-export const getItemUsageWebAtom = (itemName: string) => atom<WebLoadResponse<ItemUsageWebData> | undefined>((get) => {
-  const item = get(getItemAtom(itemName))
-  return item?.web?.usage
-})
-
-/**
  * Atom factory to get the TTService web inventory data
  */
 export const getTTServiceWebAtom = () => atom<WebLoadResponse<TTServiceInventoryWebData> | undefined>((get) => {
   const ttService = get(ttServiceAtom)
   return ttService?.web?.inventory
-})
-
-/**
- * Full ItemsState atom - combines itemsMap and editModeMaterialName
- */
-export const itemsStateAtom = atom<ItemsState>((get) => {
-  const map = get(itemsMapAtom)
-  const editModeMaterialName = get(editModeMaterialNameAtom)
-  return {
-    map,
-    editModeMaterialName
-  }
 })
 
 /**
@@ -215,38 +173,6 @@ export const setMaterialTypeAtom = atom(null, (get, set, itemName: string, type:
  */
 export const setEditModeMaterialNameAtom = atom(null, (_get, set, itemName: string | undefined) => {
   set(editModeMaterialNameAtom, itemName)
-})
-
-
-export const loadItemWebAtom = (itemName: string) => loadItemDataAtom('item', s => s.loadItem(itemName), itemName)
-export const loadItemUsageWebAtom = (itemName: string) => loadItemDataAtom('usage', s => s.loadUsage(itemName), itemName)
-
-/**
- * Write atom to load item data from web
- * Replaces Redux loadItemUsageData action
- */
-export const loadItemDataAtom = <T>(field: string, _loadFrom: (source: IWebSource) => Promise<SourceLoadResponse<T>>, itemName: string) =>
-  atom(null, async (get, set) => {
-  const { loadFromWeb } = await import('../../../web/loader')
-  try {
-    for await (const r of loadFromWeb(_loadFrom)) {
-      const itemsMap = get(itemsMapAtom)
-      const current = itemsMap[itemName]
-      const update = {
-        ...current,
-        web: {
-          ...current?.web,
-          [field]: r
-        }
-      }
-      set(itemsMapAtom, {
-        ...itemsMap,
-        [itemName]: update
-      })
-    }
-  } catch (error) {
-    console.error(`Failed to load item ${field} data for ${itemName}:`, error)
-  }
 })
 
 /**
@@ -338,122 +264,6 @@ const bpToLineData = (bp: BlueprintWebData, itemName: string): TradeBlueprintLin
   quantity: bp.materials
     ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
     : -1
-})
-
-/**
- * Compute all blueprint categories for a given item name in one pass
- */
-export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
-  favorite: string[]
-  owned: string[]
-  other: string[]
-}>((get) => {
-  const blueprintsState = get(blueprintsAtom)
-  const staredState = get(staredAtom)
-  const itemUsage = get(getItemUsageWebAtom(itemName))
-  const rawInventory = get(rawInventoryItemsAtom)
-
-  if (!blueprintsState || !itemUsage) {
-    return { favorite: [], owned: [], other: [] }
-  }
-
-  const blueprints = itemUsage?.data?.value?.blueprints ?? []
-  const starredNames = new Set(staredState.list)
-  const ownedItemNames = new Set(rawInventory.map(item => item.data.n))
-
-  // Convert blueprint data
-  const getWebBp = (bp: BlueprintData): BlueprintWebData | undefined =>
-    bp.web?.blueprint?.data?.value ?? blueprints.find((b: any) => b.name === bp.name)
-
-  // Categorize blueprints
-  const favorite: string[] = []
-  const owned: string[] = []
-  const usedBpNames = new Set<string>()
-
-  // Process starred blueprints (favorites)
-  staredState.list.forEach((name: string) => {
-    const bp = blueprintsState[name]
-    if (bp) {
-      const webBp = getWebBp(bp)
-      if (webBp) {
-        const quantity = webBp.materials
-          ? (webBp.materials.find(m => m.name === itemName)?.quantity ?? 0)
-          : -1
-        if (quantity !== 0) {
-          favorite.push(webBp.name)
-          usedBpNames.add(webBp.name)
-        }
-      }
-    }
-  })
-
-  // Process non-starred blueprints (owned)
-  Object.values(blueprintsState).forEach((bp: any) => {
-    if (!starredNames.has(bp.name)) {
-      const webBp = getWebBp(bp)
-      if (webBp) {
-        const quantity = webBp.materials
-          ? (webBp.materials.find(m => m.name === itemName)?.quantity ?? 0)
-          : -1
-        if (quantity !== 0) {
-          owned.push(webBp.name)
-          usedBpNames.add(webBp.name)
-        }
-      }
-    }
-  })
-
-  // Check if item is in inventory and add those blueprints to owned
-  blueprints.forEach((bp: any) => {
-    if (!usedBpNames.has(bp.name) && ownedItemNames.has(bp.name)) {
-      const quantity = bp.materials
-        ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
-        : -1
-      if (quantity !== 0) {
-        owned.push(bp.name)
-        usedBpNames.add(bp.name)
-      }
-    }
-  })
-
-  // Process usage blueprints (other)
-  const other = blueprints
-    .filter((bp: any) => {
-      const quantity = bp.materials
-        ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
-        : -1
-      return quantity !== 0 && !usedBpNames.has(bp.name)
-    })
-    .map((bp: any) => bp.name)
-
-  return { favorite, owned, other }
-})
-
-/**
- * Compute favorite blueprints for a given item name lazily
- * Favorite = blueprints starred in craft tab that use the item
- */
-export const getFavoriteBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
-  const categories = get(getBlueprintCategoriesAtom(itemName))
-  return categories.favorite
-})
-
-/**
- * Compute owned blueprints for a given item name lazily
- * Owned = blueprints opened in craft tab (not starred) that use the item
- */
-export const getOwnedBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
-  const categories = get(getBlueprintCategoriesAtom(itemName))
-  return categories.owned
-})
-
-/**
- * Compute other blueprints for a given item name lazily
- * Other = blueprints from usage API that aren't favorites or owned
- */
-export const getOtherBlueprintsAtom = (itemName: string) => atom<string[]>((get) => {
-  const categories = get(getBlueprintCategoriesAtom(itemName))
-  return categories.other
 })
 
 /**
