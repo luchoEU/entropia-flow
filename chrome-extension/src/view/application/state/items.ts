@@ -19,7 +19,6 @@ interface ItemState {
     markup: ItemStateMarkupData,
     reserveAmount?: string,
     notes?: string
-    calc?: ItemStateCalcData
     web?: ItemStateWebData
     user?: ItemStateUserData
     refined?: ItemStateRefinedData

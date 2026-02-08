@@ -217,65 +217,6 @@ export const setEditModeMaterialNameAtom = atom(null, (_get, set, itemName: stri
   set(editModeMaterialNameAtom, itemName)
 })
 
-/**
- * Write atom to set item calculator quantity
- */
-export const setItemCalculatorQuantityAtom = atom(null, (get, set, itemName: string, quantity: string) => {
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-  if (current) {
-    set(itemsMapAtom, {
-      ...itemsMap,
-      [itemName]: {
-        ...current,
-        calc: {
-          ...(current.calc || { quantity: '', total: '', totalMU: '' }),
-          quantity
-        }
-      } as any
-    })
-  }
-})
-
-/**
- * Write atom to set item calculator total
- */
-export const setItemCalculatorTotalAtom = atom(null, (get, set, itemName: string, total: string) => {
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-  if (current) {
-    set(itemsMapAtom, {
-      ...itemsMap,
-      [itemName]: {
-        ...current,
-        calc: {
-          ...(current.calc || { quantity: '', total: '', totalMU: '' }),
-          total
-        }
-      } as any
-    })
-  }
-})
-
-/**
- * Write atom to set item calculator total + MU
- */
-export const setItemCalculatorTotalMUAtom = atom(null, (get, set, itemName: string, totalMU: string) => {
-  const itemsMap = get(itemsMapAtom)
-  const current = itemsMap[itemName]
-  if (current) {
-    set(itemsMapAtom, {
-      ...itemsMap,
-      [itemName]: {
-        ...current,
-        calc: {
-          ...(current.calc || { quantity: '', total: '', totalMU: '' }),
-          totalMU
-        }
-      } as any
-    })
-  }
-})
 
 export const loadItemWebAtom = (itemName: string) => loadItemDataAtom('item', s => s.loadItem(itemName), itemName)
 export const loadItemUsageWebAtom = (itemName: string) => loadItemDataAtom('usage', s => s.loadUsage(itemName), itemName)

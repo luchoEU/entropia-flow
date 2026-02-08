@@ -1,4 +1,4 @@
-import { MarkupUnit, ItemsMap, ItemsState, ItemState, ItemStateCalcData, ItemStateWebData, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, ItemStateRefinedData, ItemStateMarkupData } from "../state/items"
+import { ItemsMap, ItemsState, ItemState, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS } from "../state/items"
 
 const REFINED_PED = 'PED'
 const REFINED_ME = 'Mind Essence'
@@ -148,40 +148,6 @@ const _itemChangedMod = (state: ItemsState, item: string, change: (s?: ItemState
     }
 })
 
-const reduceItemBuyMarkupChanged = (state: ItemsState, item: string, buyMarkup: string): ItemsState =>
-    _itemChangedMod(state, item, (s: ItemState): Partial<ItemState> => {
-        const value = buyMarkup === '' ? undefined : buyMarkup;
-        let calc = s?.calc
-        if (calc) {
-            const numValue = Number(value);
-            const mu = isNaN(numValue) ? 1 : numValue / 100;
-            const n = parseFloat(calc.total)
-            if (!isNaN(n))
-                calc = { ...calc, totalMU: (n * mu).toFixed(2) }
-        }
-        return { markup: { ...s?.markup, value, modified: new Date().toString() }, calc }
-    })
-
-
-const _itemChangedCalc = (state: ItemsState, item: string, str: string, partial: Partial<ItemStateCalcData>, getCalc: (n: number, v: number, mu: number) => ItemStateCalcData): ItemsState => {
-    const n = parseFloat(str)
-    const m = state.map[item]
-    if (!m?.web?.item?.data && isNaN(n))
-        return _itemChangedMod(state, item, s => ({ calc: { ...s?.calc, ...partial } }))
-
-    const v = m.web.item.data.value.value
-    const mu = getMarkupMultiplier(m);
-    return _itemChangedMod(state, item, s => ({ calc: getCalc(n, v, mu) })) // parameters are (input Number, Value, Markup)
-}
-
-const reduceSetItemCalculatorQuantity = (state: ItemsState, item: string, quantity: string): ItemsState =>
-    _itemChangedCalc(state, item, quantity, { quantity }, (n, v, mu) => ({ quantity, total: (v * n).toFixed(2), totalMU: (v * n * mu).toFixed(2) }))
-
-const reduceSetItemCalculatorTotal = (state: ItemsState, item: string, total: string): ItemsState =>
-    _itemChangedCalc(state, item, total, { total }, (n, v, mu) => ({ quantity: (n / v).toFixed(0), total, totalMU: (n * mu).toFixed(2) }))
-
-const reduceSetItemCalculatorTotalMU = (state: ItemsState, item: string, totalMU: string): ItemsState =>
-    _itemChangedCalc(state, item, totalMU, { totalMU }, (n, v, mu) => ({ quantity: (n / v / mu).toFixed(0), total: (n / mu).toFixed(2), totalMU }))
 
 const reduceStartMaterialEditMode = (state: ItemsState, item: string): ItemsState => _itemChangedMod(
     { ...state, editModeMaterialName: item }, item, s => ({
@@ -300,10 +266,6 @@ export {
     refinedInitialMap,
     getMarkupMultiplier,
     getValueWithMarkup,
-    reduceItemBuyMarkupChanged,
-    reduceSetItemCalculatorQuantity,
-    reduceSetItemCalculatorTotal,
-    reduceSetItemCalculatorTotalMU,
     reduceStartMaterialEditMode,
     reduceEndMaterialEditMode,
     reduceChangeMaterialType,

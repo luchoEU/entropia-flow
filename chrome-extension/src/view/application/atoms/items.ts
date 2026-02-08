@@ -10,10 +10,6 @@ import {
 import {
   refinedInitialMap,
   cleanWeb,
-  reduceItemBuyMarkupChanged,
-  reduceSetItemCalculatorQuantity,
-  reduceSetItemCalculatorTotal,
-  reduceSetItemCalculatorTotalMU,
   reduceStartMaterialEditMode,
   reduceEndMaterialEditMode,
   reduceChangeMaterialType,
@@ -41,6 +37,45 @@ export const editModeMaterialNameAtom = atomWithStorage<string | undefined>(
   'jotai-v1-items-editModeMaterialName',
   undefined
 )
+
+/**
+ * Calculator state atom - stores calculator data (quantity, total, totalMU) per item
+ * Derived from user input, not persisted directly (calculated from inputs)
+ */
+type CalculatorMap = { [itemName: string]: { quantity?: string; total?: string; totalMU?: string } }
+export const itemsCalculatorMapAtom = atomWithStorage<CalculatorMap>(
+  'jotai-v1-items-calculator',
+  {}
+)
+
+/**
+ * Compute markup multiplier from item data
+ */
+const getMarkupMultiplierFromItem = (itemData: ItemState | undefined): number => {
+  if (!itemData) return 1
+  const mu = parseFloat(itemData?.markup?.value ?? '')
+  const unitMultiplier = (unit: string | undefined): number => {
+    switch (unit) {
+      case '/k': return 100
+      case '+': return 1
+      case '%': default: return 0.01
+    }
+  }
+  return isNaN(mu) ? 1 : mu * unitMultiplier(itemData.markup.unit)
+}
+
+/**
+ * Atom factory to get calculator data for a specific item (derived atom)
+ */
+export const getItemCalculatorAtom = (itemName: string) =>
+  atom((get) => {
+    const calc = get(itemsCalculatorMapAtom)[itemName]
+    return {
+      quantity: calc?.quantity ?? '',
+      total: calc?.total ?? '',
+      totalMU: calc?.totalMU ?? '',
+    }
+  })
 
 /**
  * Atom factory to get a single item by name
@@ -77,9 +112,35 @@ export const setItemBuyMarkupAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const newState = reduceItemBuyMarkupChanged({ map }, item, value)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const itemData = map[item]
+    const markupValue = value === '' ? undefined : value
+
+    // Update markup in item state
+    const newMap = {
+      ...map,
+      [item]: {
+        ...itemData,
+        markup: { ...itemData.markup, value: markupValue, modified: new Date().toString() }
+      }
+    } as ItemsMap
+    set(itemsMapAtom, newMap)
+    saveItemsToStorage(newMap)
+
+    // Recalculate totalMU in calculator if there's a total value
+    const calcMap = get(itemsCalculatorMapAtom)
+    const calc = calcMap[item]
+    if (calc?.total) {
+      const numValue = Number(markupValue)
+      const mu = isNaN(numValue) ? 1 : numValue / 100
+      const n = parseFloat(calc.total)
+      if (!isNaN(n)) {
+        set(itemsCalculatorMapAtom, {
+          ...calcMap,
+          [item]: { ...calc, totalMU: (n * mu).toFixed(2) }
+        })
+      }
+    }
+
     set(triggerItemsSheetSyncAtom)
     set(recalculateRefinedMaterialAtom)
   }
@@ -210,41 +271,68 @@ export const setItemOrderValueAtom = atom(
  */
 
 /**
- * Set calculator quantity
+ * Set calculator quantity (derived atom - computes total and totalMU)
  */
 export const setItemCalculatorQuantityAtom = atom(
   null,
   (get, set, item: string, quantity: string) => {
-    const map = get(itemsMapAtom)
-    const newState = reduceSetItemCalculatorQuantity({ map }, item, quantity)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const itemData = get(itemsMapAtom)[item]
+    const itemValue = itemData?.web?.item?.data?.value.value ?? 0
+    const markupMultiplier = getMarkupMultiplierFromItem(itemData)
+
+    const n = parseFloat(quantity)
+    const calc = {
+      quantity,
+      total: (itemValue * n).toFixed(2),
+      totalMU: (itemValue * n * markupMultiplier).toFixed(2)
+    }
+
+    const calcMap = get(itemsCalculatorMapAtom)
+    set(itemsCalculatorMapAtom, { ...calcMap, [item]: calc })
   }
 )
 
 /**
- * Set calculator total
+ * Set calculator total (derived atom - computes quantity and totalMU)
  */
 export const setItemCalculatorTotalAtom = atom(
   null,
   (get, set, item: string, total: string) => {
-    const map = get(itemsMapAtom)
-    const newState = reduceSetItemCalculatorTotal({ map }, item, total)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const itemData = get(itemsMapAtom)[item]
+    const itemValue = itemData?.web?.item?.data?.value.value ?? 0
+    const markupMultiplier = getMarkupMultiplierFromItem(itemData)
+
+    const n = parseFloat(total)
+    const calc = {
+      quantity: (n / itemValue).toFixed(0),
+      total,
+      totalMU: (n * markupMultiplier).toFixed(2)
+    }
+
+    const calcMap = get(itemsCalculatorMapAtom)
+    set(itemsCalculatorMapAtom, { ...calcMap, [item]: calc })
   }
 )
 
 /**
- * Set calculator total MU
+ * Set calculator total MU (derived atom - computes quantity and total)
  */
 export const setItemCalculatorTotalMUAtom = atom(
   null,
   (get, set, item: string, totalMU: string) => {
-    const map = get(itemsMapAtom)
-    const newState = reduceSetItemCalculatorTotalMU({ map }, item, totalMU)
-    set(itemsMapAtom, newState.map)
-    saveItemsToStorage(newState.map)
+    const itemData = get(itemsMapAtom)[item]
+    const itemValue = itemData?.web?.item?.data?.value.value ?? 0
+    const markupMultiplier = getMarkupMultiplierFromItem(itemData)
+
+    const n = parseFloat(totalMU)
+    const calc = {
+      quantity: (n / itemValue / markupMultiplier).toFixed(0),
+      total: (n / markupMultiplier).toFixed(2),
+      totalMU
+    }
+
+    const calcMap = get(itemsCalculatorMapAtom)
+    set(itemsCalculatorMapAtom, { ...calcMap, [item]: calc })
   }
 )
 

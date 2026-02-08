@@ -130,7 +130,7 @@ export async function reloadItemsSheetFunc(): Promise<void> {
     try {
         const sheetItems = await reloadItemsFromSheet(settings, getCallbacks(setStage))
 
-        // Merge sheet data with local data to preserve non-synced fields (calc, web, user, refined)
+        // Merge sheet data with local data to preserve non-synced fields (web, user, refined)
         const mergedItems = { ...currentItems }
         for (const itemName in sheetItems) {
             const sheetItem = sheetItems[itemName]
@@ -141,7 +141,6 @@ export async function reloadItemsSheetFunc(): Promise<void> {
                 ...localItem,
                 ...sheetItem,
                 // Ensure local-only fields are preserved
-                calc: localItem?.calc,
                 web: localItem?.web,
                 user: localItem?.user,
                 refined: localItem?.refined
