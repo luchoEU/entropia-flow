@@ -25,7 +25,6 @@ import { cleanForSaveMain, cleanForSaveCache } from '../helpers/items'
 import { BlueprintWebMaterial, ItemWebData, ItemUsageWebData, BlueprintWebData } from '../../../web/state'
 import { CLEAR_WEB_ON_LOAD } from '../../../config'
 import { recalculateRefinedMaterialAtom } from './refined'
-import { startItemsSheetSyncDebounce } from '../helpers/itemsSheetHelper'
 import { WebLoadResponse } from '../../../web/loader'
 import sheetsApi from '../../services/api/sheets/sheets'
 import { syncItemsToSheet, reloadItemsFromSheet, ItemsSheetInterfaceCallbacks } from '../helpers/itemsSheetSynchronization'
@@ -724,7 +723,7 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
     return { favorite: [], owned: [], other: [] }
   }
 
-  const blueprints = itemUsage?.data?.value?.blueprints ?? []
+  const blueprints: Array<BlueprintWebData> = itemUsage?.data?.value?.blueprints ?? []
   const starredNames = new Set(staredState.list)
   const ownedItemNames = new Set(rawInventory.map(item => item.data.n))
 
@@ -785,13 +784,13 @@ export const getBlueprintCategoriesAtom = (itemName: string) => atom<{
 
   // Process usage blueprints (other)
   const other = blueprints
-    .filter((bp: any) => {
+    .filter((bp: BlueprintWebData) => {
       const quantity = bp.materials
-        ? (bp.materials.find(m => m.name === itemName)?.quantity ?? 0)
+        ? (bp.materials.find((m: BlueprintWebMaterial) => m.name === itemName)?.quantity ?? 0)
         : -1
       return quantity !== 0 && !usedBpNames.has(bp.name)
     })
-    .map((bp: any) => bp.name)
+    .map((bp: BlueprintWebData) => bp.name)
 
   return { favorite, owned, other }
 })
@@ -838,6 +837,14 @@ export const itemsSyncTimeoutAtom = atom<any>(
 ) as WritableAtom<any, [any], void>
 
 /**
+ * Atom to track countdown interval for items sheet sync
+ * Stored as a primitive atom with read+write capability
+ */
+export const itemsSyncCountdownIntervalAtom = atom<any>(
+  undefined
+) as WritableAtom<any, [any], void>
+
+/**
  * Sync items to Google Sheet - action atom
  * Reads current items and syncs to configured sheet
  */
@@ -845,25 +852,7 @@ export const syncItemsToSheetAtom = atom(
   null,
   async (get, set) => {
     const itemsState = get(itemsMapAtom)
-
-    // Read settings from both atom and localStorage to ensure we get the latest
-    let settings = get(settingsAtom) as any
-
-    // If atom shows undefined/empty, try to load from localStorage directly
-    if (!settings.sheet?.budgetDocumentId && !settings.sheet?.itemsSheetPersistenceMode) {
-      try {
-        const storedSheet = localStorage.getItem('settings-sheet')
-        const storedFeatures = localStorage.getItem('settings-features')
-
-        if (storedSheet) {
-          const sheet = JSON.parse(storedSheet)
-          const features = storedFeatures ? JSON.parse(storedFeatures) : []
-          settings = { sheet, features }
-        }
-      } catch (error) {
-        console.warn('[ItemsSync] Failed to load from localStorage:', error)
-      }
-    }
+    const settings = get(settingsAtom)
 
     // Skip if persistence mode is 'browser' or if sheet credentials are not configured
     if (
@@ -938,30 +927,49 @@ export const syncItemsToSheetAtom = atom(
 export const triggerItemsSheetSyncAtom = atom(
   null,
   (get, set) => {
-    // Clear existing timeout
+    const DEBOUNCE_MS = 3000
+
+    // Clear existing timeout and countdown interval
     const existingTimeout = get(itemsSyncTimeoutAtom)
+    const existingInterval = get(itemsSyncCountdownIntervalAtom)
     if (existingTimeout) {
       clearTimeout(existingTimeout)
     }
-
-    // Create async function that calls the sync action atom
-    const syncFunc = async (
-      setSheetUrl: (url: string) => void,
-      setError: (error: string | undefined) => void
-    ) => {
-      // Note: setSheetUrl and setError are already handled by the atom via set()
-      // The atom directly updates the atoms for URL and error
-      await set(syncItemsToSheetAtom)
+    if (existingInterval) {
+      clearInterval(existingInterval)
     }
 
-    // Delegate to helper with callbacks
-    startItemsSheetSyncDebounce(
-      (status) => set(itemsSyncStatusAtom, status),
-      (time) => set(itemsDebounceTimeAtom, time),
-      syncFunc,
-      (url) => set(itemsSheetUrlAtom, url),
-      (error) => set(itemsSyncErrorAtom, error)
-    )
+    // Set status to pending
+    set(itemsSyncStatusAtom, 'pending')
+    set(itemsDebounceTimeAtom, DEBOUNCE_MS)
+
+    // Start countdown timer
+    let remaining = DEBOUNCE_MS
+    const countdownIntervalId = setInterval(() => {
+      remaining -= 100
+      if (remaining > 0) {
+        set(itemsDebounceTimeAtom, remaining)
+      } else {
+        clearInterval(countdownIntervalId)
+        set(itemsDebounceTimeAtom, 0)
+      }
+    }, 100)
+    set(itemsSyncCountdownIntervalAtom, countdownIntervalId)
+
+    // Set debounce timeout
+    const timeoutId = setTimeout(async () => {
+      if (countdownIntervalId) clearInterval(countdownIntervalId)
+
+      try {
+        set(itemsSyncStatusAtom, 'syncing')
+        await set(syncItemsToSheetAtom)
+        set(itemsSyncStatusAtom, 'idle')
+      } catch (error) {
+        console.error('[ItemsSync] Failed to sync items to sheet:', error)
+        set(itemsSyncStatusAtom, 'error')
+      }
+    }, DEBOUNCE_MS)
+    set(itemsSyncTimeoutAtom, timeoutId)
   }
 )
 
