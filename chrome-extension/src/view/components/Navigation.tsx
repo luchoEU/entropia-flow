@@ -9,10 +9,10 @@ import { lastComputedAtom } from '../application/atoms/last';
 import { budgetStateAtom } from '../application/atoms/budget';
 import { expandableAtom, setVisibleAtom } from '../application/atoms/expandable';
 import { settingsAtom } from '../application/atoms/settings';
-import { lastVisitedByTabAtom } from '../application/atoms/navigation';
+import { lastVisitedByTabAtom, tabOrderAtom } from '../application/atoms/navigation';
 import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabId, tabOrder } from '../application/state/navigation';
+import { TabId } from '../application/state/navigation';
 import StreamView from './stream/StreamView';
 import PinnedAtomsView from './atomDebug/PinnedAtomsView';
 import { useElementSize } from './common/useElementSize';
@@ -91,6 +91,52 @@ const FirstRow = () => {
     const budgetState = useAtomValue(budgetStateAtom)
     const budgetPendingCount = budgetState.list.items.filter(item => (item.pendingLines?.length ?? 0) > 0).length
     const pinMenu = useSetAtom(pinMenuAtom)
+    const [tabOrder, setTabOrder] = useAtom(tabOrderAtom)
+    const [draggedTab, setDraggedTab] = useState<TabId | null>(null)
+    const [dropTarget, setDropTarget] = useState<TabId | null>(null)
+
+    const handleDragStart = (id: TabId) => {
+        setDraggedTab(id)
+    }
+
+    const handleDragOver = (e: React.DragEvent, id: TabId) => {
+        e.preventDefault()
+        if (draggedTab && draggedTab !== id) {
+            setDropTarget(id)
+        }
+    }
+
+    const handleDragEnter = (id: TabId) => {
+        if (draggedTab && draggedTab !== id) {
+            setDropTarget(id)
+        }
+    }
+
+    const handleDragLeave = () => {
+        setDropTarget(null)
+    }
+
+    const handleDrop = (targetId: TabId) => {
+        if (!draggedTab || draggedTab === targetId) {
+            setDraggedTab(null)
+            setDropTarget(null)
+            return
+        }
+
+        const draggedIndex = tabOrder.indexOf(draggedTab)
+        const targetIndex = tabOrder.indexOf(targetId)
+
+        const newOrder = [...tabOrder]
+        newOrder.splice(draggedIndex, 1)
+
+        // Adjust target index if dragging from left to right
+        const adjustedTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex
+        newOrder.splice(adjustedTargetIndex, 0, draggedTab)
+
+        setTabOrder(newOrder)
+        setDraggedTab(null)
+        setDropTarget(null)
+    }
 
     return (
         <>
@@ -99,12 +145,29 @@ const FirstRow = () => {
                 <strong>Entropia Flow</strong>
             </div>
             { tabOrder.map((id) => tabShow(id, anyInventory, settings) &&
-                <Tab
+                <div
                     key={id}
-                    id={id}
-                    actionRequired={tabActionRequired(id, message, status)}
-                    pendingCount={id === TabId.BUDGET ? budgetPendingCount : undefined}
-                />) }
+                    draggable
+                    onDragStart={() => handleDragStart(id)}
+                    onDragOver={(e) => handleDragOver(e, id)}
+                    onDragEnter={() => handleDragEnter(id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={() => handleDrop(id)}
+                    style={{
+                        cursor: draggedTab === id ? 'grabbing' : 'grab',
+                        borderLeft: dropTarget === id ? '3px solid #4a9eff' : 'none',
+                        paddingLeft: dropTarget === id ? '6px' : '0px',
+                        opacity: draggedTab === id ? 0.5 : 1,
+                        transition: 'all 0.1s ease'
+                    }}
+                >
+                    <Tab
+                        id={id}
+                        actionRequired={tabActionRequired(id, message, status)}
+                        pendingCount={id === TabId.BUDGET ? budgetPendingCount : undefined}
+                    />
+                </div>
+            ) }
             { showVisibility &&
                 <ImgButton
                     title={`click to ${menuPinned ? 'Unpin' : 'Pin'} Menu`}

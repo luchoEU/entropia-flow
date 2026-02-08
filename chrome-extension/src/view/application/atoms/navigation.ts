@@ -1,4 +1,5 @@
 import { atomWithStorage } from 'jotai/utils'
+import { TabId, tabOrder as defaultTabOrder } from '../state/navigation'
 
 /**
  * Navigation Last Visited State
@@ -16,4 +17,15 @@ import { atomWithStorage } from 'jotai/utils'
 export const lastVisitedByTabAtom = atomWithStorage<Record<string, string>>(
   'jotai-v1-navigation-lastVisited',
   {}
+)
+
+/**
+ * Tab Order State
+ *
+ * Stores the custom tab order for drag-and-drop reordering.
+ * Persists across extension reloads.
+ */
+export const tabOrderAtom = atomWithStorage<TabId[]>(
+  'jotai-v1-navigation-tabOrder',
+  defaultTabOrder
 )
