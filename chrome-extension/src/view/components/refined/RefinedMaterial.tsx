@@ -1,6 +1,6 @@
 import React from 'react'
 import { RefinedOneState } from '../../application/state/refined'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import RefinedBuy from './RefinedBuy'
 import RefinedCalculator from './RefinedCalculator'
 import RefinedOrder from './RefinedOrder'

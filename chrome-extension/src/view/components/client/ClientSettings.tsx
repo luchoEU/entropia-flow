@@ -4,7 +4,7 @@ import { setConnectionWebSocketAtom, setConnectionStatusAtom } from '../../appli
 import ImgButton from '../common/ImgButton';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { connectionAtom } from '../../application/atoms/connection';
-import ExpandableSection from '../common/ExpandableSection2';
+import ExpandableSection from '../common/ExpandableSection';
 import { Field } from '../common/Field';
 
 function EntropiaFlowClient() {

@@ -1,6 +1,6 @@
 import React, { useState, DragEvent } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import { budgetStateAtom, addBudgetGroupAtom, clearBudgetItemPendingLinesAtom, deleteBudgetPendingLineAtom, updateBudgetPendingLineAtom, disableBudgetItemAtom, enableBudgetItemAtom, disableBudgetMaterialAtom, enableBudgetMaterialAtom, moveBudgetItemToGroupAtom, toggleBudgetGroupExpandedAtom, toggleBudgetUngroupedExpandedAtom, toggleBudgetShowDisabledAtom, enableBudgetGroupAtom, disableBudgetGroupAtom, removeBudgetGroupAtom, renameBudgetGroupAtom } from '../../application/atoms/budget'
 import { inventoryStateAtom } from '../../application/atoms/inventory'
 import { getItemList } from '../../application/helpers/inventory'

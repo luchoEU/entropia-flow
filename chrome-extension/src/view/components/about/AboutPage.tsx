@@ -2,7 +2,7 @@ import React from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { aboutAtom, setAboutExpandedAtom } from '../../application/atoms/about'
 import { QUESTION } from '../../application/state/about'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import ExpandableArrowButton from '../common/ExpandableArrowButton'
 
 const VERSION = '0.6.1'

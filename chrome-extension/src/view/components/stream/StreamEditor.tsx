@@ -7,7 +7,7 @@ import { streamStateAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateA
 import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
 import { streamVariablesConfig, streamImagesConfig, streamParametersConfig } from "../../application/configs/streamTableConfigs"
 import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
-import ExpandableSection from "../common/ExpandableSection2"
+import ExpandableSection from "../common/ExpandableSection"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"

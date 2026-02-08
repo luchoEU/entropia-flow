@@ -4,7 +4,7 @@ import RefinedStatus from './RefinedStatus'
 import { useAtomValue } from 'jotai'
 import { activesAtom } from '../../application/atoms/actives'
 import { ActivesItem } from '../../application/state/actives'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 
 function RefinedActive() {
     const actives = useAtomValue(activesAtom)

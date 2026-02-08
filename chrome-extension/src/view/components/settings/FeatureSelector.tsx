@@ -1,6 +1,6 @@
 import React from "react";
 import { featureList, SettingsState } from "../../application/state/settings";
-import ExpandableSection from "../common/ExpandableSection2";
+import ExpandableSection from "../common/ExpandableSection";
 import ModeState from "../../application/state/mode";
 import { SHOW_FEATURES_IN_DEVELOPMENT } from "../../../config";
 import { useAtomValue, useSetAtom } from "jotai";

@@ -1,8 +1,9 @@
 import { atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 import ExpandableState from '../state/expandable'
 import { initialExpandableState } from '../helpers/expandable'
 
-export const expandableAtom = atom<ExpandableState>(initialExpandableState)
+export const expandableAtom = atomWithStorage<ExpandableState>('jotai-v1-expandable', initialExpandableState)
 
 export const setExpandableStateAtom = atom(
   null,

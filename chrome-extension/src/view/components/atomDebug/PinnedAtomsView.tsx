@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAtomValue } from 'jotai'
 import { pinnedAtomListAtom } from '../../application/atoms/debug'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import AtomValueDisplay from './AtomValueDisplay'
 
 const PinnedAtomsView: React.FC = () => {

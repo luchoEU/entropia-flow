@@ -7,7 +7,7 @@ import InventoryDifference from './InventoryDifference'
 import ActionTree from './ActionTree'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ImgButton from '../common/ImgButton'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import TextButton from '../common/TextButton'
 import { inferActions } from '../../application/helpers/actionInference'
 import {

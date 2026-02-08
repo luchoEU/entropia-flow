@@ -12,7 +12,7 @@ import {
   GAME_LOG_TABULAR_TIER,
   GAME_LOG_TABULAR_TRADE
 } from '../../application/state/log'
-import ExpandableSection from '../common/ExpandableSection2'
+import ExpandableSection from '../common/ExpandableSection'
 import { useAtomValue } from 'jotai'
 import { connectionAtom } from '../../application/atoms/connection'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'

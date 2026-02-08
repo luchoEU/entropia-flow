@@ -2,7 +2,7 @@ import React from 'react'
 import { useAtomValue } from 'jotai';
 import { historyAtom } from '../../application/atoms/history'
 import { ViewInventory } from '../../application/state/history'
-import ExpandableSection from '../common/ExpandableSection2';
+import ExpandableSection from '../common/ExpandableSection';
 import InventoryItem from './InventoryItem'
 import { STRING_NO_DATA } from '../../../common/const';
 

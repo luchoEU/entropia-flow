@@ -1,4 +1,4 @@
-import ExpandableSection from "../common/ExpandableSection2";
+import ExpandableSection from "../common/ExpandableSection";
 import React, { useState } from "react";
 import { JotaiField, JotaiFieldArea } from "../common/Field";
 import { Feature } from "../../application/state/settings";

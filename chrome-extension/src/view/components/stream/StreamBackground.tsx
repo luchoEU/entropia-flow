@@ -1,7 +1,7 @@
 import React, { JSX, useMemo } from "react";
 import { backgroundList, BackgroundSpec } from "../../../stream/background";
 import { getLogoUrl } from "../../../stream/backgroundGetLogo";
-import ExpandableSection from "../common/ExpandableSection2";
+import ExpandableSection from "../common/ExpandableSection";
 import { useAtomValue, useSetAtom } from "jotai";
 import { streamStateAtom, setStreamBackgroundSelectedAtom } from "../../application/atoms/stream";
 import StreamViewLayout from "./StreamViewLayout";

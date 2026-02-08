@@ -44,7 +44,7 @@ import {
   getTTServiceWebAtom,
 } from '../../application/atoms/inventory'
 import { setItemReserveAmountAtom } from '../../application/atoms/items'
-import ExpandableSection from '../common/ExpandableSection2';
+import ExpandableSection from '../common/ExpandableSection';
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
 
 const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, setTradeItemChain }: {

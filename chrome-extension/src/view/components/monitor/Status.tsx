@@ -5,7 +5,7 @@ import { historyAtom } from '../../application/atoms/history';
 import { statusAtom, requestTimerOnAtom, requestTimerOffAtom, requestRefreshAtom } from '../../application/atoms/status';
 import { STRING_PLEASE_LOG_IN, URL_MY_ITEMS_PAGE } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
-import ExpandableSection from '../common/ExpandableSection2';
+import ExpandableSection from '../common/ExpandableSection';
 import { setExpandedAtom } from '../../application/atoms/expandable';
 
 const Status = () => {

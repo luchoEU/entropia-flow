@@ -4,7 +4,7 @@ import { streamStateAtom, setStreamShowingLayoutIdAtom } from '../../application
 import { modeAtom, pinStreamViewAtom } from '../../application/atoms/mode';
 import StreamViewLayout from './StreamViewLayout';
 import { StreamState } from '../../application/state/stream';
-import ExpandableSection from '../common/ExpandableSection2';
+import ExpandableSection from '../common/ExpandableSection';
 import ImgButton from '../common/ImgButton';
 
 function StreamView() {

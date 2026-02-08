@@ -2,17 +2,17 @@ import React, { JSX } from 'react'
 import { Atom } from 'jotai'
 import { JotaiSortableTable } from './JotaiSortableTable'
 import { JotaiTableConfig } from './JotaiTableTypes'
-import ExpandableSection2 from '../ExpandableSection2'
+import ExpandableSection from '../ExpandableSection'
 
 /**
  * Props for JotaiSortableTableSection component
- * Combines the section header functionality of ExpandableSection2 with the table from JotaiSortableTable
+ * Combines the section header functionality of ExpandableSection with the table from JotaiSortableTable
  */
 export interface JotaiSortableTableSectionProps<TItem> {
   // Section properties
   selector: string           // For expandable state persistence
   title: string              // Section title
-  subtitle?: string          // Section subtitle
+  subtitle: string           // Section subtitle
   className?: string         // CSS class for the section
   actionRequired?: string    // Action required message
   afterTitle?: JSX.Element   // Custom content in header
@@ -30,7 +30,7 @@ export interface JotaiSortableTableSectionProps<TItem> {
 
 /**
  * A modern Jotai-based table component with section header
- * Combines ExpandableSection2 header with JotaiSortableTable for sorting/filtering
+ * Combines ExpandableSection header with JotaiSortableTable for sorting/filtering
  */
 const JotaiSortableTableSectionComponent = function<TItem>(
   props: JotaiSortableTableSectionProps<TItem>
@@ -53,7 +53,7 @@ const JotaiSortableTableSectionComponent = function<TItem>(
   } = props
 
   return (
-    <ExpandableSection2
+    <ExpandableSection
       selector={selector}
       title={title}
       subtitle={subtitle}
@@ -72,7 +72,7 @@ const JotaiSortableTableSectionComponent = function<TItem>(
       >
         {children}
       </JotaiSortableTable>
-    </ExpandableSection2>
+    </ExpandableSection>
   )
 }
 
