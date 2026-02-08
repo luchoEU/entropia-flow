@@ -1,6 +1,5 @@
-import React from "react";
 import { useAtomValue } from "jotai";
-import { itemsSyncStatusAtom, itemsDebounceTimeAtom, itemsSheetUrlAtom } from "../../application/atoms/items";
+import { itemsSyncStatusAtom, itemsDebounceTimeAtom, itemsSheetUrlAtom, itemsSyncErrorAtom } from "../../application/atoms/items";
 import { settingsAtom } from "../../application/atoms/settings";
 
 const ItemSyncStatus = () => {
@@ -8,6 +7,7 @@ const ItemSyncStatus = () => {
     const debounceTime = useAtomValue(itemsDebounceTimeAtom);
     const settings = useAtomValue(settingsAtom);
     const itemsSheetUrl = useAtomValue(itemsSheetUrlAtom);
+    const syncError = useAtomValue(itemsSyncErrorAtom);
 
     // Only show if sheet persistence mode is enabled
     if (settings.sheet.itemsSheetPersistenceMode !== 'sheet') {
@@ -89,7 +89,11 @@ const ItemSyncStatus = () => {
             onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
             }}
-            title={itemsSheetUrl ? `${getStatusText()} (Click to open Items sheet)` : getStatusText()}
+            title={
+                syncError
+                    ? `${getStatusText()} - ${syncError}`
+                    : (itemsSheetUrl ? `${getStatusText()} (Click to open Items sheet)` : getStatusText())
+            }
         >
             {getStatusIcon()}
             <span>{getStatusText()}</span>

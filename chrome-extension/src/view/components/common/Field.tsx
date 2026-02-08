@@ -9,14 +9,14 @@ const Field = ({ label, value, title, getChangeAction, children }: {
     children?: any
 }) => {
     return (
-        <p>
+        <div>
             <label title={title}>{label}</label>
             <input
                 type='text'
                 value={value}
                 onChange={(e) => getChangeAction(e.target.value)} />
             { children }
-        </p>
+        </div>
     )
 }
 
@@ -26,12 +26,12 @@ const FieldArea = ({ label, value, getChangeAction }: {
     getChangeAction: (v: string) => any
 }) => {
     return (
-        <p>
+        <div>
             <label>{label}</label>
             <textarea
                 value={value}
                 onChange={(e) => getChangeAction(e.target.value)} />
-        </p>
+        </div>
     )
 }
 
@@ -46,14 +46,14 @@ const JotaiField = ({ label, value, title, setAtom, children }: {
     const setAtomValue = useSetAtom(setAtom)
 
     return (
-        <p>
+        <div>
             <label title={title}>{label}</label>
             <input
                 type='text'
                 value={value || ''}
                 onChange={(e) => setAtomValue(e.target.value || undefined)} />
             { children }
-        </p>
+        </div>
     )
 }
 
@@ -65,12 +65,12 @@ const JotaiFieldArea = ({ label, value, setAtom }: {
     const setAtomValue = useSetAtom(setAtom)
 
     return (
-        <p>
+        <div>
             <label>{label}</label>
             <textarea
                 value={value || ''}
                 onChange={(e) => setAtomValue(e.target.value || undefined)} />
-        </p>
+        </div>
     )
 }
 

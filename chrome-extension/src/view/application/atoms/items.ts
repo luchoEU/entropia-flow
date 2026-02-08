@@ -839,7 +839,9 @@ export const triggerItemsSheetSyncAtom = atom(
     startItemsSheetSyncDebounce(
       (status) => set(itemsSyncStatusAtom, status),
       (time) => set(itemsDebounceTimeAtom, time),
-      syncItemsSheetFunc
+      syncItemsSheetFunc,
+      (url) => set(itemsSheetUrlAtom, url),
+      (error) => set(itemsSyncErrorAtom, error)
     )
   }
 )
@@ -883,5 +885,11 @@ export const itemsDebounceTimeAtom = atom<number>(0)
 /**
  * Cache the items sheet URL when it's loaded
  * Used to open the correct sheet from ItemSyncStatus
+ * Persisted to localStorage so it's available after page reload
  */
-export const itemsSheetUrlAtom = atom<string | undefined>(undefined) as WritableAtom<string | undefined, [string | undefined], void>
+export const itemsSheetUrlAtom = atomWithStorage<string | undefined>('itemsSheetUrl', undefined)
+
+/**
+ * Track sync error message for display in UI
+ */
+export const itemsSyncErrorAtom = atomWithStorage<string | undefined>('itemsSyncError', undefined)
