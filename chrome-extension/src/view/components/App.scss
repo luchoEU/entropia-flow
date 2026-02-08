@@ -729,13 +729,22 @@ button:active:not(:disabled) {
 }
 
 // inputs
-input {
+input, textarea {
     width: 100%;
     padding: 8px 12px;
+    margin: 0px 5px;
     border: 1px solid #e1e4e8;
     border-radius: 4px;
     font-size: 12px;
     box-sizing: border-box;
+}
+
+textarea {
+    font-family: sans-serif;
+}
+
+label {
+    vertical-align: super;
 }
 
 .img-btn-trash {
@@ -995,9 +1004,6 @@ input {
 
 .stream-layout textarea {
     width: 100%;
-}
-
-.stream-layout textarea {
     height: 300px;
 }
 
@@ -1194,14 +1200,6 @@ input {
 
 .item-calculator > table {
     border: 0px solid white;
-}
-
-input, textarea {
-    margin: 0px 5px;
-}
-
-label {
-    vertical-align: super;
 }
 
 .subtitle {

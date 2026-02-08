@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom, atom } from 'jotai'
 import { ItemOwned, TradeItemData } from '../../application/state/inventory'
 import { JotaiWebDataControl } from '../common/JotaiWebDataControl';
@@ -10,7 +10,6 @@ import ItemMarkup from '../item/ItemMarkup';
 import ItemCalculator from '../item/ItemCalculator';
 import { Field } from '../common/Field';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
-import { filterExact } from '../../../common/filter';
 import { Feature } from '../../application/state/settings';
 import AutocompleteInput from '../common/AutocompleteInput';
 import ImgButton from '../common/ImgButton';
@@ -45,7 +44,6 @@ import {
   getOwnedBlueprintsAtom,
   getOtherBlueprintsAtom
 } from '../../application/atoms/items'
-import ExpandableSection from '../common/ExpandableSection';
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection';
 
@@ -89,14 +87,14 @@ const TradeItemDetailsChain = () => {
     if (!enrichedItems?.find((d: ItemOwned) => d.data.n === chainRootName))
         return <></> // chain root is not visible
 
-    return <>
+    return <div style={{ display: 'flex', flexDirection: 'column' }}>
         { tradeItemDataChain.map((tradeItemData, chainIndex) => {
             const chainNext = tradeItemDataChain.length > chainIndex + 1 ? tradeItemDataChain[chainIndex + 1]?.name : undefined;
             const editMode = tradeItemData.name ? tradeItemData.name === matEditModeMaterialName : false
             return <div key={tradeItemData.name} className='trade-item-data'>
                 <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); setTradeItemChain(chainNext ? tradeItemData.name : undefined, chainIndex) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
-                    { tradeItemData.name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => setEditModeMaterialName(editMode ? undefined : tradeItemData.name)}/> }
+                    { tradeItemData.name && !chainNext && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => setEditModeMaterialName(editMode ? undefined : tradeItemData.name)}/> }
                 </h2>
                 { !chainNext && <TradeItemDetails
                     key={tradeItemData.name}
@@ -106,7 +104,7 @@ const TradeItemDetailsChain = () => {
                 /> }
             </div>
         })}
-    </>
+    </div>
 }
 
 const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:

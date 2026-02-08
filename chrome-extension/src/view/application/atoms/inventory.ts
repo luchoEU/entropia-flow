@@ -117,14 +117,17 @@ export const getTTServiceWebAtom = () => atom<WebLoadResponse<TTServiceInventory
  * Write atom to set the trade item chain
  */
 export const setTradeItemChainAtom = atom(null, (get, set, itemName: string | undefined, chainIndex: number) => {
-  const current = get(tradeItemChainAtom)
-  // Logic to update the chain based on itemName and chainIndex
-  // For now, just store a simple implementation
-  if (!itemName) {
+  if (!itemName && chainIndex === 0) {
     set(tradeItemChainAtom, undefined)
   } else {
-    // Keep existing chain structure or update it
-    set(tradeItemChainAtom, current || [])
+    const current = get(tradeItemChainAtom) || []
+    const updated = [...current]
+
+    // Remove chain to replace until the end
+    updated.splice(chainIndex, updated.length - chainIndex)
+    if (itemName)
+      updated.push({name: itemName, sortSecuence: { favoriteBlueprints: [], ownedBlueprints: [], otherBlueprints: [] }})
+    set(tradeItemChainAtom, updated)
   }
 })
 
