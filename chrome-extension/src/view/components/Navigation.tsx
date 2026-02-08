@@ -16,6 +16,7 @@ import { TabId } from '../application/state/navigation';
 import StreamView from './stream/StreamView';
 import PinnedAtomsView from './atomDebug/PinnedAtomsView';
 import { useElementSize } from './common/useElementSize';
+import ItemSyncStatus from './item/ItemSyncStatus';
 
 const Tab = (p: {
     id: TabId,
@@ -197,6 +198,7 @@ const Navigation = () => {
                         </div>
                         <div>
                             <span>{tabSubtitle[tabId]}</span>
+                            <ItemSyncStatus />
                             <ImgButton title={showVisibleToggle ? 'click to Hide Section Visibility Button' : 'click to Show Section Visibility Button'}
                                 className='img-btn-visible-section'
                                 src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}

@@ -8,7 +8,6 @@ import { addZeroes } from '../craft/CraftBlueprint';
 import ItemNotes from '../item/ItemNotes';
 import ItemMarkup from '../item/ItemMarkup';
 import ItemCalculator from '../item/ItemCalculator';
-import ItemSyncStatus from '../item/ItemSyncStatus';
 import { Field } from '../common/Field';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
 import { filterExact } from '../../../common/filter';
@@ -167,7 +166,6 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(tradeItemData.name, v)}>
                         <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                             <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</span>
-                            <ItemSyncStatus />
                         </span>
                     </Field>
                 </div> }

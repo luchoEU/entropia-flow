@@ -1,8 +1,7 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Field } from "../common/Field";
 import { getItemAtom, setItemBuyMarkupAtom } from "../../application/atoms/items";
-import ItemSyncStatus from "./ItemSyncStatus";
 
 const ItemMarkup = ({ name }: { name: string }) => {
     const itemAtom = useMemo(() => getItemAtom(name), [name])
@@ -17,7 +16,6 @@ const ItemMarkup = ({ name }: { name: string }) => {
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 { item.markup?.modified ?
                     <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>% (Modified on { new Date(item.markup.modified).toLocaleDateString() })</span> : '' }
-                <ItemSyncStatus />
             </div>
         </Field>
     )
