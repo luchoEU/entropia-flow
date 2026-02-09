@@ -1,80 +1,98 @@
-import { useAtomValue } from "jotai"
-import { InventoryByStore, TreeLineData } from "../../application/state/inventory"
-import { JotaiSortableTable } from "../common/jotai/JotaiSortableTable"
-import React, { useMemo } from "react"
-import { atom } from "jotai"
-import { byStoreStateAtom } from "../../application/atoms/inventory"
-import ExpandablePlusButton from "../common/ExpandablePlusButton"
+import { useMemo } from 'react'
+import { atom, useAtomValue } from "jotai"
+import { ItemData } from "../../../common/state"
+import { JotaiSortableTable } from '../common/jotai/JotaiSortableTable'
+import { addZeroes } from '../craft/CraftBlueprint'
+import { byStoreStateAtom } from '../../application/atoms/inventory'
+import { itemsMapAtom } from '../../application/atoms/items'
+import { getRefinedChainForItem } from '../../application/helpers/inventory'
+import { getContainerBreadcrumb } from '../../application/helpers/inventory.byStore'
 
-const INDENT_SPACE = 10
+interface ItemInventoryProps {
+    materialItems: string[]
+}
 
-const ItemInventory = () => {
-    const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
+const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
+    const byStore = useAtomValue(byStoreStateAtom)
+    const itemsMap = useAtomValue(itemsMapAtom)
 
-    // Create atom for material items
-    const materialItemsAtom = useMemo(() => atom(inv?.materialItems ?? []), [inv?.materialItems])
+    // Filter inventory items by the provided names and calculate breadcrumbs
+    const { filteredItems, breadcrumbMap } = useMemo(() => {
+        if (!byStore || !byStore.items) return { filteredItems: [], breadcrumbMap: new Map() }
 
-    // Column configuration
+        const nameSet = new Set(materialItems)
+        const items = byStore.items.filter(item => nameSet.has(item.n))
+
+        // Precompute breadcrumbs for all filtered items
+        const breadcrumbs = new Map<string, string[]>()
+        items.forEach(item => {
+            breadcrumbs.set(item.id, getContainerBreadcrumb(item, byStore.items))
+        })
+
+        return { filteredItems: items, breadcrumbMap: breadcrumbs }
+    }, [byStore, materialItems])
+
+    const itemsAtom = useMemo(() => atom(filteredItems), [filteredItems])
+
     const columns = useMemo(() => [
         {
             id: 'name',
-            header: 'Name in Inventory',
+            header: 'Name',
             width: 200,
-            sortAccessor: (item: TreeLineData) => item.n,
-            filterAccessor: (item: TreeLineData) => item.n,
-            renderRowCell: (item: TreeLineData) => (
-                <div style={{ display: 'flex', alignItems: 'center', paddingLeft: `${item.indent * INDENT_SPACE}px` }}>
-                    {item.expanded !== undefined && (
-                        <ExpandablePlusButton
-                            expanded={item.expanded}
-                            setExpanded={()=> {}}
-                        />
-                    )}
-                    <span>{item.n}</span>
-                </div>
-            )
+            sortAccessor: (item: ItemData) => item.n,
+            filterAccessor: (item: ItemData) => item.n,
+            renderRowCell: (item: ItemData) => item.n
         },
         {
             id: 'quantity',
             header: 'Quantity',
-            width: 120,
-            sortAccessor: (item: TreeLineData) => parseFloat(item.q),
-            filterAccessor: (item: TreeLineData) => item.q,
-            justifyContent: 'center' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.q}</>
+            width: 100,
+            sortAccessor: (item: ItemData) => Number(item.q),
+            filterAccessor: (item: ItemData) => item.q,
+            renderRowCell: (item: ItemData) => item.q
         },
         {
             id: 'value',
             header: 'Value',
-            width: 120,
-            sortAccessor: (item: TreeLineData) => parseFloat(item.v),
-            filterAccessor: (item: TreeLineData) => item.v,
-            justifyContent: 'center' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.v}</>
+            width: 100,
+            sortAccessor: (item: ItemData) => Number(item.v),
+            filterAccessor: (item: ItemData) => item.v,
+            renderRowCell: (item: ItemData) => addZeroes(Number(item.v))
+        },
+        {
+            id: 'container',
+            header: 'Location',
+            width: 250,
+            sortAccessor: (item: ItemData) => item.c,
+            filterAccessor: (item: ItemData) => {
+                const breadcrumb = breadcrumbMap.get(item.id) ?? []
+                return breadcrumb.join(' ')
+            },
+            renderRowCell: (item: ItemData) => {
+                const breadcrumb = breadcrumbMap.get(item.id) ?? []
+                return breadcrumb.length > 0 ? breadcrumb.join(' → ') : item.c
+            }
         }
-    ], [])
+    ], [breadcrumbMap, itemsMap])
 
-    // Return loading state if data not loaded yet
-    if (!inv) {
-        return <p><strong>Loading inventory data...</strong></p>
-    }
-
-    if (!inv?.materialItems || inv.materialItems.length === 0) {
-        return <p><strong>None on Inventory</strong></p>
+    if (materialItems.length === 0) {
+        return (
+            <div style={{ marginTop: '12px' }}>
+                <h3 style={{ marginBottom: '8px' }}>Inventory Materials</h3>
+                <p style={{ color: '#999' }}>None in inventory</p>
+            </div>
+        )
     }
 
     return (
-        <JotaiSortableTable
-            itemsAtom={materialItemsAtom}
-            config={{
-                title: 'Inventory Materials',
-                columns,
-                itemTypeName: 'material',
-                getRowKey: (item: TreeLineData) => item.id,
-                getPedValue: (item: TreeLineData) => parseFloat(item.v)
-            }}
-            useFixedSizeList={true}
-        />
+        <div style={{ marginTop: '12px' }}>
+            <h3 style={{ marginBottom: '8px' }}>Inventory Materials</h3>
+            <JotaiSortableTable
+                itemsAtom={itemsAtom}
+                config={{ columns }}
+                useFixedSizeList={false}
+            />
+        </div>
     )
 }
 

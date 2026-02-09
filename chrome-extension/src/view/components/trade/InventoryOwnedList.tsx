@@ -73,6 +73,18 @@ const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, set
   )
 })
 
+const _parseAggregatedName = (name: string): { baseName: string; sources?: string[] } => {
+    // Parse aggregated format "ItemName ← source1, source2, ..."
+    const match = name.match(/^(.+?)\s*←\s*(.+)$/)
+    if (match) {
+        const baseName = match[1].trim()
+        const sourcesStr = match[2].trim()
+        const sources = sourcesStr.split(',').map(s => s.trim())
+        return { baseName, sources }
+    }
+    return { baseName: name }
+}
+
 const TradeItemDetailsChain = () => {
     const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
     const setEditModeMaterialName = useSetAtom(setEditModeMaterialNameAtom)
@@ -84,7 +96,8 @@ const TradeItemDetailsChain = () => {
         return <></> // no chain
 
     const chainRootName = tradeItemDataChain[0]?.name;
-    if (!enrichedItems?.find((d: ItemOwned) => d.data.n === chainRootName))
+    const baseChainRootName = _parseAggregatedName(chainRootName).baseName
+    if (!enrichedItems?.find((d: ItemOwned) => d.data.n === chainRootName || d.data.n === baseChainRootName))
         return <></> // chain root is not visible
 
     return <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -120,9 +133,10 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const name = tradeItemData.name
     if (!name) return <></> // Guard against undefined name
 
+    const { baseName, sources } = _parseAggregatedName(name)
     const editMode = name && name === mat.editModeMaterialName
 
-    const itemAtom = useMemo(() => getItemAtom(name), [name])
+    const itemAtom = useMemo(() => getItemAtom(baseName), [baseName])
     const featureEnabledAtom = useMemo(() => isFeatureEnabledAtom(Feature.ttService), [])
 
     // Read values from atoms
@@ -130,9 +144,9 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const showTTService = useAtomValue(featureEnabledAtom)
 
     // Create atoms for lazy-loaded blueprint tables
-    const favoriteAtom = useMemo(() => getFavoriteBlueprintsAtom(name), [name])
-    const ownedAtom = useMemo(() => getOwnedBlueprintsAtom(name), [name])
-    const otherAtom = useMemo(() => getOtherBlueprintsAtom(name), [name])
+    const favoriteAtom = useMemo(() => getFavoriteBlueprintsAtom(baseName), [baseName])
+    const ownedAtom = useMemo(() => getOwnedBlueprintsAtom(baseName), [baseName])
+    const otherAtom = useMemo(() => getOtherBlueprintsAtom(baseName), [baseName])
 
     // Read blueprint data to check if empty
     const favoriteBlueprints = useAtomValue(favoriteAtom)
@@ -140,8 +154,8 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const otherBlueprints = useAtomValue(otherAtom)
 
     return <>
-        {<JotaiWebDataControl valueGet={getItemWebAtom} loadGet={loadItemWebAtom} itemName={name} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
-            const user = mat.map[name]?.user
+        {<JotaiWebDataControl valueGet={getItemWebAtom} loadGet={loadItemWebAtom} itemName={baseName} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
+            const user = mat.map[baseName]?.user
             return <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', marginBottom: '15px' }}>
                     <div>
@@ -162,25 +176,25 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     </div>
                 </div>
                 { reserve && item && <div style={{ borderTop: '1px solid #ddd', marginBottom: '12px' }}>
-                    <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(tradeItemData.name, v)}>
+                    <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(baseName, v)}>
                         <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                             <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</span>
                         </span>
                     </Field>
                 </div> }
                 <div style={{ borderTop: '1px solid #ddd', marginTop: '12px' }}>
-                    <ItemMarkup name={tradeItemData.name} />
+                    <ItemMarkup name={baseName} />
                     {<div style={{ marginTop: '12px' }}>
-                        <ItemCalculator name={tradeItemData.name} />
+                        <ItemCalculator name={baseName} />
                     </div>}
                 </div>
             </>
         }} />}
-        <ItemNotes name={tradeItemData.name} style={{ marginTop: '12px' }}/>
+        <ItemNotes name={baseName} style={{ marginTop: '12px' }}/>
         { showTTService && <>
             <p style={{ height: '5px' }} />
-            <JotaiWebDataControl valueGet={getTTServiceWebAtom} loadGet={() => loadTTServiceAtom} itemName={tradeItemData.name} name='TT Inventory' content={(inventory: TTServiceInventoryWebData | undefined) => {
-                const list = React.useMemo(() => inventory?.filter(d => d.name === tradeItemData.name), [inventory, tradeItemData.name])
+            <JotaiWebDataControl valueGet={getTTServiceWebAtom} loadGet={() => loadTTServiceAtom} itemName={baseName} name='TT Inventory' content={(inventory: TTServiceInventoryWebData | undefined) => {
+                const list = React.useMemo(() => inventory?.filter(d => d.name === baseName), [inventory, baseName])
                 const ttServiceAtom = React.useMemo(() => atom(list ?? []), [list])
                 return list?.length === 0 ?
                     <p><strong>No entries in TT Service Inventory</strong></p> :
@@ -192,7 +206,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
             }} />
         </> }
         <p style={{ height: '5px' }} />
-        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageWebAtom} itemName={tradeItemData.name} name='Item Usage' content={(usage: ItemUsageWebData | undefined) => {
+        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageWebAtom} itemName={baseName} name='Item Usage' content={(usage: ItemUsageWebData | undefined) => {
             if (!usage) return <></>
             return <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
                 <div>
@@ -200,7 +214,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                         <JotaiSortableTable
                             itemsAtom={favoriteAtom}
                             maxNumberOfLines={6}
-                            config={createBlueprintTableConfig('Favorite', true, tradeItemData.name)}
+                            config={createBlueprintTableConfig('Favorite', true, baseName)}
                             useFixedSizeList={false}
                         /> :
                         <p style={{ color: '#666' }}>Not used on any {ownedBlueprints.length > 0 ? 'Favorite' : 'Owned'} Blueprint</p>
@@ -210,7 +224,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     <JotaiSortableTable
                         itemsAtom={ownedAtom}
                         maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Owned', false, tradeItemData.name)}
+                        config={createBlueprintTableConfig('Owned', false, baseName)}
                         useFixedSizeList={false}
                     />
                 </div> }
@@ -218,7 +232,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     <JotaiSortableTable
                         itemsAtom={otherAtom}
                         maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Not Owned', undefined, tradeItemData.name)}
+                        config={createBlueprintTableConfig('Not Owned', undefined, baseName)}
                         useFixedSizeList={false}
                     />
                 </div> }
@@ -231,7 +245,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                 />}
             </div>
         }} />
-        <ItemInventory />
+        <ItemInventory materialItems={[baseName, ...(sources ?? [])]} />
     </>
 }
 

@@ -4,7 +4,7 @@ import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBluepri
 import { ItemsMap, ItemState, ItemsState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
 import { BlueprintData, CraftState } from '../state/craft'
-import { joinDuplicates } from '../helpers/inventory'
+import { joinDuplicates, aggregateRefinedChains } from '../helpers/inventory'
 import { loadInventoryByStore, initialListByStore } from '../helpers/inventory.byStore'
 import { ItemData } from '../../../common/state'
 import { BlueprintWebData, ItemUsageWebData, ItemWebData } from '../../../web/state'
@@ -95,6 +95,7 @@ export const availableCriteriaAtom = atomWithStorage('jotai-v1-inventory-availab
 export interface InventoryFilterOptions {
   reserve: boolean
   auction: boolean
+  aggregateRefined: boolean
 }
 
 /**
@@ -102,7 +103,8 @@ export interface InventoryFilterOptions {
  */
 export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('jotai-v1-inventory-filterOptions', {
   reserve: false,
-  auction: false
+  auction: false,
+  aggregateRefined: false
 })
 
 /**
@@ -212,6 +214,11 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
     finalItems = joinDuplicates(ownedItems.map(d => d.data))
   } else {
     finalItems = joinDuplicates(list.map(d => d.data))
+  }
+
+  // Apply refined aggregation if enabled
+  if (options.aggregateRefined) {
+    finalItems = aggregateRefinedChains(finalItems, itemsMap)
   }
 
   const chainRootName = chain?.[0]?.name
@@ -675,7 +682,6 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
     materialExpanded,
     items: [],
     staredItems: [],
-    materialItems: []
   }
 
   // Use existing helper to build and flatten the tree structure
@@ -881,14 +887,8 @@ export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (get, set, expand
   }, {} as ContainerMapData)
   set(byStoreContainersAtom, updatedContainers)
 
-  // Also expand/collapse all material items
-  if (expanded) {
-    const inventory = get(byStoreStateAtom)
-    if (inventory?.materialItems) {
-      const allMaterialIds = inventory.materialItems.map(item => item.id)
-      set(byStoreMaterialExpandedAtom, allMaterialIds)
-    }
-  } else {
+  // Material expanded state is managed separately through materialExpanded array
+  if (!expanded) {
     set(byStoreMaterialExpandedAtom, [])
   }
 })

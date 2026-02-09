@@ -3,13 +3,9 @@ import {
   InventoryList,
   OwnedHideCriteria,
   ItemOwned} from "../state/inventory";
+import { ItemState } from "../state/items";
 import { initialListByStore } from "./inventory.byStore";
-import {
-  cloneSortListSelect,
-  sortListSelect,
-  SORT_NAME_ASCENDING,
-  nextSortType,
-} from "./inventory.sort";
+import { SORT_NAME_ASCENDING } from "./inventory.sort";
 
 const emptyCriteria: OwnedHideCriteria = {
   show: false,
@@ -66,8 +62,6 @@ export const getOwned = (list: Array<ItemData>, c: OwnedHideCriteria): Array<Ite
     }
   });
 
-const _getOwned = getOwned;
-
 const joinDuplicates = (
   list: Array<ItemData>,
   excludeContainers: string[] = [],
@@ -91,36 +85,131 @@ const joinDuplicates = (
   return Object.values(result);
 };
 
+const aggregateRefinedChains = (
+  items: Array<ItemData>,
+  itemsMap: { [name: string]: ItemState }
+): Array<ItemData> => {
+  // Create lookup map
+  const itemsByName = new Map<string, ItemData>()
+  items.forEach(item => itemsByName.set(item.n, item))
+
+  // Build chains from usage.refinings data
+  const chains: Map<string, string[]> = new Map()
+
+  // Iterate through items to find refined materials (items with refinings)
+  for (const itemName in itemsMap) {
+    const itemState = itemsMap[itemName]
+    const usageData = itemState?.web?.usage?.data?.value
+    const refinings = usageData?.refinings
+
+    if (refinings && refinings.length > 0) {
+      // This item has refinings, meaning it can be a refined product
+      // For each refining recipe that produces this item
+      for (const refining of refinings) {
+        // This refining produces this item, so collect the source materials
+        const product = refining.product.name
+        if (chains.has(product)) continue
+        const sourceNames = refining.ingredients.map(ing => ing.name)
+        chains.set(product, sourceNames)
+      }
+    }
+  }
+
+  // Detect shared ingredients (e.g., Force Nexus used in multiple chains)
+  const ingredientUsageCount: { [name: string]: string[] } = {}
+  for (const [refined, sources] of chains) {
+    for (const source of sources) {
+      if (!ingredientUsageCount[source]) {
+        ingredientUsageCount[source] = []
+      }
+      ingredientUsageCount[source].push(refined)
+    }
+  }
+
+  // Track items to remove and items to add
+  const itemsToRemove = new Set<string>()
+  const aggregatedItems: Array<ItemData> = []
+
+  for (const [refined, sources] of chains) {
+    const refinedItem = itemsByName.get(refined)
+    if (!refinedItem) continue
+
+    // Skip if any source ingredient is shared between multiple chains
+    const hasConflict = sources.some(source => ingredientUsageCount[source]?.length > 1)
+    if (hasConflict) {
+      continue
+    }
+
+    // Find available source materials
+    const availableSources = sources
+      .map(name => itemsByName.get(name))
+      .filter(item => item !== undefined) as Array<ItemData>
+
+    // Only aggregate if we have at least one source material
+    if (availableSources.length === 0) continue
+
+    // Calculate total value (refined + all sources)
+    let totalValue = Number(refinedItem.v)
+    availableSources.forEach(source => {
+      totalValue += Number(source.v)
+    })
+
+    // Calculate quantity: total_value / refined_item_unit_value
+    const refinedMeta = itemsMap[refined]
+    const refinedWebValue = refinedMeta?.web?.item?.data?.value?.value
+    let quantity = '0'
+    if (refinedWebValue && refinedWebValue > 0) {
+      quantity = (totalValue / refinedWebValue).toFixed(0)
+    }
+
+    // Create aggregated item
+    const aggregated: ItemData = {
+      id: refinedItem.id,
+      n: `${refined} ← ${sources.join(', ')}`,
+      q: quantity,
+      v: totalValue.toFixed(2),
+      c: refinedItem.c,
+      r: refinedItem.r
+    }
+
+    aggregatedItems.push(aggregated)
+
+    // Mark items for removal
+    itemsToRemove.add(refined)
+    availableSources.forEach(source => {
+      itemsToRemove.add(source.n)
+    })
+  }
+
+  // Build final list
+  return items
+    .filter(item => !itemsToRemove.has(item.n))
+    .concat(aggregatedItems)
+};
+
 const getItemList = (ownedItems: ItemOwned[]): Array<ItemData> => ownedItems.map(_ownedSelect);
 const getBlueprintList = (ownedItems: ItemOwned[]): Array<ItemData> => getItemList(ownedItems).filter(item => item.n.includes("Blueprint"));
 
-function _nextSortByPart<D>(
-  list: InventoryList<D>,
-  part: number,
-  select: (d: D) => ItemData,
-) {
-  const sortType = nextSortType(part, list.sortType);
-  return {
-    ...list,
-    sortType,
-    items: cloneSortListSelect(list.items, sortType, select),
-  };
-}
+export const getRefinedChainForItem = (
+  itemName: string,
+  itemsMap: { [name: string]: ItemState }
+): { refined: string; sources: string[] } | undefined => {
+  const itemState = itemsMap[itemName]
+  const usageData = itemState?.web?.usage?.data?.value
+  const refinings = usageData?.refinings
 
-function _sortAndStats<D>(
-  list: InventoryList<D>,
-  select: (d: D) => ItemData,
-): InventoryList<D> {
-  sortListSelect(list.items, list.sortType, select);
-  const sum = list.items.reduce(
-    (partialSum, d) => partialSum + Number(select(d).v),
-    0,
-  );
-  list.stats = {
-    count: list.items.length,
-    ped: sum.toFixed(2),
-  };
-  return list;
+  if (!refinings || refinings.length === 0) {
+    return undefined
+  }
+
+  // Get the first refining recipe that produces this item
+  const refining = refinings[0]
+  const sourceNames = refining.ingredients.map(ing => ing.name)
+
+  return {
+    refined: itemName,
+    sources: sourceNames
+  }
 }
 
 const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> => ({
@@ -135,5 +224,6 @@ export {
   getItemList,
   getBlueprintList,
   joinDuplicates,
+  aggregateRefinedChains,
   cleanForSaveInventoryList
 };

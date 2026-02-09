@@ -21,7 +21,6 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
     materialExpanded: [],
     items: [],
     staredItems: [],
-    materialItems: [],
 });
 
 const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
@@ -333,7 +332,6 @@ const loadInventoryByStore = (
         materialExpanded: byStore.materialExpanded,
         items: flatItems,
         staredItems: flatStaredItems,
-        materialItems: []
     }
 };
 
@@ -445,14 +443,55 @@ const cleanForSaveByStore = (state: InventoryByStore): InventoryByStore => ({
     materialExpanded: state.materialExpanded,
     items: [],
     staredItems: [],
-    materialItems: []
 })
 
 const fillFromLoadByStore = (state: InventoryByStore): InventoryByStore => state
+
+/**
+ * Calculate the container breadcrumb path for an item
+ * Walks backwards through the flattened tree to find parent containers by indent level
+ *
+ * @param item - The item to get breadcrumb for
+ * @param allItems - Full flattened items list from byStore.items
+ * @returns Array of container names from root to immediate parent
+ *
+ * @example
+ * // Item at indent 2 in Viceroy MK1 in STORAGE on Calypso
+ * getContainerBreadcrumb(item, byStore.items)
+ * // Returns: ['STORAGE (Planet Calypso)', 'Viceroy MK1']
+ */
+const getContainerBreadcrumb = (item: TreeLineData, allItems: TreeLineData[]): string[] => {
+    // Find the item's index in the flattened array
+    const itemIndex = allItems.findIndex(i => i.id === item.id)
+    if (itemIndex === -1) return []
+
+    const breadcrumb: string[] = []
+    let currentIndent = item.indent
+
+    // If at root level (indent 0), no breadcrumb needed
+    if (currentIndent === 0) return []
+
+    // Walk backwards to find parent containers by indent level
+    for (let i = itemIndex - 1; i >= 0 && currentIndent > 0; i--) {
+        const candidateItem = allItems[i]
+
+        // Found a parent container (one indent level up)
+        if (candidateItem.indent === currentIndent - 1) {
+            breadcrumb.unshift(candidateItem.n)
+            currentIndent = candidateItem.indent
+
+            // Stop if we've reached the root level
+            if (currentIndent === 0) break
+        }
+    }
+
+    return breadcrumb
+}
 
 export {
     initialListByStore,
     loadInventoryByStore,
     cleanForSaveByStore,
     fillFromLoadByStore,
+    getContainerBreadcrumb,
 };

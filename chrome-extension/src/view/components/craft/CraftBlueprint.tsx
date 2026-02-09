@@ -403,8 +403,8 @@ const CraftItemDetails = ({name, bpName, bp}: {name: string, bpName: string, bp:
             </h2>
             <div>
                 { editMode ? <>
-                    <p><label>Type:</label> <AutocompleteInput value={itemsMap[name].user.type?.toString() ?? ''} getChangeAction={(v) => setMaterialType(name, v)} suggestions={itemsMap[name].user?.suggestedTypes ?? []}/></p>
-                    <p><label>Value:</label> <input type='text' value={itemsMap[name].user.valueOnEdit} onChange={(e) => setMaterialValue(name, e.target.value)}/></p>
+                    <p><label>Type:</label> <AutocompleteInput value={itemsMap[name].user?.type?.toString() ?? ''} getChangeAction={(v) => setMaterialType(name, v)} suggestions={itemsMap[name].user?.suggestedTypes ?? []}/></p>
+                    <p><label>Value:</label> <input type='text' value={itemsMap[name].user?.valueOnEdit} onChange={(e) => setMaterialValue(name, e.target.value)}/></p>
                 </> : afterChainMat && <>
                     <p>Type: { afterChainMat.type?.toString() ?? '' }</p>
                     <p>Value: { addZeroes(afterChainMat.value) }</p>
@@ -412,7 +412,7 @@ const CraftItemDetails = ({name, bpName, bp}: {name: string, bpName: string, bp:
                 <ItemMarkup name={name} />
                 <WebDataControl w={raw} name='Raw Materials'
                     dispatchReload={() => [loadRawMaterials(name), loadItemDataFn(name, afterChainBpMat)]}
-                    content={d => d && d.length > 0 &&
+                    content={d => d && d.length > 0 ?
                         <table style={{ marginBottom: '10px' }}>
                             <thead>
                                 <tr>
@@ -428,9 +428,9 @@ const CraftItemDetails = ({name, bpName, bp}: {name: string, bpName: string, bp:
                                     </tr>
                                 )) }
                             </tbody>
-                        </table>
+                        </table> : <></>
                 }/>
-                <ItemInventory />
+                <ItemInventory materialItems={[name]} />
                 <ItemNotes name={name} />
             </div>
         </div>

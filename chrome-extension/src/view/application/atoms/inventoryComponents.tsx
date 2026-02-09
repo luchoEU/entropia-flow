@@ -87,6 +87,12 @@ export const InventoryOwnedListBeforeTable: React.FC = () => {
         enabled={opt.auction}
         onClick={() => setFilterOptions({ ...opt, auction: !opt.auction })}
       />
+      <SwitchButton
+        label="G"
+        title="Aggregate Refined materials with sources"
+        enabled={opt.aggregateRefined}
+        onClick={() => setFilterOptions({ ...opt, aggregateRefined: !opt.aggregateRefined })}
+      />
     </div>
   )
 }

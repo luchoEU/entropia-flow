@@ -32,7 +32,6 @@ interface InventoryByStore {
   materialExpanded: Array<string>
   items: Array<TreeLineData>
   staredItems: Array<TreeLineData>
-  materialItems: Array<TreeLineData>
 }
 
 type ContainerMapData = { [id: string] : ContainerMapDataItem };

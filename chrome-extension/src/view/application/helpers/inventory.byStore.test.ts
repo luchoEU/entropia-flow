@@ -48,7 +48,6 @@ describe('loadInventoryByStore preserves hierarchy when sorting multi-level tree
       materialExpanded: [],
       items: [],
       staredItems: [],
-      materialItems: [],
     }
 
     // ============================================================================
@@ -91,5 +90,97 @@ describe('loadInventoryByStore preserves hierarchy when sorting multi-level tree
 
     // Children sorted within Z-Container: A-Child before Z-Child
     expect(aChildIdx).toBeLessThan(zChildIdx)
+  })
+})
+
+describe('getContainerBreadcrumb', () => {
+  const { getContainerBreadcrumb } = require('./inventory.byStore')
+
+  it('should return empty array for root containers (indent=0)', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 }
+    ]
+    const item = items[0]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual([])
+  })
+
+  it('should return single parent for direct children (indent=1)', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 },
+      { id: '2', n: 'Item A', q: '5', v: '10.00', c: 'STORAGE', indent: 1 }
+    ]
+    const item = items[1]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual(['STORAGE'])
+  })
+
+  it('should return full path for multi-level nested items', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 },
+      { id: '2', n: 'Viceroy MK1', q: '1', v: '100.00', c: 'STORAGE', indent: 1 },
+      { id: '3', n: 'Weapon A', q: '3', v: '50.00', c: 'Viceroy MK1', indent: 2 }
+    ]
+    const item = items[2]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual(['STORAGE', 'Viceroy MK1'])
+  })
+
+  it('should handle deeply nested items (indent=3+)', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 },
+      { id: '2', n: 'Cabinet', q: '1', v: '100.00', c: 'STORAGE', indent: 1 },
+      { id: '3', n: 'Drawer', q: '1', v: '50.00', c: 'Cabinet', indent: 2 },
+      { id: '4', n: 'Item', q: '5', v: '10.00', c: 'Drawer', indent: 3 }
+    ]
+    const item = items[3]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual(['STORAGE', 'Cabinet', 'Drawer'])
+  })
+
+  it('should return empty array for item not in list', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 }
+    ]
+    const item = { id: 'unknown', n: 'Unknown', q: '1', v: '0', c: 'STORAGE', indent: 1 }
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual([])
+  })
+
+  it('should skip siblings at same indent level when walking backwards', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 },
+      { id: '2', n: 'Item A', q: '1', v: '10.00', c: 'STORAGE', indent: 1 },
+      { id: '3', n: 'Item B', q: '2', v: '20.00', c: 'STORAGE', indent: 1 },
+      { id: '4', n: 'Item C', q: '3', v: '30.00', c: 'STORAGE', indent: 1 }
+    ]
+    // Item C should skip over Item B and A (siblings) to find STORAGE
+    const item = items[3]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual(['STORAGE'])
+  })
+
+  it('should handle multiple containers at root level', () => {
+    const items: any[] = [
+      { id: '1', n: 'STORAGE', q: '1', v: '0', c: 'STORAGE', indent: 0 },
+      { id: '2', n: 'CARRIED', q: '1', v: '0', c: 'CARRIED', indent: 0 },
+      { id: '3', n: 'Item A', q: '5', v: '10.00', c: 'CARRIED', indent: 1 }
+    ]
+    const item = items[2]
+    const breadcrumb = getContainerBreadcrumb(item, items)
+    expect(breadcrumb).toEqual(['CARRIED'])
+  })
+
+  it('should build breadcrumb by walking backwards correctly', () => {
+    // In a properly flattened tree, all children of a container appear before siblings
+    const items: any[] = [
+      { id: '1', n: 'Root', q: '1', v: '0', c: 'Root', indent: 0 },
+      { id: '2', n: 'Child', q: '1', v: '10.00', c: 'Root', indent: 1 },
+      { id: '3', n: 'GrandChild', q: '3', v: '5.00', c: 'Child', indent: 2 },
+      { id: '4', n: 'Sibling', q: '2', v: '20.00', c: 'Root', indent: 1 }
+    ]
+    const grandChild = items[2]
+    const breadcrumb = getContainerBreadcrumb(grandChild, items)
+    expect(breadcrumb).toEqual(['Root', 'Child'])
   })
 })
