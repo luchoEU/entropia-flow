@@ -14,13 +14,13 @@ import React from 'react'
 /**
  * Union type of all possible cell elements
  */
-export type CellElement<TItem = any> =
+export type CellElement =
   | TextElement
   | IconElement
   | ButtonElement
   | TextButtonElement
-  | RowElement<TItem>
-  | ConditionalElement<TItem>
+  | RowElement
+  | ConditionalElement
   | InputElement
   | SpacerElement
 
@@ -72,6 +72,8 @@ export interface ButtonElement {
   type: 'button'
   /** Icon path */
   icon: string
+  /** Always visible */
+  show?: boolean
   /** Button width in pixels */
   width: number
   /** Button height in pixels (defaults to width if not specified) */
@@ -109,10 +111,10 @@ export interface TextButtonElement {
  * Row element - horizontal flex container
  * Used to layout multiple elements in a row with gaps
  */
-export interface RowElement<TItem> {
+export interface RowElement {
   type: 'row'
   /** Child elements to display in the row */
-  children: CellElement<TItem>[]
+  children: CellElement[]
   /** Gap between children in pixels */
   gap: number
   /** Vertical alignment of children (default: 'center') */
@@ -125,14 +127,14 @@ export interface RowElement<TItem> {
  * Conditional element - if/else rendering
  * Useful for loading states, error states, etc.
  */
-export interface ConditionalElement<TItem> {
+export interface ConditionalElement {
   type: 'conditional'
   /** Condition to evaluate */
   condition: () => boolean
   /** Element to render if condition is true */
-  then: CellElement<TItem>
+  then: CellElement
   /** Optional element to render if condition is false */
-  else?: CellElement<TItem>
+  else?: CellElement
 }
 
 /**

@@ -52,7 +52,7 @@ export function measureTextWidth(
  * @returns Width in pixels
  */
 export function calculateCellWidth<TItem>(
-  element: CellElement<TItem>,
+  element: CellElement,
   sampleItem: TItem,
   font?: string
 ): number {
@@ -131,7 +131,7 @@ export function calculateCellWidth<TItem>(
  * @returns Maximum width in pixels (minimum 60px)
  */
 export function calculateColumnWidth<TItem>(
-  renderRow: (item: TItem) => CellElement<TItem>,
+  renderRow: (item: TItem) => CellElement,
   items: TItem[],
   sampleSize: number = 10,
   font?: string

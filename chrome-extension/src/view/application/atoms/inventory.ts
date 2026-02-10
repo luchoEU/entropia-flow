@@ -1,17 +1,14 @@
-import { Atom, atom } from 'jotai'
+import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData, InventoryByStore, ContainerMapData } from '../state/inventory'
-import { ItemsMap, ItemState, ItemsState } from '../state/items'
+import { ItemState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
-import { BlueprintData, CraftState } from '../state/craft'
 import { joinDuplicates, aggregateRefinedChains } from '../helpers/inventory'
-import { loadInventoryByStore, initialListByStore } from '../helpers/inventory.byStore'
+import { loadInventoryByStore } from '../helpers/inventory.byStore'
 import { ItemData } from '../../../common/state'
-import { BlueprintWebData, ItemUsageWebData, ItemWebData } from '../../../web/state'
-import { blueprintsAtom, staredAtom, craftOptionsAtom, activeSessionAtom, activePlanetAtom, editModeBlueprintNameAtom, craftWebDataAtom, craftComputedAtom } from './craft'
+import { BlueprintWebData } from '../../../web/state'
 import { settingsAtom } from './settings'
 import { WebLoadResponse } from '../../../web/loader'
-import { IWebSource, SourceLoadResponse } from '../../../web/sources'
 import {
   itemsMapAtom,
   editModeMaterialNameAtom
@@ -672,6 +669,10 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
   const containersSortType = get(byStoreSortStateAtom).containersSortType
   const staredSortType = get(staredSortStateAtom).staredSortType
 
+  // Read filter state from atoms
+  const containersFilter = get(byStoreFilterAtom)
+  const staredFilter = get(byStoreStaredFilterAtom)
+
   // Convert ItemOwned[] to ItemData[]
   const itemDataList = rawItems.map(item => item.data)
 
@@ -685,8 +686,15 @@ export const byStoreStateAtom = atom<InventoryByStore | null>((get) => {
   }
 
   // Use existing helper to build and flatten the tree structure
-  // Pass sort types to apply tree-aware sorting before flattening
-  return loadInventoryByStore(initialByStore, itemDataList, containersSortType, staredSortType)
+  // Pass sort types and filters to apply tree-aware sorting and filtering before flattening
+  return loadInventoryByStore(
+    initialByStore,
+    itemDataList,
+    containersSortType,
+    staredSortType,
+    containersFilter || undefined,
+    staredFilter || undefined
+  )
 })
 
 /**
@@ -719,13 +727,13 @@ export const setByStoreStaredAllItemsExpandedAtom = atom(null, (get, set, expand
  * Write atom to toggle byStore item expansion
  * Replaces Redux SET_BY_STORE_ITEM_EXPANDED action
  */
-export const setByStoreItemExpandedAtom = atom(null, (get, set, itemId: string, expanded: boolean) => {
+export const setByStoreItemExpandedAtom = atom(null, (get, set, itemId: string, displayName: string, expanded: boolean) => {
   const current = get(byStoreContainersAtom)
   const updated = { ...current }
   if (updated[itemId]) {
-    updated[itemId] = { ...updated[itemId], expanded }
+    updated[itemId] = { ...updated[itemId], displayName, expanded }
   } else {
-    updated[itemId] = { displayName: '', expanded, stared: false }
+    updated[itemId] = { displayName, expanded }
   }
   set(byStoreContainersAtom, updated)
 })
@@ -739,6 +747,21 @@ export const setByStoreAllItemsExpandedAtom = atom(null, (get, set, expanded: bo
   const updated: ContainerMapData = {}
   for (const [id, container] of Object.entries(current)) {
     updated[id] = { ...container, expanded }
+  }
+  set(byStoreContainersAtom, updated)
+})
+
+/**
+ * Write atom to toggle byStore item expandedOnFilter state
+ * Used when a filter is active to control expansion in filtered view
+ */
+export const setByStoreItemExpandedOnFilterAtom = atom(null, (get, set, itemId: string, displayName: string, expandedOnFilter: boolean) => {
+  const current = get(byStoreContainersAtom)
+  const updated = { ...current }
+  if (updated[itemId]) {
+    updated[itemId] = { ...updated[itemId], displayName, expandedOnFilter }
+  } else {
+    updated[itemId] = { displayName, expanded: expandedOnFilter, expandedOnFilter }
   }
   set(byStoreContainersAtom, updated)
 })
@@ -818,21 +841,29 @@ export const byStoreSortStateAtom = atomWithStorage('jotai-v1-inventory-byStoreS
 })
 
 /**
+ * ByStore filter atom - stores the current filter string for containers view
+ */
+export const byStoreFilterAtom = atomWithStorage<string>('jotai-v1-inventory-byStoreFilter', '')
+
+/**
  * Write atom to set byStore (containers) filter
  * Replaces Redux SET_BY_STORE_FILTER action
- * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreInventoryFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
-  // Filtering is handled by JotaiSortableTable component internally
+export const setByStoreInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreFilterAtom, filter ?? '')
 })
+
+/**
+ * ByStore stared filter atom - stores the current filter string for stared view
+ */
+export const byStoreStaredFilterAtom = atomWithStorage<string>('jotai-v1-inventory-byStoreStaredFilter', '')
 
 /**
  * Write atom to set byStore stared filter
  * Replaces Redux SET_BY_STORE_STARED_FILTER action
- * Note: Filtering is now handled internally by JotaiSortableTable
  */
-export const setByStoreStaredInventoryFilterAtom = atom(null, (_get, _set, _filter: string | undefined) => {
-  // Filtering is handled by JotaiSortableTable component internally
+export const setByStoreStaredInventoryFilterAtom = atom(null, (_get, set, filter: string | undefined) => {
+  set(byStoreStaredFilterAtom, filter ?? '')
 })
 
 /**
@@ -879,9 +910,10 @@ export const sortByStoreByAtom = atom(null, (get, set, part: number) => {
  * Replaces Redux SET_BY_STORE_ALL_ITEMS_EXPANDED action
  */
 export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (get, set, expanded: boolean) => {
-  // Set all containers in byStoreContainersAtom to the expanded state
-  const containers = get(byStoreContainersAtom)
-  const updatedContainers = Object.entries(containers).reduce((acc, [id, container]) => {
+  // Use computed containers to include all containers (root and non-root)
+  const byStore = get(byStoreStateAtom)
+  const computedContainers = byStore?.containers ?? {}
+  const updatedContainers = Object.entries(computedContainers).reduce((acc, [id, container]) => {
     acc[id] = { ...container, expanded }
     return acc
   }, {} as ContainerMapData)
@@ -891,6 +923,21 @@ export const setByStoreAllItemsExpandedSimpleAtom = atom(null, (get, set, expand
   if (!expanded) {
     set(byStoreMaterialExpandedAtom, [])
   }
+})
+
+/**
+ * Write atom to set all items expandedOnFilter state
+ * Used when a filter is active to control expansion in filtered view
+ */
+export const setByStoreAllItemsExpandedOnFilterAtom = atom(null, (get, set, expandedOnFilter: boolean) => {
+  // Use computed containers to include all containers (root and non-root)
+  const byStore = get(byStoreStateAtom)
+  const computedContainers = byStore?.containers ?? {}
+  const updatedContainers = Object.entries(computedContainers).reduce((acc, [id, container]) => {
+    acc[id] = { ...container, expandedOnFilter }
+    return acc
+  }, {} as ContainerMapData)
+  set(byStoreContainersAtom, updatedContainers)
 })
 
 /**
@@ -926,8 +973,15 @@ export const setByStoreItemNameAtom = atom(null, (get, set, itemId: string, newN
  * Write atom to mark/unmark item as stared (favorite)
  * Replaces Redux SET_BY_STORE_ITEM_STARED action
  */
-export const setByStoreItemStaredAtom = atom(null, (_get, _set, _itemId: string, _stared: boolean) => {
-  // Placeholder - actual implementation would update byStoreStateAtom
+export const setByStoreItemStaredAtom = atom(null, (get, set, itemId: string, stared: boolean) => {
+  const current = get(byStoreContainersAtom)
+  const updated = { ...current }
+  if (updated[itemId]) {
+    updated[itemId] = { ...updated[itemId], stared }
+  } else {
+    updated[itemId] = { displayName: '', expanded: false, stared }
+  }
+  set(byStoreContainersAtom, updated)
 })
 
 /**
@@ -969,8 +1023,15 @@ export const setByStoreStaredItemNameAtom = atom(null, (get, set, itemId: string
  * Write atom to mark/unmark stared item as stared
  * Replaces Redux SET_BY_STORE_STARED_ITEM_STARED action
  */
-export const setByStoreStaredItemStaredAtom = atom(null, (_get, _set, _itemId: string, _stared: boolean) => {
-  // Placeholder - actual implementation would update byStoreStateAtom
+export const setByStoreStaredItemStaredAtom = atom(null, (get, set, itemId: string, stared: boolean) => {
+  const current = get(byStoreContainersAtom)
+  const updated = { ...current }
+  if (updated[itemId]) {
+    updated[itemId] = { ...updated[itemId], stared }
+  } else {
+    updated[itemId] = { displayName: '', expanded: false, stared }
+  }
+  set(byStoreContainersAtom, updated)
 })
 
 /**

@@ -5,6 +5,7 @@ import { InventoryList } from '../../application/state/inventory'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import { useSetAtom } from 'jotai'
 import { addAvailableAtom, removeAvailableAtom } from '../../application/atoms/inventory'
+import { JotaiTableColumn } from '../common/jotai/JotaiTableTypes'
 
 interface TradeListProps {
     selector: string,
@@ -32,16 +33,15 @@ const TradeList = (p: TradeListProps) => {
     }, [sourceAtom, list.items])
 
     // Column configuration
-    const columns = useMemo(() => [
+    const columns: JotaiTableColumn<ItemData>[] = useMemo(() => [
         {
             id: 'name',
             header: 'Name',
-            minWidth: 200,
             flex: 1,
             sortAccessor: (item: ItemData) => item.n,
             filterAccessor: (item: ItemData) => item.n,
             renderRow: (item: ItemData) => ({
-                type: 'text' as const,
+                type: 'text',
                 value: item.n,
                 title: item.n
             })
@@ -49,9 +49,8 @@ const TradeList = (p: TradeListProps) => {
         {
             id: 'favorite',
             header: '',
-            width: 30,
             renderRow: (item: ItemData) => ({
-                type: 'button' as const,
+                type: 'button',
                 icon: isFavorite(item.n) ? 'img/staron.png' : 'img/staroff.png',
                 width: 16,
                 title: isFavorite(item.n) ? 'Remove from Favorites' : 'Add to Favorites',
@@ -61,28 +60,26 @@ const TradeList = (p: TradeListProps) => {
         {
             id: 'quantity',
             header: 'Quantity',
-            width: 80,
             sortAccessor: (item: ItemData) => parseFloat(item.q),
             filterAccessor: (item: ItemData) => item.q,
             renderRow: (item: ItemData) => ({
-                type: 'text' as const,
+                type: 'text',
                 value: item.q,
                 title: item.q
             }),
-            justifyContent: 'end' as const
+            justifyContent: 'end'
         },
         {
             id: 'value',
             header: 'Value',
-            width: 100,
             sortAccessor: (item: ItemData) => parseFloat(item.v),
             filterAccessor: (item: ItemData) => item.v,
             renderRow: (item: ItemData) => ({
-                type: 'text' as const,
+                type: 'text',
                 value: item.v + ' PED',
                 title: item.v + ' PED'
             }),
-            justifyContent: 'end' as const
+            justifyContent: 'end'
         }
     ], [isFavorite, setAdd, setRemove])
 

@@ -18,7 +18,7 @@ import { CellElement } from './cellDSL'
  * @returns React node representing the cell content
  */
 export function renderCellElement<TItem>(
-  element: CellElement<TItem>,
+  element: CellElement,
   item: TItem,
   index: number,
   itemHeight: number
@@ -64,7 +64,11 @@ export function renderCellElement<TItem>(
           key={index}
           src={element.icon}
           title={element.title}
-          onClick={element.onClick}
+          onClick={(e) => {
+            e.stopPropagation()
+            element.onClick()
+          }}
+          {...element.show ? { 'data-show': true } : {}}
           style={{
             cursor: 'pointer',
             width: element.width,
@@ -80,7 +84,10 @@ export function renderCellElement<TItem>(
       return (
         <button
           key={index}
-          onClick={element.onClick}
+          onClick={(e) => {
+            e.stopPropagation()
+            element.onClick()
+          }}
           title={element.title}
           style={{
             cursor: 'pointer',

@@ -25,7 +25,7 @@ const initialListByStore = (expanded: boolean, sortType: number): InventoryBySto
 
 const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { items: Array<InventoryTree<ItemData>>, containers: ContainerMapData } => {
     // get root and children of the tree
-    const mapByName = { }
+    const mapByName: { [name: string]: string } = { }
     for (const d of list) {
         mapByName[d.n] = d.id;
     }
@@ -53,6 +53,8 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     // update the id in containers based on data and items
     const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
         const name = c.data ? c.data.n : c.displayName; // root containers don't have data
+        if (name === '') return st;
+
         if (!st[name]) {
             st[name] = [];
         }
@@ -86,10 +88,10 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
             // add 1 for different data.v, in items ignore order matching by n
             const hammingDistance = (a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }) => {
                 let distance = 0;
-                if (a.data.v !== b.data.v) {
+                if (a.data!.v !== b.data.v) {
                     distance += 1;
                 }
-                const itemsA = a.items.sort((a, b) => a.n.localeCompare(b.n));
+                const itemsA = a.items!.sort((a, b) => a.n.localeCompare(b.n));
                 const itemsB = b.items.sort((a, b) => a.n.localeCompare(b.n));
                 const lenA = itemsA.length;
                 const lenB = itemsB.length;
@@ -139,7 +141,12 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     
     // add missing containers and update container data and items\
     for (const [n, id] of Object.entries(listContainers.root)) { // Root containers
-        if (!containers[id]) {
+        if (containers[id]) {
+            containers[id] = {
+                ...containers[id],
+                displayName: n
+            }
+        } else {
             containers[id] = {
                 expanded: true,
                 stared: false,
@@ -151,10 +158,14 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
         const ch = listContainers.children[d.id]
         if (!ch) continue // skip, not a container
         if (!containers[d.id]) {
-            containers[d.id] = {
-                expanded: true,
-                stared: false,
-                displayName: d.n
+            if (oldContainers[d.id]) {
+                containers[d.id] = oldContainers[d.id]
+            } else {
+                containers[d.id] = {
+                    expanded: true,
+                    stared: false,
+                    displayName: d.n
+                }
             }
         }
         const toBasic = (d: ItemData): BasicItemData => ({ n: d.n, q: d.q, v: d.v })
@@ -166,7 +177,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     }
     
     // create tree
-    function getList(id: string): InventoryList<InventoryTree<ItemData>> {
+    function getList(id: string): InventoryList<InventoryTree<ItemData>> | undefined {
         const items = listContainers.children[id]
         if (!items) return undefined
         
@@ -184,7 +195,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
                     showItemValueRow: false
                 }
             }),
-            stats: undefined
+            stats: undefined! // will be set later
         }
     }
     
@@ -253,7 +264,9 @@ const loadInventoryByStore = (
     byStore: InventoryByStore,
     list: Array<ItemData>,
     containersSortType: number = SORT_NAME_ASCENDING,
-    staredSortType: number = SORT_NAME_ASCENDING
+    staredSortType: number = SORT_NAME_ASCENDING,
+    containersFilter?: string,
+    staredFilter?: string
 ): InventoryByStore => {
     const { items, containers } = _getByStore(list, byStore.containers);
     const originalList = {
@@ -286,9 +299,14 @@ const loadInventoryByStore = (
     // Apply tree-aware sorting before flattening to preserve hierarchy
     const sortedList = _cloneSortByStoreTreeList(listWithStats, containersSortType)
 
+    // Apply tree-aware filtering before flattening (if filter provided)
+    const filteredList = containersFilter
+        ? _applyByStoreFilter(sortedList, containers, containersFilter)
+        : sortedList
+
     // Build flattened tree for main view
     // Don't force expand all - let individual containers use their expanded state
-    const flatItems = _flatTree(sortedList, 0)
+    const flatItems = _flatTree(filteredList, 0)
 
     // Extract stared items (those with stared property in containers)
     const staredTreeItems: Array<InventoryTree<ItemData>> = []
@@ -310,6 +328,11 @@ const loadInventoryByStore = (
     // Apply tree-aware sorting to stared items
     const sortedStaredList = _cloneSortByStoreTreeList(staredList, staredSortType)
 
+    // Apply tree-aware filtering to stared items (if filter provided)
+    const filteredStaredList = staredFilter
+        ? _applyByStoreFilter(sortedStaredList, containers, staredFilter)
+        : sortedStaredList
+
     // Apply expanded state from byStore.staredExpanded to stared items
     const applyStaredExpandedState = (list: InventoryList<InventoryTree<ItemData>>, expandedIds: string[]): InventoryList<InventoryTree<ItemData>> => ({
         ...list,
@@ -323,7 +346,7 @@ const loadInventoryByStore = (
         }))
     })
 
-    const staredListWithExpanded = applyStaredExpandedState(sortedStaredList, byStore.staredExpanded)
+    const staredListWithExpanded = applyStaredExpandedState(filteredStaredList, byStore.staredExpanded)
     const flatStaredItems = _flatTree(staredListWithExpanded, 0)
 
     return {
@@ -340,8 +363,10 @@ const _applyByStoreFilter = (
     list: InventoryList<InventoryTree<ItemData>>,
     containers: ContainerMapData,
     filter?: string,
-): InventoryList<InventoryTree<ItemData>> =>
-    _applyByStoreFilter4('', list, filter, (id) => containers[id]?.expandedOnFilter ?? true);
+): InventoryList<InventoryTree<ItemData>> => {
+    if (!filter) return list;
+    return _applyByStoreFilter4('', list, filter, (id) => containers[id]?.expandedOnFilter ?? true);
+}
 
 const _applyByStoreFilter4 = (
     id: string,

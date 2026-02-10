@@ -41,7 +41,7 @@ interface ContainerMapDataItem {
   stableName?: string; // name used for sorting, not persistent
   expanded: boolean;
   expandedOnFilter?: boolean;
-  stared: boolean;
+  stared?: boolean;
   data?: BasicItemData; // data and items can be used the get the id in a new load
   items?: Array<BasicItemData>;
 }

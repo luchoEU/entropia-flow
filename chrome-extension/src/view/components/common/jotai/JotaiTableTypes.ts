@@ -19,7 +19,7 @@ export interface JotaiTableColumn<TItem = any> {
   header: string
 
   /** Declarative cell element definition for rendering and width calculation */
-  renderRow: (item: TItem) => CellElement<TItem>
+  renderRow: (item: TItem) => CellElement
   /** Optional: Transform item to value for sorting */
   sortAccessor?: (item: TItem) => string | number
   /** Optional: Transform item to string for filtering */
@@ -48,6 +48,8 @@ export interface JotaiTableConfig<TItem = any> {
   getRowClass?: (item: TItem, index: number) => string
   /** Optional: Extract PED value for total calculation */
   getPedValue?: (item: TItem) => number
+  /** Optional: Get count value for item (1 to count, 0 to exclude from total) - useful for tree structures */
+  getCountValue?: (item: TItem) => number
   /** Optional: Handle row click events */
   onRowClick?: (item: TItem, index: number, event: React.MouseEvent) => void
 }
@@ -77,4 +79,6 @@ export interface JotaiSortableTableProps<TItem = any> {
   children?: React.ReactNode
   /** Optional: Custom sort handler - when provided, disables internal sorting */
   onSortChange?: (columnIndex: number, ascending: boolean) => void
+  /** Optional: Custom filter handler - when provided, disables internal filtering */
+  onFilterChange?: (filter: string) => void
 }

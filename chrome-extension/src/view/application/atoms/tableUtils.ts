@@ -65,7 +65,8 @@ export function createComputedTableDataAtom<TItem>(
   sourceDataAtom: Atom<TItem[]>,
   uiStateAtom: Atom<TableUIState>,
   config: JotaiTableConfig<TItem>,
-  disableSorting: boolean = false
+  disableSorting: boolean = false,
+  disableFiltering: boolean = false
 ): Atom<ComputedTableData<TItem>> {
   return atom((get) => {
     const sourceData = get(sourceDataAtom)
@@ -76,9 +77,9 @@ export function createComputedTableDataAtom<TItem>(
       return { items: sourceData, stats: { count: sourceData.length } }
     }
 
-    // Apply filter
+    // Apply filter (skip if disabled, e.g., for tree data with custom filter handler)
     let filtered = sourceData
-    if (uiState.filter.trim()) {
+    if (!disableFiltering && uiState.filter.trim()) {
       const searchTerm = uiState.filter.toLowerCase().trim()
       filtered = sourceData.filter((item) => {
         const filterValue = config.columns.reduce((acc, col) => {
@@ -124,10 +125,16 @@ export function createComputedTableDataAtom<TItem>(
       pedTotal = total.toFixed(2)
     }
 
+    // Calculate count using getCountValue if provided, otherwise use length
+    let count = sorted.length
+    if (config.getCountValue) {
+      count = sorted.reduce((sum, item) => sum + config.getCountValue!(item), 0)
+    }
+
     return {
       items: sorted,
       stats: {
-        count: sorted.length,
+        count,
         ped: pedTotal
       }
     }

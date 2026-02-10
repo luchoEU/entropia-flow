@@ -47,8 +47,9 @@ const JotaiSortableTableComponent = function<TItem>(
 
   // Create computed data atom using the raw items atom and internal UI state
   // Disable sorting if custom onSortChange handler is provided (e.g., for tree data)
+  // Disable filtering if custom onFilterChange handler is provided (e.g., for tree data)
   const computedDataAtomRef = React.useRef(
-    createComputedTableDataAtom(itemsAtom, uiStateAtomRef.current, config, !!props.onSortChange)
+    createComputedTableDataAtom(itemsAtom, uiStateAtomRef.current, config, !!props.onSortChange, !!props.onFilterChange)
   )
 
   const data = useAtomValue(computedDataAtomRef.current)
@@ -82,13 +83,19 @@ const JotaiSortableTableComponent = function<TItem>(
   // Handle filter change
   const handleFilterChange = useCallback(
     (filter: string) => {
+      // Always update internal state for UI (search box)
       setUIState({
         sortColumn: uiState.sortColumn,
         sortAscending: uiState.sortAscending,
         filter
       })
+
+      // If custom handler provided, call it to trigger external filter logic
+      if (props.onFilterChange) {
+        props.onFilterChange(filter)
+      }
     },
-    [setUIState, uiState.sortColumn, uiState.sortAscending]
+    [setUIState, uiState.sortColumn, uiState.sortAscending, props.onFilterChange]
   )
 
   // Get column widths - use explicit width or calculate from DSL
