@@ -5,7 +5,10 @@ import { CRAFT_TABULAR_BLUEPRINTS } from '../../application/state/craft'
 import ImgButton from '../common/ImgButton'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import { craftBlueprintsItemsAtom } from '../../application/atoms/craftTables'
-import { craftBlueprintConfig } from '../../application/configs/craftTableConfigs'
+import { createCraftBlueprintConfig } from '../../application/configs/craftTableConfigs'
+import { useNavigate } from 'react-router-dom'
+import { formatToUrl } from '../../application/helpers/navigation'
+import { TabId } from '../../application/state/navigation'
 
 const StarButton = ({ bpName }: { bpName: string }) => {
     const staredList = useAtomValue(staredAtom)
@@ -22,6 +25,13 @@ const StarButton = ({ bpName }: { bpName: string }) => {
 function CraftBlueprintList() {
     const opt = useAtomValue(craftOptionsAtom)
     const setCraftOptions = useSetAtom(setCraftOptionsAtom)
+    const navigate = useNavigate()
+    const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
+
+    const config = useMemo(() => createCraftBlueprintConfig({
+        navigateToBlueprint: (name) => navigate(`${TabId.CRAFT}/${formatToUrl(name)}`),
+        toggleStared: (name, stared) => setBlueprintStared(name, stared)
+    }), [navigate, setBlueprintStared])
 
     const beforeTable = useMemo(() => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -49,7 +59,7 @@ function CraftBlueprintList() {
             title="Blueprints"
             subtitle="List of Blueprints"
             itemsAtom={craftBlueprintsItemsAtom}
-            config={craftBlueprintConfig}
+            config={config}
             beforeTable={beforeTable}
         />
     )

@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
-import { ItemOwned, TradeBlueprintLineData } from '../state/inventory'
-import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
+import { ItemOwned } from '../state/inventory'
+import { JotaiTableConfig, JotaiTableColumn } from '../../components/common/jotai/JotaiTableTypes'
 import { TTServiceSheetItem } from '../state/ttService'
 import { useNavigate } from 'react-router-dom'
 import {
   hideCriteriaAtom,
-  filterOptionsAtom,
-  tradeItemChainAtom
+  filterOptionsAtom
 } from './inventory'
 import { formatToUrl } from '../helpers/navigation'
 import { TabId } from '../state/navigation'
@@ -97,179 +96,73 @@ export const InventoryOwnedListBeforeTable: React.FC = () => {
   )
 }
 
-// Button wrapper components for interactive elements
-const HideToggleButton: React.FC<{ item: ItemOwned; type: 'name' | 'value' | 'container' }> = ({ item, type }) => {
-  const setHideCriteria = useSetAtom(hideCriteriaAtom)
-  const criteria = useAtomValue(hideCriteriaAtom)
 
-  const handleClick = () => {
-    if (item.c.hidden.any) {
-      // Show - remove from hidden criteria
-      switch (type) {
-        case 'name':
-          setHideCriteria({ ...criteria, name: criteria.name.filter(n => n !== item.data.n) })
-          break
-        case 'value':
-          setHideCriteria({ ...criteria, value: Number(item.data.v) - 0.01 })
-          break
-        case 'container':
-          setHideCriteria({ ...criteria, container: criteria.container.filter(c => c !== item.data.c) })
-          break
-      }
-    } else {
-      // Hide - add to hidden criteria
-      switch (type) {
-        case 'name':
-          setHideCriteria({ ...criteria, name: [...criteria.name, item.data.n] })
-          break
-        case 'value':
-          setHideCriteria({ ...criteria, value: Number(item.data.v) })
-          break
-        case 'container':
-          setHideCriteria({ ...criteria, container: [...criteria.container, item.data.c] })
-          break
-      }
-    }
-  }
-
-  const getTitles = (): [string, string] => {
-    switch (type) {
-      case 'name':
-        return ['Show this item name', 'Hide this item name']
-      case 'value':
-        return ['Show this value or higher', 'Hide this value or lower']
-      case 'container':
-        return ['Show this container', 'Hide this container']
-    }
-  }
-
-  const [showTitle, hideTitle] = getTitles()
-  const hideImg = item.c.hidden.any ? 'img/tick.png' : 'img/cross.png'
-  const title = item.c.hidden.any ? showTitle : hideTitle
-
-  return (
-    <img
-      src={hideImg}
-      title={title}
-      onClick={handleClick}
-      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-    />
-  )
-}
-
-const toggleTradeItem = (item: ItemOwned, setTradeItemChain: any) => {
-  if (item.data.n) {
-    if (item.t?.showingTradeItem) {
-      setTradeItemChain(undefined)
-    } else {
-      setTradeItemChain([{
-        name: item.data.n,
-        sortSecuence: {
-          favoriteBlueprints: [],
-          ownedBlueprints: [],
-          otherBlueprints: []
-        }
-      }])
-    }
-  }
-}
-
-const TradeItemButton: React.FC<{ item: ItemOwned }> = ({ item }) => {
-  const setTradeItemChain = useSetAtom(tradeItemChainAtom)
-
-  const dirImg = item.t?.showingTradeItem ? 'img/left.png' : 'img/right.png'
-  const title = item.t?.showingTradeItem ? 'Hide item details' : 'Show item details'
-
-  return (
-    <img
-      src={dirImg}
-      title={title}
-      onClick={() => toggleTradeItem(item, setTradeItemChain)}
-      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-    />
-  )
-}
-
-const NameCell: React.FC<{ item: ItemOwned }> = ({ item }) => {
-  const setTradeItemChain = useSetAtom(tradeItemChainAtom)
-
-  return (
-    <span
-      style={{
-        fontWeight: item.t?.showingTradeItem ? 'bold' : 'normal',
-        flex: 1,
-        cursor: 'pointer'
-      }}
-      title="Click to show/hide details"
-      onClick={() => toggleTradeItem(item, setTradeItemChain)}
-    >
-      {item.data.n}
-    </span>
-  )
-}
-
-
-const ReloadTTServiceButton: React.FC = () => {
-  const handleClick = () => {
-    // TODO: Implement TT Service reload via Jotai when async actions are available
-    // For now, this functionality is not available in the Jotai-based table
-  }
-
-  return (
-    <img
-      src="img/reload.png"
-      title="Reload TT Service from sheet (not yet implemented for Jotai)"
-      onClick={handleClick}
-      style={{ cursor: 'pointer', width: '16px', height: '16px', opacity: 0.5 }}
-      className="img-tt-service-reload"
-    />
-  )
+/**
+ * Callbacks for inventory table interactions
+ */
+export interface InventoryTableCallbacks {
+  toggleHideName: (name: string, isCurrentlyHidden: boolean) => void
+  toggleHideValue: (value: number, isCurrentlyHidden: boolean) => void
+  toggleHideContainer: (container: string, isCurrentlyHidden: boolean) => void
+  toggleTradeItem: (item: ItemOwned) => void
 }
 
 /**
  * Column definitions for the inventory table
  */
-export const getInventoryColumnConfig = (isShowingTradeItem: boolean, showReserve: boolean = false): JotaiTableConfig<ItemOwned> => {
-  const allAdditionalColummns = [
+export const getInventoryColumnConfig = (
+  isShowingTradeItem: boolean,
+  showReserve: boolean = false,
+  callbacks: InventoryTableCallbacks
+): JotaiTableConfig<ItemOwned> => {
+  const allAdditionalColummns: JotaiTableColumn<ItemOwned>[] = [
     {
       id: 'reserve',
       header: 'Reserve',
-      renderRowCell: (item: ItemOwned) => {
-        return item.t?.reserveAmount !== undefined ? `${item.t.reserveAmount.toFixed(2)} PED` : ''
-      },
+      renderRow: (item: ItemOwned) => ({
+        type: 'text' as const,
+        value: item.t?.reserveAmount !== undefined ? `${item.t.reserveAmount.toFixed(2)} PED` : ''
+      }),
       sortAccessor: (item: ItemOwned) => item.t?.reserveAmount ?? 0,
       filterAccessor: (item: ItemOwned) => String(item.t?.reserveAmount ?? ''),
-      width: 120,
       justifyContent: 'end'
     },
     {
       id: 'ttService',
       header: 'TT Service',
-      renderRowCell: (item: ItemOwned) => {
-        return item.t?.ttServiceValue !== undefined ? `${item.t.ttServiceValue.toFixed(2)} PED` : ''
-      },
+      renderRow: (item: ItemOwned) => ({
+        type: 'text' as const,
+        value: item.t?.ttServiceValue !== undefined ? `${item.t.ttServiceValue.toFixed(2)} PED` : ''
+      }),
       sortAccessor: (item: ItemOwned) => item.t?.ttServiceValue ?? 0,
       filterAccessor: (item: ItemOwned) => String(item.t?.ttServiceValue ?? ''),
-      width: 120,
       justifyContent: 'end'
     },
     {
       id: 'container',
       header: 'Container',
-      renderRowCell: (item: ItemOwned) => {
-        return (
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            <HideToggleButton item={item} type="container" />
-            <span>{item.data.c}</span>
-          </div>
-        )
-      },
+      renderRow: (item: ItemOwned) => ({
+        type: 'row' as const,
+        gap: 4,
+        children: [
+          {
+            type: 'button' as const,
+            icon: item.c.hidden.any ? 'img/tick.png' : 'img/cross.png',
+            width: 16,
+            title: item.c.hidden.any ? 'Show this container' : 'Hide this container',
+            onClick: () => callbacks.toggleHideContainer(item.data.c, item.c.hidden.any)
+          },
+          {
+            type: 'text' as const,
+            value: item.data.c
+          }
+        ]
+      }),
       sortAccessor: (item: ItemOwned) => item.data.c,
       filterAccessor: (item: ItemOwned) => item.data.c,
-      width: 200,
       justifyContent: 'start'
     }
-  ] as any
+  ]
 
   const additionalColummns = allAdditionalColummns.filter((col: any) => {
     if (col.id === 'reserve' && !showReserve) {
@@ -287,51 +180,84 @@ export const getInventoryColumnConfig = (isShowingTradeItem: boolean, showReserv
       {
         id: 'name',
         header: 'Name',
-        renderRowCell: (item: ItemOwned) => {
-          return (
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-              <HideToggleButton item={item} type="name" />
-              <NameCell item={item} />
-              <TradeItemButton item={item} />
-            </div>
-          )
-        },
+        renderRow: (item: ItemOwned) => ({
+          type: 'row' as const,
+          gap: 4,
+          children: [
+            {
+              type: 'button' as const,
+              icon: item.c.hidden.any ? 'img/tick.png' : 'img/cross.png',
+              width: 16,
+              title: item.c.hidden.any ? 'Show this item name' : 'Hide this item name',
+              onClick: () => callbacks.toggleHideName(item.data.n, item.c.hidden.any)
+            },
+            {
+              type: 'text' as const,
+              value: item.data.n,
+              style: {
+                fontWeight: item.t?.showingTradeItem ? 'bold' : 'normal',
+                flex: 1,
+                cursor: 'pointer'
+              },
+              title: 'Click to show/hide details',
+              onClick: () => callbacks.toggleTradeItem(item)
+            },
+            {
+              type: 'button' as const,
+              icon: item.t?.showingTradeItem ? 'img/left.png' : 'img/right.png',
+              width: 16,
+              title: item.t?.showingTradeItem ? 'Hide item details' : 'Show item details',
+              onClick: () => callbacks.toggleTradeItem(item)
+            }
+          ]
+        }),
         sortAccessor: (item: ItemOwned) => item.data.n,
         filterAccessor: (item: ItemOwned) => item.data.n,
-        width: 300,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity',
-        renderRowCell: (item: ItemOwned) => item.data.q,
+        renderRow: (item: ItemOwned) => ({
+          type: 'text' as const,
+          value: String(item.data.q)
+        }),
         sortAccessor: (item: ItemOwned) => {
           const q = item.data.q
           return typeof q === 'string' ? parseInt(q) : q
         },
         filterAccessor: (item: ItemOwned) => String(item.data.q),
-        width: 80,
         justifyContent: 'center'
       },
       {
         id: 'value',
         header: 'Value',
-        renderRowCell: (item: ItemOwned) => {
+        renderRow: (item: ItemOwned) => {
           const v = item.data.v
           const display = typeof v === 'string' ? v : String(v)
-          return (
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-              <HideToggleButton item={item} type="value" />
-              <span>{display} PED</span>
-            </div>
-          )
+          return {
+            type: 'row' as const,
+            gap: 4,
+            children: [
+              {
+                type: 'button' as const,
+                icon: item.c.hidden.any ? 'img/tick.png' : 'img/cross.png',
+                width: 16,
+                title: item.c.hidden.any ? 'Show this value or higher' : 'Hide this value or lower',
+                onClick: () => callbacks.toggleHideValue(Number(item.data.v), item.c.hidden.any)
+              },
+              {
+                type: 'text' as const,
+                value: `${display} PED`
+              }
+            ]
+          }
         },
         sortAccessor: (item: ItemOwned) => {
           const v = item.data.v
           return typeof v === 'string' ? parseFloat(v) : v
         },
         filterAccessor: (item: ItemOwned) => String(item.data.v),
-        width: 100,
         justifyContent: 'end'
       },
       ...(isShowingTradeItem ? [] : additionalColummns)
@@ -344,96 +270,14 @@ export const getInventoryColumnConfig = (isShowingTradeItem: boolean, showReserv
   }
 }
 
-/**
- * Blueprint quantity cell component that auto-loads when needed
- */
-const BlueprintQuantityCell: React.FC<{
-  bpName: string
-  type: string
-  itemName?: string
-}> = ({ bpName, type, itemName }) => {
-  const loadCraftBlueprint = useSetAtom(loadCraftBlueprintAtom)
-  const blueprints = useAtomValue(blueprintsAtom)
-
-  // Get quantity from blueprint data
-  const getQuantity = (): number | undefined => {
-    if (!itemName || !blueprints[bpName]) return undefined
-    const bp = blueprints[bpName]
-    const webBp = bp.web?.blueprint?.data?.value
-    if (webBp?.materials) {
-      return webBp.materials.find((m: any) => m.name === itemName)?.quantity
-    }
-    return undefined
-  }
-
-  // Check if this is a favorite or owned blueprint and quantity is not loaded
-  const bp = blueprints[bpName]
-  const hasWebData = bp?.web?.blueprint?.data?.value?.materials !== undefined
-  const shouldAutoLoad = !hasWebData && (type === 'Favorite' || type === 'Owned')
-  const quantity = getQuantity()
-
-  useEffect(() => {
-    if (shouldAutoLoad) {
-      loadCraftBlueprint(bpName)
-        .catch((err) => {
-          console.error(`Failed to load blueprint ${bpName}:`, err)
-        })
-    }
-  }, [shouldAutoLoad, bpName, loadCraftBlueprint])
-
-  // While loading
-  if (shouldAutoLoad && !hasWebData) {
-    return <img src="img/loading.gif" title="Loading blueprint data..." style={{ width: '16px', height: '16px' }} />
-  }
-
-  // Show the quantity value or "not loaded"
-  return <span>{quantity === undefined ? 'not loaded' : quantity?.toString()}</span>
-}
 
 /**
- * Blueprint star button component for trade item details
+ * Callbacks for blueprint table interactions
  */
-const BlueprintStarButton: React.FC<{
-  bpName: string
-  isStarred: boolean
-  chainIndex?: number
-}> = ({ bpName, isStarred, chainIndex = 0 }) => {
-  const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
-
-  const handleClick = () => {
-    setBlueprintStared(bpName, !isStarred)
-  }
-
-  return (
-    <img
-      src={isStarred ? 'img/staron.png' : 'img/staroff.png'}
-      title={isStarred ? 'Remove from Favorites' : 'Add to Favorites'}
-      onClick={handleClick}
-      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-    />
-  )
-}
-
-/**
- * Blueprint link button component for trade item details
- */
-const BlueprintLinkButton: React.FC<{
-  bpName: string
-}> = ({ bpName }) => {
-  const navigate = useNavigate()
-
-  const handleClick = () => {
-    navigate(`${TabId.CRAFT}/${formatToUrl(bpName)}`)
-  }
-
-  return (
-    <img
-      src='img/right.png'
-      title='Open this blueprint'
-      onClick={handleClick}
-      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-    />
-  )
+export interface BlueprintTableCallbacks {
+  toggleStar: (bpName: string) => void
+  navigateToBlueprint: (bpName: string) => void
+  getBlueprintQuantity: (bpName: string) => { loading: boolean; quantity?: number }
 }
 
 /**
@@ -442,7 +286,7 @@ const BlueprintLinkButton: React.FC<{
 export const createBlueprintTableConfig = (
   type: string,
   isStarred: boolean | undefined,
-  itemName?: string
+  callbacks: BlueprintTableCallbacks
 ): JotaiTableConfig<string> => {
   return {
     title: `${type} Blueprint`,
@@ -451,31 +295,56 @@ export const createBlueprintTableConfig = (
       {
         id: 'bpName',
         header: `${type} Blueprint`,
-        renderRowCell: (bpName: string) => {
-          return (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ flex: 1 }}>{bpName}</span>
-              {isStarred !== undefined && (
-                <BlueprintStarButton
-                  bpName={bpName}
-                  isStarred={isStarred}
-                />
-              )}
-              <BlueprintLinkButton bpName={bpName} />
-            </div>
-          )
-        },
+        renderRow: (bpName: string) => ({
+          type: 'row' as const,
+          gap: 8,
+          children: [
+            {
+              type: 'text' as const,
+              value: bpName,
+              style: { flex: 1 }
+            },
+            ...(isStarred !== undefined ? [{
+              type: 'button' as const,
+              icon: isStarred ? 'img/staron.png' : 'img/staroff.png',
+              width: 16,
+              title: isStarred ? 'Remove from Favorites' : 'Add to Favorites',
+              onClick: () => callbacks.toggleStar(bpName)
+            }] : []),
+            {
+              type: 'button' as const,
+              icon: 'img/right.png',
+              width: 16,
+              title: 'Open this blueprint',
+              onClick: () => callbacks.navigateToBlueprint(bpName)
+            }
+          ]
+        }),
         sortAccessor: (bpName: string) => bpName,
         filterAccessor: (bpName: string) => bpName,
-        width: 300,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity per Click',
-        renderRowCell: (bpName: string) =>
-          <BlueprintQuantityCell bpName={bpName} type={type} itemName={itemName} />,
-        width: 100,
+        renderRow: (bpName: string) => {
+          const { loading, quantity } = callbacks.getBlueprintQuantity(bpName)
+
+          if (loading) {
+            return {
+              type: 'icon' as const,
+              src: 'img/loading.gif',
+              width: 16,
+              height: 16,
+              title: 'Loading blueprint data...'
+            }
+          }
+
+          return {
+            type: 'text' as const,
+            value: quantity === undefined ? 'not loaded' : quantity.toString()
+          }
+        },
         justifyContent: 'center'
       }
     ]
@@ -495,29 +364,36 @@ export const createRefiningTableConfig = (
       {
         id: 'product',
         header: 'Refined Material',
-        renderRowCell: (item: any) => {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>{item.product.name}</span>
-              <img
-                src={item.isSelected ? 'img/left.png' : 'img/right.png'}
-                style={{ width: '14px', height: '14px', opacity: 0.6 }}
-              />
-            </div>
-          )
-        },
+        renderRow: (item: any) => ({
+          type: 'row' as const,
+          gap: 6,
+          children: [
+            {
+              type: 'text' as const,
+              value: item.product.name
+            },
+            {
+              type: 'icon' as const,
+              src: item.isSelected ? 'img/left.png' : 'img/right.png',
+              width: 14,
+              height: 14,
+              style: { opacity: 0.6 }
+            }
+          ]
+        }),
         sortAccessor: (item: any) => item.product.name,
         filterAccessor: (item: any) => item.product.name,
-        width: 300,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity Required',
-        renderRowCell: (item: any) => item.product.quantity?.toString(),
+        renderRow: (item: any) => ({
+          type: 'text' as const,
+          value: item.product.quantity?.toString() ?? ''
+        }),
         sortAccessor: (item: any) => item.product.quantity ?? 0,
         filterAccessor: (item: any) => item.product.quantity?.toString() ?? '',
-        width: 150,
         justifyContent: 'end'
       }
     ],
@@ -540,37 +416,45 @@ export const createTTServiceTableConfig = (): JotaiTableConfig<TTServiceSheetIte
       {
         id: 'date',
         header: 'Date',
-        renderRowCell: (item: TTServiceSheetItem) => item.date,
+        renderRow: (item: TTServiceSheetItem) => ({
+          type: 'text' as const,
+          value: item.date
+        }),
         sortAccessor: (item: TTServiceSheetItem) => new Date(item.date).getTime(), // TODO: returns NaN
         filterAccessor: (item: TTServiceSheetItem) => item.date,
-        width: 120,
         justifyContent: 'start'
       },
       {
         id: 'player',
         header: 'Player',
-        renderRowCell: (item: TTServiceSheetItem) => item.player,
+        renderRow: (item: TTServiceSheetItem) => ({
+          type: 'text' as const,
+          value: item.player
+        }),
         sortAccessor: (item: TTServiceSheetItem) => item.player,
         filterAccessor: (item: TTServiceSheetItem) => item.player,
-        width: 150,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity',
-        renderRowCell: (item: TTServiceSheetItem) => item.quantity,
+        renderRow: (item: TTServiceSheetItem) => ({
+          type: 'text' as const,
+          value: item.quantity.toString()
+        }),
         sortAccessor: (item: TTServiceSheetItem) => item.quantity,
         filterAccessor: (item: TTServiceSheetItem) => item.quantity.toString(),
-        width: 100,
         justifyContent: 'end'
       },
       {
         id: 'value',
         header: 'Value',
-        renderRowCell: (item: TTServiceSheetItem) => item.value.toFixed(2),
+        renderRow: (item: TTServiceSheetItem) => ({
+          type: 'text' as const,
+          value: item.value.toFixed(2)
+        }),
         sortAccessor: (item: TTServiceSheetItem) => item.value,
         filterAccessor: (item: TTServiceSheetItem) => item.value.toFixed(2),
-        width: 100,
         justifyContent: 'end'
       }
     ],

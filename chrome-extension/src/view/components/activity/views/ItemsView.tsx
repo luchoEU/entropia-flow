@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai'
 import { atom } from 'jotai'
 import { activityAtom } from '../../../application/atoms/activity'
 import { JotaiSortableTable } from '../../common/jotai/JotaiSortableTable'
-import ItemText from '../../common/ItemText'
 
 interface ItemsViewProps {
     sessionStartTime?: number
@@ -37,51 +36,68 @@ const ItemsView: React.FC<ItemsViewProps> = ({
     // Column configuration
     const columns = useMemo(() => [
         {
-            id: 'timestamp' as const,
+            id: 'timestamp',
             header: 'Time',
             width: 180,
             sortAccessor: (item: any) => item.timestamp,
-            renderRowCell: (item: any) => {
+            renderRow: (item: any) => {
                 const date = new Date(item.timestamp)
-                return !isNaN(date.getTime()) ? date.toLocaleString() : '-'
+                const text = !isNaN(date.getTime()) ? date.toLocaleString() : '-'
+                return { type: 'text' as const, value: text }
             }
         },
         {
-            id: 'name' as const,
+            id: 'name',
             header: 'Item',
             width: 150,
             sortAccessor: (item: any) => item.name,
-            renderRowCell: (item: any) => <ItemText text={item.name} />
+            renderRow: (item: any) => ({
+                type: 'text' as const,
+                value: item.name,
+                title: item.name
+            })
         },
         {
-            id: 'quantity' as const,
+            id: 'quantity',
             header: 'Quantity',
             width: 100,
             sortAccessor: (item: any) => item.quantity,
-            renderRowCell: (item: any) => item.quantity.toString(),
+            renderRow: (item: any) => ({
+                type: 'text' as const,
+                value: item.quantity.toString()
+            }),
             justifyContent: 'end' as const
         },
         {
-            id: 'value' as const,
+            id: 'value',
             header: 'Value',
             width: 120,
             sortAccessor: (item: any) => item.value,
-            renderRowCell: (item: any) => `${item.value.toFixed(2)} PED`,
+            renderRow: (item: any) => ({
+                type: 'text' as const,
+                value: `${item.value.toFixed(2)} PED`
+            }),
             justifyContent: 'end' as const
         },
         {
-            id: 'container' as const,
+            id: 'container',
             header: 'Container',
             width: 150,
             sortAccessor: (item: any) => item.container,
-            renderRowCell: (item: any) => item.container || '-'
+            renderRow: (item: any) => ({
+                type: 'text' as const,
+                value: item.container || '-'
+            })
         },
         {
-            id: 'source' as const,
+            id: 'source',
             header: 'Source',
             width: 120,
             sortAccessor: (item: any) => item.source,
-            renderRowCell: (item: any) => item.source || '-'
+            renderRow: (item: any) => ({
+                type: 'text' as const,
+                value: item.source || '-'
+            })
         }
     ], [])
 

@@ -1,4 +1,5 @@
 import { Atom } from 'jotai'
+import { CellElement } from './cellDSL'
 
 /**
  * UI state for table (sort column, direction, and filter)
@@ -16,16 +17,17 @@ export interface TableUIState {
 export interface JotaiTableColumn<TItem = any> {
   id: string
   header: string
-  /** Transforms item to React node for rendering */
-  renderRowCell: (item: TItem) => React.ReactNode
+
+  /** Declarative cell element definition for rendering and width calculation */
+  renderRow: (item: TItem) => CellElement<TItem>
   /** Optional: Transform item to value for sorting */
   sortAccessor?: (item: TItem) => string | number
   /** Optional: Transform item to string for filtering */
   filterAccessor?: (item: TItem) => string
-  /** Optional: Column width in pixels */
-  width?: number
-  /** Optional: Minimum column width in pixels (enables auto-growth) */
+  /** Optional: Minimum column width in pixels (default: 20) */
   minWidth?: number
+  /** Optional: Maximum column width in pixels (default: 600) */
+  maxWidth?: number
   /** Optional: CSS flex value for responsive sizing */
   flex?: number | string
   /** Optional: CSS justify-content value */

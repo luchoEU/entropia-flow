@@ -118,26 +118,23 @@ describe('JotaiSortableTable tree hierarchy bug - flat array sorting', () => {
         {
           id: 'name',
           header: 'Name',
-          width: 200,
           sortAccessor: (item: TreeLineData) => item.n, // Sort by name
           filterAccessor: (item: TreeLineData) => item.n,
-          renderRowCell: (item: TreeLineData) => <>{item.n}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.n })
         },
         {
           id: 'quantity',
           header: 'Quantity',
-          width: 100,
           sortAccessor: (item: TreeLineData) => parseFloat(item.q),
           filterAccessor: (item: TreeLineData) => item.q,
-          renderRowCell: (item: TreeLineData) => <>{item.q}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.q })
         },
         {
           id: 'value',
           header: 'Value',
-          width: 100,
           sortAccessor: (item: TreeLineData) => parseFloat(item.v),
           filterAccessor: (item: TreeLineData) => item.v,
-          renderRowCell: (item: TreeLineData) => <>{item.v}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.v })
         }
       ],
       itemTypeName: 'item',
@@ -293,26 +290,23 @@ describe('JotaiSortableTable tree hierarchy bug - flat array sorting', () => {
         {
           id: 'name',
           header: 'Name',
-          width: 200,
           sortAccessor: (item: TreeLineData) => item.n,
           filterAccessor: (item: TreeLineData) => item.n,
-          renderRowCell: (item: TreeLineData) => <>{item.n}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.n })
         },
         {
           id: 'quantity',
           header: 'Quantity',
-          width: 100,
           sortAccessor: (item: TreeLineData) => parseFloat(item.q),
           filterAccessor: (item: TreeLineData) => item.q,
-          renderRowCell: (item: TreeLineData) => <>{item.q}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.q })
         },
         {
           id: 'value',
           header: 'Value',
-          width: 100,
           sortAccessor: (item: TreeLineData) => parseFloat(item.v),
           filterAccessor: (item: TreeLineData) => item.v,
-          renderRowCell: (item: TreeLineData) => <>{item.v}</>
+          renderRow: (item: TreeLineData) => ({ type: 'text' as const, value: item.v })
         }
       ],
       itemTypeName: 'item',

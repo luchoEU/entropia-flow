@@ -4,8 +4,6 @@ import { ItemData } from "../../../common/state"
 import { JotaiSortableTable } from '../common/jotai/JotaiSortableTable'
 import { addZeroes } from '../craft/CraftBlueprint'
 import { byStoreStateAtom } from '../../application/atoms/inventory'
-import { itemsMapAtom } from '../../application/atoms/items'
-import { getRefinedChainForItem } from '../../application/helpers/inventory'
 import { getContainerBreadcrumb } from '../../application/helpers/inventory.byStore'
 
 interface ItemInventoryProps {
@@ -14,7 +12,6 @@ interface ItemInventoryProps {
 
 const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
     const byStore = useAtomValue(byStoreStateAtom)
-    const itemsMap = useAtomValue(itemsMapAtom)
 
     // Filter inventory items by the provided names and calculate breadcrumbs
     const { filteredItems, breadcrumbMap } = useMemo(() => {
@@ -41,7 +38,10 @@ const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
             width: 200,
             sortAccessor: (item: ItemData) => item.n,
             filterAccessor: (item: ItemData) => item.n,
-            renderRowCell: (item: ItemData) => item.n
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: item.n
+            })
         },
         {
             id: 'quantity',
@@ -49,7 +49,10 @@ const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
             width: 100,
             sortAccessor: (item: ItemData) => Number(item.q),
             filterAccessor: (item: ItemData) => item.q,
-            renderRowCell: (item: ItemData) => item.q
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: item.q
+            })
         },
         {
             id: 'value',
@@ -57,7 +60,10 @@ const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
             width: 100,
             sortAccessor: (item: ItemData) => Number(item.v),
             filterAccessor: (item: ItemData) => item.v,
-            renderRowCell: (item: ItemData) => addZeroes(Number(item.v))
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: addZeroes(Number(item.v))
+            })
         },
         {
             id: 'container',
@@ -68,12 +74,15 @@ const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
                 const breadcrumb = breadcrumbMap.get(item.id) ?? []
                 return breadcrumb.join(' ')
             },
-            renderRowCell: (item: ItemData) => {
+            renderRow: (item: ItemData) => {
                 const breadcrumb = breadcrumbMap.get(item.id) ?? []
-                return breadcrumb.length > 0 ? breadcrumb.join(' → ') : item.c
+                return {
+                    type: 'text' as const,
+                    value: breadcrumb.length > 0 ? breadcrumb.join(' → ') : item.c
+                }
             }
         }
-    ], [breadcrumbMap, itemsMap])
+    ], [breadcrumbMap])
 
     if (materialItems.length === 0) {
         return (

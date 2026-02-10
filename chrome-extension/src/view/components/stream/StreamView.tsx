@@ -3,7 +3,6 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { streamStateAtom, setStreamShowingLayoutIdAtom } from '../../application/atoms/stream';
 import { modeAtom, pinStreamViewAtom } from '../../application/atoms/mode';
 import StreamViewLayout from './StreamViewLayout';
-import { StreamState } from '../../application/state/stream';
 import ExpandableSection from '../common/ExpandableSection';
 import ImgButton from '../common/ImgButton';
 

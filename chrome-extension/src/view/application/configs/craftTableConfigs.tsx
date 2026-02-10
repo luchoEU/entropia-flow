@@ -1,66 +1,78 @@
-import React from 'react'
-import { useSetAtom } from 'jotai'
-import { useNavigate } from 'react-router-dom'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
-import { setBlueprintStaredAtom } from '../atoms/craft'
-import { formatToUrl } from '../helpers/navigation'
-import { TabId } from '../state/navigation'
-import ImgButton from '../../components/common/ImgButton'
-import ItemText from '../../components/common/ItemText'
 
 /**
  * Interface for blueprint tabular items
  * Matches the BlueprintTabularItem interface from tabular/craft.ts
  */
-interface BlueprintTabularItem {
+export interface BlueprintTabularItem {
   name: string
   stared: boolean
   quantity: number
 }
 
 /**
- * Craft Blueprint Table Config
+ * Callbacks needed for craft blueprint table
+ */
+export interface CraftBlueprintCallbacks {
+  navigateToBlueprint: (name: string) => void
+  toggleStared: (name: string, stared: boolean) => void
+}
+
+/**
+ * Craft Blueprint Table Config Factory
  * Shows available blueprints with quantity and favorite status
  */
-export const craftBlueprintConfig: JotaiTableConfig<BlueprintTabularItem> = {
-  title: 'Blueprints',
-  columns: [
-    {
-      id: 'name',
-      header: 'Name',
-      width: 200,
-      sortAccessor: (item) => item.name,
-      filterAccessor: (item) => item.name,
-      renderRowCell: (item) => {
-        const navigate = useNavigate()
-        const setStared = useSetAtom(setBlueprintStaredAtom)
-
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
-            <ItemText text={item.name} />
-            <ImgButton
-              title="Show item details"
-              src="img/right.png"
-              dispatch={() => navigate(`${TabId.CRAFT}/${formatToUrl(item.name)}`)}
-            />
-            <div style={{ flex: 1 }} />
-            <ImgButton
-              title={item.stared ? 'Remove from Favorites' : 'Add to Favorites'}
-              src={item.stared ? 'img/staron.png' : 'img/staroff.png'}
-              dispatch={() => setStared(item.name, !item.stared)}
-            />
-          </div>
-        )
+export function createCraftBlueprintConfig(
+  callbacks: CraftBlueprintCallbacks
+): JotaiTableConfig<BlueprintTabularItem> {
+  return {
+    title: 'Blueprints',
+    columns: [
+      {
+        id: 'name',
+        header: 'Name',
+        sortAccessor: (item) => item.name,
+        filterAccessor: (item) => item.name,
+        renderRow: (item) => ({
+          type: 'row' as const,
+          gap: 4,
+          children: [
+            {
+              type: 'text' as const,
+              value: item.name,
+              title: item.name
+            },
+            {
+              type: 'button' as const,
+              icon: 'img/right.png',
+              width: 16,
+              title: 'Show item details',
+              onClick: () => callbacks.navigateToBlueprint(item.name)
+            },
+            {
+              type: 'spacer' as const
+            },
+            {
+              type: 'button' as const,
+              icon: item.stared ? 'img/staron.png' : 'img/staroff.png',
+              width: 16,
+              title: item.stared ? 'Remove from Favorites' : 'Add to Favorites',
+              onClick: () => callbacks.toggleStared(item.name, !item.stared)
+            }
+          ]
+        })
+      },
+      {
+        id: 'quantity',
+        header: 'Quantity',
+        sortAccessor: (item) => item.quantity,
+        filterAccessor: (item) => item.quantity.toString(),
+        renderRow: (item) => ({
+          type: 'text' as const,
+          value: item.quantity.toString()
+        }),
+        justifyContent: 'end' as const
       }
-    },
-    {
-      id: 'quantity',
-      header: 'Quantity',
-      width: 80,
-      sortAccessor: (item) => item.quantity,
-      filterAccessor: (item) => item.quantity.toString(),
-      renderRowCell: (item) => <span>{item.quantity.toString()}</span>,
-      justifyContent: 'end'
-    }
-  ]
+    ]
+  }
 }

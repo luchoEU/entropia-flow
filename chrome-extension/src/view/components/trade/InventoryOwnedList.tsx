@@ -30,6 +30,7 @@ import {
   createTTServiceTableConfig,
   loadTTServiceAtom,
   getTTServiceWebAtom,
+  hideCriteriaAtom,
 } from '../../application/atoms/inventory'
 import {
   setItemReserveAmountAtom,
@@ -46,6 +47,10 @@ import {
 } from '../../application/atoms/items'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings';
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection';
+import { useNavigate } from 'react-router-dom';
+import { formatToUrl } from '../../application/helpers/navigation';
+import { TabId } from '../../application/state/navigation';
+import { blueprintsAtom, setBlueprintStaredAtom, staredAtom } from '../../application/atoms/craft';
 
 const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, setTradeItemChain }: {
   refinings: any[]
@@ -129,6 +134,10 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
     const mat = useAtomValue(itemsStateAtom)
     const { reserve } = useAtomValue(filterOptionsAtom)
+    const navigate = useNavigate()
+    const setBlueprintStared = useSetAtom(setBlueprintStaredAtom)
+    const blueprints = useAtomValue(blueprintsAtom)
+    const stared = useAtomValue(staredAtom)
 
     const name = tradeItemData.name
     if (!name) return <></> // Guard against undefined name
@@ -152,6 +161,24 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const favoriteBlueprints = useAtomValue(favoriteAtom)
     const ownedBlueprints = useAtomValue(ownedAtom)
     const otherBlueprints = useAtomValue(otherAtom)
+
+    // Blueprint table callbacks
+    const blueprintCallbacks = useMemo(() => ({
+        toggleStar: (bpName: string) => {
+            const isStarred = stared.list.includes(bpName)
+            setBlueprintStared(bpName, !isStarred)
+        },
+        navigateToBlueprint: (bpName: string) => {
+            navigate(`${TabId.CRAFT}/${formatToUrl(bpName)}`)
+        },
+        getBlueprintQuantity: (bpName: string) => {
+            const bp = blueprints[bpName]
+            const webBp = bp?.web?.blueprint?.data?.value
+            const loading = !webBp?.materials
+            const quantity = webBp?.materials?.find((m: any) => m.name === baseName)?.quantity
+            return { loading, quantity }
+        }
+    }), [blueprints, baseName, setBlueprintStared, navigate, stared])
 
     return <>
         {<JotaiWebDataControl valueGet={getItemWebAtom} loadGet={loadItemWebAtom} itemName={baseName} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
@@ -214,7 +241,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                         <JotaiSortableTable
                             itemsAtom={favoriteAtom}
                             maxNumberOfLines={6}
-                            config={createBlueprintTableConfig('Favorite', true, baseName)}
+                            config={createBlueprintTableConfig('Favorite', true, blueprintCallbacks)}
                             useFixedSizeList={false}
                         /> :
                         <p style={{ color: '#666' }}>Not used on any {ownedBlueprints.length > 0 ? 'Favorite' : 'Owned'} Blueprint</p>
@@ -224,7 +251,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     <JotaiSortableTable
                         itemsAtom={ownedAtom}
                         maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Owned', false, baseName)}
+                        config={createBlueprintTableConfig('Owned', false, blueprintCallbacks)}
                         useFixedSizeList={false}
                     />
                 </div> }
@@ -232,7 +259,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                     <JotaiSortableTable
                         itemsAtom={otherAtom}
                         maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Not Owned', undefined, baseName)}
+                        config={createBlueprintTableConfig('Not Owned', undefined, blueprintCallbacks)}
                         useFixedSizeList={false}
                     />
                 </div> }
@@ -253,10 +280,46 @@ export const InventoryOwnedList = () => {
     const tradeItemChain = useAtomValue(tradeItemChainAtom)
     const isShowingTradeItem = !!tradeItemChain
     const filterOptions = useAtomValue(filterOptionsAtom)
+    const setHideCriteria = useSetAtom(hideCriteriaAtom)
+    const hideCriteria = useAtomValue(hideCriteriaAtom)
+    const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
+
+    const callbacks = React.useMemo(() => ({
+        toggleHideName: (name: string, isCurrentlyHidden: boolean) => {
+            if (isCurrentlyHidden) {
+                setHideCriteria({ ...hideCriteria, name: hideCriteria.name.filter(n => n !== name) })
+            } else {
+                setHideCriteria({ ...hideCriteria, name: [...hideCriteria.name, name] })
+            }
+        },
+        toggleHideValue: (value: number, isCurrentlyHidden: boolean) => {
+            if (isCurrentlyHidden) {
+                setHideCriteria({ ...hideCriteria, value: value - 0.01 })
+            } else {
+                setHideCriteria({ ...hideCriteria, value })
+            }
+        },
+        toggleHideContainer: (container: string, isCurrentlyHidden: boolean) => {
+            if (isCurrentlyHidden) {
+                setHideCriteria({ ...hideCriteria, container: hideCriteria.container.filter(c => c !== container) })
+            } else {
+                setHideCriteria({ ...hideCriteria, container: [...hideCriteria.container, container] })
+            }
+        },
+        toggleTradeItem: (item: ItemOwned) => {
+            if (item.data.n) {
+                if (item.t?.showingTradeItem) {
+                    setTradeItemChain(undefined, 0)
+                } else {
+                    setTradeItemChain(item.data.n, 0)
+                }
+            }
+        }
+    }), [hideCriteria, setHideCriteria, setTradeItemChain])
 
     const config = React.useMemo(
-        () => getInventoryColumnConfig(isShowingTradeItem, filterOptions.reserve),
-        [isShowingTradeItem, filterOptions.reserve]
+        () => getInventoryColumnConfig(isShowingTradeItem, filterOptions.reserve, callbacks),
+        [isShowingTradeItem, filterOptions.reserve, callbacks]
     )
 
     return (

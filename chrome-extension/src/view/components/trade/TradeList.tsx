@@ -3,10 +3,8 @@ import { atom, Atom } from 'jotai'
 import { ItemData } from '../../../common/state'
 import { InventoryList } from '../../application/state/inventory'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
-import ImgButton from '../common/ImgButton'
-import ItemText from '../common/ItemText'
 import { useSetAtom } from 'jotai'
-import { addAvailableAtom, removeAvailableAtom, auctionItemsAtom, availableItemsAtom } from '../../application/atoms/inventory'
+import { addAvailableAtom, removeAvailableAtom } from '../../application/atoms/inventory'
 
 interface TradeListProps {
     selector: string,
@@ -42,19 +40,23 @@ const TradeList = (p: TradeListProps) => {
             flex: 1,
             sortAccessor: (item: ItemData) => item.n,
             filterAccessor: (item: ItemData) => item.n,
-            renderRowCell: (item: ItemData) => (
-                <ItemText className={classMap[item.n]} text={item.n} />
-            )
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: item.n,
+                title: item.n
+            })
         },
         {
             id: 'favorite',
             header: '',
             width: 30,
-            renderRowCell: (item: ItemData) => (
-                isFavorite(item.n) ?
-                    <ImgButton title='Remove from Favorites' src='img/staron.png' dispatch={() => setRemove(item.n)} /> :
-                    <ImgButton title='Add to Favorites' src='img/staroff.png' dispatch={() => setAdd(item.n)} />
-            )
+            renderRow: (item: ItemData) => ({
+                type: 'button' as const,
+                icon: isFavorite(item.n) ? 'img/staron.png' : 'img/staroff.png',
+                width: 16,
+                title: isFavorite(item.n) ? 'Remove from Favorites' : 'Add to Favorites',
+                onClick: () => isFavorite(item.n) ? setRemove(item.n) : setAdd(item.n)
+            })
         },
         {
             id: 'quantity',
@@ -62,7 +64,11 @@ const TradeList = (p: TradeListProps) => {
             width: 80,
             sortAccessor: (item: ItemData) => parseFloat(item.q),
             filterAccessor: (item: ItemData) => item.q,
-            renderRowCell: (item: ItemData) => <ItemText text={item.q} />,
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: item.q,
+                title: item.q
+            }),
             justifyContent: 'end' as const
         },
         {
@@ -71,10 +77,14 @@ const TradeList = (p: TradeListProps) => {
             width: 100,
             sortAccessor: (item: ItemData) => parseFloat(item.v),
             filterAccessor: (item: ItemData) => item.v,
-            renderRowCell: (item: ItemData) => <ItemText text={item.v + ' PED'} />,
+            renderRow: (item: ItemData) => ({
+                type: 'text' as const,
+                value: item.v + ' PED',
+                title: item.v + ' PED'
+            }),
             justifyContent: 'end' as const
         }
-    ], [classMap, isFavorite, setAdd, setRemove])
+    ], [isFavorite, setAdd, setRemove])
 
     return (
         <JotaiSortableTableSection

@@ -2,13 +2,17 @@ import React, { useMemo, useCallback } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { FixedSizeList } from 'react-window'
-import { JotaiSortableTableProps } from './JotaiTableTypes'
+import { JotaiSortableTableProps, JotaiTableColumn } from './JotaiTableTypes'
 import { TableUIState } from './JotaiTableTypes'
 import SearchInput from '../SearchInput'
 import './JotaiSortableTable.scss'
 
 // Import the data computation utility
 import { createComputedTableDataAtom } from '../../../application/atoms/tableUtils'
+
+// Import DSL utilities
+import { calculateColumnWidth } from './cellMeasurement'
+import { renderCellElement } from './cellRenderer'
 
 // Constants for table layout
 const ITEM_HEIGHT = 32
@@ -87,16 +91,28 @@ const JotaiSortableTableComponent = function<TItem>(
     [setUIState, uiState.sortColumn, uiState.sortAscending]
   )
 
-  // Get column widths and flex values
+  // Get column widths - use explicit width or calculate from DSL
   const columnWidths = useMemo(() => {
     return config.columns.map((col) => {
-      // If flex is specified, use minWidth or default width; otherwise use width or default 80
+      // If column has flex, use minWidth for fixed sizing
       if (col.flex !== undefined) {
-        return col.minWidth ?? col.width ?? 80
+        return col.minWidth ?? 80
       }
-      return col.width ?? 80
+
+      // Calculate width from DSL
+      const calculatedWidth = calculateColumnWidth(
+        col.renderRow,
+        data.items,
+        10,  // sample size
+        '13px Arial'  // TODO: get from CSS
+      )
+
+      const minWidth = col.minWidth ?? 20
+      const maxWidth = col.maxWidth ?? 600
+
+      return Math.min(maxWidth, Math.max(minWidth, calculatedWidth))
     })
-  }, [config.columns])
+  }, [config.columns, data.items])
 
   const totalWidth = useMemo(() => {
     return columnWidths.reduce((a, b) => a + b, 0) + COLUMN_PADDING * 2 * columnWidths.length
@@ -105,6 +121,15 @@ const JotaiSortableTableComponent = function<TItem>(
   const tableMaxHeight = useMemo(() => {
     return itemHeight * maxNumberOfLines + itemHeight * (useFixedSizeList ? 1/2 : 3/4)
   }, [itemHeight, maxNumberOfLines, useFixedSizeList])
+
+  // Render data cell using DSL
+  const renderCell = useCallback(
+    (col: JotaiTableColumn<TItem>, item: TItem, index: number) => {
+      const element = col.renderRow(item)
+      return renderCellElement(element, item, index, itemHeight)
+    },
+    [itemHeight]
+  )
 
   // Render header row
   const renderHeaderRow = useCallback(() => {
@@ -146,8 +171,6 @@ const JotaiSortableTableComponent = function<TItem>(
   const renderRow = useCallback(
     (item: TItem, index: number) => {
       return config.columns.map((col, colIndex) => {
-        const rowValue = col.renderRowCell(item)
-
         return (
           <div
             key={`${col.id}-${index}`}
@@ -156,17 +179,16 @@ const JotaiSortableTableComponent = function<TItem>(
               minWidth: col.minWidth ? `${col.minWidth}px` : undefined,
               justifyContent: col.justifyContent ?? 'start',
               padding: `0 ${COLUMN_PADDING}px`,
-              width: col.width ? `${col.width}px` : undefined,
               height: itemHeight
             }}
             className='table-data-cell'
           >
-            {rowValue}
+            {renderCell(col, item, index)}
           </div>
         )
       })
     },
-    [config.columns, columnWidths, itemHeight]
+    [config.columns, columnWidths, itemHeight, renderCell]
   )
 
   // Virtualized row renderer for FixedSizeList

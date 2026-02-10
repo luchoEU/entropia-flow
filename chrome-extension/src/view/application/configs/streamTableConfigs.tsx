@@ -31,10 +31,9 @@ export const streamChooserConfig: JotaiTableConfig<StreamChooserLine> = {
     {
       id: 'name',
       header: 'Name',
-      width: 150,
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setStared = useSetAtom(setStreamStaredAtom)
         const removeLayout = useSetAtom(removeStreamLayoutAtom)
         const navigate = useNavigate()
@@ -67,8 +66,7 @@ export const streamChooserConfig: JotaiTableConfig<StreamChooserLine> = {
     {
       id: 'preview',
       header: 'Preview',
-      width: 200,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const streamState = useAtomValue(streamStateAtom)
         const { commonData = {}, layoutData = {} } = streamState.out?.data ?? {}
         return (
@@ -94,10 +92,9 @@ export const streamTrashConfig: JotaiTableConfig<StreamTrashLine> = {
     {
       id: 'name',
       header: 'Name',
-      width: 150,
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const restore = useSetAtom(restoreStreamLayoutAtom)
 
         return (
@@ -116,8 +113,7 @@ export const streamTrashConfig: JotaiTableConfig<StreamTrashLine> = {
     {
       id: 'preview',
       header: 'Preview',
-      width: 200,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const streamState = useAtomValue(streamStateAtom)
         const { commonData = {}, layoutData = {} } = streamState.out?.data ?? {}
         return (
@@ -143,23 +139,20 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
     {
       id: 'source',
       header: 'Source',
-      width: 80,
       sortAccessor: (item) => item.source,
       filterAccessor: (item) => item.source,
-      renderRowCell: (item) => <span>{item.source}</span>
+      renderRow: (item) => <span>{item.source}</span>
     },
     {
       id: 'name',
       header: 'Name',
-      width: 120,
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRowCell: (item) => <span>{item.name}</span>
+      renderRow: (item) => <span>{item.name}</span>
     },
     {
       id: 'value',
       header: 'Value',
-      width: 200,
       sortAccessor: (item) => {
         const value = item.computed && typeof item.computed === 'string' ? item.computed : JSON.stringify(item.computed ?? item.value)
         return value
@@ -168,7 +161,7 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
         const value = item.computed && typeof item.computed === 'string' ? item.computed : JSON.stringify(item.computed ?? item.value)
         return value
       },
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const value = item.computed && typeof item.computed === 'string' ? item.computed : JSON.stringify(item.computed ?? item.value)
         const isFormula = typeof item.value === 'string' && item.value.startsWith('=')
 
@@ -189,10 +182,9 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
     {
       id: 'description',
       header: 'Description',
-      width: 200,
       sortAccessor: (item) => item.description ?? '',
       filterAccessor: (item) => item.description ?? '',
-      renderRowCell: (item) => <span>{item.description ?? ''}</span>
+      renderRow: (item) => <span>{item.description ?? ''}</span>
     }
   ]
 }
@@ -207,18 +199,16 @@ export const streamImagesConfig: JotaiTableConfig<StreamComputedVariable> = {
     {
       id: 'source',
       header: 'Source',
-      width: 80,
       sortAccessor: (item) => item.source,
       filterAccessor: (item) => item.source,
-      renderRowCell: (item) => <span>{item.source}</span>
+      renderRow: (item) => <span>{item.source}</span>
     },
     {
       id: 'name',
       header: 'Name',
-      width: 120,
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
         const removeUser = useSetAtom(removeStreamUserAtom)
         const streamState = useAtomValue(streamStateAtom)
@@ -252,8 +242,7 @@ export const streamImagesConfig: JotaiTableConfig<StreamComputedVariable> = {
     {
       id: 'image',
       header: 'Image',
-      width: 120,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const streamState = useAtomValue(streamStateAtom)
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
 
@@ -294,10 +283,9 @@ export const streamImagesConfig: JotaiTableConfig<StreamComputedVariable> = {
     {
       id: 'description',
       header: 'Description',
-      width: 200,
       sortAccessor: (item) => item.description ?? '',
       filterAccessor: (item) => item.description ?? '',
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
         const streamState = useAtomValue(streamStateAtom)
 
@@ -327,10 +315,9 @@ export const streamParametersConfig: JotaiTableConfig<StreamComputedVariable> = 
     {
       id: 'name',
       header: 'Name',
-      width: 120,
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
         const removeUser = useSetAtom(removeStreamUserAtom)
         const streamState = useAtomValue(streamStateAtom)
@@ -364,10 +351,9 @@ export const streamParametersConfig: JotaiTableConfig<StreamComputedVariable> = 
     {
       id: 'value',
       header: 'Value',
-      width: 150,
       sortAccessor: (item) => JSON.stringify(item.value),
       filterAccessor: (item) => JSON.stringify(item.value),
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
         const streamState = useAtomValue(streamStateAtom)
 
@@ -390,10 +376,9 @@ export const streamParametersConfig: JotaiTableConfig<StreamComputedVariable> = 
     {
       id: 'description',
       header: 'Description',
-      width: 200,
       sortAccessor: (item) => item.description ?? '',
       filterAccessor: (item) => item.description ?? '',
-      renderRowCell: (item) => {
+      renderRow: (item) => {
         const setUserPartial = useSetAtom(setStreamUserPartialAtom)
         const streamState = useAtomValue(streamStateAtom)
 

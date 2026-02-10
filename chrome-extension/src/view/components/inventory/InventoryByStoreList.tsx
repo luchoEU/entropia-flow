@@ -3,8 +3,7 @@ import { atom } from 'jotai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { InventoryByStore, TreeLineData } from '../../application/state/inventory'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
-import ImgButton from '../common/ImgButton'
-import ExpandablePlusButton from '../common/ExpandablePlusButton'
+import { CellElement } from '../common/jotai/cellDSL'
 import {
   setByStoreItemExpandedAtom, setByStoreItemNameAtom,
   confirmByStoreItemNameEditingAtom, cancelByStoreItemNameEditingAtom, startByStoreItemNameEditingAtom,
@@ -16,8 +15,6 @@ import {
   sortByStoreByAtom, sortByStoreStaredByAtom
 } from '../../application/atoms/inventory'
 import { columnIndexToSortType } from '../../application/helpers/inventory.sort'
-
-const INDENT_SPACE = 10
 
 const InventoryByStoreList = () => {
     const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
@@ -68,7 +65,7 @@ const InventoryByStoreList = () => {
     , [])
 
     // Helper to render name column with tree indentation and editing
-    const renderNameColumn = (_showContainer: boolean, isFavorite: boolean) => (item: TreeLineData) => {
+    const renderNameColumn = (_showContainer: boolean, isFavorite: boolean) => (item: TreeLineData): CellElement<TreeLineData> => {
         const handleExpandToggle = () => {
             if (isFavorite) {
                 setByStoreStaredItemExpanded(item.id, !item.expanded)
@@ -117,39 +114,90 @@ const InventoryByStoreList = () => {
             }
         }
 
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', paddingLeft: `${item.indent * INDENT_SPACE}px` }}>
-                {item.expanded !== undefined && (
-                    <ExpandablePlusButton expanded={item.expanded} setExpanded={handleExpandToggle} />
-                )}
-                {item.isEditing ? (
-                    <>
-                        <input
-                            type='text'
-                            value={item.n}
-                            onChange={(e) => handleNameChange(e.target.value)}
-                            style={{ flex: 1, marginRight: '4px' }}
-                        />
-                        <ImgButton title='Cancel' src='img/cross.png' dispatch={handleEditCancel} />
-                        <ImgButton title='Confirm' src='img/tick.png' dispatch={handleEditConfirm} />
-                    </>
-                ) : (
-                    <>
-                        <span style={{ flex: 1 }}>{item.n}</span>
-                        {item.canEditName && (
-                            <ImgButton title='Edit this item name' src='img/edit.png' dispatch={handleEditStart} />
-                        )}
-                    </>
-                )}
-                {item.isContainer && (
-                    <ImgButton
-                        title={item.stared ? 'Remove from Favorites' : 'Add to Favorites'}
-                        src={item.stared ? 'img/staron.png' : 'img/staroff.png'}
-                        dispatch={() => handleSetStared(!item.stared)}
-                    />
-                )}
-            </div>
-        )
+        const children: CellElement<TreeLineData>[] = []
+
+        // Add indent spacer for tree structure
+        if (item.indent > 0) {
+            children.push({
+                type: 'text' as const,
+                value: '\u00A0'.repeat(item.indent * 4) // Use non-breaking spaces for indentation
+            })
+        }
+
+        // Add expand/collapse button if expandable
+        if (item.expanded !== undefined) {
+            children.push({
+                type: 'button' as const,
+                icon: item.expanded ? 'img/down.png' : 'img/right.png',
+                width: 16,
+                height: 16,
+                onClick: handleExpandToggle,
+                title: item.expanded ? 'Collapse' : 'Expand'
+            })
+        }
+
+        // Add editing or display mode
+        if (item.isEditing) {
+            children.push({
+                type: 'input' as const,
+                inputType: 'text' as const,
+                value: item.n,
+                onChange: handleNameChange,
+                width: 'flex' as const,
+                style: { marginRight: '4px' }
+            })
+            children.push({
+                type: 'button' as const,
+                icon: 'img/cross.png',
+                width: 16,
+                height: 16,
+                onClick: handleEditCancel,
+                title: 'Cancel'
+            })
+            children.push({
+                type: 'button' as const,
+                icon: 'img/tick.png',
+                width: 16,
+                height: 16,
+                onClick: handleEditConfirm,
+                title: 'Confirm'
+            })
+        } else {
+            children.push({
+                type: 'text' as const,
+                value: item.n,
+                style: { flex: 1 }
+            })
+            if (item.canEditName) {
+                children.push({
+                    type: 'button' as const,
+                    icon: 'img/edit.png',
+                    width: 16,
+                    height: 16,
+                    onClick: handleEditStart,
+                    title: 'Edit this item name'
+                })
+            }
+        }
+
+        // Add star button for containers
+        if (item.isContainer) {
+            children.push({
+                type: 'button' as const,
+                icon: item.stared ? 'img/staron.png' : 'img/staroff.png',
+                width: 16,
+                height: 16,
+                onClick: () => handleSetStared(!item.stared),
+                title: item.stared ? 'Remove from Favorites' : 'Add to Favorites'
+            })
+        }
+
+        return {
+            type: 'row' as const,
+            gap: 4,
+            alignItems: 'center' as const,
+            children
+        }
     }
 
     // Memoize renderNameColumn to avoid recreating it
@@ -171,7 +219,7 @@ const InventoryByStoreList = () => {
             width: 200,
             sortAccessor: (item: TreeLineData) => item.n,
             filterAccessor: (item: TreeLineData) => item.n,
-            renderRowCell: memoizedRenderNameStared
+            renderRow: memoizedRenderNameStared
         },
         {
             id: 'container',
@@ -180,11 +228,10 @@ const InventoryByStoreList = () => {
             sortAccessor: (item: TreeLineData) => item.c,
             filterAccessor: (item: TreeLineData) => item.c,
             justifyContent: 'center' as const,
-            renderRowCell: (item: TreeLineData) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{item.c}</span>
-                </div>
-            )
+            renderRow: (item: TreeLineData) => ({
+                type: 'text' as const,
+                value: item.c
+            })
         },
         {
             id: 'quantity',
@@ -193,7 +240,10 @@ const InventoryByStoreList = () => {
             sortAccessor: (item: TreeLineData) => parseFloat(item.q),
             filterAccessor: (item: TreeLineData) => item.q,
             justifyContent: 'end' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.q}</>
+            renderRow: (item: TreeLineData) => ({
+                type: 'text' as const,
+                value: item.q
+            })
         },
         {
             id: 'value',
@@ -202,7 +252,10 @@ const InventoryByStoreList = () => {
             sortAccessor: (item: TreeLineData) => parseFloat(item.v),
             filterAccessor: (item: TreeLineData) => item.v,
             justifyContent: 'end' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.v} PED</>
+            renderRow: (item: TreeLineData) => ({
+                type: 'text' as const,
+                value: `${item.v} PED`
+            })
         }
     ], [memoizedRenderNameStared])
 
@@ -214,7 +267,7 @@ const InventoryByStoreList = () => {
             width: 200,
             sortAccessor: (item: TreeLineData) => item.n,
             filterAccessor: (item: TreeLineData) => item.n,
-            renderRowCell: memoizedRenderNameRegular
+            renderRow: memoizedRenderNameRegular
         },
         {
             id: 'quantity',
@@ -223,7 +276,10 @@ const InventoryByStoreList = () => {
             sortAccessor: (item: TreeLineData) => parseFloat(item.q),
             filterAccessor: (item: TreeLineData) => item.q,
             justifyContent: 'end' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.q}</>
+            renderRow: (item: TreeLineData) => ({
+                type: 'text' as const,
+                value: item.q
+            })
         },
         {
             id: 'value',
@@ -232,7 +288,10 @@ const InventoryByStoreList = () => {
             sortAccessor: (item: TreeLineData) => parseFloat(item.v),
             filterAccessor: (item: TreeLineData) => item.v,
             justifyContent: 'end' as const,
-            renderRowCell: (item: TreeLineData) => <>{item.v} PED</>
+            renderRow: (item: TreeLineData) => ({
+                type: 'text' as const,
+                value: `${item.v} PED`
+            })
         }
     ], [memoizedRenderNameRegular])
 
