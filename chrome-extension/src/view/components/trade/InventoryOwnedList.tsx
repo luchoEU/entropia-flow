@@ -32,6 +32,7 @@ import {
   getTTServiceWebAtom,
   hideCriteriaAtom,
 } from '../../application/atoms/inventory'
+import { parseAggregatedName } from '../../application/helpers/inventory'
 import {
   setItemReserveAmountAtom,
   getItemAtom,
@@ -78,18 +79,6 @@ const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, set
   )
 })
 
-const _parseAggregatedName = (name: string): { baseName: string; sources?: string[] } => {
-    // Parse aggregated format "ItemName ← source1, source2, ..."
-    const match = name.match(/^(.+?)\s*←\s*(.+)$/)
-    if (match) {
-        const baseName = match[1].trim()
-        const sourcesStr = match[2].trim()
-        const sources = sourcesStr.split(',').map(s => s.trim())
-        return { baseName, sources }
-    }
-    return { baseName: name }
-}
-
 const TradeItemDetailsChain = () => {
     const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
     const setEditModeMaterialName = useSetAtom(setEditModeMaterialNameAtom)
@@ -101,7 +90,7 @@ const TradeItemDetailsChain = () => {
         return <></> // no chain
 
     const chainRootName = tradeItemDataChain[0]?.name;
-    const baseChainRootName = _parseAggregatedName(chainRootName).baseName
+    const baseChainRootName = parseAggregatedName(chainRootName).baseName
     if (!enrichedItems?.find((d: ItemOwned) => d.data.n === chainRootName || d.data.n === baseChainRootName))
         return <></> // chain root is not visible
 
@@ -142,7 +131,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const name = tradeItemData.name
     if (!name) return <></> // Guard against undefined name
 
-    const { baseName, sources } = _parseAggregatedName(name)
+    const { baseName, sources } = parseAggregatedName(name)
     const editMode = name && name === mat.editModeMaterialName
 
     const itemAtom = useMemo(() => getItemAtom(baseName), [baseName])

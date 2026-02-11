@@ -3,7 +3,7 @@ import { atomWithStorage } from 'jotai/utils'
 import { ItemOwned, TradeItemData, OwnedHideCriteria, OwnedOptions, TradeBlueprintLineData, InventoryByStore, ContainerMapData } from '../state/inventory'
 import { ItemState } from '../state/items'
 import { TTServiceInventoryWebData, TTServiceState } from '../state/ttService'
-import { joinDuplicates, aggregateRefinedChains } from '../helpers/inventory'
+import { joinDuplicates, aggregateRefinedChains, parseAggregatedName } from '../helpers/inventory'
 import { loadInventoryByStore } from '../helpers/inventory.byStore'
 import { ItemData } from '../../../common/state'
 import { BlueprintWebData } from '../../../web/state'
@@ -241,7 +241,8 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
   ) ?? {}
 
   return finalItems.map(d => {
-    const m: ItemState = itemsMap[d.n]
+    const { baseName } = parseAggregatedName(d.n)
+    const m: ItemState = itemsMap[baseName]
     let enrichedItem: ItemOwned = {
       data: d,
       c: {

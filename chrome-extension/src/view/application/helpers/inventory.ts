@@ -218,6 +218,18 @@ const cleanForSaveInventoryList = <D>(list: InventoryList<D>): InventoryList<D> 
   stats: undefined
 });
 
+const parseAggregatedName = (name: string): { baseName: string; sources?: string[] } => {
+  // Parse aggregated format "ItemName ← source1, source2, ..."
+  const match = name.match(/^(.+?)\s*←\s*(.+)$/)
+  if (match) {
+    const baseName = match[1].trim()
+    const sourcesStr = match[2].trim()
+    const sources = sourcesStr.split(',').map(s => s.trim())
+    return { baseName, sources }
+  }
+  return { baseName: name }
+}
+
 export {
   initialState,
   initialList,
@@ -225,5 +237,6 @@ export {
   getBlueprintList,
   joinDuplicates,
   aggregateRefinedChains,
-  cleanForSaveInventoryList
+  cleanForSaveInventoryList,
+  parseAggregatedName
 };
