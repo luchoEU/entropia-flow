@@ -23,7 +23,7 @@ function StreamView() {
                 className='img-btn-stream-view-pin'
                 src={streamViewPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                 show
-                dispatch={() => { setPinStreamView(!streamViewPinned); return true }}
+                action={() => { setPinStreamView(!streamViewPinned); return true }}
             /> : undefined}
         >
             {view.map((w, i) => d.layoutData[w] && <StreamViewLayout key={w} id={`stream-view-${i}`} layoutId={w} single={{ data: { ...d.commonData, ...d.layoutData[w] }, layout: d.layouts[w] }} />)}

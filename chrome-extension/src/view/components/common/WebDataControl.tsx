@@ -1,6 +1,6 @@
-import React, { JSX, useEffect } from "react"
+import { JSX, useEffect } from "react"
 import { WebLoadResponse } from "../../../web/loader"
-import ImgButton, { multiDispatch } from "./ImgButton"
+import ImgButton from "./ImgButton"
 import { useNavigate } from "react-router-dom"
 
 function WebDataControl<T>({
@@ -22,7 +22,7 @@ function WebDataControl<T>({
         title={`Try to load ${name} again`}
         src='img/reload.png'
         className='img-btn-delta-zero'
-        dispatch={() => dispatchReload()} />
+        action={() => dispatchReload()} />
 
     useEffect(() => {
         if (!w && dispatchReload) {

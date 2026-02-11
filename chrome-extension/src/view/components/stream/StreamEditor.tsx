@@ -115,7 +115,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
 
     return <section>
         <h1 className='img-hover-container'>
-            <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${layout.name}`} show={true} dispatch={() => { navigate(TabId.STREAM); return true }}/>
+            <ImgButton title='Back to list' src='img/left.png' beforeText={`Editing Layout - ${layout.name}`} show={true} action={() => { navigate(TabId.STREAM); return true }}/>
             <button
                 title={`Click to switch to ${advanced ? 'Basic Editor if you just want to select the background' : "Advanced Editor where you can edit the layout's templates"}`}
                 className='stream-editor-button'

@@ -124,7 +124,7 @@ const BaseActionRow: React.FC<BaseActionRowProps> = ({
                         <ImgButton
                             title="Edit action item"
                             src="img/edit.png"
-                            dispatch={onStartEdit}
+                            action={onStartEdit}
                         />
                     )}
                     {actionsContent}

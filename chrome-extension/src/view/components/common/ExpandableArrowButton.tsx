@@ -7,8 +7,8 @@ const ExpandableArrowButton = (p: {
     setExpanded: (expanded: boolean) => any,
 }) => {
     return p.expanded ?
-        <ImgButton title='Collapse' className='hide' src='img/up.png' show={p.show} dispatch={() => p.setExpanded(false)} /> :
-        <ImgButton title='Expand' src='img/down.png' show={p.show} dispatch={() => p.setExpanded(true)} />
+        <ImgButton title='Collapse' className='hide' src='img/up.png' show={p.show} action={() => p.setExpanded(false)} /> :
+        <ImgButton title='Expand' src='img/down.png' show={p.show} action={() => p.setExpanded(true)} />
 }
 
 export default ExpandableArrowButton

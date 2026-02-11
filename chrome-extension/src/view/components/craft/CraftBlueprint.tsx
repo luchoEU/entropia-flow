@@ -359,14 +359,14 @@ const CraftEdit = ({bpName, bp, bpSuggestedMaterials}: {bpName: string, bp: Blue
                         <tr key={m.name || i}>
                             <td><input type='text' disabled value={m.quantity} onChange={(e) => changeBlueprintMaterialQuantity(bpName, i, e.target.value)}/></td>
                             <td><AutocompleteInput value={m.name} getChangeAction={(v) => changeBlueprintMaterialName(bpName, i, v)} suggestions={i === bpSuggestedMaterials?.index ? bpSuggestedMaterials?.list : undefined}/></td>
-                            <td><ImgButton src='img/cross.png' title='Remove Material' dispatch={() => removeBlueprintMaterial(bpName, i)}/></td>
-                            <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' dispatch={() => moveBlueprintMaterial(bpName, i, i - 1)}/>}</td>
-                            <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' dispatch={() => moveBlueprintMaterial(bpName, i, i + 1)}/>}</td>
+                            <td><ImgButton src='img/cross.png' title='Remove Material' action={() => removeBlueprintMaterial(bpName, i)}/></td>
+                            <td>{i > 0 && <ImgButton src='img/up.png' title='Move Material Up' action={() => moveBlueprintMaterial(bpName, i, i - 1)}/>}</td>
+                            <td>{i < bp.user?.materials?.length - 1 && <ImgButton src='img/down.png' title='Move Material Down' action={() => moveBlueprintMaterial(bpName, i, i + 1)}/>}</td>
                         </tr>
                     ))}
                     <tr>
                         <td></td>
-                        <td><ImgButton src='img/add.png' title='Add Material' className='craft-add-material' afterText='Add Material' dispatch={() => addBlueprintMaterial(bpName)}/></td>
+                        <td><ImgButton src='img/add.png' title='Add Material' className='craft-add-material' afterText='Add Material' action={() => addBlueprintMaterial(bpName)}/></td>
                     </tr>
                 </tbody>
             </table>
@@ -399,7 +399,7 @@ const CraftItemDetails = ({name, bpName, bp}: {name: string, bpName: string, bp:
         <div className='craft-chain'>
             <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); showBlueprintMaterialData(bpName, undefined) }}>
                 { name }<img src='img/left.png' />
-                { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => editMode ? setEditModeEnd() : setEditModeStart(name)}/> }
+                { name && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} action={() => editMode ? setEditModeEnd() : setEditModeStart(name)}/> }
             </h2>
             <div>
                 { editMode ? <>
@@ -493,13 +493,13 @@ const CraftBlueprint = ({bpName}: {bpName: string}) => {
                         title='Back to list'
                         src='img/left.png'
                         beforeText={bpName}
-                        dispatch={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
+                        action={(n: NavigateFunction) => navigateToTab(n, TabId.CRAFT)}/>
                     <StarButton bpName={bpName} />
                     <ImgButton
                         show={editMode}
                         title={editMode ? 'Finish edit' : 'Edit Blueprint'}
                         src='img/edit.png'
-                        dispatch={() => editMode ? endBlueprintEditMode : startBlueprintEditMode(bpName)}/>
+                        action={() => editMode ? endBlueprintEditMode : startBlueprintEditMode(bpName)}/>
                     <CraftPlanet />
                 </h1>
                 {editMode ?

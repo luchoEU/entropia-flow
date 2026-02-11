@@ -1,12 +1,12 @@
-import React, { CSSProperties, MouseEventHandler } from "react"
+import { CSSProperties, MouseEventHandler } from "react"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 
-const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, clickPopup, className, disabled, style, alt, show }: {
+const ImgButton = ({ title, beforeText, afterText, src, action, clickPopup, className, disabled, style, alt, show }: {
     title: string,
     beforeText?: string,
     afterText?: string,
     src: string,
-    dispatch: (navigate?: NavigateFunction) => any,
+    action: (navigate?: NavigateFunction) => any,
     clickPopup?: string
     className?: string
     disabled?: boolean
@@ -24,7 +24,12 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
             setTimeout(() => { popup.style.display = 'none' }, 1000)
         }
 
-        multiDispatch(navigate, pDispatch)
+        const result = action(navigate)
+        if (result instanceof Promise) {
+            result.catch((error) => {
+                console.error('Action error:', error)
+            })
+        }
     }
 
     return <>
@@ -48,28 +53,4 @@ const ImgButton = ({ title, beforeText, afterText, src, dispatch: pDispatch, cli
     </>;
 }
 
-function multiDispatch(
-    navigate: NavigateFunction,
-    getDispatchAction: (navigate?: NavigateFunction) => any
-) {
-    const action = getDispatchAction(navigate)
-    if (!action) return
-
-    // Handle promises (e.g., from async Jotai atom setters)
-    if (action instanceof Promise) {
-        action.catch((error) => {
-            console.error('Async dispatch error:', error)
-        })
-        return
-    }
-
-    // For Jotai atoms, we call the action directly
-    if (typeof action === 'function') {
-        action()
-    }
-}
-
 export default ImgButton
-export {
-    multiDispatch
-}

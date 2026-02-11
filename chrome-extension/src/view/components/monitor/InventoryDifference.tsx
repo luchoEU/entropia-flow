@@ -11,9 +11,6 @@ import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../
 import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
-import { useNavigate } from 'react-router-dom'
-import { isFeatureEnabledAtom } from '../../application/atoms/settings'
-import { Feature } from '../../application/state/settings'
 
 interface Config {
     sortBy: (part: number) => any
@@ -33,9 +30,7 @@ const ItemRow = ({ item, c }: {
     item: ViewItemData,
     c: Config
 }) => {
-    const navigate = useNavigate()
     const material = useAtomValue(getItemAtom(item.n))
-    const showActionLink = useAtomValue(isFeatureEnabledAtom(Feature.actionLink))
     const setMarkup = useSetAtom(setItemBuyMarkupAtom)
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
@@ -53,7 +48,7 @@ const ItemRow = ({ item, c }: {
             <td onClick={sortBy(NAME)}>
                 <ItemText text={item.n} />
                 { item.w &&
-                    <ImgButton title='There is already a similar item excluded from the sum' show src='img/warning.png' dispatch={() => c.exclude?.(item.key)} />
+                    <ImgButton title='There is already a similar item excluded from the sum' show src='img/warning.png' action={() => c.exclude?.(item.key)} />
                 }
             </td>
             <td>
@@ -61,13 +56,13 @@ const ItemRow = ({ item, c }: {
                     c.allowExclude && hasValue(item) &&
                         (item.e ?
                             (item.x ?
-                                <ImgButton title='Remove permanently exclusion from the sum' src='img/forbidden.png' show dispatch={() => c.permanentExcludeOff?.(item.key)} /> :
+                                <ImgButton title='Remove permanently exclusion from the sum' src='img/forbidden.png' show action={() => c.permanentExcludeOff?.(item.key)} /> :
                                 <>
-                                    <ImgButton title='This item is currently excluded from the sum, click to include it again' src='img/cross.png' show dispatch={() => c.include?.(item.key)} />
-                                    <ImgButton title='Permanently exclude this item from the sum' src='img/forbidden.png' dispatch={() => c.permanentExcludeOn?.(item.key)} />
+                                    <ImgButton title='This item is currently excluded from the sum, click to include it again' src='img/cross.png' show action={() => c.include?.(item.key)} />
+                                    <ImgButton title='Permanently exclude this item from the sum' src='img/forbidden.png' action={() => c.permanentExcludeOn?.(item.key)} />
                                 </>
                             ) :
-                            <ImgButton title='Exclude this item from the sum' src='img/cross.png' dispatch={() => c.exclude?.(item.key)} />
+                            <ImgButton title='Exclude this item from the sum' src='img/cross.png' action={() => c.exclude?.(item.key)} />
                         )
                 }
             </td>
@@ -82,11 +77,11 @@ const ItemRow = ({ item, c }: {
                 <td style={{paddingRight: 0}} className='item-cell-value'>
                     { editMarkupMode ?
                         <>
-                            <input id='newPedInput' type='text' value={material.markup.value} onChange={(e) => setMarkup(item.n, e.target.value)} />
-                            <TextButton title={`Unit: ${unitDescription(material.markup.unit ?? UNIT_PERCENTAGE)}, click to change`} text={unitText(material.markup.unit ?? UNIT_PERCENTAGE)} dispatch={() => setUnit(item.n, nextUnit(material.markup.unit ?? UNIT_PERCENTAGE)) } />
+                            <input id='newPedInput' type='text' value={material?.markup.value} onChange={(e) => setMarkup(item.n, e.target.value)} />
+                            <TextButton title={`Unit: ${unitDescription(material?.markup.unit ?? UNIT_PERCENTAGE)}, click to change`} text={unitText(material.markup.unit ?? UNIT_PERCENTAGE)} action={() => setUnit(item.n, nextUnit(material.markup.unit ?? UNIT_PERCENTAGE)) } />
                         </> : <>
                             <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit ?? UNIT_PERCENTAGE)}` : ''} />
-                            <ImgButton title='Edit markup' src='img/edit.png' dispatch={() => {
+                            <ImgButton title='Edit markup' src='img/edit.png' action={() => {
                                 if (!material?.markup?.value) {
                                     // ensure that the material is created
                                     const defaultUnit = (): MarkupUnit => {
@@ -117,8 +112,8 @@ const ItemRow = ({ item, c }: {
                 </td><td style={{paddingLeft: 0}} className={ editMarkupMode ? undefined : 'item-cell-value'}>
                     { editMarkupMode ?
                         <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show dispatch={() => { setMarkup(item.n, item.m?.data ?? ''); return c.clearMode?.(item.key) }} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show dispatch={() => c.clearMode?.(item.key)} />
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show action={() => { setMarkup(item.n, item.m?.data ?? ''); return c.clearMode?.(item.key) }} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show action={() => c.clearMode?.(item.key)} />
                         </> : <>
                             { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }
@@ -143,7 +138,7 @@ const PedRow = (p: {
                 <ItemText text={'PED'} />
             </td>
             <td>
-                <ImgButton title='Remove PEDs' src='img/cross.png' dispatch={() => removePeds(item.key)} />
+                <ImgButton title='Remove PEDs' src='img/cross.png' action={() => removePeds(item.key)} />
             </td>
             <td></td>{ /* quantity */ }
             <td>
@@ -169,12 +164,12 @@ const PedNewRow = () => {
                 { peds && (isValid ?
                     <ImgButton
                         title='Add PEDs'
-                        src='img/tick.png' show dispatch={() => {
+                        src='img/tick.png' show action={() => {
                         setPeds('')
                         addPeds(peds)
                     }} /> : <ImgButton
                         title='Cancel'
-                        src='img/cross.png' show dispatch={() => {
+                        src='img/cross.png' show action={() => {
                         setPeds('')
                         return undefined
                     }} />)

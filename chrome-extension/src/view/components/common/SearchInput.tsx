@@ -14,7 +14,7 @@ function SearchInput(p: {
 
     return (
         <span className='search-input'>
-            {p.filter && <ImgButton title='Clear filter' src='img/cross.png' dispatch={() => { handleChange(''); return true }} />}
+            {p.filter && <ImgButton title='Clear filter' src='img/cross.png' action={() => { handleChange(''); return true }} />}
             <input type='text' className='form-control' placeholder='search' value={p.filter ?? ''} onChange={(e) => handleChange(e.target.value)} />
         </span>
     )

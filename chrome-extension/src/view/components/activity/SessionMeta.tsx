@@ -65,7 +65,7 @@ const SessionMeta: React.FC<SessionMetaProps> = ({
                     src="img/copy.png"
                     className="img-btn-copy"
                     clickPopup="Copied!"
-                    dispatch={() => {
+                    action={() => {
                         let text = `${sessionName}\n`
                         if (showActions === 'autoActions') {
                             const sessionActions = getSessionActions(sessionId, activity)

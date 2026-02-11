@@ -28,7 +28,7 @@ function StreamTrashPage() {
 
     return <section>
         <h1 className='img-hover-container'>
-            <ImgButton title='Back to list' src='img/left.png' beforeText='Trashed layouts' dispatch={() => { navigate(TabId.STREAM); return true }}/>
+            <ImgButton title='Back to list' src='img/left.png' beforeText='Trashed layouts' action={() => { navigate(TabId.STREAM); return true }}/>
         </h1>
         {isEmpty ? <p>Trash is empty</p> : (
             <JotaiSortableTableSection

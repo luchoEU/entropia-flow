@@ -158,14 +158,14 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                                 src="/img/edit.png"
                                 alt="Edit"
                                 title="Edit value"
-                                dispatch={() => onEdit(nodeKey, value)}
+                                action={() => onEdit(nodeKey, value)}
                             />
                             <ImgButton
                                 src="/img/copy.png"
                                 alt="Copy"
                                 title="Copy to clipboard"
                                 clickPopup="Copied!"
-                                dispatch={handleCopyValue}
+                                action={handleCopyValue}
                             />
                         </div>
                     </div>
@@ -180,7 +180,7 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
                                 alt="Copy"
                                 title="Copy to clipboard"
                                 clickPopup="Copied!"
-                                dispatch={handleCopyValue}
+                                action={handleCopyValue}
                             />
                         </div>
                     </div>

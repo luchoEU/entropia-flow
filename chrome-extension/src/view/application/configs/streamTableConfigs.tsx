@@ -45,18 +45,18 @@ export const streamChooserConfig: JotaiTableConfig<StreamChooserLine> = {
             <ImgButton
               title="Set as default"
               src={item.stared ? 'img/staron.png' : 'img/staroff.png'}
-              dispatch={() => setStared(item.id, !item.stared)}
+              action={() => setStared(item.id, !item.stared)}
             />
             <ImgButton
               title="Edit layout"
               src="img/edit.png"
-              dispatch={() => navigate(`${TabId.STREAM}/layout/${item.id}`)}
+              action={() => navigate(`${TabId.STREAM}/layout/${item.id}`)}
             />
             {!item.readonly && (
               <ImgButton
                 title="Remove layout"
                 src="img/cross.png"
-                dispatch={() => removeLayout(item.id)}
+                action={() => removeLayout(item.id)}
               />
             )}
           </div>
@@ -104,7 +104,7 @@ export const streamTrashConfig: JotaiTableConfig<StreamTrashLine> = {
             <ImgButton
               title="Restore layout"
               src="img/recycle.png"
-              dispatch={() => restore(item.id)}
+              action={() => restore(item.id)}
             />
           </div>
         )
@@ -170,7 +170,7 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
             <ImgButton
               title="Copy value to clipboard"
               src="img/copy.png"
-              dispatch={() => {
+              action={() => {
                 navigator.clipboard.writeText(value)
               }}
             />
@@ -228,7 +228,7 @@ export const streamImagesConfig: JotaiTableConfig<StreamComputedVariable> = {
               <ImgButton
                 title="Remove variable"
                 src="img/cross.png"
-                dispatch={() => {
+                action={() => {
                   const layoutId = streamState.ui.showingLayoutId ?? ''
                   removeUser(layoutId, item.id!)
                 }}
@@ -337,7 +337,7 @@ export const streamParametersConfig: JotaiTableConfig<StreamComputedVariable> = 
               <ImgButton
                 title="Remove parameter"
                 src="img/cross.png"
-                dispatch={() => {
+                action={() => {
                   const layoutId = streamState.ui.showingLayoutId ?? ''
                   removeUser(layoutId, item.id!)
                 }}

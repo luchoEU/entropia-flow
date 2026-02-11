@@ -63,13 +63,13 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
                             title="Edit session name"
                             src="img/edit.png"
                             className="img-btn-edit"
-                            dispatch={onStartEdit}
+                            action={onStartEdit}
                         />
                         <ImgButton
                             title="Delete session"
                             src="img/trash.png"
                             className="img-btn-trash-black"
-                            dispatch={onDelete}
+                            action={onDelete}
                         />
                     </>
                 )}

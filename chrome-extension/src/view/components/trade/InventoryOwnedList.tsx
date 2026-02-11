@@ -112,7 +112,7 @@ const TradeItemDetailsChain = () => {
             return <div key={tradeItemData.name} className='trade-item-data'>
                 <h2 className='pointer img-hover-container' onClick={(e) => { e.stopPropagation(); setTradeItemChain(chainNext ? tradeItemData.name : undefined, chainIndex) }}>
                     { tradeItemData.name }<img src={chainNext ? 'img/right.png' : 'img/left.png'} />
-                    { tradeItemData.name && !chainNext && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} dispatch={() => setEditModeMaterialName(editMode ? undefined : tradeItemData.name)}/> }
+                    { tradeItemData.name && !chainNext && <ImgButton src='img/edit.png' show={editMode} title={editMode ? 'Finish edit' : 'Edit Material'} action={() => setEditModeMaterialName(editMode ? undefined : tradeItemData.name)}/> }
                 </h2>
                 { !chainNext && <TradeItemDetails
                     key={tradeItemData.name}

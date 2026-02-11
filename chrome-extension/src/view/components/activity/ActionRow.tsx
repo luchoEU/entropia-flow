@@ -109,7 +109,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
                 src="img/copy.png"
                 className="img-btn-copy"
                 clickPopup="Copied!"
-                dispatch={() => {
+                action={() => {
                     const text = buildCopyTextForAction(action)
                     copyToClipboard(text)
                 }}
@@ -120,7 +120,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
                         title='Remove permanent exclusion from the sum'
                         src='img/forbidden.png'
                         show
-                        dispatch={() => exclusionConfig.onPermanentExclude(false)}
+                        action={() => exclusionConfig.onPermanentExclude(false)}
                     />
                 ) : excluded ? (
                     <>
@@ -128,19 +128,19 @@ const ActionRow: React.FC<ActionRowProps> = ({
                             title='Include this action in the sum'
                             src='img/cross.png'
                             show
-                            dispatch={() => exclusionConfig.onInclude()}
+                            action={() => exclusionConfig.onInclude()}
                         />
                         <ImgButton
                             title='Permanently exclude this action type from the sum'
                             src='img/forbidden.png'
-                            dispatch={() => exclusionConfig.onPermanentExclude(true)}
+                            action={() => exclusionConfig.onPermanentExclude(true)}
                         />
                     </>
                 ) : (
                     <ImgButton
                         title='Exclude this action from the sum'
                         src='img/cross.png'
-                        dispatch={() => exclusionConfig.onExclude()}
+                        action={() => exclusionConfig.onExclude()}
                     />
                 )
             )}
@@ -193,7 +193,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
                                                             title='Remove permanent exclusion from the sum'
                                                             src='img/forbidden.png'
                                                             show
-                                                            dispatch={() => itemExclusionConfig.onPermanentExclude(item.name, false)}
+                                                            action={() => itemExclusionConfig.onPermanentExclude(item.name, false)}
                                                         />
                                                     ) : itemExcluded ? (
                                                         <>
@@ -201,19 +201,19 @@ const ActionRow: React.FC<ActionRowProps> = ({
                                                                 title='Include this item in the sum'
                                                                 src='img/cross.png'
                                                                 show
-                                                                dispatch={() => itemExclusionConfig.onInclude(item.name)}
+                                                                action={() => itemExclusionConfig.onInclude(item.name)}
                                                             />
                                                             <ImgButton
                                                                 title='Permanently exclude this item from the sum'
                                                                 src='img/forbidden.png'
-                                                                dispatch={() => itemExclusionConfig.onPermanentExclude(item.name, true)}
+                                                                action={() => itemExclusionConfig.onPermanentExclude(item.name, true)}
                                                             />
                                                         </>
                                                     ) : (
                                                         <ImgButton
                                                             title='Exclude this item from the sum'
                                                             src='img/cross.png'
-                                                            dispatch={() => itemExclusionConfig.onExclude(item.name)}
+                                                            action={() => itemExclusionConfig.onExclude(item.name)}
                                                         />
                                                     )}
                                                 </td>

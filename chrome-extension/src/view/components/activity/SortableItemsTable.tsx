@@ -125,7 +125,7 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
                                             title='Remove permanent exclusion from the sum'
                                             src='img/forbidden.png'
                                             show
-                                            dispatch={() => exclusionConfig.onPermanentExclude(item.n, false)}
+                                            action={() => exclusionConfig.onPermanentExclude(item.n, false)}
                                         />
                                     ) : excluded ? (
                                         <>
@@ -133,19 +133,19 @@ const SortableItemsTable = ({ items, exclusionConfig, selectionMode = false, sel
                                                 title='Include this item in the sum'
                                                 src='img/cross.png'
                                                 show
-                                                dispatch={() => exclusionConfig.onInclude(item.n)}
+                                                action={() => exclusionConfig.onInclude(item.n)}
                                             />
                                             <ImgButton
                                                 title='Permanently exclude this item from the sum'
                                                 src='img/forbidden.png'
-                                                dispatch={() => exclusionConfig.onPermanentExclude(item.n, true)}
+                                                action={() => exclusionConfig.onPermanentExclude(item.n, true)}
                                             />
                                         </>
                                     ) : (
                                         <ImgButton
                                             title='Exclude this item from the sum'
                                             src='img/cross.png'
-                                            dispatch={() => exclusionConfig.onExclude(item.n)}
+                                            action={() => exclusionConfig.onExclude(item.n)}
                                         />
                                     )}
                                 </td>

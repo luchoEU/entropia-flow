@@ -123,7 +123,7 @@ const ActionItem: React.FC<ActionItemProps> = ({
                 title="Delete action"
                 src={'img/trash.png'}
                 className='img-btn-trash-black'
-                dispatch={onDelete}
+                action={onDelete}
             />
         </div>
     )

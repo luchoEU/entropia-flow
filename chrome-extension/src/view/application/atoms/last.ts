@@ -5,7 +5,7 @@ import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { SORT_VALUE_DESCENDING, nextSortType, sortList } from '../helpers/inventory.sort'
 import { getDifference } from '../helpers/diff'
 import { getLatestFromInventoryList, getText } from '../helpers/history'
-import { _applyExcludes, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
+import { _applyExcludes, _applyBlacklist, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
 import messagesApi from '../../services/api/messages'
 import { historyAtom, INVENTORY_KEY_SCALE } from './history'
 import { atomWithStorage } from 'jotai/utils'
@@ -73,6 +73,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
     const diff = getDifference(lastInv, inv)
     if (diff) {
         d = _applyExcludes(d, diff, undefined)
+        d = _applyBlacklist(d, diff, persisted.blacklist)
         d = _applyPermanentExclude(d, diff, persisted.permanentBlacklist)
         _applyWarning(diff, persisted.blacklist)
         sortList(diff, persisted.sortType)
@@ -160,12 +161,10 @@ export const excludeItemAtom = atom(
         const item = computed.diff?.find((i: ViewItemData) => i.key === key)
         if (!item) return
 
-        const diff = computed.diff?.map((i: ViewItemData) => i.key === key ? { ...i, e: true } : i)
         let blacklist = current.blacklist
         if (!blacklist.includes(item.n)) {
             blacklist = [...blacklist, item.n]
         }
-        if (diff) _applyWarning(diff, blacklist)
 
         const newState = { ...current, blacklist }
         set(lastPersistedAtom, newState)

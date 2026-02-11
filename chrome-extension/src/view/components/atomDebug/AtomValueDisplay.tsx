@@ -63,7 +63,7 @@ const AtomValueDisplay: React.FC<AtomValueDisplayProps> = ({
                 title={isPinned ? 'Unpin atom' : 'Pin atom'}
                 src={isPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                 show={true}
-                dispatch={() => {
+                action={() => {
                     togglePin(atomName)
                     return true
                 }}

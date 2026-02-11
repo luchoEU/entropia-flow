@@ -146,7 +146,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                 <ImgButton
                                                     title='Delete pending line'
                                                     src='img/cross.png'
-                                                    dispatch={() => deleteBudgetPendingLine(itemName, line.index)}
+                                                    action={() => deleteBudgetPendingLine(itemName, line.index)}
                                                 />
                                             )}
                                         </td>
@@ -156,7 +156,7 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                 <ImgButton
                                                     title='Edit pending line'
                                                     src='img/edit.png'
-                                                    dispatch={() => startEditing(itemName, line.index, line.ped, line.materials, matNames)}
+                                                    action={() => startEditing(itemName, line.index, line.ped, line.materials, matNames)}
                                                 />
                                             )}
                                             {editing && (
@@ -165,13 +165,13 @@ const BudgetDetailsPanel = ({ viewData }: { viewData: BudgetDetailsViewData | nu
                                                         title='Confirm edit'
                                                         src='img/tick.png'
                                                         show
-                                                        dispatch={confirmEditing}
+                                                        action={confirmEditing}
                                                     />
                                                     <ImgButton
                                                         title='Cancel edit'
                                                         src='img/cross.png'
                                                         show
-                                                        dispatch={cancelEditing}
+                                                        action={cancelEditing}
                                                     />
                                                 </>
                                             )}
@@ -255,10 +255,10 @@ const MaterialDetailsPanel = ({ viewData, selectedItem }: { viewData: MaterialDe
                                     <>
                                         {item.real.disabled ? (
                                             <ImgButton title='Enable this material' src='img/tick.png'
-                                                dispatch={() => enableBudgetMaterial(viewData.sheetName, item.itemName)} />
+                                                action={() => enableBudgetMaterial(viewData.sheetName, item.itemName)} />
                                         ) : (
                                             <ImgButton title='Disable this material' src='img/cross.png'
-                                                dispatch={() => disableBudgetMaterial(viewData.sheetName, item.itemName)} />
+                                                action={() => disableBudgetMaterial(viewData.sheetName, item.itemName)} />
                                         )}
                                         {item.itemName}
                                     </>
@@ -496,9 +496,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                 <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {disabled ? (
-                            <ImgButton title='Enable' src='img/tick.png' dispatch={() => enableBudgetItem(name)} />
+                            <ImgButton title='Enable' src='img/tick.png' action={() => enableBudgetItem(name)} />
                         ) : (
-                            <ImgButton title='Disable' src='img/cross.png' dispatch={() => disableBudgetItem(name)} />
+                            <ImgButton title='Disable' src='img/cross.png' action={() => disableBudgetItem(name)} />
                         )}
                         <span style={{
                             fontStyle: isLoading ? 'italic' : 'normal',
@@ -541,9 +541,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                         setExpanded={() => toggleBudgetGroupExpanded(groupData.id)}
                     />
                     {groupData.disabled ? (
-                        <ImgButton title='Enable group' src='img/tick.png' dispatch={() => enableBudgetGroup(groupData.id)} />
+                        <ImgButton title='Enable group' src='img/tick.png' action={() => enableBudgetGroup(groupData.id)} />
                     ) : (
-                        <ImgButton title='Disable group' src='img/cross.png' dispatch={() => disableBudgetGroup(groupData.id)} />
+                        <ImgButton title='Disable group' src='img/cross.png' action={() => disableBudgetGroup(groupData.id)} />
                     )}
                     {isEditing ? (
                         <input
@@ -567,13 +567,13 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
                     {!isEditing && <ImgButton
                         title='Rename group'
                         src='img/edit.png'
-                        dispatch={() => handleStartRename(groupData)}
+                        action={() => handleStartRename(groupData)}
                         style={{ marginLeft: '8px' }}
                     />}
                     <ImgButton
                         title='Delete group'
                         src='img/cross.png'
-                        dispatch={() => {removeBudgetGroup(groupData.id)}}
+                        action={() => {removeBudgetGroup(groupData.id)}}
                         style={{ marginLeft: '8px' }}
                     />
                 </td>
@@ -641,9 +641,9 @@ function BudgetItemList({ selected: selectedItem, selectedMaterial }: { selected
     return (
         <ExpandableSection selector='BudgetItemList' title='List' subtitle='Budget material items'>
             <p>
-                <ImgButton title='Refresh' src='img/reload.png' className='img-btn-refresh' dispatch={handleAddGroup} disabled={viewData.stage !== STAGE_INITIALIZING}></ImgButton>
-                <ImgButton title='Add Group' src='img/add.png' className='img-btn-add' dispatch={handleAddGroup} />
-                <ImgButton title={showDisabled ? 'Hide Disabled' : 'Show Disabled'} className='img-btn-disabled' src={showDisabled ? 'img/eyeOpen.png' : 'img/eyeClose.png'} dispatch={() => toggleBudgetShowDisabled()} />
+                <ImgButton title='Refresh' src='img/reload.png' className='img-btn-refresh' action={handleAddGroup} disabled={viewData.stage !== STAGE_INITIALIZING}></ImgButton>
+                <ImgButton title='Add Group' src='img/add.png' className='img-btn-add' action={handleAddGroup} />
+                <ImgButton title={showDisabled ? 'Hide Disabled' : 'Show Disabled'} className='img-btn-disabled' src={showDisabled ? 'img/eyeOpen.png' : 'img/eyeClose.png'} action={() => toggleBudgetShowDisabled()} />
                 { viewData.stage === STAGE_INITIALIZING ? '' : <span className="budget-loading">{StageText[viewData.stage]}... {viewData.loadPercentage.toFixed(0)}%</span> }
             </p>
             <div className='flex'>

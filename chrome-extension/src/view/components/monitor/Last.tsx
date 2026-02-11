@@ -64,14 +64,14 @@ export const Last = () => {
 
     const actions = diff ? inferActions(diff) : []
 
-    // Config for InventoryDifference - wrap Jotai setters to return undefined
+    // Config for InventoryDifference - return Jotai promises for proper async handling
     const config = {
         sortBy: (part: number) => { sortBy(part); return undefined as any },
         allowExclude: true,
-        include: (key: number) => { includeItem(key); return undefined as any },
-        exclude: (key: number) => { excludeItem(key); return undefined as any },
-        permanentExcludeOn: (key: number) => { permanentExcludeOn(key); return undefined as any },
-        permanentExcludeOff: (key: number) => { permanentExcludeOff(key); return undefined as any },
+        include: (key: number) => includeItem(key),
+        exclude: (key: number) => excludeItem(key),
+        permanentExcludeOn: (key: number) => permanentExcludeOn(key),
+        permanentExcludeOff: (key: number) => permanentExcludeOff(key),
         setMode: (_key: number, _type: number, _data: any) => { return undefined as any },
         clearMode: (_key: number) => { return undefined as any },
         showPeds: true,
@@ -101,7 +101,7 @@ export const Last = () => {
                         src='img/warning.png'
                         className='img-btn-warning'
                         show
-                        dispatch={() => {
+                        action={() => {
                             if (expanded) {
                                 excludeWarnings()
                                 return undefined
@@ -116,7 +116,7 @@ export const Last = () => {
                         src='img/tick.png'
                         className='img-btn-delta-zero'
                         show
-                        dispatch={() => { createNewSession(); return undefined }} />
+                        action={() => { createNewSession(); return undefined }} />
                 }
                 { expanded &&
                     <>
@@ -125,18 +125,18 @@ export const Last = () => {
                             src='img/copy.png'
                             className='img-btn-copy'
                             clickPopup='Copied!'
-                            dispatch={() => { copyLast(useComma); return undefined }} />
+                            action={() => { copyLast(useComma); return undefined }} />
                         <TextButton
                             title={ showMarkup ? 'Hide markup' : 'Show markup' }
                             className={ `button-markup ${showMarkup ? 'active' : ''}` }
                             text='%'
-                            dispatch={() => { setShowMarkup(!showMarkup); return undefined }} />
+                            action={() => { setShowMarkup(!showMarkup); return undefined }} />
                         { actions && actions.length > 0 &&
                             <ImgButton
                                 title={ showActions ? 'Show items list' : 'Show grouped actions' }
                                 src='img/lightning.png'
                                 className='img-btn-lightning'
-                                dispatch={() => { setShowActions(!showActions); return undefined }} />
+                                action={() => { setShowActions(!showActions); return undefined }} />
                         }
                     </>
                 }

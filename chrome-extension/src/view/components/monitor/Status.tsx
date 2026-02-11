@@ -26,14 +26,14 @@ const Status = () => {
                         title='Refresh'
                         src='img/reload.png'
                         show
-                        dispatch={requestRefresh} />
+                        action={requestRefresh} />
                 }
                 { history.hiddenError &&
                     <ImgButton
                         title={history.hiddenError}
                         src='img/error.png'
                         show
-                        dispatch={() => setExpanded('MonitorStatus', true)} />
+                        action={() => setExpanded('MonitorStatus', true)} />
                 }
                 <span className={className}>
                     {message === STRING_PLEASE_LOG_IN ?

@@ -1,17 +1,20 @@
-import React from "react"
 import { NavigateFunction, useNavigate } from "react-router-dom"
-import { multiDispatch } from "./ImgButton"
 
 const TextButton = (p: {
     title: string,
     text: string,
     className?: string,
-    dispatch: (navigate: NavigateFunction) => any,
+    action: (navigate: NavigateFunction) => any,
 }) => {
     const navigate = useNavigate();
     return <button className={`button-text img-btn ${p.className ?? ''}`} title={p.title} onClick={(e) => {
         e.stopPropagation();
-        multiDispatch(navigate, p.dispatch);
+        const result = p.action(navigate)
+        if (result instanceof Promise) {
+            result.catch((error) => {
+                console.error('Action error:', error)
+            })
+        }
     }}>{p.text}</button>
 }
 

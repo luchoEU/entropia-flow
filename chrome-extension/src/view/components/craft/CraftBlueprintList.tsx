@@ -19,7 +19,7 @@ const StarButton = ({ bpName }: { bpName: string }) => {
     return <ImgButton
         title={`${isStared ? 'Remove from' : 'Add to'} Favorite Blueprints`}
         src={isStared ? 'img/staron.png' : 'img/staroff.png'}
-        dispatch={() => setBlueprintStared(bpName, !isStared)} />
+        action={() => setBlueprintStared(bpName, !isStared)} />
 }
 
 function CraftBlueprintList() {

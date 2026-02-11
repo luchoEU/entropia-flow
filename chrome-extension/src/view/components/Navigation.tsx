@@ -72,7 +72,7 @@ const Tab = (p: {
                 <ImgButton title={visible ? 'click to Hide Tab' : 'click to Show Tab'}
                     className='img-btn-visible-tab'
                     src={visible ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
-                    dispatch={() => setVisible(visibleSelector, !visible)} />
+                    action={() => setVisible(visibleSelector, !visible)} />
             }
         </button>
     )
@@ -174,7 +174,7 @@ const FirstRow = () => {
                     title={`click to ${menuPinned ? 'Unpin' : 'Pin'} Menu`}
                     className='img-btn-nav-pin'
                     src={menuPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
-                    dispatch={() => pinMenu(!menuPinned)} />
+                    action={() => pinMenu(!menuPinned)} />
             }
         </>
     )
@@ -203,18 +203,18 @@ const Navigation = () => {
                                 className='img-btn-visible-section'
                                 src={showVisibleToggle ? 'img/eyeOpen.png' : 'img/eyeClose.png'}
                                 show
-                                dispatch={() => setShowVisibleToggle(!showVisibleToggle)} />
+                                action={() => setShowVisibleToggle(!showVisibleToggle)} />
                             <ImgButton title='Hide Subtitles'
                                 className='img-btn-subtitles'
                                 src='img/up.png'
                                 show
-                                dispatch={() => setShowSubtitles(false)} />
+                                action={() => setShowSubtitles(false)} />
                         </div>
                     </div> :
                     <div className='nav-row img-hover-container'>
                         <FirstRow />
                         <div style={{ flex: 1 }} />
-                        <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' dispatch={() => setShowSubtitles(true)} />
+                        <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' action={() => setShowSubtitles(true)} />
                     </div>
                 }
                 <PinnedAtomsView />

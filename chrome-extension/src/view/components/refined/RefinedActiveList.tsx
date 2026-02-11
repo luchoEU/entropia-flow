@@ -52,7 +52,7 @@ function RefinedActiveItem(p: { item: ActivesItem }) {
             <td>{item.buyout}</td>
             <td><RefinedButton title='Sell' pending={pending} onClick={handleSell} /></td>
             <td>{ loading === undefined &&
-                <ImgButton title='Remove' src='img/cross.png' dispatch={() => { removeActive(item.date); return true }} />
+                <ImgButton title='Remove' src='img/cross.png' action={() => { removeActive(item.date); return true }} />
             }</td>
         </tr >
     )

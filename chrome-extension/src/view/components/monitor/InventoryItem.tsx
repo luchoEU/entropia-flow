@@ -45,7 +45,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                     title='Export all items to a file'
                     src='img/export.png'
                     className='img-btn-export'
-                    dispatch={() => exportFile(item.key)} />
+                    action={() => exportFile(item.key)} />
                 }
             </td>
             <td>
@@ -57,7 +57,7 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                             src='img/up.png'
                             className='img-btn-up'
                             afterText='Session Start'
-                            dispatch={() => setAsLast(item.rawInventory.meta.date)}
+                            action={() => setAsLast(item.rawInventory.meta.date)}
                         />
                     )
                 }

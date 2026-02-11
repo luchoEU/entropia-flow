@@ -48,6 +48,7 @@ class LastDeltaVariablesBuilder implements StreamVariablesBuilder {
                 if (diff) {
                     if (state.last) {
                         _applyExcludes(0, diff, state.last.c.diff)
+                        _applyBlacklist(0, diff, state.last.blacklist)
                         _applyPermanentExclude(0, diff, state.last.permanentBlacklist)
                         _applyWarning(diff, state.last.blacklist)
                         sortList(diff, state.last.sortType)
@@ -138,6 +139,16 @@ function _applyExcludes(d: number, diff: Array<ViewItemData> | undefined, last: 
     return d
 }
 
+function _applyBlacklist(d: number, diff: Array<ViewItemData> | undefined, blacklist: Array<string>): number {
+    diff?.forEach(item => {
+        if (hasValue(item) && blacklist.includes(item.n) && !item.e) {
+            item.e = true
+            d -= getValue(item)
+        }
+    })
+    return d
+}
+
 function _applyPermanentExclude(d: number, diff: Array<ViewItemData>, permanentBlacklist: Array<string>): number {
     diff.forEach(item => {
         if (hasValue(item) && permanentBlacklist.includes(item.n)) {
@@ -160,4 +171,4 @@ const _pedSum = (peds: Array<ViewPedData>) => peds.reduce((p, c) => p + Number(c
 const _sumDiff = (diff: ViewItemData[] | undefined, items: ItemsMap): number =>
     diff?.reduce((p, c) => p + (c.e ? 0 : getValueWithMarkup(c.q, c.v, items[c.n])), 0) ?? 0;
 
-export { LastDeltaVariablesBuilder, _findInventory, _applyExcludes, _applyPermanentExclude, _applyWarning, _pedSum, _sumDiff }
+export { LastDeltaVariablesBuilder, _findInventory, _applyExcludes, _applyBlacklist, _applyPermanentExclude, _applyWarning, _pedSum, _sumDiff }
