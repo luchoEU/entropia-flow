@@ -89,12 +89,20 @@ const aggregateRefinedChains = (
   items: Array<ItemData>,
   itemsMap: { [name: string]: ItemState }
 ): Array<ItemData> => {
+  // Define chain candidate structure
+  interface ChainCandidate {
+    product: string
+    sources: string[]
+    materialCount: number
+    recipeIndex: number
+  }
+
   // Create lookup map
   const itemsByName = new Map<string, ItemData>()
   items.forEach(item => itemsByName.set(item.n, item))
 
-  // Build chains from usage.refinings data
-  const chains: Map<string, string[]> = new Map()
+  // Build all recipe candidates from usage.refinings data
+  const chainCandidates: ChainCandidate[] = []
 
   // Iterate through items to find refined materials (items with refinings)
   for (const itemName in itemsMap) {
@@ -108,37 +116,64 @@ const aggregateRefinedChains = (
       for (const refining of refinings) {
         // This refining produces this item, so collect the source materials
         const product = refining.product.name
-        if (chains.has(product)) continue
         const sourceNames = refining.ingredients.map(ing => ing.name)
-        chains.set(product, sourceNames)
+        chainCandidates.push({
+          product,
+          sources: sourceNames,
+          materialCount: sourceNames.length,
+          recipeIndex: refinings.indexOf(refining)
+        })
       }
     }
   }
 
-  // Detect shared ingredients (e.g., Force Nexus used in multiple chains)
-  const ingredientUsageCount: { [name: string]: string[] } = {}
-  for (const [refined, sources] of chains) {
-    for (const source of sources) {
+  // Detect shared ingredients and resolve conflicts
+  const ingredientUsageCount: { [name: string]: ChainCandidate[] } = {}
+  for (const candidate of chainCandidates) {
+    for (const source of candidate.sources) {
       if (!ingredientUsageCount[source]) {
         ingredientUsageCount[source] = []
       }
-      ingredientUsageCount[source].push(refined)
+      ingredientUsageCount[source].push(candidate)
     }
   }
+
+  // Resolve conflicts by selecting chains with minimum material count
+  const losingProducts = new Set<string>()
+  for (const [ingredient, competingChains] of Object.entries(ingredientUsageCount)) {
+    if (competingChains.length <= 1) continue // No conflict
+
+    // Find minimum material count
+    const minMaterialCount = Math.min(...competingChains.map(c => c.materialCount))
+    const bestCandidates = competingChains.filter(c => c.materialCount === minMaterialCount)
+
+    // Tie-breaking: prefer lower recipeIndex (first in array)
+    const winner = bestCandidates.reduce((best, curr) =>
+      curr.recipeIndex < best.recipeIndex ? curr : best
+    )
+
+    // Mark losers for exclusion
+    for (const candidate of competingChains) {
+      if (candidate !== winner) {
+        losingProducts.add(candidate.product)
+      }
+    }
+  }
+
+  // Filter to winning chains only
+  const selectedChains = chainCandidates.filter(
+    candidate => !losingProducts.has(candidate.product)
+  )
 
   // Track items to remove and items to add
   const itemsToRemove = new Set<string>()
   const aggregatedItems: Array<ItemData> = []
 
-  for (const [refined, sources] of chains) {
+  for (const candidate of selectedChains) {
+    const refined = candidate.product
+    const sources = candidate.sources
     const refinedItem = itemsByName.get(refined)
     if (!refinedItem) continue
-
-    // Skip if any source ingredient is shared between multiple chains
-    const hasConflict = sources.some(source => ingredientUsageCount[source]?.length > 1)
-    if (hasConflict) {
-      continue
-    }
 
     // Find available source materials
     const availableSources = sources
@@ -202,8 +237,10 @@ export const getRefinedChainForItem = (
     return undefined
   }
 
-  // Get the first refining recipe that produces this item
-  const refining = refinings[0]
+  // Select refining recipe with minimum material count
+  const refining = refinings.reduce((best, curr) =>
+    curr.ingredients.length < best.ingredients.length ? curr : best
+  )
   const sourceNames = refining.ingredients.map(ing => ing.name)
 
   return {
