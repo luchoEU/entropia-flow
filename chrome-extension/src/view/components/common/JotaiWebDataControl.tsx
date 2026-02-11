@@ -27,7 +27,7 @@ export function JotaiWebDataControl<T>({
         if (!value?.data) {
             load()
         }
-    }, [load])
+    }, [load, value?.data])
 
     const reload = () => <SimpleImgButton
         title={`Try to load ${name} again`}
