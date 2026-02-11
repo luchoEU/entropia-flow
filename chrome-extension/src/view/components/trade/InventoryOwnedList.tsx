@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom, atom } from 'jotai'
 import { ItemOwned, TradeItemData } from '../../application/state/inventory'
-import { ItemUsageWebData, ItemWebData } from '../../../web/state';
+import { ItemUsageWebData, ItemWebData, RefiningWebData } from '../../../web/state';
 import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftBlueprint';
 import ItemNotes from '../item/ItemNotes';
@@ -53,26 +53,18 @@ import { formatToUrl } from '../../application/helpers/navigation';
 import { TabId } from '../../application/state/navigation';
 import { blueprintsAtom, setBlueprintStaredAtom, staredAtom } from '../../application/atoms/craft';
 
-const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, setTradeItemChain }: {
-  refinings: any[]
+const RefiningTableSection = React.memo(({ refinings, chainNext, chainIndex, ingredientName }: {
+  refinings: RefiningWebData[]
   chainNext: string | undefined
   chainIndex: number
-  setTradeItemChain: any
+  ingredientName: string
 }) => {
-  const refiningAtom = React.useMemo(() =>
-    atom(refinings.map((rm: any) => ({
-      ...rm,
-      isSelected: chainNext === rm.product.name
-    })))
-  , [refinings, chainNext])
-
+  const refiningAtom = React.useMemo(() => atom(refinings), [refinings])
   return (
     <div style={{ borderTop: '1px solid #ddd', paddingTop: '12px' }}>
       <JotaiSortableTable
         itemsAtom={refiningAtom}
-        config={createRefiningTableConfig((productName) => {
-          setTradeItemChain(chainNext === productName ? undefined : productName, chainIndex + 1)
-        })}
+        config={createRefiningTableConfig(chainNext, chainIndex, ingredientName)}
         useFixedSizeList={false}
       />
     </div>
@@ -120,7 +112,6 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     const setMaterialValue = useSetAtom(setMaterialValueAtom)
     const setMaterialType = useSetAtom(setMaterialTypeAtom)
     const setReserveAmount = useSetAtom(setItemReserveAmountAtom)
-    const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
     const mat = useAtomValue(itemsStateAtom)
     const { reserve } = useAtomValue(filterOptionsAtom)
     const navigate = useNavigate()
@@ -279,7 +270,7 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
                         refinings={usage.refinings}
                         chainNext={chainNext}
                         chainIndex={chainIndex}
-                        setTradeItemChain={setTradeItemChain}
+                        ingredientName={baseName}
                     />}
                 </div>
             }}

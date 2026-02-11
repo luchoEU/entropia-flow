@@ -6,11 +6,13 @@ import { TTServiceSheetItem } from '../state/ttService'
 import { useNavigate } from 'react-router-dom'
 import {
   hideCriteriaAtom,
-  filterOptionsAtom
+  filterOptionsAtom,
+  setTradeItemChainAtom
 } from './inventory'
 import { formatToUrl } from '../helpers/navigation'
 import { TabId } from '../state/navigation'
 import { loadCraftBlueprintAtom, setBlueprintStaredAtom, blueprintsAtom } from './craft'
+import { RefiningWebData } from '../../../web/state'
 
 /**
  * Switch button for filter options
@@ -355,8 +357,12 @@ export const createBlueprintTableConfig = (
  * Create refining table config for trade item details
  */
 export const createRefiningTableConfig = (
-  onRowClick: (productName: string, event: React.MouseEvent) => void
-): JotaiTableConfig<any> => {
+  chainNext: string | undefined,
+  chainIndex: number,
+  ingredientName: string  
+): JotaiTableConfig<RefiningWebData> => {
+  const setTradeItemChain = useSetAtom(setTradeItemChainAtom)
+
   return {
     title: 'Refining Outputs',
     itemTypeName: 'refining',
@@ -364,7 +370,7 @@ export const createRefiningTableConfig = (
       {
         id: 'product',
         header: 'Refined Material',
-        renderRow: (item: any) => ({
+        renderRow: (item: RefiningWebData) => ({
           type: 'row' as const,
           gap: 6,
           children: [
@@ -374,33 +380,33 @@ export const createRefiningTableConfig = (
             },
             {
               type: 'icon' as const,
-              src: item.isSelected ? 'img/left.png' : 'img/right.png',
+              src: chainNext === item.product.name ? 'img/left.png' : 'img/right.png',
               width: 14,
               height: 14,
               style: { opacity: 0.6 }
             }
           ]
         }),
-        sortAccessor: (item: any) => item.product.name,
-        filterAccessor: (item: any) => item.product.name,
+        sortAccessor: (item: RefiningWebData) => item.product.name,
+        filterAccessor: (item: RefiningWebData) => item.product.name,
         justifyContent: 'start'
       },
       {
         id: 'quantity',
         header: 'Quantity Required',
-        renderRow: (item: any) => ({
+        renderRow: (item: RefiningWebData) => ({
           type: 'text' as const,
-          value: item.product.quantity?.toString() ?? ''
+          value: item.ingredients.find((i) => i.name === ingredientName)?.quantity?.toString() ?? ''
         }),
-        sortAccessor: (item: any) => item.product.quantity ?? 0,
-        filterAccessor: (item: any) => item.product.quantity?.toString() ?? '',
+        sortAccessor: (item: RefiningWebData) => item.ingredients.find((i) => i.name === ingredientName)?.quantity ?? 0,
+        filterAccessor: (item: RefiningWebData) => item.ingredients.find((i) => i.name === ingredientName)?.quantity?.toString() ?? '',
         justifyContent: 'end'
       }
     ],
     getRowClass: () => 'item-row stable pointer',
-    onRowClick: (item: any, _index: number, event: React.MouseEvent) => {
+    onRowClick: (item: RefiningWebData, _index: number, event: React.MouseEvent) => {
       event.stopPropagation()
-      onRowClick(item.product.name, event)
+      setTradeItemChain(chainNext === item.product.name ? undefined : item.product.name, chainIndex + 1)
     }
   }
 }
