@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom, atom } from 'jotai'
 import { ItemOwned, TradeItemData } from '../../application/state/inventory'
-import { JotaiWebDataControl } from '../common/JotaiWebDataControl';
 import { ItemUsageWebData, ItemWebData } from '../../../web/state';
 import ItemInventory from '../item/ItemInventory';
 import { addZeroes } from '../craft/CraftBlueprint';
@@ -9,6 +8,7 @@ import ItemNotes from '../item/ItemNotes';
 import ItemMarkup from '../item/ItemMarkup';
 import ItemCalculator from '../item/ItemCalculator';
 import { Field } from '../common/Field';
+import { CollapsibleTradeItemDetailsWebDataControl } from '../common/JotaiWebDataControl';
 import { TTServiceInventoryWebData } from '../../application/state/ttService';
 import { Feature } from '../../application/state/settings';
 import AutocompleteInput from '../common/AutocompleteInput';
@@ -181,97 +181,120 @@ const TradeItemDetails = ({ tradeItemData, chainIndex, chainNext }:
     }), [blueprints, baseName, setBlueprintStared, navigate, stared])
 
     return <>
-        {<JotaiWebDataControl valueGet={getItemWebAtom} loadGet={loadItemWebAtom} itemName={baseName} name='Basic Information' showWithErrors={true} content={(webItem: ItemWebData | undefined) => {
-            const user = mat.map[baseName]?.user
-            return <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', marginBottom: '15px' }}>
-                    <div>
-                        <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '4px', fontWeight: '500' }}>Type</div>
-                        { editMode ?
-                            <AutocompleteInput value={user?.type?.toString() ?? ''} getChangeAction={(v) => setMaterialType(name, v)} suggestions={user?.suggestedTypes ?? []}/>
-                            : (user ?? webItem) &&
-                            <div style={{ fontSize: '1em' }}>{ user?.type ?? webItem?.type }</div>
-                        }
+        <CollapsibleTradeItemDetailsWebDataControl
+            title='Basic Information'
+            sectionKey='basicInfo'
+            valueGet={getItemWebAtom}
+            loadGet={loadItemWebAtom}
+            itemName={baseName}
+            name='Basic Information'
+            showWithErrors={true}
+            content={(webItem: ItemWebData | undefined) => {
+                const user = mat.map[baseName]?.user
+                return <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', marginBottom: '15px' }}>
+                        <div>
+                            <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '4px', fontWeight: '500' }}>Type</div>
+                            { editMode ?
+                                <AutocompleteInput value={user?.type?.toString() ?? ''} getChangeAction={(v) => setMaterialType(name, v)} suggestions={user?.suggestedTypes ?? []}/>
+                                : (user ?? webItem) &&
+                                <div style={{ fontSize: '1em' }}>{ user?.type ?? webItem?.type }</div>
+                            }
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '4px', fontWeight: '500' }}>Value</div>
+                            { editMode ?
+                                <input type='text' value={user?.valueOnEdit} onChange={(e) => setMaterialValue(name, e.target.value)} style={{ width: '100%' }}/>
+                                : (user ?? webItem) &&
+                                <div style={{ fontSize: '1em' }}>{ addZeroes(user?.value ?? webItem?.value ?? 0) }</div>
+                            }
+                        </div>
                     </div>
-                    <div>
-                        <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '4px', fontWeight: '500' }}>Value</div>
-                        { editMode ?
-                            <input type='text' value={user?.valueOnEdit} onChange={(e) => setMaterialValue(name, e.target.value)} style={{ width: '100%' }}/>
-                            : (user ?? webItem) &&
-                            <div style={{ fontSize: '1em' }}>{ addZeroes(user?.value ?? webItem?.value ?? 0) }</div>
-                        }
+                    { reserve && item && <div style={{ borderTop: '1px solid #ddd', marginBottom: '12px' }}>
+                        <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(baseName, v)}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</span>
+                            </span>
+                        </Field>
+                    </div> }
+                    <div style={{ borderTop: '1px solid #ddd', marginTop: '12px' }}>
+                        <ItemMarkup name={baseName} />
+                        {<div style={{ marginTop: '12px' }}>
+                            <ItemCalculator name={baseName} />
+                        </div>}
                     </div>
-                </div>
-                { reserve && item && <div style={{ borderTop: '1px solid #ddd', marginBottom: '12px' }}>
-                    <Field label='Reserve:' value={item.reserveAmount ?? ''} getChangeAction={(v) => setReserveAmount(baseName, v)}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.85em', color: '#999', marginLeft: '15px' }}>{` PED (in TT value)${(user?.value ?? webItem?.value) ? `, quantity ${(Number(item.reserveAmount ?? 0) / (user?.value ?? webItem?.value ?? 0)).toFixed(0)}` : ''}`}</span>
-                        </span>
-                    </Field>
-                </div> }
-                <div style={{ borderTop: '1px solid #ddd', marginTop: '12px' }}>
-                    <ItemMarkup name={baseName} />
-                    {<div style={{ marginTop: '12px' }}>
-                        <ItemCalculator name={baseName} />
-                    </div>}
-                </div>
-            </>
-        }} />}
-        <ItemNotes name={baseName} style={{ marginTop: '12px' }}/>
-        { showTTService && <>
-            <p style={{ height: '5px' }} />
-            <JotaiWebDataControl valueGet={getTTServiceWebAtom} loadGet={() => loadTTServiceAtom} itemName={baseName} name='TT Inventory' content={(inventory: TTServiceInventoryWebData | undefined) => {
-                const list = React.useMemo(() => inventory?.filter(d => d.name === baseName), [inventory, baseName])
-                const ttServiceAtom = React.useMemo(() => atom(list ?? []), [list])
-                return list?.length === 0 ?
-                    <p><strong>No entries in TT Service Inventory</strong></p> :
-                    <JotaiSortableTable
-                        itemsAtom={ttServiceAtom}
-                        config={createTTServiceTableConfig()}
-                        useFixedSizeList={false}
-                    />
-            }} />
-        </> }
-        <p style={{ height: '5px' }} />
-        <JotaiWebDataControl valueGet={getItemUsageWebAtom} loadGet={loadItemUsageWebAtom} itemName={baseName} name='Item Usage' content={(usage: ItemUsageWebData | undefined) => {
-            if (!usage) return <></>
-            return <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
-                <div>
-                    { favoriteBlueprints.length > 0 ?
+                    <ItemNotes name={baseName} style={{ marginTop: '12px' }}/>
+                </>
+            }}
+        />
+        { showTTService &&
+            <CollapsibleTradeItemDetailsWebDataControl
+                title='TT Inventory'
+                sectionKey='ttInventory'
+                valueGet={getTTServiceWebAtom}
+                loadGet={() => loadTTServiceAtom}
+                itemName={baseName}
+                name='TT Inventory'
+                content={(inventory: TTServiceInventoryWebData | undefined) => {
+                    const list = React.useMemo(() => inventory?.filter(d => d.name === baseName), [inventory, baseName])
+                    const ttServiceAtom = React.useMemo(() => atom(list ?? []), [list])
+                    return list?.length === 0 ?
+                        <p><strong>No entries in TT Service Inventory</strong></p> :
                         <JotaiSortableTable
-                            itemsAtom={favoriteAtom}
-                            maxNumberOfLines={6}
-                            config={createBlueprintTableConfig('Favorite', true, blueprintCallbacks)}
+                            itemsAtom={ttServiceAtom}
+                            config={createTTServiceTableConfig()}
                             useFixedSizeList={false}
-                        /> :
-                        <p style={{ color: '#666' }}>Not used on any {ownedBlueprints.length > 0 ? 'Favorite' : 'Owned'} Blueprint</p>
-                    }
-                </div>
-                { ownedBlueprints.length > 0 && <div>
-                    <JotaiSortableTable
-                        itemsAtom={ownedAtom}
-                        maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Owned', false, blueprintCallbacks)}
-                        useFixedSizeList={false}
-                    />
-                </div> }
-                { otherBlueprints.length > 0 && <div>
-                    <JotaiSortableTable
-                        itemsAtom={otherAtom}
-                        maxNumberOfLines={6}
-                        config={createBlueprintTableConfig('Not Owned', undefined, blueprintCallbacks)}
-                        useFixedSizeList={false}
-                    />
-                </div> }
+                        />
+                }}
+            />
+        }
+        <CollapsibleTradeItemDetailsWebDataControl
+            title='Item Usage'
+            sectionKey='itemUsage'
+            valueGet={getItemUsageWebAtom}
+            loadGet={loadItemUsageWebAtom}
+            itemName={baseName}
+            name='Item Usage'
+            content={(usage: ItemUsageWebData | undefined) => {
+                if (!usage) return <></>
+                return <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '14px' }}>
+                    <div>
+                        { favoriteBlueprints.length > 0 ?
+                            <JotaiSortableTable
+                                itemsAtom={favoriteAtom}
+                                maxNumberOfLines={6}
+                                config={createBlueprintTableConfig('Favorite', true, blueprintCallbacks)}
+                                useFixedSizeList={false}
+                            /> :
+                            <p style={{ color: '#666' }}>Not used on any {ownedBlueprints.length > 0 ? 'Favorite' : 'Owned'} Blueprint</p>
+                        }
+                    </div>
+                    { ownedBlueprints.length > 0 && <div>
+                        <JotaiSortableTable
+                            itemsAtom={ownedAtom}
+                            maxNumberOfLines={6}
+                            config={createBlueprintTableConfig('Owned', false, blueprintCallbacks)}
+                            useFixedSizeList={false}
+                        />
+                    </div> }
+                    { otherBlueprints.length > 0 && <div>
+                        <JotaiSortableTable
+                            itemsAtom={otherAtom}
+                            maxNumberOfLines={6}
+                            config={createBlueprintTableConfig('Not Owned', undefined, blueprintCallbacks)}
+                            useFixedSizeList={false}
+                        />
+                    </div> }
 
-                { usage.refinings && usage.refinings.length > 0 && <RefiningTableSection
-                    refinings={usage.refinings}
-                    chainNext={chainNext}
-                    chainIndex={chainIndex}
-                    setTradeItemChain={setTradeItemChain}
-                />}
-            </div>
-        }} />
+                    { usage.refinings && usage.refinings.length > 0 && <RefiningTableSection
+                        refinings={usage.refinings}
+                        chainNext={chainNext}
+                        chainIndex={chainIndex}
+                        setTradeItemChain={setTradeItemChain}
+                    />}
+                </div>
+            }}
+        />
         <ItemInventory materialItems={[baseName, ...(sources ?? [])]} />
     </>
 }

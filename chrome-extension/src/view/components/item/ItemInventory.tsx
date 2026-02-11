@@ -5,6 +5,7 @@ import { JotaiSortableTable } from '../common/jotai/JotaiSortableTable'
 import { addZeroes } from '../craft/CraftBlueprint'
 import { byStoreStateAtom } from '../../application/atoms/inventory'
 import { getContainerBreadcrumb } from '../../application/helpers/inventory.byStore'
+import { CollapsibleTradeItemDetailsSection } from '../common/CollapsibleTradeItemDetailsSection'
 
 interface ItemInventoryProps {
     materialItems: string[]
@@ -86,22 +87,20 @@ const ItemInventory = ({ materialItems }: ItemInventoryProps) => {
 
     if (materialItems.length === 0) {
         return (
-            <div style={{ marginTop: '12px' }}>
-                <h3 style={{ marginBottom: '8px' }}>Inventory Materials</h3>
+            <CollapsibleTradeItemDetailsSection title='Inventory Materials' sectionKey='inventoryMaterials'>
                 <p style={{ color: '#999' }}>None in inventory</p>
-            </div>
+            </CollapsibleTradeItemDetailsSection>
         )
     }
 
     return (
-        <div style={{ marginTop: '12px' }}>
-            <h3 style={{ marginBottom: '8px' }}>Inventory Materials</h3>
+        <CollapsibleTradeItemDetailsSection title='Inventory Materials' sectionKey='inventoryMaterials'>
             <JotaiSortableTable
                 itemsAtom={itemsAtom}
                 config={{ columns }}
                 useFixedSizeList={false}
             />
-        </div>
+        </CollapsibleTradeItemDetailsSection>
     )
 }
 

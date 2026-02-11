@@ -105,6 +105,21 @@ export const filterOptionsAtom = atomWithStorage<InventoryFilterOptions>('jotai-
 })
 
 /**
+ * Collapsible sections state - tracks which sections are expanded in trade item details
+ */
+export const tradeItemDetailsSectionsAtom = atomWithStorage<{
+  basicInfo: boolean
+  ttInventory: boolean
+  itemUsage: boolean
+  inventoryMaterials: boolean
+}>('jotai-v1-inventory-tradeItemDetailsSections', {
+  basicInfo: true,
+  ttInventory: true,
+  itemUsage: true,
+  inventoryMaterials: true
+})
+
+/**
  * Atom factory to get the TTService web inventory data
  */
 export const getTTServiceWebAtom = () => atom<WebLoadResponse<TTServiceInventoryWebData> | undefined>((get) => {
