@@ -95,12 +95,12 @@ nav .nav-with-subtitle div {
     flex-wrap: wrap;
 }
 
-nav .nav-with-subtitle div:nth-child(2) {
+nav .nav-with-subtitle > div:nth-child(2) {
     background-color: whitesmoke;
     padding: 0px 13px;
 }
 
-nav .nav-with-subtitle div:nth-child(2) span:nth-child(1) {
+nav .nav-with-subtitle > div:nth-child(2) > span:nth-child(1) {
     flex: 1px;
     text-align: center;
     padding: 7px;
