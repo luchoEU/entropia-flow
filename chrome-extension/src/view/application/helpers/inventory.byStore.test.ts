@@ -23,6 +23,8 @@
  *         Z-Child (stays with parent)
  */
 
+import { describe, it, expect } from '@jest/globals'
+
 describe('loadInventoryByStore preserves hierarchy when sorting multi-level trees', () => {
   it('should keep children under their parent containers after sorting', () => {
     // ============================================================================
@@ -182,5 +184,88 @@ describe('getContainerBreadcrumb', () => {
     const grandChild = items[2]
     const breadcrumb = getContainerBreadcrumb(grandChild, items)
     expect(breadcrumb).toEqual(['Root', 'Child'])
+  })
+})
+
+describe('loadInventoryByStore container totals with filter', () => {
+  it('should show total count and PED value for filtered items only', () => {
+    // ============================================================================
+    // TEST: Verify container totals reflect only filtered items when filter applied
+    //
+    // Expected Behavior: When a filter is applied (e.g., "wea eco blu"), the
+    // container totals should show ONLY the items matching the filter.
+    //
+    // Example:
+    // - Container "MyContainer" has 4 items total
+    // - Filter "wea" matches 2 items (Weapon Economy blueprints)
+    // - Container shows [2] 7.31 PED (only filtered items, not all 4)
+    // - Container sort order is also based on filtered totals
+    //
+    // This test reproduces the structure with:
+    // - One container with 4 items (2 matching "wea" filter, 2 not matching)
+    // - Verifies that container totals and sort order are based on filtered data
+    // ============================================================================
+
+    const { loadInventoryByStore } = require('./inventory.byStore')
+
+    // Exact structure that works: copy the first test's working pattern
+    const itemData: any[] = [
+      // Root containers that go in the Storage root
+      { id: 'z-cont', n: 'Z-Container', q: '1', v: '10.00', c: 'Storage', r: undefined },
+      { id: 'a-cont', n: 'MyContainer', q: '1', v: '20.00', c: 'Storage', r: undefined },
+
+      // Items that MATCH filter "wea" - under MyContainer
+      { id: 'wea-1', n: 'Weapon Economy T5', q: '536', v: '5.36', c: 'MyContainer', r: undefined },
+      { id: 'wea-2', n: 'Weapon Economy T2', q: '195', v: '1.95', c: 'MyContainer', r: undefined },
+
+      // Items that DON'T match filter "wea" (should still be counted in container totals)
+      { id: 'armor', n: 'Armor Plate', q: '100', v: '150.00', c: 'MyContainer', r: undefined },
+      { id: 'tool', n: 'Mining Tool', q: '50', v: '75.50', c: 'MyContainer', r: undefined },
+    ]
+
+    const emptyByStore: any = {
+      containers: {},
+      staredExpanded: [],
+      materialExpanded: [],
+      items: [],
+      staredItems: [],
+    }
+
+    // ============================================================================
+    // ACT - Apply filter "wea" to show only items matching "Weapon Economy"
+    // ============================================================================
+
+    // Get baseline: container totals without filter
+    const resultNoFilter = loadInventoryByStore(emptyByStore, itemData)
+    const containerNoFilter = resultNoFilter.items.find((item: any) => item.n === 'MyContainer')
+
+    // Apply filter "wea" - should only match "Weapon Economy T5" and "Weapon Economy T2" items
+    const result = loadInventoryByStore(emptyByStore, itemData, 0, 0, 'wea')
+    const containerWithFilter = result.items.find((item: any) => item.n === 'MyContainer')
+
+    // ============================================================================
+    // ASSERT - Verify container totals behavior with filters
+    // ============================================================================
+
+    // Container should exist in both filtered and unfiltered results
+    expect(containerWithFilter).toBeDefined()
+
+    // Baseline: Container totals WITHOUT filter
+    // Should count ALL 4 items: Weapon T5(536) + Weapon T2(195) + Armor(100) + Tool(50)
+    // Total PED: 5.36 + 1.95 + 150.00 + 75.50 = 232.81
+    expect(containerNoFilter.q).toBe('[4]')
+    expect(containerNoFilter.v).toBe('232.81')
+
+    // Main Test: Container totals WITH filter "wea"
+    // Expected behavior: Container shows only filtered items' totals
+    //
+    // Container with filter "wea" should show:
+    // - [2] items (Weapon T5 and Weapon T2 match the filter)
+    // - 7.31 PED (5.36 + 1.95, only counting filtered items)
+    //
+    // Armor and Mining Tool are NOT shown in totals because they don't match filter.
+    // Container sort order is also based on these filtered totals.
+    expect(containerWithFilter.q).toBe('[2]')
+    expect(containerWithFilter.v).toBe('7.31')
   })
 })

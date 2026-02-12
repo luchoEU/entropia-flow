@@ -292,21 +292,22 @@ const loadInventoryByStore = (
     }
     setPlanet(originalList)
 
-    // Compute stats (count, ped) at every tree level before sorting,
-    // because _byStoreSelectToSort uses stats for container sort keys
-    const listWithStats = _addStats(originalList)
+    // Apply tree-aware filtering first (if filter provided)
+    // This ensures sort order matches displayed totals (both based on filtered data)
+    let filteredList = containersFilter
+        ? _applyByStoreFilter(originalList, containers, containersFilter)
+        : originalList
 
-    // Apply tree-aware sorting before flattening to preserve hierarchy
+    // Compute stats on filtered data (count, ped) at every tree level
+    // _byStoreSelectToSort uses these stats for container sort keys
+    const listWithStats = _addStats(filteredList)
+
+    // Apply tree-aware sorting with stats from filtered data
     const sortedList = _cloneSortByStoreTreeList(listWithStats, containersSortType)
-
-    // Apply tree-aware filtering before flattening (if filter provided)
-    const filteredList = containersFilter
-        ? _applyByStoreFilter(sortedList, containers, containersFilter)
-        : sortedList
 
     // Build flattened tree for main view
     // Don't force expand all - let individual containers use their expanded state
-    const flatItems = _flatTree(filteredList, 0)
+    const flatItems = _flatTree(sortedList, 0)
 
     // Extract stared items (those with stared property in containers)
     const staredTreeItems: Array<InventoryTree<ItemData>> = []
