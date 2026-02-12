@@ -22,6 +22,7 @@ import {
     MSG_NAME_SET_SHOWING_LAYOUT_ID,
     MSG_NAME_MONITORING_CHANGED,
     MSG_NAME_REQUEST_CHANGE_MONITORING,
+    MSG_NAME_RETRY_WEB_SOCKET,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -215,7 +216,16 @@ async function wiring(
         },
         [MSG_NAME_SET_SHOWING_LAYOUT_ID]: async (m: { layoutId: string }) => streamDataBuilder.updateShowingLayoutId(m.layoutId),
         [MSG_NAME_STORAGE_CHANGED]: async (m: { store: string }) => streamDataBuilder.updateState(m.store),
-        [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => webSocketClient.start(m.url)
+        [MSG_NAME_SET_WEB_SOCKET_URL]: async (m: { url: string}) => {
+            // Update the stored WebSocket URL in background settings
+            await viewSettings.setWebSocketUrl(m.url)
+            // Attempt to reconnect with the new URL
+            await webSocketClient.start(m.url)
+        },
+        [MSG_NAME_RETRY_WEB_SOCKET]: async () => {
+            const url = await viewSettings.getWebSocketUrl()
+            await webSocketClient.start(url)
+        }
     }
 
     streamDataBuilder.loop()

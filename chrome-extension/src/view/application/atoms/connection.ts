@@ -1,7 +1,9 @@
 import { atom } from 'jotai'
 import { ConnectionState, initialState } from '../state/connection'
+import { atomWithStorage } from 'jotai/utils'
+import messages from '../../services/api/messages'
 
-export const connectionAtom = atom<ConnectionState>(initialState)
+export const connectionAtom = atomWithStorage<ConnectionState>('jotai-v1-connection', initialState)
 
 export const setConnectionStateAtom = atom(
   null,
@@ -18,9 +20,12 @@ export const setConnectionWebSocketAtom = atom(
       ...state,
       client: {
         ...state.client,
-        webSocket
+        webSocket,
+        status: 'connecting to new URL...'
       }
     })
+    // Notify background worker to reconnect with new URL
+    messages.setWebSocketUrl(webSocket)
   }
 )
 

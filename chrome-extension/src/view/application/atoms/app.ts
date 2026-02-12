@@ -8,6 +8,7 @@ import { initializeItemsAtom } from './items'
 import messagesApi from '../../services/api/messages'
 import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../common/state'
 import { ItemOwned } from '../state/inventory'
+import { setConnectionStatusAtom } from './connection'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -63,6 +64,10 @@ export const initializeAppAtom = atom(
           // Update last inventory timestamp
           if (m.last !== undefined) {
             set(lastTimestampAtom, m.last)
+          }
+          // Update client connection status from background worker
+          if (m.clientState) {
+            set(setConnectionStatusAtom, m.clientState.message)
           }
           // Signal initialization complete
           resolveInit()

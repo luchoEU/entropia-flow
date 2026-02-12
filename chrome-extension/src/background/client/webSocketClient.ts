@@ -39,11 +39,11 @@ class WebSocketClient implements IWebSocketClient {
         this.socket.onopen = async event => {
             trace(Component.WebSocketClient, 'connection opened:', event)
 
-            this.socket.onmessage = async event => {
+            this.socket!.onmessage = async event => {
                 trace(Component.WebSocketClient, 'message received:', event.data)
-                this.onMessage(JSON.parse(event.data))
+                this.onMessage?.(JSON.parse(event.data))
             };
-            this.socket.onclose = async event => {
+            this.socket!.onclose = async event => {
                 trace(Component.WebSocketClient, 'connection closed:', event)
                 this._setState(WebSocketStateCode.disconnected, 'disconnected')
             };
@@ -52,12 +52,12 @@ class WebSocketClient implements IWebSocketClient {
             this.send('identify', null)
             this.send('version', VERSION)
             for (const json in this.pendingJson)
-                this.socket.send(json)
+                this.socket!.send(json)
             this.pendingJson = []
         };
         this.socket.onerror = async event => {
             traceError(Component.WebSocketClient, 'error:', event)
-            this._setState(WebSocketStateCode.error, 'error')
+            this._setState(WebSocketStateCode.error, `Failed to connect to ${url}. Make sure the Entropia Flow Client is running and the URL is correct.`)
         };
     }
 

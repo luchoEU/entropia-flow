@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ConnectionState } from '../../application/state/connection';
 import { setConnectionWebSocketAtom, setConnectionStatusAtom } from '../../application/atoms/connection';
 import ImgButton from '../common/ImgButton';
@@ -6,11 +6,19 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { connectionAtom } from '../../application/atoms/connection';
 import ExpandableSection from '../common/ExpandableSection';
 import { Field } from '../common/Field';
+import messages from '../../services/api/messages';
 
 function EntropiaFlowClient() {
     const s: ConnectionState = useAtomValue(connectionAtom)
     const setWebSocket = useSetAtom(setConnectionWebSocketAtom)
     const setConnectionStatus = useSetAtom(setConnectionStatusAtom)
+
+    // Attempt to reconnect when page loads or WebSocket URL changes
+    useEffect(() => {
+        if (s.client.webSocket) {
+            messages.setWebSocketUrl(s.client.webSocket)
+        }
+    }, [s.client.webSocket])
     
     return (
         <>
@@ -21,14 +29,17 @@ function EntropiaFlowClient() {
                         value={s.client.webSocket}
                         getChangeAction={(uri: string) => setWebSocket(uri)} />
                 </div>
-                <p>
+                <p style={{ display: 'flex', gap: '10px' }}>
                     Status: {s.client.status}
                     <ImgButton
                         title='Try to connect again'
                         src='img/reload.png'
                         className='img-btn-delta-zero'
                         show
-                        action={() => setConnectionStatus('retrying')} />
+                        action={() => {
+                            setConnectionStatus('retrying connection...')
+                            messages.retryWebSocket()
+                        }} />
                 </p>
                 {!s.client.status.startsWith('connected') && <p>
                     <a href="https://github.com/luchoEU/entropia-flow/releases/download/client-0.1.0/EntropiaFlowClient_v0.1.0.zip" target="_blank">You can download the client from here</a>
