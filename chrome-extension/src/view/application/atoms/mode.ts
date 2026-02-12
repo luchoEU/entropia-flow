@@ -1,7 +1,8 @@
 import { atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 import ModeState, { initialState } from '../state/mode'
 
-export const modeAtom = atom<ModeState>(initialState)
+export const modeAtom = atomWithStorage<ModeState>('jotai-v1-mode', initialState)
 
 export const setModeStateAtom = atom(
   null,
