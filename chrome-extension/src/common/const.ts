@@ -110,15 +110,15 @@ const URL_MY_BALANCE_DATA = 'https://account.entropiauniverse.com/api/account/ge
 const TICK_SECONDS = 1 // updates countdown
 const FIRST_HTML_CHECK_WAIT_SECONDS = 5 // read items from html after 5 seconds
 const NEXT_HTML_CHECK_WAIT_SECONDS = 2 // if they weren't ready check again every 2 seconds
-const FIRST_WAIT_SECONDS = 2 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
+const FIRST_WAIT_SECONDS = 1 * 60 // wait longer the first time after a page refresh, in case there was another recent refresh before
 const NORMAL_WAIT_SECONDS = 1 * 60 // minimum wait to avoid ERROR_429
 const FROZEN_CHECK_WAIT_SECONDS = 10 // check if tab is frozen every 10 seconds
 const DEAD_CHECK_WAIT_SECONDS = 5 * 60 // consider tab dead if it doesn't respond for 5 minutes
 const AFTER_MANUAL_WAIT_SECONDS = 6 * 60 // wait longer if the user requested a refresh
-const SLEEP_WAIT_SECONDS = 15 * 60 // wait when the game is not running
+const START_SLEEP_MODE_AFTER_SECONDS = 15 * 60 // start sleep mode after 15 minutes of inactivity
+const SLEEP_WAIT_SECONDS = 5 * 60 // wait when the game is not running
 const TOO_MANY_WAIT_SECONDS = 60 * 60 // wait an hour if the server received too many requests
 const ACCESS_BLOCKED_WAIT_SECONDS = 365 * 24 * 60 * 60 // contect support to unblock ERROR_425
-const START_SLEEP_MODE_AFTER_SECONDS = 15 * 60 // start sleep mode after 15 minutes of inactivity
 
 export {
     INVENTORY_LIMIT,
