@@ -8,7 +8,8 @@ import schema from "../../../stream/stream-export-layout.schema.json"
 import { Validator } from "jsonschema"
 import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
 import { streamChooserItemsAtom } from "../../application/atoms/streamTables"
-import { streamChooserConfig } from "../../application/configs/streamTableConfigs"
+import { createStreamChooserConfig } from "../../application/configs/streamTableConfigs"
+import { setStreamStaredAtom, removeStreamLayoutAtom } from "../../application/atoms/stream"
 
 function StreamLayoutChooser() {
     const navigate = useNavigate()
@@ -16,6 +17,8 @@ function StreamLayoutChooser() {
     const importStreamLayout = useSetAtom(importStreamLayoutFromFileAtom)
     const goToTrash = useSetAtom(goToTrashAtom)
     const streamState = useAtomValue(streamStateAtom)
+    const setStared = useSetAtom(setStreamStaredAtom)
+    const removeLayout = useSetAtom(removeStreamLayoutAtom)
 
     const handleAddLayout = useCallback(() => {
         addStreamLayout('new-layout-' + Date.now(), 'New Layout')
@@ -39,6 +42,12 @@ function StreamLayoutChooser() {
         return Object.keys(streamState.in.trashLayouts).length > 0
     }, [streamState.in.trashLayouts])
 
+    const config = useMemo(() => createStreamChooserConfig({
+        setStared: (id, value) => setStared(id, value),
+        removeLayout: (id) => removeLayout(id),
+        navigate: (path) => navigate(path)
+    }), [setStared, removeLayout, navigate])
+
     const afterSearch = useMemo(() => (
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
             <button className="button-option" onClick={handleAddLayout}>➕ Add</button>
@@ -55,7 +64,7 @@ function StreamLayoutChooser() {
             title="Layouts"
             subtitle="Available layouts"
             itemsAtom={streamChooserItemsAtom}
-            config={streamChooserConfig}
+            config={config}
             afterSearch={afterSearch}
             itemHeight={64}
         />

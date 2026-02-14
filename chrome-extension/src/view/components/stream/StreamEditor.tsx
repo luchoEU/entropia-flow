@@ -5,7 +5,8 @@ import { atom } from "jotai"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
 import { streamStateAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom } from "../../application/atoms/stream"
 import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
-import { streamVariablesConfig, streamImagesConfig, streamParametersConfig } from "../../application/configs/streamTableConfigs"
+import { createStreamImagesConfig, createStreamParametersConfig, streamVariablesConfig } from "../../application/configs/streamTableConfigs"
+import { setStreamUserPartialAtom, removeStreamUserAtom } from "../../application/atoms/stream"
 import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
 import ExpandableSection from "../common/ExpandableSection"
 import StreamViewLayout from "./StreamViewLayout"
@@ -69,6 +70,8 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
     const setStreamNameAtomSetter = useSetAtom(setStreamNameAtom)
     const addStreamUserImageSetter = useSetAtom(addStreamUserImageAtom)
     const addStreamUserParameterSetter = useSetAtom(addStreamUserParameterAtom)
+    const setUserPartial = useSetAtom(setStreamUserPartialAtom)
+    const removeUser = useSetAtom(removeStreamUserAtom)
     const cloneLayoutSetter = useSetAtom(atom(
         null,
         (get, set) => {
@@ -85,6 +88,19 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         // TODO: Implement set author
         console.log('Set author - not implemented', lid, author)
     }
+
+    // Create table configs with handlers
+    const imagesConfig = useMemo(() => createStreamImagesConfig({
+        setUserPartial: (lid, itemId, partial) => setUserPartial(lid, itemId, partial),
+        removeUser: (lid, itemId) => removeUser(lid, itemId),
+        getLayoutId: () => layoutId
+    }), [setUserPartial, removeUser, layoutId])
+
+    const parametersConfig = useMemo(() => createStreamParametersConfig({
+        setUserPartial: (lid, itemId, partial) => setUserPartial(lid, itemId, partial),
+        removeUser: (lid, itemId) => removeUser(lid, itemId),
+        getLayoutId: () => layoutId
+    }), [setUserPartial, removeUser, layoutId])
 
     const navigate = useNavigate();
 
@@ -160,7 +176,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     title="Images"
                     subtitle="Available images to use on template"
                     itemsAtom={streamImagesItemsAtom}
-                    config={streamImagesConfig}
+                    config={imagesConfig}
                     itemHeight={50}
                     afterSearch={layout.readonly ? undefined : (
                         <button className="button-option" onClick={() => addStreamUserImageSetter(layoutId)}>
@@ -176,7 +192,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     title="Parameters"
                     subtitle="Available parameters of the layout"
                     itemsAtom={streamParametersItemsAtom}
-                    config={streamParametersConfig}
+                    config={parametersConfig}
                     afterSearch={layout.readonly ? undefined : (
                         <button className="button-option" onClick={() => addStreamUserParameterSetter(layoutId)}>
                             Add

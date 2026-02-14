@@ -7,14 +7,20 @@ import { TabId } from '../../application/state/navigation'
 import { streamStateAtom, emptyTrashLayoutsAtom } from '../../application/atoms/stream'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import { streamTrashItemsAtom } from '../../application/atoms/streamTables'
-import { streamTrashConfig } from '../../application/configs/streamTableConfigs'
+import { createStreamTrashConfig } from '../../application/configs/streamTableConfigs'
+import { restoreStreamLayoutAtom } from '../../application/atoms/stream'
 
 function StreamTrashPage() {
     const navigate = useNavigate()
     const streamState = useAtomValue(streamStateAtom)
     const trashLayouts = useMemo(() => streamState.in.trashLayouts, [streamState.in.trashLayouts])
     const emptyTrash = useSetAtom(emptyTrashLayoutsAtom)
+    const restore = useSetAtom(restoreStreamLayoutAtom)
     const isEmpty = Object.keys(trashLayouts).length === 0
+
+    const config = useMemo(() => createStreamTrashConfig({
+        restore: (id) => restore(id)
+    }), [restore])
 
     const afterSearch = useMemo(() => (
         <button
@@ -36,7 +42,7 @@ function StreamTrashPage() {
                 title="Trash"
                 subtitle="Trashed layouts"
                 itemsAtom={streamTrashItemsAtom}
-                config={streamTrashConfig}
+                config={config}
                 afterSearch={afterSearch}
                 itemHeight={64}
             />
