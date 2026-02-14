@@ -46,7 +46,7 @@ function GameLogSection() {
   const { client: { status } } = useAtomValue(connectionAtom)
   const gameLogData = useAtomValue(currentGameLogDataAtom)
 
-  if (!status.startsWith('connected') && !gameLogData?.raw)
+  if (!status.startsWith('connected') && (!gameLogData?.raw || gameLogData.raw.length === 0))
     return <></>
 
   return (

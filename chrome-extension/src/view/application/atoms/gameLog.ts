@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 import { atomWithDefault } from 'jotai/utils'
-import { GameLogData, GameLogTrade } from '../../../background/client/gameLogData'
+import { GameLogData, GameLogTrade, emptyGameLogData } from '../../../background/client/gameLogData'
 import { GameLogState } from '../state/log'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { STORAGE_VIEW_GAME_LOG } from '../../../common/const'
@@ -32,9 +32,8 @@ export const gameLogAtom = atom<GameLogState>(initialGameLogState)
 export const gameLogLoadingAtom = atom<boolean>(true)
 
 // Current transient game log data atom (writable)
-export const currentGameLogDataAtom = atomWithDefault<GameLogData | null>(
-    () => null
-)
+// Initialize with empty game log data so it doesn't reset to null when ViewState updates don't include gameLog
+export const currentGameLogDataAtom = atom<GameLogData>(emptyGameLogData())
 
 // Initialize game log from storage
 export const initializeGameLogAtom = atom(

@@ -9,6 +9,7 @@ import messagesApi from '../../services/api/messages'
 import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../common/state'
 import { ItemOwned } from '../state/inventory'
 import { setConnectionStatusAtom } from './connection'
+import { processGameLogAtom } from './gameLog'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -68,6 +69,10 @@ export const initializeAppAtom = atom(
           // Update client connection status from background worker
           if (m.clientState) {
             set(setConnectionStatusAtom, m.clientState.message)
+          }
+          // Update game log data from background worker
+          if (m.gameLog) {
+            await set(processGameLogAtom, m.gameLog)
           }
           // Signal initialization complete
           resolveInit()
