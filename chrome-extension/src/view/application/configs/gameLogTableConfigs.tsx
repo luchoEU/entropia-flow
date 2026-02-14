@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   GameLogEnhancerBroken,
   GameLogEvent,
@@ -14,9 +13,7 @@ import {
 import { TemporalValue } from '../../../common/state'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
 import { dateToString } from '../../../common/date'
-import { filterExact } from '../../../common/filter'
-import { GAME_LOG_TABULAR_TRADE } from '../state/log'
-import ItemText from '../../components/common/ItemText'
+import { CellElement } from '../../components/common/jotai/cellDSL'
 
 function _separateCamelCase(s: string): string {
   return s
@@ -26,7 +23,7 @@ function _separateCamelCase(s: string): string {
 
 /**
  * Game Log Table Configurations
- * Jotai-based table configs for game log tables, converted from TabularDefinitions
+ * DSL-based table configs for game log tables
  */
 
 export const gameLogLootConfig: JotaiTableConfig<GameLogLoot> = {
@@ -37,14 +34,21 @@ export const gameLogLootConfig: JotaiTableConfig<GameLogLoot> = {
       header: 'Name',
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRow: (item) => <ItemText text={item.name} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.name,
+        title: item.name
+      })
     },
     {
       id: 'quantity',
       header: 'Quantity',
       sortAccessor: (item) => item.quantity,
       filterAccessor: (item) => item.quantity.toString(),
-      renderRow: (item) => <span>{item.quantity.toString()}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.quantity.toString()
+      }),
       justifyContent: 'end'
     },
     {
@@ -52,7 +56,10 @@ export const gameLogLootConfig: JotaiTableConfig<GameLogLoot> = {
       header: 'Value',
       sortAccessor: (item) => item.value,
       filterAccessor: (item) => item.value.toFixed(2),
-      renderRow: (item) => <span>{item.value.toFixed(2)} PED</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: `${item.value.toFixed(2)} PED`
+      }),
       justifyContent: 'end'
     }
   ],
@@ -67,14 +74,21 @@ export const gameLogTierConfig: JotaiTableConfig<GameLogTier> = {
       header: 'Name',
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRow: (item) => <ItemText text={item.name} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.name,
+        title: item.name
+      })
     },
     {
       id: 'tier',
       header: 'Tier',
       sortAccessor: (item) => item.tier,
       filterAccessor: (item) => item.tier.toFixed(2),
-      renderRow: (item) => <span>{item.tier.toFixed(2)}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.tier.toFixed(2)
+      }),
       justifyContent: 'end'
     }
   ]
@@ -88,14 +102,21 @@ export const gameLogSkillConfig: JotaiTableConfig<GameLogSkill> = {
       header: 'Name',
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRow: (item) => <ItemText text={item.name} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.name,
+        title: item.name
+      })
     },
     {
       id: 'value',
       header: 'Value',
       sortAccessor: (item) => item.value,
       filterAccessor: (item) => item.value.toFixed(4),
-      renderRow: (item) => <span>{item.value.toFixed(4)}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.value.toFixed(4)
+      }),
       justifyContent: 'end'
     }
   ]
@@ -109,28 +130,42 @@ export const gameLogEnhancerBrokenConfig: JotaiTableConfig<GameLogEnhancerBroken
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time),
-      renderRow: (item) => <span>{dateToString(item.time)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time)
+      })
     },
     {
       id: 'enhancer',
       header: 'Enhancer',
       sortAccessor: (item) => item.enhancer,
       filterAccessor: (item) => item.enhancer,
-      renderRow: (item) => <ItemText text={item.enhancer} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.enhancer,
+        title: item.enhancer
+      })
     },
     {
       id: 'item',
       header: 'Item',
       sortAccessor: (item) => item.item,
       filterAccessor: (item) => item.item,
-      renderRow: (item) => <ItemText text={item.item} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.item,
+        title: item.item
+      })
     },
     {
       id: 'remaining',
       header: 'Remaining',
       sortAccessor: (item) => item.remaining,
       filterAccessor: (item) => item.remaining.toString(),
-      renderRow: (item) => <span>{item.remaining.toString()}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.remaining.toString()
+      }),
       justifyContent: 'end'
     },
     {
@@ -138,7 +173,10 @@ export const gameLogEnhancerBrokenConfig: JotaiTableConfig<GameLogEnhancerBroken
       header: 'Received',
       sortAccessor: (item) => item.received,
       filterAccessor: (item) => item.received.toFixed(2),
-      renderRow: (item) => <span>{item.received.toFixed(2)}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.received.toFixed(2)
+      }),
       justifyContent: 'end'
     }
   ]
@@ -152,35 +190,51 @@ export const gameLogGlobalConfig: JotaiTableConfig<GameLogGlobal> = {
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time),
-      renderRow: (item) => <span>{dateToString(item.time)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time)
+      })
     },
     {
       id: 'player',
       header: 'Player',
       sortAccessor: (item) => item.player,
       filterAccessor: (item) => item.player,
-      renderRow: (item) => <span>{item.player}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.player
+      })
     },
     {
       id: 'name',
       header: 'Name',
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRow: (item) => <ItemText text={item.name} />
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.name,
+        title: item.name
+      })
     },
     {
       id: 'type',
       header: 'Type',
       sortAccessor: (item) => item.type,
       filterAccessor: (item) => item.type,
-      renderRow: (item) => <span>{item.type}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.type
+      })
     },
     {
       id: 'value',
       header: 'Value',
       sortAccessor: (item) => item.value ?? 0,
       filterAccessor: (item) => (item.value?.toFixed(0) ?? '0'),
-      renderRow: (item) => <span>{item.value?.toFixed(0) ?? '0'}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.value?.toFixed(0) ?? '0'
+      }),
       justifyContent: 'end'
     },
     {
@@ -188,14 +242,20 @@ export const gameLogGlobalConfig: JotaiTableConfig<GameLogGlobal> = {
       header: 'Location',
       sortAccessor: (item) => item.location ?? '',
       filterAccessor: (item) => item.location ?? '',
-      renderRow: (item) => <span>{item.location ?? ''}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.location ?? ''
+      })
     },
     {
       id: 'hof',
       header: 'HOF',
       sortAccessor: (item) => item.isHoF ? 1 : 0,
       filterAccessor: (item) => item.isHoF ? '[HoF]' : '',
-      renderRow: (item) => <span>{item.isHoF ? '[HoF]' : ''}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.isHoF ? '[HoF]' : ''
+      }),
       justifyContent: 'center'
     }
   ],
@@ -210,21 +270,31 @@ export const gameLogEventConfig: JotaiTableConfig<GameLogEvent> = {
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time),
-      renderRow: (item) => <span>{dateToString(item.time)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time)
+      })
     },
     {
       id: 'action',
       header: 'Action',
       sortAccessor: (item) => _separateCamelCase(item.action),
       filterAccessor: (item) => _separateCamelCase(item.action),
-      renderRow: (item) => <span title={item.message}>{_separateCamelCase(item.action)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: _separateCamelCase(item.action),
+        title: item.message
+      })
     },
     {
       id: 'data',
       header: 'Data',
       sortAccessor: (item) => item.data.toString(),
       filterAccessor: (item) => item.data.toString(),
-      renderRow: (item) => <span>{item.data.toString()}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.data.toString()
+      })
     }
   ]
 }
@@ -237,14 +307,20 @@ export const gameLogStatisticsConfig: JotaiTableConfig<[string, TemporalValue]> 
       header: 'Name',
       sortAccessor: (item) => item[0],
       filterAccessor: (item) => _separateCamelCase(item[0]),
-      renderRow: (item) => <span>{_separateCamelCase(item[0])}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: _separateCamelCase(item[0])
+      })
     },
     {
       id: 'total',
       header: 'Total',
       sortAccessor: (item) => item[1].total,
       filterAccessor: (item) => item[1].total.toFixed((gameLogStatsDecimals as any)[item[0]] ?? 0),
-      renderRow: (item) => <span>{item[1].total.toFixed((gameLogStatsDecimals as any)[item[0]] ?? 0)}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item[1].total.toFixed((gameLogStatsDecimals as any)[item[0]] ?? 0)
+      }),
       justifyContent: 'end'
     },
     {
@@ -252,7 +328,10 @@ export const gameLogStatisticsConfig: JotaiTableConfig<[string, TemporalValue]> 
       header: 'Count',
       sortAccessor: (item) => item[1].count,
       filterAccessor: (item) => item[1].count.toString(),
-      renderRow: (item) => <span>{item[1].count.toString()}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item[1].count.toString()
+      }),
       justifyContent: 'end'
     }
   ]
@@ -266,21 +345,30 @@ export const gameLogMissingConfig: JotaiTableConfig<GameLogLine> = {
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time),
-      renderRow: (item) => <span>{dateToString(item.time)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time)
+      })
     },
     {
       id: 'channel',
       header: 'Channel',
       sortAccessor: (item) => item.channel,
       filterAccessor: (item) => item.channel,
-      renderRow: (item) => <span>{item.channel}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.channel
+      })
     },
     {
       id: 'message',
       header: 'Message',
       sortAccessor: (item) => item.message,
       filterAccessor: (item) => item.message,
-      renderRow: (item) => <span>{item.message}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.message
+      })
     }
   ]
 }
@@ -293,7 +381,10 @@ export const gameLogRawConfig: JotaiTableConfig<GameLogLine> = {
       header: 'Serial',
       sortAccessor: (item) => item.serial,
       filterAccessor: (item) => item.serial.toString(),
-      renderRow: (item) => <span>{item.serial.toString()}</span>,
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.serial.toString()
+      }),
       justifyContent: 'end'
     },
     {
@@ -301,35 +392,50 @@ export const gameLogRawConfig: JotaiTableConfig<GameLogLine> = {
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time, true),
-      renderRow: (item) => <span>{dateToString(item.time, true)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time, true)
+      })
     },
     {
       id: 'channel',
       header: 'Channel',
       sortAccessor: (item) => item.channel,
       filterAccessor: (item) => item.channel,
-      renderRow: (item) => <span>{item.channel}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.channel
+      })
     },
     {
       id: 'player',
       header: 'Player',
       sortAccessor: (item) => item.player,
       filterAccessor: (item) => item.player,
-      renderRow: (item) => <span>{item.player}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.player
+      })
     },
     {
       id: 'message',
       header: 'Message',
       sortAccessor: (item) => item.message,
       filterAccessor: (item) => item.message,
-      renderRow: (item) => <span>{item.message}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.message
+      })
     },
     {
       id: 'data',
       header: 'Data',
       sortAccessor: (item) => JSON.stringify(item.data),
       filterAccessor: (item) => JSON.stringify(item.data),
-      renderRow: (item) => <span>{JSON.stringify(item.data)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: JSON.stringify(item.data)
+      })
     }
   ]
 }
@@ -342,63 +448,64 @@ export const gameLogTradeConfig: JotaiTableConfig<GameLogTrade> = {
       header: 'Time',
       sortAccessor: (item) => item.time,
       filterAccessor: (item) => dateToString(item.time),
-      renderRow: (item) => <span>{dateToString(item.time)}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: dateToString(item.time)
+      })
     },
     {
       id: 'channel',
       header: 'Channel',
       sortAccessor: (item) => item.channel,
       filterAccessor: (item) => item.channel,
-      renderRow: (item) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span>{item.channel}</span>
-          <img
-            src="img/find.png"
-            title="Search by this channel"
-            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-          />
-        </div>
-      )
+      renderRow: (item): CellElement => ({
+        type: 'row',
+        gap: 4,
+        children: [
+          { type: 'text', value: item.channel },
+          { type: 'icon', src: 'img/find.png', width: 16, height: 16, title: 'Search by this channel' }
+        ]
+      })
     },
     {
       id: 'player',
       header: 'Player',
       sortAccessor: (item) => item.player,
       filterAccessor: (item) => item.player,
-      renderRow: (item) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span>{item.player}</span>
-          <img
-            src="img/find.png"
-            title="Search by this player"
-            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-          />
-        </div>
-      )
+      renderRow: (item): CellElement => ({
+        type: 'row',
+        gap: 4,
+        children: [
+          { type: 'text', value: item.player },
+          { type: 'icon', src: 'img/find.png', width: 16, height: 16, title: 'Search by this player' }
+        ]
+      })
     },
     {
       id: 'message',
       header: 'Message',
       sortAccessor: (item) => item.message,
       filterAccessor: (item) => item.message,
-      renderRow: (item) => (
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {(item.message.match(/\[[^\]]+\]|\s+|[^\[\]\s]+/g) || []).map((t, idx) =>
-            t.startsWith('[') && t.endsWith(']') ? (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <span>[{t.slice(1, -1)}]</span>
-                <img
-                  src="img/find.png"
-                  title="Search by this item"
-                  style={{ cursor: 'pointer', width: '12px', height: '12px' }}
-                />
-              </div>
-            ) : (
-              <span key={idx}>{t}</span>
-            )
-          )}
-        </div>
-      )
+      renderRow: (item): CellElement => {
+        const tokens = (item.message.match(/\[[^\]]+\]|\s+|[^\[\]\s]+/g) || [])
+        return {
+          type: 'row',
+          gap: 4,
+          flexWrap: true,
+          children: tokens.map(t =>
+            t.startsWith('[') && t.endsWith(']')
+              ? {
+                  type: 'row' as const,
+                  gap: 2,
+                  children: [
+                    { type: 'text' as const, value: t },
+                    { type: 'icon' as const, src: 'img/find.png', width: 12, height: 12, title: 'Search by this item' }
+                  ]
+                }
+              : { type: 'text' as const, value: t }
+          )
+        }
+      }
     }
   ]
 }

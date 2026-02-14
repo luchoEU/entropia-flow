@@ -18,7 +18,7 @@ export interface JotaiTableColumn<TItem = any> {
   id: string
   header: string
 
-  /** Declarative cell element definition for rendering and width calculation */
+  /** DSL element renderer for cell content */
   renderRow: (item: TItem) => CellElement
   /** Optional: Transform item to value for sorting */
   sortAccessor?: (item: TItem) => string | number

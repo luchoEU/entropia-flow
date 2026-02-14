@@ -1,132 +1,112 @@
-import React from 'react'
-import { useSetAtom, useAtomValue } from 'jotai'
 import { StreamChooserLine, StreamTrashLine } from '../atoms/streamTables'
 import { StreamComputedVariable } from '../../../stream/data'
 import { JotaiTableConfig } from '../../components/common/jotai/JotaiTableTypes'
-import { useNavigate } from 'react-router-dom'
-import { TabId } from '../state/navigation'
-import {
-  setStreamStaredAtom,
-  removeStreamLayoutAtom,
-  setStreamUserPartialAtom,
-  removeStreamUserAtom,
-  restoreStreamLayoutAtom
-} from '../atoms/stream'
-import StreamViewLayout from '../../components/stream/StreamViewLayout'
-import { streamStateAtom } from '../atoms/stream'
-import ImgButton from '../../components/common/ImgButton'
+import { CellElement } from '../../components/common/jotai/cellDSL'
 
 /**
  * Stream Table Configurations
- * Jotai-based table configs for stream-related tables
+ * DSL-based table configs for stream-related tables
+ *
+ * These are factory functions that accept handlers/atoms to enable
+ * state management without React hooks inside renderRow functions
  */
 
 /**
- * Stream Chooser Table Config
+ * Stream Chooser Table Config Factory
  * Shows available stream layouts with preview and actions
  */
-export const streamChooserConfig: JotaiTableConfig<StreamChooserLine> = {
-  title: 'Layouts',
-  columns: [
-    {
-      id: 'name',
-      header: 'Name',
-      sortAccessor: (item) => item.name,
-      filterAccessor: (item) => item.name,
-      renderRow: (item) => {
-        const setStared = useSetAtom(setStreamStaredAtom)
-        const removeLayout = useSetAtom(removeStreamLayoutAtom)
-        const navigate = useNavigate()
+export interface StreamChooserHandlers {
+  setStared: (id: string, value: boolean) => void
+  removeLayout: (id: string) => void
+  navigate: (path: string) => void
+}
 
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
-            <span>{item.name}</span>
-            <div style={{ flex: 1 }} />
-            <ImgButton
-              title="Set as default"
-              src={item.stared ? 'img/staron.png' : 'img/staroff.png'}
-              action={() => setStared(item.id, !item.stared)}
-            />
-            <ImgButton
-              title="Edit layout"
-              src="img/edit.png"
-              action={() => navigate(`${TabId.STREAM}/layout/${item.id}`)}
-            />
-            {!item.readonly && (
-              <ImgButton
-                title="Remove layout"
-                src="img/cross.png"
-                action={() => removeLayout(item.id)}
-              />
-            )}
-          </div>
-        )
-      }
-    },
-    {
-      id: 'preview',
-      header: 'Preview',
-      renderRow: (item) => {
-        const streamState = useAtomValue(streamStateAtom)
-        const { commonData = {}, layoutData = {} } = streamState.out?.data ?? {}
-        return (
-          <StreamViewLayout
-            single={{ data: { ...commonData, ...layoutData[item.id] }, layout: item.layout }}
-            layoutId={item.id}
-            id={`stream-chooser-${item.id}`}
-            scale={0.4}
-          />
-        )
-      }
-    }
-  ]
+export function createStreamChooserConfig(
+  handlers: StreamChooserHandlers
+): JotaiTableConfig<StreamChooserLine> {
+  return {
+    title: 'Layouts',
+    columns: [
+      {
+        id: 'name',
+        header: 'Name',
+        sortAccessor: (item) => item.name,
+        filterAccessor: (item) => item.name,
+        renderRow: (item): CellElement => ({
+          type: 'row',
+          gap: 4,
+          children: [
+            { type: 'text', value: item.name },
+            { type: 'spacer' },
+            {
+              type: 'button',
+              icon: item.stared ? 'img/staron.png' : 'img/staroff.png',
+              width: 16,
+              height: 16,
+              title: 'Set as default',
+              onClick: () => handlers.setStared(item.id, !item.stared)
+            },
+            {
+              type: 'button',
+              icon: 'img/edit.png',
+              width: 16,
+              height: 16,
+              title: 'Edit layout',
+              onClick: () => handlers.navigate(`/stream/layout/${item.id}`)
+            },
+            ...(item.readonly ? [] : [{
+              type: 'button' as const,
+              icon: 'img/cross.png',
+              width: 16,
+              height: 16,
+              title: 'Remove layout',
+              onClick: () => handlers.removeLayout(item.id)
+            }])
+          ]
+        })
+      },
+    ]
+  }
 }
 
 /**
- * Stream Trash Table Config
+ * Stream Trash Table Config Factory
  * Shows deleted stream layouts that can be restored
  */
-export const streamTrashConfig: JotaiTableConfig<StreamTrashLine> = {
-  title: 'Trash',
-  columns: [
-    {
-      id: 'name',
-      header: 'Name',
-      sortAccessor: (item) => item.name,
-      filterAccessor: (item) => item.name,
-      renderRow: (item) => {
-        const restore = useSetAtom(restoreStreamLayoutAtom)
+export interface StreamTrashHandlers {
+  restore: (id: string) => void
+}
 
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
-            <span>{item.name}</span>
-            <div style={{ flex: 1 }} />
-            <ImgButton
-              title="Restore layout"
-              src="img/recycle.png"
-              action={() => restore(item.id)}
-            />
-          </div>
-        )
+export function createStreamTrashConfig(
+  handlers: StreamTrashHandlers
+): JotaiTableConfig<StreamTrashLine> {
+  return {
+    title: 'Trash',
+    columns: [
+      {
+        id: 'name',
+        header: 'Name',
+        sortAccessor: (item) => item.name,
+        filterAccessor: (item) => item.name,
+        renderRow: (item): CellElement => ({
+          type: 'row',
+          gap: 4,
+          children: [
+            { type: 'text', value: item.name },
+            { type: 'spacer' },
+            {
+              type: 'button',
+              icon: 'img/recycle.png',
+              width: 16,
+              height: 16,
+              title: 'Restore layout',
+              onClick: () => handlers.restore(item.id)
+            }
+          ]
+        })
       }
-    },
-    {
-      id: 'preview',
-      header: 'Preview',
-      renderRow: (item) => {
-        const streamState = useAtomValue(streamStateAtom)
-        const { commonData = {}, layoutData = {} } = streamState.out?.data ?? {}
-        return (
-          <StreamViewLayout
-            single={{ data: { ...commonData, ...layoutData[item.id] }, layout: item.layout }}
-            layoutId={item.id}
-            id={`stream-trash-${item.id}`}
-            scale={0.4}
-          />
-        )
-      }
-    }
-  ]
+    ]
+  }
 }
 
 /**
@@ -141,14 +121,20 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
       header: 'Source',
       sortAccessor: (item) => item.source,
       filterAccessor: (item) => item.source,
-      renderRow: (item) => <span>{item.source}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.source
+      })
     },
     {
       id: 'name',
       header: 'Name',
       sortAccessor: (item) => item.name,
       filterAccessor: (item) => item.name,
-      renderRow: (item) => <span>{item.name}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.name
+      })
     },
     {
       id: 'value',
@@ -161,22 +147,29 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
         const value = item.computed && typeof item.computed === 'string' ? item.computed : JSON.stringify(item.computed ?? item.value)
         return value
       },
-      renderRow: (item) => {
+      renderRow: (item): CellElement => {
         const value = item.computed && typeof item.computed === 'string' ? item.computed : JSON.stringify(item.computed ?? item.value)
         const isFormula = typeof item.value === 'string' && item.value.startsWith('=')
 
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ImgButton
-              title="Copy value to clipboard"
-              src="img/copy.png"
-              action={() => {
-                navigator.clipboard.writeText(value)
-              }}
-            />
-            <span title={isFormula && typeof item.value === 'string' ? item.value : undefined}>{value}</span>
-          </div>
-        )
+        return {
+          type: 'row',
+          gap: 4,
+          children: [
+            {
+              type: 'button',
+              icon: 'img/copy.png',
+              width: 16,
+              height: 16,
+              title: 'Copy value to clipboard',
+              onClick: () => navigator.clipboard.writeText(value)
+            },
+            {
+              type: 'text',
+              value: value,
+              title: isFormula && typeof item.value === 'string' ? item.value : undefined
+            }
+          ]
+        }
       }
     },
     {
@@ -184,216 +177,217 @@ export const streamVariablesConfig: JotaiTableConfig<StreamComputedVariable> = {
       header: 'Description',
       sortAccessor: (item) => item.description ?? '',
       filterAccessor: (item) => item.description ?? '',
-      renderRow: (item) => <span>{item.description ?? ''}</span>
+      renderRow: (item): CellElement => ({
+        type: 'text',
+        value: item.description ?? ''
+      })
     }
   ]
 }
 
 /**
- * Stream Images Table Config
+ * Stream Images Table Config Factory
  * Shows available images for use in templates with edit capability
  */
-export const streamImagesConfig: JotaiTableConfig<StreamComputedVariable> = {
-  title: 'Images',
-  columns: [
-    {
-      id: 'source',
-      header: 'Source',
-      sortAccessor: (item) => item.source,
-      filterAccessor: (item) => item.source,
-      renderRow: (item) => <span>{item.source}</span>
-    },
-    {
-      id: 'name',
-      header: 'Name',
-      sortAccessor: (item) => item.name,
-      filterAccessor: (item) => item.name,
-      renderRow: (item) => {
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-        const removeUser = useSetAtom(removeStreamUserAtom)
-        const streamState = useAtomValue(streamStateAtom)
+export interface StreamImagesHandlers {
+  setUserPartial: (layoutId: string, itemId: number, partial: any) => void
+  removeUser: (layoutId: string, itemId: number) => void
+  getLayoutId: () => string
+}
 
-        if (item.source === 'layout') {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <input
-                type="text"
-                value={item.name}
-                onChange={(e) => {
-                  const layoutId = streamState.ui.showingLayoutId ?? ''
-                  setUserPartial(layoutId, item.id!, { name: e.target.value })
-                }}
-                style={{ flex: 1, padding: '2px' }}
-              />
-              <ImgButton
-                title="Remove variable"
-                src="img/cross.png"
-                action={() => {
-                  const layoutId = streamState.ui.showingLayoutId ?? ''
-                  removeUser(layoutId, item.id!)
-                }}
-              />
-            </div>
-          )
-        }
-        return <span>{item.name}</span>
-      }
-    },
-    {
-      id: 'image',
-      header: 'Image',
-      renderRow: (item) => {
-        const streamState = useAtomValue(streamStateAtom)
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-
-        const img = (
-          <img
-            src={item.value as string}
-            title={`${item.name} image`}
-            style={{ height: '50px', objectFit: 'contain', maxWidth: '100%' }}
-          />
-        )
-
-        if (item.source === 'layout') {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {img}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onload = (event) => {
-                      const layoutId = streamState.ui.showingLayoutId ?? ''
-                      setUserPartial(layoutId, item.id!, { value: event.target?.result as string })
-                    }
-                    reader.readAsDataURL(file)
+export function createStreamImagesConfig(
+  handlers: StreamImagesHandlers
+): JotaiTableConfig<StreamComputedVariable> {
+  return {
+    title: 'Images',
+    columns: [
+      {
+        id: 'source',
+        header: 'Source',
+        sortAccessor: (item) => item.source,
+        filterAccessor: (item) => item.source,
+        renderRow: (item): CellElement => ({
+          type: 'text',
+          value: item.source
+        })
+      },
+      {
+        id: 'name',
+        header: 'Name',
+        sortAccessor: (item) => item.name,
+        filterAccessor: (item) => item.name,
+        renderRow: (item): CellElement => {
+          if (item.source === 'layout') {
+            return {
+              type: 'row',
+              gap: 4,
+              children: [
+                {
+                  type: 'input',
+                  inputType: 'text',
+                  value: item.name,
+                  width: 'flex',
+                  onChange: (value) => {
+                    const layoutId = handlers.getLayoutId()
+                    handlers.setUserPartial(layoutId, item.id!, { name: value })
                   }
-                }}
-                style={{ width: '30px' }}
-              />
-            </div>
-          )
+                },
+                {
+                  type: 'button',
+                  icon: 'img/cross.png',
+                  width: 16,
+                  height: 16,
+                  title: 'Remove image',
+                  onClick: () => {
+                    const layoutId = handlers.getLayoutId()
+                    handlers.removeUser(layoutId, item.id!)
+                  }
+                }
+              ]
+            }
+          }
+          return { type: 'text', value: item.name }
         }
-        return img
+      },
+      {
+        id: 'image',
+        header: 'Image',
+        renderRow: (item): CellElement => {
+          if (item.source === 'layout') {
+            return {
+              type: 'row',
+              gap: 4,
+              children: [
+                { type: 'icon', src: item.value as string, width: 50, height: 50, title: `${item.name} image` },
+                {
+                  type: 'input',
+                  inputType: 'file',
+                  accept: 'image/*',
+                  width: 30,
+                  onChange: (dataUrl) => {
+                    const layoutId = handlers.getLayoutId()
+                    handlers.setUserPartial(layoutId, item.id!, { value: dataUrl })
+                  }
+                }
+              ]
+            }
+          }
+          return { type: 'icon', src: item.value as string, width: 50, height: 50, title: `${item.name} image` }
+        }
+      },
+      {
+        id: 'description',
+        header: 'Description',
+        sortAccessor: (item) => item.description ?? '',
+        filterAccessor: (item) => item.description ?? '',
+        renderRow: (item): CellElement => ({
+          type: 'input',
+          inputType: 'text',
+          value: item.description ?? '',
+          width: 'flex',
+          onChange: (value) => {
+            const layoutId = handlers.getLayoutId()
+            handlers.setUserPartial(layoutId, item.id!, { description: value })
+          }
+        })
       }
-    },
-    {
-      id: 'description',
-      header: 'Description',
-      sortAccessor: (item) => item.description ?? '',
-      filterAccessor: (item) => item.description ?? '',
-      renderRow: (item) => {
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-        const streamState = useAtomValue(streamStateAtom)
-
-        return (
-          <input
-            type="text"
-            value={item.description ?? ''}
-            onChange={(e) => {
-              const layoutId = streamState.ui.showingLayoutId ?? ''
-              setUserPartial(layoutId, item.id!, { description: e.target.value })
-            }}
-            style={{ width: '100%', padding: '2px' }}
-          />
-        )
-      }
-    }
-  ]
+    ]
+  }
 }
 
 /**
- * Stream Parameters Table Config
+ * Stream Parameters Table Config Factory
  * Shows parameters available for the layout
  */
-export const streamParametersConfig: JotaiTableConfig<StreamComputedVariable> = {
-  title: 'Parameters',
-  columns: [
-    {
-      id: 'name',
-      header: 'Name',
-      sortAccessor: (item) => item.name,
-      filterAccessor: (item) => item.name,
-      renderRow: (item) => {
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-        const removeUser = useSetAtom(removeStreamUserAtom)
-        const streamState = useAtomValue(streamStateAtom)
+export interface StreamParametersHandlers {
+  setUserPartial: (layoutId: string, itemId: number, partial: any) => void
+  removeUser: (layoutId: string, itemId: number) => void
+  getLayoutId: () => string
+}
 
-        if (item.source === 'layout') {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <input
-                type="text"
-                value={item.name}
-                onChange={(e) => {
-                  const layoutId = streamState.ui.showingLayoutId ?? ''
-                  setUserPartial(layoutId, item.id!, { name: e.target.value })
-                }}
-                style={{ flex: 1, padding: '2px' }}
-              />
-              <ImgButton
-                title="Remove parameter"
-                src="img/cross.png"
-                action={() => {
-                  const layoutId = streamState.ui.showingLayoutId ?? ''
-                  removeUser(layoutId, item.id!)
-                }}
-              />
-            </div>
-          )
+export function createStreamParametersConfig(
+  handlers: StreamParametersHandlers
+): JotaiTableConfig<StreamComputedVariable> {
+  return {
+    title: 'Parameters',
+    columns: [
+      {
+        id: 'name',
+        header: 'Name',
+        sortAccessor: (item) => item.name,
+        filterAccessor: (item) => item.name,
+        renderRow: (item): CellElement => {
+          if (item.source === 'layout') {
+            return {
+              type: 'row',
+              gap: 4,
+              children: [
+                {
+                  type: 'input',
+                  inputType: 'text',
+                  value: item.name,
+                  width: 'flex',
+                  onChange: (value) => {
+                    const layoutId = handlers.getLayoutId()
+                    handlers.setUserPartial(layoutId, item.id!, { name: value })
+                  }
+                },
+                {
+                  type: 'button',
+                  icon: 'img/cross.png',
+                  width: 16,
+                  height: 16,
+                  title: 'Remove parameter',
+                  onClick: () => {
+                    const layoutId = handlers.getLayoutId()
+                    handlers.removeUser(layoutId, item.id!)
+                  }
+                }
+              ]
+            }
+          }
+          return { type: 'text', value: item.name }
         }
-        return <span>{item.name}</span>
-      }
-    },
-    {
-      id: 'value',
-      header: 'Value',
-      sortAccessor: (item) => JSON.stringify(item.value),
-      filterAccessor: (item) => JSON.stringify(item.value),
-      renderRow: (item) => {
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-        const streamState = useAtomValue(streamStateAtom)
+      },
+      {
+        id: 'value',
+        header: 'Value',
+        sortAccessor: (item) => JSON.stringify(item.value),
+        filterAccessor: (item) => JSON.stringify(item.value),
+        renderRow: (item): CellElement => {
+          const displayValue = typeof item.value === 'string' ? item.value : JSON.stringify(item.value)
 
-        if (item.source === 'layout') {
-          return (
-            <input
-              type="text"
-              value={typeof item.value === 'string' ? item.value : JSON.stringify(item.value)}
-              onChange={(e) => {
-                const layoutId = streamState.ui.showingLayoutId ?? ''
-                setUserPartial(layoutId, item.id!, { value: e.target.value })
-              }}
-              style={{ width: '100%', padding: '2px' }}
-            />
-          )
+          if (item.source === 'layout') {
+            return {
+              type: 'input',
+              inputType: 'text',
+              value: displayValue,
+              width: 'flex',
+              onChange: (value) => {
+                const layoutId = handlers.getLayoutId()
+                handlers.setUserPartial(layoutId, item.id!, { value })
+              }
+            }
+          }
+          return { type: 'text', value: displayValue }
         }
-        return <span>{typeof item.value === 'string' ? item.value : JSON.stringify(item.value)}</span>
+      },
+      {
+        id: 'description',
+        header: 'Description',
+        sortAccessor: (item) => item.description ?? '',
+        filterAccessor: (item) => item.description ?? '',
+        renderRow: (item): CellElement => ({
+          type: 'input',
+          inputType: 'text',
+          value: item.description ?? '',
+          width: 'flex',
+          onChange: (value) => {
+            const layoutId = handlers.getLayoutId()
+            handlers.setUserPartial(layoutId, item.id!, { description: value })
+          }
+        })
       }
-    },
-    {
-      id: 'description',
-      header: 'Description',
-      sortAccessor: (item) => item.description ?? '',
-      filterAccessor: (item) => item.description ?? '',
-      renderRow: (item) => {
-        const setUserPartial = useSetAtom(setStreamUserPartialAtom)
-        const streamState = useAtomValue(streamStateAtom)
-
-        return (
-          <input
-            type="text"
-            value={item.description ?? ''}
-            onChange={(e) => {
-              const layoutId = streamState.ui.showingLayoutId ?? ''
-              setUserPartial(layoutId, item.id!, { description: e.target.value })
-            }}
-            style={{ width: '100%', padding: '2px' }}
-          />
-        )
-      }
-    }
-  ]
+    ]
+  }
 }

@@ -13,6 +13,7 @@ import { createComputedTableDataAtom } from '../../../application/atoms/tableUti
 // Import DSL utilities
 import { calculateColumnWidth } from './cellMeasurement'
 import { renderCellElement } from './cellRenderer'
+import type { CellElement } from './cellDSL'
 
 // Constants for table layout
 const ITEM_HEIGHT = 32
