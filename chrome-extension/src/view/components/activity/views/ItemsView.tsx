@@ -104,6 +104,7 @@ const ItemsView: React.FC<ItemsViewProps> = ({
     return (
         <JotaiSortableTable
             itemsAtom={itemsAtom}
+            className='table-diff'
             config={{
                 title: 'Items',
                 columns,
