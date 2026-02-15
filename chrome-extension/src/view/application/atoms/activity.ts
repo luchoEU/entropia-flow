@@ -196,12 +196,9 @@ const processHistoryData = async (
     return { allActions, allInventoryItems, lastProcessedKey }
 }
 
-let historyChangeCount = 0
 export const onHistoryChangeAtom = atom(
     null,
     async (get, set) => {
-        historyChangeCount++
-        console.log(`[onHistoryChangeAtom] update #${historyChangeCount}`)
         const history = get(historyAtom)
         const activity = get(activityAtom)
 
@@ -223,7 +220,6 @@ export const onHistoryChangeAtom = atom(
                 inventoryKey: lastProcessedKey
             }
         }
-        console.log(`[onHistoryChangeAtom] setting activity, actions count: ${allActions.length}, items count: ${allInventoryItems.length}`)
         set(activityAtom, newState)
         await saveToStorage(newState)
 

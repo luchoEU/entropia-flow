@@ -194,7 +194,6 @@ export function ActivityBridge() {
     // Process history changes
     useEffect(() => {
         if (isLoading) return
-        if (!activity) return
         if (!history?.list || history.list.length === 0) return
 
         // Only process if history actually changed
@@ -202,7 +201,7 @@ export function ActivityBridge() {
         prevHistoryRef.current = history
 
         processHistoryChange()
-    }, [history, isLoading, activity, processHistoryChange])
+    }, [history, isLoading, processHistoryChange])
 
     // This component doesn't render anything
     return null
