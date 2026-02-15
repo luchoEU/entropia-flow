@@ -38,8 +38,9 @@ const ActionItem: React.FC<ActionItemProps> = ({
         setEditingName,
         editingRule,
         setEditingRule,
-        handleStartEdit,
+        handleStartEdit: baseHandleStartEdit,
         handleCancelEdit,
+        updateInitialValues,
     } = useActionEdit({
         initialEmoji: actionTypeDef?.emoji || '🎯',
         initialName: actionTypeDef?.name || '',
@@ -67,18 +68,15 @@ const ActionItem: React.FC<ActionItemProps> = ({
     const timestamp = action.timestamp || 0
     const itemIds = Array.isArray(action.relatedItems.items) ? action.relatedItems.items : [action.relatedItems.items]
 
-    // Initialize editing state when editing starts
-    React.useEffect(() => {
-        if (isEditing) {
-            setEditingEmoji(actionTypeDef?.emoji || '🎯')
-            setEditingName(actionTypeDef?.name || '')
-            if (actionTypeDef?.inferenceRule) {
-                setEditingRule(JSON.parse(JSON.stringify(actionTypeDef.inferenceRule)))
-            }
-        } else {
-            setEditingRule(null)
-        }
-    }, [isEditing, actionTypeDef])
+    // Handle edit start with proper initialization
+    const handleStartEdit = () => {
+        updateInitialValues(
+            actionTypeDef?.emoji || '🎯',
+            actionTypeDef?.name || '',
+            actionTypeDef?.inferenceRule ? JSON.parse(JSON.stringify(actionTypeDef.inferenceRule)) : null
+        )
+        baseHandleStartEdit()
+    }
 
     const handleSaveActionType = async () => {
         if (!editingName.trim() || !isValidEmoji(editingEmoji)) return
