@@ -4,7 +4,7 @@ import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import { SORT_VALUE_DESCENDING, nextSortType, sortList } from '../helpers/inventory.sort'
 import { getDifference } from '../helpers/diff'
-import { getLatestFromInventoryList, getText } from '../helpers/history'
+import { getLatestFromInventoryList, getText, copyDiffToClipboard } from '../helpers/history'
 import { _applyExcludes, _applyBlacklist, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
 import messagesApi from '../../services/api/messages'
 import { historyAtom, INVENTORY_KEY_SCALE } from './history'
@@ -299,13 +299,6 @@ export const copyLastAtom = atom(
     null,
     (get, _set, useComma: boolean = false) => {
         const computed = get(lastComputedAtom)
-        if (computed.diff) {
-            const text = computed.diff.map((d: ViewItemData) =>
-                `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`
-            ).join('\n')
-            navigator.clipboard.writeText(text).catch(err =>
-                console.error('Failed to copy text: ', err)
-            )
-        }
+        copyDiffToClipboard(computed.diff, useComma)
     }
 )

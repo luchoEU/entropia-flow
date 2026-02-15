@@ -1,6 +1,6 @@
 import { Inventory } from "../../../common/state";
 import * as Sort from "./inventory.sort"
-import { ViewInventory } from "../state/history";
+import { ViewInventory, ViewItemData } from "../state/history";
 
 interface HistoryComputedState {
     list: ViewInventory[]
@@ -69,9 +69,21 @@ function reduceToggleActionsView(state: HistoryComputedState, key: number): Hist
     }
 }
 
+function copyDiffToClipboard(diff: ViewItemData[] | undefined, useComma: boolean = false): void {
+    if (!diff) return
+
+    const text = diff.map((d: ViewItemData) =>
+        `${d.n}\t${d.q}\t${useComma ? d.v.replace('.', ',') : d.v}`
+    ).join('\n')
+    navigator.clipboard.writeText(text).catch(err =>
+        console.error('Failed to copy text: ', err)
+    )
+}
+
 export {
     getText,
     getLatestFromInventoryList,
     reduceHistorySortBy,
-    reduceToggleActionsView
+    reduceToggleActionsView,
+    copyDiffToClipboard
 }

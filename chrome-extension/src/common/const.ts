@@ -48,7 +48,7 @@ const STRING_LOADING_ITEMS = 'loading items...'
 const STRING_NOT_READY = 'not ready' // when items in html are not loaded yet
 const STRING_NO_DATA = 'no data yet'
 const STRING_PLEASE_LOG_IN = 'please log in to entropiauniverse.com'
-const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked or click again to force a refresh'
+const STRING_WAIT_3_MINUTES = 'please wait the 3 minutes cooldown to avoid getting blocked or click again to force a refresh' // no longer an issue
 const STRING_CONNECTION_BACKGROUND_TO_CONTENT = 'connection from background to content failed'
 const STRING_SELECT_ITEMS_TAB = 'please manually select entropia universe items tab to unfreeze it'
 

@@ -1,7 +1,9 @@
 import React from 'react'
 import { useSetAtom, useAtomValue } from 'jotai'
-import { sortByAtom, setItemExpandedAtom, exportToFileAtom, toggleActionsViewAtom } from '../../application/atoms/history'
+import { sortByAtom, setItemExpandedAtom, exportToFileAtom, toggleActionsViewAtom, copyHistoryItemAtom } from '../../application/atoms/history'
 import { setAsLastAtom, lastTimestampAtom } from '../../application/atoms/last'
+import { isFeatureEnabledAtom } from '../../application/atoms/settings'
+import { Feature } from '../../application/state/settings'
 import { ViewInventory } from '../../application/state/history'
 import InventoryDifference from './InventoryDifference'
 import ActionTree from './ActionTree'
@@ -16,7 +18,9 @@ const InventoryItem = (p: { item: ViewInventory }) => {
     const exportFile = useSetAtom(exportToFileAtom)
     const toggleActions = useSetAtom(toggleActionsViewAtom)
     const setAsLast = useSetAtom(setAsLastAtom)
+    const copyItem = useSetAtom(copyHistoryItemAtom)
     const lastTimestamp = useAtomValue(lastTimestampAtom)
+    const useComma = useAtomValue(isFeatureEnabledAtom(Feature.commaDecimalSeparator))
     const isLast = item.rawInventory.meta.date === lastTimestamp
 
     const config = {
@@ -46,6 +50,13 @@ const InventoryItem = (p: { item: ViewInventory }) => {
                     src='img/export.png'
                     className='img-btn-export'
                     action={() => exportFile(item.key)} />
+                }
+                { item.diff && item.diff.length > 0 && <ImgButton
+                    title='Copy to clipboard'
+                    src='img/copy.png'
+                    className='img-btn-copy'
+                    clickPopup='Copied!'
+                    action={() => copyItem({ key: item.key, useComma }) } />
                 }
             </td>
             <td>

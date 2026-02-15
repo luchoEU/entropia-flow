@@ -86,12 +86,13 @@ class ContentTimer {
         if (!forced) {
             if (source === 'ajax') {
                 this.options.currentWaitSeconds = NORMAL_WAIT_SECONDS;
-            }
-            const remainingSeconds = this.remainingSeconds();
-            if (remainingSeconds > 0) {
-                return {
-                    ...makeLogInventory(CLASS_ERROR, STRING_WAIT_3_MINUTES),
-                    waitSeconds: remainingSeconds
+            } else {
+                const remainingSeconds = this.remainingSeconds();
+                if (remainingSeconds > 0) {
+                    return {
+                        ...makeLogInventory(CLASS_ERROR, "Wait"), // for source == auto
+                        waitSeconds: remainingSeconds
+                    }
                 }
             }
         }

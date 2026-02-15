@@ -1,11 +1,12 @@
 import { atom } from 'jotai'
 import { Inventory } from '../../../common/state'
-import { ViewItemData, ViewInventory } from '../state/history'
+import { ViewInventory } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import {
     getText,
     reduceHistorySortBy,
-    reduceToggleActionsView
+    reduceToggleActionsView,
+    copyDiffToClipboard
 } from '../helpers/history'
 import { getDifference } from '../helpers/diff'
 
@@ -31,11 +32,6 @@ const initialUIState: HistoryUIState = {
 export interface HistoryComputedState {
     list: ViewInventory[]
     hiddenError?: string
-}
-
-const initialComputedState: HistoryComputedState = {
-    list: [],
-    hiddenError: undefined
 }
 
 // Base atoms
@@ -193,5 +189,16 @@ export const exportToFileAtom = atom(
             document.body.removeChild(a)
             window.URL.revokeObjectURL(url)
         }, 0)
+    }
+)
+
+export const copyHistoryItemAtom = atom(
+    null,
+    (get, _set, { key, useComma }: { key: number, useComma: boolean }) => {
+        const { list } = get(historyAtom)
+        const inv = list.find(i => i.key === key)
+        if (!inv) return
+
+        copyDiffToClipboard(inv.diff, useComma)
     }
 )
