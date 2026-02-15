@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
 import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
@@ -30,7 +30,8 @@ const ItemRow = ({ item, c }: {
     item: ViewItemData,
     c: Config
 }) => {
-    const material = useAtomValue(getItemAtom(item.n))
+    const itemAtom = useMemo(() => getItemAtom(item.n), [item.n])
+    const material = useAtomValue(itemAtom)
     const setMarkup = useSetAtom(setItemBuyMarkupAtom)
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
