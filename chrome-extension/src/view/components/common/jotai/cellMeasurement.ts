@@ -136,9 +136,8 @@ export function calculateColumnWidth<TItem>(
   sampleSize: number = 10,
   font?: string
 ): number {
-  if (items.length === 0) {
-    return 60 // minimum width when no items
-  }
+  if (items.length === 0)
+    return 0
 
   // Sample first N items
   const samples = items.slice(0, Math.min(items.length, sampleSize))
@@ -147,6 +146,5 @@ export function calculateColumnWidth<TItem>(
     return calculateCellWidth(element, item, font)
   })
 
-  // Return max width from samples, but at least 60px
-  return Math.max(...widths, 60)
+  return Math.max(...widths)
 }

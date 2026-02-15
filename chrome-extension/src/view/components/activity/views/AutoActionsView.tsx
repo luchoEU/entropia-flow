@@ -13,6 +13,7 @@ import { CellElement } from '../../common/jotai/cellDSL'
 import ItemText from '../../common/ItemText'
 import ImgButton from '../../common/ImgButton'
 import { TabId } from '../../../application/state/navigation'
+import { JotaiTableColumn } from '../../common/jotai/JotaiTableTypes'
 
 interface AutoActionsViewProps {
     sessionId: string
@@ -154,11 +155,11 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                 const dateGroupAtom = useMemo(() => atom(dateGroupData), [dateGroupData])
 
                 // Render columns
-                const columns = useMemo(() => [
+                const columns = useMemo((): JotaiTableColumn<ActionRowData>[] => [
                     {
                         id: 'expand',
                         header: '',
-                        width: 30,
+                        minWidth: 5,
                         sortAccessor: undefined,
                         renderRow: (item: ActionRowData): CellElement => {
                             const isExpanded = expandedActionRows.has(item.action.id)
@@ -173,7 +174,6 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                     {
                         id: 'time',
                         header: 'Time',
-                        width: 100,
                         sortAccessor: (item: ActionRowData) => item.timestamp,
                         renderRow: (item: ActionRowData): CellElement => ({
                             type: 'text' as const,
@@ -183,7 +183,6 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                     {
                         id: 'total',
                         header: 'Total',
-                        width: 100,
                         sortAccessor: (item: ActionRowData) => item.total,
                         renderRow: (item: ActionRowData): CellElement => ({
                             type: 'text' as const,
@@ -193,7 +192,6 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                     {
                         id: 'name',
                         header: 'Action',
-                        width: 250,
                         sortAccessor: (item: ActionRowData) => formatActionDescription(item.action, getInventoryItem),
                         renderRow: (item: ActionRowData): CellElement => {
                             const nameText = formatActionDescription(item.action, getInventoryItem)
@@ -231,7 +229,6 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                     {
                         id: 'actions',
                         header: 'Actions',
-                        width: 200,
                         sortAccessor: undefined,
                         renderRow: (item: ActionRowData): CellElement => {
                             const excluded = exclusionConfig?.isExcluded ?? false
@@ -301,40 +298,33 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                             }
                         }
                     }
-                ], [editingActionId, exclusionConfig, buildCopyTextForAction, copyToClipboard])
-
-                // Render expanded items for this date group
-                const expandedContent = dateGroupData.map(item => {
-                    const isExpanded = expandedActionRows.has(item.action.id)
-                    const itemIds = getAllItemIds(item.action)
-                    return isExpanded && (
-                        <div key={`expanded-${item.action.id}`} style={{ padding: '0 20px 10px 40px' }}>
-                            {renderExpandedItems(item.action, itemIds)}
-                        </div>
-                    )
-                }).filter(Boolean)
+                ], [editingActionId, exclusionConfig, buildCopyTextForAction, copyToClipboard, expandedActionRows])
 
                 return (
                     <div key={date} style={{ marginTop: '10px' }}>
                         <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
-                        <div className='table-diff'>
-                            <JotaiSortableTable
-                                itemsAtom={dateGroupAtom}
-                                config={{
-                                    title: `Actions for ${date}`,
-                                    columns,
-                                    itemTypeName: 'action',
-                                    getRowKey: (item: ActionRowData) => item.action.id
-                                }}
-                                useFixedSizeList={false}
-                                itemHeight={32}
-                            />
-                        </div>
-                        {expandedContent && expandedContent.length > 0 && (
-                            <div style={{ marginLeft: '20px', marginTop: '-5px' }}>
-                                {expandedContent}
-                            </div>
-                        )}
+                        <JotaiSortableTable
+                            itemsAtom={dateGroupAtom}
+                            className='table-diff'
+                            config={{
+                                title: `Actions for ${date}`,
+                                columns,
+                                itemTypeName: 'action',
+                                getRowKey: (item: ActionRowData) => item.action.id,
+                                renderExpandedRow: (item: ActionRowData) => {
+                                    const isExpanded = expandedActionRows.has(item.action.id)
+                                    if (!isExpanded) return null
+                                    const itemIds = getAllItemIds(item.action)
+                                    return (
+                                        <div style={{ padding: '0 20px 10px 40px' }}>
+                                            {renderExpandedItems(item.action, itemIds)}
+                                        </div>
+                                    )
+                                }
+                            }}
+                            useFixedSizeList={false}
+                            itemHeight={20}
+                        />
                     </div>
                 )
             })}

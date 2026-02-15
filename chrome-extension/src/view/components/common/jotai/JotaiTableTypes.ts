@@ -52,6 +52,8 @@ export interface JotaiTableConfig<TItem = any> {
   getCountValue?: (item: TItem) => number
   /** Optional: Handle row click events */
   onRowClick?: (item: TItem, index: number, event: React.MouseEvent) => void
+  /** Optional: Render expanded row content below the main row */
+  renderExpandedRow?: (item: TItem) => React.ReactNode
 }
 
 /**
@@ -74,6 +76,7 @@ export interface JotaiSortableTableProps<TItem = any> {
   beforeTable?: React.ReactNode
   afterSearch?: React.ReactNode
   itemHeight?: number
+  className?: string
   useFixedSizeList?: boolean
   maxNumberOfLines?: number
   children?: React.ReactNode

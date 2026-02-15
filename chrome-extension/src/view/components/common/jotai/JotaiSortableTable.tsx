@@ -32,6 +32,7 @@ const JotaiSortableTableComponent = function<TItem>(
     config,
     beforeTable,
     afterSearch,
+    className,
     itemHeight = ITEM_HEIGHT,
     useFixedSizeList = true,
     maxNumberOfLines = 10,
@@ -240,7 +241,7 @@ const JotaiSortableTableComponent = function<TItem>(
         {beforeTable && <div className='table-before-controls'>{beforeTable}</div>}
 
         {/* Table */}
-        <div className='table-wrapper'>
+        <div className={`table-wrapper ${className}`}>
           <div style={{ width: totalWidth }} className='table-container'>
             {/* Header */}
             <div className='table-header'>
@@ -263,15 +264,26 @@ const JotaiSortableTableComponent = function<TItem>(
                   {VirtualizedRow}
                 </FixedSizeList>
               ) : (
-                data.items.map((item, index) => (
-                  <div
-                    key={config.getRowKey ? config.getRowKey(item, index) : index}
-                    className={`table-row img-hover-container ${config.getRowClass?.(item, index) ?? ''}`}
-                    onClick={(e) => config.onRowClick?.(item, index, e)}
-                  >
-                    {renderRow(item, index)}
-                  </div>
-                ))
+                data.items.flatMap((item, index) => {
+                  const expandedContent = config.renderExpandedRow?.(item)
+                  return [
+                    <div
+                      key={config.getRowKey ? config.getRowKey(item, index) : index}
+                      className={`table-row img-hover-container ${config.getRowClass?.(item, index) ?? ''}`}
+                      onClick={(e) => config.onRowClick?.(item, index, e)}
+                    >
+                      {renderRow(item, index)}
+                    </div>,
+                    ...(expandedContent ? [
+                      <div
+                        key={`expanded-${config.getRowKey ? config.getRowKey(item, index) : index}`}
+                        className='table-expanded-row'
+                      >
+                        {expandedContent}
+                      </div>
+                    ] : [])
+                  ]
+                })
               )}
             </div>
           </div>
