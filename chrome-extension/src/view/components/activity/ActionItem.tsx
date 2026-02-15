@@ -29,12 +29,6 @@ const ActionItem: React.FC<ActionItemProps> = ({
     onSaveActionType,
     isValidEmoji,
 }) => {
-    const renderCountRef = React.useRef(0)
-    renderCountRef.current++
-    if (renderCountRef.current % 10 === 0 || renderCountRef.current <= 5) {
-        console.log(`[ActionItem] render #${renderCountRef.current}, action.id=${action.id}`)
-    }
-
     const {
         isEditing,
         setIsEditing,
@@ -56,10 +50,6 @@ const ActionItem: React.FC<ActionItemProps> = ({
     // Jotai state management for expanded rows
     const activity = useAtomValue(activityAtom)
     const updateExpandedActionRows = useSetAtom(updateExpandedActionRowsAtom)
-
-    React.useEffect(() => {
-        console.log(`[ActionItem] useEffect: activity.ui.expanded.actionRows changed, action.id=${action.id}`)
-    }, [activity.ui.expanded.actionRows, action.id])
 
     const actionId = action.id || ''
     const isExpanded = activity.ui.expanded.actionRows.includes(actionId)

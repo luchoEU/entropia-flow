@@ -10,12 +10,6 @@ import ItemsView from './views/ItemsView'
 import ActionsView from './views/ActionsView'
 
 function ActivityPage() {
-    const renderCountRef = React.useRef(0)
-    renderCountRef.current++
-    if (renderCountRef.current % 10 === 0 || renderCountRef.current <= 5) {
-        console.log(`[ActivityPage] render #${renderCountRef.current}`)
-    }
-
     const {
         activity,
         lastDeletedSession,

@@ -1121,12 +1121,7 @@ export const availableItemsAtom = atom(get => {
 // Computed atom that groups items by session
 type VirtualSession = ActivitySession & { delta: number; start: number; end: number }
 
-let virtualSessionsComputeCount = 0
 export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
-    virtualSessionsComputeCount++
-    if (virtualSessionsComputeCount % 10 === 0 || virtualSessionsComputeCount <= 5) {
-        console.log(`[virtualSessionsAtom] compute #${virtualSessionsComputeCount}`)
-    }
     const current = get(activityAtom)
     const { items, sessions } = current.data
     const preSessionKey = 'pre-session'

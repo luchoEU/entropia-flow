@@ -19,12 +19,6 @@ import { StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 
 export function ActivityBridge() {
-    const bridgeRenderCountRef = useRef(0)
-    bridgeRenderCountRef.current++
-    if (bridgeRenderCountRef.current % 10 === 0 || bridgeRenderCountRef.current <= 3) {
-        console.log(`[ActivityBridge] render #${bridgeRenderCountRef.current}`)
-    }
-
     // Jotai atoms
     const gameLog = useAtomValue(currentGameLogDataAtom)
     const history = useAtomValue(historyAtom)
@@ -50,6 +44,7 @@ export function ActivityBridge() {
     const budgetRef = useRef(budget)
     const lastRef = useRef(last)
     const prevLastLogSerialRef = useRef<number | undefined>(activity.lastProcessed.clientLogSerial)
+    const subscribedRef = useRef(false)
 
     // Keep refs updated
     useEffect(() => {
@@ -67,44 +62,49 @@ export function ActivityBridge() {
     }, [initializeActivity, initializeGameLog])
 
     // Subscribe to activity changes for budget and notification integration
+    // Only subscribe once to prevent duplicate callbacks from being registered on every render
     useEffect(() => {
-        console.log(`[ActivityBridge] subscribe effect, isLoading=${isLoading}`)
-        if (isLoading) return
+        if (isLoading || subscribedRef.current) return
 
-        subscribe({
-            onActionsAdded: (actions: StoredAction[]) => {
-                console.log(`[ActivityBridge] onActionsAdded callback, actions.length=${actions.length}`)
-                // Budget integration
-                const currentBudget = budgetRef.current
-                const results = inferBudgetLinesFromActions(actions, currentBudget, activity.data.items)
+        subscribedRef.current = true
 
-                for (const result of results) {
-                    addBudgetItemPendingLines(result.budgetName, [result.budgetLine])
-                    // Update action with budget name in Jotai
-                    updateActionBudgetName({ actionId: result.action.id, budgetName: result.budgetName })
-                }
-            },
-            onActionsRemoved: (_actionIds: string[], removedActions: StoredAction[]) => {
-                // Budget cleanup on action removal
-                const currentBudget = budgetRef.current
-                for (const action of removedActions) {
-                    if (action.budgetName) {
-                        // Remove budgetList entries for this item from all materials
-                        const updatedMap = { ...currentBudget.materials.map }
-                        for (const materialName of Object.keys(updatedMap)) {
-                            updatedMap[materialName] = {
-                                ...updatedMap[materialName],
-                                budgetList: updatedMap[materialName].budgetList.filter(
-                                    (b: { itemName: string }) => b.itemName !== action.budgetName
-                                )
-                            }
+        const handleActionsAdded = (actions: StoredAction[]) => {
+            // Budget integration
+            const currentBudget = budgetRef.current
+            const results = inferBudgetLinesFromActions(actions, currentBudget, activity.data.items)
+
+            for (const result of results) {
+                addBudgetItemPendingLines(result.budgetName, [result.budgetLine])
+                // Update action with budget name in Jotai
+                updateActionBudgetName({ actionId: result.action.id, budgetName: result.budgetName })
+            }
+        }
+
+        const handleActionsRemoved = (_actionIds: string[], removedActions: StoredAction[]) => {
+            // Budget cleanup on action removal
+            const currentBudget = budgetRef.current
+            for (const action of removedActions) {
+                if (action.budgetName) {
+                    // Remove budgetList entries for this item from all materials
+                    const updatedMap = { ...currentBudget.materials.map }
+                    for (const materialName of Object.keys(updatedMap)) {
+                        updatedMap[materialName] = {
+                            ...updatedMap[materialName],
+                            budgetList: updatedMap[materialName].budgetList.filter(
+                                (b: { itemName: string }) => b.itemName !== action.budgetName
+                            )
                         }
-                        setBudgetFromSheet(updatedMap, currentBudget.list.items, currentBudget.loadPercentage)
                     }
+                    setBudgetFromSheet(updatedMap, currentBudget.list.items, currentBudget.loadPercentage)
                 }
             }
+        }
+
+        subscribe({
+            onActionsAdded: handleActionsAdded,
+            onActionsRemoved: handleActionsRemoved
         })
-    }, [isLoading, subscribe, updateActionBudgetName, addBudgetItemPendingLines, setBudgetFromSheet])
+    }, [isLoading, subscribe, updateActionBudgetName, addBudgetItemPendingLines, setBudgetFromSheet, activity.data.items])
 
     // Keep ref to lastProcessedLogSerial updated
     useEffect(() => {
