@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { ActivityItem, ActivityAction, UserActionTypeDefinition } from '../../application/state/activity'
 import { activityAtom, updateExpandedActionRowsAtom } from '../../application/atoms/activity'
@@ -69,14 +69,14 @@ const ActionItem: React.FC<ActionItemProps> = ({
     const itemIds = Array.isArray(action.relatedItems.items) ? action.relatedItems.items : [action.relatedItems.items]
 
     // Handle edit start with proper initialization
-    const handleStartEdit = () => {
+    const handleStartEdit = useCallback(() => {
         updateInitialValues(
             actionTypeDef?.emoji || '🎯',
             actionTypeDef?.name || '',
             actionTypeDef?.inferenceRule ? JSON.parse(JSON.stringify(actionTypeDef.inferenceRule)) : null
         )
         baseHandleStartEdit()
-    }
+    }, [actionTypeDef, updateInitialValues, baseHandleStartEdit])
 
     const handleSaveActionType = async () => {
         if (!editingName.trim() || !isValidEmoji(editingEmoji)) return
