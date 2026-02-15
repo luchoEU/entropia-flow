@@ -19,6 +19,12 @@ import { StoredAction, ActivityItem } from '../../application/state/activity'
 import { GameLogData } from '../../../background/client/gameLogData'
 
 export function ActivityBridge() {
+    const bridgeRenderCountRef = useRef(0)
+    bridgeRenderCountRef.current++
+    if (bridgeRenderCountRef.current % 10 === 0 || bridgeRenderCountRef.current <= 3) {
+        console.log(`[ActivityBridge] render #${bridgeRenderCountRef.current}`)
+    }
+
     // Jotai atoms
     const gameLog = useAtomValue(currentGameLogDataAtom)
     const history = useAtomValue(historyAtom)
@@ -62,10 +68,12 @@ export function ActivityBridge() {
 
     // Subscribe to activity changes for budget and notification integration
     useEffect(() => {
+        console.log(`[ActivityBridge] subscribe effect, isLoading=${isLoading}`)
         if (isLoading) return
 
         subscribe({
             onActionsAdded: (actions: StoredAction[]) => {
+                console.log(`[ActivityBridge] onActionsAdded callback, actions.length=${actions.length}`)
                 // Budget integration
                 const currentBudget = budgetRef.current
                 const results = inferBudgetLinesFromActions(actions, currentBudget, activity.data.items)
