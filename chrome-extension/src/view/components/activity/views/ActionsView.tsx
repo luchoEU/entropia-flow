@@ -302,7 +302,6 @@ const ActionsView: React.FC<ActionsViewProps> = ({
                     {
                         id: 'name',
                         header: 'Action',
-                        flex: 1,
                         sortAccessor: (item: ActionRowData) => {
                             if (item.type === 'user') {
                                 const def = item.userData?.actionTypeDef

@@ -33,18 +33,21 @@ const TradeList = (p: TradeListProps) => {
     }, [sourceAtom, list.items])
 
     // Column configuration
-    const columns: JotaiTableColumn<ItemData>[] = useMemo(() => [
+    const columns = useMemo((): JotaiTableColumn<ItemData>[] => [
         {
             id: 'name',
             header: 'Name',
-            flex: 1,
             sortAccessor: (item: ItemData) => item.n,
             filterAccessor: (item: ItemData) => item.n,
-            renderRow: (item: ItemData) => ({
-                type: 'text',
-                value: item.n,
-                title: item.n
-            })
+            renderRow: (item: ItemData) => {
+                const className = classMap[item.n] || ''
+                return {
+                    type: 'text',
+                    value: item.n,
+                    title: item.n,
+                    style: className === 'to-auction' ? { fontWeight: 'bold' } : undefined
+                }
+            }
         },
         {
             id: 'favorite',

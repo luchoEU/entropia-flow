@@ -28,8 +28,6 @@ export interface JotaiTableColumn<TItem = any> {
   minWidth?: number
   /** Optional: Maximum column width in pixels (default: 600) */
   maxWidth?: number
-  /** Optional: CSS flex value for responsive sizing */
-  flex?: number | string
   /** Optional: CSS justify-content value */
   justifyContent?: 'start' | 'center' | 'end'
 }
