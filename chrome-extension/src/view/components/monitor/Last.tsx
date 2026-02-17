@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { isFeatureEnabledAtom } from '../../application/atoms/settings'
 import { Feature } from '../../application/state/settings'
 import { ViewItemData } from '../../application/state/history'
-import InventoryDifference from './InventoryDifference'
+import InventoryDifference, { InventoryDifferenceConfig } from './InventoryDifference'
 import ActionTree from './ActionTree'
 import ExpandablePlusButton from '../common/ExpandablePlusButton'
 import ImgButton from '../common/ImgButton'
@@ -65,15 +65,13 @@ export const Last = () => {
     const actions = diff ? inferActions(diff) : []
 
     // Config for InventoryDifference - return Jotai promises for proper async handling
-    const config = {
+    const config: InventoryDifferenceConfig = {
         sortBy: (part: number) => { sortBy(part); return undefined as any },
         allowExclude: true,
         include: (key: number) => includeItem(key),
         exclude: (key: number) => excludeItem(key),
         permanentExcludeOn: (key: number) => permanentExcludeOn(key),
         permanentExcludeOff: (key: number) => permanentExcludeOff(key),
-        setMode: (_key: number, _type: number, _data: any) => { return undefined as any },
-        clearMode: (_key: number) => { return undefined as any },
         showPeds: true,
         showMarkup,
         movedTitle: "this item was moved by this amount, it doesn't count for the total difference (parenthesis)"

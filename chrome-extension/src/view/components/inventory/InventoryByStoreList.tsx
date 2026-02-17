@@ -17,6 +17,7 @@ import {
   setByStoreInventoryFilterAtom, setByStoreStaredInventoryFilterAtom
 } from '../../application/atoms/inventory'
 import { columnIndexToSortType } from '../../application/helpers/inventory.sort'
+import { JotaiTableConfig } from '../common/jotai/JotaiTableTypes'
 
 const InventoryByStoreList = () => {
     const inv: InventoryByStore | null = useAtomValue(byStoreStateAtom)
@@ -328,7 +329,7 @@ const InventoryByStoreList = () => {
         <button onClick={() => byStoreFilter ? setByStoreAllItemsExpandedOnFilter(false) : setByStoreAllItemsExpanded(false)} title='Collapse All'>-</button>
     )
 
-    const commonConfig = {
+    const commonConfig: Partial<JotaiTableConfig<TreeLineData>> = {
         itemTypeName: 'item',
         getRowKey: (item: TreeLineData) => item.id,
         getPedValue: (item: TreeLineData) => item.indent === 0 ? parseFloat(item.v) : 0,
@@ -348,6 +349,7 @@ const InventoryByStoreList = () => {
                         columns: staredColumnsConfig,
                         ...commonConfig
                     }}
+                    fillHeight={true}
                     onSortChange={handleSortStared}
                     onFilterChange={handleFilterStared}
                     afterSearch={
@@ -368,6 +370,7 @@ const InventoryByStoreList = () => {
                     columns: regularColumnsConfig,
                     ...commonConfig
                 }}
+                fillHeight={true}
                 onSortChange={handleSortContainers}
                 onFilterChange={handleFilterContainers}
                 afterSearch={

@@ -11,16 +11,15 @@ import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../
 import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
+import { setModeStateAtom } from '../../application/atoms/mode'
 
-interface Config {
+export interface InventoryDifferenceConfig {
     sortBy: (part: number) => any
     allowExclude: boolean
     include?: (key: number) => any
     exclude?: (key: number) => any
     permanentExcludeOn?: (key: number) => any
     permanentExcludeOff?: (key: number) => any
-    setMode?: (key: number, type: number, data: any) => any
-    clearMode?: (key: number) => any
     showPeds: boolean
     showMarkup: boolean
     movedTitle: string
@@ -28,10 +27,11 @@ interface Config {
 
 const ItemRow = ({ item, c }: {
     item: ViewItemData,
-    c: Config
+    c: InventoryDifferenceConfig
 }) => {
     const itemAtom = useMemo(() => getItemAtom(item.n), [item.n])
     const material = useAtomValue(itemAtom)
+    const setMode = useSetAtom(setModeStateAtom)
     const setMarkup = useSetAtom(setItemBuyMarkupAtom)
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
@@ -107,14 +107,14 @@ const ItemRow = ({ item, c }: {
                                     }
                                     setMarkup(item.n, defaultMarkup(unit))
                                 }
-                                return c.setMode?.(item.key, VIEW_ITEM_MODE_EDIT_MARKUP, material?.markup?.value) // save current value in case of cancel
+                                //return setMode({key: item.key, mode: VIEW_ITEM_MODE_EDIT_MARKUP, data: material?.markup?.value})
                             }} />
                         </> }
                 </td><td style={{paddingLeft: 0}} className={ editMarkupMode ? undefined : 'item-cell-value'}>
                     { editMarkupMode ?
                         <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show action={() => { setMarkup(item.n, item.m?.data ?? ''); return c.clearMode?.(item.key) }} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show action={() => c.clearMode?.(item.key)} />
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show action={() => { setMarkup(item.n, item.m?.data ?? ''); return /*c.clearMode?.(item.key)*/ }} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show action={() => { /*c.clearMode?.(item.key)*/ }} />
                         </> : <>
                             { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }
@@ -129,7 +129,7 @@ const ItemRow = ({ item, c }: {
 
 const PedRow = (p: {
     item: ViewPedData,
-    c: Config
+    c: InventoryDifferenceConfig
 }) => {
     const { item, c } = p
     const removePeds = useSetAtom(removePedsAtom)
@@ -183,7 +183,7 @@ const PedNewRow = () => {
 const InventoryDifference = ({ diff, peds, config }: {
     diff: Array<ViewItemData> | undefined,
     peds: Array<ViewPedData>,
-    config: Config
+    config: InventoryDifferenceConfig
 }) => {
     return (
         <table className='table-diff'>

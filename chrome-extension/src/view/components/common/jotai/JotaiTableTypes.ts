@@ -69,14 +69,25 @@ export interface ComputedTableData<TItem = any> {
  * Props for JotaiSortableTable component
  */
 export interface JotaiSortableTableProps<TItem = any> {
+  /** Jotai atom containing the array of items to display */
   itemsAtom: Atom<TItem[]>
+  /** Table configuration including columns and callbacks */
   config: JotaiTableConfig<TItem>
+  /** Optional: Content to render above the search section */
   beforeTable?: React.ReactNode
+  /** Optional: Content to render to the right of the search input */
   afterSearch?: React.ReactNode
+  /** Optional: Height of each row in pixels (default: 20) */
   itemHeight?: number
+  /** Optional: Additional CSS class names to apply to the table wrapper */
   className?: string
+  /** Optional: Whether to use FixedSizeList for virtualization (default: true) */
   useFixedSizeList?: boolean
+  /** Optional: Maximum number of visible rows before scrolling (default: 10, ignored when fillHeight is true) */
   maxNumberOfLines?: number
+  /** Optional: Whether to fill all available vertical space (default: false) */
+  fillHeight?: boolean
+  /** Optional: Content to render below the table */
   children?: React.ReactNode
   /** Optional: Custom sort handler - when provided, disables internal sorting */
   onSortChange?: (columnIndex: number, ascending: boolean) => void

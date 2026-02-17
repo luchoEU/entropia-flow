@@ -13,10 +13,9 @@ import { createComputedTableDataAtom } from '../../../application/atoms/tableUti
 // Import DSL utilities
 import { calculateColumnWidth } from './cellMeasurement'
 import { renderCellElement } from './cellRenderer'
-import type { CellElement } from './cellDSL'
 
 // Constants for table layout
-const ITEM_HEIGHT = 32
+const ITEM_HEIGHT = 20
 const COLUMN_PADDING = 4
 
 /**
@@ -35,9 +34,10 @@ const JotaiSortableTableComponent = function<TItem>(
     className,
     itemHeight = ITEM_HEIGHT,
     useFixedSizeList = true,
-    maxNumberOfLines = 10,
+    fillHeight = false,
     children
   } = props
+  const maxNumberOfLines = props.maxNumberOfLines ?? (fillHeight ? 25 : 10)
 
   // Create internal UI state atom for this table instance with persistence
   const tableStorageKey = `table-ui-state-${config.title}`
