@@ -75,8 +75,8 @@ export interface JotaiSortableTableProps<TItem = any> {
   config: JotaiTableConfig<TItem>
   /** Optional: Content to render above the search section */
   beforeTable?: React.ReactNode
-  /** Optional: Content to render to the right of the search input */
-  afterSearch?: React.ReactNode
+  /** Optional: Content to render to the right of the search input. Can be a React node or a function that receives the current filter */
+  afterSearch?: React.ReactNode | ((filter: string) => React.ReactNode)
   /** Optional: Height of each row in pixels (default: 20) */
   itemHeight?: number
   /** Optional: Additional CSS class names to apply to the table wrapper */

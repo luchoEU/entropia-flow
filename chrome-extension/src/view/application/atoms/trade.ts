@@ -1,7 +1,8 @@
 import { atom } from 'jotai'
 import { TradeState, initialState } from '../state/trade'
+import { atomWithStorage } from 'jotai/utils'
 
-export const tradeAtom = atom<TradeState>(initialState)
+export const tradeAtom = atomWithStorage<TradeState>('jotai-v1-trade', initialState)
 
 export const setTradeStateAtom = atom(
   null,

@@ -7,6 +7,7 @@ import * as gameLogAtoms from './gameLog'
 import * as itemsAtoms from './items'
 import * as debugAtoms from './debug'
 import * as connectionAtoms from './connection'
+import * as tradeAtoms from './trade'
 
 /**
  * Categorizes atoms by their purpose:
@@ -28,6 +29,7 @@ export const moduleRegistry = [
     { id: 'items', name: 'Items', module: itemsAtoms },
     { id: 'debug', name: 'Debug', module: debugAtoms },
     { id: 'connection', name: 'Connection', module: connectionAtoms },
+    { id: 'trade', name: 'Trade', module: tradeAtoms },
 ] as const
 
 export type ModuleType = typeof moduleRegistry[number]['id']

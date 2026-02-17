@@ -33,15 +33,15 @@ export function TradePage() {
         return map
     }, [s.available.items, s.auction.items])
 
-    const notifyButton = useMemo(() => (
+    const notifyButton = (filter: string) => (
         <button
             className="button-option"
             title="Notify when a new message matching the filter is added"
-            onClick={() => addNotification('')}
+            onClick={() => addNotification(filter)}
         >
             Notify
         </button>
-    ), [addNotification])
+    )
 
     const notificationChips = useMemo(() => {
         if (t.notifications.length === 0) return undefined

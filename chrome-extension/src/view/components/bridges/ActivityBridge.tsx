@@ -13,6 +13,7 @@ import {
 import { historyAtom } from '../../application/atoms/history'
 import { lastComputedAtom } from '../../application/atoms/last'
 import { currentGameLogDataAtom, initializeGameLogAtom } from '../../application/atoms/gameLog'
+import { initializeSettingsAtom } from '../../application/atoms/settings'
 import { budgetStateAtom, addBudgetItemPendingLinesAtom, setBudgetFromSheetAtom } from '../../application/atoms/budget'
 import { inferBudgetLinesFromActions } from '../../application/helpers/budgetInference'
 import { StoredAction, ActivityItem } from '../../application/state/activity'
@@ -30,6 +31,7 @@ export function ActivityBridge() {
     const isLoading = useAtomValue(activityLoadingAtom)
     const initializeActivity = useSetAtom(initializeActivityAtom)
     const initializeGameLog = useSetAtom(initializeGameLogAtom)
+    const initializeSettings = useSetAtom(initializeSettingsAtom)
     const addActionsAndItems = useSetAtom(addActionsAndItemsAtom)
     const setLastProcessedLogSerial = useSetAtom(setLastProcessedLogSerialAtom)
     const subscribe = useSetAtom(subscribeToActivityAtom)
@@ -59,7 +61,8 @@ export function ActivityBridge() {
     useEffect(() => {
         initializeActivity()
         initializeGameLog()
-    }, [initializeActivity, initializeGameLog])
+        initializeSettings()
+    }, [initializeActivity, initializeGameLog, initializeSettings])
 
     // Subscribe to activity changes for budget and notification integration
     // Only subscribe once to prevent duplicate callbacks from being registered on every render

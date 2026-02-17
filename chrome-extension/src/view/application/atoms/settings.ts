@@ -1,31 +1,33 @@
 import { atom, Atom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
 import { Feature, SettingsState, SheetAccessInfo } from '../state/settings'
 import { isFeatureEnabled } from '../state/settings'
+import { createStorageHelpers } from './chromeStoragePersistence'
+
+const sheetAccessStorage = createStorageHelpers<SheetAccessInfo>('settings-sheet')
+const featuresStorage = createStorageHelpers<Feature[]>('settings-features')
+
+// Initial states
+const initialSheetAccess: SheetAccessInfo = {
+  budgetDocumentId: undefined,
+  ttServiceDocumentId: undefined,
+  googleServiceAccountEmail: undefined,
+  googlePrivateKey: undefined,
+  itemsSheetPersistenceMode: undefined
+}
+
+const initialFeatures: Feature[] = [Feature.unfreezeTab]
 
 /**
  * Base atom for sheet access credentials
- * Persisted to storage via atomWithStorage
+ * Persisted to Chrome storage
  */
-export const sheetAccessAtom = atomWithStorage<SheetAccessInfo>(
-  'settings-sheet',
-  {
-    budgetDocumentId: undefined,
-    ttServiceDocumentId: undefined,
-    googleServiceAccountEmail: undefined,
-    googlePrivateKey: undefined,
-    itemsSheetPersistenceMode: undefined
-  }
-)
+export const sheetAccessAtom = atom<SheetAccessInfo>(initialSheetAccess)
 
 /**
  * Base atom for enabled features
- * Persisted to storage via atomWithStorage
+ * Persisted to Chrome storage
  */
-export const featuresAtom = atomWithStorage<Feature[]>(
-  'settings-features',
-  [Feature.unfreezeTab]
-)
+export const featuresAtom = atom<Feature[]>(initialFeatures)
 
 /**
  * Computed atom: Full settings state for backward compatibility
@@ -63,14 +65,38 @@ export const isFeatureEnabledAtom = (feature: Feature): Atom<boolean> => {
 }
 
 /**
+ * Write atom: Initialize settings from Chrome storage
+ */
+export const initializeSettingsAtom = atom(
+  null,
+  async (get, set) => {
+    const [sheet, features] = await Promise.all([
+      sheetAccessStorage.load(),
+      featuresStorage.load()
+    ])
+
+    if (sheet) {
+      set(sheetAccessAtom, sheet)
+    }
+    if (features) {
+      set(featuresAtom, features)
+    }
+  }
+)
+
+/**
  * Write atom: Set entire settings state
  * Used by SettingsBridge for Redux/Jotai sync during migration
  */
 export const setSettingsStateAtom = atom(
   null,
-  (get, set, newState: SettingsState) => {
+  async (get, set, newState: SettingsState) => {
     set(sheetAccessAtom, newState.sheet)
     set(featuresAtom, newState.features)
+    await Promise.all([
+      sheetAccessStorage.save(newState.sheet),
+      featuresStorage.save(newState.features)
+    ])
   }
 )
 
@@ -79,9 +105,11 @@ export const setSettingsStateAtom = atom(
  */
 export const setBudgetDocumentIdAtom = atom(
   null,
-  (get, set, documentId: string | undefined) => {
+  async (get, set, documentId: string | undefined) => {
     const sheet = get(sheetAccessAtom)
-    set(sheetAccessAtom, { ...sheet, budgetDocumentId: documentId })
+    const newSheet = { ...sheet, budgetDocumentId: documentId }
+    set(sheetAccessAtom, newSheet)
+    await sheetAccessStorage.save(newSheet)
   }
 )
 
@@ -90,9 +118,11 @@ export const setBudgetDocumentIdAtom = atom(
  */
 export const setTTServiceDocumentIdAtom = atom(
   null,
-  (get, set, documentId: string | undefined) => {
+  async (get, set, documentId: string | undefined) => {
     const sheet = get(sheetAccessAtom)
-    set(sheetAccessAtom, { ...sheet, ttServiceDocumentId: documentId })
+    const newSheet = { ...sheet, ttServiceDocumentId: documentId }
+    set(sheetAccessAtom, newSheet)
+    await sheetAccessStorage.save(newSheet)
   }
 )
 
@@ -101,9 +131,11 @@ export const setTTServiceDocumentIdAtom = atom(
  */
 export const setGoogleServiceAccountEmailAtom = atom(
   null,
-  (get, set, email: string | undefined) => {
+  async (get, set, email: string | undefined) => {
     const sheet = get(sheetAccessAtom)
-    set(sheetAccessAtom, { ...sheet, googleServiceAccountEmail: email })
+    const newSheet = { ...sheet, googleServiceAccountEmail: email }
+    set(sheetAccessAtom, newSheet)
+    await sheetAccessStorage.save(newSheet)
   }
 )
 
@@ -113,12 +145,14 @@ export const setGoogleServiceAccountEmailAtom = atom(
  */
 export const setGooglePrivateKeyAtom = atom(
   null,
-  (get, set, privateKey: string | undefined) => {
+  async (get, set, privateKey: string | undefined) => {
     const sheet = get(sheetAccessAtom)
-    set(sheetAccessAtom, {
+    const newSheet = {
       ...sheet,
       googlePrivateKey: privateKey ? privateKey.replace(/\\n/g, '\n') : privateKey
-    })
+    }
+    set(sheetAccessAtom, newSheet)
+    await sheetAccessStorage.save(newSheet)
   }
 )
 
@@ -127,7 +161,7 @@ export const setGooglePrivateKeyAtom = atom(
  */
 export const setFeatureEnabledAtom = atom(
   null,
-  (get, set, featureId: Feature, enabled: boolean) => {
+  async (get, set, featureId: Feature, enabled: boolean) => {
     const features = get(featuresAtom)
     const newFeatures = enabled
       ? features.includes(featureId)
@@ -136,6 +170,7 @@ export const setFeatureEnabledAtom = atom(
       : features.filter((f) => f !== featureId)
 
     set(featuresAtom, newFeatures)
+    await featuresStorage.save(newFeatures)
   }
 )
 
@@ -144,21 +179,10 @@ export const setFeatureEnabledAtom = atom(
  */
 export const setItemsSheetPersistenceModeAtom = atom(
   null,
-  (get, set, mode: 'sheet' | 'browser' | undefined) => {
+  async (get, set, mode: 'sheet' | 'browser' | undefined) => {
     const sheet = get(sheetAccessAtom)
-    set(sheetAccessAtom, { ...sheet, itemsSheetPersistenceMode: mode })
-  }
-)
-
-/**
- * Write atom: Initialize settings from storage
- * Called by SettingsBridge on mount (atomWithStorage handles auto-loading)
- * This atom is included for future custom initialization logic if needed
- */
-export const initializeSettingsAtom = atom(
-  null,
-  async (get, set) => {
-    // Note: atomWithStorage handles loading automatically
-    // This atom is for compatibility and future custom loading logic
+    const newSheet = { ...sheet, itemsSheetPersistenceMode: mode }
+    set(sheetAccessAtom, newSheet)
+    await sheetAccessStorage.save(newSheet)
   }
 )

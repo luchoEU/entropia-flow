@@ -1,29 +1,21 @@
-import { mergeDeep } from "../../common/merge";
-import { Feature, isFeatureEnabled, SettingsState } from "../../view/application/state/settings";
-import { SYNC_STORAGE } from "../../chrome/chromeStorageArea";
-import { STORAGE_VIEW_SETTINGS } from "../../common/const";
+import { Feature } from "../../view/application/state/settings";
+import { createStorageHelpers } from "../../view/application/atoms/chromeStoragePersistence";
 
-const initialState: SettingsState = {
-    sheet: {
-        budgetDocumentId: undefined,
-        ttServiceDocumentId: undefined,
-        googleServiceAccountEmail: undefined,
-        googlePrivateKey: undefined
-    },
-    features: [Feature.unfreezeTab]
-}
+const featuresStorage = createStorageHelpers<Feature[]>('settings-features')
 
-async function _getSettings(): Promise<SettingsState> {
-    const state = await SYNC_STORAGE.get(STORAGE_VIEW_SETTINGS)
-    return state ? mergeDeep(initialState, state) : initialState
+async function _getFeatures(): Promise<Feature[]> {
+    const features = await featuresStorage.load()
+    return features ?? [Feature.unfreezeTab]
 }
 
 async function isUnfreezeTabEnabled(): Promise<boolean> {
-    return isFeatureEnabled(await _getSettings(), Feature.unfreezeTab)
+    const features = await _getFeatures()
+    return features.includes(Feature.unfreezeTab)
 }
 
 async function isNotificationEnabled(): Promise<boolean> {
-    return isFeatureEnabled(await _getSettings(), Feature.notification)
+    const features = await _getFeatures()
+    return features.includes(Feature.notification)
 }
 
 export {

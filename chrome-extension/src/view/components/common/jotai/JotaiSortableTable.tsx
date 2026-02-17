@@ -228,7 +228,7 @@ const JotaiSortableTableComponent = function<TItem>(
 
           <div className='search-input-container'>
             <SearchInput filter={uiState.filter} setFilter={handleFilterChange} />
-            {afterSearch}
+            {typeof afterSearch === 'function' ? afterSearch(uiState.filter) : afterSearch}
           </div>
         </div>
 
