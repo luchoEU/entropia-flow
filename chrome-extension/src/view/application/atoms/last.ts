@@ -144,9 +144,7 @@ export const includeItemAtom = atom(
         const item = computed.diff?.find((i: ViewItemData) => i.key === key)
         if (!item) return
 
-        const diff = computed.diff?.map((i: ViewItemData) => i.key === key ? { ...i, e: false } : i)
         const blacklist = current.blacklist.filter(s => s !== item.n)
-        if (diff) _applyWarning(diff, blacklist)
 
         const newState = { ...current, blacklist }
         set(lastPersistedAtom, newState)

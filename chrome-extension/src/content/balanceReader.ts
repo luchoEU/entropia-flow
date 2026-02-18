@@ -14,7 +14,7 @@ class BalanceReader {
         if (!span)
             return { errorText: "Text not found" } // TODO: this error is not shown
 
-        const balance = parseFloat(span.innerText)
+        const balance = parseFloat(span.innerText.replace(',',''))
         return { accountBalance: balance }
     }
 

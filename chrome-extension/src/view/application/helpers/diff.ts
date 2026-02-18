@@ -369,7 +369,7 @@ function getDifference(inventory: Inventory | undefined, previous: Inventory | u
     const iList = _sortList([...inventory.itemlist])
     const pList = _sortList([...previous.itemlist])
 
-    const diff = []
+    const diff: ViewItemData[] = []
     let n = 0
     let m = 0
     while (n < iList.length || m < pList.length) {
@@ -382,7 +382,7 @@ function getDifference(inventory: Inventory | undefined, previous: Inventory | u
         if (match === undefined)
             break
         if (match.newItems !== undefined) {
-            diff.push.apply(diff, match.newItems)
+            diff.push(...match.newItems.map(item => ({ ...item })))
         }
         n += match.nInc
         m += match.mInc
