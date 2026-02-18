@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import { streamStateAtom } from './stream'
+import { streamInAtom, streamVariablesAtom } from './stream'
 import { StreamComputedVariable, StreamRenderLayout } from '../../../stream/data'
 import { computeFormulas } from '../../../stream/formulaCompute'
 
@@ -22,16 +22,16 @@ export interface StreamTrashLine {
 
 /**
  * Stream Table Atoms
- * Derived atoms that extract specific data from streamStateAtom for each table type
+ * Derived atoms that extract specific data from individual atoms for each table type
  */
 
 /**
  * Stream chooser items - available layouts
  */
 export const streamChooserItemsAtom = atom<StreamChooserLine[]>((get) => {
-  const stream = get(streamStateAtom)
+  const stateIn = get(streamInAtom)
 
-  return Object.entries(stream.in.layouts).map(([id, layout]) => ({
+  return Object.entries(stateIn.layouts).map(([id, layout]) => ({
     id,
     name: layout.name,
     readonly: !!layout.readonly,
@@ -44,9 +44,9 @@ export const streamChooserItemsAtom = atom<StreamChooserLine[]>((get) => {
  * Stream trash items - trashed layouts
  */
 export const streamTrashItemsAtom = atom<StreamTrashLine[]>((get) => {
-  const stream = get(streamStateAtom)
+  const stateIn = get(streamInAtom)
 
-  return Object.entries(stream.in.trashLayouts).map(([id, layout]) => ({
+  return Object.entries(stateIn.trashLayouts).map(([id, layout]) => ({
     id,
     name: layout.name,
     layout
@@ -57,8 +57,7 @@ export const streamTrashItemsAtom = atom<StreamTrashLine[]>((get) => {
  * Stream variables items - computed variables for the current layout
  */
 export const streamVariablesItemsAtom = atom<StreamComputedVariable[]>((get) => {
-  const stream = get(streamStateAtom)
-  const variables = stream.variables
+  const variables = get(streamVariablesAtom)
 
   // Get all variables from all sources, flatten
   const allVars = Object.entries(variables.single)
@@ -86,8 +85,7 @@ export const streamVariablesItemsAtom = atom<StreamComputedVariable[]>((get) => 
  * Stream images items
  */
 export const streamImagesItemsAtom = atom<StreamComputedVariable[]>((get) => {
-  const stream = get(streamStateAtom)
-  const variables = stream.variables
+  const variables = get(streamVariablesAtom)
 
   return Object.entries(variables.single)
     .map(([source, data]) => data.map(v => ({ source, ...v })))
@@ -99,8 +97,7 @@ export const streamImagesItemsAtom = atom<StreamComputedVariable[]>((get) => {
  * Stream parameters items
  */
 export const streamParametersItemsAtom = atom<StreamComputedVariable[]>((get) => {
-  const stream = get(streamStateAtom)
-  const variables = stream.variables
+  const variables = get(streamVariablesAtom)
 
   return Object.entries(variables.single)
     .map(([source, data]) => data.map(v => ({ source, ...v })))

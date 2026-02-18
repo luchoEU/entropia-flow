@@ -3,7 +3,7 @@ import { backgroundList, BackgroundSpec } from "../../../stream/background";
 import { getLogoUrl } from "../../../stream/backgroundGetLogo";
 import ExpandableSection from "../common/ExpandableSection";
 import { useAtomValue, useSetAtom } from "jotai";
-import { streamStateAtom, setStreamBackgroundSelectedAtom } from "../../application/atoms/stream";
+import { streamInAtom, setStreamBackgroundSelectedAtom } from "../../application/atoms/stream";
 import StreamViewLayout from "./StreamViewLayout";
 import { StreamRenderSingle } from "../../../stream/data";
 import { settingsAtom } from "../../application/atoms/settings";
@@ -44,8 +44,8 @@ const StreamBackground = ({ background, layoutId, isSelected }: {
 
 const StreamBackgroundChooser = ({layoutId}: {layoutId: string}) => {
     const settings = useAtomValue(settingsAtom)
-    const streamState = useAtomValue(streamStateAtom)
-    const layoutData = useMemo(() => streamState.in.layouts[layoutId], [streamState.in.layouts, layoutId])
+    const streamIn = useAtomValue(streamInAtom)
+    const layoutData = useMemo(() => streamIn.layouts[layoutId], [streamIn.layouts, layoutId])
     const c = layoutData
     if (!c) return <></>
 

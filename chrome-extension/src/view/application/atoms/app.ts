@@ -10,6 +10,7 @@ import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../co
 import { ItemOwned } from '../state/inventory'
 import { setConnectionStatusAtom } from './connection'
 import { processGameLogAtom } from './gameLog'
+import { setStreamVariablesAtom, setStreamDataAtom } from './stream'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -73,6 +74,14 @@ export const initializeAppAtom = atom(
           // Update game log data from background worker
           if (m.gameLog) {
             await set(processGameLogAtom, m.gameLog)
+          }
+          // Update stream variables from background worker
+          if (m.streamVariables) {
+            set(setStreamVariablesAtom, m.streamVariables)
+          }
+          // Update stream render data from background worker
+          if (m.streamData) {
+            set(setStreamDataAtom, m.streamData)
           }
           // Signal initialization complete
           resolveInit()

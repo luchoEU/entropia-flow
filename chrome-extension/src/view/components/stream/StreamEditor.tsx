@@ -3,7 +3,7 @@ import React, { useMemo } from "react"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atom } from "jotai"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
-import { streamStateAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom } from "../../application/atoms/stream"
+import { streamInAtom, streamRenderDataAtom, streamUiAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom } from "../../application/atoms/stream"
 import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
 import { createStreamImagesConfig, createStreamParametersConfig, streamVariablesConfig } from "../../application/configs/streamTableConfigs"
 import { setStreamUserPartialAtom, removeStreamUserAtom } from "../../application/atoms/stream"
@@ -12,23 +12,23 @@ import ExpandableSection from "../common/ExpandableSection"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
-import { NavigateFunction, useNavigate, useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { TabId } from "../../application/state/navigation"
 import ImgButton from "../common/ImgButton"
-import { StreamRenderData, StreamSavedLayout } from "../../../stream/data"
+import { StreamSavedLayout } from "../../../stream/data"
 import { savedToExportLayout } from "../../../stream/data.convert"
 
 function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
-    const stream = useAtomValue(streamStateAtom)
-    const c = stream.in.layouts[layoutId]
+    const streamIn = useAtomValue(streamInAtom)
+    const streamRenderData = useAtomValue(streamRenderDataAtom)
+    const c = streamIn.layouts[layoutId]
     const setHtmlTemplate = useSetAtom(setStreamHtmlTemplateAtom)
     const setCssTemplate = useSetAtom(setStreamCssTemplateAtom)
     const setFormula = useSetAtom(setStreamFormulaJavaScriptAtom)
 
     if (!c) return <></>
 
-    const data = stream.out?.data
-    const error = data?.layoutData[layoutId]?.['!error'] as string | undefined;
+    const error = streamRenderData.layoutData[layoutId]?.['!error'] as string | undefined;
     return <>
         <ExpandableSection selector='StreamEditor-layout-formula' title='Formulas JavaScript' subtitle='Custom variables calculation' className='stream-layout'>
             <CodeEditor
@@ -59,10 +59,12 @@ function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
 }
 
 function StreamEditor({ layoutId }: { layoutId: string }) {
-    const stream = useAtomValue(streamStateAtom)
-    const layout = stream.in.layouts[layoutId]
-    const advanced = stream.in.advanced
-    const showingLayoutId = stream.ui.showingLayoutId
+    const streamIn = useAtomValue(streamInAtom)
+    const streamUi = useAtomValue(streamUiAtom)
+    const streamRenderData = useAtomValue(streamRenderDataAtom)
+    const layout = streamIn.layouts[layoutId]
+    const advanced = streamIn.advanced
+    const showingLayoutId = streamUi.showingLayoutId
 
     const setShowingLayout = useSetAtom(setStreamShowingLayoutIdAtom)
     const setAdvanced = useSetAtom(setStreamAdvancedAtom)
@@ -104,7 +106,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
 
     const navigate = useNavigate();
 
-    if (stream.in.layoutAlias?.realLayoutId && stream.in.layoutAlias.urlLayoutId === layoutId) {
+    if (streamIn.layoutAlias?.realLayoutId && streamIn.layoutAlias.urlLayoutId === layoutId) {
         clearAlias()
     }
     if (!layout) return <></>
@@ -202,7 +204,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                 />
             )}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
-                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: stream.out?.data?.commonData ?? {}, layout }} />
+                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: streamRenderData.commonData, layout }} />
             </ExpandableSection>
             { advanced && <StreamLayoutEditor layoutId={layoutId} /> }
         </div>

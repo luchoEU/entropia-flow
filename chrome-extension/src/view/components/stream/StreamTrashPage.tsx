@@ -4,7 +4,7 @@ import { STREAM_TABULAR_TRASH } from '../../application/state/stream'
 import ImgButton from '../common/ImgButton'
 import { useNavigate } from 'react-router-dom'
 import { TabId } from '../../application/state/navigation'
-import { streamStateAtom, emptyTrashLayoutsAtom } from '../../application/atoms/stream'
+import { streamInAtom, emptyTrashLayoutsAtom } from '../../application/atoms/stream'
 import { JotaiSortableTableSection } from '../common/jotai/JotaiSortableTableSection'
 import { streamTrashItemsAtom } from '../../application/atoms/streamTables'
 import { createStreamTrashConfig } from '../../application/configs/streamTableConfigs'
@@ -12,8 +12,8 @@ import { restoreStreamLayoutAtom } from '../../application/atoms/stream'
 
 function StreamTrashPage() {
     const navigate = useNavigate()
-    const streamState = useAtomValue(streamStateAtom)
-    const trashLayouts = useMemo(() => streamState.in.trashLayouts, [streamState.in.trashLayouts])
+    const streamIn = useAtomValue(streamInAtom)
+    const trashLayouts = useMemo(() => streamIn.trashLayouts, [streamIn.trashLayouts])
     const emptyTrash = useSetAtom(emptyTrashLayoutsAtom)
     const restore = useSetAtom(restoreStreamLayoutAtom)
     const isEmpty = Object.keys(trashLayouts).length === 0

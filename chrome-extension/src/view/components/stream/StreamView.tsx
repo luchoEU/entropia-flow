@@ -1,18 +1,19 @@
 import React, { useMemo } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai';
-import { streamStateAtom, setStreamShowingLayoutIdAtom } from '../../application/atoms/stream';
+import { streamInAtom, streamRenderDataAtom } from '../../application/atoms/stream';
 import { modeAtom, pinStreamViewAtom } from '../../application/atoms/mode';
 import StreamViewLayout from './StreamViewLayout';
 import ExpandableSection from '../common/ExpandableSection';
 import ImgButton from '../common/ImgButton';
 
 function StreamView() {
-    const streamState = useAtomValue(streamStateAtom)
+    const streamIn = useAtomValue(streamInAtom)
+    const streamRenderData = useAtomValue(streamRenderDataAtom)
     const modeState = useAtomValue(modeAtom)
     const setPinStreamView = useSetAtom(pinStreamViewAtom)
 
-    const view = useMemo(() => streamState.in.view, [streamState.in.view])
-    const d = useMemo(() => streamState.out?.data, [streamState.out?.data])
+    const view = useMemo(() => streamIn.view, [streamIn.view])
+    const d = useMemo(() => streamRenderData, [streamRenderData])
     const showVisibility = useMemo(() => modeState.showVisibleToggle, [modeState.showVisibleToggle])
     const streamViewPinned = useMemo(() => modeState.streamViewPinned, [modeState.streamViewPinned])
 

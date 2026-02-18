@@ -19,17 +19,7 @@ interface StreamStateOut {
     data: StreamRenderData
 }
 
-interface StreamState {
-    in: StreamStateIn
-    variables: StreamStateVariablesSet
-    ui: {
-        showingLayoutId?: string
-    }
-    out: StreamStateOut
-}
-
 export {
-    StreamState,
     StreamStateIn,
     StreamStateOut,
     STREAM_TABULAR_CHOOSER,

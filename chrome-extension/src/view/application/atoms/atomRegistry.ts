@@ -1,12 +1,13 @@
-import * as settingsAtoms from './settings'
-import * as inventoryAtoms from './inventory'
 import * as activityAtoms from './activity'
-import * as lastAtoms from './last'
-import * as historyAtoms from './history'
-import * as gameLogAtoms from './gameLog'
-import * as itemsAtoms from './items'
-import * as debugAtoms from './debug'
 import * as connectionAtoms from './connection'
+import * as debugAtoms from './debug'
+import * as gameLogAtoms from './gameLog'
+import * as historyAtoms from './history'
+import * as inventoryAtoms from './inventory'
+import * as itemsAtoms from './items'
+import * as lastAtoms from './last'
+import * as settingsAtoms from './settings'
+import * as streamAtoms from './stream'
 import * as tradeAtoms from './trade'
 
 /**
@@ -20,15 +21,16 @@ export type AtomType = 'state' | 'computed' | 'action' | 'loading'
 
 // Module metadata - defined once, derived everywhere else
 export const moduleRegistry = [
-    { id: 'settings', name: 'Settings', module: settingsAtoms },
-    { id: 'inventory', name: 'Inventory', module: inventoryAtoms },
     { id: 'activity', name: 'Activity', module: activityAtoms },
-    { id: 'last', name: 'Last', module: lastAtoms },
-    { id: 'history', name: 'History', module: historyAtoms },
-    { id: 'gameLog', name: 'Game Log', module: gameLogAtoms },
-    { id: 'items', name: 'Items', module: itemsAtoms },
-    { id: 'debug', name: 'Debug', module: debugAtoms },
     { id: 'connection', name: 'Connection', module: connectionAtoms },
+    { id: 'debug', name: 'Debug', module: debugAtoms },
+    { id: 'gameLog', name: 'Game Log', module: gameLogAtoms },
+    { id: 'history', name: 'History', module: historyAtoms },
+    { id: 'inventory', name: 'Inventory', module: inventoryAtoms },
+    { id: 'items', name: 'Items', module: itemsAtoms },
+    { id: 'last', name: 'Last', module: lastAtoms },
+    { id: 'settings', name: 'Settings', module: settingsAtoms },
+    { id: 'stream', name: 'Stream', module: streamAtoms },
     { id: 'trade', name: 'Trade', module: tradeAtoms },
 ] as const
 

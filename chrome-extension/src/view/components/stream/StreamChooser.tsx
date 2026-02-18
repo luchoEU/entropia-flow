@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react"
 import { useSetAtom, useAtomValue } from "jotai"
-import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamStateAtom } from "../../application/atoms/stream"
+import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamInAtom } from "../../application/atoms/stream"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 import { StreamExportLayout } from "../../../stream/data"
@@ -16,7 +16,7 @@ function StreamLayoutChooser() {
     const addStreamLayout = useSetAtom(addStreamLayoutAtom)
     const importStreamLayout = useSetAtom(importStreamLayoutFromFileAtom)
     const goToTrash = useSetAtom(goToTrashAtom)
-    const streamState = useAtomValue(streamStateAtom)
+    const streamIn = useAtomValue(streamInAtom)
     const setStared = useSetAtom(setStreamStaredAtom)
     const removeLayout = useSetAtom(removeStreamLayoutAtom)
 
@@ -31,16 +31,16 @@ function StreamLayoutChooser() {
     }, [importStreamLayout, navigate])
 
     const handleTrash = useCallback(() => {
-        const hasTrash = Object.keys(streamState.in.trashLayouts).length > 0
+        const hasTrash = Object.keys(streamIn.trashLayouts).length > 0
         if (hasTrash) {
             goToTrash()
         }
         return true
-    }, [goToTrash, streamState.in.trashLayouts])
+    }, [goToTrash, streamIn.trashLayouts])
 
     const hasTrash = useMemo(() => {
-        return Object.keys(streamState.in.trashLayouts).length > 0
-    }, [streamState.in.trashLayouts])
+        return Object.keys(streamIn.trashLayouts).length > 0
+    }, [streamIn.trashLayouts])
 
     const config = useMemo(() => createStreamChooserConfig({
         setStared: (id, value) => setStared(id, value),
