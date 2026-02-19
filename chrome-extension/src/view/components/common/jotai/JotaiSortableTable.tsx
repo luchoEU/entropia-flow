@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useEffect } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { FixedSizeList } from 'react-window'
@@ -35,7 +35,8 @@ const JotaiSortableTableComponent = function<TItem>(
     itemHeight = ITEM_HEIGHT,
     useFixedSizeList = true,
     fillHeight = false,
-    children
+    children,
+    setFilterRef
   } = props
   const maxNumberOfLines = props.maxNumberOfLines ?? (fillHeight ? 25 : 10)
 
@@ -99,6 +100,13 @@ const JotaiSortableTableComponent = function<TItem>(
     },
     [setUIState, uiState.sortColumn, uiState.sortAscending, props.onFilterChange]
   )
+
+  // Wire handleFilterChange to external ref if provided
+  useEffect(() => {
+    if (setFilterRef) {
+      setFilterRef.current = handleFilterChange
+    }
+  }, [setFilterRef, handleFilterChange])
 
   // Get column widths - use explicit width or calculate from DSL
   const columnWidths = useMemo(() => {

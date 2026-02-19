@@ -1,17 +1,16 @@
 import React, { useState, useMemo } from 'react'
 import { CONTAINER, NAME, QUANTITY, VALUE } from '../../application/helpers/inventory.sort'
-import { VIEW_ITEM_MODE_EDIT_MARKUP, ViewItemData } from '../../application/state/history'
+import { ViewItemData } from '../../application/state/history'
 import { hasValue } from '../../application/helpers/diff'
 import { useSetAtom, useAtomValue } from 'jotai'
 import { ViewPedData } from '../../application/state/last'
-import { addPedsAtom, removePedsAtom } from '../../application/atoms/last'
+import { addPedsAtom, removePedsAtom, lastItemEditModeKeyAtom } from '../../application/atoms/last'
 import ImgButton from '../common/ImgButton'
 import ItemText from '../common/ItemText'
 import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
 import TextButton from '../common/TextButton'
 import { MarkupUnit, nextUnit, UNIT_PED_K, UNIT_PERCENTAGE, UNIT_PLUS, unitDescription, unitText } from '../../application/state/items'
 import { getValueWithMarkup } from '../../application/helpers/items'
-import { setModeStateAtom } from '../../application/atoms/mode'
 
 export interface InventoryDifferenceConfig {
     sortBy: (part: number) => any
@@ -31,7 +30,8 @@ const ItemRow = ({ item, c }: {
 }) => {
     const itemAtom = useMemo(() => getItemAtom(item.n), [item.n])
     const material = useAtomValue(itemAtom)
-    const setMode = useSetAtom(setModeStateAtom)
+    const editModeKey = useAtomValue(lastItemEditModeKeyAtom)
+    const setEditModeKey = useSetAtom(lastItemEditModeKeyAtom)
     const setMarkup = useSetAtom(setItemBuyMarkupAtom)
     const setUnit = useSetAtom(setItemMarkupUnitAtom)
     const sortBy = (part: number) => (e: any) => {
@@ -43,7 +43,7 @@ const ItemRow = ({ item, c }: {
     }
 
     let valueMU = material?.markup?.value === undefined ? undefined : getValueWithMarkup(item.q, item.v, material);
-    const editMarkupMode = item.m?.type === VIEW_ITEM_MODE_EDIT_MARKUP;
+    const editMarkupMode = editModeKey === item.key;
     return (
         <tr className='item-row'>
             <td onClick={sortBy(NAME)}>
@@ -77,10 +77,10 @@ const ItemRow = ({ item, c }: {
             { c.showMarkup && <>
                 <td style={{paddingRight: 0}} className='item-cell-value'>
                     { editMarkupMode ?
-                        <>
-                            <input id='newPedInput' type='text' value={material?.markup.value} onChange={(e) => setMarkup(item.n, e.target.value)} />
+                        <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+                            <input id='newPedInput' type='text' value={material?.markup.value || ''} onChange={(e) => setMarkup(item.n, e.target.value)} autoFocus />
                             <TextButton title={`Unit: ${unitDescription(material?.markup.unit ?? UNIT_PERCENTAGE)}, click to change`} text={unitText(material.markup.unit ?? UNIT_PERCENTAGE)} action={() => setUnit(item.n, nextUnit(material.markup.unit ?? UNIT_PERCENTAGE)) } />
-                        </> : <>
+                        </div> : <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
                             <ItemText text={material?.markup?.value ? `${material.markup.value} ${unitText(material.markup.unit ?? UNIT_PERCENTAGE)}` : ''} />
                             <ImgButton title='Edit markup' src='img/edit.png' action={() => {
                                 if (!material?.markup?.value) {
@@ -102,19 +102,19 @@ const ItemRow = ({ item, c }: {
                                         }
                                     }
                                     const unit: MarkupUnit = material?.markup?.unit ?? defaultUnit();
+                                    setMarkup(item.n, defaultMarkup(unit))
                                     if (material?.markup?.unit !== unit) {
                                         setUnit(item.n, unit)
                                     }
-                                    setMarkup(item.n, defaultMarkup(unit))
                                 }
-                                //return setMode({key: item.key, mode: VIEW_ITEM_MODE_EDIT_MARKUP, data: material?.markup?.value})
+                                setEditModeKey(item.key)
                             }} />
-                        </> }
+                        </div> }
                 </td><td style={{paddingLeft: 0}} className={ editMarkupMode ? undefined : 'item-cell-value'}>
                     { editMarkupMode ?
                         <>
-                            <ImgButton title='Cancel markup value' src='img/cross.png' show action={() => { setMarkup(item.n, item.m?.data ?? ''); return /*c.clearMode?.(item.key)*/ }} />
-                            <ImgButton title='Confirm markup value' src='img/tick.png' show action={() => { /*c.clearMode?.(item.key)*/ }} />
+                            <ImgButton title='Cancel markup value' src='img/cross.png' show action={() => { setEditModeKey(undefined) }} />
+                            <ImgButton title='Confirm markup value' src='img/tick.png' show action={() => { setEditModeKey(undefined) }} />
                         </> : <>
                             { valueMU !== undefined && <ItemText text={valueMU.toFixed(2) + ' PED'} /> }
                         </> }

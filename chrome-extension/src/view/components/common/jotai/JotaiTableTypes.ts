@@ -93,4 +93,6 @@ export interface JotaiSortableTableProps<TItem = any> {
   onSortChange?: (columnIndex: number, ascending: boolean) => void
   /** Optional: Custom filter handler - when provided, disables internal filtering */
   onFilterChange?: (filter: string) => void
+  /** Optional: Ref to set the filter from outside the component */
+  setFilterRef?: React.MutableRefObject<((filter: string) => void) | null>
 }

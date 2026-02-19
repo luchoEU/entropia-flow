@@ -264,7 +264,7 @@ export const setItemBuyMarkupAtom = atom(
   null,
   (get, set, item: string, value: string) => {
     const map = get(itemsMapAtom)
-    const itemData = map[item]
+    const itemData = map[item] || { markup: {} }
     const markupValue = value === '' ? undefined : value
 
     // Update markup in item state
@@ -324,11 +324,12 @@ export const setItemMarkupUnitAtom = atom(
   null,
   (get, set, item: string, unit: MarkupUnit) => {
     const map = get(itemsMapAtom)
+    const itemData = map[item] || { markup: {} }
     const newMap = {
       ...map,
       [item]: {
-        ...map[item],
-        markup: { ...map[item].markup, unit }
+        ...itemData,
+        markup: { ...itemData.markup, unit }
       }
     } as ItemsMap
     set(itemsMapAtom, newMap)

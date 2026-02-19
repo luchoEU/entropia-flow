@@ -1,4 +1,4 @@
-import { atom } from 'jotai'
+import { atom, WritableAtom } from 'jotai'
 import { PersistedLastState, ComputedLastState, ViewPedData } from '../state/last'
 import { ViewItemData } from '../state/history'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
@@ -37,6 +37,9 @@ export const lastPersistedAtom = atomWithStorage<PersistedLastState>('last-persi
 
 // Timestamp of the last inventory being viewed
 export const lastTimestampAtom = atom<number>(0)
+
+// Track which item key is in edit mode for markup editing (primitive writable atom)
+export const lastItemEditModeKeyAtom = atom<number | undefined>(undefined) as WritableAtom<number | undefined, [number | undefined], void>
 
 // Loading state atom
 export const lastLoadingAtom = atom<boolean>(true)
@@ -207,13 +210,6 @@ export const permanentExcludeOffAtom = atom(
 
         const newState = { ...current, permanentBlacklist }
         set(lastPersistedAtom, newState)
-    }
-)
-
-export const setLastItemModeAtom = atom(
-    null,
-    (_get, _set) => {
-        // Item mode state is now derived from history
     }
 )
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { useAtomValue, useSetAtom } from 'jotai'
 import TradeList from './TradeList'
 import { tradeAtom, addTradeMessageNotificationAtom, removeTradeMessageNotificationAtom } from '../../application/atoms/trade'
@@ -19,6 +19,7 @@ export function TradePage() {
     const availableCriteria = useAtomValue(availableCriteriaAtom)
     const addNotification = useSetAtom(addTradeMessageNotificationAtom)
     const removeNotification = useSetAtom(removeTradeMessageNotificationAtom)
+    const tradeTableSetFilter = useRef<((filter: string) => void) | null>(null)
 
     // Compute toAuction classMap with memoization to ensure it updates when atoms change
     // Items not in auction get the 'to-auction' class to display them in bold
@@ -56,7 +57,8 @@ export function TradePage() {
                     >
                         <span
                             style={{ cursor: 'pointer' }}
-                            title="Use search box in Trade table to filter"
+                            title="Click to apply as filter"
+                            onClick={() => tradeTableSetFilter.current?.(n.filter)}
                         >
                             {n.filter}
                         </span>
@@ -89,6 +91,7 @@ export function TradePage() {
                         afterSearch={notifyButton}
                         beforeTable={notificationChips}
                         useFixedSizeList={true}
+                        setFilterRef={tradeTableSetFilter}
                     />
                 )}
             </div>
