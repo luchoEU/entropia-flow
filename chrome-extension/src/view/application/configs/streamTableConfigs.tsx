@@ -19,6 +19,7 @@ export interface StreamChooserHandlers {
   setStared: (id: string, value: boolean) => void
   removeLayout: (id: string) => void
   navigate: (path: string) => void
+  renderPreview: (item: StreamChooserLine) => React.ReactNode
 }
 
 export function createStreamChooserConfig(
@@ -65,6 +66,15 @@ export function createStreamChooserConfig(
           ]
         })
       },
+      {
+        id: 'preview',
+        header: 'Preview',
+        renderRow: (item): CellElement => ({
+          type: 'react',
+          node: handlers.renderPreview(item),
+          width: 200
+        })
+      }
     ]
   }
 }

@@ -178,6 +178,13 @@ export function renderCellElement<TItem>(
         />
       )
 
+    case 'react':
+      return (
+        <React.Fragment key={index}>
+          {element.node}
+        </React.Fragment>
+      )
+
     default:
       // TypeScript exhaustiveness check - should never reach here
       const _exhaustiveCheck: never = element

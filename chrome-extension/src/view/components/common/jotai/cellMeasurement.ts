@@ -110,6 +110,10 @@ export function calculateCellWidth<TItem>(
       // Spacers don't contribute to minimum width
       return 0
 
+    case 'react':
+      // React elements have explicit width property
+      return element.width
+
     default:
       // TypeScript exhaustiveness check - should never reach here
       const _exhaustiveCheck: never = element

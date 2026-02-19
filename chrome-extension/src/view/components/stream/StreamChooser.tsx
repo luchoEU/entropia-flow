@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react"
 import { useSetAtom, useAtomValue } from "jotai"
-import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamInAtom } from "../../application/atoms/stream"
+import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamInAtom, streamRenderDataAtom } from "../../application/atoms/stream"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
 import { NavigateFunction, useNavigate } from "react-router-dom"
 import { StreamExportLayout } from "../../../stream/data"
@@ -10,6 +10,7 @@ import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSec
 import { streamChooserItemsAtom } from "../../application/atoms/streamTables"
 import { createStreamChooserConfig } from "../../application/configs/streamTableConfigs"
 import { setStreamStaredAtom, removeStreamLayoutAtom } from "../../application/atoms/stream"
+import StreamViewLayout from "./StreamViewLayout"
 
 function StreamLayoutChooser() {
     const navigate = useNavigate()
@@ -19,6 +20,7 @@ function StreamLayoutChooser() {
     const streamIn = useAtomValue(streamInAtom)
     const setStared = useSetAtom(setStreamStaredAtom)
     const removeLayout = useSetAtom(removeStreamLayoutAtom)
+    const streamRenderData = useAtomValue(streamRenderDataAtom)
 
     const handleAddLayout = useCallback(() => {
         addStreamLayout('new-layout-' + Date.now(), 'New Layout')
@@ -45,8 +47,19 @@ function StreamLayoutChooser() {
     const config = useMemo(() => createStreamChooserConfig({
         setStared: (id, value) => setStared(id, value),
         removeLayout: (id) => removeLayout(id),
-        navigate: (path) => navigate(path)
-    }), [setStared, removeLayout, navigate])
+        navigate: (path) => navigate(path),
+        renderPreview: (item) => (
+            <StreamViewLayout
+                id={`stream-chooser-${item.id}`}
+                layoutId={item.id}
+                single={{
+                    data: { ...streamRenderData.commonData, ...streamRenderData.layoutData?.[item.id] },
+                    layout: item.layout
+                }}
+                scale={0.4}
+            />
+        )
+    }), [setStared, removeLayout, navigate, streamRenderData])
 
     const afterSearch = useMemo(() => (
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>

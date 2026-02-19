@@ -23,6 +23,7 @@ export type CellElement =
   | ConditionalElement
   | InputElement
   | SpacerElement
+  | ReactElement
 
 /**
  * Text element - displays a text
@@ -166,4 +167,17 @@ export interface SpacerElement {
   type: 'spacer'
   /** Flex grow value (default: 1) */
   flex?: number
+}
+
+/**
+ * React element - wraps arbitrary React components for display in cells
+ * Use when you need to render a React component that can't be expressed in the DSL
+ * Note: width must be specified explicitly since React content can't be auto-measured
+ */
+export interface ReactElement {
+  type: 'react'
+  /** The React node to render */
+  node: React.ReactNode
+  /** Width in pixels — required since React content cannot be auto-measured */
+  width: number
 }
