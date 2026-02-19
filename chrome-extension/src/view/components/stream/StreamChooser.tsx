@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo, memo } from "react"
 import { useSetAtom, useAtomValue } from "jotai"
 import { addStreamLayoutAtom, importStreamLayoutFromFileAtom, goToTrashAtom, streamInAtom, streamRenderDataAtom } from "../../application/atoms/stream"
 import { STREAM_TABULAR_CHOOSER } from "../../application/state/stream"
@@ -7,10 +7,29 @@ import { StreamExportLayout } from "../../../stream/data"
 import schema from "../../../stream/stream-export-layout.schema.json"
 import { Validator } from "jsonschema"
 import { JotaiSortableTableSection } from "../common/jotai/JotaiSortableTableSection"
-import { streamChooserItemsAtom } from "../../application/atoms/streamTables"
+import { streamChooserItemsAtom, StreamChooserLine } from "../../application/atoms/streamTables"
 import { createStreamChooserConfig } from "../../application/configs/streamTableConfigs"
 import { setStreamStaredAtom, removeStreamLayoutAtom } from "../../application/atoms/stream"
 import StreamViewLayout from "./StreamViewLayout"
+
+/**
+ * Preview component that reads streamRenderDataAtom directly
+ * This is memoized to prevent unnecessary re-renders from parent
+ */
+const StreamPreview = memo(({ item }: { item: StreamChooserLine }) => {
+    const streamRenderData = useAtomValue(streamRenderDataAtom)
+    return (
+        <StreamViewLayout
+            id={`stream-chooser-${item.id}`}
+            layoutId={item.id}
+            single={{
+                data: { ...streamRenderData.commonData, ...streamRenderData.layoutData?.[item.id] },
+                layout: item.layout
+            }}
+            scale={0.4}
+        />
+    )
+})
 
 function StreamLayoutChooser() {
     const navigate = useNavigate()
@@ -20,7 +39,6 @@ function StreamLayoutChooser() {
     const streamIn = useAtomValue(streamInAtom)
     const setStared = useSetAtom(setStreamStaredAtom)
     const removeLayout = useSetAtom(removeStreamLayoutAtom)
-    const streamRenderData = useAtomValue(streamRenderDataAtom)
 
     const handleAddLayout = useCallback(() => {
         addStreamLayout('new-layout-' + Date.now(), 'New Layout')
@@ -44,22 +62,16 @@ function StreamLayoutChooser() {
         return Object.keys(streamIn.trashLayouts).length > 0
     }, [streamIn.trashLayouts])
 
+    const renderPreview = useCallback((item: StreamChooserLine) => (
+        <StreamPreview item={item} />
+    ), [])
+
     const config = useMemo(() => createStreamChooserConfig({
         setStared: (id, value) => setStared(id, value),
         removeLayout: (id) => removeLayout(id),
         navigate: (path) => navigate(path),
-        renderPreview: (item) => (
-            <StreamViewLayout
-                id={`stream-chooser-${item.id}`}
-                layoutId={item.id}
-                single={{
-                    data: { ...streamRenderData.commonData, ...streamRenderData.layoutData?.[item.id] },
-                    layout: item.layout
-                }}
-                scale={0.4}
-            />
-        )
-    }), [setStared, removeLayout, navigate, streamRenderData])
+        renderPreview
+    }), [setStared, removeLayout, navigate, renderPreview])
 
     const afterSearch = useMemo(() => (
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
