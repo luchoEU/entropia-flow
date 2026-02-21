@@ -27,7 +27,24 @@ import pako from 'pako'
  */
 class AtomStorageBridge implements IApiStorage {
   async loadLast(): Promise<LastRequiredState> {
-    return await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
+    const persisted = await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
+
+    // Return the persisted state with a default computed state
+    // This handles the case where no data has been saved yet
+    return {
+      expanded: persisted?.expanded ?? false,
+      sortType: persisted?.sortType ?? 0,
+      showMarkup: persisted?.showMarkup ?? false,
+      showActions: persisted?.showActions ?? false,
+      blacklist: persisted?.blacklist ?? [],
+      permanentBlacklist: persisted?.permanentBlacklist ?? [],
+      peds: persisted?.peds ?? [],
+      notificationsDone: persisted?.notificationsDone ?? [],
+      c: {
+        anyInventory: false,
+        date: 0
+      }
+    } as LastRequiredState
   }
 
   async loadItems(): Promise<ItemsState> {
