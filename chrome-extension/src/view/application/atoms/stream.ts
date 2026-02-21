@@ -4,6 +4,8 @@ import { StreamStateIn, StreamStateOut } from '../state/stream'
 import { StreamRenderData, StreamSavedLayoutSet, StreamStateVariablesSet, StreamExportLayout, StreamSavedLayout, StreamUserImageVariable } from '../../../stream/data'
 import { BackgroundType } from '../../../stream/background'
 import { exportToSavedLayout } from '../../../stream/data.convert'
+import { STORAGE_VIEW_STREAM } from '../../../common/const'
+import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import defaultLayout from '../helpers/layout/default.entropiaflow.layout.json'
 import huntLayout from '../helpers/layout/hunt.entropiaflow.layout.json'
 import teamLayout from '../helpers/layout/team.entropiaflow.layout.json'
@@ -43,13 +45,60 @@ interface StreamUiState {
   showingLayoutId?: string
 }
 
+// Cached storage data - initialized to initial state
+let cachedStreamData = initialStateIn
+
 // Persisted base atoms
-export const streamInAtom = atomWithStorage<StreamStateIn>('jotai-v1-stream-in', initialStateIn)
+export const streamInAtom = atomWithStorage<StreamStateIn>(
+  STORAGE_VIEW_STREAM,
+  initialStateIn,
+  {
+    getItem: (_key: string): StreamStateIn => cachedStreamData,
+    setItem: async (_key: string, value: StreamStateIn): Promise<void> => {
+      try {
+        cachedStreamData = value
+        await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, value)
+      } catch (error) {
+        console.error('Failed to save stream state to storage:', error)
+      }
+    },
+    removeItem: (_key: string): void => {
+      // Not used
+    }
+  }
+)
 export const streamVariablesAtom = atomWithStorage<StreamStateVariablesSet>('jotai-v1-stream-variables', { single: {}, temporal: {} })
 export const streamUiAtom = atomWithStorage<StreamUiState>('jotai-v1-stream-ui', {})
 
 // Atom to store the render data from background
 export const streamRenderDataAtom = atom<StreamRenderData>(emptyRenderData)
+
+/**
+ * Initialize stream state from Chrome storage
+ * Called on app startup to load persisted data
+ */
+export async function initializeStreamFromStorage(): Promise<void> {
+  try {
+    const storedState = await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
+    if (storedState) {
+      cachedStreamData = storedState
+    }
+  } catch (error) {
+    console.error('Failed to initialize stream state from storage:', error)
+  }
+}
+
+/**
+ * Initialize stream atom - loads from storage
+ * Call once on app startup via: await store.set(initializeStreamAtom)
+ */
+export const initializeStreamAtom = atom(
+  null,
+  async (_get, set) => {
+    await initializeStreamFromStorage()
+    set(streamInAtom, cachedStreamData)
+  }
+)
 
 // Helper functions
 const _nextId = (layout: StreamSavedLayout): number =>

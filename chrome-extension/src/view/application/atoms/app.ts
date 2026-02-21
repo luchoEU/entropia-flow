@@ -10,7 +10,7 @@ import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../co
 import { ItemOwned } from '../state/inventory'
 import { setConnectionStatusAtom } from './connection'
 import { processGameLogAtom } from './gameLog'
-import { setStreamVariablesAtom, setStreamDataAtom } from './stream'
+import { setStreamVariablesAtom, setStreamDataAtom, initializeStreamAtom } from './stream'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -104,6 +104,9 @@ export const initializeAppAtom = atom(
 
       // Initialize items from storage and sync atom value
       await set(initializeItemsAtom)
+
+      // Initialize stream state from storage
+      await set(initializeStreamAtom)
 
       set(appInitializedAtom, true)
     } catch (error) {
