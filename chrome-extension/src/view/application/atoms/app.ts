@@ -2,7 +2,7 @@ import { atom } from 'jotai'
 import { initializeCraftStateAtom } from './craft'
 import { statusAtom } from './status'
 import { inventoryListAtom } from './history'
-import { lastTimestampAtom } from './last'
+import { lastTimestampAtom, initializeLastAtom } from './last'
 import { rawInventoryItemsAtom } from './inventory'
 import { initializeItemsAtom } from './items'
 import messagesApi from '../../services/api/messages'
@@ -101,6 +101,9 @@ export const initializeAppAtom = atom(
       )
       // Initialize craft state (blueprints, etc.)
       await set(initializeCraftStateAtom)
+
+      // Initialize last state from storage
+      await set(initializeLastAtom)
 
       // Initialize items from storage and sync atom value
       await set(initializeItemsAtom)

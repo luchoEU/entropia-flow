@@ -1,7 +1,7 @@
 import { atom, WritableAtom } from 'jotai'
 import { PersistedLastState, ComputedLastState, ViewPedData } from '../state/last'
 import { ViewItemData } from '../state/history'
-import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
+import { SYNC_STORAGE } from '../../../chrome/chromeStorageArea'
 import { SORT_VALUE_DESCENDING, nextSortType, sortList } from '../helpers/inventory.sort'
 import { getDifference } from '../helpers/diff'
 import { getLatestFromInventoryList, getText, copyDiffToClipboard } from '../helpers/history'
@@ -9,6 +9,7 @@ import { _applyExcludes, _applyBlacklist, _applyPermanentExclude, _applyWarning,
 import messagesApi from '../../services/api/messages'
 import { historyAtom, INVENTORY_KEY_SCALE } from './history'
 import { atomWithStorage } from 'jotai/utils'
+import { STORAGE_VIEW_LAST } from '../../../common/const'
 
 // Extended computed state with additional UI state
 interface ComputedStateExtended extends ComputedLastState {
@@ -32,8 +33,55 @@ const initialPersistedState: PersistedLastState = {
     notificationsDone: [] as string[]
 }
 
+// Cached storage data - initialized to initial state
+let cachedLastData = initialPersistedState
+
 // Base atom for persisted last state
-export const lastPersistedAtom = atomWithStorage<PersistedLastState>('last-persisted', initialPersistedState)
+export const lastPersistedAtom = atomWithStorage<PersistedLastState>(
+    STORAGE_VIEW_LAST,
+    initialPersistedState,
+    {
+        getItem: (_key: string): PersistedLastState => cachedLastData,
+        setItem: async (_key: string, value: PersistedLastState): Promise<void> => {
+            try {
+                cachedLastData = value
+                await SYNC_STORAGE.set(STORAGE_VIEW_LAST, value)
+            } catch (error) {
+                console.error('Failed to save last state to storage:', error)
+            }
+        },
+        removeItem: (_key: string): void => {
+            // Not used
+        }
+    }
+)
+
+/**
+ * Initialize last state from Chrome storage
+ * Called on app startup to load persisted data
+ */
+export async function initializeLastFromStorage(): Promise<void> {
+    try {
+        const storedState = await SYNC_STORAGE.get(STORAGE_VIEW_LAST)
+        if (storedState) {
+            cachedLastData = storedState
+        }
+    } catch (error) {
+        console.error('Failed to initialize last state from storage:', error)
+    }
+}
+
+/**
+ * Initialize last atom - loads from storage
+ * Call once on app startup via: await store.set(initializeLastAtom)
+ */
+export const initializeLastAtom = atom(
+    null,
+    async (_get, set) => {
+        await initializeLastFromStorage()
+        set(lastPersistedAtom, cachedLastData)
+    }
+)
 
 // Timestamp of the last inventory being viewed
 export const lastTimestampAtom = atom<number>(0)
