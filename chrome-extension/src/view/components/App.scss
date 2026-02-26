@@ -544,14 +544,15 @@ form label {
     transition: opacity 0.2s;
 }
 
-.img-hover-container img, .img-hover-container .img-btn {
+.img-hover-container img,
+.img-hover-container .img-btn {
     visibility: hidden;
 }
 
 .img-hover-container:hover img,
 .img-hover-container:hover .img-btn,
 .img-hover-container img[data-show],
-.img-btn[data-show] img {
+.img-hover-container .img-btn[data-show] {
     visibility: visible;
 }
 

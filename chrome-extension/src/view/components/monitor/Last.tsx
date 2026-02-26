@@ -118,17 +118,18 @@ export const Last = () => {
                 }
                 { expanded &&
                     <>
+                        <TextButton
+                            title={ showMarkup ? 'Hide markup' : 'Show markup' }
+                            className={ `button-markup ${showMarkup ? 'active' : ''}` }
+                            text='%'
+                            show={showMarkup}
+                            action={() => { setShowMarkup(!showMarkup); return undefined }} />
                         <ImgButton
                             title='Copy to clipboard'
                             src='img/copy.png'
                             className='img-btn-copy'
                             clickPopup='Copied!'
                             action={() => { copyLast(useComma); return undefined }} />
-                        <TextButton
-                            title={ showMarkup ? 'Hide markup' : 'Show markup' }
-                            className={ `button-markup ${showMarkup ? 'active' : ''}` }
-                            text='%'
-                            action={() => { setShowMarkup(!showMarkup); return undefined }} />
                         { actions && actions.length > 0 &&
                             <ImgButton
                                 title={ showActions ? 'Show items list' : 'Show grouped actions' }
