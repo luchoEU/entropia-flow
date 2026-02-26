@@ -2,14 +2,14 @@ import { atom, WritableAtom } from 'jotai'
 import { PersistedLastState, ComputedLastState, ViewPedData } from '../state/last'
 import { ViewItemData } from '../state/history'
 import { SYNC_STORAGE } from '../../../chrome/chromeStorageArea'
-import { SORT_VALUE_DESCENDING, nextSortType, sortList } from '../helpers/inventory.sort'
-import { getDifference } from '../helpers/diff'
+import { SORT_VALUE_DESCENDING, nextSortType } from '../helpers/inventory.sort'
 import { getLatestFromInventoryList, getText, copyDiffToClipboard } from '../helpers/history'
-import { _applyExcludes, _applyBlacklist, _applyPermanentExclude, _applyWarning, _pedSum } from '../../../background/inventory/lastDeltaVariablesBuilder'
+import { calculateInventoryDelta } from '../helpers/lastDelta'
 import messagesApi from '../../services/api/messages'
 import { historyAtom, INVENTORY_KEY_SCALE } from './history'
 import { atomWithStorage } from 'jotai/utils'
 import { STORAGE_VIEW_LAST } from '../../../common/const'
+import { itemsMapAtom } from './items'
 
 // Extended computed state with additional UI state
 interface ComputedStateExtended extends ComputedLastState {
@@ -120,22 +120,28 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
         }
     }
 
-    let d = Number(lastInv.meta.total) - Number(inv.meta.total)
-    const diff = getDifference(lastInv, inv)
-    if (diff) {
-        d = _applyExcludes(d, diff, undefined)
-        d = _applyBlacklist(d, diff, persisted.blacklist)
-        d = _applyPermanentExclude(d, diff, persisted.permanentBlacklist)
-        _applyWarning(diff, persisted.blacklist)
-        sortList(diff, persisted.sortType)
-    }
-    d += _pedSum(persisted.peds)
+    // Use shared calculation function
+    const itemsMap = get(itemsMapAtom)
+    const result = calculateInventoryDelta({
+        lastInv,
+        inv,
+        previousDiff: undefined,
+        blacklist: persisted.blacklist,
+        permanentBlacklist: persisted.permanentBlacklist,
+        sortType: persisted.sortType,
+        peds: persisted.peds,
+        itemsMap
+    })
+
+    // Use preference to determine which delta to return
+    const d = persisted.showMarkup ? result.deltaWithMarkup : result.deltaNoMarkup
+
     return {
         delta: d,
         anyInventory: true,
         text: getText(inv, true),
         date: lastTimestamp,
-        diff: diff || undefined,
+        diff: result.diff || undefined,
         latestInventoryKey,
     }
 })
