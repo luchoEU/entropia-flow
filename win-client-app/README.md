@@ -6,9 +6,11 @@ This is a Windows client to enable more features for the extension. It is option
 
 Run the setup script to check and install all build prerequisites:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
+dev-setup
+```
+
+Or directly: `powershell -ExecutionPolicy Bypass -File dev-setup.ps1`
 
 This will check for Git, Node.js, Go, Neutralino CLI, and rsrc — and offer to install any that are missing via `winget`. After setup, run `npm run pack` to build everything.
 

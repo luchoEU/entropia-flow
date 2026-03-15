@@ -14,6 +14,7 @@ function Write-Status($name, $version) {
 function Get-ToolVersion($command, $args_) {
     try {
         $output = & $command $args_ 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0) { return $null }
         return $output.Trim()
     } catch {
         return $null
@@ -59,17 +60,13 @@ Write-Status "Go" $goVersion
 if (-not $goVersion) { $missing += "go" }
 
 # Neutralino CLI
-$neuVersion = Get-ToolVersion "neu" "--version"
+$neuVersion = Get-ToolVersion "neu" "version"
 Write-Status "Neutralino CLI" $neuVersion
 if (-not $neuVersion) { $missing += "neu" }
 
-# rsrc
-$rsrcVersion = Get-ToolVersion "rsrc" "-version"
-if (-not $rsrcVersion) {
-    # rsrc doesn't have a --version flag, check if it exists in PATH
-    $rsrcPath = Get-Command "rsrc" -ErrorAction SilentlyContinue
-    if ($rsrcPath) { $rsrcVersion = $rsrcPath.Source }
-}
+# rsrc (no --version flag, just check it exists in PATH)
+$rsrcPath = Get-Command "rsrc" -ErrorAction SilentlyContinue
+$rsrcVersion = if ($rsrcPath) { $rsrcPath.Source } else { $null }
 Write-Status "rsrc" $rsrcVersion
 if (-not $rsrcVersion) { $missing += "rsrc" }
 
@@ -83,7 +80,9 @@ if ($missing.Count -gt 0) {
     $install = Read-Host "Install missing tools? (y/n)"
 
     if ($install -eq "y") {
-        foreach ($tool in $missing) {
+        # Phase 1: Install base tools via winget (git, node, go)
+        $wingetTools = $missing | Where-Object { $_ -in @("git", "node", "npm", "go") }
+        foreach ($tool in $wingetTools) {
             Write-Host ""
             switch ($tool) {
                 "git" {
@@ -101,9 +100,24 @@ if ($missing.Count -gt 0) {
                     Write-Host "Installing Go via winget..." -ForegroundColor Cyan
                     winget install GoLang.Go --accept-package-agreements --accept-source-agreements
                 }
+            }
+        }
+
+        # Refresh PATH so npm/go are available for phase 2
+        if ($wingetTools.Count -gt 0) {
+            Write-Host ""
+            Write-Host "Refreshing PATH after winget installs..." -ForegroundColor Yellow
+            Refresh-Path
+        }
+
+        # Phase 2: Install tools that depend on npm/go
+        $derivedTools = $missing | Where-Object { $_ -in @("neu", "rsrc") }
+        foreach ($tool in $derivedTools) {
+            Write-Host ""
+            switch ($tool) {
                 "neu" {
                     Write-Host "Installing Neutralino CLI via npm..." -ForegroundColor Cyan
-                    npm install -g @neutralinojs/neu
+                    npm install -g @neutralinojs/neu --ignore-scripts
                 }
                 "rsrc" {
                     Write-Host "Installing rsrc via go install..." -ForegroundColor Cyan
@@ -112,16 +126,15 @@ if ($missing.Count -gt 0) {
             }
         }
 
-        # Refresh PATH after installs
-        Write-Host ""
-        Write-Host "Refreshing PATH..." -ForegroundColor Yellow
-        Refresh-Path
-
-        # Tools installed via go install need GOPATH/bin in PATH
+        # Ensure GOPATH/bin is in PATH for rsrc (persistently)
         $gopath = go env GOPATH 2>$null
         if ($gopath -and -not ($env:Path -like "*$gopath\bin*")) {
             $env:Path += ";$gopath\bin"
-            Write-Host "Added $gopath\bin to PATH for this session" -ForegroundColor Yellow
+            $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+            if (-not ($currentUserPath -like "*$gopath\bin*")) {
+                [Environment]::SetEnvironmentVariable("Path", "$currentUserPath;$gopath\bin", "User")
+                Write-Host "Added $gopath\bin to user PATH (persistent)" -ForegroundColor Green
+            }
         }
 
         # Re-check after install
@@ -142,7 +155,7 @@ if ($missing.Count -gt 0) {
         $goVersion = Get-ToolVersion "go" "version"
         Write-Status "Go" $goVersion
 
-        $neuVersion = Get-ToolVersion "neu" "--version"
+        $neuVersion = Get-ToolVersion "neu" "version"
         Write-Status "Neutralino CLI" $neuVersion
 
         $rsrcPath = Get-Command "rsrc" -ErrorAction SilentlyContinue
@@ -191,23 +204,32 @@ Write-Host "=== Setup Summary ===" -ForegroundColor Cyan
 Write-Host ""
 
 $allGood = $true
-$checks = @(
-    @("Git",            { Get-Command "git" -ErrorAction SilentlyContinue }),
-    @("Node.js",        { Get-Command "node" -ErrorAction SilentlyContinue }),
-    @("npm",            { Get-Command "npm" -ErrorAction SilentlyContinue }),
-    @("Go",             { Get-Command "go" -ErrorAction SilentlyContinue }),
-    @("Neutralino CLI", { Get-Command "neu" -ErrorAction SilentlyContinue }),
-    @("rsrc",           { Get-Command "rsrc" -ErrorAction SilentlyContinue })
-)
 
-foreach ($check in $checks) {
-    $result = & $check[1]
-    if ($result) {
-        Write-Host "  PASS  $($check[0])" -ForegroundColor Green
-    } else {
-        Write-Host "  FAIL  $($check[0])" -ForegroundColor Red
-        $allGood = $false
+# Verify each tool actually runs (not just exists in PATH)
+function Test-Tool($name, $command, $args_) {
+    try {
+        & $command $args_ 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "non-zero exit" }
+        Write-Host "  PASS  $name" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host "  FAIL  $name" -ForegroundColor Red
+        return $false
     }
+}
+
+if (-not (Test-Tool "Git"            "git"  "--version")) { $allGood = $false }
+if (-not (Test-Tool "Node.js"        "node" "--version")) { $allGood = $false }
+if (-not (Test-Tool "npm"            "npm"  "--version")) { $allGood = $false }
+if (-not (Test-Tool "Go"             "go"   "version"))   { $allGood = $false }
+if (-not (Test-Tool "Neutralino CLI" "neu"  "version")) { $allGood = $false }
+# rsrc has no version flag, just check it exists and is callable
+$rsrcPath = Get-Command "rsrc" -ErrorAction SilentlyContinue
+if ($rsrcPath) {
+    Write-Host "  PASS  rsrc" -ForegroundColor Green
+} else {
+    Write-Host "  FAIL  rsrc" -ForegroundColor Red
+    $allGood = $false
 }
 
 Write-Host ""
