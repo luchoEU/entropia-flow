@@ -11,6 +11,7 @@ import { ItemOwned } from '../state/inventory'
 import { setConnectionStatusAtom } from './connection'
 import { processGameLogAtom } from './gameLog'
 import { setStreamVariablesAtom, setStreamDataAtom, initializeStreamAtom } from './stream'
+import { createNewSessionAtom } from './activity'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -88,7 +89,9 @@ export const initializeAppAtom = atom(
         },
         // Action view handler
         async (m: ViewDispatch) => {
-          // Handle action view dispatch
+          if (m.action === 'flowSetLast') {
+            await set(createNewSessionAtom)
+          }
         },
         // Notification handler
         async (m: ViewNotification) => {
