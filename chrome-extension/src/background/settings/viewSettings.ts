@@ -57,7 +57,7 @@ class ViewSettings {
         const value = await this.storage.get(STORAGE_VIEW)
         if (value !== undefined) {
             this.last = value.last
-            this.webSocketUrl = value.webSocketClient
+            this.webSocketUrl = value.webSocketUrl
         } else {
             this.last = null
             this.webSocketUrl = null
@@ -65,7 +65,7 @@ class ViewSettings {
     }
 
     private async _save(): Promise<void> {
-        await this.storage.set(STORAGE_VIEW, { last: this.last })
+        await this.storage.set(STORAGE_VIEW, { last: this.last, webSocketUrl: this.webSocketUrl })
         this.onChanged?.()
     }
 }

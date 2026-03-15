@@ -5,7 +5,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Critical: Read AGENTS.md First
 
 **ALWAYS** read `/Users/cristian/Documents/ME/dev/entropia-flow/AGENTS.md` before starting any work. Key rules:
-- **Never use `git add` or `git commit`** — provide the commit message to the user and let them commit manually
 - Explain errors with chain of reasoning + source links (file:line)
 - Do not commit until user explicitly confirms changes work
 - Follow the AAA (Arrange-Act-Assert) pattern for tests with clear section delimiters
