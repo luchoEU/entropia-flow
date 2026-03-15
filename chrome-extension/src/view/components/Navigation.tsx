@@ -10,13 +10,17 @@ import { budgetStateAtom } from '../application/atoms/budget';
 import { expandableAtom, setVisibleAtom } from '../application/atoms/expandable';
 import { settingsAtom } from '../application/atoms/settings';
 import { lastVisitedByTabAtom, tabOrderAtom } from '../application/atoms/navigation';
-import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShow, tabSubtitle, tabTitle } from '../application/helpers/navigation';
+import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShowForRole, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId } from '../application/state/navigation';
+import { Role, ROLE_LABELS } from '../application/state/role';
+import { roleAtom, setRoleAtom } from '../application/atoms/role';
 import StreamView from './stream/StreamView';
 import PinnedAtomsView from './atomDebug/PinnedAtomsView';
 import { useElementSize } from './common/useElementSize';
 import ItemSyncStatus from './item/ItemSyncStatus';
+import { STRING_CONNECTING } from '../../common/const';
+import { dashboardStatusCollapsedAtom } from './dashboard/HunterDashboard';
 
 const Tab = (p: {
     id: TabId,
@@ -91,6 +95,10 @@ const FirstRow = () => {
     const menuPinned = mode.menuPinned
     const budgetState = useAtomValue(budgetStateAtom)
     const budgetPendingCount = budgetState.list.items.filter(item => (item.pendingLines?.length ?? 0) > 0).length
+    const role = useAtomValue(roleAtom)
+    const setRole = useSetAtom(setRoleAtom)
+    const navigate = useNavigate()
+    const location = useLocation()
     const pinMenu = useSetAtom(pinMenuAtom)
     const [tabOrder, setTabOrder] = useAtom(tabOrderAtom)
     const [draggedTab, setDraggedTab] = useState<TabId | null>(null)
@@ -139,13 +147,42 @@ const FirstRow = () => {
         setDropTarget(null)
     }
 
+    const isAdvanced = role === Role.ADVANCED
+    const [statusCollapsed, setStatusCollapsed] = useAtom(dashboardStatusCollapsedAtom)
+    const statusData2 = useAtomValue(statusAtom)
+    const connection2 = useAtomValue(connectionAtom)
+    const itemsOk = statusData2.class !== 'error' && statusData2.message !== STRING_CONNECTING
+    const clientOk = connection2.client.status.includes('connected') && !connection2.client.status.includes('not connected') && !connection2.client.status.includes('disconnected')
+
     return (
         <>
             <div>
                 <img src='img/flow128.png' data-show className='img-logo'></img>
                 <strong>Entropia Flow</strong>
             </div>
-            { tabOrder.map((id) => tabShow(id, anyInventory, settings) &&
+            { isAdvanced ? (
+                <select
+                    className='role-selector'
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as Role)}
+                >
+                    {Object.values(Role).map(r => (
+                        <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                    ))}
+                </select>
+            ) : (
+                <>
+                    <span className='role-label'>🎯 Hunter</span>
+                    <button
+                        className='role-switch-btn'
+                        onClick={() => setRole(Role.ADVANCED)}
+                        title='Switch to Advanced mode'
+                    >
+                        ⚙️ Advanced
+                    </button>
+                </>
+            )}
+            { isAdvanced && tabOrder.map((id) => tabShowForRole(id, role, anyInventory, settings) &&
                 <div
                     key={id}
                     draggable
@@ -169,13 +206,23 @@ const FirstRow = () => {
                     />
                 </div>
             ) }
-            { showVisibility &&
+            { isAdvanced && showVisibility &&
                 <ImgButton
                     title={`click to ${menuPinned ? 'Unpin' : 'Pin'} Menu`}
                     className='img-btn-nav-pin'
                     src={menuPinned ? 'img/pinOn.png' : 'img/pinOff.png'}
                     action={() => pinMenu(!menuPinned)} />
             }
+            { !isAdvanced && statusCollapsed && <>
+                <div style={{ flex: 1 }} />
+                <div className='dashboard-status-compact' onClick={() => setStatusCollapsed(false)}
+                     title='Click to expand connection status'>
+                    <span className={`dashboard-connection-dot-sm ${itemsOk ? 'dashboard-connection-dot-green' : 'dashboard-connection-dot-red'}`} />
+                    <span className='dashboard-status-compact-label'>IT</span>
+                    <span className={`dashboard-connection-dot-sm ${clientOk ? 'dashboard-connection-dot-green' : 'dashboard-connection-dot-red'}`} />
+                    <span className='dashboard-status-compact-label'>CL</span>
+                </div>
+            </>}
         </>
     )
 }
@@ -186,12 +233,14 @@ const Navigation = () => {
     const setShowSubtitles = useSetAtom(setShowSubtitlesAtom)
     const setShowVisibleToggle = useSetAtom(setShowVisibleToggleAtom)
     const tabId = getTabIdFromLocation(useLocation())
+    const role = useAtomValue(roleAtom)
+    const isAdvanced = role === Role.ADVANCED
     const { ref, size: { height } } = useElementSize<HTMLElement>();
 
     return (
         <>
             <nav ref={ref} className={'img-hover-container ' + (menuPinned ? 'nav-pinned' : '')}>
-                { showSubtitles ?
+                { isAdvanced && showSubtitles ?
                     <div className='nav-with-subtitle'>
                         <div className='nav-row'>
                             <FirstRow />
@@ -213,12 +262,14 @@ const Navigation = () => {
                     </div> :
                     <div className='nav-row img-hover-container'>
                         <FirstRow />
-                        <div style={{ flex: 1 }} />
-                        <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' action={() => setShowSubtitles(true)} />
+                        { isAdvanced && <>
+                            <div style={{ flex: 1 }} />
+                            <ImgButton title='Show Subtitles' className='img-btn-subtitles' src='img/down.png' action={() => setShowSubtitles(true)} />
+                        </>}
                     </div>
                 }
-                <PinnedAtomsView />
-                { streamViewPinned && <StreamView /> }
+                { isAdvanced && <PinnedAtomsView /> }
+                { isAdvanced && streamViewPinned && <StreamView /> }
             </nav>
             { menuPinned && <div style={{ height }} /> }
         </>

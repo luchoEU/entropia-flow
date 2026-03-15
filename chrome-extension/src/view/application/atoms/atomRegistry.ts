@@ -1,4 +1,5 @@
 import * as activityAtoms from './activity'
+import * as roleAtoms from './role'
 import * as connectionAtoms from './connection'
 import * as debugAtoms from './debug'
 import * as gameLogAtoms from './gameLog'
@@ -29,6 +30,7 @@ export const moduleRegistry = [
     { id: 'inventory', name: 'Inventory', module: inventoryAtoms },
     { id: 'items', name: 'Items', module: itemsAtoms },
     { id: 'last', name: 'Last', module: lastAtoms },
+    { id: 'role', name: 'Role', module: roleAtoms },
     { id: 'settings', name: 'Settings', module: settingsAtoms },
     { id: 'stream', name: 'Stream', module: streamAtoms },
     { id: 'trade', name: 'Trade', module: tradeAtoms },

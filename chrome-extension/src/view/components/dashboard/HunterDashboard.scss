@@ -1,0 +1,357 @@
+// Role selector
+.role-selector {
+    margin-left: 15px;
+    padding: 4px 8px;
+    height: 28px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+}
+
+.role-label {
+    margin-left: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #e8f5e9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #a5d6a7;
+}
+
+.role-switch-btn {
+    visibility: hidden;
+}
+
+.role-switch-btn:hover {
+    background-color: #e3f2fd;
+    border-color: #90caf9;
+}
+
+// Dashboard
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+}
+
+.dashboard-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+// Make the Last/ExpandableSection inside dashboard match card style
+.dashboard-page > section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin: 0;
+}
+
+// Dashboard stat boxes (stream overlay inspired)
+.dashboard-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dashboard-stat {
+    flex: 1;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.dashboard-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dashboard-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+// Delta color variants
+.dashboard-stat-positive {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+}
+
+.dashboard-stat-positive .dashboard-stat-value {
+    color: #2e7d32;
+}
+
+.dashboard-stat-negative {
+    background: #ffebee;
+    border-color: #ef9a9a;
+}
+
+.dashboard-stat-negative .dashboard-stat-value {
+    color: #c62828;
+}
+
+// Clickable items stat
+.dashboard-stat-items {
+    cursor: pointer;
+    user-select: none;
+}
+
+// Items list container
+.dashboard-items-list {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.dashboard-items-table th {
+    text-align: left;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dashboard-items-table td {
+    padding: 4px 8px;
+}
+
+// Right-align numeric columns (Qty, Value, MU)
+.dashboard-col-right {
+    text-align: right;
+}
+
+// Connection indicators
+.dashboard-connection {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.dashboard-connection-collapse {
+    margin-left: auto;
+    cursor: pointer;
+    font-size: 14px;
+    color: #999;
+    padding: 0 4px;
+    &:hover {
+        color: #333;
+    }
+}
+
+// Compact status dots in title bar
+.dashboard-status-compact {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    &:hover {
+        background: #f0f0f0;
+    }
+}
+
+.dashboard-status-compact-label {
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.dashboard-connection-dot-sm {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dashboard-connection-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.dashboard-connection-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dashboard-connection-dot-green {
+    background-color: #4caf50;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+.dashboard-connection-dot-red {
+    background-color: #f44336;
+    box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+}
+
+.dashboard-connection-status {
+    display: block;
+    font-size: 11px;
+    color: #999;
+}
+
+// Exclude/include action button (hidden until row hover)
+.dashboard-item-action {
+    visibility: hidden;
+    cursor: pointer;
+    font-size: 14px;
+    color: #999;
+    &:hover {
+        color: #333;
+    }
+}
+
+.dashboard-items-table tr:hover .dashboard-item-action {
+    visibility: visible;
+}
+
+// Always show for excluded items (so user can re-include)
+.dashboard-item-excluded .dashboard-item-action {
+    visibility: visible;
+}
+
+// Excluded item row
+.dashboard-item-excluded td {
+    opacity: 0.4;
+}
+
+// MU toggle button
+.dashboard-mu-toggle {
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+
+.dashboard-mu-toggle.active {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+}
+
+// Connection link (clickable)
+.dashboard-connection-link {
+    display: block;
+    font-size: 11px;
+    color: #1976d2;
+    cursor: pointer;
+    text-decoration: none;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// Client offline: editable URL + retry
+.dashboard-connection-offline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dashboard-connection-url {
+    font-size: 11px;
+    padding: 1px 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 140px;
+}
+
+// MU in-place editing
+.dashboard-mu-cell {
+    min-width: 70px;
+}
+
+.dashboard-mu-edit {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.dashboard-mu-edit input {
+    width: 50px;
+    font-size: 12px;
+    padding: 1px 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.dashboard-mu-unit {
+    cursor: pointer;
+    font-size: 11px;
+    color: #666;
+    &:hover {
+        color: #333;
+    }
+}
+
+// MU display: value + edit button
+.dashboard-mu-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.dashboard-mu-value {
+    white-space: nowrap;
+}
+
+.dashboard-mu-edit-btn {
+    visibility: hidden;
+    cursor: pointer;
+    font-size: 12px;
+    color: #999;
+    &:hover {
+        color: #333;
+    }
+}
+
+.dashboard-items-table tr:hover .dashboard-mu-edit-btn {
+    visibility: visible;
+}
+
+.dashboard-mu-edit {
+    justify-content: flex-end;
+}

@@ -3,6 +3,9 @@ $primary-color: darkblue;
 // Raw Storage Tab
 @use './rawStorage/RawStoragePage.scss';
 
+// Hunter Dashboard
+@use './dashboard/HunterDashboard.scss';
+
 // Chrome applies an 8px margin by default (gross).
 body {
     margin: 0px;
@@ -123,6 +126,10 @@ nav button {
     height: $nav-row-height;
     font-size: 14px;
     font-weight: normal;
+}
+
+nav button:hover {
+    background-color: #f0f0f0;
 }
 
 nav .stream-view-section {
@@ -551,6 +558,7 @@ form label {
 
 .img-hover-container:hover img,
 .img-hover-container:hover .img-btn,
+.img-hover-container:hover .role-switch-btn,
 .img-hover-container img[data-show],
 .img-hover-container .img-btn[data-show] {
     visibility: visible;

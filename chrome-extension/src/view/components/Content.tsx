@@ -20,8 +20,11 @@ import { settingsAtom } from '../application/atoms/settings'
 import { lastComputedAtom } from '../application/atoms/last'
 import { expandableAtom } from '../application/atoms/expandable'
 import { modeAtom } from '../application/atoms/mode'
+import { roleAtom } from '../application/atoms/role'
+import { Role } from '../application/state/role'
 import StreamTrashPage from './stream/StreamTrashPage'
-import { tabShow } from '../application/helpers/navigation'
+import HunterDashboard from './dashboard/HunterDashboard'
+import { tabShowForRole } from '../application/helpers/navigation'
 
 function ContentPage() {
     const lastComputed = useAtomValue(lastComputedAtom)
@@ -29,12 +32,15 @@ function ContentPage() {
     const settings = useAtomValue(settingsAtom)
     const expandable = useAtomValue(expandableAtom)
     const mode = useAtomValue(modeAtom)
+    const role = useAtomValue(roleAtom)
     const showVisibility = mode.showVisibleToggle
     const isTabVisible = (id: TabId) => !expandable.hidden.includes(`tab.${id}`)
 
+    const isAdvanced = role === Role.ADVANCED
+
     const tabs: { id: TabId, routes: { path: string, component: React.ComponentType }[] }[] = [
         { id: TabId.MONITOR, routes: [
-            { path: "/", component: MonitorPage },
+            ...(isAdvanced ? [{ path: "/", component: MonitorPage }] : []),
             { path: TabId.MONITOR, component: MonitorPage }
         ] },
         { id: TabId.INVENTORY, routes: [ { path: TabId.INVENTORY, component: InventoryPage } ] },
@@ -64,14 +70,28 @@ function ContentPage() {
 
     return (
         <Routes>
-            {tabs.map((tab) => tabShow(tab.id, anyInventory, settings) && tab.routes.map((route) =>
+            {!isAdvanced && <>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardRouter role={role} />} />
+            </>}
+            {isAdvanced && <Route path="/dashboard" element={<Navigate to="/" replace />} />}
+            {tabs.map((tab) => tabShowForRole(tab.id, role, anyInventory, settings) && tab.routes.map((route) =>
                 <Route key={route.path} path={route.path} element={
-                    showVisibility || isTabVisible(tab.id) ? <route.component /> : <Navigate to={TabId.MONITOR} />}
+                    showVisibility || isTabVisible(tab.id) ? <route.component /> : <Navigate to={isAdvanced ? TabId.MONITOR : '/dashboard'} />}
                 />))
             }
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="*" element={isAdvanced ? <NotFoundPage /> : <Navigate to="/dashboard" replace />} />
         </Routes>
     )
+}
+
+function DashboardRouter({ role }: { role: Role }) {
+    switch (role) {
+        case Role.HUNTER:
+            return <HunterDashboard />
+        default:
+            return <HunterDashboard />
+    }
 }
 
 const NotFoundPage = () => {
@@ -85,10 +105,12 @@ const NotFoundPage = () => {
 
 export function Content() {
     const mode = useAtomValue(modeAtom)
+    const role = useAtomValue(roleAtom)
     const streamViewPinned = mode.streamViewPinned
+    const isAdvanced = role === Role.ADVANCED
     return (
         <>
-            {!streamViewPinned && <StreamView />}
+            {isAdvanced && !streamViewPinned && <StreamView />}
             <ContentPage />
         </>
     )

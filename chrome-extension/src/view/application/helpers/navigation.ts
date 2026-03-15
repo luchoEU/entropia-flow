@@ -1,6 +1,7 @@
 import { STRING_PLEASE_LOG_IN } from "../../../common/const"
 import { TabId, tabOrder } from "../state/navigation"
 import { SettingsState, isFeatureEnabled, Feature } from "../state/settings"
+import { Role, ROLE_TAB_MAP } from "../state/role"
 import { Location } from "react-router-dom"
 
 const tabTitle = {
@@ -51,6 +52,12 @@ const tabShow = (id: TabId, anyInventory: boolean, settings: SettingsState): boo
     }
 }
 
+const tabShowForRole = (id: TabId, role: Role, anyInventory: boolean, settings: SettingsState): boolean => {
+    if (!tabShow(id, anyInventory, settings)) return false
+    if (role === Role.ADVANCED) return true
+    return ROLE_TAB_MAP[role].includes(id)
+}
+
 const tabActionRequired = (id: TabId, message: string, status: string): string | undefined => {
     switch (id) {
         case TabId.MONITOR: return message === STRING_PLEASE_LOG_IN ? 'Disconnected' : undefined
@@ -75,6 +82,7 @@ export {
     tabTitle,
     tabSubtitle,
     tabShow,
+    tabShowForRole,
     tabActionRequired,
     getTabIdFromLocation,
     getLocationFromTabId,
