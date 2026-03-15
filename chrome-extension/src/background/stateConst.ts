@@ -81,7 +81,8 @@ const STATE_NO_DATA: ViewState = {
         meta: {
             date: DATE_CONST
         }
-    }]
+    }],
+    webSocketUrl: ''
 }
 
 const STATE_NO_DATA_MONITORING_ON: ViewState = {

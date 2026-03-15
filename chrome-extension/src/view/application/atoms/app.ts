@@ -8,7 +8,7 @@ import { initializeItemsAtom } from './items'
 import messagesApi from '../../services/api/messages'
 import { ViewState, ViewDispatch, ViewNotification, ItemData } from '../../../common/state'
 import { ItemOwned } from '../state/inventory'
-import { setConnectionStatusAtom } from './connection'
+import { setConnectionStatusAtom, restoreConnectionWebSocketAtom } from './connection'
 import { processGameLogAtom } from './gameLog'
 import { setStreamVariablesAtom, setStreamDataAtom, initializeStreamAtom } from './stream'
 import { createNewSessionAtom } from './activity'
@@ -71,6 +71,10 @@ export const initializeAppAtom = atom(
           // Update client connection status from background worker
           if (m.clientState) {
             set(setConnectionStatusAtom, m.clientState.message)
+          }
+          // Restore WebSocket URL from background (survives extension reload)
+          if (m.webSocketUrl) {
+            set(restoreConnectionWebSocketAtom, m.webSocketUrl)
           }
           // Update game log data from background worker
           if (m.gameLog) {

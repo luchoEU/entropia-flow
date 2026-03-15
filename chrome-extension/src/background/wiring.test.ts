@@ -219,7 +219,7 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls.length).toBe(1)
             expect(viewPort.sendMock.mock.calls[0].length).toBe(2)
             expect(viewPort.sendMock.mock.calls[0][0]).toBe(MSG_NAME_REFRESH_VIEW)
-            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: state })
+            expect(viewPort.sendMock.mock.calls[0][1]).toEqual({ clientState: state, webSocketUrl: '' })
         })
     })
 

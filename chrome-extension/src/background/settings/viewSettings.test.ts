@@ -1,25 +1,5 @@
-import IStorageArea from '../../chrome/IStorageArea'
+import MemoryStorageArea from '../../chrome/memoryStorageArea'
 import ViewSettings from './viewSettings'
-
-class TestStorageArea implements IStorageArea {
-    storage: any = {}
-
-    async get(name: string): Promise<any> {
-        return this.storage[name]
-    }
-
-    async set(name: string, value: any): Promise<void> {
-        this.storage[name] = value
-    }
-
-    async remove(name: string): Promise<void> {
-        this.storage[name] = undefined
-    }
-
-    async clear(): Promise<void> {
-        this.storage = {}
-    }
-}
 
 describe('ViewSettings', () => {
     describe('webSocketUrl persistence', () => {
@@ -27,7 +7,7 @@ describe('ViewSettings', () => {
             // ============================================================================
             // ARRANGE
             // ============================================================================
-            const storage = new TestStorageArea()
+            const storage = new MemoryStorageArea()
             const settings = new ViewSettings(storage)
             const TEST_URL = 'ws://localhost:1234'
 
@@ -50,7 +30,7 @@ describe('ViewSettings', () => {
             // ============================================================================
             // ARRANGE
             // ============================================================================
-            const storage = new TestStorageArea()
+            const storage = new MemoryStorageArea()
             const settings = new ViewSettings(storage)
 
             // ============================================================================
@@ -68,7 +48,7 @@ describe('ViewSettings', () => {
             // ============================================================================
             // ARRANGE
             // ============================================================================
-            const storage = new TestStorageArea()
+            const storage = new MemoryStorageArea()
             const settings = new ViewSettings(storage)
             const TEST_URL = 'ws://game-server:5678'
             const TEST_LAST = 1234567890

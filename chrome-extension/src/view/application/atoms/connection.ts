@@ -29,6 +29,20 @@ export const setConnectionWebSocketAtom = atom(
   }
 )
 
+// Updates URL from background state restore (no re-send to background)
+export const restoreConnectionWebSocketAtom = atom(
+  null,
+  (get, set, webSocket: string) => {
+    const state = get(connectionAtom)
+    if (state.client.webSocket !== webSocket) {
+      set(connectionAtom, {
+        ...state,
+        client: { ...state.client, webSocket }
+      })
+    }
+  }
+)
+
 export const setConnectionStatusAtom = atom(
   null,
   (get, set, status: string) => {

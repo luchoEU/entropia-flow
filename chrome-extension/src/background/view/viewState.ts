@@ -37,7 +37,8 @@ class ViewStateManager {
         const gameLog = await this.gameLogHistory.getGameLog()
         const clientState = await this.webSocketClient.getState()
         const { variables: streamVariables, renderData: streamData } = await this.streamBuilder.getVariablesAndData()
-        return { list, last, status, gameLog, clientState, streamVariables, streamData }
+        const webSocketUrl = await this.viewSettings.getWebSocketUrl()
+        return { list, last, status, gameLog, clientState, streamVariables, streamData, webSocketUrl }
     }
 
     public async reload(): Promise<void> {
@@ -69,7 +70,8 @@ class ViewStateManager {
 
     public async setClientState(state: WebSocketState): Promise<void> {
         if (this.onChange) {
-            await this.onChange({ clientState: state })
+            const webSocketUrl = await this.viewSettings.getWebSocketUrl()
+            await this.onChange({ clientState: state, webSocketUrl })
         }
     }
 

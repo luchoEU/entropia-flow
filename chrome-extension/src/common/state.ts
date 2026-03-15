@@ -52,6 +52,7 @@ interface ViewState {
     clientVersion?: string
     streamVariables?: StreamStateVariablesSet
     streamData?: StreamRenderData
+    webSocketUrl?: string
 }
 
 interface ViewDispatch {
