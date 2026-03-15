@@ -7,12 +7,17 @@ import { interpolate } from "./utils";
 import { WindowData } from "./windows";
 
 Neutralino.init();
+const _intervalIds: ReturnType<typeof setInterval>[] = [];
 Neutralino.events.on('ready', () => {
-    receiveUpdates(STORE_STREAM, 100, streamChanged);
-    receiveUpdates(STORE_SCREENS, 5000, screensChanged);
-    receiveUpdates(STORE_SETTINGS, 5000, settingsChanged);
+    _intervalIds.push(receiveUpdates(STORE_STREAM, 100, streamChanged));
+    _intervalIds.push(receiveUpdates(STORE_SCREENS, 5000, screensChanged));
+    _intervalIds.push(receiveUpdates(STORE_SETTINGS, 5000, settingsChanged));
 });
 Mouse.init();
+
+window.addEventListener('beforeunload', () => {
+    _intervalIds.forEach(id => clearInterval(id));
+});
 
 const initKey = interpolate(STORE_INIT, NL_PID);
 sendMessageToMain('identify', { pid: NL_PID });

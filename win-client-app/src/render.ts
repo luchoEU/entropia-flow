@@ -311,8 +311,12 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     const layoutDiv = document.getElementById('entropia-flow-client-layout');
     if (layoutDiv) layoutDiv.innerText = layout?.name ?? '';
 
-    layout?.action?.();
+    if (layout?.action && s.layoutId !== _lastActionLayoutId) {
+        _lastActionLayoutId = s.layoutId;
+        layout.action();
+    }
 }
+let _lastActionLayoutId: string | undefined;
 
 /// Controller ///
 
@@ -365,7 +369,6 @@ async function storeWindowData() {
             height: size.height!
         };
         Neutralino.storage.setData(interpolate(STORE_WINDOW, NL_PID), JSON.stringify(winData));
-        console.log('Stored window data:', winData);
     }
 
     if (_storeIntervalId) window.clearInterval(_storeIntervalId);

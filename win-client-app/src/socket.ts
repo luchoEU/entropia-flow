@@ -4,6 +4,8 @@ import { ScreenData, SettingsData, StreamData } from './data';
 import { identifyWindow, layoutChanged, openGameWindow, sendUsedLayouts } from './windows';
 import { getLocalIpAddress, interpolate } from "./utils";
 
+const DEBUG = false;
+
 // A global variable to hold our WebSocket connection
 let ws: WebSocket;
 
@@ -26,14 +28,10 @@ async function initializeWebSocketData() {
 }
 
 function parseAndLogMessage(json: string, from = 'server') {
-    // The data from the server is in 'event.data' and is a JSON string.
-    console.log(`Raw message received from ${from}:`, json);
-
-    // We MUST parse the JSON string to get a usable JavaScript object.
     const message = JSON.parse(json);
-
-    // Now we can inspect the message object and act on it.
-    console.log('Parsed message payload:', message.data ?? message.payload);
+    if (DEBUG) {
+        console.log(`Message from ${from}:`, message.type, message.data ?? message.payload);
+    }
     return message;
 }
 
@@ -46,11 +44,25 @@ let _streamData: StreamData = {};
 
 // Function to establish and manage the WebSocket connection
 let closeWebSocket: () => void;
+let _reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 async function connectWebSocket() {
     await initializeWebSocketData();
 
+    // Close existing WebSocket without triggering reconnect
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.close();
+    }
+
+    // Clear any pending reconnect
+    if (_reconnectTimeoutId !== null) {
+        clearTimeout(_reconnectTimeoutId);
+        _reconnectTimeoutId = null;
+    }
+
     ws = new WebSocket(wsData.uri);
-    closeWebSocket = () => ws.close(); 
+    closeWebSocket = () => ws.close();
 
     _settingsVer++;
     _settingsData.ws = { ...wsData, clientStatus: 'Connecting', extensionStatus: 'Unknown' };
@@ -132,9 +144,10 @@ async function connectWebSocket() {
      * We'll implement a simple auto-reconnect logic.
      */
     ws.onclose = (event) => {
-        console.log(`Disconnected from WebSocket server (code: ${event.code}). Reconnecting in 3 seconds...`, event);
-        // Try to reconnect after a delay
-        setTimeout(connectWebSocket, 3000);
+        console.log(`Disconnected from WebSocket server (code: ${event.code}). Reconnecting in 3 seconds...`);
+        // Clear any existing reconnect before scheduling a new one
+        if (_reconnectTimeoutId !== null) clearTimeout(_reconnectTimeoutId);
+        _reconnectTimeoutId = setTimeout(connectWebSocket, 3000);
 
         if (event.wasClean) {
             _settingsData.ws = { ...wsData, clientStatus: 'Disconnected', extensionStatus: 'Unknown' };
@@ -167,7 +180,7 @@ function sendMessageToRelay(type: string, payload: any, to = "chrome-extension")
             data: payload
         };
         ws.send(JSON.stringify(message));
-        console.log(`Sent '${type}' to '${to}':`, payload);
+        if (DEBUG) console.log(`Sent '${type}' to '${to}':`, payload);
     } else {
         console.error('WebSocket is not open.');
     }
@@ -175,10 +188,14 @@ function sendMessageToRelay(type: string, payload: any, to = "chrome-extension")
 
 let waitingForIdentify = false;
 const messageKeyStart = interpolate(STORE_MESSAGE, '');
-setInterval(async () => {    
+let _pollingMessages = false;
+const _pollIntervalId = setInterval(async () => {
+    if (_pollingMessages) return; // prevent overlapping executions
+    _pollingMessages = true;
     try {
         const msgKeys = await Neutralino.storage.getKeys();
-        msgKeys.filter(key => key.startsWith(messageKeyStart)).forEach(async key => {
+        const messageKeys = msgKeys.filter(key => key.startsWith(messageKeyStart));
+        for (const key of messageKeys) {
             const messageJson = await Neutralino.storage.getData(key);
             await Neutralino.storage.setData(key, null!);
             const message = parseAndLogMessage(messageJson, 'window');
@@ -187,7 +204,7 @@ setInterval(async () => {
                     case "menu":
                         if (waitingForIdentify) {
                             console.log('Waiting for identify, skipping menu');
-                            return;
+                            continue;
                         }
                         waitingForIdentify = true;
                         openGameWindow();
@@ -223,9 +240,10 @@ setInterval(async () => {
             } else {
                 sendMessageToRelay(message.type, message.payload, message.to);
             }
-        });
+        }
     } catch {} // fails when there are no keys
-}, 100);
+    _pollingMessages = false;
+}, 200);
 
 async function startRelayIfNotRunning() {
     await initializeWebSocketData();
@@ -278,6 +296,12 @@ const Socket = {
         await connectWebSocket();
     },
     exit: async () => {
+        // stop polling and reconnect timers
+        clearInterval(_pollIntervalId);
+        if (_reconnectTimeoutId !== null) {
+            clearTimeout(_reconnectTimeoutId);
+            _reconnectTimeoutId = null;
+        }
         // send kill signal
         await sendDataToWindow(STORE_STREAM, Infinity, { kill: true });
         await sendDataToWindow(STORE_SETTINGS, Infinity, { kill: true });

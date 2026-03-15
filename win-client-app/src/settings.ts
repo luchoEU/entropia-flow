@@ -57,8 +57,9 @@ async function saveSettings() {
 }
 
 Neutralino.init();
+let _settingsIntervalId: ReturnType<typeof setInterval>;
 Neutralino.events.on('ready', () => {
-    receiveUpdates(STORE_SETTINGS, 500, (payload: any) => {
+    _settingsIntervalId = receiveUpdates(STORE_SETTINGS, 500, (payload: any) => {
         if (payload?.kill) {
             Neutralino.app.exit();
         } else {
@@ -67,6 +68,10 @@ Neutralino.events.on('ready', () => {
             saveDisable = false;
         }
     });
+});
+
+window.addEventListener('beforeunload', () => {
+    if (_settingsIntervalId) clearInterval(_settingsIntervalId);
 });
 
 document.getElementById('copyLogPathButton')?.addEventListener('click', async (e) => {

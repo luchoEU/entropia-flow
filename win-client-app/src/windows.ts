@@ -4,6 +4,7 @@ import { sendMessageToRelay } from "./socket";
 import { interpolate } from "./utils";
 
 const usedLayouts: Record<number, string> = {};
+let _gcIntervalId: ReturnType<typeof setInterval>;
 
 function sendUsedLayouts() {
     sendMessageToRelay("used-layouts", Array.from(new Set(Object.values(usedLayouts))));
@@ -84,21 +85,20 @@ async function openLastGameWindows() {
     }
 
     // garbage collect old windows every 60 seconds
-    window.setInterval(async () => {
+    _gcIntervalId = window.setInterval(async () => {
         try {
             const winKeys = await Neutralino.storage.getKeys();
-            winKeys.filter(key => key.startsWith(storeWindowKeyStart))
-                .forEach(async key => {
-                    const data = await Neutralino.storage.getData(key);
-                    const parsed: WindowData = JSON.parse(data);
-                    if (Date.now() - parsed.time > 60000) {
-                        await Neutralino.storage.setData(key, null!);
-                        const pid = parseInt(key.split('-')[1]);
-                        delete usedLayouts[pid];
-                        sendUsedLayouts();
-                        return null;
-                    }
-                });
+            const windowKeys = winKeys.filter(key => key.startsWith(storeWindowKeyStart));
+            for (const key of windowKeys) {
+                const data = await Neutralino.storage.getData(key);
+                const parsed: WindowData = JSON.parse(data);
+                if (Date.now() - parsed.time > 60000) {
+                    await Neutralino.storage.setData(key, null!);
+                    const pid = parseInt(key.split('-')[1]);
+                    delete usedLayouts[pid];
+                    sendUsedLayouts();
+                }
+            }
         } catch {} // fails when there are no keys
     }, 60000);
 }
