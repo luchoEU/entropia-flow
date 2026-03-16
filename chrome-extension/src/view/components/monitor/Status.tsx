@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAtomValue, useSetAtom } from 'jotai';
 import { Status } from '../../../common/state'
-import { historyAtom } from '../../application/atoms/history';
+import { historyAtom, inventoryListAtom } from '../../application/atoms/history';
 import { statusAtom, requestTimerOnAtom, requestTimerOffAtom, requestRefreshAtom } from '../../application/atoms/status';
 import { STRING_PLEASE_LOG_IN, URL_MY_ITEMS_PAGE } from '../../../common/const';
 import ImgButton from '../common/ImgButton';
@@ -10,6 +10,8 @@ import { setExpandedAtom } from '../../application/atoms/expandable';
 
 const Status = () => {
     const history = useAtomValue(historyAtom)
+    const inventoryList = useAtomValue(inventoryListAtom)
+    const avatarName = inventoryList.length > 0 ? inventoryList[0].avatarName : undefined
     const { class: className, message, showLoading, isMonitoring } = useAtomValue(statusAtom);
     const setExpanded = useSetAtom(setExpandedAtom)
     const requestTimerOn = useSetAtom(requestTimerOnAtom)
@@ -49,6 +51,9 @@ const Status = () => {
                         ▶️ Start Automatic Refresh
                     </button>
                 }
+            </div>
+            <div style={{ marginLeft: '10px', marginTop: '4px' }}>
+                <span className='status-avatar-name'>Avatar: {avatarName ?? '(unknown)'}</span>
             </div>
         </ExpandableSection>
     )
