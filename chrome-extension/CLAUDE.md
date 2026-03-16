@@ -79,3 +79,29 @@ Some atoms persist to Chrome sync storage or localStorage. See `src/view/applica
 ## Publication
 
 Version must be updated in three places: `package.json`, `dist/manifest.json`, and `src/view/components/about/AboutPage.tsx`.
+
+## Worktree Testing
+
+When developing in a git worktree, Chrome won't load two extensions with the same manifest name side by side. Apply these three changes to the worktree copy so it can run in parallel with the main extension:
+
+**`dist/manifest.json`** — rename the extension:
+```diff
+-    "name": "Entropia Flow",
+-    "description": "This extension help you see your returns in Entropia Universe",
++    "name": "Entropia Flow (Dev)",
++    "description": "This extension help you see your returns in Entropia Universe (Dev)",
+```
+
+**`dist/view.html`** — update the page title so you can tell the tabs apart:
+```diff
+-    <title>Entropia Flow</title>
++    <title>Entropia Flow (Dev)</title>
+```
+
+**`src/content/content-entropia-flow.ts`** — disable leader election so the worktree instance doesn't compete with the main extension's content script:
+```diff
+-const bridge = new LeaderBridge(true)
++const bridge = new LeaderBridge(false)
+```
+
+These changes are local-only and must **not** be committed.
