@@ -15,15 +15,18 @@ interface ContentTimerOptions {
 class ContentTimer {
     private options: ContentTimerOptions;
     private requestItems: (fromHtml: boolean) => Promise<Inventory>
+    private getAvatarName: () => string | undefined
     private sendLoading: (loading: boolean) => void
 
     constructor(
         requestItems: (fromHtml: boolean) => Promise<Inventory>,
+        getAvatarName: () => string | undefined,
         refreshItemsLoadTime: (options: ContentTimerOptions) => void,
         sendLoading: (loading: boolean) => void,
         sendInventory: (inventory: Inventory) => void)
     {
         this.requestItems = requestItems
+        this.getAvatarName = getAvatarName
         this.sendLoading = sendLoading
         this.options = {
             isMonitoring: false,
@@ -66,18 +69,6 @@ class ContentTimer {
         return Math.ceil(this.options.currentWaitSeconds - seconds)
     }
 
-    private _getAvatarName(): string | undefined {
-        let btnList = document.getElementsByTagName('button')
-        for (let i = 0; i < btnList.length; i++) {
-            if (btnList[i].innerHTML.trim() == 'Log Out') {
-                const loginButton = btnList[i]
-                const prev = loginButton.parentElement?.previousSibling as HTMLElement
-                return prev?.innerText.replace('Avatar:', '').trim()
-            }
-        }
-        return undefined
-    }
-
     public async wakeUp() {
         trace(Component.RefreshItem, 'wakeUp received');
     }
@@ -101,7 +92,7 @@ class ContentTimer {
         this.sendLoading(true)
         traceStart(Component.RefreshItem, `request start {source: ${source}, fromHtml: ${fromHtml}}`)
         const inventory = await this.requestItems(fromHtml);
-        inventory.avatarName = this._getAvatarName()
+        inventory.avatarName = this.getAvatarName()
         inventory.waitSeconds ??= waitSeconds;
         inventory.tag = tag;
         traceEnd(Component.RefreshItem, `request end {inventory items: ${inventory.itemlist?.length ?? 'error'}}`)

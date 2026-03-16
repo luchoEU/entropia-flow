@@ -6,10 +6,12 @@ import { ContentTimer } from "./contentTimer"
 import ContentUI from "./contentUi"
 import { ItemsReader } from "./itemsReader"
 import { LeaderBridge } from "./leaderBridge"
+import { PlayerReader } from "./playerReader"
 
 export class ContentCore {
     private itemReader!: ItemsReader
     private balanceReader!: BalanceReader
+    private playerReader!: PlayerReader
     private contentUI!: ContentUI
     private timer!: ContentTimer
 
@@ -56,6 +58,7 @@ export class ContentCore {
     private initCore() {
         this.itemReader = new ItemsReader()
         this.balanceReader = new BalanceReader()
+        this.playerReader = new PlayerReader()
 
         this.contentUI = new ContentUI(
             () => this.showView(),
@@ -64,6 +67,7 @@ export class ContentCore {
 
         this.timer = new ContentTimer(
             (fromHtml) => this.requestItems(fromHtml),
+            () => this.playerReader.getAvatarName(),
             this.contentUI.refreshItemsLoadTime,
             (loading) => this.broadcastLoading(loading),
             (inventory) => this.broadcastInventory(inventory)

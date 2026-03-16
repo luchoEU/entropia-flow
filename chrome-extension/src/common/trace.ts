@@ -15,6 +15,7 @@ enum Component {
     InventoryStorage,
     ItemsReader,
     BalanceReader,
+    PlayerReader,
     Notifications,
     PortManager,
     ReduxLogger,

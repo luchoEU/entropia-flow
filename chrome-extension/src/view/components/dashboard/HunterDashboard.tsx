@@ -6,10 +6,12 @@ import { connectionAtom, setConnectionWebSocketAtom, setConnectionStatusAtom } f
 import { lastComputedAtom, lastPersistedAtom, setLastShowMarkupAtom, excludeItemAtom, includeItemAtom, lastItemEditModeKeyAtom } from '../../application/atoms/last'
 import { streamRenderDataAtom } from '../../application/atoms/stream'
 import { currentGameLogDataAtom } from '../../application/atoms/gameLog'
+import { inventoryListAtom } from '../../application/atoms/history'
 import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
 import { cloneSortList, SORT_VALUE_DESCENDING, nextSortType, sortTypeToColumnIndex } from '../../application/helpers/inventory.sort'
 import { getValueWithMarkup } from '../../application/helpers/items'
 import { STRING_CONNECTING, URL_MY_ITEMS_PAGE } from '../../../common/const'
+import { dateToString } from '../../../common/date'
 import { unitText, nextUnit, unitDescription, UNIT_PERCENTAGE } from '../../application/state/items'
 import messages from '../../services/api/messages'
 
@@ -93,6 +95,7 @@ const HunterDashboard = () => {
     const { anyInventory, delta, diff } = useAtomValue(lastComputedAtom)
     const huntData = useAtomValue(streamRenderDataAtom).layoutData['entropiaflow.hunt']
     const gameLog = useAtomValue(currentGameLogDataAtom)
+    const inventoryList = useAtomValue(inventoryListAtom)
     const persisted = useAtomValue(lastPersistedAtom)
     const setShowMarkup = useSetAtom(setLastShowMarkupAtom)
     const exclude = useSetAtom(excludeItemAtom)
@@ -102,6 +105,7 @@ const HunterDashboard = () => {
 
     const [statusCollapsed, setStatusCollapsed] = useAtom(dashboardStatusCollapsedAtom)
     const [showItems, setShowItems] = useState(false)
+    const [showGlobals, setShowGlobals] = useState(false)
     const [sortType, setSortType] = useState(SORT_VALUE_DESCENDING)
 
     // Hunt stats from stream render data
@@ -124,6 +128,10 @@ const HunterDashboard = () => {
 
     const killCount = gameLog.stats?.kills?.count ?? 0
     const items = cloneSortList(diff ?? [], sortType)
+    const itemsTotalPed = items.reduce((sum, item) => sum + (item.e ? 0 : parseFloat(item.v) || 0), 0)
+    const avatarName = inventoryList.length > 0 ? inventoryList[0].avatarName : undefined
+    const globals = avatarName ? (gameLog.global ?? []).filter(g => g.player === avatarName) : []
+    const globalsTotalPed = globals.reduce((sum, g) => sum + (g.value || 0), 0)
 
     // Connection status
     const itemsConnected = statusData.class !== 'error' && statusData.message !== STRING_CONNECTING
@@ -220,7 +228,7 @@ const HunterDashboard = () => {
                         onClick={() => setShowItems(s => !s)}
                     >
                         <span className='dashboard-stat-label'>
-                            Items ({items.length}) {showItems ? '▴' : '▾'}
+                            Items ({items.length}) {itemsTotalPed.toFixed(2)} PED {showItems ? '▴' : '▾'}
                             {showItems && (
                                 <span className={`dashboard-mu-toggle ${persisted.showMarkup ? 'active' : ''}`}
                                     onClick={(e) => { e.stopPropagation(); setShowMarkup(!persisted.showMarkup) }}
@@ -252,6 +260,46 @@ const HunterDashboard = () => {
                                         exclude={exclude}
                                         include={include}
                                     />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                <div className='dashboard-stats'>
+                    <div
+                        className='dashboard-stat dashboard-stat-globals'
+                        onClick={() => setShowGlobals(s => !s)}
+                    >
+                        <span className='dashboard-stat-label'>
+                            Globals ({globals.length}) {globalsTotalPed.toFixed(0)} PED {showGlobals ? '▴' : '▾'}
+                        </span>
+                    </div>
+                </div>
+                {showGlobals && globals.length > 0 && (
+                    <div className='dashboard-items-list'>
+                        <table className='dashboard-items-table'>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th className='dashboard-col-right'>Value</th>
+                                    <th>HoF</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {globals.map((g, i) => (
+                                    <tr key={i}>
+                                        <td>{dateToString(g.time)}</td>
+                                        <td>{g.name}</td>
+                                        <td>{g.type}</td>
+                                        <td className='dashboard-col-right'>{g.value.toFixed(0)} PED</td>
+                                        <td>{g.isATH
+                                            ? <span className='dashboard-globals-hof dashboard-globals-ath'>ATH</span>
+                                            : g.isHoF
+                                            ? <span className='dashboard-globals-hof'>HoF</span>
+                                            : ''}</td>
+                                    </tr>
                                 ))}
                             </tbody>
                         </table>
