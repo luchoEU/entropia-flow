@@ -4,6 +4,17 @@
 
 All project documentation is indexed in [DOCS.md](DOCS.md). When adding, removing, or renaming any file, update DOCS.md in the same action. When changing code, update any affected documentation files to keep them accurate.
 
+## Git Flow
+
+This project uses **Git Flow** branching model:
+- `main` — production-ready releases
+- `develop` — integration branch for ongoing work
+- `feature/*` — new features, branched from `develop`
+- `release/*` — release preparation, branched from `develop`
+- `hotfix/*` — urgent fixes, branched from `main`
+
+All feature work should be done on `feature/*` branches and merged into `develop`. Only `release/*` and `hotfix/*` branches merge into `main`.
+
 ## Workflow: All Changes
 
 1. Understand the problem or feature request
