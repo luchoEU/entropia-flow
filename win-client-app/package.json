@@ -9,6 +9,7 @@
     "build": "webpack",
     "build-all": "npm run build-stream && npm run build-relay && npm run build && neu update && neu build --release",
     "zip": "node script/zip.js",
+    "serve-update": "npx http-server . -p 8080 --cors -c-1",
     "pack": "npm run build-all && npm run zip"
   },
   "author": "Lucho MUCHO Ireton",

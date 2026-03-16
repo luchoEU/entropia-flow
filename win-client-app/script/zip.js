@@ -21,3 +21,9 @@ zip.addLocalFile("relay/EntropiaFlowClient-relay.exe", "/relay");
 const zipName = `dist/EntropiaFlowClient_v${version}.zip`;
 zip.writeZip(zipName);
 console.log(`Created ${zipName.replace(/\//g, "\\")}`);
+
+// Copy standalone resources.neu for auto-update releases
+const resourcesSrc = path.join(distDir, "resources.neu");
+const resourcesDst = path.join("dist", "resources.neu");
+fs.copyFileSync(resourcesSrc, resourcesDst);
+console.log("Copied dist\\resources.neu");

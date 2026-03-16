@@ -63,6 +63,15 @@ Commit messages should include:
 - What was changed and why
 - Co-Authored-By tag
 
+## Copyright Year
+
+When releasing a new year's first version, update the copyright year in:
+
+| File | Location |
+|------|----------|
+| `LICENSE:3` | `Copyright (c)` line |
+| `win-client-app/src/tray.ts:54` | About dialog message |
+
 ## Planning Mode: Error Resolution
 
 When planning to resolve errors, explain each error with:

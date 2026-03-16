@@ -12,6 +12,8 @@ When bumping the version, update **all three files** to keep them in sync:
 |------|-------|
 | `package.json:3` | `"version"` |
 | `neutralino.config.json:4` | `"version"` |
+| `src/const.ts:2` | `clientVersion` |
+| `src/tray.ts:54` | Copyright year in About dialog |
 | `CHANGESLOG.md` | Add new version header or update `[Unreleased]` tag |
 
 `package-lock.json` updates automatically on next `npm install`.

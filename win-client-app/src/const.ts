@@ -1,5 +1,11 @@
 const clientId = 'entropia-flow-client';
-const clientVersion = '0.2.0';
+const clientVersion = '0.2.0-dev.1';
+const clientBinaryVersion = '0.2.0'; // bump only when exe or relay changes
+
+const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/luchoEU/entropia-flow/main/win-client-app/update-manifest.json';
+const UPDATE_MANIFEST_DEV_URL = 'http://localhost:8080/update-manifest.json';
+const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
+const UPDATE_CHECK_INTERVAL_DEV = 30 * 1000; // 30 seconds
 
 const CLIENT_EXE = 'EntropiaFlowClient.exe'
 const RELAY_NAME = 'EntropiaFlowClient-relay';
@@ -17,6 +23,11 @@ const STORE_WINDOW = `window-$1`;     // store window data from main process and
 export {
     clientId,
     clientVersion,
+    clientBinaryVersion,
+    UPDATE_MANIFEST_URL,
+    UPDATE_MANIFEST_DEV_URL,
+    UPDATE_CHECK_INTERVAL,
+    UPDATE_CHECK_INTERVAL_DEV,
     CLIENT_EXE,
     RELAY_NAME,
     RELAY_PATH,

@@ -23,7 +23,8 @@
     "window.*",
     "debug.log",
     "events.*",
-    "storage.*"
+    "storage.*",
+    "updater.*"
   ],
   "modes": {
     "window": {

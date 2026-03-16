@@ -1,5 +1,6 @@
 import { applyDelta } from "clientStream";
 import { clientId, clientVersion, RELAY_NAME, RELAY_PATH, STORE_MESSAGE, STORE_SETTINGS, STORE_STREAM, STORE_VER, STORE_WS_PORT } from './const';
+import { Updater } from './updater';
 import { ScreenData, SettingsData, StreamData } from './data';
 import { identifyWindow, layoutChanged, openGameWindow, sendUsedLayouts } from './windows';
 import { getLocalIpAddress, interpolate } from "./utils";
@@ -296,8 +297,9 @@ const Socket = {
         await connectWebSocket();
     },
     exit: async () => {
-        // stop polling and reconnect timers
+        // stop polling, reconnect, and update timers
         clearInterval(_pollIntervalId);
+        Updater.stopPeriodicChecks();
         if (_reconnectTimeoutId !== null) {
             clearTimeout(_reconnectTimeoutId);
             _reconnectTimeoutId = null;

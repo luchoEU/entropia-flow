@@ -1,6 +1,6 @@
-import { clientVersion } from "./const";
+import { clientVersion, CLIENT_EXE } from "./const";
 import { Socket } from "./socket";
-import { CLIENT_EXE } from "./const";
+import { Updater } from "./updater";
 import { openGameWindow, openSettingsWindow } from "./windows";
 
 /*
@@ -20,6 +20,7 @@ function setTray() {
             {id: "NEW", text: "New Window"},
             {id: "SETTINGS", text: "Settings"},
             {id: "SHORTCUT", text: "Create Desktop Shortcut"},
+            {id: "UPDATE", text: "Check for Updates"},
             {id: "VERSION", text: "Version"},
             {id: "SEP", text: "-"},
             {id: "QUIT", text: "Exit"}
@@ -46,12 +47,51 @@ async function onTrayMenuItemClicked(event: any) {
         case "SHORTCUT":
             createDesktopShortcut();
             break;
+        case "UPDATE":
+            await handleCheckForUpdates();
+            break;
         case "VERSION":
-            Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025 Lucho MUCHO Ireton`);
+            Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025-2026 Lucho MUCHO Ireton`);
             break;
         case "QUIT":
             await Socket.exit();
             Neutralino.app.exit();
+            break;
+    }
+}
+
+async function handleCheckForUpdates() {
+    const status = await Updater.checkForUpdates();
+    switch (status.type) {
+        case 'resources': {
+            const result = await Neutralino.os.showMessageBox(
+                'Update Available',
+                `A new version (${status.manifest.version}) is available. You are running ${clientVersion}.\n\nWould you like to update and restart now?`,
+                Neutralino.os.MessageBoxChoice.YES_NO,
+                Neutralino.os.Icon.QUESTION
+            );
+            if (result === 'YES') {
+                await Updater.installResourcesUpdate();
+            }
+            break;
+        }
+        case 'binary': {
+            const result = await Neutralino.os.showMessageBox(
+                'Update Available',
+                `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to open the download page?`,
+                Neutralino.os.MessageBoxChoice.YES_NO,
+                Neutralino.os.Icon.QUESTION
+            );
+            if (result === 'YES') {
+                await Neutralino.os.open(status.manifest.binaryURL);
+            }
+            break;
+        }
+        case 'error':
+            await Neutralino.os.showMessageBox('Update Check Failed', `Could not check for updates:\n${status.message}`);
+            break;
+        case 'none':
+            await Neutralino.os.showMessageBox('Up to Date', `You are running the latest version (${clientVersion}).`);
             break;
     }
 }

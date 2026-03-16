@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Layout menu now uses dark theme with card grid instead of simple text list
 
+### Added
+- Auto-update: checks for updates on startup and periodically, with manual check from tray menu
+
 ### Fixed
 - Fix resource leaks: clear intervals and reconnect timers on window unload
 - Fix WebSocket reconnect accumulation by tracking and clearing pending timeouts

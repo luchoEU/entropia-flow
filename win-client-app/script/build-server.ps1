@@ -32,7 +32,7 @@ while ($true) {
         $startTime = Get-Date
 
         try {
-            $output = & cmd /c "cd /d $buildDir && npm run pack 2>&1"
+            $output = & cmd /c "cd /d $buildDir && npm install && npm run pack 2>&1"
             $exitCode = $LASTEXITCODE
             $duration = (Get-Date) - $startTime
 
