@@ -173,7 +173,7 @@ const HunterDashboard = () => {
                                 </div>}
                         </div>
                     </div>
-                    <span className='dashboard-connection-collapse' title='Collapse to title bar'
+                    <span className='dashboard-connection-collapse' title='Click to collapse connection status'
                           onClick={() => setStatusCollapsed(true)}>▴</span>
                 </div>
             </div>}
