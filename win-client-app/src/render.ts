@@ -7,6 +7,7 @@ import { setContentSize } from "./position";
 import { copyTextToClipboard, interpolate } from "./utils";
 import { STORE_INIT, STORE_WINDOW } from "./const";
 import { WindowData } from "./windows";
+import { buildMenuDOM, updateMenuData, MenuData } from "./menu";
 
 const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
@@ -25,6 +26,8 @@ interface StreamWindowRenderData {
     layouts: Record<string, StreamWindowLayout>;
     commonData?: StreamRenderObject;
     layoutData?: Record<string, StreamRenderObject>;
+    roles?: string[];
+    favorites?: Record<string, string[]>;
 }
 
 let _layoutIdList: string[] = [];
@@ -85,53 +88,169 @@ let _lastData: StreamWindowRenderData = {
         },
         [MENU_LAYOUT_ID]: {
             name: 'Entropia Flow Menu',
-            htmlTemplate: `
-                {{#layouts}}<div title="{{name}}" data-layout="{{id}}"><span>{{name}}</span><span>{{name}}</span></div>{{/layouts}}
-                {{^layouts}}No layouts found{{/layouts}}
-            `,
+            htmlTemplate: `<div id="menu-mount"></div>`,
             cssTemplate: `
-                .layout-root {
-                    background-color: rgba(173, 216, 230, 0.8); /* light blue */
-                }
                 #entropia-flow-client-minimize,
                 #entropia-flow-client-layout,
                 #entropia-flow-client-menu,
                 #entropia-flow-client-next {
                     display: none !important;
                 }
-                .layout-root div {
-                    max-width: 500px;
-                    padding: 2px 20px;
-                    position: relative;
-                }
-                .layout-root div:hover {
+                .layout-root {
                     --neu-non-draggable-region: true;
-                    font-weight: bold;
+                }
+                .menu-container {
+                    width: 450px;
+                    min-height: 250px;
+                    max-height: 500px;
+                    background-color: rgba(20, 25, 35, 0.95);
+                    color: #e0e0e0;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    font-size: 13px;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    border-radius: 6px;
+                }
+                .menu-header {
+                    padding: 10px 12px 6px;
+                }
+                .menu-search {
+                    width: 100%;
+                    box-sizing: border-box;
+                    padding: 6px 10px;
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 4px;
+                    color: #e0e0e0;
+                    font-size: 13px;
+                    outline: none;
+                }
+                .menu-search:focus {
+                    border-color: rgba(100, 160, 255, 0.5);
+                }
+                .menu-search::placeholder {
+                    color: rgba(255, 255, 255, 0.35);
+                }
+                .menu-roles {
+                    display: flex;
+                    gap: 4px;
+                    padding: 4px 12px 8px;
+                    flex-wrap: wrap;
+                }
+                .role-tab {
+                    padding: 3px 10px;
+                    background: rgba(255, 255, 255, 0.06);
+                    border: 1px solid rgba(255, 255, 255, 0.12);
+                    border-radius: 12px;
+                    color: #aaa;
+                    font-size: 11px;
                     cursor: pointer;
                 }
-                .layout-root div > span:nth-child(1) {
-                    visibility: hidden;
-                    font-weight: bold;
+                .role-tab:hover {
+                    background: rgba(255, 255, 255, 0.12);
+                    color: #ddd;
                 }
-                .layout-root div > span:nth-child(2) {
-                    position: absolute;
-                    left: 0px;
+                .role-tab.active {
+                    background: rgba(100, 160, 255, 0.2);
+                    border-color: rgba(100, 160, 255, 0.4);
+                    color: #fff;
+                }
+                .menu-body {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 0 12px 10px;
+                }
+                .menu-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                    gap: 8px;
+                }
+                .menu-item {
+                    background: rgba(255, 255, 255, 0.04);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 4px;
+                    cursor: pointer;
+                    overflow: hidden;
+                    transition: border-color 0.15s;
+                }
+                .menu-item:hover {
+                    border-color: rgba(100, 160, 255, 0.4);
+                }
+                .preview-wrapper {
                     width: 100%;
-                    text-align: center;
+                    height: 75px;
+                    overflow: hidden;
+                    position: relative;
+                    background: rgba(0, 0, 0, 0.3);
+                }
+                .preview-content {
+                    transform: scale(0.15);
+                    transform-origin: top left;
+                    pointer-events: none;
+                    width: 666%;
+                    height: 666%;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                }
+                .preview-empty {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    color: rgba(255, 255, 255, 0.2);
+                    font-size: 11px;
+                }
+                .menu-item-info {
+                    display: flex;
+                    align-items: center;
+                    padding: 4px 6px;
+                    gap: 4px;
+                }
+                .menu-item-name {
+                    flex: 1;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    font-size: 11px;
+                }
+                .menu-item-fav {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.3);
+                    cursor: pointer;
+                    font-size: 14px;
+                    padding: 0 2px;
+                    line-height: 1;
+                }
+                .menu-item-fav:hover {
+                    color: rgba(255, 200, 50, 0.7);
+                }
+                .menu-item-fav.is-fav {
+                    color: rgba(255, 200, 50, 0.9);
+                }
+                .menu-body::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .menu-body::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .menu-body::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-radius: 3px;
                 }
             `,
             action: () => {
-                const layoutRoot = document.querySelector(".layout-root");
-                for (const layoutDiv of layoutRoot?.children ?? []) {
-                    layoutDiv.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        const layout = (e.currentTarget as HTMLElement)?.dataset?.layout;
-                        if (layout) selectLayout(layout);
-                    });
-                }
+                const mount = document.getElementById("menu-mount");
+                if (!mount) return;
+                const menuData = _buildMenuData();
+                buildMenuDOM(
+                    mount,
+                    menuData,
+                    (layoutId) => selectLayout(layoutId),
+                    (role, layoutId) => sendMessageToMain('toggle-favorite', { role, layoutId }, 'chrome-extension')
+                );
             }
         },
         /*[OCR_LAYOUT_ID]: {
@@ -228,6 +347,25 @@ function _setupButtons() {
     });
 }
 
+function _buildMenuData(): MenuData {
+    const layouts = Object.entries(_lastData.layouts)
+        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
+        .map(([id, l]) => ({
+            id,
+            name: l.name,
+            htmlTemplate: l.htmlTemplate,
+            cssTemplate: l.cssTemplate,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    return {
+        layouts,
+        roles: _lastData.roles ?? [],
+        favorites: _lastData.favorites ?? {},
+        commonData: _lastData.commonData ?? {},
+        allLayouts: _lastData.layoutData ?? {},
+    };
+}
+
 function receive(delta: any) {
     _lastData = applyDelta(_lastData, delta);
     const layouts = Object.entries(_lastData.layouts)
@@ -237,6 +375,11 @@ function receive(delta: any) {
     if (!_lastData.layoutData) _lastData.layoutData = {};
     _lastData.layoutData![MENU_LAYOUT_ID] = { layouts };
     _layoutIdList = layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+
+    // Update menu data if menu is currently showing
+    if (_layoutId === MENU_LAYOUT_ID && document.getElementById('menu-mount')?.children.length) {
+        updateMenuData(_buildMenuData());
+    }
 }
 
 function nextLayout() {
@@ -270,6 +413,11 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
             backgroundType: layout.backgroundType
         };
         scale = 1;
+    }
+
+    // Skip clientRender when menu is already mounted to preserve interactive DOM
+    if (s.layoutId === MENU_LAYOUT_ID && document.getElementById('menu-mount')?.children.length) {
+        return;
     }
 
     const layoutData = d.layoutData?.[s.layoutId];

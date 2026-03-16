@@ -13,11 +13,14 @@ import { getUsedVariablesInTemplateList } from "../../stream/template";
 import { ItemsState } from "../../view/application/state/items";
 import { StreamStateIn } from "../../view/application/state/stream";
 import { LastRequiredState } from "../../view/application/state/last";
+import { RoleFavorites } from "../../view/application/state/role";
 
 interface IApiStorage {
     loadLast(): Promise<LastRequiredState>
     loadItems(): Promise<ItemsState>
     loadStream(): Promise<StreamStateIn>
+    loadFavorites(): Promise<RoleFavorites>
+    saveFavorites(favorites: RoleFavorites): Promise<void>
 }
 
 class StreamDataBuilder {
@@ -26,10 +29,40 @@ class StreamDataBuilder {
     private _builderState: StreamBuilderState = { } as StreamBuilderState
     private _dataInClient: StreamRenderData | undefined = undefined
     private _isDirty: boolean = false
+    private _roles: string[] = []
+    private _favorites: RoleFavorites = {}
     public sendClientData?: (data: any) => Promise<void>
 
     constructor(private apiStorage: IApiStorage) {
         this.updateState(undefined!)
+    }
+
+    public setRoles(roles: string[]) {
+        this._roles = roles
+        this._isDirty = true
+    }
+
+    public setFavorites(favorites: RoleFavorites) {
+        this._favorites = favorites
+        this._isDirty = true
+    }
+
+    public async toggleFavorite(role: string, layoutId: string) {
+        const favorites = { ...this._favorites }
+        const list: string[] = favorites[role] ?? []
+        if (list.includes(layoutId)) {
+            favorites[role] = list.filter(id => id !== layoutId)
+        } else {
+            favorites[role] = [...list, layoutId]
+        }
+        this._favorites = favorites
+        await this.apiStorage.saveFavorites(favorites)
+        this._isDirty = true
+    }
+
+    public async loadFavorites() {
+        this._favorites = await this.apiStorage.loadFavorites()
+        this._isDirty = true
     }
 
     public async updateState(name: string) {
@@ -200,7 +233,9 @@ class StreamDataBuilder {
                     if (!usedLayoutVariables?.length) return [id, {}]
                     return [id, filterObject(data, keyTree)]
                 })),
-            commonData: filterObject(data.commonData, keyTree)
+            commonData: filterObject(data.commonData, keyTree),
+            roles: this._roles,
+            favorites: this._favorites,
         }
         
         const delta = getDelta(this._dataInClient, renderData)

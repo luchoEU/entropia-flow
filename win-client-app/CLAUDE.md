@@ -1,5 +1,9 @@
 # win-client-app - Agent Guidelines
 
+## Architecture Principle
+
+The win-client-app is a **stateless visualization layer**. It does not own application state — only the minimum needed to connect to the extension (WebSocket port, window position/size). All data (layouts, roles, favorites, settings) comes from the chrome extension via the stream. When the client needs to change state (e.g., toggle a favorite), it sends a message back to the extension which persists the change and sends updated data.
+
 ## Version Management
 
 When bumping the version, update **all three files** to keep them in sync:

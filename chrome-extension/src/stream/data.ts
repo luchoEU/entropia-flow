@@ -75,6 +75,8 @@ interface StreamRenderData {
     commonData: StreamRenderObject
     layoutData: Record<string, StreamRenderObject>
     layouts: StreamRenderLayoutSet,
+    roles?: string[]
+    favorites?: Record<string, string[]>
 }
 
 interface StreamRenderSize {

@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
-import { Role } from '../state/role'
+import { Role, RoleFavorites } from '../state/role'
 
 /**
  * Persisted role selection - defaults to ADVANCED so existing users see no change
@@ -23,5 +23,27 @@ export const setRoleAtom = atom(
             set(previousRoleAtom, current)
         }
         set(roleAtom, role)
+    }
+)
+
+/**
+ * Persisted layout favorites per role
+ */
+export const favoritesAtom = atomWithStorage<RoleFavorites>('jotai-v1-favorites', {})
+
+/**
+ * Toggle a layout as favorite for a given role
+ */
+export const toggleFavoriteAtom = atom(
+    null,
+    (get, set, { role, layoutId }: { role: string, layoutId: string }) => {
+        const favorites = { ...get(favoritesAtom) }
+        const list = favorites[role] ?? []
+        if (list.includes(layoutId)) {
+            favorites[role] = list.filter(id => id !== layoutId)
+        } else {
+            favorites[role] = [...list, layoutId]
+        }
+        set(favoritesAtom, favorites)
     }
 )

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version 0.2.0 - [Unreleased]
 
+### Added
+- Improved layout selector menu with search filter, role-based tabs, layout thumbnails, and favorites
+- Role tabs populated dynamically from extension stream data
+- Favorite layouts per role with star toggle (persisted in extension)
+- Live layout thumbnails rendered via Mustache in the menu grid
+
+### Changed
+- Layout menu now uses dark theme with card grid instead of simple text list
+
 ### Fixed
 - Fix resource leaks: clear intervals and reconnect timers on window unload
 - Fix WebSocket reconnect accumulation by tracking and clearing pending timeouts

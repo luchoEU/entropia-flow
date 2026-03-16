@@ -3,6 +3,7 @@ import { IApiStorage } from './streamDataBuilder'
 import { LastRequiredState } from '../../view/application/state/last'
 import { ItemsState } from '../../view/application/state/items'
 import { StreamStateIn } from '../../view/application/state/stream'
+import { RoleFavorites } from '../../view/application/state/role'
 import {
   STORAGE_VIEW_LAST,
   STORAGE_VIEW_ITEMS,
@@ -54,6 +55,16 @@ class AtomStorageBridge implements IApiStorage {
 
   async loadStream(): Promise<StreamStateIn> {
     return await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
+  }
+
+  private static FAVORITES_KEY = 'jotai-v1-favorites'
+
+  async loadFavorites(): Promise<RoleFavorites> {
+    return await LOCAL_STORAGE.get(AtomStorageBridge.FAVORITES_KEY) ?? {}
+  }
+
+  async saveFavorites(favorites: RoleFavorites): Promise<void> {
+    await LOCAL_STORAGE.set(AtomStorageBridge.FAVORITES_KEY, favorites)
   }
 
   /**

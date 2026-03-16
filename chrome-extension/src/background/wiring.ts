@@ -40,6 +40,7 @@ import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 import { IApiStorage, StreamDataBuilder } from './client/streamDataBuilder'
+import { ROLES } from '../view/application/state/role'
 import { LastDeltaVariablesBuilder } from './inventory/lastDeltaVariablesBuilder'
 import { InventoryVariablesBuilder } from './inventory/inventoryVariablesBuilder'
 import { StatusVariablesBuilder } from './content/statusVariablesBuilder'
@@ -89,6 +90,10 @@ async function wiring(
     // stream
     const streamDataBuilder = new StreamDataBuilder(apiStorage)
 
+    // roles & favorites for client menu
+    streamDataBuilder.setRoles(ROLES)
+    await streamDataBuilder.loadFavorites()
+
     // state
     const refreshManager = new RefreshManager(refreshItemAjaxAlarm, refreshItemFrozenAlarm, refreshItemSleepAlarm, refreshItemDeadAlarm, refreshItemTickAlarm, alarmSettings)
     const inventoryManager = new InventoryManager(inventoryStorage)
@@ -135,6 +140,11 @@ async function wiring(
             case "used-layouts":
                 streamDataBuilder.setUsedLayouts(msg.data)
                 break;
+            case "toggle-favorite": {
+                const { role, layoutId } = msg.data
+                await streamDataBuilder.toggleFavorite(role, layoutId)
+                break;
+            }
         }
     }
     webSocketClient.onStateChanged = async (state) => {
