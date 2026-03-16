@@ -84,3 +84,25 @@ This will check for Git, Node.js, Go, Neutralino CLI, and rsrc — and offer to 
 1. `npm run pack`
 
 1. This will create `dist\EntropiaFlowClient.zip`
+
+## Remote Build from macOS
+
+Since the project must be built on Windows, a build server/trigger system allows macOS (Claude) to trigger builds via the Parallels shared folder (`Y:` drive).
+
+### Setup (one-time on Windows)
+
+Start the build server by double-clicking `script\build-server.bat` or running:
+
+```
+powershell -ExecutionPolicy Bypass -File Y:\Documents\ME\dev\entropia-flow\win-client-app\script\build-server.ps1
+```
+
+The server polls for a `.build-trigger` file every 2 seconds.
+
+### Trigger a build from macOS
+
+```bash
+bash win-client-app/script/build-trigger.sh
+```
+
+This writes a trigger file, waits for the Windows build server to complete `npm run pack`, and reports the result. The built zip appears at `dist/EntropiaFlowClient.zip`.

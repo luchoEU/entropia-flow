@@ -2,6 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const AdmZip = require("adm-zip");
 
+const { version } = require("../package.json");
+
 const distDir = "dist/EntropiaFlowClient";
 const exeFiles = fs.readdirSync(distDir).filter(f => f.startsWith("EntropiaFlowClient-win") && f.endsWith(".exe"));
 
@@ -16,5 +18,6 @@ zip.addLocalFile(path.join(distDir, exeFiles[0]), "/", "EntropiaFlowClient.exe")
 zip.addLocalFile(path.join(distDir, "resources.neu"), "/");
 zip.addLocalFile("relay/EntropiaFlowClient-relay.exe", "/relay");
 
-zip.writeZip("dist/EntropiaFlowClient.zip");
-console.log("Created dist\\EntropiaFlowClient.zip");
+const zipName = `dist/EntropiaFlowClient_v${version}.zip`;
+zip.writeZip(zipName);
+console.log(`Created ${zipName.replace(/\//g, "\\")}`);

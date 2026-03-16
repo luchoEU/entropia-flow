@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "com.entropia.flow",
-  "version": "0.2.0",
+  "version": "0.2.0-dev.1",
   "applicationName": "Entropia Flow Client",
   "author": "Lucho MUCHO Ireton",
   "description": "Entropia Flow Client",

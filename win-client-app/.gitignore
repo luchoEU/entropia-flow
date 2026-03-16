@@ -17,5 +17,10 @@
 rsrc_windows_amd64.syso
 EntropiaFlowClient-relay.exe
 
+# Build server trigger/result files
+.build-trigger
+.build-result
+.build-log
+
 # node
 node_modules
