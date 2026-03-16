@@ -14,7 +14,7 @@ import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShowF
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId } from '../application/state/navigation';
 import { Role, ROLE_LABELS } from '../application/state/role';
-import { roleAtom, setRoleAtom } from '../application/atoms/role';
+import { roleAtom, previousRoleAtom, setRoleAtom } from '../application/atoms/role';
 import StreamView from './stream/StreamView';
 import PinnedAtomsView from './atomDebug/PinnedAtomsView';
 import { useElementSize } from './common/useElementSize';
@@ -96,6 +96,7 @@ const FirstRow = () => {
     const budgetState = useAtomValue(budgetStateAtom)
     const budgetPendingCount = budgetState.list.items.filter(item => (item.pendingLines?.length ?? 0) > 0).length
     const role = useAtomValue(roleAtom)
+    const previousRole = useAtomValue(previousRoleAtom)
     const setRole = useSetAtom(setRoleAtom)
     const navigate = useNavigate()
     const location = useLocation()
@@ -161,25 +162,24 @@ const FirstRow = () => {
                 <strong>Entropia Flow</strong>
             </div>
             { isAdvanced ? (
-                <select
-                    className='role-selector'
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as Role)}
+                <span
+                    className='role-label role-label-advanced'
+                    onClick={() => setRole(previousRole ?? Role.HUNTER)}
+                    title='Switch back to previous role'
                 >
-                    {Object.values(Role).map(r => (
-                        <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                    ))}
-                </select>
+                    <span className='role-label-text'>⚙️ Advanced</span>
+                    <span className='role-label-hover'>← Roles</span>
+                </span>
             ) : (
                 <>
                     <span className='role-label'>🎯 Hunter</span>
-                    <button
+                    <span
                         className='role-switch-btn'
                         onClick={() => setRole(Role.ADVANCED)}
                         title='Switch to Advanced mode'
                     >
                         ⚙️ Advanced
-                    </button>
+                    </span>
                 </>
             )}
             { isAdvanced && tabOrder.map((id) => tabShowForRole(id, role, anyInventory, settings) &&

@@ -1,15 +1,4 @@
-// Role selector
-.role-selector {
-    margin-left: 15px;
-    padding: 4px 8px;
-    height: 28px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 13px;
-    background: white;
-    cursor: pointer;
-}
-
+// Role labels
 .role-label {
     margin-left: 15px;
     font-size: 14px;
@@ -20,8 +9,39 @@
     border: 1px solid #a5d6a7;
 }
 
+.role-label-advanced {
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+    min-width: 90px;
+    text-align: center;
+
+    .role-label-hover {
+        display: none;
+    }
+
+    &:hover {
+        background-color: #e3f2fd;
+        border-color: #90caf9;
+
+        .role-label-text {
+            display: none;
+        }
+        .role-label-hover {
+            display: inline;
+        }
+    }
+}
+
 .role-switch-btn {
     visibility: hidden;
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .role-switch-btn:hover {
