@@ -45,7 +45,7 @@ async function openSettingsWindow() {
         title: 'Entropia Flow Client Settings',
         icon: '/resources/img/appIcon.png',
         width: 700,
-        height: 370,
+        height: 470,
         minWidth: 200,
         minHeight: 100,
         center: true,

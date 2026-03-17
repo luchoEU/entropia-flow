@@ -217,6 +217,13 @@ const _pollIntervalId = setInterval(async () => {
                     case 'layout-changed':
                         layoutChanged(message.payload.pid, message.payload.layoutId);
                         break;
+                    case "set-auto-update":
+                        if (message.payload.enabled) {
+                            Updater.startPeriodicChecks();
+                        } else {
+                            Updater.stopPeriodicChecks();
+                        }
+                        break;
                     case "set-settings":
                         const logPath = message.payload.logPath;
                         if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {

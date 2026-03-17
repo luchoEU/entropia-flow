@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "com.entropia.flow",
-  "version": "0.2.0-dev.1",
+  "version": "0.2.0-dev.9",
   "applicationName": "Entropia Flow Client",
   "author": "Lucho MUCHO Ireton",
   "description": "Entropia Flow Client",
@@ -24,7 +24,8 @@
     "debug.log",
     "events.*",
     "storage.*",
-    "updater.*"
+    "updater.*",
+    "clipboard.*"
   ],
   "modes": {
     "window": {

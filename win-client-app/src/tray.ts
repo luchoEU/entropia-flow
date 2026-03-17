@@ -1,4 +1,4 @@
-import { clientVersion, CLIENT_EXE } from "./const";
+import { clientVersion } from "./const";
 import { Socket } from "./socket";
 import { Updater } from "./updater";
 import { openGameWindow, openSettingsWindow } from "./windows";
@@ -19,9 +19,7 @@ function setTray() {
         menuItems: [
             {id: "NEW", text: "New Window"},
             {id: "SETTINGS", text: "Settings"},
-            {id: "SHORTCUT", text: "Create Desktop Shortcut"},
-            {id: "UPDATE", text: "Check for Updates"},
-            {id: "VERSION", text: "Version"},
+            {id: "VERSION", text: `Version (${clientVersion})`},
             {id: "SEP", text: "-"},
             {id: "QUIT", text: "Exit"}
         ]
@@ -44,15 +42,18 @@ async function onTrayMenuItemClicked(event: any) {
         case "NEW":
             openGameWindow();
             break;
-        case "SHORTCUT":
-            createDesktopShortcut();
+        case "VERSION": {
+            const result = await Neutralino.os.showMessageBox(
+                "About",
+                `Entropia Flow Client version ${clientVersion}\nCopyright \u00A9 2025-2026 Lucho MUCHO Ireton\n\nCheck for updates?`,
+                'YES_NO' as Neutralino.os.MessageBoxChoice,
+                'INFO' as Neutralino.os.Icon
+            );
+            if (result === 'YES') {
+                await handleCheckForUpdates();
+            }
             break;
-        case "UPDATE":
-            await handleCheckForUpdates();
-            break;
-        case "VERSION":
-            Neutralino.os.showMessageBox("About", `Entropia Flow Client version ${clientVersion}\nCopyright © 2025-2026 Lucho MUCHO Ireton`);
-            break;
+        }
         case "QUIT":
             await Socket.exit();
             Neutralino.app.exit();
@@ -67,8 +68,8 @@ async function handleCheckForUpdates() {
             const result = await Neutralino.os.showMessageBox(
                 'Update Available',
                 `A new version (${status.manifest.version}) is available. You are running ${clientVersion}.\n\nWould you like to update and restart now?`,
-                Neutralino.os.MessageBoxChoice.YES_NO,
-                Neutralino.os.Icon.QUESTION
+                'YES_NO' as Neutralino.os.MessageBoxChoice,
+                'QUESTION' as Neutralino.os.Icon
             );
             if (result === 'YES') {
                 await Updater.installResourcesUpdate();
@@ -79,8 +80,8 @@ async function handleCheckForUpdates() {
             const result = await Neutralino.os.showMessageBox(
                 'Update Available',
                 `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to open the download page?`,
-                Neutralino.os.MessageBoxChoice.YES_NO,
-                Neutralino.os.Icon.QUESTION
+                'YES_NO' as Neutralino.os.MessageBoxChoice,
+                'QUESTION' as Neutralino.os.Icon
             );
             if (result === 'YES') {
                 await Neutralino.os.open(status.manifest.binaryURL);
@@ -93,36 +94,6 @@ async function handleCheckForUpdates() {
         case 'none':
             await Neutralino.os.showMessageBox('Up to Date', `You are running the latest version (${clientVersion}).`);
             break;
-    }
-}
-
-async function createDesktopShortcut() {
-    const desktopCommand = `powershell -NoProfile -Command "[Environment]::GetFolderPath('Desktop')"`;
-    const desktopResult = await Neutralino.os.execCommand(desktopCommand);
-    const desktopPath = desktopResult.stdOut.trim();
-    const shortcutPath = `${desktopPath}\\Entropia Flow Client.lnk`;
-
-    const currPath = NL_CWD.replace(/\//g, '\\');
-    const appPath = `${currPath}\\${CLIENT_EXE}`;
-
-    const psScript = `
-    $ws = New-Object -comObject WScript.Shell;
-    $s = $ws.CreateShortcut("${shortcutPath}");
-    $s.TargetPath = "${appPath}";
-    $s.WorkingDirectory = "${currPath}";
-    $s.WindowStyle = 1;
-    $s.IconLocation = "${appPath},0";
-    $s.Save()
-    `
-    const command = `powershell -ExecutionPolicy Bypass -Command "${psScript.replace(/\n/g, '').replace(/"/g, '\\"')}"`;
-    console.log(command);
-    const result = await Neutralino.os.execCommand(command);
-    if (result.exitCode === 0) {
-        console.log("Shortcut created successfully.");
-        await Neutralino.os.showMessageBox("Shortcut created", "Shortcut created successfully");
-    } else {
-        console.error("Shortcut creation failed:", result.exitCode, result.stdErr);
-        await Neutralino.os.showMessageBox("Shortcut creation failed", `Shortcut creation failed: ${result.exitCode}\n${result.stdErr}`);
     }
 }
 

@@ -79,10 +79,17 @@ let _lastData: StreamWindowRenderData = {
                 }
             `,
             action: () => {
-                const copyButton = document.getElementById("copyButton");
-                copyButton?.addEventListener("click", async (e) => {
-                    e.stopPropagation();
-                    copyTextToClipboard(_lastData.commonData!.uri as string, 'copyPopup');
+                const stream = document.getElementById("stream");
+                stream?.addEventListener("pointerdown", (e) => {
+                    if ((e.target as HTMLElement).closest('#copyButton')) {
+                        e.stopPropagation();
+                    }
+                });
+                stream?.addEventListener("click", async (e) => {
+                    if ((e.target as HTMLElement).closest('#copyButton')) {
+                        e.stopPropagation();
+                        copyTextToClipboard(_lastData.commonData!.uri as string, 'copyPopup');
+                    }
                 })
             }
         },

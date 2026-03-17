@@ -1,5 +1,6 @@
-import { STORE_SETTINGS } from "./const";
+import { STORE_SETTINGS, STORE_CLIENT_SETTINGS } from "./const";
 import { receiveUpdates, sendMessageToMain } from "./messages";
+import { createDesktopShortcut } from "./shortcut";
 import { copyTextToClipboard } from "./utils";
 
 const logPathElement = document.getElementById('logPath');
@@ -84,3 +85,35 @@ document.getElementById('copyWsUriButton')?.addEventListener('click', async (e) 
 });
 document.getElementById('save-btn')?.addEventListener('click', saveSettings);
 document.getElementById('selectLogPathButton')?.addEventListener('click', selectLogFile);
+document.getElementById('createShortcutBtn')?.addEventListener('click', () => createDesktopShortcut());
+
+// Auto-update checkbox
+const autoUpdateCheckbox = document.getElementById('autoUpdateCheckbox') as HTMLInputElement;
+async function loadAutoUpdateSetting() {
+    try {
+        const data = await Neutralino.storage.getData(STORE_CLIENT_SETTINGS);
+        const settings = JSON.parse(data);
+        if (autoUpdateCheckbox) {
+            autoUpdateCheckbox.checked = settings.autoUpdateEnabled !== false;
+        }
+    } catch {
+        // No settings yet — default to enabled
+        if (autoUpdateCheckbox) autoUpdateCheckbox.checked = true;
+    }
+}
+loadAutoUpdateSetting();
+
+autoUpdateCheckbox?.addEventListener('change', async () => {
+    const enabled = autoUpdateCheckbox.checked;
+    try {
+        let settings: any = {};
+        try {
+            settings = JSON.parse(await Neutralino.storage.getData(STORE_CLIENT_SETTINGS));
+        } catch {}
+        settings.autoUpdateEnabled = enabled;
+        await Neutralino.storage.setData(STORE_CLIENT_SETTINGS, JSON.stringify(settings));
+    } catch (err) {
+        console.warn('Failed to save auto-update setting', err);
+    }
+    sendMessageToMain('set-auto-update', { enabled });
+});

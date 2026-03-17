@@ -7,7 +7,7 @@ async function copyTextToClipboard(text: string | null | undefined, popupId: str
 
     let copied = false;
     try {
-        await navigator.clipboard.writeText(text);
+        await Neutralino.clipboard.writeText(text);
         console.log(`Text successfully copied to clipboard: "${text}"`);
         copied = true
     } catch (err) {

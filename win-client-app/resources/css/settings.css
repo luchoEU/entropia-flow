@@ -89,3 +89,16 @@ button {
     color: #444;
     margin: 5px 5px 0px 5px;
 }
+
+.action-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#autoUpdateCheckbox {
+    display: inline;
+    width: auto;
+    margin-right: 5px;
+    vertical-align: middle;
+}
