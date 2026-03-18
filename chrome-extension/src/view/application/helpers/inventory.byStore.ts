@@ -51,16 +51,18 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     }, { root: {}, children: {} } as { root: { [name: string]: string }, children: { [id: string]: Array<ItemData> } })
     
     // update the id in containers based on data and items
-    const oldContainersByName = Object.values(oldContainers).reduce((st, c) => {
+    type OldContainerEntry = ContainerMapDataItem & { _origId: string }
+    const stripOrigId = ({ _origId, ...rest }: OldContainerEntry): ContainerMapDataItem => rest
+    const oldContainersByName = Object.entries(oldContainers).reduce((st, [origId, c]) => {
         const name = c.data ? c.data.n : c.displayName; // root containers don't have data
         if (name === '') return st;
 
         if (!st[name]) {
             st[name] = [];
         }
-        st[name].push(c);
+        st[name].push({ ...c, _origId: origId });
         return st;
-    }, {} as { [name: string]: Array<ContainerMapDataItem> });
+    }, {} as { [name: string]: Array<OldContainerEntry> });
     
     const listByName = list.reduce((st, d) => {
         if (!st[d.n]) {
@@ -74,10 +76,10 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
     for (const [name, oldList] of Object.entries(oldContainersByName)) {
         const rootContainerId = listContainers.root[name]
         if (rootContainerId) {
-            containers[rootContainerId] = oldList[0];
+            containers[rootContainerId] = stripOrigId(oldList[0]);
             continue;
         }
-        
+
         const toMatch = listByName[name]?.filter((d) => listContainers.children[d.id]).map((d) => ({
             id: d.id,
             data: d,
@@ -114,31 +116,40 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
             }
             
             // get the ones with less distance, add it to containers remove them from the lists and repeat
+            // When distances are tied, prefer the entry whose original ID matches the target
             while (oldList.length > 0) {
-                let bestMatch: {a: ContainerMapDataItem, b: { id: string, data: ItemData, items: Array<ItemData> }, distance: number} | undefined;
+                let bestMatch: {a: OldContainerEntry, b: { id: string, data: ItemData, items: Array<ItemData> }, distance: number} | undefined;
                 for (const a of oldList) {
                     if (!a.data) continue;
                     for (const b of toMatch) {
                         const distance = hammingDistance(a, b);
-                        if (!bestMatch || distance < bestMatch.distance) {
+                        const isBetter = !bestMatch
+                            || distance < bestMatch.distance
+                            || (distance === bestMatch.distance && a._origId === b.id)
+                        if (isBetter) {
                             bestMatch = { a, b, distance };
                         }
                     }
                 }
                 
                 if (!bestMatch) break;
-                
-                containers[bestMatch.b.id] = bestMatch.a;
+
+                containers[bestMatch.b.id] = stripOrigId(bestMatch.a);
+                if (bestMatch.b.id === '184') {
+                    console.log('[STAR DEBUG] WHO set containers[184]? name=' + JSON.stringify(name)
+                        + ' origId=' + bestMatch.a._origId
+                        + ' stared=' + bestMatch.a.stared
+                        + ' distance=' + bestMatch.distance)
+                }
                 oldList.splice(oldList.indexOf(bestMatch.a), 1);
                 toMatch.splice(toMatch.indexOf(bestMatch.b), 1);
             }
         }
-        
+
         for (const c of oldList) {
-            containers[nextRootContainerId--] = c; // save them just in case the container is found in the future
+            containers[nextRootContainerId--] = stripOrigId(c); // save them just in case the container is found in the future
         }
     }
-    
     // add missing containers and update container data and items\
     for (const [n, id] of Object.entries(listContainers.root)) { // Root containers
         if (containers[id]) {
@@ -174,6 +185,14 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
             data: toBasic(d),
             items: ch.map(toBasic)
         }
+        // The hamming matching may have assigned a stale entry (different ID, same name)
+        // that lacks the user's explicit stared/expandedOnFilter settings. The direct
+        // oldContainers[d.id] entry is authoritative for user-set properties.
+        const directEntry = oldContainers[d.id]
+        if (directEntry) {
+            if (directEntry.stared !== undefined) containers[d.id].stared = directEntry.stared
+            if (directEntry.expandedOnFilter !== undefined) containers[d.id].expandedOnFilter = directEntry.expandedOnFilter
+        }
     }
     
     // create tree
@@ -189,7 +208,7 @@ const _getByStore = (list: Array<ItemData>, oldContainers: ContainerMapData): { 
                 return {
                     data: d,
                     canEditName: !!list,
-                    displayName: containers[d.id]?.displayName ?? d.n,
+                    displayName: containers[d.id]?.displayName || d.n,
                     stared: containers[d.id]?.stared ?? false,
                     list,
                     showItemValueRow: false

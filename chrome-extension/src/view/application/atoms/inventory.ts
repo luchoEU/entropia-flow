@@ -995,7 +995,7 @@ export const setByStoreItemStaredAtom = atom(null, (get, set, itemId: string, st
   if (updated[itemId]) {
     updated[itemId] = { ...updated[itemId], stared }
   } else {
-    updated[itemId] = { displayName: '', expanded: false, stared }
+    updated[itemId] = { displayName: '', expanded: true, stared }
   }
   set(byStoreContainersAtom, updated)
 })
@@ -1045,7 +1045,7 @@ export const setByStoreStaredItemStaredAtom = atom(null, (get, set, itemId: stri
   if (updated[itemId]) {
     updated[itemId] = { ...updated[itemId], stared }
   } else {
-    updated[itemId] = { displayName: '', expanded: false, stared }
+    updated[itemId] = { displayName: '', expanded: true, stared }
   }
   set(byStoreContainersAtom, updated)
 })

@@ -9,6 +9,24 @@
     border: 1px solid #a5d6a7;
 }
 
+.role-label-active {
+    cursor: default;
+}
+
+.role-label-inactive {
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border-color: transparent;
+    color: #888;
+
+    &:hover {
+        background-color: #e8f5e9;
+        border-color: #a5d6a7;
+        color: inherit;
+    }
+}
+
 .role-label-advanced {
     cursor: pointer;
     user-select: none;
@@ -42,11 +60,13 @@
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
+    color: #888;
 }
 
 .role-switch-btn:hover {
     background-color: #e3f2fd;
     border-color: #90caf9;
+    color: inherit;
 }
 
 // Dashboard
@@ -169,7 +189,220 @@
     color: #c62828;
 }
 
-// Items list container
+// View mode toggle (list / tree / favorites)
+.storage-view-modes {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    padding-right: 4px;
+}
+
+.storage-view-btn {
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #999;
+    border: 1px solid transparent;
+    user-select: none;
+    &:hover {
+        background: #e8f5e9;
+        color: #444;
+    }
+}
+
+.storage-view-btn-active {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+}
+
+// Expand/collapse all buttons in filter row
+.storage-expand-btn {
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    padding: 0 4px;
+    user-select: none;
+    &:hover { color: #333; }
+}
+
+// Tree table
+.storage-tree-table {
+    th { cursor: default; }
+}
+
+.storage-tree-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 16px !important;
+    white-space: nowrap;
+}
+
+.storage-tree-expand {
+    cursor: pointer;
+    font-size: 10px;
+    color: #666;
+    min-width: 14px;
+    user-select: none;
+    &:hover { color: #333; }
+}
+
+.storage-tree-name-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.storage-tree-action {
+    visibility: hidden;
+    cursor: pointer;
+    font-size: 13px;
+    color: #aaa;
+    &:hover { color: #444; }
+}
+
+tr:hover .storage-tree-action {
+    visibility: visible;
+}
+
+.storage-tree-edit-icon {
+    font-size: 12px;
+}
+
+.storage-tree-star {
+    font-size: 14px;
+}
+
+.storage-tree-star-on {
+    visibility: visible !important;
+    color: #f5a623 !important;
+}
+
+.storage-tree-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+}
+
+.storage-tree-edit-input {
+    font-size: 12px;
+    padding: 1px 4px;
+    border: 1px solid #90caf9;
+    border-radius: 3px;
+    flex: 1;
+    outline: none;
+}
+
+.storage-tree-edit-btn {
+    cursor: pointer;
+    color: #666;
+    font-size: 13px;
+    user-select: none;
+    &:hover { color: #333; }
+}
+
+.storage-tree-container > td {
+    font-weight: 600;
+    background: #fafafa;
+}
+
+.storage-tree-qty,
+.storage-tree-value {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.storage-tree-loading,
+.storage-tree-empty {
+    padding: 16px;
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+}
+
+// Collapsible section card (Items, Globals, Inventory)
+.dashboard-section {
+    padding: 0;
+    overflow: hidden;
+}
+
+.dashboard-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    &:hover {
+        background: #f5f5f5;
+    }
+}
+
+
+.dashboard-section-title-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.dashboard-section-title {
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.dashboard-section-subtitle {
+    font-size: 11px;
+    color: #888;
+    font-weight: normal;
+    letter-spacing: 0.3px;
+}
+
+.dashboard-section-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 8px;
+}
+
+.dashboard-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px 4px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.dashboard-filter-input {
+    flex: 1;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    &:focus {
+        border-color: #90caf9;
+    }
+}
+
+.dashboard-filter-clear {
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+    padding: 2px 4px;
+    &:hover { color: #333; }
+}
+
+// Items list container (legacy, kept for any other uses)
 .dashboard-items-list {
     background: white;
     border: 1px solid #e0e0e0;
@@ -184,6 +417,15 @@
     font-size: 13px;
 }
 
+.dashboard-section .dashboard-items-table {
+    border-top: 1px solid #f0f0f0;
+}
+
+.dashboard-section .dashboard-items-table td,
+.dashboard-section .dashboard-items-table th {
+    padding: 4px 16px;
+}
+
 .dashboard-items-table th {
     text-align: left;
     font-size: 11px;
@@ -194,6 +436,9 @@
     border-bottom: 1px solid #e0e0e0;
     cursor: pointer;
     user-select: none;
+    &.dashboard-col-right {
+        text-align: right;
+    }
 }
 
 .dashboard-items-table td {

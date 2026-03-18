@@ -24,6 +24,7 @@ import { roleAtom } from '../application/atoms/role'
 import { Role } from '../application/state/role'
 import StreamTrashPage from './stream/StreamTrashPage'
 import HunterDashboard from './dashboard/HunterDashboard'
+import StorageDashboard from './dashboard/StorageDashboard'
 import { tabShowForRole } from '../application/helpers/navigation'
 
 function ContentPage() {
@@ -87,8 +88,9 @@ function ContentPage() {
 
 function DashboardRouter({ role }: { role: Role }) {
     switch (role) {
+        case Role.STORAGE:
+            return <StorageDashboard />
         case Role.HUNTER:
-            return <HunterDashboard />
         default:
             return <HunterDashboard />
     }

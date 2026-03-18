@@ -187,6 +187,272 @@ describe('getContainerBreadcrumb', () => {
   })
 })
 
+describe('starring a non-root container', () => {
+  it('should preserve stared flag and display name when a non-root container is starred for the first time', () => {
+    // ============================================================================
+    // ARRANGE
+    // ============================================================================
+
+    const { loadInventoryByStore } = require('./inventory.byStore')
+
+    // Structure:
+    //   STORAGE (Calypso)          ← root container
+    //     Arctic Combat Helicopter  ← non-root container (this is the one we want to star)
+    //       Swamp Thing Skin        ← item inside helicopter
+    //       Engine Part             ← item inside helicopter
+    const itemData: any[] = [
+      { id: 'heli-1', n: 'Arctic Combat Helicopter (C,L)', q: '1', v: '500.00', c: 'STORAGE (Calypso)', r: undefined },
+      { id: 'skin-1', n: 'Swamp Thing Skin', q: '1', v: '10.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+      { id: 'engine-1', n: 'Engine Part', q: '2', v: '25.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+    ]
+
+    const emptyByStore: any = {
+      containers: {},
+      staredExpanded: [],
+      materialExpanded: [],
+      items: [],
+      staredItems: [],
+    }
+
+    // ============================================================================
+    // ACT — Step 1: Build initial tree (no stars)
+    // ============================================================================
+
+    const initial = loadInventoryByStore(emptyByStore, itemData)
+
+    // Find the helicopter in the flat items
+    const heliItem = initial.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heliItem).toBeDefined()
+    expect(heliItem.isContainer).toBe(true)
+    expect(heliItem.stared).toBe(false)
+
+    // ============================================================================
+    // ACT — Step 2: Simulate starring the helicopter
+    // This mimics what setByStoreItemStaredAtom does when the container
+    // is NOT yet in byStoreContainersAtom — creates a minimal entry
+    // ============================================================================
+
+    const updatedContainers = {
+      ...initial.containers,
+      [heliItem.id]: { displayName: '', expanded: true, stared: true }
+    }
+
+    const afterStar = loadInventoryByStore(
+      { ...emptyByStore, containers: updatedContainers },
+      itemData
+    )
+
+    // ============================================================================
+    // ASSERT
+    // ============================================================================
+
+    // The helicopter should appear in flat items with stared: true
+    const heliAfterStar = afterStar.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heliAfterStar).toBeDefined()
+    expect(heliAfterStar.stared).toBe(true)
+
+    // The helicopter should NOT lose its display name
+    expect(heliAfterStar.n).toBe('Arctic Combat Helicopter (C,L)')
+
+    // The helicopter should appear in staredItems
+    const staredHeli = afterStar.staredItems.find((item: any) =>
+      item.n === 'Arctic Combat Helicopter (C,L)' && item.isContainer
+    )
+    expect(staredHeli).toBeDefined()
+    expect(staredHeli.stared).toBe(true)
+  })
+
+  it('should preserve stared flag when container already exists in containers map', () => {
+    // ============================================================================
+    // ARRANGE
+    // ============================================================================
+
+    const { loadInventoryByStore } = require('./inventory.byStore')
+
+    const itemData: any[] = [
+      { id: 'heli-1', n: 'Arctic Combat Helicopter (C,L)', q: '1', v: '500.00', c: 'STORAGE (Calypso)', r: undefined },
+      { id: 'skin-1', n: 'Swamp Thing Skin', q: '1', v: '10.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+    ]
+
+    const emptyByStore: any = {
+      containers: {},
+      staredExpanded: [],
+      materialExpanded: [],
+      items: [],
+      staredItems: [],
+    }
+
+    // ============================================================================
+    // ACT — Build initial tree, then star using existing container entry
+    // ============================================================================
+
+    const initial = loadInventoryByStore(emptyByStore, itemData)
+    const heliItem = initial.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+
+    // Simulate starring with existing container data (has displayName, data, items)
+    const updatedContainers = { ...initial.containers }
+    updatedContainers[heliItem.id] = { ...updatedContainers[heliItem.id], stared: true }
+
+    const afterStar = loadInventoryByStore(
+      { ...emptyByStore, containers: updatedContainers },
+      itemData
+    )
+
+    // ============================================================================
+    // ASSERT
+    // ============================================================================
+
+    const heliAfterStar = afterStar.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heliAfterStar).toBeDefined()
+    expect(heliAfterStar.stared).toBe(true)
+    expect(heliAfterStar.n).toBe('Arctic Combat Helicopter (C,L)')
+  })
+
+  it('should preserve stared flag when stale entry with data wins hamming match over starred entry without data', () => {
+    // ============================================================================
+    // ARRANGE — Reproduces the actual production bug:
+    //
+    // byStoreContainersAtom has TWO entries for "Arctic Combat Helicopter (C,L)":
+    //   - ID 181: stale entry from previous "expand all", has data+items, stared: false
+    //   - ID 184: current entry from user clicking star, NO data field, stared: true
+    //
+    // Current item list has the helicopter at ID 184. During _getByStore:
+    //   1. Both entries are grouped under the same name in oldContainersByName
+    //   2. Hamming matching skips ID 184 entry (!a.data → continue)
+    //   3. ID 181 entry (stared: false) wins the match for current ID 184
+    //   4. User's stared: true is lost
+    //
+    // Fix: after hamming matching, merge stared from oldContainers[d.id] (direct
+    // ID match) which is the authoritative value the user explicitly set.
+    // ============================================================================
+
+    const { loadInventoryByStore } = require('./inventory.byStore')
+
+    // Current item data — helicopter is ID 184
+    const itemData: any[] = [
+      { id: '184', n: 'Arctic Combat Helicopter (C,L)', q: '1', v: '0.00', c: 'STORAGE (Calypso)', r: undefined },
+      { id: 'skin-1', n: 'Swamp Thing Skin', q: '1', v: '10.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+      { id: 'engine-1', n: 'Engine Part', q: '2', v: '25.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+    ]
+
+    // byStoreContainersAtom state — exactly as in production
+    const containers: any = {
+      // Stale entry from previous "expand all" — has data+items, stared: false
+      '181': {
+        expanded: true,
+        stared: false,
+        displayName: 'Arctic Combat Helicopter (C,L)',
+        data: { n: 'Arctic Combat Helicopter (C,L)', q: '1', v: '0.00' },
+        items: [
+          { n: 'Swamp Thing Skin', q: '1', v: '10.00' },
+          { n: 'Engine Part', q: '2', v: '25.00' },
+        ]
+      },
+      // Current entry from user clicking star — NO data field
+      '184': {
+        displayName: 'Arctic Combat Helicopter (C,L)',
+        expanded: false,
+        stared: true,
+        expandedOnFilter: false,
+      },
+    }
+
+    const byStore: any = {
+      containers,
+      staredExpanded: [],
+      materialExpanded: [],
+      items: [],
+      staredItems: [],
+    }
+
+    // ============================================================================
+    // ACT
+    // ============================================================================
+
+    const result = loadInventoryByStore(byStore, itemData)
+
+    // ============================================================================
+    // ASSERT
+    // ============================================================================
+
+    const heli = result.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heli).toBeDefined()
+    expect(heli.stared).toBe(true)
+
+    // Should appear in staredItems
+    const staredHeli = result.staredItems.find((item: any) =>
+      item.n === 'Arctic Combat Helicopter (C,L)'
+    )
+    expect(staredHeli).toBeDefined()
+  })
+
+  it('should show stared flag on non-root container when filter is active', () => {
+    // ============================================================================
+    // ARRANGE — Reproduces: user filters "swamp", sees helicopter, clicks star
+    // ============================================================================
+
+    const { loadInventoryByStore } = require('./inventory.byStore')
+
+    const itemData: any[] = [
+      { id: 'heli-1', n: 'Arctic Combat Helicopter (C,L)', q: '1', v: '500.00', c: 'STORAGE (Calypso)', r: undefined },
+      { id: 'skin-1', n: 'Swamp Thing Skin', q: '1', v: '10.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+      { id: 'engine-1', n: 'Engine Part', q: '2', v: '25.00', c: 'Arctic Combat Helicopter (C,L)', r: undefined },
+      { id: 'other-1', n: 'Mining Amp', q: '1', v: '100.00', c: 'STORAGE (Calypso)', r: undefined },
+    ]
+
+    const emptyByStore: any = {
+      containers: {},
+      staredExpanded: [],
+      materialExpanded: [],
+      items: [],
+      staredItems: [],
+    }
+
+    // ============================================================================
+    // ACT — Build tree with filter "swamp", then star the helicopter
+    // ============================================================================
+
+    // First build without filter to get container IDs
+    const initial = loadInventoryByStore(emptyByStore, itemData)
+    const heliItem = initial.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heliItem).toBeDefined()
+
+    // Now simulate starring: create minimal entry like setByStoreItemStaredAtom does
+    const starredContainers = {
+      ...initial.containers,
+      [heliItem.id]: { displayName: '', expanded: true, stared: true }
+    }
+
+    // Rebuild with filter "swamp" and starred containers
+    const filtered = loadInventoryByStore(
+      { ...emptyByStore, containers: starredContainers },
+      itemData,
+      0, 0,
+      'swamp'  // containersFilter
+    )
+
+    // ============================================================================
+    // ASSERT
+    // ============================================================================
+
+    // Helicopter should appear in filtered results (it contains "Swamp Thing Skin")
+    const heliFiltered = filtered.items.find((item: any) => item.n === 'Arctic Combat Helicopter (C,L)')
+    expect(heliFiltered).toBeDefined()
+    expect(heliFiltered.isContainer).toBe(true)
+    expect(heliFiltered.stared).toBe(true)
+    expect(heliFiltered.n).toBe('Arctic Combat Helicopter (C,L)')
+
+    // Only "Swamp Thing Skin" should match, not "Engine Part" or "Mining Amp"
+    const swampItem = filtered.items.find((item: any) => item.n === 'Swamp Thing Skin')
+    expect(swampItem).toBeDefined()
+    const engineItem = filtered.items.find((item: any) => item.n === 'Engine Part')
+    expect(engineItem).toBeUndefined()
+
+    // Helicopter should also appear in staredItems
+    expect(filtered.staredItems.length).toBeGreaterThan(0)
+  })
+})
+
 describe('loadInventoryByStore container totals with filter', () => {
   it('should show total count and PED value for filtered items only', () => {
     // ============================================================================

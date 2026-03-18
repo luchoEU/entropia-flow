@@ -13,7 +13,7 @@ import { lastVisitedByTabAtom, tabOrderAtom } from '../application/atoms/navigat
 import { getLocationFromTabId, getTabIdFromLocation, tabActionRequired, tabShowForRole, tabSubtitle, tabTitle } from '../application/helpers/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabId } from '../application/state/navigation';
-import { Role, ROLE_LABELS } from '../application/state/role';
+import { Role, ROLE_LABELS, ROLE_EMOJIS } from '../application/state/role';
 import { roleAtom, previousRoleAtom, setRoleAtom } from '../application/atoms/role';
 import StreamView from './stream/StreamView';
 import PinnedAtomsView from './atomDebug/PinnedAtomsView';
@@ -172,7 +172,16 @@ const FirstRow = () => {
                 </span>
             ) : (
                 <>
-                    <span className='role-label'>🎯 Hunter</span>
+                    {Object.values(Role).filter(r => r !== Role.ADVANCED).map(r => (
+                        <span
+                            key={r}
+                            className={`role-label ${role === r ? 'role-label-active' : 'role-label-inactive'}`}
+                            onClick={() => setRole(r)}
+                            title={`Switch to ${ROLE_LABELS[r]} mode`}
+                        >
+                            {ROLE_EMOJIS[r]} {ROLE_LABELS[r]}
+                        </span>
+                    ))}
                     <span
                         className='role-switch-btn'
                         onClick={() => setRole(Role.ADVANCED)}

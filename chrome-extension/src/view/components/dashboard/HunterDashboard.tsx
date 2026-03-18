@@ -1,5 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react'
+import DashboardSection from './DashboardSection'
 import { atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 import { useAtomValue, useSetAtom, useAtom } from 'jotai'
 import { statusAtom } from '../../application/atoms/status'
 import { connectionAtom, setConnectionWebSocketAtom, setConnectionStatusAtom } from '../../application/atoms/connection'
@@ -15,7 +17,11 @@ import { dateToString } from '../../../common/date'
 import { unitText, nextUnit, unitDescription, UNIT_PERCENTAGE } from '../../application/state/items'
 import messages from '../../services/api/messages'
 
-export const dashboardStatusCollapsedAtom = atom(false)
+export const dashboardStatusCollapsedAtom = atomWithStorage('jotai-v1-dashboard-statusCollapsed', false)
+export const dashboardInventoryExpandedAtom = atomWithStorage('jotai-v1-dashboard-inventoryExpanded', false)
+export const dashboardItemsExpandedAtom = atomWithStorage('jotai-v1-dashboard-itemsExpanded', false)
+export const dashboardGlobalsExpandedAtom = atomWithStorage('jotai-v1-dashboard-globalsExpanded', false)
+export const dashboardViewModeAtom = atomWithStorage<'list' | 'tree' | 'favorites'>('jotai-v1-dashboard-viewMode', 'list')
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005) delta = 0
@@ -104,9 +110,11 @@ const HunterDashboard = () => {
     const setConnectionStatus = useSetAtom(setConnectionStatusAtom)
 
     const [statusCollapsed, setStatusCollapsed] = useAtom(dashboardStatusCollapsedAtom)
-    const [showItems, setShowItems] = useState(false)
-    const [showGlobals, setShowGlobals] = useState(false)
+    const [showItems, setShowItems] = useAtom(dashboardItemsExpandedAtom)
+    const [showGlobals, setShowGlobals] = useAtom(dashboardGlobalsExpandedAtom)
     const [sortType, setSortType] = useState(SORT_VALUE_DESCENDING)
+    const [itemFilter, setItemFilter] = useState('')
+    const [globalFilter, setGlobalFilter] = useState('')
 
     // Hunt stats from stream render data
     const returnPct = (huntData?.return_ as string) || '--'
@@ -127,11 +135,19 @@ const HunterDashboard = () => {
         : '--'
 
     const killCount = gameLog.stats?.kills?.count ?? 0
-    const items = cloneSortList(diff ?? [], sortType)
-    const itemsTotalPed = items.reduce((sum, item) => sum + (item.e ? 0 : parseFloat(item.v) || 0), 0)
+    const allItems = cloneSortList(diff ?? [], sortType)
+    const itemFilterLower = itemFilter.toLowerCase()
+    const items = itemFilterLower
+        ? allItems.filter(item => item.n.toLowerCase().includes(itemFilterLower))
+        : allItems
+    const itemsTotalPed = allItems.reduce((sum, item) => sum + (item.e ? 0 : parseFloat(item.v) || 0), 0)
     const avatarName = inventoryList.length > 0 ? inventoryList[0].avatarName : undefined
-    const globals = avatarName ? (gameLog.global ?? []).filter(g => g.player === avatarName) : []
-    const globalsTotalPed = globals.reduce((sum, g) => sum + (g.value || 0), 0)
+    const allGlobals = avatarName ? (gameLog.global ?? []).filter(g => g.player === avatarName) : []
+    const globalFilterLower = globalFilter.toLowerCase()
+    const globals = globalFilterLower
+        ? allGlobals.filter(g => g.name?.toLowerCase().includes(globalFilterLower))
+        : allGlobals
+    const globalsTotalPed = allGlobals.reduce((sum, g) => sum + (g.value || 0), 0)
 
     // Connection status
     const itemsConnected = statusData.class !== 'error' && statusData.message !== STRING_CONNECTING
@@ -222,89 +238,109 @@ const HunterDashboard = () => {
                         <span className='dashboard-stat-value'>{lastReturn}</span>
                     </div>
                 </div>
-                <div className='dashboard-stats'>
-                    <div
-                        className='dashboard-stat dashboard-stat-items'
-                        onClick={() => setShowItems(s => !s)}
-                    >
-                        <span className='dashboard-stat-label'>
-                            Items ({items.length}) {itemsTotalPed.toFixed(2)} PED {showItems ? '▴' : '▾'}
-                            {showItems && (
-                                <span className={`dashboard-mu-toggle ${persisted.showMarkup ? 'active' : ''}`}
-                                    onClick={(e) => { e.stopPropagation(); setShowMarkup(!persisted.showMarkup) }}
-                                    title='Toggle markup values'>
-                                    MU
-                                </span>
-                            )}
+                <DashboardSection
+                    title='ITEMS'
+                    total={`${itemsTotalPed.toFixed(2)} PED`}
+                    count={allItems.length}
+                    countLabel='items'
+                    expanded={showItems}
+                    onToggle={() => setShowItems(s => !s)}
+                    actions={
+                        <span className={`dashboard-mu-toggle ${persisted.showMarkup ? 'active' : ''}`}
+                            onClick={() => setShowMarkup(!persisted.showMarkup)}
+                            title='Toggle markup values'>
+                            MU
                         </span>
-                    </div>
-                </div>
-                {showItems && items.length > 0 && (
-                    <div className='dashboard-items-list'>
-                        <table className='dashboard-items-table'>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th onClick={() => setSortType(nextSortType(0, sortType))}>Name{sortArrow(0)}</th>
-                                    <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(1, sortType))}>Qty{sortArrow(1)}</th>
-                                    <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(2, sortType))}>Value{sortArrow(2)}</th>
-                                    {persisted.showMarkup && <th className='dashboard-col-right'>MU</th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map(item => (
-                                    <DashboardItemRow
-                                        key={item.key}
-                                        item={item}
-                                        showMarkup={persisted.showMarkup}
-                                        exclude={exclude}
-                                        include={include}
-                                    />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-                <div className='dashboard-stats'>
-                    <div
-                        className='dashboard-stat dashboard-stat-globals'
-                        onClick={() => setShowGlobals(s => !s)}
-                    >
-                        <span className='dashboard-stat-label'>
-                            Globals ({globals.length}) {globalsTotalPed.toFixed(0)} PED {showGlobals ? '▴' : '▾'}
-                        </span>
-                    </div>
-                </div>
-                {showGlobals && globals.length > 0 && (
-                    <div className='dashboard-items-list'>
-                        <table className='dashboard-items-table'>
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th className='dashboard-col-right'>Value</th>
-                                    <th>HoF</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {globals.map((g, i) => (
-                                    <tr key={i}>
-                                        <td>{dateToString(g.time)}</td>
-                                        <td>{g.name}</td>
-                                        <td>{g.type}</td>
-                                        <td className='dashboard-col-right'>{g.value.toFixed(0)} PED</td>
-                                        <td>{g.isATH
-                                            ? <span className='dashboard-globals-hof dashboard-globals-ath'>ATH</span>
-                                            : g.isHoF
-                                            ? <span className='dashboard-globals-hof'>HoF</span>
-                                            : ''}</td>
+                    }
+                >
+                    <>
+                        <div className='dashboard-filter-row' onClick={e => e.stopPropagation()}>
+                            <input
+                                className='dashboard-filter-input'
+                                type='text'
+                                placeholder='Filter by name…'
+                                value={itemFilter}
+                                onChange={e => setItemFilter(e.target.value)}
+                                autoFocus
+                            />
+                            {itemFilter && <span className='dashboard-filter-clear' onClick={() => setItemFilter('')}>✕</span>}
+                        </div>
+                        {items.length > 0 && (
+                            <table className='dashboard-items-table'>
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th onClick={() => setSortType(nextSortType(0, sortType))}>Name{sortArrow(0)}</th>
+                                        <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(1, sortType))}>Qty{sortArrow(1)}</th>
+                                        <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(2, sortType))}>Value{sortArrow(2)}</th>
+                                        {persisted.showMarkup && <th className='dashboard-col-right'>MU</th>}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {items.map(item => (
+                                        <DashboardItemRow
+                                            key={item.key}
+                                            item={item}
+                                            showMarkup={persisted.showMarkup}
+                                            exclude={exclude}
+                                            include={include}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </>
+                </DashboardSection>
+                <DashboardSection
+                    title='GLOBALS'
+                    total={`${globalsTotalPed.toFixed(0)} PED`}
+                    count={allGlobals.length}
+                    countLabel='globals'
+                    expanded={showGlobals}
+                    onToggle={() => setShowGlobals(s => !s)}
+                >
+                    <>
+                        <div className='dashboard-filter-row' onClick={e => e.stopPropagation()}>
+                            <input
+                                className='dashboard-filter-input'
+                                type='text'
+                                placeholder='Filter by name…'
+                                value={globalFilter}
+                                onChange={e => setGlobalFilter(e.target.value)}
+                                autoFocus
+                            />
+                            {globalFilter && <span className='dashboard-filter-clear' onClick={() => setGlobalFilter('')}>✕</span>}
+                        </div>
+                        {globals.length > 0 && (
+                            <table className='dashboard-items-table'>
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th className='dashboard-col-right'>Value</th>
+                                        <th>HoF</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {globals.map((g, i) => (
+                                        <tr key={i}>
+                                            <td>{dateToString(g.time)}</td>
+                                            <td>{g.name}</td>
+                                            <td>{g.type}</td>
+                                            <td className='dashboard-col-right'>{g.value.toFixed(0)} PED</td>
+                                            <td>{g.isATH
+                                                ? <span className='dashboard-globals-hof dashboard-globals-ath'>ATH</span>
+                                                : g.isHoF
+                                                ? <span className='dashboard-globals-hof'>HoF</span>
+                                                : ''}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </>
+                </DashboardSection>
             </>)}
         </div>
     )
