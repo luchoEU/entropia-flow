@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "name": "Entropia Flow Team",
+  "description": "Team session overlay showing shared stats and member activity",
   "author": "Lucho MUCHO Ireton",
   "lastModified": 1753036078282,
   "backgroundType": 3,

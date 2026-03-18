@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "name": "Entropia Flow Default",
+  "description": "General-purpose overlay showing live game stats",
   "author": "Lucho MUCHO Ireton",
   "lastModified": 1752954977870,
   "backgroundType": 2,

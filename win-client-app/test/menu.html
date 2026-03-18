@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Menu Test</title>
+        <style>
+            body {
+                background: #0d0f14;
+                margin: 40px;
+            }
+            /* Make the menu resizable in the test page */
+            .menu-container {
+                max-height: none !important;
+                resize: both !important;
+            }
+        </style>
+        <script>
+            // Minimal Neutralino stub — prevents clientStream.js from throwing
+            window.NL_PID = 'test';
+            window.NL_PORT = 0;
+            window.NL_TOKEN = '';
+            window.Neutralino = {
+                app: { exit: () => {} },
+                window: { move: () => Promise.resolve(), setSize: () => Promise.resolve() },
+                storage: { getData: () => Promise.reject(), setData: () => Promise.resolve() },
+                events: { on: () => {}, off: () => {} }
+            };
+        </script>
+    </head>
+    <body>
+        <div id="entropia-flow-client-hover-area">
+            <div id="stream">
+                <div class="entropia-flow-client-loading">Loading...</div><style>/*to be overridden by render*/</style>
+            </div>
+            <div id="entropia-flow-client-nav" style="display:none">
+                <div>
+                    <img id="entropia-flow-client-minimize" alt="Minimize">
+                    <span id="entropia-flow-client-menu"></span>
+                    <img id="entropia-flow-client-next" alt="Next">
+                </div>
+                <div>
+                    <span id="entropia-flow-client-layout"></span>
+                </div>
+            </div>
+        </div>
+
+        <script src="../resources/stream/clientStream.js"></script>
+        <script src="../resources/js/menuTest.js"></script>
+    </body>
+</html>

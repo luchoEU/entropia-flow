@@ -5,6 +5,7 @@ module.exports = {
     app: './src/app.ts',
     settings: './src/settings.ts',
     streamView: './src/streamView.ts',
+    menuTest: './src/menuTest.ts',
   },
   module: {
     rules: [

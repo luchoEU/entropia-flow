@@ -3,7 +3,7 @@ import React, { useMemo } from "react"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atom } from "jotai"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
-import { streamInAtom, streamRenderDataAtom, streamUiAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom } from "../../application/atoms/stream"
+import { streamInAtom, streamRenderDataAtom, streamUiAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom, setStreamDescriptionAtom, setStreamRolesAtom } from "../../application/atoms/stream"
 import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
 import { createStreamImagesConfig, createStreamParametersConfig, streamVariablesConfig } from "../../application/configs/streamTableConfigs"
 import { setStreamUserPartialAtom, removeStreamUserAtom } from "../../application/atoms/stream"
@@ -14,6 +14,7 @@ import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
 import { useNavigate } from "react-router-dom"
 import { TabId } from "../../application/state/navigation"
+import { Role, ROLES, ROLE_LABELS } from "../../application/state/role"
 import ImgButton from "../common/ImgButton"
 import { StreamSavedLayout } from "../../../stream/data"
 import { savedToExportLayout } from "../../../stream/data.convert"
@@ -82,6 +83,9 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         }
     ))
 
+    const setDescriptionSetter = useSetAtom(setStreamDescriptionAtom)
+    const setRolesSetter = useSetAtom(setStreamRolesAtom)
+
     // Wrapper functions for compatibility
     const setStreamName = (lid: string) => (name: string) => {
         setStreamNameAtomSetter(lid, lid, name)
@@ -89,6 +93,13 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
     const setStreamAuthor = (lid: string) => (author: string) => {
         // TODO: Implement set author
         console.log('Set author - not implemented', lid, author)
+    }
+    const setStreamDescription = (lid: string) => (description: string) => {
+        setDescriptionSetter(lid, description)
+    }
+    const setStreamRoles = (lid: string) => (rolesStr: string) => {
+        const roles = rolesStr.split(',').map(r => r.trim()).filter(r => r.length > 0)
+        setRolesSetter(lid, roles)
     }
 
     // Create table configs with handlers
@@ -146,7 +157,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                 <tr>
                     { InputCells('Name', layout.name, setStreamName(layoutId)) }
                     <td>
-                        <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
+                        <button style={{ visibility: advanced ? 'visible' : 'hidden', marginLeft: '10px' }}
                             title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
                             onClick={() => { cloneLayoutSetter(); navigate(`${TabId.STREAM}/layout/${layoutId}`) }}
                         >📋 Clone</button>
@@ -157,6 +168,41 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     </td>
                 </tr>
                 <tr>{ InputCells('Author', layout.author, setStreamAuthor(layoutId)) }</tr>
+                <tr>
+                    <td><label>Description</label></td>
+                    <td colSpan={2}>
+                        <input
+                            className='stream-layout-description'
+                            type='text'
+                            value={layout.description ?? ''}
+                            readOnly={layout.readonly}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => { e.stopPropagation(); setStreamDescription(layoutId)(e.target.value) }}
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>Roles</label></td>
+                    <td colSpan={2} className='stream-layout-roles'>
+                        {ROLES.filter(r => r !== Role.ADVANCED).map(role => (
+                            <label key={role}>
+                                <input
+                                    type='checkbox'
+                                    checked={layout.roles?.includes(role) ?? false}
+                                    disabled={layout.readonly}
+                                    onChange={(e) => {
+                                        const current = layout.roles ?? []
+                                        const next = e.target.checked
+                                            ? [...current, role]
+                                            : current.filter(r => r !== role)
+                                        setStreamRoles(layoutId)(next.join(', '))
+                                    }}
+                                />
+                                {ROLE_LABELS[role]}
+                            </label>
+                        ))}
+                    </td>
+                </tr>
                 <tr>
                     <td><label>Last Modified</label></td>
                     <td><input type='text' value={new Date(layout.lastModified).toLocaleString()} readOnly /></td>

@@ -1,6 +1,6 @@
 {
   "name": "entropia-flow-client",
-  "version": "0.2.0-dev.13",
+  "version": "0.2.0-dev.16",
   "description": "Entropia Flow Client",
   "main": "index.js",
   "scripts": {

@@ -36,6 +36,8 @@ interface StreamRenderLayout {
     backgroundType: number // BackgroundType
     htmlTemplate?: string
     cssTemplate?: string
+    description?: string
+    roles?: string[]
 }
 
 interface StreamCommonLayout extends StreamRenderLayout {

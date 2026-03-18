@@ -40,7 +40,7 @@ import GameLogStorage from './client/gameLogStorage'
 import INotificationManager from '../chrome/INotificationManager'
 import { decodeHTML } from '../common/html'
 import { IApiStorage, StreamDataBuilder } from './client/streamDataBuilder'
-import { ROLES } from '../view/application/state/role'
+import { Role, ROLES } from '../view/application/state/role'
 import { LastDeltaVariablesBuilder } from './inventory/lastDeltaVariablesBuilder'
 import { InventoryVariablesBuilder } from './inventory/inventoryVariablesBuilder'
 import { StatusVariablesBuilder } from './content/statusVariablesBuilder'
@@ -91,7 +91,7 @@ async function wiring(
     const streamDataBuilder = new StreamDataBuilder(apiStorage)
 
     // roles & favorites for client menu
-    streamDataBuilder.setRoles(ROLES)
+    streamDataBuilder.setRoles(ROLES.filter(r => r !== Role.ADVANCED))
     await streamDataBuilder.loadFavorites()
 
     // state

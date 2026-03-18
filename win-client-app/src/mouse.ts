@@ -1,32 +1,37 @@
-﻿import { keepWindowOnScreen } from "./position";
+import { keepWindowOnScreen } from "./position";
 
+// Neutralino's setDraggableRegion rejects if the element is already registered,
+// so we must unset first. --neu-non-draggable-region CSS is not implemented in
+// this Neutralino version and has no effect.
 function setDraggableRegion() {
-    // exclude areas in css with --neu-non-draggable-region: true;
-    Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area');
+    Neutralino.window.unsetDraggableRegion('entropia-flow-client-hover-area')
+        .catch(() => {}) // ignore if not yet registered
+        .finally(() => {
+            Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area');
+        });
 }
 
 const Mouse = {
     init: () => {
         setDraggableRegion();
 
-        let _dragging = false;
-
-        document.addEventListener('pointerdown', () => { _dragging = true; });
-        document.addEventListener('mouseup', () => {
-            _dragging = false;
+        document.addEventListener('pointerup', () => {
             setTimeout(async () => {
                 keepWindowOnScreen();
-            }, 50); // Wait a bit to allow the move to complete
+            }, 50);
         });
         document.addEventListener('pointermove', (e) => {
-            if (_dragging && e.buttons === 0) {
-                _dragging = false;
+            // Fallback: if pointer moves with no button pressed, reset drag state
+            if (e.buttons === 0) {
                 setDraggableRegion();
             }
         });
 
         // Disable right-click context menu
         document.addEventListener('contextmenu', event => event.preventDefault());
+    },
+    resetDrag: () => {
+        setDraggableRegion();
     }
 }
 

@@ -1,6 +1,8 @@
 {
     "schema": 1,
     "name": "Entropia Flow Loot",
+    "description": "Loot log with item breakdown and markup value estimation",
+    "roles": ["hunter"],
     "author": "Lucho MUCHO Ireton",
     "lastModified": 1753036824832,
     "backgroundType": 3,

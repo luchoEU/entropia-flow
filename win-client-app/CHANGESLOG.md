@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.16 - [Unreleased]
+
+### Fixed
+- Sticky drag root cause fixed: Neutralino's `setDraggableRegion` silently rejected re-registration (WeakMap guard); now correctly unsets before re-setting
+- Menu no longer triggers window drag — `pointerdown` is stopped from bubbling to the drag region (CSS `--neu-non-draggable-region` is not implemented in this Neutralino version)
+
+## Version 0.2.0-dev.15 - [Unreleased]
+
+### Fixed
+- "Advanced" tab no longer appears in the layout menu (not a real game role)
+- Sticky drag fix attempt: draggable region re-evaluated after every render and on pointer release
+
+## Version 0.2.0-dev.14 - [Unreleased]
+
+### Added
+- Layout menu items now filtered by role (layouts can belong to one, multiple, or all roles)
+- Description bar at the bottom of the menu shows layout description on hover
+- Favorites supported in "All" tab (independent from per-role favorites)
+- Menu items use flexible sizing — no truncation, wrap to fit available width
+- Menu test page (`test/menu.html`) for iterating on menu UI without running the full app
+- Builtin layouts now include descriptions and role assignments
+
+### Fixed
+- Descriptions from builtin layouts now flow through the extension stream to the client menu
+
 ## Version 0.2.0-dev.13 - [Unreleased]
 
 ### Fixed

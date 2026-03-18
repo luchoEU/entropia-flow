@@ -81,7 +81,16 @@ export async function initializeStreamFromStorage(): Promise<void> {
   try {
     const storedState = await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
     if (storedState) {
-      cachedStreamData = storedState
+      // Re-apply current builtin layout definitions so changes to bundled JSONs
+      // (e.g. new description/roles fields) take effect without clearing storage.
+      // User data (stared flag) is preserved.
+      const layouts = { ...storedState.layouts }
+      for (const [id, builtin] of Object.entries(initialStateIn.layouts)) {
+        if (layouts[id]) {
+          layouts[id] = { ...builtin, stared: layouts[id].stared }
+        }
+      }
+      cachedStreamData = { ...storedState, layouts }
     }
   } catch (error) {
     console.error('Failed to initialize stream state from storage:', error)
@@ -308,6 +317,22 @@ export const setStreamFormulaJavaScriptAtom = atom(
   (get, set, layoutId: string, code: string) => {
     const stateIn = get(streamInAtom)
     set(streamInAtom, _changeLayoutInState(stateIn, layoutId, { formulaJavaScript: code }))
+  }
+)
+
+export const setStreamDescriptionAtom = atom(
+  null,
+  (get, set, layoutId: string, description: string) => {
+    const stateIn = get(streamInAtom)
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, { description: description || undefined }))
+  }
+)
+
+export const setStreamRolesAtom = atom(
+  null,
+  (get, set, layoutId: string, roles: string[]) => {
+    const stateIn = get(streamInAtom)
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, { roles: roles.length ? roles : undefined }))
   }
 )
 

@@ -1,6 +1,8 @@
 {
   "schema": 1,
   "name": "Entropia Flow Hunting",
+  "description": "Hunting session tracker with kill stats, loot value and efficiency",
+  "roles": ["hunter"],
   "author": "Lucho MUCHO Ireton",
   "lastModified": 1762592359695,
   "backgroundType": 7,

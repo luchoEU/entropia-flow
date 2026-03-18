@@ -1,0 +1,25 @@
+{
+    "roles": ["hunter", "miner", "crafter"],
+    "favorites": {
+        "all": [],
+        "hunter": ["hunting-stats", "weapon-tracker"],
+        "miner": ["mining-hud"]
+    },
+    "layouts": {
+        "hunting-stats":     { "roles": ["hunter"],            "name": "Hunting Stats",      "description": "Kill counts, loot value, and efficiency stats for hunting sessions" },
+        "weapon-tracker":    { "roles": ["hunter"],            "name": "Weapon Tracker",     "description": "Tracks weapon condition, DPP, and ammo cost per hunt" },
+        "loot-analyzer":     { "roles": ["hunter"],            "name": "Loot Analyzer",      "description": "Breaks down loot composition and market value over time" },
+        "mob-tracker":       { "roles": ["hunter"],            "name": "Mob Tracker",        "description": "Monitors mob spawns, HP, and respawn timers" },
+        "mining-hud":        { "roles": ["miner"],             "name": "Mining HUD",         "description": "Real-time ore find rates, depth stats, and decay tracker" },
+        "depth-scanner":     { "roles": ["miner"],             "name": "Depth Scanner",      "description": "Shows current depth, scan radius, and claim history" },
+        "resource-map":      { "roles": ["miner"],             "name": "Resource Map",       "description": "Overlays ore density and previous claim locations on the map" },
+        "ore-stats":         { "roles": ["miner"],             "name": "Ore Stats",          "description": "Aggregated ore type counts, values, and markup estimates" },
+        "blueprint-tracker": { "roles": ["crafter"],           "name": "Blueprint Tracker",  "description": "Tracks blueprint attempts, success rate, and material cost" },
+        "material-cost":     { "roles": ["crafter"],           "name": "Material Cost",      "description": "Calculates crafting input costs vs. output value in real time" },
+        "crafting-queue":    { "roles": ["crafter"],           "name": "Crafting Queue",     "description": "Shows active crafting runs, completion time, and queue status" },
+        "item-inspector":    { "roles": ["hunter", "crafter"], "name": "Item Inspector",     "description": "Shows detailed stats and TT value for the last looted or equipped item" },
+        "global-chat":       {                                  "name": "Global Chat",        "description": "Overlays the in-game global chat channel" },
+        "auction-monitor":   {                                  "name": "Auction Monitor",    "description": "Watches auction listings for selected items and alerts on new bids" },
+        "avatar-stats":      {                                  "name": "Avatar Stats",       "description": "Displays current HP, PP, skills, and buffs" }
+    }
+}

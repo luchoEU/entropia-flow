@@ -7,24 +7,27 @@ import { setContentSize } from "./position";
 import { copyTextToClipboard, interpolate } from "./utils";
 import { STORE_INIT, STORE_WINDOW } from "./const";
 import { WindowData } from "./windows";
+import { MENU_LAYOUT_ID, MENU_HTML_TEMPLATE, MENU_CSS_TEMPLATE, buildMenuData, MenuState } from "./menuLayout";
+import { Mouse } from "./mouse";
 
 /// Menu ///
 
-let _menuState = { activeRole: 'all', searchQuery: '' }
+let _menuState: MenuState = { activeRole: 'all', searchQuery: '' }
 
 /// Render ///
 
 const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
-const MENU_LAYOUT_ID = PREFIX_LAYOUT_ID + 'menu';
 const OCR_LAYOUT_ID = PREFIX_LAYOUT_ID + 'ocr';
 
 interface StreamWindowLayout {
     name: string;
+    description?: string;
     htmlTemplate?: string;
     cssTemplate?: string;
     action?: () => void;
     backgroundType?: number;
+    roles?: string[];
 }
 
 interface StreamWindowRenderData {
@@ -100,158 +103,16 @@ let _lastData: StreamWindowRenderData = {
         },
         [MENU_LAYOUT_ID]: {
             name: 'Entropia Flow Menu',
-            htmlTemplate: `
-<div class="menu-container">
-  <div class="menu-header">
-    <input class="menu-search" type="text" placeholder="Filter layouts..." value="{{searchQuery}}">
-  </div>
-  <div class="menu-roles">
-    {{#roles}}<button class="role-tab{{#isActive}} active{{/isActive}}" data-role="{{id}}">{{label}}</button>{{/roles}}
-  </div>
-  <div class="menu-body">
-    <div class="menu-grid">
-      {{#layouts}}
-      <div class="menu-item" data-layout="{{id}}">
-        <div class="menu-item-info">
-          <span class="menu-item-name" title="{{name}}">{{name}}</span>
-          {{#showFav}}<button class="menu-item-fav{{#isFav}} is-fav{{/isFav}}" data-fav="{{id}}">{{#isFav}}&#9733;{{/isFav}}{{^isFav}}&#9734;{{/isFav}}</button>{{/showFav}}
-        </div>
-      </div>
-      {{/layouts}}
-    </div>
-  </div>
-</div>
-`,
-            cssTemplate: `
-                #entropia-flow-client-minimize,
-                #entropia-flow-client-layout,
-                #entropia-flow-client-menu,
-                #entropia-flow-client-next {
-                    display: none !important;
-                }
-                .layout-root {
-                    --neu-non-draggable-region: true;
-                }
-                .menu-container {
-                    width: 450px;
-                    min-height: 250px;
-                    max-height: 500px;
-                    background-color: rgba(20, 25, 35, 0.95);
-                    color: #e0e0e0;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                    font-size: 13px;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                    border-radius: 6px;
-                }
-                .menu-header {
-                    padding: 10px 12px 6px;
-                }
-                .menu-search {
-                    width: 100%;
-                    box-sizing: border-box;
-                    padding: 6px 10px;
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 4px;
-                    color: #e0e0e0;
-                    font-size: 13px;
-                    outline: none;
-                }
-                .menu-search:focus {
-                    border-color: rgba(100, 160, 255, 0.5);
-                }
-                .menu-search::placeholder {
-                    color: rgba(255, 255, 255, 0.35);
-                }
-                .menu-roles {
-                    display: flex;
-                    gap: 4px;
-                    padding: 4px 12px 8px;
-                    flex-wrap: wrap;
-                }
-                .role-tab {
-                    padding: 3px 10px;
-                    background: rgba(255, 255, 255, 0.06);
-                    border: 1px solid rgba(255, 255, 255, 0.12);
-                    border-radius: 12px;
-                    color: #aaa;
-                    font-size: 13px;
-                    cursor: pointer;
-                }
-                .role-tab:hover {
-                    background: rgba(255, 255, 255, 0.12);
-                    color: #ddd;
-                }
-                .role-tab.active {
-                    background: rgba(100, 160, 255, 0.2);
-                    border-color: rgba(100, 160, 255, 0.4);
-                    color: #fff;
-                }
-                .menu-body {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 0 12px 10px;
-                }
-                .menu-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                    gap: 8px;
-                }
-                .menu-item {
-                    background: rgba(255, 255, 255, 0.04);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 4px;
-                    cursor: pointer;
-                    overflow: hidden;
-                    transition: border-color 0.15s;
-                }
-                .menu-item:hover {
-                    border-color: rgba(100, 160, 255, 0.4);
-                }
-                .menu-item-info {
-                    display: flex;
-                    align-items: center;
-                    padding: 4px 6px;
-                    gap: 4px;
-                }
-                .menu-item-name {
-                    flex: 1;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    font-size: 13px;
-                }
-                .menu-item-fav {
-                    background: none;
-                    border: none;
-                    color: rgba(255, 255, 255, 0.3);
-                    cursor: pointer;
-                    font-size: 14px;
-                    padding: 0 2px;
-                    line-height: 1;
-                }
-                .menu-item-fav:hover {
-                    color: rgba(255, 200, 50, 0.7);
-                }
-                .menu-item-fav.is-fav {
-                    color: rgba(255, 200, 50, 0.9);
-                }
-                .menu-body::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .menu-body::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .menu-body::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-radius: 3px;
-                }
-            `,
+            htmlTemplate: MENU_HTML_TEMPLATE,
+            cssTemplate: MENU_CSS_TEMPLATE,
             action: () => {
                 const container = document.querySelector('.menu-container') as HTMLElement
                 if (!container) return
+
+                // Prevent pointerdown from bubbling to the hover-area drag region.
+                // --neu-non-draggable-region CSS is not implemented in this Neutralino
+                // version, so we must stop propagation explicitly.
+                container.addEventListener('pointerdown', (e) => e.stopPropagation())
 
                 const searchInput = container.querySelector('.menu-search') as HTMLInputElement
                 searchInput?.addEventListener('input', () => {
@@ -267,7 +128,10 @@ let _lastData: StreamWindowRenderData = {
                     _reRenderMenu()
                 })
 
-                container.querySelector('.menu-grid')?.addEventListener('click', (e) => {
+                const grid = container.querySelector('.menu-grid')
+                const descEl = container.querySelector('.menu-description') as HTMLElement
+
+                grid?.addEventListener('click', (e) => {
                     const favBtn = (e.target as HTMLElement).closest('[data-fav]') as HTMLElement
                     if (favBtn) {
                         e.stopPropagation()
@@ -276,6 +140,14 @@ let _lastData: StreamWindowRenderData = {
                     }
                     const item = (e.target as HTMLElement).closest('[data-layout]') as HTMLElement
                     if (item) { e.stopPropagation(); selectLayout(item.dataset.layout!) }
+                })
+
+                grid?.addEventListener('mouseover', (e) => {
+                    const item = (e.target as HTMLElement).closest('[data-layout]') as HTMLElement
+                    if (item && descEl) descEl.textContent = item.dataset.description || ''
+                })
+                grid?.addEventListener('mouseleave', () => {
+                    if (descEl) descEl.textContent = ''
                 })
 
                 // Focus search, cursor at end
@@ -383,32 +255,6 @@ function _setupButtons() {
     });
 }
 
-function _buildMenuData() {
-    const { activeRole, searchQuery } = _menuState
-    const favList = (activeRole !== 'all' && _lastData.favorites?.[activeRole]) || []
-    const showFav = activeRole !== 'all'
-
-    const layouts = Object.entries(_lastData.layouts)
-        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
-        .map(([id, l]) => ({ id, name: l.name }))
-        .filter(l => !searchQuery || l.name.toLowerCase().includes(searchQuery))
-        .sort((a, b) => {
-            const aFav = favList.includes(a.id), bFav = favList.includes(b.id)
-            if (aFav !== bFav) return aFav ? -1 : 1
-            return a.name.localeCompare(b.name)
-        })
-        .map(l => ({ ...l, isFav: favList.includes(l.id), showFav }))
-
-    const roles = [
-        { id: 'all', label: 'All', isActive: activeRole === 'all' },
-        ...(_lastData.roles ?? []).map(r => ({
-            id: r, label: r.charAt(0).toUpperCase() + r.slice(1), isActive: r === activeRole
-        }))
-    ]
-
-    return { layouts, roles, searchQuery }
-}
-
 function _reRenderMenu() {
     _lastActionLayoutId = undefined
     render({ layoutId: MENU_LAYOUT_ID })
@@ -461,7 +307,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     }
 
     if (s.layoutId === MENU_LAYOUT_ID) {
-        d.layoutData![MENU_LAYOUT_ID] = _buildMenuData() as any;
+        d.layoutData![MENU_LAYOUT_ID] = buildMenuData(_menuState, _lastData) as any;
     }
     const layoutData = d.layoutData?.[s.layoutId];
     const single: StreamRenderSingle = {
@@ -476,6 +322,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
         layout: layout as any
     };
     let size = await clientRender(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    Mouse.resetDrag();
     if (size) {
         await setContentSize(size);
 

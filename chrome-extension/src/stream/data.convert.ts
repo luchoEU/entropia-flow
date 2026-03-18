@@ -38,6 +38,8 @@ const savedToRenderLayout = (layout: StreamSavedLayout): StreamRenderLayout => (
     backgroundType: layout.backgroundType,
     htmlTemplate: layout.htmlTemplate,
     cssTemplate: layout.cssTemplate,
+    description: layout.description,
+    roles: layout.roles,
 })
 
 const copyCommonLayout = (layout: StreamCommonLayout): StreamCommonLayout => ({
@@ -48,6 +50,8 @@ const copyCommonLayout = (layout: StreamCommonLayout): StreamCommonLayout => ({
     formulaJavaScript: layout.formulaJavaScript,
     htmlTemplate: layout.htmlTemplate,
     cssTemplate: layout.cssTemplate,
+    description: layout.description,
+    roles: layout.roles,
 })
 
 export {

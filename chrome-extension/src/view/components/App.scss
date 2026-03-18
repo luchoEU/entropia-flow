@@ -1038,12 +1038,42 @@ label {
     cursor: pointer;
 }
 
+.stream-layout-data-table {
+    width: 100%;
+    table-layout: auto;
+    td:first-child {
+        width: 1%;
+        white-space: nowrap;
+    }
+    td:not(:first-child) {
+        width: auto;
+    }
+}
 .stream-layout-data-table input {
     margin-left: 10px;
 }
 .stream-layout-data-table input:read-only {
     border: 1px solid rgb(204, 204, 204);
     background-color: transparent;
+}
+.stream-layout-description {
+    width: calc(100% - 12px);
+    box-sizing: border-box;
+}
+.stream-layout-roles {
+    display: flex;
+    gap: 16px;
+    padding-left: 10px;
+    label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+    input[type='checkbox'] {
+        margin-left: 0;
+        cursor: pointer;
+    }
 }
 
 // Craft
