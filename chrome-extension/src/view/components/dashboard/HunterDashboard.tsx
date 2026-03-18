@@ -98,7 +98,7 @@ const DashboardItemRow = ({ item, showMarkup, exclude, include }: {
 const HunterDashboard = () => {
     const statusData = useAtomValue(statusAtom)
     const connectionState = useAtomValue(connectionAtom)
-    const { anyInventory, delta, diff } = useAtomValue(lastComputedAtom)
+    const { anyInventory, delta, diff, itemsTotalPed } = useAtomValue(lastComputedAtom)
     const huntData = useAtomValue(streamRenderDataAtom).layoutData['entropiaflow.hunt']
     const gameLog = useAtomValue(currentGameLogDataAtom)
     const inventoryList = useAtomValue(inventoryListAtom)
@@ -130,7 +130,7 @@ const HunterDashboard = () => {
         lastKillCache.current = { decay: killDecay, loot: killLoot }
     }
     const cached = lastKillCache.current
-    const lastReturn = cached.decay && cached.loot
+    const lastReturn = cached.decay && cached.loot && parseFloat(cached.decay) > 0
         ? ((parseFloat(cached.loot) / parseFloat(cached.decay)) * 100).toFixed(1) + '%'
         : '--'
 
@@ -140,7 +140,6 @@ const HunterDashboard = () => {
     const items = itemFilterLower
         ? allItems.filter(item => item.n.toLowerCase().includes(itemFilterLower))
         : allItems
-    const itemsTotalPed = allItems.reduce((sum, item) => sum + (item.e ? 0 : parseFloat(item.v) || 0), 0)
     const avatarName = inventoryList.length > 0 ? inventoryList[0].avatarName : undefined
     const allGlobals = avatarName ? (gameLog.global ?? []).filter(g => g.player === avatarName) : []
     const globalFilterLower = globalFilter.toLowerCase()
@@ -240,7 +239,7 @@ const HunterDashboard = () => {
                 </div>
                 <DashboardSection
                     title='ITEMS'
-                    total={`${itemsTotalPed.toFixed(2)} PED`}
+                    total={`${(itemsTotalPed ?? 0).toFixed(2)} PED`}
                     count={allItems.length}
                     countLabel='items'
                     expanded={showItems}

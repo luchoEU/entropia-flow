@@ -12,6 +12,7 @@ interface ComputedLastState {
     delta?: number,
     date: number,
     diff?: Array<ViewItemData>,
+    itemsTotalPed?: number,
 }
 
 // Persisted state

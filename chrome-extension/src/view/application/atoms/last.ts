@@ -4,7 +4,7 @@ import { ViewItemData } from '../state/history'
 import { SYNC_STORAGE } from '../../../chrome/chromeStorageArea'
 import { SORT_VALUE_DESCENDING, nextSortType } from '../helpers/inventory.sort'
 import { getLatestFromInventoryList, getText, copyDiffToClipboard } from '../helpers/history'
-import { calculateInventoryDelta } from '../helpers/lastDelta'
+import { calculateInventoryDelta, _sumDiff } from '../helpers/lastDelta'
 import messagesApi from '../../services/api/messages'
 import { historyAtom, INVENTORY_KEY_SCALE } from './history'
 import { atomWithStorage } from 'jotai/utils'
@@ -117,6 +117,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
             date: lastTimestamp,
             diff: undefined,
             latestInventoryKey,
+            itemsTotalPed: 0,
         }
     }
 
@@ -135,6 +136,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
 
     // Use preference to determine which delta to return
     const d = persisted.showMarkup ? result.deltaWithMarkup : result.deltaNoMarkup
+    const itemsTotalPed = _sumDiff(result.diff ?? undefined, persisted.showMarkup ? itemsMap : {})
 
     return {
         delta: d,
@@ -143,6 +145,7 @@ export const lastComputedAtom = atom<ComputedStateExtended>((get) => {
         date: lastTimestamp,
         diff: result.diff || undefined,
         latestInventoryKey,
+        itemsTotalPed,
     }
 })
 
