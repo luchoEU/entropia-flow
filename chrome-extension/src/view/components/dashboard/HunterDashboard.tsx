@@ -9,7 +9,7 @@ import { lastComputedAtom, lastPersistedAtom, setLastShowMarkupAtom, excludeItem
 import { streamRenderDataAtom } from '../../application/atoms/stream'
 import { currentGameLogDataAtom } from '../../application/atoms/gameLog'
 import { inventoryListAtom } from '../../application/atoms/history'
-import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
+import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom, itemsMapAtom } from '../../application/atoms/items'
 import { cloneSortList, SORT_VALUE_DESCENDING, nextSortType, sortTypeToColumnIndex } from '../../application/helpers/inventory.sort'
 import { getValueWithMarkup } from '../../application/helpers/items'
 import { STRING_CONNECTING, URL_MY_ITEMS_PAGE } from '../../../common/const'
@@ -22,6 +22,29 @@ export const dashboardInventoryExpandedAtom = atomWithStorage('jotai-v1-dashboar
 export const dashboardItemsExpandedAtom = atomWithStorage('jotai-v1-dashboard-itemsExpanded', false)
 export const dashboardGlobalsExpandedAtom = atomWithStorage('jotai-v1-dashboard-globalsExpanded', false)
 export const dashboardViewModeAtom = atomWithStorage<'list' | 'tree' | 'favorites'>('jotai-v1-dashboard-viewMode', 'list')
+export const hunterItemsViewModeAtom = atomWithStorage<'list' | 'tree'>('jotai-v1-hunter-itemsViewMode', 'list')
+export const hunterTreeExpandedAtom = atomWithStorage<{ looted: boolean, decayed: boolean, excluded: boolean }>(
+    'jotai-v1-hunter-treeExpanded', { looted: true, decayed: true, excluded: true }
+)
+
+type DashboardSort =
+    | { mode: 'standard', sortType: number }
+    | { mode: 'mu-ped', desc: boolean }
+    | { mode: 'total', desc: boolean }
+
+type ItemCategory = 'looted' | 'decayed' | 'excluded'
+
+function categorizeItem(item: { q: string, e?: boolean }): ItemCategory {
+    if (item.e) return 'excluded'
+    const qty = Number(item.q)
+    return qty > 0 ? 'looted' : 'decayed'
+}
+
+const CATEGORY_LABELS: Record<ItemCategory, string> = {
+    looted: 'Looted',
+    decayed: 'Decayed',
+    excluded: 'Excluded',
+}
 
 function getDeltaClass(delta: number | undefined) {
     if (delta === undefined || Math.abs(delta) < 0.005) delta = 0
@@ -57,40 +80,48 @@ const DashboardItemRow = ({ item, showMarkup, exclude, include }: {
             </td>
             <td>{item.n}</td>
             <td className='dashboard-col-right'>{item.q}</td>
-            <td className='dashboard-col-right'>{valueMU !== undefined ? valueMU.toFixed(2) : item.v}</td>
-            {showMarkup && <td className='dashboard-mu-cell dashboard-col-right'>
-                {isEditing ? (
-                    <div className='dashboard-mu-edit'>
-                        <input type='text' value={material?.markup?.value || ''}
-                               onChange={(e) => setMarkup(item.n, e.target.value)} autoFocus />
-                        <span className='dashboard-mu-unit'
-                              title={`Unit: ${unitDescription(material?.markup?.unit ?? UNIT_PERCENTAGE)}`}
-                              onClick={() => setUnit(item.n, nextUnit(material?.markup?.unit ?? UNIT_PERCENTAGE))}>
-                            {unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}
+            <td className='dashboard-col-right'>{item.v}</td>
+            {showMarkup && <>
+                <td className='dashboard-col-right'>
+                    {valueMU !== undefined ? (valueMU - parseFloat(item.v || '0')).toFixed(2) : '—'}
+                </td>
+                <td className='dashboard-mu-cell dashboard-col-right'>
+                    {isEditing ? (
+                        <div className='dashboard-mu-edit'>
+                            <input type='text' value={material?.markup?.value || ''}
+                                   onChange={(e) => setMarkup(item.n, e.target.value)} autoFocus />
+                            <span className='dashboard-mu-unit'
+                                  title={`Unit: ${unitDescription(material?.markup?.unit ?? UNIT_PERCENTAGE)}`}
+                                  onClick={() => setUnit(item.n, nextUnit(material?.markup?.unit ?? UNIT_PERCENTAGE))}>
+                                {unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}
+                            </span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={() => setEditModeKey(undefined)}>✓</span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={() => { setMarkup(item.n, editStartValue.current); setEditModeKey(undefined) }}>✕</span>
+                        </div>
+                    ) : (
+                        <span className='dashboard-mu-display'>
+                            <span className='dashboard-mu-value'>
+                                {material?.markup?.value
+                                    ? `${material.markup.value}${unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}`
+                                    : '—'}
+                            </span>
+                            <span className='dashboard-mu-edit-btn' title='Edit markup'
+                                  onClick={() => {
+                                      editStartValue.current = material?.markup?.value || ''
+                                      if (!material?.markup?.value) {
+                                          setMarkup(item.n, '100')
+                                      }
+                                      setEditModeKey(item.key)
+                                  }}>✎</span>
                         </span>
-                        <span className='dashboard-item-action' style={{visibility: 'visible'}}
-                              onClick={() => setEditModeKey(undefined)}>✓</span>
-                        <span className='dashboard-item-action' style={{visibility: 'visible'}}
-                              onClick={() => { setMarkup(item.n, editStartValue.current); setEditModeKey(undefined) }}>✕</span>
-                    </div>
-                ) : (
-                    <span className='dashboard-mu-display'>
-                        <span className='dashboard-mu-value'>
-                            {material?.markup?.value
-                                ? `${material.markup.value}${unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}`
-                                : '—'}
-                        </span>
-                        <span className='dashboard-mu-edit-btn' title='Edit markup'
-                              onClick={() => {
-                                  editStartValue.current = material?.markup?.value || ''
-                                  if (!material?.markup?.value) {
-                                      setMarkup(item.n, '100')
-                                  }
-                                  setEditModeKey(item.key)
-                              }}>✎</span>
-                    </span>
-                )}
-            </td>}
+                    )}
+                </td>
+                <td className='dashboard-col-right'>
+                    {valueMU !== undefined ? valueMU.toFixed(2) : item.v}
+                </td>
+            </>}
         </tr>
     )
 }
@@ -104,6 +135,7 @@ const HunterDashboard = () => {
     const inventoryList = useAtomValue(inventoryListAtom)
     const persisted = useAtomValue(lastPersistedAtom)
     const setShowMarkup = useSetAtom(setLastShowMarkupAtom)
+    const itemsMap = useAtomValue(itemsMapAtom)
     const exclude = useSetAtom(excludeItemAtom)
     const include = useSetAtom(includeItemAtom)
     const setWebSocket = useSetAtom(setConnectionWebSocketAtom)
@@ -112,9 +144,11 @@ const HunterDashboard = () => {
     const [statusCollapsed, setStatusCollapsed] = useAtom(dashboardStatusCollapsedAtom)
     const [showItems, setShowItems] = useAtom(dashboardItemsExpandedAtom)
     const [showGlobals, setShowGlobals] = useAtom(dashboardGlobalsExpandedAtom)
-    const [sortType, setSortType] = useState(SORT_VALUE_DESCENDING)
+    const [sort, setSort] = useState<DashboardSort>({ mode: 'standard', sortType: SORT_VALUE_DESCENDING })
     const [itemFilter, setItemFilter] = useState('')
     const [globalFilter, setGlobalFilter] = useState('')
+    const [itemsViewMode, setItemsViewMode] = useAtom(hunterItemsViewModeAtom)
+    const [treeExpanded, setTreeExpanded] = useAtom(hunterTreeExpandedAtom)
 
     // Hunt stats from stream render data
     const returnPct = (huntData?.return_ as string) || '--'
@@ -135,11 +169,59 @@ const HunterDashboard = () => {
         : '--'
 
     const killCount = gameLog.stats?.kills?.count ?? 0
-    const allItems = cloneSortList(diff ?? [], sortType)
+    const allItems = useMemo(() => {
+        if (sort.mode === 'standard') {
+            return cloneSortList(diff ?? [], sort.sortType)
+        }
+        const list = [...(diff ?? [])]
+        const getValue = (item: typeof list[0]): number | null => {
+            const m = itemsMap[item.n]
+            if (!m?.markup?.value) return null
+            const raw = parseFloat(item.v || '0')
+            const total = getValueWithMarkup(item.q, item.v, m)
+            if (sort.mode === 'mu-ped') return total - raw
+            return total
+        }
+        list.sort((a, b) => {
+            const va = getValue(a)
+            const vb = getValue(b)
+            // unset markup → end
+            if (va === null && vb === null) return a.n.localeCompare(b.n)
+            if (va === null) return 1
+            if (vb === null) return -1
+            const d = Math.abs(va) - Math.abs(vb)
+            if (d !== 0) return sort.desc ? -d : d
+            return sort.desc ? -a.n.localeCompare(b.n) : a.n.localeCompare(b.n)
+        })
+        return list
+    }, [diff, sort, itemsMap])
     const itemFilterLower = itemFilter.toLowerCase()
     const items = itemFilterLower
         ? allItems.filter(item => item.n.toLowerCase().includes(itemFilterLower))
         : allItems
+    const groupedItems = useMemo(() => {
+        const groups: Record<ItemCategory, typeof items> = { looted: [], decayed: [], excluded: [] }
+        for (const item of items) {
+            groups[categorizeItem(item)].push(item)
+        }
+        return groups
+    }, [items])
+
+    const groupTotals = useMemo(() => {
+        const totals: Record<ItemCategory, number> = { looted: 0, decayed: 0, excluded: 0 }
+        for (const cat of ['looted', 'decayed', 'excluded'] as ItemCategory[]) {
+            totals[cat] = groupedItems[cat].reduce((sum, item) =>
+                sum + (persisted.showMarkup
+                    ? getValueWithMarkup(item.q, item.v, itemsMap[item.n])
+                    : parseFloat(item.v || '0')), 0)
+        }
+        return totals
+    }, [groupedItems, persisted.showMarkup, itemsMap])
+
+    const toggleTreeGroup = (group: ItemCategory) => {
+        setTreeExpanded(prev => ({ ...prev, [group]: !prev[group] }))
+    }
+
     const avatarName = inventoryList.length > 0 ? inventoryList[0].avatarName : undefined
     const allGlobals = avatarName ? (gameLog.global ?? []).filter(g => g.player === avatarName) : []
     const globalFilterLower = globalFilter.toLowerCase()
@@ -154,8 +236,23 @@ const HunterDashboard = () => {
     const clientConnected = clientStatus.includes('connected') && !clientStatus.includes('not connected') && !clientStatus.includes('disconnected')
 
     // Sort helpers
-    const { column: sortCol, ascending: sortAsc } = sortTypeToColumnIndex(sortType)
-    const sortArrow = (col: number) => sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : ''
+    const sortArrow = (col: number | 'mu-ped' | 'total') => {
+        if (typeof col === 'number') {
+            if (sort.mode !== 'standard') return ''
+            const { column: sortCol, ascending: sortAsc } = sortTypeToColumnIndex(sort.sortType)
+            return sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : ''
+        }
+        if (sort.mode === col) return sort.desc ? ' ▼' : ' ▲'
+        return ''
+    }
+    const onStandardSort = (col: number) => {
+        const st = sort.mode === 'standard' ? sort.sortType : SORT_VALUE_DESCENDING
+        setSort({ mode: 'standard', sortType: nextSortType(col, st) })
+    }
+    const onMuSort = (mode: 'mu-ped' | 'total') => {
+        if (sort.mode === mode) setSort({ mode, desc: !sort.desc })
+        else setSort({ mode, desc: true })
+    }
 
     return (
         <div className='dashboard-page'>
@@ -244,13 +341,19 @@ const HunterDashboard = () => {
                     countLabel='items'
                     expanded={showItems}
                     onToggle={() => setShowItems(s => !s)}
-                    actions={
+                    actions={<>
+                        <div className='storage-view-modes' onClick={e => e.stopPropagation()}>
+                            <span className={`storage-view-btn ${itemsViewMode === 'list' ? 'storage-view-btn-active' : ''}`}
+                                onClick={() => setItemsViewMode('list')} title='List view'>☰</span>
+                            <span className={`storage-view-btn ${itemsViewMode === 'tree' ? 'storage-view-btn-active' : ''}`}
+                                onClick={() => setItemsViewMode('tree')} title='Tree view'>▤</span>
+                        </div>
                         <span className={`dashboard-mu-toggle ${persisted.showMarkup ? 'active' : ''}`}
                             onClick={() => setShowMarkup(!persisted.showMarkup)}
                             title='Toggle markup values'>
                             MU
                         </span>
-                    }
+                    </>}
                 >
                     <>
                         <div className='dashboard-filter-row' onClick={e => e.stopPropagation()}>
@@ -269,22 +372,55 @@ const HunterDashboard = () => {
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th onClick={() => setSortType(nextSortType(0, sortType))}>Name{sortArrow(0)}</th>
-                                        <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(1, sortType))}>Qty{sortArrow(1)}</th>
-                                        <th className='dashboard-col-right' onClick={() => setSortType(nextSortType(2, sortType))}>Value{sortArrow(2)}</th>
-                                        {persisted.showMarkup && <th className='dashboard-col-right'>MU</th>}
+                                        <th onClick={() => onStandardSort(0)}>Name{sortArrow(0)}</th>
+                                        <th className='dashboard-col-right' onClick={() => onStandardSort(1)}>Qty{sortArrow(1)}</th>
+                                        <th className='dashboard-col-right' onClick={() => onStandardSort(2)}>Value{sortArrow(2)}</th>
+                                        {persisted.showMarkup && <>
+                                            <th className='dashboard-col-right' onClick={() => onMuSort('mu-ped')}>+MU{sortArrow('mu-ped')}</th>
+                                            <th className='dashboard-col-right'>MU</th>
+                                            <th className='dashboard-col-right' onClick={() => onMuSort('total')}>Total{sortArrow('total')}</th>
+                                        </>}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {items.map(item => (
-                                        <DashboardItemRow
-                                            key={item.key}
-                                            item={item}
-                                            showMarkup={persisted.showMarkup}
-                                            exclude={exclude}
-                                            include={include}
-                                        />
-                                    ))}
+                                    {itemsViewMode === 'list'
+                                        ? items.map(item => (
+                                            <DashboardItemRow
+                                                key={item.key}
+                                                item={item}
+                                                showMarkup={persisted.showMarkup}
+                                                exclude={exclude}
+                                                include={include}
+                                            />
+                                        ))
+                                        : (['looted', 'decayed', 'excluded'] as ItemCategory[]).map(cat => {
+                                            const groupItems = groupedItems[cat]
+                                            if (groupItems.length === 0) return null
+                                            const colCount = persisted.showMarkup ? 7 : 4
+                                            return (
+                                                <React.Fragment key={cat}>
+                                                    <tr className='dashboard-tree-group' onClick={() => toggleTreeGroup(cat)}>
+                                                        <td colSpan={colCount}>
+                                                            <span style={{ marginRight: 6 }}>{treeExpanded[cat] ? '▾' : '▸'}</span>
+                                                            {CATEGORY_LABELS[cat]}
+                                                            <span style={{ marginLeft: 8, fontWeight: 400, color: '#888' }}>
+                                                                ({groupItems.length}) — {groupTotals[cat].toFixed(2)} PED
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    {treeExpanded[cat] && groupItems.map(item => (
+                                                        <DashboardItemRow
+                                                            key={item.key}
+                                                            item={item}
+                                                            showMarkup={persisted.showMarkup}
+                                                            exclude={exclude}
+                                                            include={include}
+                                                        />
+                                                    ))}
+                                                </React.Fragment>
+                                            )
+                                        })
+                                    }
                                 </tbody>
                             </table>
                         )}
