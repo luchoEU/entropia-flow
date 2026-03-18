@@ -1,5 +1,5 @@
 const clientId = 'entropia-flow-client';
-const clientVersion = '0.2.0-dev.9';
+const clientVersion = '0.2.0-dev.13';
 const clientBinaryVersion = '0.2.0'; // bump only when exe or relay changes
 
 const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/luchoEU/entropia-flow/main/win-client-app/update-manifest.json';

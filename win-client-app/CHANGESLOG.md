@@ -5,13 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.13 - [Unreleased]
+
+### Fixed
+- Windows no longer close immediately after auto-update restart (kill signal is now cleared before process restarts)
+
+## Version 0.2.0-dev.12 - [Unreleased]
+
+### Fixed
+- Menu font size increased from 11px to 13px for role tabs and layout names (more readable)
+- Update dialog no longer appears twice in the same session (periodic checks now start after startup check completes)
+- Window drag no longer sticks when mouse is released outside the window
+
+## Version 0.2.0-dev.11 - [Unreleased]
+
+### Changed
+- Layout menu rendered via Mustache htmlTemplate instead of DOM-builder functions; re-renders cleanly on data updates
+
 ## Version 0.2.0-dev.1 - [Unreleased]
 
 ### Added
 - Improved layout selector menu with search filter, role-based tabs, layout thumbnails, and favorites
 - Role tabs populated dynamically from extension stream data
 - Favorite layouts per role with star toggle (persisted in extension)
-- Live layout thumbnails rendered via Mustache in the menu grid
+- ~~Live layout thumbnails rendered via Mustache in the menu grid~~
+
+### Removed
+- Mustache dependency — layout menu now shows layout names instead of rendered thumbnails
 
 ### Changed
 - Layout menu now uses dark theme with card grid instead of simple text list

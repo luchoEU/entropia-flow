@@ -7,7 +7,12 @@ import { setContentSize } from "./position";
 import { copyTextToClipboard, interpolate } from "./utils";
 import { STORE_INIT, STORE_WINDOW } from "./const";
 import { WindowData } from "./windows";
-import { buildMenuDOM, updateMenuData, MenuData } from "./menu";
+
+/// Menu ///
+
+let _menuState = { activeRole: 'all', searchQuery: '' }
+
+/// Render ///
 
 const PREFIX_LAYOUT_ID = 'entropiaflow.client.';
 const WAITING_LAYOUT_ID = PREFIX_LAYOUT_ID + 'waiting';
@@ -95,7 +100,28 @@ let _lastData: StreamWindowRenderData = {
         },
         [MENU_LAYOUT_ID]: {
             name: 'Entropia Flow Menu',
-            htmlTemplate: `<div id="menu-mount"></div>`,
+            htmlTemplate: `
+<div class="menu-container">
+  <div class="menu-header">
+    <input class="menu-search" type="text" placeholder="Filter layouts..." value="{{searchQuery}}">
+  </div>
+  <div class="menu-roles">
+    {{#roles}}<button class="role-tab{{#isActive}} active{{/isActive}}" data-role="{{id}}">{{label}}</button>{{/roles}}
+  </div>
+  <div class="menu-body">
+    <div class="menu-grid">
+      {{#layouts}}
+      <div class="menu-item" data-layout="{{id}}">
+        <div class="menu-item-info">
+          <span class="menu-item-name" title="{{name}}">{{name}}</span>
+          {{#showFav}}<button class="menu-item-fav{{#isFav}} is-fav{{/isFav}}" data-fav="{{id}}">{{#isFav}}&#9733;{{/isFav}}{{^isFav}}&#9734;{{/isFav}}</button>{{/showFav}}
+        </div>
+      </div>
+      {{/layouts}}
+    </div>
+  </div>
+</div>
+`,
             cssTemplate: `
                 #entropia-flow-client-minimize,
                 #entropia-flow-client-layout,
@@ -151,7 +177,7 @@ let _lastData: StreamWindowRenderData = {
                     border: 1px solid rgba(255, 255, 255, 0.12);
                     border-radius: 12px;
                     color: #aaa;
-                    font-size: 11px;
+                    font-size: 13px;
                     cursor: pointer;
                 }
                 .role-tab:hover {
@@ -184,31 +210,6 @@ let _lastData: StreamWindowRenderData = {
                 .menu-item:hover {
                     border-color: rgba(100, 160, 255, 0.4);
                 }
-                .preview-wrapper {
-                    width: 100%;
-                    height: 75px;
-                    overflow: hidden;
-                    position: relative;
-                    background: rgba(0, 0, 0, 0.3);
-                }
-                .preview-content {
-                    transform: scale(0.15);
-                    transform-origin: top left;
-                    pointer-events: none;
-                    width: 666%;
-                    height: 666%;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                }
-                .preview-empty {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100%;
-                    color: rgba(255, 255, 255, 0.2);
-                    font-size: 11px;
-                }
                 .menu-item-info {
                     display: flex;
                     align-items: center;
@@ -220,7 +221,7 @@ let _lastData: StreamWindowRenderData = {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    font-size: 11px;
+                    font-size: 13px;
                 }
                 .menu-item-fav {
                     background: none;
@@ -249,15 +250,43 @@ let _lastData: StreamWindowRenderData = {
                 }
             `,
             action: () => {
-                const mount = document.getElementById("menu-mount");
-                if (!mount) return;
-                const menuData = _buildMenuData();
-                buildMenuDOM(
-                    mount,
-                    menuData,
-                    (layoutId) => selectLayout(layoutId),
-                    (role, layoutId) => sendMessageToMain('toggle-favorite', { role, layoutId }, 'chrome-extension')
-                );
+                const container = document.querySelector('.menu-container') as HTMLElement
+                if (!container) return
+
+                const searchInput = container.querySelector('.menu-search') as HTMLInputElement
+                searchInput?.addEventListener('input', () => {
+                    _menuState.searchQuery = searchInput.value.toLowerCase()
+                    _reRenderMenu()
+                })
+
+                container.querySelector('.menu-roles')?.addEventListener('click', (e) => {
+                    const btn = (e.target as HTMLElement).closest('[data-role]') as HTMLElement
+                    if (!btn) return
+                    e.stopPropagation()
+                    _menuState.activeRole = btn.dataset.role!
+                    _reRenderMenu()
+                })
+
+                container.querySelector('.menu-grid')?.addEventListener('click', (e) => {
+                    const favBtn = (e.target as HTMLElement).closest('[data-fav]') as HTMLElement
+                    if (favBtn) {
+                        e.stopPropagation()
+                        sendMessageToMain('toggle-favorite', { role: _menuState.activeRole, layoutId: favBtn.dataset.fav }, 'chrome-extension')
+                        return
+                    }
+                    const item = (e.target as HTMLElement).closest('[data-layout]') as HTMLElement
+                    if (item) { e.stopPropagation(); selectLayout(item.dataset.layout!) }
+                })
+
+                // Focus search, cursor at end
+                setTimeout(() => {
+                    if (searchInput) {
+                        searchInput.focus()
+                        const v = searchInput.value
+                        searchInput.value = ''
+                        searchInput.value = v
+                    }
+                }, 50)
             }
         },
         /*[OCR_LAYOUT_ID]: {
@@ -354,38 +383,47 @@ function _setupButtons() {
     });
 }
 
-function _buildMenuData(): MenuData {
+function _buildMenuData() {
+    const { activeRole, searchQuery } = _menuState
+    const favList = (activeRole !== 'all' && _lastData.favorites?.[activeRole]) || []
+    const showFav = activeRole !== 'all'
+
     const layouts = Object.entries(_lastData.layouts)
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
-        .map(([id, l]) => ({
-            id,
-            name: l.name,
-            htmlTemplate: l.htmlTemplate,
-            cssTemplate: l.cssTemplate,
+        .map(([id, l]) => ({ id, name: l.name }))
+        .filter(l => !searchQuery || l.name.toLowerCase().includes(searchQuery))
+        .sort((a, b) => {
+            const aFav = favList.includes(a.id), bFav = favList.includes(b.id)
+            if (aFav !== bFav) return aFav ? -1 : 1
+            return a.name.localeCompare(b.name)
+        })
+        .map(l => ({ ...l, isFav: favList.includes(l.id), showFav }))
+
+    const roles = [
+        { id: 'all', label: 'All', isActive: activeRole === 'all' },
+        ...(_lastData.roles ?? []).map(r => ({
+            id: r, label: r.charAt(0).toUpperCase() + r.slice(1), isActive: r === activeRole
         }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-    return {
-        layouts,
-        roles: _lastData.roles ?? [],
-        favorites: _lastData.favorites ?? {},
-        commonData: _lastData.commonData ?? {},
-        allLayouts: _lastData.layoutData ?? {},
-    };
+    ]
+
+    return { layouts, roles, searchQuery }
+}
+
+function _reRenderMenu() {
+    _lastActionLayoutId = undefined
+    render({ layoutId: MENU_LAYOUT_ID })
 }
 
 function receive(delta: any) {
     _lastData = applyDelta(_lastData, delta);
-    const layouts = Object.entries(_lastData.layouts)
-        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
-        .map(([id,l]) => ({ id, name: l.name }))
-        .sort((a, b) => a.name.localeCompare(b.name));
     if (!_lastData.layoutData) _lastData.layoutData = {};
-    _lastData.layoutData![MENU_LAYOUT_ID] = { layouts };
-    _layoutIdList = layouts.map(l => l.id).filter(k => k !== OCR_LAYOUT_ID);
+    _layoutIdList = Object.entries(_lastData.layouts)
+        .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
+        .map(([id,]) => id)
+        .filter(k => k !== OCR_LAYOUT_ID);
 
-    // Update menu data if menu is currently showing
-    if (_layoutId === MENU_LAYOUT_ID && document.getElementById('menu-mount')?.children.length) {
-        updateMenuData(_buildMenuData());
+    if (_layoutId === MENU_LAYOUT_ID) {
+        _lastActionLayoutId = undefined  // allow action to re-run after re-render
     }
 }
 
@@ -422,11 +460,9 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
         scale = 1;
     }
 
-    // Skip clientRender when menu is already mounted to preserve interactive DOM
-    if (s.layoutId === MENU_LAYOUT_ID && document.getElementById('menu-mount')?.children.length) {
-        return;
+    if (s.layoutId === MENU_LAYOUT_ID) {
+        d.layoutData![MENU_LAYOUT_ID] = _buildMenuData() as any;
     }
-
     const layoutData = d.layoutData?.[s.layoutId];
     const single: StreamRenderSingle = {
         data: layoutData ? {

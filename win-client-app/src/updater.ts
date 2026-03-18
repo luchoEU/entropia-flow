@@ -1,4 +1,4 @@
-import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_CLIENT_SETTINGS, STORE_WINDOW } from './const';
+import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_CLIENT_SETTINGS, STORE_WINDOW, STORE_STREAM, STORE_SETTINGS, STORE_VER } from './const';
 import { Socket } from './socket';
 import { interpolate } from './utils';
 
@@ -116,6 +116,14 @@ async function installResourcesUpdate(): Promise<void> {
     // Brief delay to let child processes finish
     await new Promise(resolve => setTimeout(resolve, 300));
 
+    // Reset stream/settings to clean state so restarted app doesn't see the kill signal.
+    // Windows have already received the kill signal and are exiting; we clear it here so
+    // the fresh process doesn't accidentally kill the newly opened windows on startup.
+    await Neutralino.storage.setData(STORE_STREAM, JSON.stringify({}));
+    await Neutralino.storage.setData(interpolate(STORE_VER, STORE_STREAM), '0');
+    await Neutralino.storage.setData(STORE_SETTINGS, JSON.stringify({}));
+    await Neutralino.storage.setData(interpolate(STORE_VER, STORE_SETTINGS), '0');
+
     // Re-write window states with fresh timestamps
     for (const { key, data } of windowSnapshots) {
         try {
@@ -228,8 +236,10 @@ const Updater = {
     init: async () => {
         const settings = await getClientSettings();
         if (!settings.autoUpdateEnabled) return;
-        setTimeout(checkAndNotify, 5000);
-        startPeriodicChecks();
+        setTimeout(async () => {
+            await checkAndNotify();
+            startPeriodicChecks();
+        }, 5000);
     },
     checkForUpdates,
     installResourcesUpdate,

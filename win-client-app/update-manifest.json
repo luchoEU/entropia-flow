@@ -1,6 +1,6 @@
 {
   "applicationId": "com.entropia.flow",
-  "version": "0.2.0-dev.9",
+  "version": "0.2.0-dev.13",
   "resourcesURL": "http://192.168.0.32:9147/dist/resources.neu",
   "binaryVersion": "0.2.0",
   "binaryURL": "https://github.com/luchoEU/entropia-flow/releases/download/v0.2.0/EntropiaFlowClient.zip"

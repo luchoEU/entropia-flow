@@ -39,6 +39,15 @@ To test auto-update locally, use a two-step workflow:
 1. **Install the "old" build** — deploy the current zip to the Windows VM and run it
 2. **Bump version + rebuild + update manifest** — bump the version in `package.json`, `neutralino.config.json`, `src/const.ts` (and changelog), rebuild via `build-trigger.sh`, then update `update-manifest.json` to the new version. The `resources.neu` in `dist/` is already served by the dev server at `resourcesURL`, so the running "old" client will detect and auto-update to the new version within the dev check interval (30s).
 
+## "auto" Command
+
+When the user says **"auto"**, it means: bump the dev version, rebuild via `build-trigger.sh`, and update `update-manifest.json` so the running client auto-updates. Specifically:
+
+1. Bump the dev version (e.g., `0.2.0-dev.9` → `0.2.0-dev.10`) in `package.json`, `neutralino.config.json`, and `src/const.ts`
+2. Update `CHANGESLOG.md` with any new entries
+3. Trigger the build: `bash win-client-app/script/build-trigger.sh`
+4. After build succeeds, update `update-manifest.json` to the new version
+
 ## Changelog
 
 Update `CHANGESLOG.md` when making user-facing changes (fixes, features, breaking changes). Follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Add entries under the current `[Unreleased]` version section using categories: `Added`, `Changed`, `Fixed`, `Removed`.

@@ -1,6 +1,6 @@
 {
   "name": "entropia-flow-client",
-  "version": "0.2.0-dev.9",
+  "version": "0.2.0-dev.13",
   "description": "Entropia Flow Client",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,6 @@
   "author": "Lucho MUCHO Ireton",
   "license": "MIT",
   "devDependencies": {
-    "@types/mustache": "^4.2.6",
     "adm-zip": "^0.5.16",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
@@ -23,6 +22,5 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "mustache": "^4.2.0"
   }
 }
