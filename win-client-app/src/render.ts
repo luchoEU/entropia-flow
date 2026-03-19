@@ -282,7 +282,20 @@ function nextLayout() {
     render({ layoutId: nextLayoutId });
 }
 
-function dispatch(action: string) {
+function changeState(key: string, value: any) {
+    const ld = _lastData.layoutData?.[_layoutId];
+    if (ld) ld[key] = value;
+    _lastActionLayoutId = undefined;
+    render({ layoutId: _layoutId });
+    sendMessageToMain('change-state', { key, value }, 'chrome-extension');
+}
+
+function dispatchOnClick(action: string) {
+    if (action.startsWith('set:')) {
+        const [key, value] = action.slice(4).split('=');
+        changeState(key, value);
+        return;
+    }
     sendMessageToMain('dispatch', action, 'chrome-extension');
 }
 
@@ -321,7 +334,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
         } : d.commonData!,
         layout: layout as any
     };
-    let size = await clientRender(single, dispatch, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
+    let size = await clientRender(single, dispatchOnClick, scale, s.minimized ? { width: 30, height: 30 } : { width: 100, height: 50 });
     Mouse.resetDrag();
     if (size) {
         await setContentSize(size);

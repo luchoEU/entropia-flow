@@ -1,5 +1,5 @@
 import { gameTime } from "../../common/date"
-import { emptyGameLogData, GameLogData } from "./gameLogData"
+import { emptyGameLogData, GameLogData, GameLogKill } from "./gameLogData"
 import GameLogHistory from "./gameLogHistory"
 import GameLogParser from "./gameLogParser"
 
@@ -18,7 +18,7 @@ describe('formula parser', () => {
             await gameLogParser.onMessage(line)
         }
         const log = gameLogHistory.getGameLog()
-        expect({ ...log, stats: { ...log.stats, lootStats: undefined }, raw: [] }).toEqual({ ...emptyGameLogData(), ...expected })
+        expect({ ...log, stats: { ...log.stats, lootStats: undefined }, raw: [], kills: [] }).toEqual({ ...emptyGameLogData(), ...expected })
     }
 
     test('team', async () => await parseExpect(
@@ -578,4 +578,149 @@ describe('formula parser', () => {
             }]
         }
     ))
+})
+
+describe('kill grouping', () => {
+    let gameLogParser: GameLogParser
+    let gameLogHistory: GameLogHistory
+
+    beforeEach(() => {
+        gameLogParser = new GameLogParser()
+        gameLogHistory = new GameLogHistory()
+        gameLogParser.onLines = (lines) => gameLogHistory.onLines(lines)
+    })
+
+    async function parseAndGetKills(lines: string): Promise<GameLogKill[]> {
+        for (const line of lines.split('\n')) {
+            await gameLogParser.onMessage(line)
+        }
+        return gameLogHistory.getGameLog().kills
+    }
+
+    test('single kill with multiple items grouped together', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2025-01-12 07:47:37 [System] [] You received Mayhem Token x (1) Value: 0.0000 PED
+2025-01-12 07:47:37 [System] [] You received Shrapnel x (45745) Value: 4.57 PED`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(1)
+        expect(kills[0].time).toBe(gameTime('2025-01-12 07:47:37'))
+        expect(kills[0].items).toHaveLength(2)
+        expect(kills[0].total).toBeCloseTo(4.57, 2)
+    })
+
+    test('items within 1 second grouped into same kill', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
+2025-01-15 09:41:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(1)
+        expect(kills[0].items).toHaveLength(2)
+        expect(kills[0].total).toBeCloseTo(3.82, 2)
+    })
+
+    test('items more than 1 second apart are separate kills', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2025-01-15 09:41:22 [System] [] You received Christmas Strongbox x (1) Value: 0.0000 PED
+2025-01-15 09:42:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(2)
+        expect(kills[0].time).toBe(gameTime('2025-01-15 09:42:23'))
+        expect(kills[1].time).toBe(gameTime('2025-01-15 09:41:22'))
+    })
+
+    test('resources (ignored for kill count) still appear in kill groups', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2025-03-02 06:48:04 [System] [] You received Brukite x (48) Value: 0.0004 PED`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(1)
+        expect(kills[0].items[0].name).toBe('Brukite')
+    })
+
+    test('enhancer broken removes kill group', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2025-03-02 07:20:50 [System] [] You received Shrapnel x (8000) Value: 0.8000 PED
+2025-03-02 07:20:50 [System] [] Your enhancer Weapon Damage Enhancer 2 on your ArMatrix BP-65 (L) broke. You have 4 enhancers remaining on the item. You received 0.8000 PED Shrapnel.`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(0)
+    })
+
+    test('kill groups ordered newest first', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines =
+`2024-12-23 17:08:58 [System] [] You received Shrapnel x (23362) Value: 2.33 PED
+2024-12-23 17:09:18 [System] [] You received Shrapnel x (4212) Value: 0.4212 PED
+2024-12-23 17:09:18 [System] [] You received Animal Adrenal Oil x (9) Value: 1.80 PED`
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const kills = await parseAndGetKills(lines)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(kills).toHaveLength(2)
+        expect(kills[0].time).toBe(gameTime('2024-12-23 17:09:18'))
+        expect(kills[0].items).toHaveLength(2)
+        expect(kills[0].total).toBeCloseTo(2.2212, 4)
+        expect(kills[1].time).toBe(gameTime('2024-12-23 17:08:58'))
+        expect(kills[1].items).toHaveLength(1)
+    })
 })

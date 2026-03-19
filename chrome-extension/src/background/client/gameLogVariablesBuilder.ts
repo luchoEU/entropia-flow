@@ -45,6 +45,7 @@ const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {
 
     return [
         { name: 'loot', value: gameLog.loot },
+        { name: 'kills', value: gameLog.kills },
         { name: 'tier', value: gameLog.tier },
         { name: 'skill', value: gameLog.skill },
         { name: 'enhancerBroken', value: gameLog.enhancerBroken },

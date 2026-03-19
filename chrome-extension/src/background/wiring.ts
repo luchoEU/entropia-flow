@@ -23,6 +23,7 @@ import {
     MSG_NAME_MONITORING_CHANGED,
     MSG_NAME_REQUEST_CHANGE_MONITORING,
     MSG_NAME_RETRY_WEB_SOCKET,
+    MSG_NAME_CHANGE_LAYOUT_STATE,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -137,6 +138,11 @@ async function wiring(
             case "dispatch":
                 await viewTabManager.sendDispatch(msg.data)
                 break;
+            case "change-state": {
+                const { key, value } = msg.data
+                await streamDataBuilder.changeState(key, value)
+                break;
+            }
             case "used-layouts":
                 streamDataBuilder.setUsedLayouts(msg.data)
                 break;
@@ -235,6 +241,9 @@ async function wiring(
         [MSG_NAME_RETRY_WEB_SOCKET]: async () => {
             const url = await viewSettings.getWebSocketUrl()
             await webSocketClient.start(url)
+        },
+        [MSG_NAME_CHANGE_LAYOUT_STATE]: async (m: { key: string, value: any }) => {
+            await streamDataBuilder.changeState(m.key, m.value)
         }
     }
 

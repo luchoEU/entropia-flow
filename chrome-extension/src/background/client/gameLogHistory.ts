@@ -2,7 +2,7 @@
 // Keep the log history and summary from game log
 
 import { emptyTemporalValue } from "../../common/state"
-import { emptyGameLogData, GameLogData, GameLogLine } from "./gameLogData"
+import { emptyGameLogData, GameLogData, GameLogKill, GameLogLine } from "./gameLogData"
 
 const MAX_LOG_LINES = 1000
 
@@ -29,6 +29,7 @@ function _unshiftWithMax<T>(list: T[], item: T) {
 class GameLogHistory implements IGameLogHistory {
     private gameLog: GameLogData = emptyGameLogData()
     private lastLootDateTime: number
+    private lastKillLootTime: number
     private timeout: NodeJS.Timeout
     private listeners: ((gameLog: GameLogData) => Promise<void>)[] = []
 
@@ -80,6 +81,17 @@ class GameLogHistory implements IGameLogHistory {
             } else {
                 this.gameLog.loot.unshift(line.data.loot);
             }
+
+            // Group all loot into per-kill buckets (1-second proximity)
+            if (!this.lastKillLootTime || line.time - this.lastKillLootTime > 1000) {
+                const kill: GameLogKill = { time: line.time, items: [{ ...line.data.loot }], total: line.data.loot.value }
+                _unshiftWithMax(this.gameLog.kills, kill)
+            } else {
+                const currentKill = this.gameLog.kills[0]
+                currentKill.items.push({ ...line.data.loot })
+                currentKill.total += line.data.loot.value
+            }
+            this.lastKillLootTime = line.time
 
             if (!ignoreLootForKill.includes(line.data.loot.name)) {
                 if (!this.lastLootDateTime || line.time - this.lastLootDateTime > 1000) {
@@ -160,6 +172,10 @@ class GameLogHistory implements IGameLogHistory {
                 this.gameLog.stats.kills.history.shift();
                 this.gameLog.stats.kills.count--;
                 this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
+            }
+            // Also remove the most recent kill group
+            if (this.gameLog.kills.length > 0) {
+                this.gameLog.kills.shift()
             }
         }
         this.lastLootDateTime = time

@@ -21,6 +21,7 @@ interface IApiStorage {
     loadStream(): Promise<StreamStateIn>
     loadFavorites(): Promise<RoleFavorites>
     saveFavorites(favorites: RoleFavorites): Promise<void>
+    saveLayoutState(layoutId: string, state: Record<string, any>): Promise<void>
 }
 
 class StreamDataBuilder {
@@ -64,6 +65,20 @@ class StreamDataBuilder {
         this._favorites = await this.apiStorage.loadFavorites()
         this._isDirty = true
     }
+
+    public async changeState(key: string, value: any) {
+        const layouts = this._builderState.layouts
+        if (!layouts) return
+        for (const [id, layout] of Object.entries(layouts)) {
+            if (layout.state && key in layout.state) {
+                layout.state[key] = value
+                await this.apiStorage.saveLayoutState(id, layout.state)
+                this._isDirty = true
+            }
+        }
+    }
+
+
 
     public async updateState(name: string) {
         if (name === STORAGE_VIEW_LAST || !this._builderState.last)
@@ -149,14 +164,16 @@ class StreamDataBuilder {
         const commonData: StreamRenderObject = computeFormulas(vObjNoBackDark, tObj);
         const layoutTuple: [string, StreamStateVariable[], StreamRenderObject][] = Object.entries(layouts).map(([id, layout]) => {
             const parameters = Object.fromEntries(layout.parameters?.map(v => [v.name, v.value]) ?? []);
+            const state = layout.state ?? {};
             const backDark = getBackgroundSpec(layout.backgroundType)?.dark ?? false;
-            const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj, ...parameters }, tObj);
+            const backComputed = computeFormulas({ ...commonData, backDark, ...backDarkFormulaObj, ...parameters, ...state }, tObj);
             const layoutVariables = this.getLayoutVariables(backComputed, layout);
             const layoutObj: StreamRenderObject = {
-                ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])), 
+                ...Object.fromEntries(layoutVariables.map(v => [v.name, v.value])),
                 backDark,
                 ...Object.fromEntries(Object.entries(backComputed).filter(([k]) => Object.keys(backDarkFormulaObj).includes(k))),
-                ...parameters
+                ...parameters,
+                ...state
             };
             if (layout.images)
                 layoutObj.img = Object.fromEntries(layout.images.map(v => [v.name, v.value]))

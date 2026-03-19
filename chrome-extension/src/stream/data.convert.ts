@@ -12,7 +12,8 @@ const savedToExportLayout = (layout: StreamSavedLayout): StreamExportLayout => (
         name: v.name,
         value: v.value,
         description: v.description?.length ? v.description : undefined
-    }))
+    })),
+    state: layout.state,
 })
 
 const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => {
@@ -30,6 +31,7 @@ const exportToSavedLayout = (layout: StreamExportLayout): StreamSavedLayout => {
         value: v.value,
         description: v.description
     }));
+    if (layout.state) savedLayout.state = layout.state;
     return savedLayout;
 }
 

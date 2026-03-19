@@ -33,6 +33,7 @@ const MSG_NAME_STORAGE_CHANGED = 'StorageChanged'
 const MSG_NAME_OPEN_VIEW = 'OpenView'
 const MSG_NAME_SET_WEB_SOCKET_URL = 'SetWebSocketUrl'
 const MSG_NAME_RETRY_WEB_SOCKET = 'RetryWebSocket'
+const MSG_NAME_CHANGE_LAYOUT_STATE = 'ChangeLayoutState'
 
 // Classes
 const CLASS_INFO = 'info'
@@ -126,6 +127,7 @@ export {
     MSG_NAME_OPEN_VIEW,
     MSG_NAME_SET_WEB_SOCKET_URL,
     MSG_NAME_RETRY_WEB_SOCKET,
+    MSG_NAME_CHANGE_LAYOUT_STATE,
     CLASS_INFO,
     CLASS_NEW_DATE,
     CLASS_ERROR,

@@ -1,7 +1,7 @@
 import { ChromeMessagesClient } from "../../../chrome/chromeMessages"
 import { LOCAL_STORAGE, SYNC_STORAGE } from "../../../chrome/chromeStorageArea"
 import { PortHandler } from "../../../chrome/IPort"
-import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, PORT_NAME_BACK_VIEW, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW, MSG_NAME_BLUEPRINT_LIST, MSG_NAME_STORAGE_CHANGED, MSG_NAME_SET_SHOWING_LAYOUT_ID, MSG_NAME_REQUEST_CHANGE_MONITORING } from "../../../common/const"
+import { MSG_NAME_REFRESH_VIEW, MSG_NAME_REGISTER_VIEW, MSG_NAME_REQUEST_NEW, MSG_NAME_REQUEST_SET_LAST, PORT_NAME_BACK_VIEW, MSG_NAME_SET_WEB_SOCKET_URL, MSG_NAME_RETRY_WEB_SOCKET, MSG_NAME_ACTION_VIEW, MSG_NAME_NOTIFICATION_VIEW, MSG_NAME_BLUEPRINT_LIST, MSG_NAME_STORAGE_CHANGED, MSG_NAME_SET_SHOWING_LAYOUT_ID, MSG_NAME_REQUEST_CHANGE_MONITORING, MSG_NAME_CHANGE_LAYOUT_STATE } from "../../../common/const"
 import { traceId } from "../../../common/trace"
 
 let messagesClient: ChromeMessagesClient
@@ -52,6 +52,10 @@ function retryWebSocket() {
     return messagesClient.send(MSG_NAME_RETRY_WEB_SOCKET)
 }
 
+function changeLayoutState(key: string, value: any): boolean {
+    return messagesClient.send(MSG_NAME_CHANGE_LAYOUT_STATE, { key, value })
+}
+
 traceId('V')
 
 export default {
@@ -62,5 +66,6 @@ export default {
     requestTimerOff,
     setShowingLayoutId,
     setWebSocketUrl,
-    retryWebSocket
+    retryWebSocket,
+    changeLayoutState
 }

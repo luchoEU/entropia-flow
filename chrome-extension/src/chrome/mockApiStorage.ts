@@ -27,6 +27,10 @@ class MockApiStorage implements IApiStorage {
         this._favorites = favorites
         return Promise.resolve()
     }
+
+    saveLayoutState(_layoutId: string, _state: Record<string, any>): Promise<void> {
+        return Promise.resolve()
+    }
 }
 
 export default MockApiStorage

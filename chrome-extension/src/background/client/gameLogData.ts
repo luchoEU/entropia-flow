@@ -1,8 +1,15 @@
 import { TemporalValue } from "../../common/state"
 
+interface GameLogKill {
+    time: number
+    items: GameLogLoot[]
+    total: number
+}
+
 interface GameLogData {
     raw: Array<GameLogLine>
     loot: Array<GameLogLoot>
+    kills: Array<GameLogKill>
     team: Array<GameLogTeam>
     tier: Array<GameLogTier>
     skill: Array<GameLogSkill>
@@ -16,6 +23,7 @@ interface GameLogData {
 const emptyGameLogData = (): GameLogData => ({
     raw: [],
     loot: [],
+    kills: [],
     team: [],
     tier: [],
     skill: [],
@@ -159,6 +167,7 @@ interface GameLogEvent {
 
 export {
     GameLogData,
+    GameLogKill,
     GameLogLoot,
     GameLogTier,
     GameLogGlobal,

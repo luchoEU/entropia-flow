@@ -49,6 +49,7 @@ interface StreamCommonLayout extends StreamRenderLayout {
 interface StreamSavedLayout extends StreamCommonLayout {
     images?: StreamUserImageVariable[]
     parameters?: StreamUserParameterVariable[]
+    state?: Record<string, any>
     readonly?: boolean
     stared?: boolean
 }
@@ -56,6 +57,7 @@ interface StreamSavedLayout extends StreamCommonLayout {
 interface StreamExportLayout extends StreamCommonLayout {
     images?: Omit<StreamUserImageVariable, 'id'>[]
     parameters?: Omit<StreamUserParameterVariable, 'id'>[]
+    state?: Record<string, any>
     schema: number
 }
 

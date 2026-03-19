@@ -67,6 +67,14 @@ class AtomStorageBridge implements IApiStorage {
     await LOCAL_STORAGE.set(AtomStorageBridge.FAVORITES_KEY, favorites)
   }
 
+  async saveLayoutState(layoutId: string, state: Record<string, any>): Promise<void> {
+    const stream = await LOCAL_STORAGE.get(STORAGE_VIEW_STREAM)
+    if (stream?.layouts?.[layoutId]) {
+      stream.layouts[layoutId].state = state
+      await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, stream)
+    }
+  }
+
   /**
    * Decompresses items data that was compressed with pako deflate
    * This mirrors the compression logic in itemsStorage.ts

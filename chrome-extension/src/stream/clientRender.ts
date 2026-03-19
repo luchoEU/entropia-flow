@@ -13,7 +13,7 @@ const patch = init([
 const STREAM_ID = 'stream'
 
 let isRendering = false;
-export async function render(single: StreamRenderSingle, dispatch: (action: string) => void, scale?: number, minSize?: StreamRenderSize): Promise<StreamRenderSize | null> {
+export async function render(single: StreamRenderSingle, dispatchOnClick: (action: string) => void, scale?: number, minSize?: StreamRenderSize): Promise<StreamRenderSize | null> {
     if (isRendering) {
         return null;
     }
@@ -56,7 +56,7 @@ export async function render(single: StreamRenderSingle, dispatch: (action: stri
         }
 
         // add click handlers
-        const handleClick = (e: Event) => dispatch((e.target as HTMLElement).dataset.click ?? '');
+        const handleClick = (e: Event) => dispatchOnClick((e.target as HTMLElement).dataset.click ?? '');
         const clickableElements = streamElement.querySelectorAll('[data-click]');
         clickableElements?.forEach((el: Element) => el.addEventListener('click', handleClick));
 

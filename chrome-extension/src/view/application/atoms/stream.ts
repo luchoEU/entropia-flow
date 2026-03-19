@@ -8,7 +8,6 @@ import { STORAGE_VIEW_STREAM } from '../../../common/const'
 import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import defaultLayout from '../helpers/layout/default.entropiaflow.layout.json'
 import huntLayout from '../helpers/layout/hunt.entropiaflow.layout.json'
-import teamLayout from '../helpers/layout/team.entropiaflow.layout.json'
 import lootLayout from '../helpers/layout/loot.entropiaflow.layout.json'
 
 // Helper function to load builtin layouts
@@ -28,7 +27,6 @@ const initialStateIn: StreamStateIn = {
     layouts: {
         ['entropiaflow.default']: loadBuiltinLayout(defaultLayout),
         ['entropiaflow.hunt']: loadBuiltinLayout(huntLayout),
-        ['entropiaflow.team']: loadBuiltinLayout(teamLayout),
         ['entropiaflow.loot']: loadBuiltinLayout(lootLayout),
     },
     trashLayouts: {},
@@ -87,7 +85,7 @@ export async function initializeStreamFromStorage(): Promise<void> {
       const layouts = { ...storedState.layouts }
       for (const [id, builtin] of Object.entries(initialStateIn.layouts)) {
         if (layouts[id]) {
-          layouts[id] = { ...builtin, stared: layouts[id].stared }
+          layouts[id] = { ...builtin, stared: layouts[id].stared, state: layouts[id].state ?? builtin.state }
         }
       }
       cachedStreamData = { ...storedState, layouts }
