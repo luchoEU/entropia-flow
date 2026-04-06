@@ -103,6 +103,53 @@
     margin: 0;
 }
 
+// Reset session row
+.dashboard-reset-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-reset-btn {
+    font-size: 11px;
+    color: #999;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    user-select: none;
+    &:hover {
+        color: #c62828;
+        background: #ffebee;
+    }
+}
+
+.dashboard-reset-disabled {
+    opacity: 0.4;
+    cursor: default;
+    &:hover {
+        color: #999;
+        background: transparent;
+    }
+}
+
+.dashboard-reset-pending {
+    font-size: 11px;
+    color: #999;
+}
+
+.dashboard-reset-undo {
+    font-size: 11px;
+    color: #1976d2;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    user-select: none;
+    &:hover {
+        background: #e3f2fd;
+    }
+}
+
 // Dashboard stat boxes (stream overlay inspired)
 .dashboard-stats {
     display: flex;

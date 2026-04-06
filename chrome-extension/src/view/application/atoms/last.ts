@@ -10,6 +10,8 @@ import { historyAtom, INVENTORY_KEY_SCALE } from './history'
 import { atomWithStorage } from 'jotai/utils'
 import { STORAGE_VIEW_LAST } from '../../../common/const'
 import { itemsMapAtom } from './items'
+import { currentGameLogDataAtom } from './gameLog'
+import { GameLogData } from '../../../background/client/gameLogData'
 
 // Extended computed state with additional UI state
 interface ComputedStateExtended extends ComputedLastState {
@@ -334,6 +336,49 @@ export const setLastAtom = atom(
             notificationsDone: []
         }
         set(lastPersistedAtom, newState)
+    }
+)
+
+export interface HunterSessionSnapshot {
+    persisted: PersistedLastState
+    gameLog: GameLogData
+    lastTimestamp: number
+}
+
+// Reset hunter session: set current inventory as baseline, clear game log, and clear blacklist
+// Returns a snapshot for undo
+export const resetHunterSessionAtom = atom(
+    null,
+    async (get, set): Promise<HunterSessionSnapshot> => {
+        const snapshot: HunterSessionSnapshot = {
+            persisted: get(lastPersistedAtom),
+            gameLog: get(currentGameLogDataAtom),
+            lastTimestamp: get(lastTimestampAtom),
+        }
+
+        const computed = get(lastComputedAtom)
+        if (computed.latestInventoryKey) {
+            messagesApi.requestSetLast(true, computed.latestInventoryKey)
+        }
+        set(lastPersistedAtom, {
+            ...snapshot.persisted,
+            expanded: false,
+            peds: [],
+            notificationsDone: [],
+            blacklist: []
+        })
+
+        return snapshot
+    }
+)
+
+// Undo a hunter session reset by restoring the saved snapshot
+export const undoResetHunterSessionAtom = atom(
+    null,
+    async (_get, set, snapshot: HunterSessionSnapshot) => {
+        set(lastPersistedAtom, snapshot.persisted)
+        messagesApi.requestSetLast(false, snapshot.lastTimestamp)
+        messagesApi.restoreGameLog(snapshot.gameLog)
     }
 )
 

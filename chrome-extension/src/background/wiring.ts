@@ -24,6 +24,7 @@ import {
     MSG_NAME_REQUEST_CHANGE_MONITORING,
     MSG_NAME_RETRY_WEB_SOCKET,
     MSG_NAME_CHANGE_LAYOUT_STATE,
+    MSG_NAME_RESTORE_GAME_LOG,
 } from '../common/const'
 import ContentTabManager from './content/contentTab'
 import InventoryManager from './inventory/inventory'
@@ -244,6 +245,9 @@ async function wiring(
         },
         [MSG_NAME_CHANGE_LAYOUT_STATE]: async (m: { key: string, value: any }) => {
             await streamDataBuilder.changeState(m.key, m.value)
+        },
+        [MSG_NAME_RESTORE_GAME_LOG]: async (m: { gameLog: any }) => {
+            await gameLogHistory.setGameLog(m.gameLog)
         }
     }
 

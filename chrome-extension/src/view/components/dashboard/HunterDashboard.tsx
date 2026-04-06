@@ -1,11 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DashboardSection from './DashboardSection'
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { useAtomValue, useSetAtom, useAtom } from 'jotai'
 import { statusAtom } from '../../application/atoms/status'
 import { connectionAtom, setConnectionWebSocketAtom, setConnectionStatusAtom } from '../../application/atoms/connection'
-import { lastComputedAtom, lastPersistedAtom, setLastShowMarkupAtom, excludeItemAtom, includeItemAtom, lastItemEditModeKeyAtom } from '../../application/atoms/last'
+import { lastComputedAtom, lastPersistedAtom, setLastShowMarkupAtom, excludeItemAtom, includeItemAtom, lastItemEditModeKeyAtom, resetHunterSessionAtom, undoResetHunterSessionAtom, HunterSessionSnapshot } from '../../application/atoms/last'
 import { streamRenderDataAtom } from '../../application/atoms/stream'
 import { currentGameLogDataAtom } from '../../application/atoms/gameLog'
 import { inventoryListAtom } from '../../application/atoms/history'
@@ -138,6 +138,32 @@ const HunterDashboard = () => {
     const itemsMap = useAtomValue(itemsMapAtom)
     const exclude = useSetAtom(excludeItemAtom)
     const include = useSetAtom(includeItemAtom)
+    const resetSession = useSetAtom(resetHunterSessionAtom)
+    const undoReset = useSetAtom(undoResetHunterSessionAtom)
+    const [undoState, setUndoState] = useState<{ snapshot: HunterSessionSnapshot, remaining: number } | null>(null)
+    const undoTimerRef = useRef<ReturnType<typeof setInterval>>(undefined)
+    const snapshotRef = useRef<HunterSessionSnapshot>(undefined)
+    const doReset = useCallback(async () => {
+        const snapshot = await resetSession()
+        snapshotRef.current = snapshot
+        setUndoState({ snapshot, remaining: 5 })
+        clearInterval(undoTimerRef.current)
+        undoTimerRef.current = setInterval(() => {
+            setUndoState(prev => {
+                if (!prev || prev.remaining <= 1) {
+                    clearInterval(undoTimerRef.current)
+                    return null
+                }
+                return { ...prev, remaining: prev.remaining - 1 }
+            })
+        }, 1000)
+    }, [resetSession])
+    const doUndo = useCallback(() => {
+        clearInterval(undoTimerRef.current)
+        if (snapshotRef.current) undoReset(snapshotRef.current)
+        setUndoState(null)
+    }, [undoReset])
+    useEffect(() => () => clearInterval(undoTimerRef.current), [])
     const setWebSocket = useSetAtom(setConnectionWebSocketAtom)
     const setConnectionStatus = useSetAtom(setConnectionStatusAtom)
 
@@ -169,6 +195,7 @@ const HunterDashboard = () => {
         : '--'
 
     const killCount = gameLog.stats?.kills?.count ?? 0
+    const hasSessionData = killCount > 0 || (diff != null && diff.length > 0)
     const allItems = useMemo(() => {
         if (sort.mode === 'standard') {
             return cloneSortList(diff ?? [], sort.sortType)
@@ -298,6 +325,15 @@ const HunterDashboard = () => {
                 </div>
             </div>}
             {anyInventory && (<>
+                <div className='dashboard-reset-row'>
+                    {undoState
+                        ? <>
+                            <span className='dashboard-reset-pending'>Session reset</span>
+                            <span className='dashboard-reset-undo' onClick={doUndo}>Undo ({undoState.remaining})</span>
+                        </>
+                        : <span className={`dashboard-reset-btn${hasSessionData ? '' : ' dashboard-reset-disabled'}`}
+                              onClick={hasSessionData ? doReset : undefined}>Reset Session</span>}
+                </div>
                 <div className='dashboard-stats'>
                     <div className={`dashboard-stat dashboard-stat-${getDeltaClass(delta)}`}>
                         <span className='dashboard-stat-label'>Delta</span>
