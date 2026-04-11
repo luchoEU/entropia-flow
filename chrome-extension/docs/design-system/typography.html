@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Entropia Flow · Design System · Typography</title>
+<style>
+  :root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    background: #f7f7f8;
+  }
+  body { margin: 0; padding: 32px; max-width: 1080px; margin-left: auto; margin-right: auto; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  header p { margin: 0 0 24px; color: #666; font-size: 13px; }
+  h2 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin: 32px 0 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+  th {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #fafafa;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  td.token {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: #555;
+    width: 200px;
+  }
+  td.meta {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: #888;
+    width: 180px;
+    white-space: nowrap;
+  }
+
+  /* Tokens — these apply to the .sample inside each row */
+  .section-title {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+  }
+  .section-subtitle {
+    font-size: 11px;
+    color: #888;
+    font-weight: normal;
+    letter-spacing: 0.3px;
+  }
+  .card-title {
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+  .body {
+    font-size: 13px;
+    color: #333;
+  }
+  .table-header {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .detail-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .detail-value {
+    font-size: 13px;
+    line-height: 20px;
+    color: #333;
+  }
+  .detail-notes {
+    font-size: 12px;
+    color: #333;
+  }
+  .role-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+  }
+  .connection-primary {
+    font-size: 13px;
+    color: #333;
+  }
+  .connection-status {
+    font-size: 11px;
+    color: #999;
+  }
+  .status-compact {
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+  }
+  .hof-badge {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: #fff3e0;
+    color: #e65100;
+  }
+  .reset-hint {
+    font-size: 11px;
+    color: #999;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 11px;
+    color: #888;
+  }
+  footer a { color: #1976d2; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Typography</h1>
+    <p>All font sizes in the role dashboards. System sans-serif stack — no custom fonts.</p>
+  </header>
+
+  <h2>Type Scale</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Sample</th>
+        <th>Specs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="token">stat-value</td>
+        <td><span class="stat-value">12,345.67 PED</span></td>
+        <td class="meta">18px · 700</td>
+      </tr>
+      <tr>
+        <td class="token">role-label</td>
+        <td><span class="role-label">Hunter</span></td>
+        <td class="meta">14px · 700</td>
+      </tr>
+      <tr>
+        <td class="token">card-title <small>(h4)</small></td>
+        <td><span class="card-title">Session</span></td>
+        <td class="meta">13px · 400 · uppercase · 0.5px</td>
+      </tr>
+      <tr>
+        <td class="token">body</td>
+        <td><span class="body">Items page · Connected</span></td>
+        <td class="meta">13px · 400</td>
+      </tr>
+      <tr>
+        <td class="token">connection-primary</td>
+        <td><span class="connection-primary">Items page</span></td>
+        <td class="meta">13px · 400</td>
+      </tr>
+      <tr>
+        <td class="token">detail-value</td>
+        <td><span class="detail-value">100.00 PED</span></td>
+        <td class="meta">13px · 400 · lh 20</td>
+      </tr>
+      <tr>
+        <td class="token">detail-notes</td>
+        <td><span class="detail-notes">Good MU at Auction House</span></td>
+        <td class="meta">12px · 400</td>
+      </tr>
+      <tr>
+        <td class="token">section-title</td>
+        <td><span class="section-title">Items</span></td>
+        <td class="meta">11px · 700 · uppercase · 0.5px</td>
+      </tr>
+      <tr>
+        <td class="token">section-subtitle</td>
+        <td><span class="section-subtitle">(12 items)</span></td>
+        <td class="meta">11px · 400 · 0.3px</td>
+      </tr>
+      <tr>
+        <td class="token">stat-label</td>
+        <td><span class="stat-label">Delta</span></td>
+        <td class="meta">11px · 400 · uppercase · 0.5px</td>
+      </tr>
+      <tr>
+        <td class="token">table-header (th)</td>
+        <td><span class="table-header">Name</span></td>
+        <td class="meta">11px · 400 · uppercase · 0.5px</td>
+      </tr>
+      <tr>
+        <td class="token">connection-status</td>
+        <td><span class="connection-status">Last updated 2m ago</span></td>
+        <td class="meta">11px · 400</td>
+      </tr>
+      <tr>
+        <td class="token">reset-hint</td>
+        <td><span class="reset-hint">Reset session</span></td>
+        <td class="meta">11px · 400</td>
+      </tr>
+      <tr>
+        <td class="token">detail-label</td>
+        <td><span class="detail-label">Type</span></td>
+        <td class="meta">10px · 400 · uppercase · 0.3px</td>
+      </tr>
+      <tr>
+        <td class="token">status-compact</td>
+        <td><span class="status-compact">IT</span></td>
+        <td class="meta">10px · 700</td>
+      </tr>
+      <tr>
+        <td class="token">hof-badge</td>
+        <td><span class="hof-badge">HoF</span></td>
+        <td class="meta">10px · 700</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Rules</h2>
+  <table>
+    <tbody>
+      <tr><td class="token">Font stack</td><td>System UI sans-serif. No web fonts are loaded.</td></tr>
+      <tr><td class="token">Minimum size</td><td>10px — used only for badges and the compact status label. Never go smaller.</td></tr>
+      <tr><td class="token">Weights</td><td>Only <strong>400</strong> (regular) and <strong>700</strong> (bold). Container / group rows use <strong>600</strong> semi-bold.</td></tr>
+      <tr><td class="token">Uppercase labels</td><td>All UI labels are uppercase with 0.3–0.5px letter-spacing. Values are not.</td></tr>
+      <tr><td class="token">Numerics</td><td>Right-aligned in tables via <code>.dashboard-col-right</code>. No tabular-nums override — default figures are fine at 13px.</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    Source of truth: <code>src/view/components/dashboard/HunterDashboard.scss</code> ·
+    <a href="../design-system.md">← back to index</a>
+  </footer>
+</body>
+</html>

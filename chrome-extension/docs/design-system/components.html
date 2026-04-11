@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Entropia Flow · Design System · Components</title>
+<style>
+  :root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    background: #f7f7f8;
+  }
+  body { margin: 0; padding: 32px; max-width: 1080px; margin-left: auto; margin-right: auto; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  header p { margin: 0 0 24px; color: #666; font-size: 13px; }
+  h2 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin: 40px 0 4px;
+  }
+  h2 + .caption {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: #888;
+  }
+  .stage {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .code {
+    margin-top: 8px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: #888;
+  }
+  .code code { color: #555; }
+
+  /* ==========================================================================
+     Component styles — mirrored 1:1 from HunterDashboard.scss, prefixed ds-.
+     ========================================================================== */
+
+  /* Role pills */
+  .ds-role-label {
+    display: inline-block;
+    margin-left: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #e8f5e9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #a5d6a7;
+  }
+  .ds-role-label:first-child { margin-left: 0; }
+  .ds-role-label-active { cursor: default; }
+  .ds-role-label-inactive {
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border-color: transparent;
+    color: #888;
+  }
+  .ds-role-label-inactive:hover {
+    background-color: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #333;
+  }
+
+  /* Card */
+  .ds-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Section header (inside a card with no padding) */
+  .ds-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+  .ds-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ds-section-header:hover { background: #f5f5f5; }
+  .ds-section-title-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .ds-section-title {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+  }
+  .ds-section-subtitle {
+    font-size: 11px;
+    color: #888;
+    font-weight: normal;
+    letter-spacing: 0.3px;
+  }
+
+  /* Stat boxes */
+  .ds-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .ds-stat {
+    flex: 1;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    min-width: 120px;
+  }
+  .ds-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .ds-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .ds-stat-positive {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+  }
+  .ds-stat-positive .ds-stat-value { color: #2e7d32; }
+  .ds-stat-negative {
+    background: #ffebee;
+    border-color: #ef9a9a;
+  }
+  .ds-stat-negative .ds-stat-value { color: #c62828; }
+
+  /* Connection card */
+  .ds-connection {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .ds-connection-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .ds-connection-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .ds-connection-dot-green {
+    background-color: #4caf50;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+  }
+  .ds-connection-dot-red {
+    background-color: #f44336;
+    box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+  }
+  .ds-connection-status {
+    display: block;
+    font-size: 11px;
+    color: #999;
+  }
+  .ds-connection-collapse {
+    flex: 1;
+    text-align: right;
+    font-size: 14px;
+    color: #999;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .ds-connection-collapse:hover { background: #f5f5f5; color: #333; }
+
+  .ds-status-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .ds-status-compact:hover { background: #f0f0f0; }
+  .ds-status-compact-label {
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+    margin-right: 4px;
+  }
+  .ds-connection-dot-sm {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Items table */
+  .ds-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .ds-items-table th {
+    text-align: left;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ds-items-table td {
+    padding: 4px 16px;
+  }
+  .ds-col-right {
+    text-align: right;
+  }
+  .ds-items-table th.ds-col-right { text-align: right; }
+  .ds-item-action {
+    visibility: hidden;
+    cursor: pointer;
+    font-size: 14px;
+    color: #999;
+  }
+  .ds-item-action:hover { color: #333; }
+  .ds-items-table tr:hover .ds-item-action { visibility: visible; }
+  .ds-item-excluded td { opacity: 0.4; }
+  .ds-item-excluded .ds-item-action { visibility: visible; }
+
+  /* Dashboard tree group header row */
+  .ds-tree-group > td {
+    font-weight: 600;
+    background: #fafafa;
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 16px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* Filter row + view mode toggles */
+  .ds-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px 4px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .ds-filter-input {
+    flex: 1;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+  }
+  .ds-filter-input:focus { border-color: #90caf9; }
+  .ds-filter-clear {
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+  .ds-view-modes {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    padding-right: 4px;
+  }
+  .ds-view-btn {
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #999;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+  .ds-view-btn:hover { background: #e8f5e9; color: #444; }
+  .ds-view-btn-active {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+  }
+  .ds-mu-toggle {
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+  }
+  .ds-mu-toggle.active {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+  }
+
+  /* Markup editor */
+  .ds-mu-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  .ds-mu-edit-btn {
+    cursor: pointer;
+    font-size: 12px;
+    color: #999;
+  }
+  .ds-mu-edit-btn:hover { color: #333; }
+  .ds-mu-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    justify-content: flex-end;
+  }
+  .ds-mu-edit input {
+    width: 50px;
+    font-size: 12px;
+    padding: 1px 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  .ds-mu-unit {
+    cursor: pointer;
+    font-size: 11px;
+    color: #666;
+  }
+  .ds-mu-unit:hover { color: #333; }
+
+  /* Trader detail panel */
+  .ds-trader-detail-panel {
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 4px 0;
+  }
+  .ds-trader-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px 16px;
+  }
+  .ds-trader-detail-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ds-trader-detail-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .ds-trader-detail-value {
+    font-size: 13px;
+    line-height: 20px;
+    min-height: 20px;
+  }
+  .ds-trader-detail-editable { cursor: pointer; }
+  .ds-trader-detail-edit-icon {
+    font-size: 12px;
+    color: #999;
+  }
+  .ds-trader-detail-notes {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+  }
+
+  /* Storage tree */
+  .ds-storage-tree-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .ds-storage-tree-table th {
+    text-align: left;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .ds-storage-tree-table td { padding: 3px 16px; }
+  .ds-storage-tree-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 16px !important;
+    white-space: nowrap;
+  }
+  .ds-storage-tree-expand {
+    cursor: pointer;
+    font-size: 10px;
+    color: #666;
+    min-width: 14px;
+    user-select: none;
+  }
+  .ds-storage-tree-expand:hover { color: #333; }
+  .ds-storage-tree-name-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+  .ds-storage-tree-action {
+    cursor: pointer;
+    font-size: 13px;
+    color: #aaa;
+  }
+  .ds-storage-tree-action:hover { color: #444; }
+  .ds-storage-tree-star-on { color: #f5a623; }
+  .ds-storage-tree-container > td {
+    font-weight: 600;
+    background: #fafafa;
+  }
+
+  /* HoF/ATH badges */
+  .ds-hof-badge {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: #fff3e0;
+    color: #e65100;
+    margin-left: 4px;
+  }
+  .ds-ath-badge {
+    background: #fce4ec;
+    color: #c62828;
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 11px;
+    color: #888;
+  }
+  footer a { color: #1976d2; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Components</h1>
+    <p>Live gallery of the building blocks used in Hunter, Trader, and Storage dashboards. Hover the table rows to see revealed actions.</p>
+  </header>
+
+  <h2>Role Pills</h2>
+  <p class="caption">Active pill for the current role, inactive pills for the other two.</p>
+  <div class="stage">
+    <span class="ds-role-label ds-role-label-active">Hunter</span>
+    <span class="ds-role-label ds-role-label-inactive">Trader</span>
+    <span class="ds-role-label ds-role-label-inactive">Storage</span>
+    <div class="code"><code>.role-label .role-label-active</code> · <code>.role-label .role-label-inactive</code> (hover reveals active styling)</div>
+  </div>
+
+  <h2>Dashboard Card</h2>
+  <p class="caption">The base container used for everything on a dashboard page.</p>
+  <div class="stage">
+    <div class="ds-card">
+      <h4 style="margin:0 0 8px;font-size:13px;color:#666;text-transform:uppercase;letter-spacing:0.5px;font-weight:400">Session</h4>
+      <div style="font-size:13px;color:#333">Use <code>.dashboard-card</code> as the outer shell. All paddings are 16px.</div>
+    </div>
+    <div class="code"><code>.dashboard-card</code> — <code>16px</code> padding · <code>10px</code> radius · <code>0 1px 3px rgba(0,0,0,.08)</code></div>
+  </div>
+
+  <h2>Collapsible Section Header</h2>
+  <p class="caption">Card with zero padding whose first child is a clickable title bar.</p>
+  <div class="stage">
+    <div class="ds-section">
+      <div class="ds-section-header">
+        <div class="ds-section-title-block">
+          <span class="ds-section-title">Items ▾</span>
+          <span class="ds-section-subtitle">(12 items)</span>
+        </div>
+      </div>
+    </div>
+    <div class="code"><code>.dashboard-section &gt; .dashboard-section-header &gt; .dashboard-section-title-block</code></div>
+  </div>
+
+  <h2>Stat Boxes</h2>
+  <p class="caption">Neutral, positive, and negative variants. Flex row with <code>gap: 10px</code>.</p>
+  <div class="stage">
+    <div class="ds-stats">
+      <div class="ds-stat">
+        <span class="ds-stat-label">Kills</span>
+        <span class="ds-stat-value">42</span>
+      </div>
+      <div class="ds-stat ds-stat-positive">
+        <span class="ds-stat-label">Delta</span>
+        <span class="ds-stat-value">+15.32</span>
+      </div>
+      <div class="ds-stat">
+        <span class="ds-stat-label">Return %</span>
+        <span class="ds-stat-value">103.4%</span>
+      </div>
+      <div class="ds-stat ds-stat-negative">
+        <span class="ds-stat-label">DPP</span>
+        <span class="ds-stat-value">2.84</span>
+      </div>
+    </div>
+    <div class="code"><code>.dashboard-stats &gt; .dashboard-stat[.dashboard-stat-positive|.dashboard-stat-negative]</code></div>
+  </div>
+
+  <h2>Connection Status Card</h2>
+  <p class="caption">Green/red status dots with soft glows. Each item shows a primary label and a secondary subtext.</p>
+  <div class="stage">
+    <div class="ds-card">
+      <div class="ds-connection">
+        <div class="ds-connection-item">
+          <span class="ds-connection-dot ds-connection-dot-green"></span>
+          <div>
+            <span>Items page</span>
+            <span class="ds-connection-status">Connected · updated 2m ago</span>
+          </div>
+        </div>
+        <div class="ds-connection-item">
+          <span class="ds-connection-dot ds-connection-dot-red"></span>
+          <div>
+            <span>Client</span>
+            <span class="ds-connection-status">Offline · 127.0.0.1:8181</span>
+          </div>
+        </div>
+        <span class="ds-connection-collapse">▴</span>
+      </div>
+    </div>
+    <div class="code"><code>.dashboard-connection &gt; .dashboard-connection-item &gt; .dashboard-connection-dot(-green|-red)</code></div>
+  </div>
+
+  <h2>Compact Status (collapsed)</h2>
+  <p class="caption">Shown in the nav when the connection card is collapsed.</p>
+  <div class="stage">
+    <div class="ds-status-compact">
+      <span class="ds-status-compact-label">IT</span>
+      <span class="ds-connection-dot-sm ds-connection-dot-green" style="box-shadow:0 0 4px rgba(76,175,80,0.5)"></span>
+    </div>
+    &nbsp;
+    <div class="ds-status-compact">
+      <span class="ds-status-compact-label">CL</span>
+      <span class="ds-connection-dot-sm ds-connection-dot-red" style="box-shadow:0 0 4px rgba(244,67,54,0.5)"></span>
+    </div>
+    <div class="code"><code>.dashboard-status-compact &gt; .dashboard-connection-dot-sm</code></div>
+  </div>
+
+  <h2>Dashboard Items Table</h2>
+  <p class="caption">Hover a row to reveal the <code>✎</code> edit and <code>✕</code> exclude actions.</p>
+  <div class="stage">
+    <div class="ds-section">
+      <table class="ds-items-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="ds-col-right">Qty</th>
+            <th class="ds-col-right">Value</th>
+            <th class="ds-col-right">MU</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Animal Oil Residue</td>
+            <td class="ds-col-right">3,120</td>
+            <td class="ds-col-right">31.20</td>
+            <td class="ds-col-right">
+              <span class="ds-mu-display">
+                <span>101%</span>
+                <span class="ds-mu-edit-btn">✎</span>
+              </span>
+            </td>
+            <td><span class="ds-item-action">✕</span></td>
+          </tr>
+          <tr>
+            <td>Paint Can (Beige)</td>
+            <td class="ds-col-right">4</td>
+            <td class="ds-col-right">2.88</td>
+            <td class="ds-col-right">
+              <span class="ds-mu-display">
+                <span>+0.15</span>
+                <span class="ds-mu-edit-btn">✎</span>
+              </span>
+            </td>
+            <td><span class="ds-item-action">✕</span></td>
+          </tr>
+          <tr class="ds-item-excluded">
+            <td>Shrapnel</td>
+            <td class="ds-col-right">10,000</td>
+            <td class="ds-col-right">1.00</td>
+            <td class="ds-col-right">—</td>
+            <td><span class="ds-item-action">↻</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code"><code>.dashboard-items-table</code> · excluded row: <code>.dashboard-item-excluded</code> (40% opacity, action always visible)</div>
+  </div>
+
+  <h2>Inline Markup Editor</h2>
+  <p class="caption">Display mode shows the value + a hover-only pencil. Edit mode swaps to an input with unit toggle and confirm/cancel.</p>
+  <div class="stage">
+    <div style="display:flex;gap:32px;align-items:center">
+      <div>
+        <span class="ds-stat-label">Display</span>
+        <div style="margin-top:6px">
+          <span class="ds-mu-display">
+            <span>101%</span>
+            <span class="ds-mu-edit-btn" style="visibility:visible">✎</span>
+          </span>
+        </div>
+      </div>
+      <div>
+        <span class="ds-stat-label">Edit</span>
+        <div style="margin-top:6px">
+          <span class="ds-mu-edit">
+            <input type="text" value="101" />
+            <span class="ds-mu-unit" title="Toggle unit">%</span>
+            <span class="ds-item-action" style="visibility:visible">✓</span>
+            <span class="ds-item-action" style="visibility:visible">✕</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="code"><code>.dashboard-mu-display</code> / <code>.dashboard-mu-edit &gt; input + .dashboard-mu-unit</code></div>
+  </div>
+
+  <h2>Filter Row &amp; View Mode Toggles</h2>
+  <p class="caption">Filter input plus list (<code>☰</code>) / tree (<code>▤</code>) toggles, aligned right via <code>margin-left: auto</code>.</p>
+  <div class="stage">
+    <div class="ds-section">
+      <div class="ds-filter-row">
+        <input class="ds-filter-input" placeholder="Filter..." />
+        <span class="ds-filter-clear">✕</span>
+        <div class="ds-view-modes">
+          <span class="ds-view-btn ds-view-btn-active">☰</span>
+          <span class="ds-view-btn">▤</span>
+        </div>
+        <span class="ds-mu-toggle active">MU</span>
+      </div>
+    </div>
+    <div class="code"><code>.dashboard-filter-row</code> · <code>.storage-view-btn(-active)</code> · <code>.dashboard-mu-toggle</code></div>
+  </div>
+
+  <h2>Trader Detail Panel</h2>
+  <p class="caption">4-column grid of labels + values. Notes row is a separate block divided by a soft border.</p>
+  <div class="stage">
+    <div class="ds-trader-detail-panel">
+      <div class="ds-trader-detail-grid">
+        <div>
+          <span class="ds-trader-detail-label">Type</span>
+          <span class="ds-trader-detail-value">Weapon</span>
+        </div>
+        <div>
+          <span class="ds-trader-detail-label">Reserve</span>
+          <span class="ds-trader-detail-value ds-trader-detail-editable">120.00 PED <span class="ds-trader-detail-edit-icon">✎</span></span>
+        </div>
+        <div>
+          <span class="ds-trader-detail-label">Markup</span>
+          <span class="ds-trader-detail-value ds-trader-detail-editable">101% <span class="ds-trader-detail-edit-icon">✎</span></span>
+        </div>
+        <div>
+          <span class="ds-trader-detail-label">Total</span>
+          <span class="ds-trader-detail-value">121.20 PED</span>
+        </div>
+      </div>
+      <div class="ds-trader-detail-notes">
+        <span class="ds-trader-detail-label">Notes</span>
+        <span class="ds-trader-detail-value ds-trader-detail-editable">Good MU at Auction House <span class="ds-trader-detail-edit-icon">✎</span></span>
+      </div>
+    </div>
+    <div class="code"><code>.trader-detail-panel &gt; .trader-detail-grid + .trader-detail-notes</code></div>
+  </div>
+
+  <h2>Storage Tree Row</h2>
+  <p class="caption">Container rows use a sunken background and semi-bold weight. Star turns amber when favorited.</p>
+  <div class="stage">
+    <div class="ds-section">
+      <table class="ds-storage-tree-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="ds-col-right">Qty</th>
+            <th class="ds-col-right">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ds-storage-tree-container">
+            <td class="ds-storage-tree-name-cell">
+              <span class="ds-storage-tree-expand">▼</span>
+              <span class="ds-storage-tree-name-label"><span>Hunting Box</span></span>
+              <span class="ds-storage-tree-action ds-storage-tree-star-on">★</span>
+            </td>
+            <td class="ds-col-right">—</td>
+            <td class="ds-col-right">412.80</td>
+          </tr>
+          <tr>
+            <td class="ds-storage-tree-name-cell">
+              <span style="min-width:14px"></span>
+              <span class="ds-storage-tree-expand">▶</span>
+              <span class="ds-storage-tree-name-label">
+                <span>Melee Weapons</span>
+                <span class="ds-storage-tree-action">✎</span>
+              </span>
+            </td>
+            <td class="ds-col-right">3</td>
+            <td class="ds-col-right">250.00</td>
+          </tr>
+          <tr>
+            <td class="ds-storage-tree-name-cell">
+              <span style="min-width:14px"></span>
+              <span style="min-width:14px"></span>
+              <span class="ds-storage-tree-name-label"><span>Svempa EnBlade</span></span>
+            </td>
+            <td class="ds-col-right">1</td>
+            <td class="ds-col-right">150.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code"><code>.storage-tree-container</code> · <code>.storage-tree-name-cell</code> · <code>.storage-tree-star-on</code> (#f5a623)</div>
+  </div>
+
+  <h2>Group Row (Hunter Tree View)</h2>
+  <p class="caption">Clickable section divider inside an items table.</p>
+  <div class="stage">
+    <div class="ds-section">
+      <table class="ds-items-table">
+        <tbody>
+          <tr class="ds-tree-group"><td colspan="3">Loot — 12 items</td></tr>
+          <tr><td>Animal Oil Residue</td><td class="ds-col-right">3,120</td><td class="ds-col-right">31.20</td></tr>
+          <tr><td>Animal Muscle Oil</td><td class="ds-col-right">840</td><td class="ds-col-right">16.80</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code"><code>.dashboard-tree-group</code> — <code>#fafafa</code> bg, <code>#555</code> text, <code>font-weight: 600</code></div>
+  </div>
+
+  <h2>Globals Badges</h2>
+  <p class="caption">Stream-overlay inspired HoF / ATH badges.</p>
+  <div class="stage">
+    <div style="font-size:13px;color:#333">Avatar Name · 312 PED <span class="ds-hof-badge">HoF</span></div>
+    <div style="font-size:13px;color:#333;margin-top:6px">Avatar Name · 2,150 PED <span class="ds-hof-badge ds-ath-badge">ATH</span></div>
+    <div class="code"><code>.dashboard-globals-hof</code> · <code>.dashboard-globals-ath</code></div>
+  </div>
+
+  <footer>
+    Source of truth: <code>src/view/components/dashboard/HunterDashboard.scss</code>,
+    <code>HunterDashboard.tsx</code>, <code>TraderDashboard.tsx</code>, <code>StorageDashboard.tsx</code> ·
+    <a href="../design-system.md">← back to index</a>
+  </footer>
+</body>
+</html>

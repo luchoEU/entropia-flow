@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Entropia Flow · Design System · Icons</title>
+<style>
+  :root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    background: #f7f7f8;
+  }
+  body { margin: 0; padding: 32px; max-width: 1080px; margin-left: auto; margin-right: auto; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  header p { margin: 0 0 24px; color: #666; font-size: 13px; }
+  h2 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin: 32px 0 12px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .icon {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .glyph {
+    font-size: 24px;
+    color: #333;
+    min-width: 32px;
+    text-align: center;
+    line-height: 1;
+  }
+  .meta { flex: 1; min-width: 0; }
+  .name {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 2px;
+  }
+  .desc {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+  }
+  .star-on { color: #f5a623; }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 11px;
+    color: #888;
+  }
+  footer a { color: #1976d2; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .rule {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.55;
+  }
+  .rule code { color: #333; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Iconography</h1>
+    <p>The roles UI uses Unicode glyphs as icons — no SVG, no PNG, no icon font. System-rendered and hand-picked for consistency.</p>
+  </header>
+
+  <h2>Expand / Collapse</h2>
+  <div class="grid">
+    <div class="icon"><div class="glyph">▴</div><div class="meta"><div class="name">U+25B4</div><div class="desc">Collapse card — connection-card collapse button.</div></div></div>
+    <div class="icon"><div class="glyph">▾</div><div class="meta"><div class="name">U+25BE</div><div class="desc">Section expanded indicator in the title bar.</div></div></div>
+    <div class="icon"><div class="glyph">▸</div><div class="meta"><div class="name">U+25B8</div><div class="desc">Section collapsed indicator.</div></div></div>
+    <div class="icon"><div class="glyph">▼</div><div class="meta"><div class="name">U+25BC</div><div class="desc">Tree row expanded (storage tree, trader detail).</div></div></div>
+    <div class="icon"><div class="glyph">▶</div><div class="meta"><div class="name">U+25B6</div><div class="desc">Tree row collapsed.</div></div></div>
+  </div>
+
+  <h2>Row Actions</h2>
+  <div class="grid">
+    <div class="icon"><div class="glyph">✎</div><div class="meta"><div class="name">U+270E</div><div class="desc">Edit — inline MU, trader detail fields, storage container rename. Hover-revealed.</div></div></div>
+    <div class="icon"><div class="glyph">✓</div><div class="meta"><div class="name">U+2713</div><div class="desc">Confirm edit (commit MU / notes).</div></div></div>
+    <div class="icon"><div class="glyph">✕</div><div class="meta"><div class="name">U+2715</div><div class="desc">Cancel edit · exclude item · clear filter.</div></div></div>
+    <div class="icon"><div class="glyph">↻</div><div class="meta"><div class="name">U+21BB</div><div class="desc">Re-include an excluded item (always visible on excluded rows).</div></div></div>
+  </div>
+
+  <h2>Favorites</h2>
+  <div class="grid">
+    <div class="icon"><div class="glyph">☆</div><div class="meta"><div class="name">U+2606</div><div class="desc">Not-favorited (hover-revealed, #aaa).</div></div></div>
+    <div class="icon"><div class="glyph star-on">★</div><div class="meta"><div class="name">U+2605</div><div class="desc">Favorited — always visible, color <code>#f5a623</code>.</div></div></div>
+  </div>
+
+  <h2>View Modes</h2>
+  <div class="grid">
+    <div class="icon"><div class="glyph">☰</div><div class="meta"><div class="name">U+2630</div><div class="desc">List view mode (flat).</div></div></div>
+    <div class="icon"><div class="glyph">▤</div><div class="meta"><div class="name">U+25A4</div><div class="desc">Tree view mode (grouped / hierarchical).</div></div></div>
+  </div>
+
+  <h2>Rules</h2>
+  <div class="rule">
+    <strong>No icon fonts, no SVGs.</strong> Use plain Unicode so the UI inherits the user's system font rendering and avoids network / bundle overhead.<br><br>
+    <strong>Hover-reveal.</strong> Row-level action glyphs (<code>✎</code>, <code>✕</code>, <code>☆</code>) default to <code>visibility: hidden</code> and appear on <code>tr:hover</code>. State-relevant icons (an active <code>★</code>, an excluded row's <code>↻</code>) stay visible.<br><br>
+    <strong>Sizing.</strong> Row action glyphs are <code>13–14px</code> colored <code>#999</code> (or <code>#aaa</code> for storage), hover <code>#333</code> (<code>#444</code> for storage). Tree carets are <code>10px</code>.
+  </div>
+
+  <footer>
+    Source of truth: <code>HunterDashboard.tsx</code>, <code>TraderDashboard.tsx</code>, <code>StorageDashboard.tsx</code> ·
+    <a href="../design-system.md">← back to index</a>
+  </footer>
+</body>
+</html>

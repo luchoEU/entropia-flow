@@ -25,6 +25,12 @@ Quick-reference index of all documentation files in the project.
 | [chrome-extension/docs/budget-spec.md](chrome-extension/docs/budget-spec.md) | Budget feature spec: materials tracking and Google Sheets integration |
 | [chrome-extension/docs/actions-spec.md](chrome-extension/docs/actions-spec.md) | Actions system spec: activity tracking and timeline display |
 | [chrome-extension/docs/roles-spec.md](chrome-extension/docs/roles-spec.md) | Roles system spec: role-based views, access control, and extensibility |
+| [chrome-extension/docs/design-system.md](chrome-extension/docs/design-system.md) | Design system index for the roles UI: rules + links to the HTML reference pages |
+| [chrome-extension/docs/design-system/colors.html](chrome-extension/docs/design-system/colors.html) | Color palette swatches grouped by purpose (status, surface, borders, text) |
+| [chrome-extension/docs/design-system/typography.html](chrome-extension/docs/design-system/typography.html) | Type scale with live samples and specs |
+| [chrome-extension/docs/design-system/spacing.html](chrome-extension/docs/design-system/spacing.html) | Spacing scale, border radii, shadows, and layout metrics |
+| [chrome-extension/docs/design-system/components.html](chrome-extension/docs/design-system/components.html) | Live component gallery: pills, cards, stats, tables, MU editor, trader panel, storage tree |
+| [chrome-extension/docs/design-system/icons.html](chrome-extension/docs/design-system/icons.html) | Unicode glyph set used across the roles UI |
 
 ## Windows Client
 
