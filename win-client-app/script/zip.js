@@ -27,3 +27,15 @@ const resourcesSrc = path.join(distDir, "resources.neu");
 const resourcesDst = path.join("dist", "resources.neu");
 fs.copyFileSync(resourcesSrc, resourcesDst);
 console.log("Copied dist\\resources.neu");
+
+// Update update-manifest.json with current version and zip filename
+const manifestPath = path.join(__dirname, "..", "update-manifest.json");
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+manifest.version = version;
+const currentUrl = manifest.resourcesURL || "";
+const baseUrl = currentUrl.replace(/\/dist\/resources\.neu$/, "");
+if (baseUrl) {
+    manifest.binaryURL = `${baseUrl}/dist/EntropiaFlowClient_v${version}.zip`;
+}
+fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+console.log(`Updated update-manifest.json to v${version}`);
