@@ -269,7 +269,7 @@ const StorageDashboard = () => {
                             >⊞</span>
                             <span
                                 className={`storage-view-btn ${viewMode === 'favorites' ? 'storage-view-btn-active' : ''}`}
-                                onClick={() => setViewMode('favorites')}
+                                onClick={() => setViewMode(viewMode === 'favorites' ? 'tree' : 'favorites')}
                                 title='Favorites'
                             >★</span>
                         </span>
