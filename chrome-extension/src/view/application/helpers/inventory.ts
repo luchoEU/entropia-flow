@@ -75,6 +75,7 @@ const joinDuplicates = (
           n: d.n,
           q: "0",
           v: "0.00",
+          c: d.c,
         };
       }
       let x: ItemData = result[d.n];

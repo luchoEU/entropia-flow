@@ -2,6 +2,7 @@ import { ItemOwned } from '../state/inventory'
 import { ItemsMap, UNIT_PERCENTAGE, UNIT_PLUS, UNIT_PED_K } from '../state/items'
 import { ItemData } from '../../../common/state'
 import { SORT_NAME_ASCENDING, SORT_VALUE_DESCENDING } from './inventory.sort'
+import { joinDuplicates } from './inventory'
 import {
     calcTraderStats,
     calcAuctionStats,
@@ -628,6 +629,76 @@ describe('groupByContainer', () => {
         // ASSERT
         // ============================================================================
         expect(result[0][0]).toBe('(no container)')
+    })
+
+    it('should preserve container after joinDuplicates merges items', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        // Simulate the real data flow: raw inventory has items in different containers.
+        // enrichedItemsAtom calls joinDuplicates() which merges items by name.
+        // The merged items must still carry a container so groupByContainer works.
+        const rawItems: ItemData[] = [
+            makeItemData({ id: '1', n: 'Mind Essence', q: '1000', v: '1.00', c: 'CARRIED' }),
+            makeItemData({ id: '2', n: 'Lysterium Ingot', q: '500', v: '2.50', c: 'STORAGE' }),
+            makeItemData({ id: '3', n: 'Vibrant Sweat', q: '200', v: '0.20', c: 'CARRIED' }),
+        ]
+
+        // This is what enrichedItemsAtom does before passing to the component
+        const merged = joinDuplicates(rawItems)
+        const ownedItems: ItemOwned[] = merged.map(d => ({
+            data: d,
+            c: { hidden: { any: false, name: false, container: false, value: false } }
+        }))
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = groupByContainer(ownedItems)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        // BUG: joinDuplicates drops the `c` field, so all items end up in "(no container)"
+        // Expected: items grouped by their original containers (CARRIED, STORAGE)
+        expect(result.length).toBeGreaterThan(1)
+        const containerNames = result.map(([name]) => name)
+        expect(containerNames).toContain('CARRIED')
+        expect(containerNames).toContain('STORAGE')
+        expect(containerNames).not.toContain('(no container)')
+    })
+
+    it('should group by container when same item exists in multiple containers', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        // Same item name in two containers — joinDuplicates merges them into one row,
+        // losing the per-container breakdown needed for tree view.
+        const rawItems: ItemData[] = [
+            makeItemData({ id: '1', n: 'Mind Essence', q: '500', v: '0.50', c: 'CARRIED' }),
+            makeItemData({ id: '2', n: 'Mind Essence', q: '1500', v: '1.50', c: 'STORAGE' }),
+        ]
+
+        const merged = joinDuplicates(rawItems)
+        const ownedItems: ItemOwned[] = merged.map(d => ({
+            data: d,
+            c: { hidden: { any: false, name: false, container: false, value: false } }
+        }))
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = groupByContainer(ownedItems)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        // BUG: joinDuplicates merges both into one item with no container.
+        // For tree view we need either:
+        //   - Two separate rows (CARRIED: 500, STORAGE: 1500), or
+        //   - At minimum, the merged item should carry a container value
+        const containerNames = result.map(([name]) => name)
+        expect(containerNames).not.toContain('(no container)')
     })
 })
 
