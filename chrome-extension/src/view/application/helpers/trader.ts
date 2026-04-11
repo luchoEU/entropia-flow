@@ -1,8 +1,9 @@
 import { ItemOwned } from '../state/inventory'
-import { ItemsMap } from '../state/items'
+import { ItemsMap, unitText } from '../state/items'
 import { ItemData } from '../../../common/state'
 import { getValueWithMarkup } from './items'
 import { cloneSortList, SortItemData } from './inventory.sort'
+import { parseAggregatedName } from './inventory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,16 @@ type DashboardSort =
     | { mode: MuSortMode, desc: boolean }
 
 type ContainerGroup = [string, ItemOwned[]]
+
+interface ItemDetails {
+    baseName: string
+    sources?: string[]
+    type?: string
+    value?: number
+    markup?: string
+    reserve?: string
+    notes?: string
+}
 
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
@@ -143,6 +154,28 @@ function calcGroupTotal(items: ItemOwned[]): number {
     return items.reduce((sum, item) => sum + parseFloat(item.data.v || '0'), 0)
 }
 
+// ─── Item details ───────────────────────────────────────────────────────────
+
+function getItemDetails(itemName: string, itemsMap: ItemsMap): ItemDetails {
+    const { baseName, sources } = parseAggregatedName(itemName)
+    const material = itemsMap[baseName]
+
+    if (!material) {
+        return { baseName, sources }
+    }
+
+    const type = material.user?.type ?? material.web?.item?.data?.value?.type
+    const value = material.user?.value ?? material.web?.item?.data?.value?.value
+    const markup = material.markup?.value
+        ? `${material.markup.value}${unitText(material.markup.unit)}`
+        : undefined
+    const reserve = material.reserveAmount
+        ? `${material.reserveAmount} PED`
+        : undefined
+
+    return { baseName, sources, type, value, markup, reserve, notes: material.notes }
+}
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 export {
@@ -161,4 +194,6 @@ export {
     sortOwnedItems,
     groupByContainer,
     calcGroupTotal,
+    getItemDetails,
+    ItemDetails,
 }

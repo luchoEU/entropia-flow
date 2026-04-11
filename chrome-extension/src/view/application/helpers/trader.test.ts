@@ -14,6 +14,7 @@ import {
     sortOwnedItems,
     groupByContainer,
     calcGroupTotal,
+    getItemDetails,
 } from './trader'
 
 // ─── Test data factories ─────────────────────────────────────────────────────
@@ -735,5 +736,173 @@ describe('calcGroupTotal', () => {
         // ASSERT
         // ============================================================================
         expect(result).toBeCloseTo(15.75)
+    })
+})
+
+// ─── getItemDetails ──────────────────────────────────────────────────────────
+
+describe('getItemDetails', () => {
+    it('should return details for a simple item name', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {
+            'Lysterium Ingot': {
+                markup: { value: '110', unit: UNIT_PERCENTAGE },
+                reserveAmount: '50',
+                notes: 'Good seller',
+                user: { name: 'Lysterium Ingot', type: 'Ore', value: 0.25, valueOnEdit: '0.25' },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Lysterium Ingot', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.type).toBe('Ore')
+        expect(result.value).toBe(0.25)
+        expect(result.markup).toBe('110%')
+        expect(result.reserve).toBe('50 PED')
+        expect(result.notes).toBe('Good seller')
+    })
+
+    it('should resolve compound item name to base name for lookup', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        // Compound name: "Soft Leather ← Soft Hide" — the itemsMap is keyed by "Soft Leather"
+        const itemsMap: ItemsMap = {
+            'Soft Leather': {
+                markup: { value: '130', unit: UNIT_PERCENTAGE },
+                reserveAmount: '20',
+                notes: 'Crafting material',
+                user: { name: 'Soft Leather', type: 'Leather', value: 0.05, valueOnEdit: '0.05' },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Soft Leather \u2190 Soft Hide', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.type).toBe('Leather')
+        expect(result.value).toBe(0.05)
+        expect(result.markup).toBe('130%')
+        expect(result.reserve).toBe('20 PED')
+        expect(result.notes).toBe('Crafting material')
+    })
+
+    it('should return fallback values when item is not in map', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {}
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Unknown Item', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.type).toBeUndefined()
+        expect(result.value).toBeUndefined()
+        expect(result.markup).toBeUndefined()
+        expect(result.reserve).toBeUndefined()
+        expect(result.notes).toBeUndefined()
+    })
+
+    it('should format markup with correct unit', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {
+            'Force Nexus': {
+                markup: { value: '0.5', unit: UNIT_PLUS },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Force Nexus', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.markup).toBe('0.5+')
+    })
+
+    it('should format markup with /k unit', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {
+            'Vibrant Sweat': {
+                markup: { value: '2', unit: UNIT_PED_K },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Vibrant Sweat', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.markup).toBe('2/k')
+    })
+
+    it('should return sources for compound items', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {
+            'Soft Leather': {
+                markup: { value: '100', unit: UNIT_PERCENTAGE },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Soft Leather \u2190 Soft Hide, Animal Hide', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.baseName).toBe('Soft Leather')
+        expect(result.sources).toEqual(['Soft Hide', 'Animal Hide'])
+    })
+
+    it('should have no sources for simple items', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const itemsMap: ItemsMap = {
+            'Mind Essence': {
+                markup: { value: '120', unit: UNIT_PERCENTAGE },
+            }
+        }
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = getItemDetails('Mind Essence', itemsMap)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result.baseName).toBe('Mind Essence')
+        expect(result.sources).toBeUndefined()
     })
 })

@@ -16,7 +16,7 @@ import {
     addAvailableAtom,
     removeAvailableAtom,
 } from '../../application/atoms/inventory'
-import { getItemAtom, itemsMapAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom } from '../../application/atoms/items'
+import { getItemAtom, itemsMapAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom, setItemReserveAmountAtom } from '../../application/atoms/items'
 import { SORT_VALUE_DESCENDING, nextSortType, sortTypeToColumnIndex } from '../../application/helpers/inventory.sort'
 import { getValueWithMarkup } from '../../application/helpers/items'
 import {
@@ -29,6 +29,7 @@ import {
     groupByContainer,
     calcGroupTotal,
     DashboardSort,
+    getItemDetails,
 } from '../../application/helpers/trader'
 import { unitText, nextUnit, unitDescription, UNIT_PERCENTAGE } from '../../application/state/items'
 import { ItemOwned } from '../../application/state/inventory'
@@ -153,37 +154,93 @@ const OwnedItemRow = React.memo(({ item, showMarkup, isFavorite, onToggleFavorit
 // ─── Item detail panel ───────────────────────────────────────────────────────
 
 const ItemDetailPanel = ({ itemName }: { itemName: string }) => {
-    const itemAtom = useMemo(() => getItemAtom(itemName), [itemName])
-    const material = useAtomValue(itemAtom)
+    const itemsMap = useAtomValue(itemsMapAtom)
+    const details = useMemo(() => getItemDetails(itemName, itemsMap), [itemName, itemsMap])
+    const material = itemsMap[details.baseName]
+
+    const setMarkup = useSetAtom(setItemBuyMarkupAtom)
+    const setUnit = useSetAtom(setItemMarkupUnitAtom)
+    const setReserve = useSetAtom(setItemReserveAmountAtom)
+
+    const [editingField, setEditingField] = useState<'markup' | 'reserve' | null>(null)
+    const editBackup = useRef('')
+
+    const startEdit = (field: 'markup' | 'reserve') => {
+        if (field === 'markup') {
+            editBackup.current = material?.markup?.value || ''
+            if (!material?.markup?.value) setMarkup(details.baseName, '100')
+        } else {
+            editBackup.current = material?.reserveAmount || ''
+        }
+        setEditingField(field)
+    }
+
+    const cancelEdit = () => {
+        if (editingField === 'markup') setMarkup(details.baseName, editBackup.current)
+        else if (editingField === 'reserve') setReserve(details.baseName, editBackup.current)
+        setEditingField(null)
+    }
 
     return (
         <div className='trader-detail-panel'>
             <div className='trader-detail-grid'>
                 <div>
                     <span className='trader-detail-label'>Type</span>
-                    <span>{material?.user?.type ?? material?.web?.item?.data?.value?.type ?? '—'}</span>
+                    <span>{details.type ?? '—'}</span>
                 </div>
                 <div>
                     <span className='trader-detail-label'>Value</span>
-                    <span>{material?.user?.value ?? material?.web?.item?.data?.value?.value ?? '—'}</span>
+                    <span>{details.value ?? '—'}</span>
                 </div>
                 <div>
                     <span className='trader-detail-label'>Markup</span>
-                    <span>
-                        {material?.markup?.value
-                            ? `${material.markup.value}${unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}`
-                            : '—'}
-                    </span>
+                    {editingField === 'markup' ? (
+                        <div className='dashboard-mu-edit'>
+                            <input type='text' value={material?.markup?.value || ''}
+                                   onChange={(e) => setMarkup(details.baseName, e.target.value)} autoFocus />
+                            <span className='dashboard-mu-unit'
+                                  title={`Unit: ${unitDescription(material?.markup?.unit ?? UNIT_PERCENTAGE)}`}
+                                  onClick={() => setUnit(details.baseName, nextUnit(material?.markup?.unit ?? UNIT_PERCENTAGE))}>
+                                {unitText(material?.markup?.unit ?? UNIT_PERCENTAGE)}
+                            </span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={() => setEditingField(null)}>✓</span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={cancelEdit}>✕</span>
+                        </div>
+                    ) : (
+                        <span className='dashboard-mu-display'>
+                            <span>{details.markup ?? '—'}</span>
+                            <span className='dashboard-mu-edit-btn' title='Edit markup'
+                                  onClick={() => startEdit('markup')}>✎</span>
+                        </span>
+                    )}
                 </div>
                 <div>
                     <span className='trader-detail-label'>Reserve</span>
-                    <span>{material?.reserveAmount ? `${material.reserveAmount} PED` : '—'}</span>
+                    {editingField === 'reserve' ? (
+                        <div className='dashboard-mu-edit'>
+                            <input type='text' value={material?.reserveAmount || ''}
+                                   onChange={(e) => setReserve(details.baseName, e.target.value)} autoFocus />
+                            <span className='dashboard-mu-unit'>PED</span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={() => setEditingField(null)}>✓</span>
+                            <span className='dashboard-item-action' style={{visibility: 'visible'}}
+                                  onClick={cancelEdit}>✕</span>
+                        </div>
+                    ) : (
+                        <span className='dashboard-mu-display'>
+                            <span>{details.reserve ?? '—'}</span>
+                            <span className='dashboard-mu-edit-btn' title='Edit reserve'
+                                  onClick={() => startEdit('reserve')}>✎</span>
+                        </span>
+                    )}
                 </div>
             </div>
-            {material?.notes && (
+            {details.notes && (
                 <div className='trader-detail-notes'>
                     <span className='trader-detail-label'>Notes</span>
-                    <span>{material.notes}</span>
+                    <span>{details.notes}</span>
                 </div>
             )}
         </div>

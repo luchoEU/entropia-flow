@@ -2,13 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Critical: Read AGENTS.md First
-
-**ALWAYS** read `/Users/cristian/Documents/ME/dev/entropia-flow/AGENTS.md` before starting any work. Key rules:
-- Explain errors with chain of reasoning + source links (file:line)
-- Do not commit until user explicitly confirms changes work
-- Follow the AAA (Arrange-Act-Assert) pattern for tests with clear section delimiters
-
 ## Build & Development Commands
 
 All commands run from `chrome-extension/` directory:
@@ -30,9 +23,18 @@ npm run stream-dev     # Dev stream build
 
 Schema generation (`build:schema`) runs automatically as a prebuild step.
 
-## Features
+### Visual Testing
 
-See [FEATURES.md](FEATURES.md) for a comprehensive list of all 13 pages, navigation system, background services, content script, and stream overlay features.
+When making UI changes, use Puppeteer to verify the result visually. Save generated scripts and screenshots to `/tmp/` (never in the repo). Keep the screenshots around so you can show them to the user if asked.
+
+- Launch Chrome with `--load-extension=dist` (requires `headless: false` since extensions need headed mode)
+- The extension starts in Advanced mode — click `.role-label-advanced` to exit, then click the target role
+- Since the extension has no inventory data by default, inject mock HTML outside React's control (append after `.dashboard-page`) to preview component layouts with realistic data
+- Take full-page screenshots with `page.screenshot({ path: '/tmp/screenshot-name.png', fullPage: true })`
+
+## Documentation
+
+All project documentation is indexed in [DOCS.md](../DOCS.md). When adding new features or fixing bugs, create or update the related documentation files to keep them accurate. See [FEATURES.md](FEATURES.md) for a comprehensive list of all pages, navigation system, background services, content script, and stream overlay features.
 
 ## Architecture
 
@@ -52,6 +54,22 @@ Defined in `webpack.common.js`:
 - **Components**: `src/view/components/` — React components organized by page/feature
 - **Routing**: React Router (HashRouter) with tabs defined in `Content.tsx`
 - **Bridges**: `src/view/components/bridges/` — Components that sync background state into Jotai atoms via Chrome messaging
+
+### Role System & Dashboards
+
+The UI has 4 roles defined in `src/view/application/state/role.ts`: **Hunter**, **Trader**, **Storage**, **Advanced**. Non-Advanced roles show a dashboard (`src/view/components/dashboard/`); Advanced shows the full tabbed interface.
+
+- `Role` enum controls which tabs are visible via `ROLE_TAB_MAP`
+- Role selector is in `Navigation.tsx` — non-Advanced roles show role pills; Advanced shows the tab bar
+- Each role has a dashboard component: `HunterDashboard.tsx`, `TraderDashboard.tsx`, `StorageDashboard.tsx`
+- Dashboards use shared patterns: `DashboardSection` (collapsible), `dashboard-items-table`, stat boxes
+- Dashboard routing is in `Content.tsx` → `DashboardRouter`
+
+**Design principle**: All calculations and business logic must live in pure helper functions (`helpers/trader.ts`, etc.), never inline in React components. Components call helpers and render results. When adding or changing logic, design it as testable pure functions first, then write unit tests for them.
+
+### Helpers & Testing
+
+Business logic lives in `src/view/application/helpers/` as pure functions. Tests are **co-located** (e.g., `trader.ts` → `trader.test.ts`, `inventory.ts` → `inventory.test.ts`). When adding new helper functions, add tests in the same directory.
 
 ### Communication Flow
 
