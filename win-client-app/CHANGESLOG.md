@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 0.2.0-dev.16 - [Unreleased]
+## Version 0.2.0-dev.19 - [Unreleased]
+
+### Added
+- Dev Manifest URL setting in Settings page to configure auto-update server address
+
+### Fixed
+- Cancel sticky drag on double-click or right-click
+
+## Version 0.2.0-dev.17
+
+### Fixed
+- Cancel drag when cursor is within 10px of the window border to prevent sticky drag (reverted — caused drag to stick at center)
+
+## Version 0.2.0-dev.16
 
 ### Fixed
 - Sticky drag root cause fixed: Neutralino's `setDraggableRegion` silently rejected re-registration (WeakMap guard); now correctly unsets before re-setting
