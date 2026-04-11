@@ -167,7 +167,7 @@ const FirstRow = () => {
                     onClick={() => setRole(previousRole ?? Role.HUNTER)}
                     title='Switch back to previous role'
                 >
-                    <span className='role-label-text'>⚙️ Advanced</span>
+                    <span className='role-label-text'>⚙️ Legacy</span>
                     <span className='role-label-hover'>← Roles</span>
                 </span>
             ) : (
@@ -185,9 +185,9 @@ const FirstRow = () => {
                     <span
                         className='role-switch-btn'
                         onClick={() => setRole(Role.ADVANCED)}
-                        title='Switch to Advanced mode'
+                        title='Switch to Legacy mode'
                     >
-                        ⚙️ Advanced
+                        ⚙️ Legacy
                     </span>
                 </>
             )}
