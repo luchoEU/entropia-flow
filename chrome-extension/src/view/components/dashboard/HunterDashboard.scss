@@ -700,9 +700,6 @@ tr:hover .storage-tree-action {
     visibility: visible;
 }
 
-.trader-detail-panel .dashboard-mu-edit-btn {
-    visibility: visible;
-}
 
 .dashboard-mu-edit {
     justify-content: flex-end;
@@ -777,6 +774,26 @@ tr:hover .trader-fav-btn {
     color: #888;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+}
+
+.trader-detail-value {
+    font-size: 13px;
+    line-height: 20px;
+    min-height: 20px;
+}
+
+.trader-detail-editable {
+    cursor: pointer;
+
+    .trader-detail-edit-icon {
+        visibility: hidden;
+        font-size: 12px;
+        color: #999;
+    }
+
+    &:hover .trader-detail-edit-icon {
+        visibility: visible;
+    }
 }
 
 .trader-detail-notes {
