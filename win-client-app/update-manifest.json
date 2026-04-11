@@ -1,7 +1,7 @@
 {
   "applicationId": "com.entropia.flow",
-  "version": "0.2.0-dev.27",
+  "version": "0.2.0-dev.28",
   "resourcesURL": "http://localhost:9147/dist/resources.neu",
   "binaryVersion": "0.2.0",
-  "binaryURL": "http://localhost:9147/dist/EntropiaFlowClient_v0.2.0-dev.27.zip"
+  "binaryURL": "http://localhost:9147/dist/EntropiaFlowClient_v0.2.0-dev.28.zip"
 }

@@ -1,104 +1,212 @@
+/* ============================================================================
+   Entropia Flow — Client Settings
+   Design system: light, flat, minimalist. Mirrors
+   chrome-extension/docs/design-system.md (Hunter/Trader/Storage dashboards).
+   ============================================================================ */
+
 body {
-    font-family: system-ui;
-    background-color: rgba(173, 216, 230); /* light blue */
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    color: #222;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 12px;
 }
 
+/* ─── Cards (one per settings group) ──────────────────────────────────────── */
 .setting {
-    border: 1px solid grey;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 8px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* ─── Section titles ──────────────────────────────────────────────────────── */
 label {
     display: block;
+    font-size: 11px;
     font-weight: bold;
-    margin-bottom: 5px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
 }
 
-input {
-    width: 100%;
+/* ─── Body paragraphs inside a card ───────────────────────────────────────── */
+.setting p {
+    margin: 6px 0;
+    font-size: 13px;
+}
+
+/* ─── Inputs ──────────────────────────────────────────────────────────────── */
+input[type="text"],
+input[type="number"] {
     box-sizing: border-box;
-    margin: 3px 0px;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    background: white;
+    color: #222;
 }
 
-.copy-btn {
-    position: relative;
-    cursor: pointer;
-}
-.copy-btn img {
-    height: 15px;
-    margin-left: 10px;
-    vertical-align: bottom;
-}
-.copy-btn span {
-    display: none;
-    font-size: 12px;
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    z-index: 1;
-    background-color: lavender;
-    padding: 10px;
-    border-radius: 13px;
-}
-.setting .copy-btn {
-    visibility: hidden;
-}
-.setting:hover .copy-btn {
-    visibility: visible;
+input[type="text"]:focus,
+input[type="number"]:focus {
+    border-color: #90caf9;
 }
 
-.select-btn {
-    display: inline;
+#wsPort {
+    display: inline-block;
+    width: 90px;
+    margin-left: 4px;
+}
+
+/* Dev manifest inline input — width set inline in HTML, keep the look */
+#devManifestUrl {
     font-size: 12px;
-    padding: 5px 10px;
+}
+
+#autoUpdateCheckbox {
+    width: auto;
+    margin-right: 6px;
+    vertical-align: middle;
+    accent-color: #2e7d32;
     cursor: pointer;
 }
 
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+button {
+    font-family: inherit;
+    font-size: 12px;
+    color: #444;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+}
+
+button:hover {
+    background: #e3f2fd;
+    border-color: #90caf9;
+    color: #222;
+}
+
+/* Save (primary) button — positive tint */
+#save-btn {
+    display: block;
+    margin: 16px auto 4px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 180px;
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+}
+
+#save-btn:hover {
+    background: #c8e6c9;
+    border-color: #81c784;
+    color: #1b5e20;
+}
+
+/* ─── Log file picker row ─────────────────────────────────────────────────── */
 .select-p {
     display: flex;
-    margin: 8px 0px;
+    margin: 8px 0;
     align-items: center;
     gap: 10px;
 }
 
-#save-btn {
-    display: block;
-    margin: 0px auto;
-    padding: 10px 15px;
-    font-size: 16px;
-    width: 200px;
-    cursor: pointer;
-}
-
-button {
-    border-radius: 5px;
-    background-color: black;
-    border: none;
-    color: white;
-}
-
-#wsPort {
-    display: inline;
-    width: 100px;
-}
-
+/* ─── Info rows (labelled secondary text inside a card) ───────────────────── */
 .info {
+    font-size: 11px;
+    color: #888;
+    margin: 6px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Dynamic values rendered by settings.ts — slightly darker than label text */
+#logPathFile,
+#wsUri,
+#logPathStatus,
+#wsStatus,
+#extStatus {
+    color: #444;
+    font-weight: 600;
+}
+
+/* ─── Copy button (hover-reveal, Unicode icon) ────────────────────────────── */
+.copy-btn {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: #999;
+    font-size: 14px;
+    line-height: 1;
+    user-select: none;
+    margin-left: 2px;
+}
+
+.copy-btn:hover {
+    color: #1976d2;
+}
+
+.copy-btn-icon {
+    display: inline-block;
+}
+
+/* Popup shown after successful copy (JS sets display:block/none inline) */
+.copy-btn-popup {
+    display: none;
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    z-index: 1;
+    font-size: 11px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 8px;
+    border: 1px solid #a5d6a7;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* Hover-reveal: hide copy icon until the parent card is hovered */
+.setting .copy-btn {
+    visibility: hidden;
+}
+
+.setting:hover .copy-btn {
+    visibility: visible;
+}
+
+/* ─── Dev Manifest URL editable display ───────────────────────────────────── */
+#devManifestUrlDisplay {
+    cursor: pointer;
     font-size: 12px;
     color: #444;
-    margin: 5px 5px 0px 5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px dashed transparent;
+    display: inline-block;
 }
 
-.action-btn {
-    font-size: 12px;
-    padding: 5px 10px;
-    cursor: pointer;
+#devManifestUrlDisplay:hover {
+    background: #e3f2fd;
+    border-color: #90caf9;
 }
 
-#autoUpdateCheckbox {
-    display: inline;
-    width: auto;
-    margin-right: 5px;
-    vertical-align: middle;
+#devManifestUrlText {
+    color: inherit;
 }
