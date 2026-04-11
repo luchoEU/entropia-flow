@@ -11,6 +11,16 @@ function setDraggableRegion() {
         });
 }
 
+function cancelDrag() {
+    Neutralino.window.unsetDraggableRegion('entropia-flow-client-hover-area')
+        .catch(() => {})
+        .finally(() => {
+            setTimeout(() => {
+                Neutralino.window.setDraggableRegion('entropia-flow-client-hover-area');
+            }, 200);
+        });
+}
+
 const Mouse = {
     init: () => {
         setDraggableRegion();
@@ -27,8 +37,14 @@ const Mouse = {
             }
         });
 
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Cancel sticky drag on double-click or right-click
+        document.addEventListener('dblclick', () => {
+            cancelDrag();
+        });
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            cancelDrag();
+        });
     },
     resetDrag: () => {
         setDraggableRegion();
