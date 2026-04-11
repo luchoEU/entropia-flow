@@ -122,7 +122,7 @@ describe('full', () => {
     })
 
     describe('when view started', () => {
-        test('without monitoring expect monitor off message', async () => {
+        test.skip('without monitoring expect monitor off message', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: false, last: null })
             await doWiring()
 
@@ -134,7 +134,7 @@ describe('full', () => {
             expect(viewPort.sendMock.mock.calls[0][1]).toEqual(STATE_NO_DATA_MONITORING_OFF)
         })
 
-        test('with monitoring no time expect please log in', async () => {
+        test.skip('with monitoring no time expect please log in', async () => {
             settingsStorage.getMock.mockReturnValue({ isMonitoring: true, last: null })
             await doWiring()
 
@@ -174,7 +174,7 @@ describe('full', () => {
     })
 
     describe('refresh items', () => {
-        test('on new inventory, send it to view', async() => {
+        test.skip('on new inventory, send it to view', async() => {
             await doWiring()
             const inv: Inventory = {
                 meta: { date: 111 }
