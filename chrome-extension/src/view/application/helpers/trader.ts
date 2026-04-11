@@ -84,6 +84,12 @@ function filterItemsByName<T extends { n: string }>(items: T[], filter: string):
     return items.filter(item => item.n.toLowerCase().includes(lower))
 }
 
+function filterByFavorites<T extends { n: string }>(items: T[], favoriteNames: string[]): T[] {
+    if (favoriteNames.length === 0) return []
+    const set = new Set(favoriteNames)
+    return items.filter(item => set.has(item.n))
+}
+
 // ─── MU-aware sorting ────────────────────────────────────────────────────────
 // Shared between HunterDashboard and TraderDashboard
 
@@ -189,6 +195,7 @@ export {
     calcTotalWithMarkup,
     filterByText,
     filterItemsByName,
+    filterByFavorites,
     getMuValue,
     sortByMu,
     sortOwnedItems,

@@ -24,6 +24,7 @@ import {
     calcAuctionStats,
     calcTotalWithMarkup,
     filterByText,
+    filterByFavorites,
     filterItemsByName,
     sortOwnedItems,
     groupByContainer,
@@ -44,6 +45,9 @@ export const traderAuctionExpandedAtom = atomWithStorage('jotai-v1-trader-auctio
 export const traderOwnedExpandedAtom = atomWithStorage('jotai-v1-trader-ownedExpanded', true)
 export const traderShowMarkupAtom = atomWithStorage('jotai-v1-trader-showMarkup', false)
 export const traderViewModeAtom = atomWithStorage<'list' | 'tree'>('jotai-v1-trader-viewMode', 'list')
+export const traderOnlyFavoritesAtom = atomWithStorage('jotai-v1-trader-onlyFavorites', false)
+export const traderOwnedFilterAtom = atomWithStorage('jotai-v1-trader-ownedFilter', '')
+export const traderAuctionFilterAtom = atomWithStorage('jotai-v1-trader-auctionFilter', '')
 
 // ─── Auction item row ────────────────────────────────────────────────────────
 
@@ -93,6 +97,9 @@ const OwnedItemRow = React.memo(({ item, showMarkup, isFavorite, onToggleFavorit
                 title='Click to see details'
             >
                 <span style={{ fontWeight: isSelected ? 'bold' : 'normal' }}>{item.data.n}</span>
+                {item.data.c === 'AUCTION' && (
+                    <span className='trader-auction-badge' title='On auction'>AUC</span>
+                )}
             </td>
             <td className='dashboard-col-right'>{item.data.q}</td>
             <td className='dashboard-col-right'>{item.data.v}</td>
@@ -291,9 +298,10 @@ const TraderDashboard = () => {
     const [showOwned, setShowOwned] = useAtom(traderOwnedExpandedAtom)
     const [showMarkup, setShowMarkup] = useAtom(traderShowMarkupAtom)
     const [viewMode, setViewMode] = useAtom(traderViewModeAtom)
+    const [onlyFavorites, setOnlyFavorites] = useAtom(traderOnlyFavoritesAtom)
     const [sort, setSort] = useState<DashboardSort>({ mode: 'standard', sortType: SORT_VALUE_DESCENDING })
-    const [ownedFilter, setOwnedFilter] = useState('')
-    const [auctionFilter, setAuctionFilter] = useState('')
+    const [ownedFilter, setOwnedFilter] = useAtom(traderOwnedFilterAtom)
+    const [auctionFilter, setAuctionFilter] = useAtom(traderAuctionFilterAtom)
 
     // Connection status
     const itemsConnected = statusData.class !== 'error' && statusData.message !== STRING_CONNECTING
@@ -308,9 +316,13 @@ const TraderDashboard = () => {
     const auctionStats = useMemo(() => calcAuctionStats(auctionItems), [auctionItems])
     const filteredAuctionItems = useMemo(() => filterItemsByName(auctionItems, auctionFilter), [auctionItems, auctionFilter])
     const allOwnedItems = useMemo(() => sortOwnedItems(enrichedItems, sort, itemsMap), [enrichedItems, sort, itemsMap])
-    const ownedItems = useMemo(() => filterByText(allOwnedItems.map(i => i.data), ownedFilter)
-        .map(d => allOwnedItems.find(i => i.data.n === d.n && i.data.c === d.c)!)
-        .filter(Boolean), [allOwnedItems, ownedFilter])
+    const ownedItems = useMemo(() => {
+        let data = filterByText(allOwnedItems.map(i => i.data), ownedFilter)
+        if (onlyFavorites) data = filterByFavorites(data, availableCriteria.name)
+        return data
+            .map(d => allOwnedItems.find(i => i.data.n === d.n && i.data.c === d.c)!)
+            .filter(Boolean)
+    }, [allOwnedItems, ownedFilter, onlyFavorites, availableCriteria.name])
     const containerGroups = useMemo(() => groupByContainer(ownedItems), [ownedItems])
     const ownedTotalPed = useMemo(() =>
         showMarkup ? calcTotalWithMarkup(enrichedItems, itemsMap) : stats.totalValue,
@@ -478,6 +490,11 @@ const TraderDashboard = () => {
                             <span className={`storage-view-btn ${viewMode === 'tree' ? 'storage-view-btn-active' : ''}`}
                                 onClick={() => setViewMode('tree')} title='Group by container'>▤</span>
                         </div>
+                        <span className={`dashboard-mu-toggle ${onlyFavorites ? 'active' : ''}`}
+                            onClick={() => setOnlyFavorites(!onlyFavorites)}
+                            title='Show only favorite items'>
+                            ★
+                        </span>
                         <span className={`dashboard-mu-toggle ${showMarkup ? 'active' : ''}`}
                             onClick={() => setShowMarkup(!showMarkup)}
                             title='Toggle markup values'>

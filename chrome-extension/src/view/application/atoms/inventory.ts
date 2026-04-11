@@ -220,12 +220,21 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
   })
 
   let finalItems: ItemData[]
-  const auctionItems = list.filter(d => d.data.c === 'AUCTION')
-  if (options.auction && auctionItems.length > 0) {
-    const ownedItems = list.filter(d => d.data.c !== 'AUCTION')
-    finalItems = joinDuplicates(ownedItems.map(d => d.data))
+  const auctionRawItems = list.filter(d => d.data.c === 'AUCTION')
+  const ownedRawItems = list.filter(d => d.data.c !== 'AUCTION')
+  if (options.auction && auctionRawItems.length > 0) {
+    // Legacy semantic (f8b093b): hide every item whose name appears on auction,
+    // including the non-auction copies. Not just the AUCTION container rows.
+    const auctionNames = new Set(auctionRawItems.map(d => d.data.n))
+    const filteredOwned = ownedRawItems.filter(d => !auctionNames.has(d.data.n))
+    finalItems = joinDuplicates(filteredOwned.map(d => d.data))
   } else {
-    finalItems = joinDuplicates(list.map(d => d.data))
+    // Join owned and auction items SEPARATELY so auction items always stay
+    // as distinct rows from the non-auction copies of the same item.
+    finalItems = [
+      ...joinDuplicates(ownedRawItems.map(d => d.data)),
+      ...joinDuplicates(auctionRawItems.map(d => d.data)),
+    ]
   }
 
   // Apply refined aggregation if enabled

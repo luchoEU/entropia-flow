@@ -9,6 +9,7 @@ import {
     calcTotalWithMarkup,
     filterByText,
     filterItemsByName,
+    filterByFavorites,
     getMuValue,
     sortByMu,
     sortOwnedItems,
@@ -319,6 +320,78 @@ describe('filterItemsByName', () => {
         // ============================================================================
         expect(result).toHaveLength(1)
         expect(result[0].n).toBe('Beta')
+    })
+})
+
+// ─── filterByFavorites ───────────────────────────────────────────────────────
+
+describe('filterByFavorites', () => {
+    const items = [
+        { n: 'Mind Essence' },
+        { n: 'Vibrant Sweat' },
+        { n: 'Lysterium Ingot' },
+    ]
+
+    it('should return empty array when favorites list is empty', () => {
+        // ============================================================================
+        // ARRANGE / ACT
+        // ============================================================================
+        const result = filterByFavorites(items, [])
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result).toEqual([])
+    })
+
+    it('should return only items whose name is in the favorites list', () => {
+        // ============================================================================
+        // ARRANGE / ACT
+        // ============================================================================
+        const result = filterByFavorites(items, ['Mind Essence', 'Lysterium Ingot'])
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result).toHaveLength(2)
+        expect(result.map(i => i.n)).toEqual(['Mind Essence', 'Lysterium Ingot'])
+    })
+
+    it('should return empty when no items match any favorite name', () => {
+        // ============================================================================
+        // ARRANGE / ACT
+        // ============================================================================
+        const result = filterByFavorites(items, ['Unknown Thing'])
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result).toEqual([])
+    })
+
+    it('should keep both rows when the same name appears twice (e.g. AUCTION + CARRIED)', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        // After enrichedItemsAtom no longer joins AUCTION with non-AUCTION, a
+        // favorite item can legitimately appear as two rows. The favorites filter
+        // must not collapse those — it only filters by name membership.
+        const split = [
+            { n: 'Mind Essence', c: 'CARRIED' },
+            { n: 'Mind Essence', c: 'AUCTION' },
+            { n: 'Vibrant Sweat', c: 'CARRIED' },
+        ]
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const result = filterByFavorites(split, ['Mind Essence'])
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(result).toHaveLength(2)
+        expect(result.every(i => i.n === 'Mind Essence')).toBe(true)
     })
 })
 
