@@ -25,6 +25,7 @@ interface UpdateDismissed {
 interface ClientSettings {
     autoUpdateEnabled: boolean;
     updateDismissed?: UpdateDismissed;
+    devManifestUrl?: string;
 }
 
 const DEFAULT_CLIENT_SETTINGS: ClientSettings = { autoUpdateEnabled: true };
@@ -32,7 +33,12 @@ const DEFAULT_CLIENT_SETTINGS: ClientSettings = { autoUpdateEnabled: true };
 // Dev mode: when running via `neu run` (NL_PORT is set), use local server
 const isDevMode = typeof NL_PORT !== 'undefined' && NL_PORT !== 0;
 
+let _devManifestUrlOverride: string | undefined;
+
 function getManifestUrl(): string {
+    if (isDevMode && _devManifestUrlOverride) {
+        return `${_devManifestUrlOverride}/update-manifest.json`;
+    }
     return isDevMode ? UPDATE_MANIFEST_DEV_URL : UPDATE_MANIFEST_URL;
 }
 
@@ -135,6 +141,7 @@ async function installResourcesUpdate(): Promise<void> {
 
     await Neutralino.updater.install();
     await Neutralino.app.restartProcess();
+    await Neutralino.app.exit();
 }
 
 let _dialogOpen = false;
@@ -235,11 +242,15 @@ function stopPeriodicChecks(): void {
 const Updater = {
     init: async () => {
         const settings = await getClientSettings();
+        _devManifestUrlOverride = settings.devManifestUrl;
         if (!settings.autoUpdateEnabled) return;
         setTimeout(async () => {
             await checkAndNotify();
             startPeriodicChecks();
         }, 5000);
+    },
+    setDevManifestUrl: (url: string) => {
+        _devManifestUrlOverride = url || undefined;
     },
     checkForUpdates,
     installResourcesUpdate,

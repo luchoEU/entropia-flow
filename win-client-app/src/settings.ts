@@ -87,8 +87,16 @@ document.getElementById('save-btn')?.addEventListener('click', saveSettings);
 document.getElementById('selectLogPathButton')?.addEventListener('click', selectLogFile);
 document.getElementById('createShortcutBtn')?.addEventListener('click', () => createDesktopShortcut());
 
-// Auto-update checkbox
+// Auto-update checkbox and dev manifest URL
 const autoUpdateCheckbox = document.getElementById('autoUpdateCheckbox') as HTMLInputElement;
+const devManifestUrlInput = document.getElementById('devManifestUrl') as HTMLInputElement;
+const devManifestUrlDisplay = document.getElementById('devManifestUrlDisplay') as HTMLElement;
+const devManifestUrlText = document.getElementById('devManifestUrlText') as HTMLElement;
+
+function updateUrlDisplay(url: string) {
+    devManifestUrlText.textContent = url || 'not set';
+}
+
 async function loadAutoUpdateSetting() {
     try {
         const data = await Neutralino.storage.getData(STORE_CLIENT_SETTINGS);
@@ -96,12 +104,45 @@ async function loadAutoUpdateSetting() {
         if (autoUpdateCheckbox) {
             autoUpdateCheckbox.checked = settings.autoUpdateEnabled !== false;
         }
+        const url = settings.devManifestUrl || '';
+        devManifestUrlInput.value = url;
+        updateUrlDisplay(url);
     } catch {
         // No settings yet — default to enabled
         if (autoUpdateCheckbox) autoUpdateCheckbox.checked = true;
     }
 }
 loadAutoUpdateSetting();
+
+devManifestUrlDisplay?.addEventListener('click', () => {
+    devManifestUrlDisplay.style.display = 'none';
+    devManifestUrlInput.style.display = '';
+    devManifestUrlInput.focus();
+});
+
+async function saveDevManifestUrl() {
+    const url = devManifestUrlInput.value.trim().replace(/\/+$/, '');
+    devManifestUrlInput.style.display = 'none';
+    devManifestUrlDisplay.style.display = '';
+    updateUrlDisplay(url);
+    try {
+        let settings: any = {};
+        try {
+            settings = JSON.parse(await Neutralino.storage.getData(STORE_CLIENT_SETTINGS));
+        } catch {}
+        settings.devManifestUrl = url || undefined;
+        await Neutralino.storage.setData(STORE_CLIENT_SETTINGS, JSON.stringify(settings));
+    } catch (err) {
+        console.warn('Failed to save dev manifest URL', err);
+    }
+    sendMessageToMain('set-dev-manifest-url', { url });
+}
+
+devManifestUrlInput?.addEventListener('change', saveDevManifestUrl);
+devManifestUrlInput?.addEventListener('blur', saveDevManifestUrl);
+devManifestUrlInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') devManifestUrlInput.blur();
+});
 
 autoUpdateCheckbox?.addEventListener('change', async () => {
     const enabled = autoUpdateCheckbox.checked;

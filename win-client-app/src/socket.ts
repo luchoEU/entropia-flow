@@ -224,6 +224,9 @@ const _pollIntervalId = setInterval(async () => {
                             Updater.stopPeriodicChecks();
                         }
                         break;
+                    case "set-dev-manifest-url":
+                        Updater.setDevManifestUrl(message.payload.url);
+                        break;
                     case "set-settings":
                         const logPath = message.payload.logPath;
                         if (logPath !== '' && _settingsData.log && _settingsData.log.path !== logPath) {
