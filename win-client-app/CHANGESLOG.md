@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.27 - [Unreleased]
+
+### Changed
+- Update check failure dialog now offers a Yes/No prompt to copy the full error message (including URL) to the clipboard
+- Dev update manifest server address changed from `192.168.0.20` back to `localhost`
+
+## Version 0.2.0-dev.26 - [Unreleased]
+
+### Fixed
+- Rolled back drag handle button; whole window is draggable again, with a 5px edge exclusion margin that cancels any ongoing drag when the cursor approaches the window border (prevents `pointerup` from being lost)
+
+## Version 0.2.0-dev.25 - [Unreleased]
+
+### Changed
+- Update check failure dialog now includes the manifest URL that was attempted, to help diagnose misconfigured dev/prod manifest endpoints
+
+## Version 0.2.0-dev.24 - [Unreleased]
+
+### Fixed
+- Sticky drag after releasing the mouse — replaced whole-window drag with an explicit drag-handle button that appears on hover alongside the other nav controls
+
 ## Version 0.2.0-dev.19 - [Unreleased]
 
 ### Added

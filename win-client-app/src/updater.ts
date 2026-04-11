@@ -60,8 +60,9 @@ async function saveClientSettings(settings: ClientSettings): Promise<void> {
 }
 
 async function checkForUpdates(): Promise<UpdateStatus> {
+    const url = getManifestUrl();
     try {
-        const raw = await Neutralino.updater.checkForUpdates(getManifestUrl());
+        const raw = await Neutralino.updater.checkForUpdates(url);
         const manifest = raw as unknown as UpdateManifest;
 
         if (manifest.binaryVersion !== clientBinaryVersion) {
@@ -74,7 +75,8 @@ async function checkForUpdates(): Promise<UpdateStatus> {
 
         return { type: 'none' };
     } catch (err: any) {
-        const message = err?.message || err?.code || String(err);
+        const base = err?.message || err?.code || String(err);
+        const message = `${base}\nURL: ${url}`;
         console.error('Update check failed:', message);
         return { type: 'error', message };
     }

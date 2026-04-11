@@ -88,9 +88,18 @@ async function handleCheckForUpdates() {
             }
             break;
         }
-        case 'error':
-            await Neutralino.os.showMessageBox('Update Check Failed', `Could not check for updates:\n${status.message}`);
+        case 'error': {
+            const result = await Neutralino.os.showMessageBox(
+                'Update Check Failed',
+                `Could not check for updates:\n${status.message}\n\nCopy error details to clipboard?`,
+                'YES_NO' as Neutralino.os.MessageBoxChoice,
+                'ERROR' as Neutralino.os.Icon
+            );
+            if (result === 'YES') {
+                await Neutralino.clipboard.writeText(status.message);
+            }
             break;
+        }
         case 'none':
             await Neutralino.os.showMessageBox('Up to Date', `You are running the latest version (${clientVersion}).`);
             break;
