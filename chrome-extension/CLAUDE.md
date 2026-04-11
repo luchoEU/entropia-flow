@@ -57,11 +57,11 @@ Defined in `webpack.common.js`:
 
 ### Role System & Dashboards
 
-The UI has 4 roles defined in `src/view/application/state/role.ts`: **Hunter**, **Trader**, **Storage**, **Advanced**. Non-Advanced roles show a dashboard (`src/view/components/dashboard/`); Advanced shows the full tabbed interface.
+The UI has 4 roles defined in `src/view/application/state/role.ts`: **Hunter**, **Trader**, **Collector**, **Advanced**. Non-Advanced roles show a dashboard (`src/view/components/dashboard/`); Advanced shows the full tabbed interface.
 
 - `Role` enum controls which tabs are visible via `ROLE_TAB_MAP`
 - Role selector is in `Navigation.tsx` — non-Advanced roles show role pills; Advanced shows the tab bar
-- Each role has a dashboard component: `HunterDashboard.tsx`, `TraderDashboard.tsx`, `StorageDashboard.tsx`
+- Each role has a dashboard component: `HunterDashboard.tsx`, `TraderDashboard.tsx`, `CollectorDashboard.tsx`
 - Dashboards use shared patterns: `DashboardSection` (collapsible), `dashboard-items-table`, stat boxes
 - Dashboard routing is in `Content.tsx` → `DashboardRouter`
 

@@ -108,7 +108,7 @@ const TreeRow = ({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const StorageDashboard = () => {
+const CollectorDashboard = () => {
     const statusData = useAtomValue(statusAtom)
     const connectionState = useAtomValue(connectionAtom)
     const { anyInventory } = useAtomValue(lastComputedAtom)
@@ -377,4 +377,4 @@ const StorageDashboard = () => {
     )
 }
 
-export default StorageDashboard
+export default CollectorDashboard

@@ -10,11 +10,13 @@ import {
     auctionItemsAtom,
     availableCriteriaAtom,
     hideCriteriaAtom,
+    hiddenItemsCountAtom,
     filterOptionsAtom,
     tradeItemChainAtom,
     setTradeItemChainAtom,
     addAvailableAtom,
     removeAvailableAtom,
+    showHiddenItemsAtom,
 } from '../../application/atoms/inventory'
 import { getItemAtom, itemsMapAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom, setItemReserveAmountAtom, setItemNotesAtom } from '../../application/atoms/items'
 import { SORT_VALUE_DESCENDING, nextSortType, sortTypeToColumnIndex } from '../../application/helpers/inventory.sort'
@@ -61,9 +63,10 @@ const AuctionItemRow = ({ item }: { item: ItemData }) => (
 
 // ─── Owned item row ──────────────────────────────────────────────────────────
 
-const OwnedItemRow = React.memo(({ item, showMarkup, isFavorite, onToggleFavorite, onToggleHide, onSelect, isSelected }: {
+const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, isFavorite, onToggleFavorite, onToggleHide, onSelect, isSelected }: {
     item: ItemOwned
     showMarkup: boolean
+    showContainer: boolean
     isFavorite: boolean
     onToggleFavorite: (name: string, isFav: boolean) => void
     onToggleHide: (name: string, isHidden: boolean) => void
@@ -144,7 +147,7 @@ const OwnedItemRow = React.memo(({ item, showMarkup, isFavorite, onToggleFavorit
                     {valueMU !== undefined ? valueMU.toFixed(2) : item.data.v}
                 </td>
             </>}
-            <td>{item.data.c}</td>
+            {showContainer && <td>{item.data.c}</td>}
             <td>
                 <span
                     className={`trader-fav-btn ${isFavorite ? 'trader-fav-on' : ''}`}
@@ -283,7 +286,9 @@ const TraderDashboard = () => {
     const auctionItems = useAtomValue(auctionItemsAtom)
     const availableCriteria = useAtomValue(availableCriteriaAtom)
     const hideCriteria = useAtomValue(hideCriteriaAtom)
+    const hiddenItemsCount = useAtomValue(hiddenItemsCountAtom)
     const setHideCriteria = useSetAtom(hideCriteriaAtom)
+    const toggleShowHidden = useSetAtom(showHiddenItemsAtom)
     const filterOptions = useAtomValue(filterOptionsAtom)
     const setFilterOptions = useSetAtom(filterOptionsAtom)
     const tradeItemChain = useAtomValue(tradeItemChainAtom)
@@ -332,6 +337,11 @@ const TraderDashboard = () => {
     const toggleTreeContainer = (container: string) => {
         setTreeExpanded(prev => ({ ...prev, [container]: !prev[container] }))
     }
+    const setAllTreeExpanded = (expanded: boolean) => {
+        const next: Record<string, boolean> = {}
+        for (const [container] of containerGroups) next[container] = expanded
+        setTreeExpanded(next)
+    }
 
     // Sort helpers
     const sortArrow = (col: number | 'mu-ped' | 'total') => {
@@ -368,7 +378,11 @@ const TraderDashboard = () => {
         setTradeItemChain(name, 0)
     }
 
-    const colCount = showMarkup ? 8 : 5
+    // 6 base columns: action, name, qty, value, container, favorite
+    // +3 when markup is on: +MU, MU, Total
+    // −1 when tree view hides the container column
+    const showContainerColumn = viewMode === 'list'
+    const colCount = 6 + (showMarkup ? 3 : 0) - (showContainerColumn ? 0 : 1)
 
     return (
         <div className='dashboard-page'>
@@ -432,7 +446,7 @@ const TraderDashboard = () => {
                     </div>
                     <div className='dashboard-stat'>
                         <span className='dashboard-stat-label'>Hidden</span>
-                        <span className='dashboard-stat-value'>{stats.hiddenCount}</span>
+                        <span className='dashboard-stat-value'>{hiddenItemsCount}</span>
                     </div>
                 </div>
 
@@ -527,12 +541,22 @@ const TraderDashboard = () => {
                                 onChange={e => setOwnedFilter(e.target.value)}
                             />
                             {ownedFilter && <span className='dashboard-filter-clear' onClick={() => setOwnedFilter('')}>✕</span>}
-                            {hideCriteria.name.length > 0 && (
+                            {viewMode === 'tree' && <>
+                                <span className='storage-expand-btn' onClick={() => setAllTreeExpanded(true)} title='Expand all'>+</span>
+                                <span className='storage-expand-btn' onClick={() => setAllTreeExpanded(false)} title='Collapse all'>−</span>
+                            </>}
+                            {(hideCriteria.name.length > 0 || hideCriteria.container.length > 0 || hideCriteria.value >= 0) && <>
+                                <img
+                                    className='trader-show-hidden-btn'
+                                    src={hideCriteria.show ? 'img/eyeClose.png' : 'img/eyeOpen.png'}
+                                    title={hideCriteria.show ? 'Hide hidden items' : 'Show hidden items (grayed)'}
+                                    onClick={() => toggleShowHidden()}
+                                />
                                 <span className='dashboard-filter-clear' title='Unhide all items'
-                                    onClick={() => setHideCriteria({ ...hideCriteria, name: [], container: [], value: -1 })}>
+                                    onClick={() => setHideCriteria({ show: false, name: [], container: [], value: -1 })}>
                                     Unhide all
                                 </span>
-                            )}
+                            </>}
                         </div>
                         {ownedItems.length > 0 && (
                             <table className='dashboard-items-table'>
@@ -547,7 +571,7 @@ const TraderDashboard = () => {
                                             <th className='dashboard-col-right'>MU</th>
                                             <th className='dashboard-col-right' onClick={() => onMuSort('total')}>Total{sortArrow('total')}</th>
                                         </>}
-                                        <th onClick={() => onStandardSort(3)}>Container{sortArrow(3)}</th>
+                                        {showContainerColumn && <th onClick={() => onStandardSort(3)}>Container{sortArrow(3)}</th>}
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -558,6 +582,7 @@ const TraderDashboard = () => {
                                                 <OwnedItemRow
                                                     item={item}
                                                     showMarkup={showMarkup}
+                                                    showContainer={showContainerColumn}
                                                     isFavorite={availableCriteria.name.includes(item.data.n)}
                                                     onToggleFavorite={handleToggleFavorite}
                                                     onToggleHide={handleToggleHide}
@@ -590,6 +615,7 @@ const TraderDashboard = () => {
                                                             <OwnedItemRow
                                                                 item={item}
                                                                 showMarkup={showMarkup}
+                                                                showContainer={showContainerColumn}
                                                                 isFavorite={availableCriteria.name.includes(item.data.n)}
                                                                 onToggleFavorite={handleToggleFavorite}
                                                                 onToggleHide={handleToggleHide}

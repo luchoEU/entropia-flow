@@ -1,6 +1,6 @@
 # Design System — Roles UI
 
-Visual language for the **Hunter**, **Trader**, and **Storage** role dashboards. The legacy *Advanced* view is intentionally out of scope — it predates the new roles and uses its own navigation chrome.
+Visual language for the **Hunter**, **Trader**, and **Collector** role dashboards. The legacy *Advanced* view is intentionally out of scope — it predates the new roles and uses its own navigation chrome.
 
 Source of truth: [`src/view/components/dashboard/HunterDashboard.scss`](../src/view/components/dashboard/HunterDashboard.scss). This page is a read-only mirror; when SCSS changes, update the HTML references below.
 

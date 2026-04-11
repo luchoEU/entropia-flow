@@ -193,22 +193,27 @@ export const setEditModeMaterialNameAtom = atom(null, (_get, set, itemName: stri
 })
 
 /**
- * Computed: Add reserve and ttService values to items
+ * Shared pipeline used by enrichedItemsAtom and hiddenItemsCountAtom.
+ * When `forceShow` is true, the hide-criteria `show` flag is overridden so
+ * hidden rows are retained — enabling consumers (e.g. the Hidden stat) to
+ * count hidden items regardless of the UI toggle state.
  */
-export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
-  const items = get(rawInventoryItemsAtom)
-  const options = get(filterOptionsAtom)
-  const itemsMap = get(itemsMapAtom)
-  const ttService = get(ttServiceAtom)
-  const chain = get(tradeItemChainAtom)
-  const hideCriteria = get(hideCriteriaAtom)
-
+const computeEnrichedItems = (
+  items: ItemOwned[],
+  options: InventoryFilterOptions,
+  itemsMap: Record<string, ItemState>,
+  ttService: TTServiceState | null,
+  chain: TradeItemData[] | undefined,
+  hideCriteria: OwnedHideCriteria,
+  forceShow: boolean
+): ItemOwned[] => {
   // Helper functions to calculate hidden status based on current criteria
   const isHiddenByName = (itemName: string): boolean => hideCriteria.name.includes(itemName)
   const isHiddenByContainer = (container: string): boolean => hideCriteria.container.includes(container)
   const isHiddenByValue = (value: string): boolean => Number(value) <= hideCriteria.value
 
   // Filter hidden items unless explicitly showing them
+  const showHidden = forceShow || hideCriteria.show
   let list = items.filter(d => {
     const hidden = {
       name: isHiddenByName(d.data.n),
@@ -216,7 +221,7 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
       value: isHiddenByValue(d.data.v),
     }
     const isHidden = hidden.name || hidden.container || hidden.value
-    return hideCriteria.show || !isHidden
+    return showHidden || !isHidden
   })
 
   let finalItems: ItemData[]
@@ -286,6 +291,39 @@ export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
 
     return enrichedItem
   })
+}
+
+/**
+ * Computed: Add reserve and ttService values to items
+ */
+export const enrichedItemsAtom = atom<ItemOwned[]>((get) => {
+  return computeEnrichedItems(
+    get(rawInventoryItemsAtom),
+    get(filterOptionsAtom),
+    get(itemsMapAtom),
+    get(ttServiceAtom),
+    get(tradeItemChainAtom),
+    get(hideCriteriaAtom),
+    false
+  )
+})
+
+/**
+ * Computed: Count of hidden items — independent of the hideCriteria.show
+ * toggle. Always reflects how many rows would be hidden given the current
+ * name/container/value criteria.
+ */
+export const hiddenItemsCountAtom = atom<number>((get) => {
+  const list = computeEnrichedItems(
+    get(rawInventoryItemsAtom),
+    get(filterOptionsAtom),
+    get(itemsMapAtom),
+    get(ttServiceAtom),
+    get(tradeItemChainAtom),
+    get(hideCriteriaAtom),
+    true
+  )
+  return list.filter(i => i.c.hidden.any).length
 })
 
 /**
