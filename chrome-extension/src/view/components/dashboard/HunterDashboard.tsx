@@ -12,6 +12,7 @@ import { inventoryListAtom } from '../../application/atoms/history'
 import { getItemAtom, setItemBuyMarkupAtom, setItemMarkupUnitAtom, itemsMapAtom } from '../../application/atoms/items'
 import { cloneSortList, SORT_VALUE_DESCENDING, nextSortType, sortTypeToColumnIndex } from '../../application/helpers/inventory.sort'
 import { getValueWithMarkup } from '../../application/helpers/items'
+import { sortByMu, DashboardSort, MuSortMode } from '../../application/helpers/trader'
 import { STRING_CONNECTING, URL_MY_ITEMS_PAGE } from '../../../common/const'
 import { dateToString } from '../../../common/date'
 import { unitText, nextUnit, unitDescription, UNIT_PERCENTAGE } from '../../application/state/items'
@@ -26,11 +27,6 @@ export const hunterItemsViewModeAtom = atomWithStorage<'list' | 'tree'>('jotai-v
 export const hunterTreeExpandedAtom = atomWithStorage<{ looted: boolean, decayed: boolean, excluded: boolean }>(
     'jotai-v1-hunter-treeExpanded', { looted: true, decayed: true, excluded: true }
 )
-
-type DashboardSort =
-    | { mode: 'standard', sortType: number }
-    | { mode: 'mu-ped', desc: boolean }
-    | { mode: 'total', desc: boolean }
 
 type ItemCategory = 'looted' | 'decayed' | 'excluded'
 
@@ -200,27 +196,7 @@ const HunterDashboard = () => {
         if (sort.mode === 'standard') {
             return cloneSortList(diff ?? [], sort.sortType)
         }
-        const list = [...(diff ?? [])]
-        const getValue = (item: typeof list[0]): number | null => {
-            const m = itemsMap[item.n]
-            if (!m?.markup?.value) return null
-            const raw = parseFloat(item.v || '0')
-            const total = getValueWithMarkup(item.q, item.v, m)
-            if (sort.mode === 'mu-ped') return total - raw
-            return total
-        }
-        list.sort((a, b) => {
-            const va = getValue(a)
-            const vb = getValue(b)
-            // unset markup → end
-            if (va === null && vb === null) return a.n.localeCompare(b.n)
-            if (va === null) return 1
-            if (vb === null) return -1
-            const d = Math.abs(va) - Math.abs(vb)
-            if (d !== 0) return sort.desc ? -d : d
-            return sort.desc ? -a.n.localeCompare(b.n) : a.n.localeCompare(b.n)
-        })
-        return list
+        return sortByMu(diff ?? [], itemsMap, sort.mode, sort.desc)
     }, [diff, sort, itemsMap])
     const itemFilterLower = itemFilter.toLowerCase()
     const items = itemFilterLower
