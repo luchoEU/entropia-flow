@@ -16,6 +16,8 @@
 # Web Socket Relay
 rsrc_windows_amd64.syso
 EntropiaFlowClient-relay.exe
+relay/tesseract.exe
+relay/*.dll
 
 # Build server trigger/result files
 .build-trigger

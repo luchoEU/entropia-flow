@@ -17,6 +17,13 @@ const zip = new AdmZip();
 zip.addLocalFile(path.join(distDir, exeFiles[0]), "/", "EntropiaFlowClient.exe");
 zip.addLocalFile(path.join(distDir, "resources.neu"), "/");
 zip.addLocalFile("relay/EntropiaFlowClient-relay.exe", "/relay");
+if (fs.existsSync("relay/tesseract.exe")) {
+    zip.addLocalFile("relay/tesseract.exe", "/relay");
+    zip.addLocalFolder("relay/tessdata", "/relay/tessdata");
+    console.log("Included relay/tesseract.exe and tessdata/");
+} else {
+    console.warn("WARNING: relay/tesseract.exe not found — OCR will not work in this build.");
+}
 
 const zipName = `dist/EntropiaFlowClient_v${version}.zip`;
 zip.writeZip(zipName);

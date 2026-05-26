@@ -94,6 +94,51 @@ function isDismissedAndInCooldown(settings: ClientSettings, version: string): bo
     return Date.now() < d.nextCheckAfter;
 }
 
+async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise<void> {
+    const tmp = (await Neutralino.os.execCommand('cmd /c echo %TEMP%')).stdOut.trim();
+    const zipPath = `${tmp}\\EntropiaFlowUpdate.zip`;
+    const extractDir = `${tmp}\\EntropiaFlowUpdate`;
+    const appDir = NL_PATH.replace(/\//g, '\\').replace(/\\$/, '');
+    const psPath = `${tmp}\\entropia_updater.ps1`;
+
+    try {
+        await (Neutralino.os as any).showNotification('Entropia Flow', 'Downloading update, please wait...');
+    } catch {}
+
+    await Neutralino.os.execCommand(
+        `powershell -Command "Invoke-WebRequest -Uri '${manifest.binaryURL}' -OutFile '${zipPath}'"`,
+    );
+
+    await Neutralino.os.execCommand(
+        `powershell -Command "if (Test-Path '${extractDir}') { Remove-Item '${extractDir}' -Recurse -Force }; Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force"`,
+    );
+
+    const ps1 = [
+        `Start-Sleep -Seconds 2`,
+        `while (Get-Process -Name 'EntropiaFlowClient' -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 1 }`,
+        `Copy-Item -Path '${extractDir}\\*' -Destination '${appDir}' -Recurse -Force`,
+        `Remove-Item '${extractDir}' -Recurse -Force`,
+        `Remove-Item '${zipPath}' -ErrorAction SilentlyContinue`,
+        `Start-Process '${appDir}\\EntropiaFlowClient.exe'`,
+        `Remove-Item $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue`,
+    ].join('\n');
+
+    await Neutralino.filesystem.writeFile(psPath, ps1);
+
+    const settings = await getClientSettings();
+    delete settings.updateDismissed;
+    await saveClientSettings(settings);
+
+    await Socket.exit();
+    await new Promise(r => setTimeout(r, 300));
+
+    await Neutralino.os.execCommand(
+        `powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File "${psPath}"`,
+        { background: true } as any,
+    );
+    await Neutralino.app.exit();
+}
+
 async function installResourcesUpdate(): Promise<void> {
     // Clear dismissed state so next version starts fresh
     const settings = await getClientSettings();
@@ -191,7 +236,7 @@ async function checkAndNotify(): Promise<void> {
             _dialogOpen = true;
             const dismissCount = (settings.updateDismissed?.version === status.manifest.version)
                 ? settings.updateDismissed!.count : 0;
-            let message = `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to open the download page?`;
+            let message = `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to download and install it now?`;
             if (dismissCount >= 3) {
                 message += '\n\n(You can disable auto-update checks in Settings.)';
             }
@@ -203,10 +248,7 @@ async function checkAndNotify(): Promise<void> {
             );
             _dialogOpen = false;
             if (result === 'YES') {
-                // Clear dismissed state on acceptance
-                delete settings.updateDismissed;
-                await saveClientSettings(settings);
-                await Neutralino.os.open(status.manifest.binaryURL);
+                await downloadAndInstallBinaryUpdate(status.manifest);
             } else {
                 const newCount = dismissCount + 1;
                 settings.updateDismissed = {

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.30 - [Unreleased]
+
+### Changed
+- Binary updates now download and install automatically instead of opening a browser download page
+
+## Version 0.2.0-dev.29 - [Unreleased]
+
+### Added
+- OCR support via Tesseract sidecar: relay can now capture a screen region and return recognized text (`ocr_request` / `ocr_response` messages)
+
 ## Version 0.2.0-dev.28 - [Unreleased]
 
 ### Changed

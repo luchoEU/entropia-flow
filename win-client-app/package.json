@@ -1,6 +1,6 @@
 {
   "name": "entropia-flow-client",
-  "version": "0.2.0-dev.28",
+  "version": "0.2.0-dev.30",
   "description": "Entropia Flow Client",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,9 @@
     "build": "webpack",
     "build-all": "npm run build-stream && npm run build-relay && npm run build && neu update && neu build --release",
     "zip": "node script/zip.js",
-    "serve-update": "npx http-server . -p 9147 --cors -c-1",
-    "pack": "npm run build-all && npm run zip"
+    "serve-update": "node script/serve-update.js",
+    "prepare-tesseract": "node script/prepare-tesseract.js",
+    "pack": "npm run build-all && npm run prepare-tesseract && npm run zip"
   },
   "author": "Lucho MUCHO Ireton",
   "license": "MIT",
