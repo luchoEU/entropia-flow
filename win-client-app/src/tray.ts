@@ -79,12 +79,12 @@ async function handleCheckForUpdates() {
         case 'binary': {
             const result = await Neutralino.os.showMessageBox(
                 'Update Available',
-                `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to open the download page?`,
+                `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to download and install it now?`,
                 'YES_NO' as Neutralino.os.MessageBoxChoice,
                 'QUESTION' as Neutralino.os.Icon
             );
             if (result === 'YES') {
-                await Neutralino.os.open(status.manifest.binaryURL);
+                await Updater.downloadAndInstallBinaryUpdate(status.manifest);
             }
             break;
         }

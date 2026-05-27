@@ -1,9 +1,9 @@
 const clientId = 'entropia-flow-client';
-const clientVersion = '0.2.0-dev.30';
-const clientBinaryVersion = '0.2.1'; // bump only when exe or relay changes
+const clientVersion = '0.2.0-dev.51';
+const clientBinaryVersion = '0.2.6'; // bump only when exe or relay changes
 
 const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/luchoEU/entropia-flow/main/win-client-app/update-manifest.json';
-const UPDATE_MANIFEST_DEV_URL = 'http://localhost:9147/update-manifest.json';
+const UPDATE_MANIFEST_DEV_URL = 'http://192.168.0.47:9147/update-manifest.json';
 const UPDATE_CHECK_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
 const UPDATE_CHECK_INTERVAL_DEV = 30 * 1000; // 30 seconds
 
@@ -20,6 +20,8 @@ const STORE_SETTINGS = `settings`;    // get settings data from main process
 const STORE_SCREENS = `screens`;      // get screens data from main process
 const STORE_WINDOW = `window-$1`;     // store window data from main process and next run
 const STORE_CLIENT_SETTINGS = `clientSettings`; // store client settings (auto-update, etc.)
+const STORE_OCR = `ocr`;                         // ocr_response from relay
+const STORE_UPDATE_PROGRESS = `updateProgress`;  // progress for binary update window
 
 export {
     clientId,
@@ -40,5 +42,7 @@ export {
     STORE_SETTINGS,
     STORE_SCREENS,
     STORE_WINDOW,
-    STORE_CLIENT_SETTINGS
+    STORE_CLIENT_SETTINGS,
+    STORE_OCR,
+    STORE_UPDATE_PROGRESS
 }

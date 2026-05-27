@@ -44,5 +44,9 @@ const baseUrl = currentUrl.replace(/\/dist\/resources\.neu$/, "");
 if (baseUrl) {
     manifest.binaryURL = `${baseUrl}/dist/EntropiaFlowClient_v${version}.zip`;
 }
+// Sync binaryVersion from const.ts so it never drifts
+const constTs = fs.readFileSync(path.join(__dirname, "..", "src", "const.ts"), "utf8");
+const binaryVersionMatch = constTs.match(/clientBinaryVersion\s*=\s*'([^']+)'/);
+if (binaryVersionMatch) manifest.binaryVersion = binaryVersionMatch[1];
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-console.log(`Updated update-manifest.json to v${version}`);
+console.log(`Updated update-manifest.json to v${version} (binaryVersion=${manifest.binaryVersion})`);

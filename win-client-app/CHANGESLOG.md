@@ -5,6 +5,112 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.51 - [Unreleased]
+
+### Fixed
+- OCR text no longer flashes — last recognized text is preserved across stream re-renders by storing it in `_lastOcrText` and re-injecting it into the DOM after each render
+
+## Version 0.2.0-dev.50 - [Unreleased]
+
+### Fixed
+- OCR calibration only adjusts the capture offset (x, y), not the size — width and height stay fixed from the div bounds
+
+## Version 0.2.0-dev.49 - [Unreleased]
+
+### Fixed
+- OCR calibration is now one-shot: applies the border correction once per layout activation and stops — previously multiple in-flight responses could stack adjustments and shrink the capture to a few pixels
+
+## Version 0.2.0-dev.48 - [Unreleased]
+
+### Fixed
+- OCR red-border detection completely redesigned: instead of scanning from the image edge (which fails when the capture includes dark pixels before the border), now scans the entire image for the first row/column with ≥50% red pixels — correctly detects the border regardless of offset and returns the exact crop needed to reach the content area
+
+## Version 0.2.0-dev.47 - [Unreleased]
+
+### Fixed
+- OCR red-border detection threshold changed from 100% to 80% — CSS borders are solid but corner pixels may not be perfectly red due to rendering; game content won't reach 80% of a full column
+- OCR coordinate adjustment capped at 10px per side to prevent runaway shrinking if detection keeps firing
+
+## Version 0.2.0-dev.46 - [Unreleased]
+
+### Fixed
+- Binary download now uses `Start-Process` inside PowerShell to truly detach the download subprocess — `cmd /c start /B` could silently fail with no console attached
+- Download progress window now shows the actual error message if the download fails or doesn't start within 15 seconds (previously showed a frozen "0%" forever)
+
+## Version 0.2.0-dev.45 - [Unreleased]
+
+### Fixed
+- Multiple update dialogs and multiple download windows opening simultaneously — once the user confirms an update, periodic checks are stopped immediately and no further dialogs or downloads can start
+
+## Version 0.2.0-dev.44 - [Unreleased]
+
+### Changed
+- Default dev manifest URL changed from `localhost:9147` to `192.168.0.47:9147`
+
+## Version 0.2.0-dev.43 - [Unreleased]
+
+### Fixed
+- OCR red-border detection now requires the entire pixel column/row to be red (not just one pixel) — prevents game content with scattered red pixels from triggering false border detections and shrinking the capture region to nothing
+- OCR capture region has a safety floor: if accumulated adjustments would reduce the region below 20px in either dimension, calibration resets
+
+## Version 0.2.0-dev.42 - [Unreleased]
+
+### Fixed
+- Binary update download was blocking the JS thread (progress bar frozen at 0%) because `{ background: true }` is not a real Neutralino API option; now uses `cmd /c start "" /B` to truly detach the PowerShell download process
+- DevTools inspector disabled again
+
+## Version 0.2.0-dev.41 - [Unreleased]
+
+### Fixed
+- OCR capture self-calibrates: relay detects red border pixels in the captured image, crops them before OCR, and returns the offsets so JS adjusts future capture coordinates — converges in 1-2 frames
+
+## Version 0.2.0-dev.40 - [Unreleased]
+
+### Changed
+- DevTools (inspector) enabled for debugging
+
+## Version 0.2.0-dev.39 - [Unreleased]
+
+### Reverted
+- OCR scanner layout grid rows back to `1fr 20px 20px`
+
+## Version 0.2.0-dev.38 - [Unreleased]
+
+### Fixed
+- Dev manifest URL was lost after every update — `getManifestUrl()` now reads `devManifestUrl` directly from storage on each check instead of relying on a one-time init variable that could be set before Neutralino storage was ready
+
+## Version 0.2.0-dev.37 - [Unreleased]
+
+### Fixed
+- OCR capture coordinates now account for Windows DPI scaling: CSS logical pixels from `getBoundingClientRect()` are multiplied by `devicePixelRatio` before being sent as physical screen coordinates to the relay
+
+## Version 0.2.0-dev.36 - [Unreleased]
+
+### Fixed
+- Binary update from tray "Version" menu was still opening the browser download page instead of auto-downloading
+
+### Changed
+- Binary update now shows a small progress window with a download progress bar (streams the zip via .NET HttpWebRequest, reports % every 500 ms)
+
+## Version 0.2.0-dev.35 - [Unreleased]
+
+### Fixed
+- Binary update was never triggered for relay changes since dev.29 — `binaryVersion` in update-manifest.json was not being synced from `clientBinaryVersion`; zip.js now syncs it automatically on every build
+
+### Changed
+- OCR relay now saves each captured image to `ocr_preview.png` next to the relay exe for debugging (overwritten each scan)
+- Removed OCR test panel from Settings
+
+## Version 0.2.0-dev.32 - [Unreleased]
+
+### Added
+- Continuous OCR scanning loop: the `entropiaflow.client.ocr` stream layout captures the `.area` region every second and sends recognized text back to the chrome extension via `ocr_result`
+
+## Version 0.2.0-dev.31 - [Unreleased]
+
+### Added
+- OCR test panel in Settings: enter screen region coordinates (X/Y/W/H), click Run OCR, see the recognized text
+
 ## Version 0.2.0-dev.30 - [Unreleased]
 
 ### Changed

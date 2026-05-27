@@ -161,7 +161,7 @@ let _lastData: StreamWindowRenderData = {
                 }, 50)
             }
         },
-        /*[OCR_LAYOUT_ID]: {
+        [OCR_LAYOUT_ID]: {
             name: 'Entropia Flow Scanner',
             htmlTemplate: `
                 <div class='root'>
@@ -203,21 +203,62 @@ let _lastData: StreamWindowRenderData = {
                     display: none !important;
                 }
             `,
-            action: () => _setScannerTimeout()
-        },*/
+            action: () => { _scannerAdjust = { x: 0, y: 0 }; _scannerCalibrated = false; _lastOcrText = ''; _startScanner(); }
+        },
     }
 }
-/*
-function _setScannerTimeout() {
-    setTimeout(async () => {
-        const area = document.querySelector('.area');
-        const textDiv = document.getElementById('text');
-        const text = await chrome.webview?.hostObjects.ocr.Scan(area.offsetLeft, area.offsetTop, area.offsetWidth, area.offsetHeight);
-        textDiv.innerText = text ?? '';
-        _setScannerTimeout(); // set 1 second again after it finishes
+
+let _scannerTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let _scannerAdjust = { x: 0, y: 0 };
+let _scannerCalibrated = false;
+let _lastOcrText = '';
+
+function _stopScanner() {
+    if (_scannerTimeoutId !== null) {
+        clearTimeout(_scannerTimeoutId);
+        _scannerTimeoutId = null;
+    }
+}
+
+function _startScanner() {
+    _stopScanner();
+    _scannerTimeoutId = setTimeout(async () => {
+        const area = document.querySelector<HTMLElement>('.area');
+        if (area) {
+            const rect = area.getBoundingClientRect();
+            const pos = await Neutralino.window.getPosition();
+            const dpr = window.devicePixelRatio || 1;
+            const border = Math.ceil(dpr);
+            sendMessageToMain('ocr_request', {
+                x: Math.round(pos.x + rect.left * dpr) + border + _scannerAdjust.x,
+                y: Math.round(pos.y + rect.top * dpr) + border + _scannerAdjust.y,
+                width: Math.round(rect.width * dpr) - 2 * border,
+                height: Math.round(rect.height * dpr) - 2 * border
+            }, 'ocr');
+        }
+        _startScanner();
     }, 1000);
 }
-*/
+
+function _restoreOcrText() {
+    const textDiv = document.getElementById('text');
+    if (textDiv && _lastOcrText) textDiv.innerText = _lastOcrText;
+}
+
+function ocrResult(data: { text?: string, error?: string, adjust?: { left: number, top: number, right: number, bottom: number } }) {
+    _lastOcrText = data.error ? `Error: ${data.error}` : (data.text ?? '');
+    const textDiv = document.getElementById('text');
+    if (textDiv) textDiv.innerText = _lastOcrText;
+    if (!_scannerCalibrated && data.adjust) {
+        const { left, top } = data.adjust;
+        if (left + top > 0) {
+            _scannerAdjust.x += left;
+            _scannerAdjust.y += top;
+            _scannerCalibrated = true;
+        }
+    }
+    if (data.text) sendMessageToMain('ocr_result', { text: data.text }, 'chrome-extension');
+}
 const _emptyLayout = {
     name: 'Entropia Flow Client Empty',
 };
@@ -362,6 +403,12 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     const layoutDiv = document.getElementById('entropia-flow-client-layout');
     if (layoutDiv) layoutDiv.innerText = layout?.name ?? '';
 
+    if (s.layoutId !== OCR_LAYOUT_ID) {
+        _stopScanner();
+    } else {
+        _restoreOcrText();
+    }
+
     if (layout?.action && s.layoutId !== _lastActionLayoutId) {
         _lastActionLayoutId = s.layoutId;
         layout.action();
@@ -476,5 +523,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 export {
     streamChanged,
     settingsChanged,
-    setInitData
+    setInitData,
+    ocrResult
 }

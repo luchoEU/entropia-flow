@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Entropia Flow Update</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 14px;
+            user-select: none;
+        }
+        h3 { font-weight: 400; font-size: 15px; }
+        .bar-wrap {
+            width: 320px;
+            height: 18px;
+            background: #3a3a3a;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+        .bar {
+            height: 100%;
+            background: #0078d4;
+            border-radius: 9px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        #status { font-size: 13px; color: #999; }
+    </style>
+</head>
+<body>
+    <h3>Entropia Flow Update</h3>
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+    <div id="status">Preparing...</div>
+    <script src="/js/neutralino.js"></script>
+    <script src="/js/updateProgress.js"></script>
+</body>
+</html>

@@ -75,6 +75,7 @@ window.addEventListener('beforeunload', () => {
     if (_settingsIntervalId) clearInterval(_settingsIntervalId);
 });
 
+
 document.getElementById('copyLogPathButton')?.addEventListener('click', async (e) => {
     e.stopPropagation();
     copyTextToClipboard(logPathFileElement?.textContent, 'copyLogPathPopup');

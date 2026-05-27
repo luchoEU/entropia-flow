@@ -6,6 +6,7 @@ module.exports = {
     settings: './src/settings.ts',
     streamView: './src/streamView.ts',
     menuTest: './src/menuTest.ts',
+    updateProgress: './src/updateProgress.ts',
   },
   module: {
     rules: [

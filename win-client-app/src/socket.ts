@@ -1,5 +1,5 @@
 import { applyDelta } from "clientStream";
-import { clientId, clientVersion, RELAY_NAME, RELAY_PATH, STORE_MESSAGE, STORE_SETTINGS, STORE_STREAM, STORE_VER, STORE_WS_PORT } from './const';
+import { clientId, clientVersion, RELAY_NAME, RELAY_PATH, STORE_MESSAGE, STORE_OCR, STORE_SETTINGS, STORE_STREAM, STORE_VER, STORE_WS_PORT } from './const';
 import { Updater } from './updater';
 import { ScreenData, SettingsData, StreamData } from './data';
 import { identifyWindow, layoutChanged, openGameWindow, sendUsedLayouts } from './windows';
@@ -38,6 +38,7 @@ function parseAndLogMessage(json: string, from = 'server') {
 
 let _screensVer = 0;
 let _screensData: ScreenData = {};
+let _ocrVer = 0;
 let _settingsVer = 0;
 let _settingsData: SettingsData = {};
 let _streamVer = 0;
@@ -128,6 +129,9 @@ async function connectWebSocket() {
                     _settingsData.ws.extensionStatus = message.data.connectedClients.includes('chrome-extension') ? 'Connected' : 'Disconnected';
                     sendDataToWindow('settings', _settingsVer, _settingsData);
                 }
+                break;
+            case "ocr_response":
+                sendDataToWindow(STORE_OCR, ++_ocrVer, message.data);
                 break;
             case "disconnect":
                 _streamVer++;

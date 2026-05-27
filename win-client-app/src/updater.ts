@@ -1,4 +1,4 @@
-import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_CLIENT_SETTINGS, STORE_WINDOW, STORE_STREAM, STORE_SETTINGS, STORE_VER } from './const';
+import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_CLIENT_SETTINGS, STORE_WINDOW, STORE_STREAM, STORE_SETTINGS, STORE_VER, STORE_UPDATE_PROGRESS } from './const';
 import { Socket } from './socket';
 import { interpolate } from './utils';
 
@@ -35,11 +35,16 @@ const isDevMode = typeof NL_PORT !== 'undefined' && NL_PORT !== 0;
 
 let _devManifestUrlOverride: string | undefined;
 
-function getManifestUrl(): string {
-    if (isDevMode && _devManifestUrlOverride) {
-        return `${_devManifestUrlOverride}/update-manifest.json`;
+async function getManifestUrl(): Promise<string> {
+    if (isDevMode) {
+        try {
+            const settings = await getClientSettings();
+            const override = settings.devManifestUrl || _devManifestUrlOverride;
+            if (override) return `${override}/update-manifest.json`;
+        } catch {}
+        return UPDATE_MANIFEST_DEV_URL;
     }
-    return isDevMode ? UPDATE_MANIFEST_DEV_URL : UPDATE_MANIFEST_URL;
+    return UPDATE_MANIFEST_URL;
 }
 
 function getCheckInterval(): number {
@@ -60,7 +65,7 @@ async function saveClientSettings(settings: ClientSettings): Promise<void> {
 }
 
 async function checkForUpdates(): Promise<UpdateStatus> {
-    const url = getManifestUrl();
+    const url = await getManifestUrl();
     try {
         const raw = await Neutralino.updater.checkForUpdates(url);
         const manifest = raw as unknown as UpdateManifest;
@@ -94,25 +99,105 @@ function isDismissedAndInCooldown(settings: ClientSettings, version: string): bo
     return Date.now() < d.nextCheckAfter;
 }
 
+async function writeProgress(pct: number, status: string): Promise<void> {
+    await Neutralino.storage.setData(STORE_UPDATE_PROGRESS, JSON.stringify({ pct, status }));
+}
+
 async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise<void> {
     const tmp = (await Neutralino.os.execCommand('cmd /c echo %TEMP%')).stdOut.trim();
     const zipPath = `${tmp}\\EntropiaFlowUpdate.zip`;
     const extractDir = `${tmp}\\EntropiaFlowUpdate`;
     const appDir = NL_PATH.replace(/\//g, '\\').replace(/\\$/, '');
     const psPath = `${tmp}\\entropia_updater.ps1`;
+    const downloadScriptPath = `${tmp}\\entropia_download.ps1`;
+    const progressFile = `${tmp}\\entropia_download_progress.txt`;
 
-    try {
-        await (Neutralino.os as any).showNotification('Entropia Flow', 'Downloading update, please wait...');
-    } catch {}
+    await Neutralino.window.create('/update.html', {
+        title: 'Entropia Flow Update',
+        icon: '/resources/img/appIcon.png',
+        width: 400,
+        height: 160,
+        minWidth: 400,
+        minHeight: 160,
+        center: true,
+        alwaysOnTop: true,
+        hidden: false,
+        exitProcessOnClose: false,
+    } as any);
 
+    await writeProgress(0, 'Downloading...');
+
+    const downloadScript = [
+        `$url = '${manifest.binaryURL}'`,
+        `$outfile = '${zipPath}'`,
+        `$progressFile = '${progressFile}'`,
+        `try {`,
+        `    $req = [System.Net.HttpWebRequest]::Create($url)`,
+        `    $resp = $req.GetResponse()`,
+        `    $total = $resp.ContentLength`,
+        `    $inStream = $resp.GetResponseStream()`,
+        `    $outStream = [System.IO.File]::OpenWrite($outfile)`,
+        `    $buf = New-Object byte[] 65536`,
+        `    $downloaded = 0`,
+        `    do {`,
+        `        $read = $inStream.Read($buf, 0, $buf.Length)`,
+        `        if ($read -le 0) { break }`,
+        `        $outStream.Write($buf, 0, $read)`,
+        `        $downloaded += $read`,
+        `        if ($total -gt 0) { [System.IO.File]::WriteAllText($progressFile, [int]($downloaded * 100 / $total)) }`,
+        `    } while ($true)`,
+        `    $outStream.Close(); $inStream.Close()`,
+        `    [System.IO.File]::WriteAllText($progressFile, 'DONE')`,
+        `} catch {`,
+        `    [System.IO.File]::WriteAllText($progressFile, "ERROR:$($_.Exception.Message)")`,
+        `}`,
+    ].join('\n');
+
+    await Neutralino.filesystem.writeFile(downloadScriptPath, downloadScript);
+    await Neutralino.os.execCommand(`cmd /c del /f /q "${progressFile}" 2>nul`);
+    // Use Start-Process inside PS to truly detach — cmd /c start /B can silently fail with no console
     await Neutralino.os.execCommand(
-        `powershell -Command "Invoke-WebRequest -Uri '${manifest.binaryURL}' -OutFile '${zipPath}'"`,
+        `powershell -WindowStyle Hidden -ExecutionPolicy Bypass -Command "Start-Process powershell -ArgumentList '-WindowStyle Hidden -ExecutionPolicy Bypass -File \\"${downloadScriptPath}\\"' -WindowStyle Hidden"`
     );
 
+    await new Promise<void>((resolve, reject) => {
+        let noFileCount = 0;
+        const interval = setInterval(async () => {
+            try {
+                const result = await Neutralino.os.execCommand(`cmd /c type "${progressFile}" 2>nul`);
+                const text = result.stdOut.trim();
+                if (!text) {
+                    noFileCount++;
+                    if (noFileCount > 30) { // 15 seconds with no file written
+                        clearInterval(interval);
+                        reject(new Error('Download failed to start — check that the update server is reachable at:\n' + manifest.binaryURL));
+                    }
+                    return;
+                }
+                noFileCount = 0;
+                if (text === 'DONE') {
+                    clearInterval(interval);
+                    resolve();
+                } else if (text.startsWith('ERROR:')) {
+                    clearInterval(interval);
+                    reject(new Error(text.slice(6)));
+                } else {
+                    const pct = parseInt(text) || 0;
+                    await writeProgress(pct, `Downloading... ${pct}%`);
+                }
+            } catch {}
+        }, 500);
+    }).catch(async (err: any) => {
+        await writeProgress(0, `Failed: ${err.message || String(err)}`).catch(() => {});
+        throw err;
+    });
+
+    await writeProgress(100, 'Extracting...');
     await Neutralino.os.execCommand(
-        `powershell -Command "if (Test-Path '${extractDir}') { Remove-Item '${extractDir}' -Recurse -Force }; Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force"`,
+        `powershell -Command "if (Test-Path '${extractDir}') { Remove-Item '${extractDir}' -Recurse -Force }; Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force"`
     );
 
+    await writeProgress(100, 'Installing...');
     const ps1 = [
         `Start-Sleep -Seconds 2`,
         `while (Get-Process -Name 'EntropiaFlowClient' -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 1 }`,
@@ -133,8 +218,7 @@ async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise
     await new Promise(r => setTimeout(r, 300));
 
     await Neutralino.os.execCommand(
-        `powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File "${psPath}"`,
-        { background: true } as any,
+        `cmd /c start "" /B powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File "${psPath}"`
     );
     await Neutralino.app.exit();
 }
@@ -192,9 +276,10 @@ async function installResourcesUpdate(): Promise<void> {
 }
 
 let _dialogOpen = false;
+let _updateInProgress = false;
 
 async function checkAndNotify(): Promise<void> {
-    if (_dialogOpen) return;
+    if (_dialogOpen || _updateInProgress) return;
     const status = await checkForUpdates();
 
     switch (status.type) {
@@ -217,6 +302,8 @@ async function checkAndNotify(): Promise<void> {
             );
             _dialogOpen = false;
             if (result === 'YES') {
+                _updateInProgress = true;
+                stopPeriodicChecks();
                 await installResourcesUpdate();
             } else {
                 const newCount = dismissCount + 1;
@@ -248,6 +335,8 @@ async function checkAndNotify(): Promise<void> {
             );
             _dialogOpen = false;
             if (result === 'YES') {
+                _updateInProgress = true;
+                stopPeriodicChecks();
                 await downloadAndInstallBinaryUpdate(status.manifest);
             } else {
                 const newCount = dismissCount + 1;
@@ -286,7 +375,6 @@ function stopPeriodicChecks(): void {
 const Updater = {
     init: async () => {
         const settings = await getClientSettings();
-        _devManifestUrlOverride = settings.devManifestUrl;
         if (!settings.autoUpdateEnabled) return;
         setTimeout(async () => {
             await checkAndNotify();
@@ -298,6 +386,7 @@ const Updater = {
     },
     checkForUpdates,
     installResourcesUpdate,
+    downloadAndInstallBinaryUpdate,
     startPeriodicChecks,
     stopPeriodicChecks,
     getClientSettings,

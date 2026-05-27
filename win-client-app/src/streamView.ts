@@ -1,8 +1,8 @@
-import { STORE_INIT, STORE_SCREENS, STORE_SETTINGS, STORE_STREAM } from "./const";
+import { STORE_INIT, STORE_OCR, STORE_SCREENS, STORE_SETTINGS, STORE_STREAM } from "./const";
 import { receiveUpdates, sendMessageToMain } from "./messages";
 import { Mouse } from "./mouse";
 import { screensChanged } from "./position";
-import { streamChanged, settingsChanged, setInitData } from "./render";
+import { streamChanged, settingsChanged, setInitData, ocrResult } from "./render";
 import { interpolate } from "./utils";
 import { WindowData } from "./windows";
 
@@ -12,6 +12,7 @@ Neutralino.events.on('ready', () => {
     _intervalIds.push(receiveUpdates(STORE_STREAM, 100, streamChanged));
     _intervalIds.push(receiveUpdates(STORE_SCREENS, 5000, screensChanged));
     _intervalIds.push(receiveUpdates(STORE_SETTINGS, 5000, settingsChanged));
+    _intervalIds.push(receiveUpdates(STORE_OCR, 200, ocrResult));
 });
 Mouse.init();
 
