@@ -64,9 +64,18 @@ export function _applyExcludes(d: number, diff: Array<ViewItemData> | undefined,
 
 export function _applyBlacklist(d: number, diff: Array<ViewItemData> | undefined, blacklist: Array<string>): number {
     diff?.forEach(item => {
-        if (hasValue(item) && blacklist.includes(item.n) && !item.e) {
-            item.e = true
-            d -= getValue(item)
+        if (hasValue(item)) {
+            if (blacklist.includes(item.n)) {
+                if (!item.e) {
+                    item.e = true
+                    d -= getValue(item)
+                }
+            } else {
+                if (item.e && !item.x) {
+                    item.e = false
+                    d += getValue(item)
+                }
+            }
         }
     })
     return d
