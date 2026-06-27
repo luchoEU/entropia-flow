@@ -128,7 +128,7 @@ const CollectorDashboard = () => {
     const totalPed = parseFloat(latest?.meta?.total ?? '0')
     const listFilterLower = listFilter.toLowerCase()
     const filteredItems = listFilterLower
-        ? rawItems.filter(item => item.n.toLowerCase().includes(listFilterLower) || item.c.toLowerCase().includes(listFilterLower))
+        ? rawItems.filter(item => item.n.toLowerCase().includes(listFilterLower))
         : rawItems
     const sortedItems = cloneSortList(filteredItems, sortType)
 
@@ -283,7 +283,7 @@ const CollectorDashboard = () => {
                                     <input
                                         className='dashboard-filter-input'
                                         type='text'
-                                        placeholder='Filter by name or container…'
+                                        placeholder='Filter by name…'
                                         value={listFilter}
                                         onChange={e => setListFilter(e.target.value)}
                                         autoFocus
