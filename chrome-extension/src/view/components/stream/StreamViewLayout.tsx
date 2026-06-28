@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { StreamRenderSingle, StreamRenderSize } from "../../../stream/data"
 import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
 import { executeStreamClickAction } from "../../application/helpers/streamClick"
 import { Component, traceError } from "../../../common/trace"
+import { saveScrollPositions, restoreScrollPositions } from "../../../stream/scroll"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {
     id: string
@@ -16,6 +17,25 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
 
     const [shadowReady, setShadowReady] = useState(false);
     const [size, setSize] = useState<StreamRenderSize | undefined>();
+    const scrollPositionsRef = useRef<Array<{ selector: string; scrollTop: number; scrollLeft: number }>>([]);
+
+    // Save scroll positions BEFORE single updates
+    useLayoutEffect(() => {
+        return () => {
+            const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
+            if (root) {
+                scrollPositionsRef.current = saveScrollPositions(root);
+            }
+        };
+    }, [single]);
+
+    // Restore scroll positions AFTER render
+    useLayoutEffect(() => {
+        const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
+        if (root && scrollPositionsRef.current.length > 0) {
+            restoreScrollPositions(root, scrollPositionsRef.current);
+        }
+    });
 
     // Attach shadow root
     useEffect(() => {

@@ -4,6 +4,7 @@ import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
 import { toCamelCase } from '../common/css'
+import { saveScrollPositions, restoreScrollPositions } from './scroll'
 
 const patch = init([
     propsModule, // for setting properties on DOM elements
@@ -31,6 +32,8 @@ export async function render(single: StreamRenderSingle, dispatchOnClick: (actio
             throw new Error('Failed to render stream!');
         }
 
+        const scrolls = saveScrollPositions(streamElement);
+
         if (streamElement.children.length > 0) {
             // patch root element manually to preserve canvas
             if (vNode.data?.style) {
@@ -54,6 +57,8 @@ export async function render(single: StreamRenderSingle, dispatchOnClick: (actio
         if (!streamElement) {
             throw new Error('Failed to render stream!');
         }
+
+        restoreScrollPositions(streamElement, scrolls);
 
         // add click handlers
         const handleClick = (e: Event) => {
