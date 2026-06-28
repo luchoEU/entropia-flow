@@ -53,8 +53,8 @@ function retryWebSocket() {
     return messagesClient.send(MSG_NAME_RETRY_WEB_SOCKET)
 }
 
-function changeLayoutState(key: string, value: any): boolean {
-    return messagesClient.send(MSG_NAME_CHANGE_LAYOUT_STATE, { key, value })
+function changeLayoutState(keyOrUpdates: string | Record<string, any>, value?: any): boolean {
+    return messagesClient.send(MSG_NAME_CHANGE_LAYOUT_STATE, { key: keyOrUpdates, value })
 }
 
 function restoreGameLog(gameLog: GameLogData): boolean {

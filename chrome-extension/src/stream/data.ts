@@ -100,6 +100,7 @@ export {
     StreamBaseVariable,
     StreamStateVariable,
     StreamUserImageVariable,
+    StreamUserParameterVariable,
     StreamTemporalVariable,
     StreamComputedVariable,
     StreamRenderData,

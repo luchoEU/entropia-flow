@@ -104,7 +104,7 @@ async function wiring(
     // stream
     const lastDeltaBuilder = new LastDeltaVariablesBuilder(viewSettings, inventoryManager)
     const inventoryBuilder = new InventoryVariablesBuilder(inventoryManager)
-    const statusBuilder = new StatusVariablesBuilder(refreshManager)
+    const statusBuilder = new StatusVariablesBuilder(refreshManager, inventoryManager)
     const backgroundBuilder = new BackgroundVariablesBuilder(getLogoUrl)
     const layoutBuilder = new LayoutVariablesBuilder()
     const gameLogBuilder = new GameLogVariablesBuilder(gameLogHistory)

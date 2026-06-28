@@ -51,7 +51,8 @@ const gameLogVariables = (gameLog: GameLogData): StreamStateVariable[] => {
         { name: 'enhancerBroken', value: gameLog.enhancerBroken },
         { name: 'global', value: gameLog.global },
         { name: 'event', value: gameLog.event as any },
-        { name: 'team', value: { players: teamPlayers, loot: teamLoot } }
+        { name: 'team', value: { players: teamPlayers, loot: teamLoot } },
+        { name: 'raw', value: gameLog.raw }
     ]
 }
 

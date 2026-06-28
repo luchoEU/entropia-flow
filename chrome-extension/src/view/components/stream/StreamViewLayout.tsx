@@ -25,21 +25,24 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         }
     }, []);
 
-    // Attach click listeners
+    // Attach click listeners via event delegation on the shadow root
     useEffect(() => {
+        const root = shadowRootRef.current?.shadowRoot;
+        if (!root) return;
+
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            if (target?.dataset?.click) {
-                executeStreamClickAction(target.dataset.click);
+            const clickable = target.closest('[data-click]') as HTMLElement | null;
+            if (clickable?.dataset?.click) {
+                executeStreamClickAction(clickable.dataset.click);
             }
         };
 
-        const clickableElements = shadowRootRef.current?.shadowRoot?.querySelectorAll('[data-click]');
-        clickableElements?.forEach((el: Element) => (el as HTMLElement).addEventListener('click', handleClick));
+        root.addEventListener('click', handleClick);
         return () => {
-            clickableElements?.forEach((el: Element) => (el as HTMLElement).removeEventListener('click', handleClick));
+            root.removeEventListener('click', handleClick);
         };
-    }, [shadowReady, id, layoutId, single, scale]);
+    }, [shadowReady]);
 
     // Measure layout size after rendering
     useEffect(() => {

@@ -85,6 +85,7 @@ Stream overlay editor and layout management.
 - **Layout Config** — Name, description, background (color/image), size, position, read-only toggle
 - **Advanced** — User-defined images, parameters, and template partials
 - **Stream Trash** — Recover or permanently delete layouts
+- **Agent Chat** — AI assistant (Google Gemini) that generates Images, Parameters, JavaScript, HTML, and CSS from a natural-language prompt; inline API key entry; multi-turn conversation history; per-response Apply button (replaces current content); Undo/Redo stack (up to 50 steps); only visible in Advanced mode
 
 ### 9. Client (`/client`)
 

@@ -56,7 +56,12 @@ export async function render(single: StreamRenderSingle, dispatchOnClick: (actio
         }
 
         // add click handlers
-        const handleClick = (e: Event) => dispatchOnClick((e.target as HTMLElement).dataset.click ?? '');
+        const handleClick = (e: Event) => {
+            const clickable = (e.target as HTMLElement).closest('[data-click]') as HTMLElement | null;
+            if (clickable) {
+                dispatchOnClick(clickable.dataset.click ?? '');
+            }
+        };
         const clickableElements = streamElement.querySelectorAll('[data-click]');
         clickableElements?.forEach((el: Element) => el.addEventListener('click', handleClick));
 

@@ -66,14 +66,45 @@ class StreamDataBuilder {
         this._isDirty = true
     }
 
-    public async changeState(key: string, value: any) {
+    public async changeState(keyOrUpdates: string | Record<string, any>, value?: any) {
         const layouts = this._builderState.layouts
         if (!layouts) return
+
+        const showingId = this._builderState.showingLayoutId
+        if (showingId && layouts[showingId]) {
+            const layout = layouts[showingId]
+            if (!layout.state) {
+                layout.state = {}
+            }
+            if (typeof keyOrUpdates === 'object' && keyOrUpdates !== null) {
+                Object.assign(layout.state, keyOrUpdates)
+            } else {
+                layout.state[keyOrUpdates as string] = value
+            }
+            await this.apiStorage.saveLayoutState(showingId, layout.state)
+            this._isDirty = true
+            return
+        }
+
         for (const [id, layout] of Object.entries(layouts)) {
-            if (layout.state && key in layout.state) {
-                layout.state[key] = value
-                await this.apiStorage.saveLayoutState(id, layout.state)
-                this._isDirty = true
+            if (layout.state) {
+                if (typeof keyOrUpdates === 'object' && keyOrUpdates !== null) {
+                    let matched = false
+                    for (const [k, v] of Object.entries(keyOrUpdates)) {
+                        if (k in layout.state) {
+                            layout.state[k] = v
+                            matched = true
+                        }
+                    }
+                    if (matched) {
+                        await this.apiStorage.saveLayoutState(id, layout.state)
+                        this._isDirty = true
+                    }
+                } else if (typeof keyOrUpdates === 'string' && keyOrUpdates in layout.state) {
+                    layout.state[keyOrUpdates] = value
+                    await this.apiStorage.saveLayoutState(id, layout.state)
+                    this._isDirty = true
+                }
             }
         }
     }

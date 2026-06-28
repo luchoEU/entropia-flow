@@ -12,6 +12,7 @@ import ExpandableSection from "../common/ExpandableSection"
 import StreamViewLayout from "./StreamViewLayout"
 import CodeEditor from "./CodeEditor"
 import StreamBackgroundChooser from "./StreamBackground"
+import StreamAgentChat from "./StreamAgentChat"
 import { useNavigate } from "react-router-dom"
 import { TabId } from "../../application/state/navigation"
 import { Role, ROLES, ROLE_LABELS } from "../../application/state/role"
@@ -250,9 +251,10 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                 />
             )}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
-                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: streamRenderData.commonData, layout }} />
+                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: streamRenderData.layoutData[layoutId] ?? streamRenderData.commonData, layout }} />
             </ExpandableSection>
             { advanced && <StreamLayoutEditor layoutId={layoutId} /> }
+            { advanced && <StreamAgentChat layoutId={layoutId} /> }
         </div>
     </section>
 }

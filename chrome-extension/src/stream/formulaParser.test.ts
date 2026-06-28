@@ -66,6 +66,15 @@ describe('formula parser', () => {
             .evaluate({}))
             .toEqual(2.5)
     })
+    test('javascript formula with param and item helpers', async () => {
+        const jsCode = '`const myName = param("playerName").toLowerCase(); const pedQty = item("PED").quantity; myName + ":" + pedQty`';
+        expect(parseFormula(jsCode)
+            .evaluate({
+                playerName: 'Coffee Shop',
+                items: [{ name: 'PED', quantity: 150 }]
+            }))
+            .toEqual('coffee shop:150')
+    })
 })
 
 describe('formula print', () => {

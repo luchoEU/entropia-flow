@@ -1,4 +1,4 @@
-﻿import { render as clientRender, applyDelta } from "clientStream";
+import { render as clientRender, applyDelta } from "clientStream";
 import { StreamRenderSingle } from "../resources/stream/stream/data";
 import { SettingsData } from "./data";
 import { StreamRenderObject } from "../resources/stream/stream/data";
@@ -323,18 +323,45 @@ function nextLayout() {
     render({ layoutId: nextLayoutId });
 }
 
-function changeState(key: string, value: any) {
+function changeState(keyOrUpdates: string | Record<string, any>, value?: any) {
     const ld = _lastData.layoutData?.[_layoutId];
-    if (ld) ld[key] = value;
+    if (ld) {
+        if (typeof keyOrUpdates === 'object' && keyOrUpdates !== null) {
+            Object.assign(ld, keyOrUpdates);
+        } else {
+            ld[keyOrUpdates] = value;
+        }
+    }
     _lastActionLayoutId = undefined;
     render({ layoutId: _layoutId });
-    sendMessageToMain('change-state', { key, value }, 'chrome-extension');
+    sendMessageToMain('change-state', { key: keyOrUpdates, value }, 'chrome-extension');
 }
 
 function dispatchOnClick(action: string) {
     if (action.startsWith('set:')) {
-        const [key, value] = action.slice(4).split('=');
-        changeState(key, value);
+        const remainder = action.slice(4);
+        const parts = remainder.split(/[;&]/);
+        const updates: Record<string, any> = {};
+        for (const part of parts) {
+            let cleanPart = part.trim();
+            if (cleanPart.startsWith('set:')) {
+                cleanPart = cleanPart.slice(4);
+            }
+            const index = cleanPart.indexOf('=');
+            if (index !== -1) {
+                const k = cleanPart.slice(0, index).trim();
+                const v = cleanPart.slice(index + 1).trim();
+                updates[k] = v;
+            }
+        }
+        changeState(updates);
+        return;
+    }
+    if (action.startsWith('copy:')) {
+        const text = action.slice(5);
+        navigator.clipboard.writeText(text).catch(err => {
+            console.error('Failed to copy to clipboard:', err);
+        });
         return;
     }
     sendMessageToMain('dispatch', action, 'chrome-extension');

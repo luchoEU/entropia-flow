@@ -1,7 +1,8 @@
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { StreamStateIn, StreamStateOut } from '../state/stream'
-import { StreamRenderData, StreamSavedLayoutSet, StreamStateVariablesSet, StreamExportLayout, StreamSavedLayout, StreamUserImageVariable } from '../../../stream/data'
+import messages from '../../services/api/messages'
+import { StreamRenderData, StreamSavedLayoutSet, StreamStateVariablesSet, StreamExportLayout, StreamSavedLayout, StreamUserImageVariable, StreamUserParameterVariable } from '../../../stream/data'
 import { BackgroundType } from '../../../stream/background'
 import { exportToSavedLayout } from '../../../stream/data.convert'
 import { STORAGE_VIEW_STREAM } from '../../../common/const'
@@ -101,9 +102,13 @@ export async function initializeStreamFromStorage(): Promise<void> {
  */
 export const initializeStreamAtom = atom(
   null,
-  async (_get, set) => {
+  async (get, set) => {
     await initializeStreamFromStorage()
     set(streamInAtom, cachedStreamData)
+    const ui = get(streamUiAtom)
+    if (ui.showingLayoutId) {
+        messages.setShowingLayoutId(ui.showingLayoutId)
+    }
   }
 )
 
@@ -373,6 +378,7 @@ export const setStreamShowingLayoutIdAtom = atom(
         ...ui,
         showingLayoutId: layoutId
     })
+    messages.setShowingLayoutId(layoutId)
   }
 )
 
@@ -455,10 +461,150 @@ export const setStreamUserPartialAtom = atom(
   }
 )
 
+export const setStreamUserParametersAtom = atom(
+  null,
+  (get, set, layoutId: string, parameters: StreamUserParameterVariable[]) => {
+    const stateIn = get(streamInAtom)
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, { parameters }))
+  }
+)
+
+export const setStreamUserImagesAtom = atom(
+  null,
+  (get, set, layoutId: string, images: StreamUserImageVariable[]) => {
+    const stateIn = get(streamInAtom)
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, { images }))
+  }
+)
+
 // Stub for navigating to trash layouts
 export const goToTrashAtom = atom(
   null,
   (get, set) => {
     console.log('TODO: Navigate to trash layouts');
+  }
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Undo / Redo history for agent-applied changes
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface StreamLayoutSnapshot {
+  formulaJavaScript?: string
+  htmlTemplate?: string
+  cssTemplate?: string
+  images?: StreamUserImageVariable[]
+  parameters?: StreamUserImageVariable[]
+}
+
+interface StreamLayoutHistoryState {
+  /** past[0] is the oldest snapshot, past[last] is right before the current state */
+  past: StreamLayoutSnapshot[]
+  /** future[0] is the next redo state */
+  future: StreamLayoutSnapshot[]
+}
+
+type StreamHistoryMap = Record<string, StreamLayoutHistoryState>
+
+/** In-memory only — not persisted */
+export const streamLayoutHistoryAtom = atom<StreamHistoryMap>({})
+
+/** Push a snapshot of the layout before a change. Called by the agent chat before applying. */
+export const pushStreamHistoryAtom = atom(
+  null,
+  (get, set, layoutId: string, snapshot: StreamLayoutSnapshot) => {
+    const historyMap = get(streamLayoutHistoryAtom)
+    const entry = historyMap[layoutId] ?? { past: [], future: [] }
+    set(streamLayoutHistoryAtom, {
+      ...historyMap,
+      [layoutId]: {
+        past: [...entry.past.slice(-49), snapshot], // keep max 50
+        future: [],
+      }
+    })
+  }
+)
+
+/** Undo the last agent change for a layoutId */
+export const undoStreamLayoutAtom = atom(
+  null,
+  (get, set, layoutId: string) => {
+    const historyMap = get(streamLayoutHistoryAtom)
+    const entry = historyMap[layoutId]
+    if (!entry || entry.past.length === 0) return
+
+    const stateIn = get(streamInAtom)
+    const layout = stateIn.layouts[layoutId]
+    if (!layout) return
+
+    const currentSnapshot: StreamLayoutSnapshot = {
+      formulaJavaScript: layout.formulaJavaScript,
+      htmlTemplate: layout.htmlTemplate,
+      cssTemplate: layout.cssTemplate,
+      images: layout.images ? [...layout.images] : undefined,
+      parameters: layout.parameters ? [...layout.parameters] : undefined,
+    }
+
+    const previousSnapshot = entry.past[entry.past.length - 1]
+
+    // Restore previous snapshot into layout
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, {
+      formulaJavaScript: previousSnapshot.formulaJavaScript,
+      htmlTemplate: previousSnapshot.htmlTemplate,
+      cssTemplate: previousSnapshot.cssTemplate,
+      images: previousSnapshot.images ? [...previousSnapshot.images] : undefined,
+      parameters: previousSnapshot.parameters ? [...previousSnapshot.parameters] : undefined,
+    }))
+
+    // Update history stacks
+    set(streamLayoutHistoryAtom, {
+      ...historyMap,
+      [layoutId]: {
+        past: entry.past.slice(0, -1),
+        future: [currentSnapshot, ...entry.future],
+      }
+    })
+  }
+)
+
+/** Redo the last undone change for a layoutId */
+export const redoStreamLayoutAtom = atom(
+  null,
+  (get, set, layoutId: string) => {
+    const historyMap = get(streamLayoutHistoryAtom)
+    const entry = historyMap[layoutId]
+    if (!entry || entry.future.length === 0) return
+
+    const stateIn = get(streamInAtom)
+    const layout = stateIn.layouts[layoutId]
+    if (!layout) return
+
+    const currentSnapshot: StreamLayoutSnapshot = {
+      formulaJavaScript: layout.formulaJavaScript,
+      htmlTemplate: layout.htmlTemplate,
+      cssTemplate: layout.cssTemplate,
+      images: layout.images ? [...layout.images] : undefined,
+      parameters: layout.parameters ? [...layout.parameters] : undefined,
+    }
+
+    const nextSnapshot = entry.future[0]
+
+    // Restore next snapshot into layout
+    set(streamInAtom, _changeLayoutInState(stateIn, layoutId, {
+      formulaJavaScript: nextSnapshot.formulaJavaScript,
+      htmlTemplate: nextSnapshot.htmlTemplate,
+      cssTemplate: nextSnapshot.cssTemplate,
+      images: nextSnapshot.images ? [...nextSnapshot.images] : undefined,
+      parameters: nextSnapshot.parameters ? [...nextSnapshot.parameters] : undefined,
+    }))
+
+    // Update history stacks
+    set(streamLayoutHistoryAtom, {
+      ...historyMap,
+      [layoutId]: {
+        past: [...entry.past, currentSnapshot],
+        future: entry.future.slice(1),
+      }
+    })
   }
 )

@@ -263,13 +263,30 @@ function _extractIdentifiers(code: string): Set<string> {
 
 // The init function to set up the interpreter's global scope.
 const interpreterLoadContext = (context?: any) => (interpreter: any, globalObject: any) => {
-    if (!context) return;
-    for (const key in context) {
-        if (Object.prototype.hasOwnProperty.call(context, key)) {
-            const value = interpreter.nativeToPseudo(context[key]);
+    const ctx = context || {};
+    for (const key in ctx) {
+        if (Object.prototype.hasOwnProperty.call(ctx, key)) {
+            const value = interpreter.nativeToPseudo(ctx[key]);
             interpreter.setProperty(globalObject, key, value);
         }
     }
+
+    // Register item(name) function helper inside the interpreter sandbox context
+    const itemHelper = interpreter.createNativeFunction((namePseudo: any) => {
+        const name = typeof namePseudo === 'object' && namePseudo !== null ? interpreter.pseudoToNative(namePseudo) : namePseudo;
+        const items = ctx.items || [];
+        const found = items.find((it: any) => it.name === name);
+        return interpreter.nativeToPseudo(found || { name, quantity: 0, value: 0 });
+    });
+    interpreter.setProperty(globalObject, 'item', itemHelper);
+
+    // Register param(name) function helper inside the interpreter sandbox context
+    const paramHelper = interpreter.createNativeFunction((namePseudo: any) => {
+        const name = typeof namePseudo === 'object' && namePseudo !== null ? interpreter.pseudoToNative(namePseudo) : namePseudo;
+        const val = ctx[name];
+        return interpreter.nativeToPseudo(val !== undefined ? val : '');
+    });
+    interpreter.setProperty(globalObject, 'param', paramHelper);
 };
 
 /**
