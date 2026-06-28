@@ -4,7 +4,32 @@ import StreamViewDiv from "./StreamViewDiv"
 import reactElementToVNode from "./ReactToSnabb"
 import loadBackground from "./background"
 import { toCamelCase } from '../common/css'
-import { saveScrollPositions, restoreScrollPositions } from './scroll'
+import { getStableSelector, restoreScrollPositions, SavedScrollPosition } from './scroll'
+
+const clientScrolls: SavedScrollPosition[] = [];
+if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', (e) => {
+        const target = e.target as HTMLElement;
+        const stream = document.getElementById('stream');
+        if (target && target.tagName && stream) {
+            const selector = getStableSelector(target, stream);
+            const index = clientScrolls.findIndex(p => p.selector === selector);
+            if (index !== -1) {
+                clientScrolls[index] = {
+                    selector,
+                    scrollTop: target.scrollTop,
+                    scrollLeft: target.scrollLeft
+                };
+            } else {
+                clientScrolls.push({
+                    selector,
+                    scrollTop: target.scrollTop,
+                    scrollLeft: target.scrollLeft
+                });
+            }
+        }
+    }, true); // useCapture = true
+}
 
 const patch = init([
     propsModule, // for setting properties on DOM elements
@@ -32,8 +57,6 @@ export async function render(single: StreamRenderSingle, dispatchOnClick: (actio
             throw new Error('Failed to render stream!');
         }
 
-        const scrolls = saveScrollPositions(streamElement);
-
         if (streamElement.children.length > 0) {
             // patch root element manually to preserve canvas
             if (vNode.data?.style) {
@@ -58,7 +81,7 @@ export async function render(single: StreamRenderSingle, dispatchOnClick: (actio
             throw new Error('Failed to render stream!');
         }
 
-        restoreScrollPositions(streamElement, scrolls);
+        restoreScrollPositions(streamElement, clientScrolls);
 
         // add click handlers
         const handleClick = (e: Event) => {
