@@ -47,6 +47,9 @@ export const saveScrollPositions = (container: HTMLElement): SavedScrollPosition
             });
         }
     });
+    if (saved.length > 0) {
+        console.log('[Scroll Preservation] Saved positions:', saved);
+    }
     return saved;
 };
 
@@ -64,6 +67,8 @@ export const restoreScrollPositions = (container: HTMLElement, saved: SavedScrol
             }
         });
     };
+
+    console.log('[Scroll Preservation] Restoring positions:', saved);
 
     // 1. Restore synchronously immediately
     restore();

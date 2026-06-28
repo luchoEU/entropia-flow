@@ -32,6 +32,7 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
         const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
         if (root && scrollPositionsRef.current.length > 0) {
             restoreScrollPositions(root, scrollPositionsRef.current);
+            scrollPositionsRef.current = []; // Clear to prevent manual scroll overrides
         }
     });
 
