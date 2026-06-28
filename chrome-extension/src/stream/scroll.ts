@@ -14,14 +14,9 @@ export const getStableSelector = (el: HTMLElement, root: HTMLElement): string =>
             parts.unshift(part);
             break; // ID is unique, so we can stop here!
         }
-        if (current.className) {
-            // Filter out snabbdom classes or transition helper classes if any
-            const classes = current.className.split(/\s+/).filter(c => c && !c.startsWith('snabbdom')).join('.');
-            if (classes) {
-                part += `.${classes}`;
-            }
-        }
+        
         // Add nth-of-type selector to handle duplicate sibling elements
+        // This is 100% valid CSS and immune to special characters in classNames (like brackets/colons in Tailwind)
         let index = 1;
         let sibling = current.previousElementSibling;
         while (sibling) {
@@ -56,15 +51,25 @@ export const saveScrollPositions = (container: HTMLElement): SavedScrollPosition
 };
 
 export const restoreScrollPositions = (container: HTMLElement, saved: SavedScrollPosition[]) => {
-    saved.forEach(pos => {
-        try {
-            const htmlEl = container.querySelector(pos.selector) as HTMLElement | null;
-            if (htmlEl) {
-                htmlEl.scrollTop = pos.scrollTop;
-                htmlEl.scrollLeft = pos.scrollLeft;
+    const restore = () => {
+        saved.forEach(pos => {
+            try {
+                const htmlEl = container.querySelector(pos.selector) as HTMLElement | null;
+                if (htmlEl) {
+                    htmlEl.scrollTop = pos.scrollTop;
+                    htmlEl.scrollLeft = pos.scrollLeft;
+                }
+            } catch (e) {
+                console.error('Failed to restore scroll position for selector:', pos.selector, e);
             }
-        } catch (e) {
-            console.error('Failed to restore scroll position for selector:', pos.selector, e);
-        }
-    });
+        });
+    };
+
+    // 1. Restore synchronously immediately
+    restore();
+
+    // 2. Restore in next animation frames & timeout to handle layout/repaint delays
+    requestAnimationFrame(restore);
+    setTimeout(restore, 20);
+    setTimeout(restore, 100);
 };
