@@ -19,17 +19,15 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
     const [size, setSize] = useState<StreamRenderSize | undefined>();
     const scrollPositionsRef = useRef<Array<{ selector: string; scrollTop: number; scrollLeft: number }>>([]);
 
-    // Save scroll positions BEFORE single updates
-    useLayoutEffect(() => {
-        return () => {
-            const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
-            if (root) {
-                scrollPositionsRef.current = saveScrollPositions(root);
-            }
-        };
-    }, [single]);
+    // Save scroll positions during render (before React mutates the DOM)
+    if (shadowReady && shadowRootRef.current?.shadowRoot) {
+        const root = shadowRootRef.current.shadowRoot.querySelector('.layout-root') as HTMLElement | null;
+        if (root) {
+            scrollPositionsRef.current = saveScrollPositions(root);
+        }
+    }
 
-    // Restore scroll positions AFTER render
+    // Restore scroll positions AFTER render mutations are committed
     useLayoutEffect(() => {
         const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
         if (root && scrollPositionsRef.current.length > 0) {
