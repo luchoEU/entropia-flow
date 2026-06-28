@@ -48,14 +48,41 @@ export const traderOwnedExpandedAtom = atomWithStorage('jotai-v1-trader-ownedExp
 export const traderShowMarkupAtom = atomWithStorage('jotai-v1-trader-showMarkup', false)
 export const traderViewModeAtom = atomWithStorage<'list' | 'tree'>('jotai-v1-trader-viewMode', 'list')
 export const traderOnlyFavoritesAtom = atomWithStorage('jotai-v1-trader-onlyFavorites', false)
+export const traderAuctionOnlyFavoritesAtom = atomWithStorage('jotai-v1-trader-auctionOnlyFavorites', false)
 export const traderOwnedFilterAtom = atomWithStorage('jotai-v1-trader-ownedFilter', '')
 export const traderAuctionFilterAtom = atomWithStorage('jotai-v1-trader-auctionFilter', '')
 
 // ─── Auction item row ────────────────────────────────────────────────────────
 
-const AuctionItemRow = ({ item }: { item: ItemData }) => (
+const AuctionItemRow = ({ item, isFavorite, onToggleFavorite, isOnAuction, showFavorites }: {
+    item: ItemData
+    isFavorite: boolean
+    onToggleFavorite: (name: string, isFav: boolean) => void
+    isOnAuction: boolean
+    showFavorites: boolean
+}) => (
     <tr>
-        <td>{item.n}</td>
+        {showFavorites && (
+            <td style={{ width: '40px', paddingRight: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span
+                    className={`trader-fav-btn ${isFavorite ? 'trader-fav-on' : ''}`}
+                    onClick={() => onToggleFavorite(item.n, isFavorite)}
+                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                    {isFavorite ? '★' : '☆'}
+                </span>
+                <span
+                    className='trader-auction-badge'
+                    title='On auction'
+                    style={{ visibility: isOnAuction ? 'visible' : 'hidden' }}
+                >
+                    AUC
+                </span>
+            </td>
+        )}
+        <td>
+            <span style={{ fontWeight: 'normal' }}>{item.n}</span>
+        </td>
         <td className='dashboard-col-right'>{item.q}</td>
         <td className='dashboard-col-right'>{item.v}</td>
     </tr>
@@ -304,7 +331,9 @@ const TraderDashboard = () => {
     const [showMarkup, setShowMarkup] = useAtom(traderShowMarkupAtom)
     const [viewMode, setViewMode] = useAtom(traderViewModeAtom)
     const [onlyFavorites, setOnlyFavorites] = useAtom(traderOnlyFavoritesAtom)
+    const [auctionOnlyFavorites, setAuctionOnlyFavorites] = useAtom(traderAuctionOnlyFavoritesAtom)
     const [sort, setSort] = useState<DashboardSort>({ mode: 'standard', sortType: SORT_VALUE_DESCENDING })
+    const [auctionSort, setAuctionSort] = useState<{ column: number; ascending: boolean }>({ column: 3, ascending: false })
     const [ownedFilter, setOwnedFilter] = useAtom(traderOwnedFilterAtom)
     const [auctionFilter, setAuctionFilter] = useAtom(traderAuctionFilterAtom)
 
@@ -319,7 +348,44 @@ const TraderDashboard = () => {
     // ── Computed values (pure helper calls) ──
     const stats = useMemo(() => calcTraderStats(enrichedItems), [enrichedItems])
     const auctionStats = useMemo(() => calcAuctionStats(auctionItems), [auctionItems])
-    const filteredAuctionItems = useMemo(() => filterItemsByName(auctionItems, auctionFilter), [auctionItems, auctionFilter])
+    const filteredAuctionItems = useMemo(() => {
+        if (auctionOnlyFavorites) {
+            // Show all auction items + favorites not on auction
+            const auctionItemNames = new Set(auctionItems.map(item => item.n))
+            const favoritesNotOnAuction = availableCriteria.name
+                .filter(name => !auctionItemNames.has(name))
+                .map(name => {
+                    const ownedItem = enrichedItems.find(i => i.data.n === name)
+                    return ownedItem ? ownedItem.data : null
+                })
+                .filter(Boolean)
+            const combined = [...auctionItems, ...favoritesNotOnAuction]
+            return filterItemsByName(combined, auctionFilter)
+        }
+        return filterItemsByName(auctionItems, auctionFilter)
+    }, [auctionItems, auctionFilter, auctionOnlyFavorites, availableCriteria.name, enrichedItems])
+
+    const sortedAuctionItems = useMemo(() => {
+        const items = [...filteredAuctionItems]
+        items.sort((a, b) => {
+            const cmp = (valA: string | number, valB: string | number) => {
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return auctionSort.ascending ? valA - valB : valB - valA
+                }
+                const strA = String(valA).toLowerCase()
+                const strB = String(valB).toLowerCase()
+                return auctionSort.ascending ? strA.localeCompare(strB) : strB.localeCompare(strA)
+            }
+
+            switch (auctionSort.column) {
+                case 1: return cmp(a.n, b.n)
+                case 2: return cmp(parseFloat(a.q || '0'), parseFloat(b.q || '0'))
+                case 3: return cmp(parseFloat(a.v || '0'), parseFloat(b.v || '0'))
+                default: return 0
+            }
+        })
+        return items
+    }, [filteredAuctionItems, auctionSort])
     const allOwnedItems = useMemo(() => sortOwnedItems(enrichedItems, sort, itemsMap), [enrichedItems, sort, itemsMap])
     const ownedItems = useMemo(() => {
         let data = filterByText(allOwnedItems.map(i => i.data), ownedFilter)
@@ -353,9 +419,19 @@ const TraderDashboard = () => {
         if (sort.mode === col) return sort.desc ? ' ▼' : ' ▲'
         return ''
     }
+    const auctionSortArrow = (col: number) => {
+        return auctionSort.column === col ? (auctionSort.ascending ? ' ▲' : ' ▼') : ''
+    }
     const onStandardSort = (col: number) => {
         const st = sort.mode === 'standard' ? sort.sortType : SORT_VALUE_DESCENDING
         setSort({ mode: 'standard', sortType: nextSortType(col, st) })
+    }
+    const onAuctionSort = (col: number) => {
+        if (auctionSort.column === col) {
+            setAuctionSort({ column: col, ascending: !auctionSort.ascending })
+        } else {
+            setAuctionSort({ column: col, ascending: true })
+        }
     }
     const onMuSort = (mode: 'mu-ped' | 'total') => {
         if (sort.mode === mode) setSort({ mode, desc: !sort.desc })
@@ -452,7 +528,7 @@ const TraderDashboard = () => {
 
                 {/* ── On Auction section ── */}
                 <DashboardSection
-                    title='ON AUCTION'
+                    title={auctionOnlyFavorites ? 'ON AUCTION + FAVORITES' : 'ON AUCTION'}
                     total={`${auctionStats.totalPed.toFixed(2)} PED`}
                     count={auctionStats.count}
                     countLabel='items'
@@ -469,19 +545,32 @@ const TraderDashboard = () => {
                                 onChange={e => setAuctionFilter(e.target.value)}
                             />
                             {auctionFilter && <span className='dashboard-filter-clear' onClick={() => setAuctionFilter('')}>✕</span>}
+                            <span className={`dashboard-mu-toggle ${auctionOnlyFavorites ? 'active' : ''}`}
+                                onClick={() => setAuctionOnlyFavorites(!auctionOnlyFavorites)}
+                                title='Show auction items + favorites not on auction'>
+                                ★
+                            </span>
                         </div>
-                        {filteredAuctionItems.length > 0 && (
+                        {sortedAuctionItems.length > 0 && (
                             <table className='dashboard-items-table'>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th className='dashboard-col-right'>Qty</th>
-                                        <th className='dashboard-col-right'>Value</th>
+                                        {auctionOnlyFavorites && <th style={{ width: '40px', paddingRight: '2px' }}></th>}
+                                        <th onClick={() => onAuctionSort(1)} style={{ cursor: 'pointer' }}>Name{auctionSortArrow(1)}</th>
+                                        <th className='dashboard-col-right' onClick={() => onAuctionSort(2)} style={{ cursor: 'pointer' }}>Qty{auctionSortArrow(2)}</th>
+                                        <th className='dashboard-col-right' onClick={() => onAuctionSort(3)} style={{ cursor: 'pointer' }}>Value{auctionSortArrow(3)}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredAuctionItems.map((item, idx) => (
-                                        <AuctionItemRow key={item.id ?? idx} item={item} />
+                                    {sortedAuctionItems.map((item, idx) => (
+                                        <AuctionItemRow
+                                            key={item.id ?? idx}
+                                            item={item}
+                                            isFavorite={availableCriteria.name.includes(item.n)}
+                                            onToggleFavorite={handleToggleFavorite}
+                                            isOnAuction={auctionItems.some(ai => ai.n === item.n)}
+                                            showFavorites={auctionOnlyFavorites}
+                                        />
                                     ))}
                                 </tbody>
                             </table>
