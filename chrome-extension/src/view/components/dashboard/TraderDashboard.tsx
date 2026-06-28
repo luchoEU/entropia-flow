@@ -90,10 +90,11 @@ const AuctionItemRow = ({ item, isFavorite, onToggleFavorite, isOnAuction, showF
 
 // ─── Owned item row ──────────────────────────────────────────────────────────
 
-const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, isFavorite, onToggleFavorite, onToggleHide, onSelect, isSelected }: {
+const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, showFavorites, isFavorite, onToggleFavorite, onToggleHide, onSelect, isSelected }: {
     item: ItemOwned
     showMarkup: boolean
     showContainer: boolean
+    showFavorites: boolean
     isFavorite: boolean
     onToggleFavorite: (name: string, isFav: boolean) => void
     onToggleHide: (name: string, isHidden: boolean) => void
@@ -112,6 +113,24 @@ const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, isFavorite, 
 
     return (
         <tr className={`${item.c.hidden.any ? 'dashboard-item-excluded' : ''} ${isSelected ? 'trader-item-selected' : ''}`}>
+            {showFavorites && (
+                <td style={{ width: '40px', paddingRight: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span
+                        className={`trader-fav-btn ${isFavorite ? 'trader-fav-on' : ''}`}
+                        onClick={() => onToggleFavorite(item.data.n, isFavorite)}
+                        title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                        {isFavorite ? '★' : '☆'}
+                    </span>
+                    <span
+                        className='trader-auction-badge'
+                        title='On auction'
+                        style={{ visibility: item.data.c === 'AUCTION' ? 'visible' : 'hidden' }}
+                    >
+                        AUC
+                    </span>
+                </td>
+            )}
             <td>
                 <span
                     className='dashboard-item-action'
@@ -127,7 +146,7 @@ const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, isFavorite, 
                 title='Click to see details'
             >
                 <span style={{ fontWeight: isSelected ? 'bold' : 'normal' }}>{item.data.n}</span>
-                {item.data.c === 'AUCTION' && (
+                {!showFavorites && item.data.c === 'AUCTION' && (
                     <span className='trader-auction-badge' title='On auction'>AUC</span>
                 )}
             </td>
@@ -175,15 +194,6 @@ const OwnedItemRow = React.memo(({ item, showMarkup, showContainer, isFavorite, 
                 </td>
             </>}
             {showContainer && <td>{item.data.c}</td>}
-            <td>
-                <span
-                    className={`trader-fav-btn ${isFavorite ? 'trader-fav-on' : ''}`}
-                    onClick={() => onToggleFavorite(item.data.n, isFavorite)}
-                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                    {isFavorite ? '★' : '☆'}
-                </span>
-            </td>
         </tr>
     )
 })
@@ -454,11 +464,12 @@ const TraderDashboard = () => {
         setTradeItemChain(name, 0)
     }
 
-    // 6 base columns: action, name, qty, value, container, favorite
+    // 5 base columns: action, name, qty, value, container
+    // +1 when favorites toggle is on: fav/AUC column
     // +3 when markup is on: +MU, MU, Total
     // −1 when tree view hides the container column
     const showContainerColumn = viewMode === 'list'
-    const colCount = 6 + (showMarkup ? 3 : 0) - (showContainerColumn ? 0 : 1)
+    const colCount = 5 + (onlyFavorites ? 1 : 0) + (showMarkup ? 3 : 0) - (showContainerColumn ? 0 : 1)
 
     return (
         <div className='dashboard-page'>
@@ -651,6 +662,7 @@ const TraderDashboard = () => {
                             <table className='dashboard-items-table'>
                                 <thead>
                                     <tr>
+                                        {onlyFavorites && <th style={{ width: '40px' }}></th>}
                                         <th></th>
                                         <th onClick={() => onStandardSort(0)}>Name{sortArrow(0)}</th>
                                         <th className='dashboard-col-right' onClick={() => onStandardSort(1)}>Qty{sortArrow(1)}</th>
@@ -661,7 +673,6 @@ const TraderDashboard = () => {
                                             <th className='dashboard-col-right' onClick={() => onMuSort('total')}>Total{sortArrow('total')}</th>
                                         </>}
                                         {showContainerColumn && <th onClick={() => onStandardSort(3)}>Container{sortArrow(3)}</th>}
-                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -672,6 +683,7 @@ const TraderDashboard = () => {
                                                     item={item}
                                                     showMarkup={showMarkup}
                                                     showContainer={showContainerColumn}
+                                                    showFavorites={onlyFavorites}
                                                     isFavorite={availableCriteria.name.includes(item.data.n)}
                                                     onToggleFavorite={handleToggleFavorite}
                                                     onToggleHide={handleToggleHide}
@@ -705,6 +717,7 @@ const TraderDashboard = () => {
                                                                 item={item}
                                                                 showMarkup={showMarkup}
                                                                 showContainer={showContainerColumn}
+                                                                showFavorites={onlyFavorites}
                                                                 isFavorite={availableCriteria.name.includes(item.data.n)}
                                                                 onToggleFavorite={handleToggleFavorite}
                                                                 onToggleHide={handleToggleHide}
