@@ -18,14 +18,16 @@ import StreamViewLayout from "./StreamViewLayout"
  */
 const StreamPreview = memo(({ item }: { item: StreamChooserLine }) => {
     const streamRenderData = useAtomValue(streamRenderDataAtom)
+    const single = useMemo(() => ({
+        data: { ...streamRenderData.commonData, ...streamRenderData.layoutData?.[item.id] },
+        layout: item.layout
+    }), [streamRenderData.commonData, streamRenderData.layoutData, item.id, item.layout])
+
     return (
         <StreamViewLayout
             id={`stream-chooser-${item.id}`}
             layoutId={item.id}
-            single={{
-                data: { ...streamRenderData.commonData, ...streamRenderData.layoutData?.[item.id] },
-                layout: item.layout
-            }}
+            single={single}
             scale={0.4}
         />
     )

@@ -47,6 +47,20 @@ interface StreamUiState {
 // Cached storage data - initialized to initial state
 let cachedStreamData = initialStateIn
 
+let saveTimeout: NodeJS.Timeout | null = null
+const debouncedSaveStreamIn = (value: StreamStateIn) => {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+  }
+  saveTimeout = setTimeout(async () => {
+    try {
+      await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, value)
+    } catch (error) {
+      console.error('Failed to save stream state to storage:', error)
+    }
+  }, 500)
+}
+
 // Persisted base atoms
 export const streamInAtom = atomWithStorage<StreamStateIn>(
   STORAGE_VIEW_STREAM,
@@ -54,12 +68,8 @@ export const streamInAtom = atomWithStorage<StreamStateIn>(
   {
     getItem: (_key: string): StreamStateIn => cachedStreamData,
     setItem: async (_key: string, value: StreamStateIn): Promise<void> => {
-      try {
-        cachedStreamData = value
-        await LOCAL_STORAGE.set(STORAGE_VIEW_STREAM, value)
-      } catch (error) {
-        console.error('Failed to save stream state to storage:', error)
-      }
+      cachedStreamData = value
+      debouncedSaveStreamIn(value)
     },
     removeItem: (_key: string): void => {
       // Not used

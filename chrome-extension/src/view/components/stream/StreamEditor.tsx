@@ -116,6 +116,32 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         getLayoutId: () => layoutId
     }), [setUserPartial, removeUser, layoutId])
 
+    const imagesAfterSearch = useMemo(() => {
+        if (!layout || layout.readonly) return undefined
+        return (
+            <button className="button-option" onClick={() => addStreamUserImageSetter(layoutId)}>
+                Add
+            </button>
+        )
+    }, [layout?.readonly, addStreamUserImageSetter, layoutId])
+
+    const parametersAfterSearch = useMemo(() => {
+        if (!layout || layout.readonly) return undefined
+        return (
+            <button className="button-option" onClick={() => addStreamUserParameterSetter(layoutId)}>
+                Add
+            </button>
+        )
+    }, [layout?.readonly, addStreamUserParameterSetter, layoutId])
+
+    const previewSingle = useMemo(() => {
+        if (!layout) return undefined
+        return {
+            data: streamRenderData.layoutData[layoutId] ?? streamRenderData.commonData,
+            layout
+        }
+    }, [streamRenderData.layoutData, streamRenderData.commonData, layoutId, layout])
+
     const navigate = useNavigate();
 
     if (streamIn.layoutAlias?.realLayoutId && streamIn.layoutAlias.urlLayoutId === layoutId) {
@@ -227,11 +253,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     itemsAtom={streamImagesItemsAtom}
                     config={imagesConfig}
                     itemHeight={50}
-                    afterSearch={layout.readonly ? undefined : (
-                        <button className="button-option" onClick={() => addStreamUserImageSetter(layoutId)}>
-                            Add
-                        </button>
-                    )}
+                    afterSearch={imagesAfterSearch}
                     useFixedSizeList={true}
                 />
             </>}
@@ -242,16 +264,12 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     subtitle="Available parameters of the layout"
                     itemsAtom={streamParametersItemsAtom}
                     config={parametersConfig}
-                    afterSearch={layout.readonly ? undefined : (
-                        <button className="button-option" onClick={() => addStreamUserParameterSetter(layoutId)}>
-                            Add
-                        </button>
-                    )}
+                    afterSearch={parametersAfterSearch}
                     useFixedSizeList={true}
                 />
             )}
             <ExpandableSection selector='StreamEditor-preview' title='Preview' subtitle='Preview your layout'>
-                <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={{ data: streamRenderData.layoutData[layoutId] ?? streamRenderData.commonData, layout }} />
+                {previewSingle && <StreamViewLayout id={'stream-preview'} layoutId={layoutId} single={previewSingle} />}
             </ExpandableSection>
             { advanced && <StreamLayoutEditor layoutId={layoutId} /> }
             { advanced && <StreamAgentChat layoutId={layoutId} /> }
