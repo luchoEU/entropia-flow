@@ -13,6 +13,7 @@ import {
     setStreamCssTemplateAtom,
     setStreamUserParametersAtom,
     setStreamUserImagesAtom,
+    setStreamDescriptionAtom,
 } from '../../application/atoms/stream'
 import { sendAgentMessage, AgentResponse, extractVarsFromRenderData } from '../../services/streamAgentService'
 import { GeminiApiError } from '../../services/geminiService'
@@ -84,14 +85,15 @@ function AgentMessageBubble({
     const isError = msg.role === 'error'
 
     const changedFields = msg.response
-        ? [
-              msg.response.formulaJavaScript !== undefined && 'JavaScript',
-              msg.response.htmlTemplate !== undefined && 'HTML',
-              msg.response.cssTemplate !== undefined && 'CSS',
-              msg.response.images !== undefined && 'Images',
-              msg.response.parameters !== undefined && 'Parameters',
-          ].filter(Boolean)
-        : []
+         ? [
+               msg.response.formulaJavaScript !== undefined && 'JavaScript',
+               msg.response.htmlTemplate !== undefined && 'HTML',
+               msg.response.cssTemplate !== undefined && 'CSS',
+               msg.response.images !== undefined && 'Images',
+               msg.response.parameters !== undefined && 'Parameters',
+               msg.response.description !== undefined && 'Description',
+           ].filter(Boolean)
+         : []
 
     return (
         <div className={`stream-agent-message stream-agent-message--${msg.role}`}>
@@ -147,6 +149,7 @@ function StreamAgentChat({ layoutId }: { layoutId: string }) {
     const setCss = useSetAtom(setStreamCssTemplateAtom)
     const setParameters = useSetAtom(setStreamUserParametersAtom)
     const setImages = useSetAtom(setStreamUserImagesAtom)
+    const setStreamDescription = useSetAtom(setStreamDescriptionAtom)
 
     // ── Local state ───────────────────────────────────────────────────────────
     const [apiKey, setApiKeyState] = useState<string>(loadApiKey)
@@ -325,6 +328,7 @@ function StreamAgentChat({ layoutId }: { layoutId: string }) {
             cssTemplate: layout.cssTemplate,
             images: layout.images ? [...layout.images] : undefined,
             parameters: layout.parameters ? [...layout.parameters] : undefined,
+            description: layout.description,
         })
 
         const { response } = msg
@@ -366,11 +370,16 @@ function StreamAgentChat({ layoutId }: { layoutId: string }) {
             setParameters(layoutId, newParams)
         }
 
+        // Apply Description
+        if (response.description !== undefined) {
+            setStreamDescription(layoutId, response.description)
+        }
+
         // Mark the message as applied
         setMessages(prev =>
             prev.map(m => m.id === msg.id ? { ...m, applied: true } : m)
         )
-    }, [layout, layoutId, pushHistory, setFormula, setHtml, setCss, setImages, setParameters])
+    }, [layout, layoutId, pushHistory, setFormula, setHtml, setCss, setImages, setParameters, setStreamDescription])
 
     const handleUndo = useCallback(() => { undoLayout(layoutId) }, [undoLayout, layoutId])
     const handleRedo = useCallback(() => { redoLayout(layoutId) }, [redoLayout, layoutId])

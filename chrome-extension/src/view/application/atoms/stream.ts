@@ -505,6 +505,7 @@ export interface StreamLayoutSnapshot {
   cssTemplate?: string
   images?: StreamUserImageVariable[]
   parameters?: StreamUserImageVariable[]
+  description?: string
 }
 
 interface StreamLayoutHistoryState {
@@ -553,6 +554,7 @@ export const undoStreamLayoutAtom = atom(
       cssTemplate: layout.cssTemplate,
       images: layout.images ? [...layout.images] : undefined,
       parameters: layout.parameters ? [...layout.parameters] : undefined,
+      description: layout.description,
     }
 
     const previousSnapshot = entry.past[entry.past.length - 1]
@@ -564,6 +566,7 @@ export const undoStreamLayoutAtom = atom(
       cssTemplate: previousSnapshot.cssTemplate,
       images: previousSnapshot.images ? [...previousSnapshot.images] : undefined,
       parameters: previousSnapshot.parameters ? [...previousSnapshot.parameters] : undefined,
+      description: previousSnapshot.description,
     }))
 
     // Update history stacks
@@ -595,6 +598,7 @@ export const redoStreamLayoutAtom = atom(
       cssTemplate: layout.cssTemplate,
       images: layout.images ? [...layout.images] : undefined,
       parameters: layout.parameters ? [...layout.parameters] : undefined,
+      description: layout.description,
     }
 
     const nextSnapshot = entry.future[0]
@@ -606,6 +610,7 @@ export const redoStreamLayoutAtom = atom(
       cssTemplate: nextSnapshot.cssTemplate,
       images: nextSnapshot.images ? [...nextSnapshot.images] : undefined,
       parameters: nextSnapshot.parameters ? [...nextSnapshot.parameters] : undefined,
+      description: nextSnapshot.description,
     }))
 
     // Update history stacks

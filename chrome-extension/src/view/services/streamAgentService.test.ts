@@ -1,4 +1,4 @@
-import { extractVarsFromRenderData, describeVariableTypes } from './streamAgentService'
+import { extractVarsFromRenderData, describeVariableTypes, parseAgentResponse } from './streamAgentService'
 
 describe('streamAgentService', () => {
     describe('extractVarsFromRenderData', () => {
@@ -72,6 +72,31 @@ describe('streamAgentService', () => {
             expect(result).toContain(' - *Computed stats object*')
             expect(result).toContain('total: number')
             expect(result).toContain('history: Array of string')
+        })
+    })
+
+    describe('parseAgentResponse', () => {
+        it('should correctly parse the agent response including the layout description', () => {
+            // ============================================================================
+            // ARRANGE
+            // ============================================================================
+            const rawResponse = JSON.stringify({
+                explanation: 'Updated layout description and css.',
+                formulaJavaScript: 'const a = 1;',
+                description: 'A layout optimized for hunting with clean CSS styles.'
+            })
+
+            // ============================================================================
+            // ACT
+            // ============================================================================
+            const result = parseAgentResponse(rawResponse)
+
+            // ============================================================================
+            // ASSERT
+            // ============================================================================
+            expect(result.explanation).toBe('Updated layout description and css.')
+            expect(result.formulaJavaScript).toBe('const a = 1;')
+            expect(result.description).toBe('A layout optimized for hunting with clean CSS styles.')
         })
     })
 })

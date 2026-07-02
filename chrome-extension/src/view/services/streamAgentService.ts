@@ -30,6 +30,8 @@ export interface AgentResponse {
     images?: AgentImageEntry[]
     /** If present, replaces the layout's parameters list */
     parameters?: AgentParameterEntry[]
+    /** If present, replaces the layout's description */
+    description?: string
 }
 
 // ── Variables Describer ──────────────────────────────────────────────────────
@@ -87,6 +89,7 @@ function buildSystemPrompt(
 
 ## Layout Structure
 A layout consists of:
+- **description**: A short text description of the layout's purpose/role (can be changed if requested).
 - **formulaJavaScript**: JavaScript code that computes custom variables from inventory data. Available globals: \`items\` (array), \`item(name)\` (find by name), \`param(name)\` (read user parameter). Any variable declared at the root scope (e.g. \`const myVar = item('PED').quantity;\`) is automatically exposed to templates as \`{{myVar}}\`. Do NOT assign to an \`output\` object (e.g. do NOT do \`output.myVar = ...\`), as there is no pre-defined \`output\` object; simply declare root-level variables.
 - **htmlTemplate**: Mustache template rendered as the overlay HTML. Uses \`{{variableName}}\` syntax.
 - **cssTemplate**: Mustache template for the overlay CSS. Can reference \`{{variableName}}\` too.
@@ -101,6 +104,7 @@ ${variablesDesc || '- (no data loaded yet)'}
 \`\`\`json
 ${JSON.stringify({
     name: layout.name,
+    description: layout.description ?? '',
     formulaJavaScript: layout.formulaJavaScript ?? '',
     htmlTemplate: layout.htmlTemplate ?? '',
     cssTemplate: layout.cssTemplate ?? '',
@@ -113,6 +117,7 @@ ${JSON.stringify({
 You MUST respond with ONLY a valid JSON object (no markdown fences, no extra text) with this exact structure:
 {
   "explanation": "Human-readable explanation of what you generated and why",
+  "description": "...layout description or omit if unchanged...",
   "formulaJavaScript": "...JS code or omit this key if unchanged...",
   "htmlTemplate": "...HTML mustache template or omit if unchanged...",
   "cssTemplate": "...CSS mustache template or omit if unchanged...",
@@ -156,7 +161,7 @@ Keep HTML minimal — one root div is fine. CSS should position elements absolut
 // Response parser
 // ─────────────────────────────────────────────────────────────────────────────
 
-function parseAgentResponse(raw: string): AgentResponse {
+export function parseAgentResponse(raw: string): AgentResponse {
     // The model is instructed to return raw JSON, but sometimes wraps it.
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
@@ -170,6 +175,7 @@ function parseAgentResponse(raw: string): AgentResponse {
         cssTemplate: parsed.cssTemplate,
         images: parsed.images,
         parameters: parsed.parameters,
+        description: parsed.description,
     }
 }
 
