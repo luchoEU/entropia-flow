@@ -1,4 +1,4 @@
-import { extractVarsFromRenderData, describeVariableTypes, parseAgentResponse } from './streamAgentService'
+import { extractVarsFromRenderData, describeVariableTypes, parseAgentResponse, validateFormulaJavaScript } from './streamAgentService'
 
 describe('streamAgentService', () => {
     describe('extractVarsFromRenderData', () => {
@@ -97,6 +97,36 @@ describe('streamAgentService', () => {
             expect(result.explanation).toBe('Updated layout description and css.')
             expect(result.formulaJavaScript).toBe('const a = 1;')
             expect(result.description).toBe('A layout optimized for hunting with clean CSS styles.')
+        })
+    })
+
+    describe('validateFormulaJavaScript', () => {
+        it('should not throw an error for valid JavaScript code', () => {
+            // ============================================================================
+            // ARRANGE
+            // ============================================================================
+            const validCode = 'const x = 10; let y = x * 2;'
+
+            // ============================================================================
+            // ACT & ASSERT
+            // ============================================================================
+            expect(() => {
+                validateFormulaJavaScript(validCode)
+            }).not.toThrow()
+        })
+
+        it('should throw an error with details for syntactically invalid JavaScript code', () => {
+            // ============================================================================
+            // ARRANGE
+            // ============================================================================
+            const invalidCode = 'const x = ;'
+
+            // ============================================================================
+            // ACT & ASSERT
+            // ============================================================================
+            expect(() => {
+                validateFormulaJavaScript(invalidCode)
+            }).toThrow('Formula JavaScript syntax error:')
         })
     })
 })

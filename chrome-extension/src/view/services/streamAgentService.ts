@@ -1,3 +1,4 @@
+import * as Babel from '@babel/standalone'
 import { callGemini, GeminiMessage } from './geminiService'
 import { StreamUserImageVariable, StreamSavedLayout } from '../../stream/data'
 
@@ -179,6 +180,15 @@ export function parseAgentResponse(raw: string): AgentResponse {
     }
 }
 
+export function validateFormulaJavaScript(jsCode: string): void {
+    if (!jsCode || !jsCode.trim()) return
+    try {
+        Babel.transform(jsCode, { presets: ['env'] })
+    } catch (err: any) {
+        throw new Error(`Formula JavaScript syntax error: ${err.message}`)
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
@@ -194,17 +204,52 @@ export async function sendAgentMessage(
     modelName: string = 'gemini-3.5-flash'
 ): Promise<{ response: AgentResponse; updatedHistory: GeminiMessage[] }> {
     const systemPrompt = buildSystemPrompt(layout, commonData, layoutData, varDescMap)
-    const rawText = await callGemini(apiKey, systemPrompt, history, userMessage, modelName)
 
-    const response = parseAgentResponse(rawText)
+    let currentHistory = [...history]
+    let currentPrompt = userMessage
+    const maxRetries = 2
+    let attempt = 0
+    let lastError: any = null
 
-    const updatedHistory: GeminiMessage[] = [
-        ...history,
-        { role: 'user', parts: [{ text: userMessage }] },
-        { role: 'model', parts: [{ text: rawText }] },
-    ]
+    while (attempt <= maxRetries) {
+        const rawText = await callGemini(apiKey, systemPrompt, currentHistory, currentPrompt, modelName)
 
-    return { response, updatedHistory }
+        try {
+            const response = parseAgentResponse(rawText)
+
+            if (response.formulaJavaScript) {
+                validateFormulaJavaScript(response.formulaJavaScript)
+            }
+
+            const updatedHistory: GeminiMessage[] = [
+                ...history,
+                { role: 'user', parts: [{ text: userMessage }] },
+                { role: 'model', parts: [{ text: rawText }] },
+            ]
+
+            return { response, updatedHistory }
+        } catch (err: any) {
+            console.warn(`Attempt ${attempt} to parse/validate agent response failed:`, err)
+            lastError = err
+
+            if (attempt === maxRetries) {
+                break
+            }
+
+            currentHistory = [
+                ...currentHistory,
+                { role: 'user', parts: [{ text: currentPrompt }] },
+                { role: 'model', parts: [{ text: rawText }] }
+            ]
+            currentPrompt = `Your previous response had a validation/syntax error:
+${err.message}
+
+Please fix the error and output the corrected valid JSON object.`
+            attempt++
+        }
+    }
+
+    throw lastError
 }
 
 export function extractVarsFromRenderData(
