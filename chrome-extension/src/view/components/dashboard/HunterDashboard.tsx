@@ -190,7 +190,7 @@ const HunterDashboard = () => {
         ? ((parseFloat(cached.loot) / parseFloat(cached.decay)) * 100).toFixed(1) + '%'
         : '--'
 
-    const killCount = gameLog.stats?.kills?.count ?? 0
+    const killCount = gameLog.stats?.killsStats?.count ?? 0
     const hasSessionData = killCount > 0 || (diff != null && diff.length > 0)
     const allItems = useMemo(() => {
         if (sort.mode === 'standard') {

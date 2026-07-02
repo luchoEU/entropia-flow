@@ -517,8 +517,8 @@ interface StreamLayoutHistoryState {
 
 type StreamHistoryMap = Record<string, StreamLayoutHistoryState>
 
-/** In-memory only — not persisted */
-export const streamLayoutHistoryAtom = atom<StreamHistoryMap>({})
+/** Persisted in localStorage */
+export const streamLayoutHistoryAtom = atomWithStorage<StreamHistoryMap>('jotai-v1-stream-layout-history', {})
 
 /** Push a snapshot of the layout before a change. Called by the agent chat before applying. */
 export const pushStreamHistoryAtom = atom(

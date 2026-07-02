@@ -95,11 +95,11 @@ class GameLogHistory implements IGameLogHistory {
 
             if (!ignoreLootForKill.includes(line.data.loot.name)) {
                 if (!this.lastLootDateTime || line.time - this.lastLootDateTime > 1000) {
-                    if (!this.gameLog.stats.kills)
-                        this.gameLog.stats.kills = emptyTemporalValue();
-                    this.gameLog.stats.kills.count++;
-                    this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
-                    _unshiftWithMax(this.gameLog.stats.kills.history, { time: line.time, value: 1 });
+                    if (!this.gameLog.stats.killsStats)
+                        this.gameLog.stats.killsStats = emptyTemporalValue();
+                    this.gameLog.stats.killsStats.count++;
+                    this.gameLog.stats.killsStats.total = this.gameLog.stats.killsStats.count;
+                    _unshiftWithMax(this.gameLog.stats.killsStats.history, { time: line.time, value: 1 });
                 }
                 this.lastLootDateTime = line.time;
             }
@@ -162,16 +162,16 @@ class GameLogHistory implements IGameLogHistory {
     }
 
     private removeFromKillCount(time: number) {
-        if (!this.gameLog.stats.kills)
+        if (!this.gameLog.stats.killsStats)
             return;
 
         if (!this.lastLootDateTime || time - this.lastLootDateTime <= 1000) { // 1 second
-            if (this.gameLog.stats.kills.count == 1) {
-                this.gameLog.stats.kills = undefined
+            if (this.gameLog.stats.killsStats.count == 1) {
+                this.gameLog.stats.killsStats = undefined
             } else {
-                this.gameLog.stats.kills.history.shift();
-                this.gameLog.stats.kills.count--;
-                this.gameLog.stats.kills.total = this.gameLog.stats.kills.count;
+                this.gameLog.stats.killsStats.history.shift();
+                this.gameLog.stats.killsStats.count--;
+                this.gameLog.stats.killsStats.total = this.gameLog.stats.killsStats.count;
             }
             // Also remove the most recent kill group
             if (this.gameLog.kills.length > 0) {

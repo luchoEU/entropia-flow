@@ -66,7 +66,7 @@ describe('formula parser', () => {
                 quantity: 19484
             }],
             stats: {
-                kills: { total: 2, count: 2, history: [{ time: gameTime('2024-12-23 17:09:18'), value: 1 }, { time: gameTime('2024-12-23 17:08:58'), value: 1 }] }
+                killsStats: { total: 2, count: 2, history: [{ time: gameTime('2024-12-23 17:09:18'), value: 1 }, { time: gameTime('2024-12-23 17:08:58'), value: 1 }] }
             }
         })
     )
@@ -107,7 +107,7 @@ describe('formula parser', () => {
 2025-01-12 07:47:37 [System] [] You received Shrapnel x (45745) Value: 4.57 PED`,
         {
             stats: {
-                kills: {
+                killsStats: {
                     total: 1,
                     count: 1,
                     history: [{
@@ -133,7 +133,7 @@ describe('formula parser', () => {
 2025-01-15 09:41:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                kills: {
+                killsStats: {
                     total: 1,
                     count: 1,
                     history: [{
@@ -159,7 +159,7 @@ describe('formula parser', () => {
 2025-01-15 09:42:23 [System] [] You received Shrapnel x (38231) Value: 3.82 PED`,
         {
             stats: {
-                kills: {
+                killsStats: {
                     total: 2,
                     count: 2,
                     history: [{
@@ -209,7 +209,7 @@ describe('formula parser', () => {
                 value: 0
             }],
             stats: {
-                kills: {
+                killsStats: {
                     total: 1,
                     count: 1,
                     history: [{ time: gameTime('2025-07-20 19:55:20'), value: 1 }]
