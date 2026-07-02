@@ -192,7 +192,8 @@ class GameLogParser {
                     if (!Number.isNaN(value)) {
                         line.data.skill = {
                             name: skillMatch[3],
-                            value
+                            value,
+                            count: 1
                         }
                     }
                 }
@@ -200,7 +201,8 @@ class GameLogParser {
                 if (attributeMatch !== null) {
                     line.data.skill = {
                         name: attributeMatch[1],
-                        value: parseFloat(attributeMatch[2])
+                        value: parseFloat(attributeMatch[2]),
+                        count: 1
                     }
                 }
                 const enhancerBrokenMatch = enhancerBroken.exec(line.message);

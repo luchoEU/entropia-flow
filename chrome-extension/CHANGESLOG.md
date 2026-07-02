@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version 0.6.2 - [Unreleased]
 
+### Added
+- Add count tracking to `GameLogSkill` to count how many times a skill has been gained
+
 ## Version 0.6.1 - 2025-09-25
 
 ### Fixed

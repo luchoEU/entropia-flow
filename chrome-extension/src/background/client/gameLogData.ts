@@ -140,6 +140,7 @@ interface GameLogTier {
 interface GameLogSkill {
     name: string
     value: number
+    count: number
 }
 
 interface GameLogEnhancerBroken {

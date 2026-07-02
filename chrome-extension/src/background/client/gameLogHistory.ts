@@ -140,6 +140,7 @@ class GameLogHistory implements IGameLogHistory {
             const existing = this.gameLog.skill.find(s => s.name === line.data.skill!.name)
             if (existing) {
                 existing.value += line.data.skill!.value
+                existing.count = (existing.count || 0) + (line.data.skill!.count || 1)
             } else {
                 this.gameLog.skill.unshift(line.data.skill!)
             }

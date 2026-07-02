@@ -296,7 +296,8 @@ describe('formula parser', () => {
         {
             skill: [{
                 name: 'Mining Laser Operator',
-                value: 0.3984
+                value: 0.3984,
+                count: 1
             }],
             event: [{
                 action: 'newRank',
@@ -722,5 +723,39 @@ describe('kill grouping', () => {
         expect(kills[0].total).toBeCloseTo(2.2212, 4)
         expect(kills[1].time).toBe(gameTime('2024-12-23 17:08:58'))
         expect(kills[1].items).toHaveLength(1)
+    })
+
+    test('skill counts and duplicates merging', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const lines = [
+            '2025-01-28 19:56:15 [System] [] You have gained 0.1000 experience in your Mining Laser Operator skill',
+            '2025-01-28 19:56:20 [System] [] You have gained 0.2000 experience in your Mining Laser Operator skill',
+            '2025-01-28 19:56:25 [System] [] You have gained 0.3000 experience in your Rifle skill'
+        ]
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        for (const line of lines) {
+            await gameLogParser.onMessage(line)
+        }
+        const log = gameLogHistory.getGameLog()
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(log.skill).toHaveLength(2)
+
+        const mining = log.skill.find(s => s.name === 'Mining Laser Operator')
+        expect(mining).toBeDefined()
+        expect(mining!.value).toBeCloseTo(0.3000, 4)
+        expect(mining!.count).toBe(2)
+
+        const rifle = log.skill.find(s => s.name === 'Rifle')
+        expect(rifle).toBeDefined()
+        expect(rifle!.value).toBeCloseTo(0.3000, 4)
+        expect(rifle!.count).toBe(1)
     })
 })
