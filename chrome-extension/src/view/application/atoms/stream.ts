@@ -10,6 +10,8 @@ import { LOCAL_STORAGE } from '../../../chrome/chromeStorageArea'
 import defaultLayout from '../helpers/layout/default.entropiaflow.layout.json'
 import huntLayout from '../helpers/layout/hunt.entropiaflow.layout.json'
 import lootLayout from '../helpers/layout/loot.entropiaflow.layout.json'
+import globalsLayout from '../helpers/layout/globals.entropiaflow.layout.json'
+import skillsLayout from '../helpers/layout/skills.entropiaflow.layout.json'
 
 // Helper function to load builtin layouts
 function loadBuiltinLayout(layout: StreamExportLayout, stared: boolean = false): StreamSavedLayout {
@@ -29,6 +31,8 @@ const initialStateIn: StreamStateIn = {
         ['entropiaflow.default']: loadBuiltinLayout(defaultLayout),
         ['entropiaflow.hunt']: loadBuiltinLayout(huntLayout),
         ['entropiaflow.loot']: loadBuiltinLayout(lootLayout),
+        ['entropiaflow.globals']: loadBuiltinLayout(globalsLayout),
+        ['entropiaflow.skills']: loadBuiltinLayout(skillsLayout),
     },
     trashLayouts: {},
 }

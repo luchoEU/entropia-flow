@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Entropia Flow Globals",
+  "author": "Lucho MUCHO Ireton",
+  "lastModified": 1782674882686,
+  "backgroundType": 2,
+  "formulaJavaScript": "const allGlobals = global || [];\nconst myName = (avatar || '').toLowerCase();\nconst pinned = (param('pinnedName') || '').toLowerCase();\nconst mode = (param('viewMode') || 'all').toLowerCase();\nconst rawLogs = Array.isArray(raw) ? raw : [];\n\nlet filtered = allGlobals;\nif (mode === 'mine') filtered = allGlobals.filter(g => g.player.toLowerCase() === myName);\nif (mode === 'pinned') filtered = allGlobals.filter(g => g.player.toLowerCase() === pinned);\n\nconst isAll = mode === 'all';\nconst isMine = mode === 'mine';\nconst isPinned = mode === 'pinned';\n\n// Sort by time descending, then take the last 50 (most recent)\nconst list = filtered.sort((a, b) => b.time - a.time).slice(0, 50).map(g => {\n  let logEntry = null;\n  for (let i = 0; i < rawLogs.length; i++) {\n    const r = rawLogs[i];\n    if (r.channel === 'Globals' && r.data && r.data.global && \n        r.data.global.player === g.player && \n        Math.floor(r.data.global.value) === Math.floor(g.value)) {\n      logEntry = r;\n      break;\n    }\n  }\n  return {\n    player: g.player,\n    mob: g.name,\n    value: Math.floor(g.value),\n    isHoF: g.isHoF,\n    isATH: g.isATH,\n    isMe: myName && g.player.toLowerCase() === myName,\n    isPinned: pinned && g.player.toLowerCase() === pinned,\n    msg: logEntry ? logEntry.message : ''\n  };\n});",
+  "htmlTemplate": "<div class='root'>\n  <div class='tabs'>\n    <div class='tab {{#isAll}}active{{/isAll}}' data-click='set:viewMode=all'>ALL</div>\n    <div class='tab {{#isMine}}active{{/isMine}}' data-click='set:viewMode=mine'>MINE</div>\n    <div class='tab {{#isPinned}}active{{/isPinned}}' data-click='set:viewMode=pinned'>PIN</div>\n  </div>\n\n  <div class='list-container'>\n    {{#list}}\n      <div class='entry {{#isHoF}}hof{{/isHoF}} {{#isATH}}ath{{/isATH}} {{#isMe}}me{{/isMe}}'>\n        <div class='info'>\n          <div class='p-row'>\n            <span class='p-name'>{{player}}</span>\n            <span class='btn-group'>\n              {{#isAll}}<span class='pin-btn' data-click='set:pinnedName={{player}};set:viewMode=pinned' title='Pin'>📌</span>{{/isAll}}\n              <span class='copy-btn' data-click='copy:{{msg}}' title='Copy Message'>📋</span>\n            </span>\n          </div>\n          <div class='m-name'>{{mob}}</div>\n        </div>\n        <div class='amount'>{{value}}</div>\n      </div>\n    {{/list}}\n    {{^list}}\n      <div class='empty'>No globals found</div>\n    {{/list}}\n  </div>\n</div>",
+  "cssTemplate": ".root { width: 280px; font-family: 'Segoe UI', sans-serif; color: #fff; }\n.tabs { display: flex; gap: 2px; margin-bottom: 4px; }\n.tab { flex: 1; background: rgba(50, 50, 50, 0.4); padding: 6px; font-size: 10px; text-align: center; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; transition: all 0.2s; }\n.tab.active { background: rgba(80, 80, 80, 0.6); color: #ffd700; border-bottom: 2px solid #ffd700; }\n\n.list-container {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  max-height: 380px;\n  overflow-y: auto;\n  scrollbar-width: thin;\n  scrollbar-color: #ffd700 transparent;\n}\n\n.list-container::-webkit-scrollbar { width: 4px; }\n.list-container::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 2px; }\n\n.entry {\n  background: rgba(20, 20, 20, 0.3);\n  display: flex;\n  justify-content: space-between;\n  padding: 6px 8px;\n  border-left: 2px solid transparent;\n  flex-shrink: 0;\n}\n\n.entry.me { border-left-color: #00ffcc; background: rgba(0, 255, 204, 0.1); }\n.entry.hof { border-left-color: #ffd700; }\n.entry.ath { border-left-color: #ff4444; background: rgba(255, 68, 68, 0.1); }\n\n.p-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }\n.btn-group { display: flex; gap: 4px; }\n.p-name { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }\n.pin-btn, .copy-btn { font-size: 10px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }\n.pin-btn:hover, .copy-btn:hover { opacity: 1; }\n.m-name { font-size: 9px; color: #bbb; }\n.amount { color: #ffd700; font-weight: bold; font-size: 12px; align-self: center; }\n.empty { text-align: center; font-size: 10px; padding: 20px; color: #888; }",
+  "roles": [
+    "hunter"
+  ],
+  "parameters": [
+    {
+      "name": "viewMode",
+      "value": "all",
+      "description": "Current view: all, mine, or pinned"
+    },
+    {
+      "name": "pinnedName",
+      "value": "",
+      "description": "Name of player/team to track"
+    }
+  ],
+  "state": {
+    "pinnedName": "",
+    "viewMode": "all"
+  }
+}
