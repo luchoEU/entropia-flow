@@ -345,7 +345,7 @@ export interface HunterSessionSnapshot {
     lastTimestamp: number
 }
 
-// Reset hunter session: set current inventory as baseline, clear game log, and clear blacklist
+// Reset hunter session: set current inventory as baseline, clear game log, and preserve blacklist
 // Returns a snapshot for undo
 export const resetHunterSessionAtom = atom(
     null,
@@ -364,8 +364,7 @@ export const resetHunterSessionAtom = atom(
             ...snapshot.persisted,
             expanded: false,
             peds: [],
-            notificationsDone: [],
-            blacklist: []
+            notificationsDone: []
         })
 
         return snapshot
