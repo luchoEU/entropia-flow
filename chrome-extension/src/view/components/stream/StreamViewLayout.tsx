@@ -5,7 +5,6 @@ import StreamViewDiv from "../../../stream/StreamViewDiv"
 import useBackground from "../hooks/UseBackground"
 import { executeStreamClickAction } from "../../application/helpers/streamClick"
 import { Component, traceError } from "../../../common/trace"
-import { getStableSelector, saveScrollPositions, restoreScrollPositions } from "../../../stream/scroll"
 
 const StreamViewLayout = ({ id, layoutId, single, scale }: {
     id: string
@@ -17,47 +16,7 @@ const StreamViewLayout = ({ id, layoutId, single, scale }: {
 
     const [shadowReady, setShadowReady] = useState(false);
     const [size, setSize] = useState<StreamRenderSize | undefined>();
-    const scrollPositionsRef = useRef<Array<{ selector: string; scrollTop: number; scrollLeft: number }>>([]);
 
-    // Restore scroll positions AFTER render mutations are committed
-    useLayoutEffect(() => {
-        const root = shadowRootRef.current?.shadowRoot?.querySelector('.layout-root') as HTMLElement | null;
-        if (root && scrollPositionsRef.current.length > 0) {
-            restoreScrollPositions(root, scrollPositionsRef.current);
-        }
-    });
-
-    // Attach scroll listeners to capture real-time scroll updates
-    useEffect(() => {
-        const root = shadowRootRef.current?.shadowRoot;
-        if (!root) return;
-
-        const handleScroll = (e: Event) => {
-            const target = e.target as HTMLElement;
-            if (target && target.tagName) {
-                const selector = getStableSelector(target, root as any);
-                const index = scrollPositionsRef.current.findIndex(p => p.selector === selector);
-                if (index !== -1) {
-                    scrollPositionsRef.current[index] = {
-                        selector,
-                        scrollTop: target.scrollTop,
-                        scrollLeft: target.scrollLeft
-                    };
-                } else {
-                    scrollPositionsRef.current.push({
-                        selector,
-                        scrollTop: target.scrollTop,
-                        scrollLeft: target.scrollLeft
-                    });
-                }
-            }
-        };
-
-        root.addEventListener('scroll', handleScroll, true); // capture-phase
-        return () => {
-            root.removeEventListener('scroll', handleScroll, true);
-        };
-    }, [shadowReady]);
 
     // Attach shadow root
     useEffect(() => {

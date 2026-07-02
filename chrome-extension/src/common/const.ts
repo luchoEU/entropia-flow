@@ -73,6 +73,7 @@ const STORAGE_VIEW_LAST = 'last'
 const STORAGE_VIEW_ACTIVITY = 'activity'
 const STORAGE_VIEW_STREAM = 'stream'
 const STORAGE_VIEW_ITEMS = 'items'
+const STORAGE_VIEW_REFINED = 'refined'
 const STORAGE_VIEW_GAME_LOG = 'log'
 
 // Html
@@ -162,6 +163,7 @@ export {
     STORAGE_VIEW_ACTIVITY,
     STORAGE_VIEW_STREAM,
     STORAGE_VIEW_ITEMS,
+    STORAGE_VIEW_REFINED,
     STORAGE_VIEW_GAME_LOG,
     HTML_VIEW,
     ERROR_425,

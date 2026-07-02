@@ -1,6 +1,7 @@
 import React, { JSX } from 'react';
 import { StreamRenderSingle } from './data';
 import { renderHtmlTemplate, renderCssTemplate } from './template';
+import { parseHtmlToReact } from './domParser';
 
 const MIN_SIZE = 30
 
@@ -24,7 +25,9 @@ const StreamViewDiv = ({ id, single: { data, layout }, size, scale }: {
     }
 
     return <div id={id} style={containerStyle}>
-        <div className={'layout-root'} style={contentStyle} {...html && { dangerouslySetInnerHTML: { __html: html } }}/>
+        <div className={'layout-root'} style={contentStyle}>
+            {html ? parseHtmlToReact(html) : null}
+        </div>
         { css && <style dangerouslySetInnerHTML={{ __html: css }} /> }
     </div>
 };

@@ -12,6 +12,7 @@ import { setConnectionStatusAtom, restoreConnectionWebSocketAtom } from './conne
 import { processGameLogAtom } from './gameLog'
 import { setStreamVariablesAtom, setStreamDataAtom, initializeStreamAtom } from './stream'
 import { createNewSessionAtom } from './activity'
+import { initializeRefinedAtom } from './refined'
 
 export const appLoadingAtom = atom(false)
 export const appInitializedAtom = atom(false)
@@ -114,6 +115,9 @@ export const initializeAppAtom = atom(
 
       // Initialize items from storage and sync atom value
       await set(initializeItemsAtom)
+
+      // Initialize refined state from storage
+      await set(initializeRefinedAtom)
 
       // Initialize stream state from storage
       await set(initializeStreamAtom)
