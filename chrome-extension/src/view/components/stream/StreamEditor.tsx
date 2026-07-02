@@ -1,9 +1,9 @@
 
-import React, { useMemo } from "react"
+import React, { useMemo, useCallback } from "react"
 import { useAtomValue, useSetAtom } from "jotai"
 import { atom } from "jotai"
 import { STREAM_TABULAR_IMAGES, STREAM_TABULAR_PARAMETERS, STREAM_TABULAR_VARIABLES } from "../../application/state/stream"
-import { streamInAtom, streamRenderDataAtom, streamUiAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom, setStreamDescriptionAtom, setStreamRolesAtom } from "../../application/atoms/stream"
+import { streamInAtom, streamRenderDataAtom, streamUiAtom, setStreamFormulaJavaScriptAtom, setStreamHtmlTemplateAtom, setStreamCssTemplateAtom, setStreamShowingLayoutIdAtom, setStreamNameAtom, setStreamAdvancedAtom, clearStreamLayoutAliasAtom, addStreamUserImageAtom, addStreamUserParameterAtom, setStreamDescriptionAtom, setStreamRolesAtom, cloneStreamLayoutAtom } from "../../application/atoms/stream"
 import { streamVariablesItemsAtom, streamImagesItemsAtom, streamParametersItemsAtom } from "../../application/atoms/streamTables"
 import { createStreamImagesConfig, createStreamParametersConfig, streamVariablesConfig } from "../../application/configs/streamTableConfigs"
 import { setStreamUserPartialAtom, removeStreamUserAtom } from "../../application/atoms/stream"
@@ -61,6 +61,7 @@ function StreamLayoutEditor({ layoutId }: { layoutId: string }) {
 }
 
 function StreamEditor({ layoutId }: { layoutId: string }) {
+    const navigate = useNavigate()
     const streamIn = useAtomValue(streamInAtom)
     const streamUi = useAtomValue(streamUiAtom)
     const streamRenderData = useAtomValue(streamRenderDataAtom)
@@ -76,13 +77,13 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
     const addStreamUserParameterSetter = useSetAtom(addStreamUserParameterAtom)
     const setUserPartial = useSetAtom(setStreamUserPartialAtom)
     const removeUser = useSetAtom(removeStreamUserAtom)
-    const cloneLayoutSetter = useSetAtom(atom(
-        null,
-        (get, set) => {
-            // TODO: Implement clone functionality
-            console.log('Clone layout - not implemented')
-        }
-    ))
+    const cloneLayout = useSetAtom(cloneStreamLayoutAtom)
+    const handleClone = useCallback(() => {
+        const newLayoutId = `${layoutId}-clone-${Date.now()}`
+        const newName = `${layout.name} (Clone)`
+        cloneLayout(layoutId, newLayoutId, newName)
+        navigate(`${TabId.STREAM}/layout/${newLayoutId}`)
+    }, [cloneLayout, layoutId, layout?.name, navigate])
 
     const setDescriptionSetter = useSetAtom(setStreamDescriptionAtom)
     const setRolesSetter = useSetAtom(setStreamRolesAtom)
@@ -142,8 +143,6 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
         }
     }, [streamRenderData.layoutData, streamRenderData.commonData, layoutId, layout])
 
-    const navigate = useNavigate();
-
     if (streamIn.layoutAlias?.realLayoutId && streamIn.layoutAlias.urlLayoutId === layoutId) {
         clearAlias()
     }
@@ -186,7 +185,7 @@ function StreamEditor({ layoutId }: { layoutId: string }) {
                     <td>
                         <button style={{ visibility: advanced ? 'visible' : 'hidden', marginLeft: '10px' }}
                             title={layout.readonly ? 'This layout is Read Only, click here to clone it to be able to modify your own version' : 'Click here to clone this layout to be able to modify your own version'}
-                            onClick={() => { cloneLayoutSetter(); navigate(`${TabId.STREAM}/layout/${layoutId}`) }}
+                            onClick={handleClone}
                         >📋 Clone</button>
                         <button style={{ visibility: advanced ? 'visible' : 'hidden' }}
                             title='Click here to export this layout to a file'
