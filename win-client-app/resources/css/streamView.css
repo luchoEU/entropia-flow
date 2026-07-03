@@ -84,10 +84,19 @@ body {
 #entropia-flow-client-nav .entropia-flow-client-control {
     display: none;
 }
-#entropia-flow-client-hover-area:hover > #entropia-flow-client-nav .entropia-flow-client-control {
+#entropia-flow-client-hover-area:hover > #entropia-flow-client-nav #entropia-flow-client-minimize {
+    display: block;
+    width: 10px;
+    height: 10px;
+}
+#entropia-flow-client-hover-area.entropia-flow-client-expanded > #entropia-flow-client-nav .entropia-flow-client-control {
     display: block;
 }
-#entropia-flow-client-hover-area.entropia-flow-client-minimized:hover #entropia-flow-client-nav .entropia-flow-client-control {
+#entropia-flow-client-hover-area.entropia-flow-client-expanded > #entropia-flow-client-nav #entropia-flow-client-minimize {
+    width: 20px;
+    height: 20px;
+}
+#entropia-flow-client-hover-area.entropia-flow-client-minimized.entropia-flow-client-expanded > #entropia-flow-client-nav .entropia-flow-client-control {
     display: none;
 }
 #entropia-flow-client-hover-area.entropia-flow-client-minimized #entropia-flow-client-minimize {

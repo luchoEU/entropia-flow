@@ -294,6 +294,14 @@ function _setupButtons() {
         Neutralino.storage.setData(STORE_WINDOW, null!);
         Neutralino.app.exit(); // close only this window
     });
+
+    const hoverArea = document.getElementById('entropia-flow-client-hover-area');
+    minimizeButton?.addEventListener('mouseenter', () => {
+        hoverArea?.classList.add('entropia-flow-client-expanded');
+    });
+    hoverArea?.addEventListener('mouseleave', () => {
+        hoverArea?.classList.remove('entropia-flow-client-expanded');
+    });
 }
 
 function _reRenderMenu() {
@@ -425,7 +433,7 @@ async function render(s: { layoutId: string, scale?: number, minimized?: boolean
     }
 
     const hoverArea = document.getElementById('entropia-flow-client-hover-area');
-    if (hoverArea) hoverArea.className = s.minimized ? 'entropia-flow-client-minimized' : '';
+    if (hoverArea) hoverArea.classList.toggle('entropia-flow-client-minimized', !!s.minimized);
 
     const layoutDiv = document.getElementById('entropia-flow-client-layout');
     if (layoutDiv) layoutDiv.innerText = layout?.name ?? '';

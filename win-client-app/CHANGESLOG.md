@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.2.0-dev.55 - [Unreleased]
+
+### Fixed
+- Overlay expanded state no longer collapses on each stream render — `render()` now uses `classList.toggle` instead of replacing `className`, preserving the expanded class
+
+## Version 0.2.0-dev.54 - [Unreleased]
+
+### Changed
+- Small minimize button now appears only on layout hover (hidden when not hovering), matching close button behavior
+
+## Version 0.2.0-dev.53 - [Unreleased]
+
+### Fixed
+- Update dev server URL updated to current Mac IP (192.168.0.21)
+
+## Version 0.2.0-dev.52 - [Unreleased]
+
+### Changed
+- Overlay buttons are now hidden by default; only a small minimize indicator (10×10px) is visible in the top-left corner. Hovering it expands all three buttons to full size. Buttons collapse back when the mouse leaves the layout area.
+
 ## Version 0.2.0-dev.51 - [Unreleased]
 
 ### Fixed
