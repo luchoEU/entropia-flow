@@ -2,6 +2,7 @@ import { TabId } from './navigation'
 
 enum Role {
     HUNTER = 'hunter',
+    FISHING = 'fishing',
     TRADER = 'trader',
     COLLECTOR = 'collector',
     ADVANCED = 'advanced'
@@ -13,6 +14,7 @@ type RoleFavorites = Record<string, string[]> // role → layout IDs
 
 const ROLE_TAB_MAP: Record<Role, TabId[]> = {
     [Role.HUNTER]: [],    // No tabs — dashboard only
+    [Role.FISHING]: [],   // No tabs — dashboard only
     [Role.TRADER]: [],    // No tabs — dashboard only
     [Role.COLLECTOR]: [], // No tabs — dashboard only
     [Role.ADVANCED]: []   // Empty = show all (no filtering)
@@ -20,13 +22,15 @@ const ROLE_TAB_MAP: Record<Role, TabId[]> = {
 
 const ROLE_LABELS: Record<Role, string> = {
     [Role.HUNTER]: 'Hunter',
+    [Role.FISHING]: 'Angler',
     [Role.TRADER]: 'Trader',
     [Role.COLLECTOR]: 'Collector',
-    [Role.ADVANCED]: 'Advanced'
+    [Role.ADVANCED]: 'Legacy'
 }
 
 const ROLE_EMOJIS: Record<Role, string> = {
     [Role.HUNTER]: '🎯',
+    [Role.FISHING]: '🎣',
     [Role.TRADER]: '💰',
     [Role.COLLECTOR]: '📦',
     [Role.ADVANCED]: '⚙️'

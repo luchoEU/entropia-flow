@@ -23,9 +23,7 @@ import { modeAtom } from '../application/atoms/mode'
 import { roleAtom } from '../application/atoms/role'
 import { Role } from '../application/state/role'
 import StreamTrashPage from './stream/StreamTrashPage'
-import HunterDashboard from './dashboard/HunterDashboard'
-import TraderDashboard from './dashboard/TraderDashboard'
-import CollectorDashboard from './dashboard/CollectorDashboard'
+import DashboardRouter from './DashboardRouter'
 import { tabShowForRole } from '../application/helpers/navigation'
 
 function ContentPage() {
@@ -85,18 +83,6 @@ function ContentPage() {
             <Route path="*" element={isAdvanced ? <NotFoundPage /> : <Navigate to="/dashboard" replace />} />
         </Routes>
     )
-}
-
-function DashboardRouter({ role }: { role: Role }) {
-    switch (role) {
-        case Role.TRADER:
-            return <TraderDashboard />
-        case Role.COLLECTOR:
-            return <CollectorDashboard />
-        case Role.HUNTER:
-        default:
-            return <HunterDashboard />
-    }
 }
 
 const NotFoundPage = () => {

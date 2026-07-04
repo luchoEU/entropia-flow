@@ -32,6 +32,17 @@ Quick-reference index of all documentation files in the project.
 | [chrome-extension/docs/design-system/components.html](chrome-extension/docs/design-system/components.html) | Live component gallery: pills, cards, stats, tables, MU editor, trader panel, storage tree |
 | [chrome-extension/docs/design-system/icons.html](chrome-extension/docs/design-system/icons.html) | Unicode glyph set used across the roles UI |
 
+## Chrome Extension Source References
+
+| File | Description |
+|------|-------------|
+| [chrome-extension/src/view/components/DashboardRouter.tsx](chrome-extension/src/view/components/DashboardRouter.tsx) | Role-to-dashboard routing for simplified modes |
+| [chrome-extension/src/view/components/dashboard/FishingDashboard.tsx](chrome-extension/src/view/components/dashboard/FishingDashboard.tsx) | Fishing role dashboard with loot/decay/excluded sections |
+| [chrome-extension/src/view/application/helpers/fishing.ts](chrome-extension/src/view/application/helpers/fishing.ts) | Fishing stats aggregation and formatting helpers |
+| [chrome-extension/src/view/application/helpers/fishing.test.ts](chrome-extension/src/view/application/helpers/fishing.test.ts) | Fishing helper coverage for stats and formatting |
+| [chrome-extension/src/view/application/state/role.test.ts](chrome-extension/src/view/application/state/role.test.ts) | Role model coverage including Fishing |
+| [chrome-extension/src/view/components/Content.test.tsx](chrome-extension/src/view/components/Content.test.tsx) | Dashboard routing coverage for simplified roles |
+
 ## Windows Client
 
 | File | Description |
