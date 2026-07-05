@@ -83,6 +83,8 @@ export interface JotaiSortableTableProps<TItem = any> {
   className?: string
   /** Optional: Whether to use FixedSizeList for virtualization (default: true) */
   useFixedSizeList?: boolean
+  /** Optional: Column width strategy (default: measured from sampled cells) */
+  columnWidthMode?: 'measure' | 'header'
   /** Optional: Maximum number of visible rows before scrolling (default: 10, ignored when fillHeight is true) */
   maxNumberOfLines?: number
   /** Optional: Whether to fill all available vertical space (default: false) */

@@ -1122,20 +1122,18 @@ export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
     const { items, sessions } = current.data
     const preSessionKey = 'pre-session'
 
-    // Calculate session time ranges (based on sorted sessions)
-    const sessionTimeRanges = new Map<string, { start: number; end: number }>()
-    for (let i = 0; i < sessions.length; i++) {
-        const session = sessions[i]
-        const start = session.startTime
-        const end = i + 1 < sessions.length ? sessions[i + 1].startTime : Infinity
-        sessionTimeRanges.set(session.id, { start, end })
-    }
+    const sortedSessions = [...sessions].sort((a, b) => a.startTime - b.startTime)
 
-    // Pre-session time range
-    const preSessionEnd = sessions.length > 0 ? sessions[0].startTime : Infinity
-    sessionTimeRanges.set(preSessionKey, { start: 0, end: preSessionEnd })
+    // Precompute session ranges once so each item can be assigned with binary search.
+    const sessionRanges = sortedSessions.map((session, index) => ({
+        session,
+        start: session.startTime,
+        end: index + 1 < sortedSessions.length ? sortedSessions[index + 1].startTime : Infinity
+    }))
+    const sessionRangeMap = new Map(sessionRanges.map(range => [range.session.id, { start: range.start, end: range.end }]))
 
-    let preSession = {
+    const preSessionEnd = sortedSessions.length > 0 ? sortedSessions[0].startTime : Infinity
+    const preSession = {
         id: preSessionKey,
         name: 'Pre-Session',
         type: 'unknown' as SessionType,
@@ -1144,27 +1142,45 @@ export const virtualSessionsAtom = atom<VirtualSession[]>(get => {
 
     const entries: Array<[string, { session: ActivitySession, items: ActivityItem[] }]> = [
         [preSessionKey, { session: preSession, items: [] }],
-        ...sessions.map(session => [session.id, { session, items: [] }] as [string, { session: ActivitySession, items: ActivityItem[] }])
+        ...sortedSessions.map(session => [session.id, { session, items: [] }] as [string, { session: ActivitySession, items: ActivityItem[] }])
     ]
     const map = new Map(entries)
 
-    for (const item of items) {
-        // Find which session this item belongs to
-        let matchSessionId = preSessionKey
-        for (const session of sessions) {
-            if (item.timestamp >= session.startTime) {
-                matchSessionId = session.id
+    const findSessionIdForTimestamp = (timestamp: number): string => {
+        if (timestamp < preSessionEnd) {
+            return preSessionKey
+        }
+
+        let low = 0
+        let high = sessionRanges.length - 1
+        let matchIndex = -1
+
+        while (low <= high) {
+            const mid = (low + high) >> 1
+            const range = sessionRanges[mid]
+
+            if (timestamp >= range.start) {
+                matchIndex = mid
+                low = mid + 1
             } else {
-                break
+                high = mid - 1
             }
         }
+
+        return matchIndex >= 0 ? sessionRanges[matchIndex].session.id : preSessionKey
+    }
+
+    for (const item of items) {
+        const matchSessionId = findSessionIdForTimestamp(item.timestamp)
         map.get(matchSessionId)!.items.push(item)
     }
 
     return Array.from(map.values()).map(({ session, items }) => {
         const validItems = items.filter((item: ActivityItem) => !current.blacklist.session?.[session.id]?.includes(item.name) && typeof item.value === 'number')
         const delta = validItems.reduce((sum: number, item: ActivityItem) => sum + item.value, 0)
-        const timeRange = sessionTimeRanges.get(session.id) || { start: 0, end: Infinity }
+        const timeRange = session.id === preSessionKey
+            ? { start: 0, end: preSessionEnd }
+            : sessionRangeMap.get(session.id) || { start: 0, end: Infinity }
         return { ...session, delta, start: timeRange.start, end: timeRange.end }
     }).reverse()
 })

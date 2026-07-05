@@ -5,7 +5,7 @@ import { StoredAction, ActivityItem } from '../../../application/state/activity'
 import { ViewItemData } from '../../../application/state/history'
 import { formatDate, formatTime } from '../../../../common/time'
 import { activityAtom } from '../../../application/atoms/activity'
-import { getSessionActions } from '../activityUtils'
+import { buildActivitySessionBuckets } from '../activityUtils'
 import { JotaiSortableTable } from '../../common/jotai/JotaiSortableTable'
 import { CellElement } from '../../common/jotai/cellDSL'
 import { JotaiTableColumn } from '../../common/jotai/JotaiTableTypes'
@@ -59,7 +59,11 @@ const ActionsView: React.FC<ActionsViewProps> = ({
     sessionEndTime,
 }) => {
     const activity = useAtomValue(activityAtom)
-    const sessionActions = getSessionActions(sessionId, activity)
+    const sessionBuckets = useMemo(
+        () => buildActivitySessionBuckets(activity),
+        [activity]
+    )
+    const sessionActions = sessionBuckets.actionsBySession.get(sessionId) ?? []
     const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set())
     const [editingActionId, setEditingActionId] = useState<string | null>(null)
     const [editingEmoji, setEditingEmoji] = useState('')
@@ -494,7 +498,8 @@ const ActionsView: React.FC<ActionsViewProps> = ({
                                     }
                                 }
                             }}
-                            useFixedSizeList={false}
+                            useFixedSizeList={expandedActions.size === 0 && !editingActionId}
+                            columnWidthMode='header'
                             itemHeight={20}
                         />
                     </div>

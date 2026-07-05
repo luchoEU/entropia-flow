@@ -94,13 +94,8 @@ export function createComputedTableDataAtom<TItem>(
 
     // Apply sort (skip if disabled, e.g., for tree data with custom sort handler)
     let sorted = filtered
-    if (!disableSorting) {
+    if (!disableSorting && sortColumn?.sortAccessor) {
       sorted = [...filtered].sort((a, b) => {
-        if (!sortColumn.sortAccessor) {
-          console.log('No sort accessor for column', sortColumn)
-          return 0
-        }
-
         const aVal = sortColumn.sortAccessor(a)
         const bVal = sortColumn.sortAccessor(b)
 

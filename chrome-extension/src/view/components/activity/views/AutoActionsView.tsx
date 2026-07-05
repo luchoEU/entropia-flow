@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react'
 import { useAtomValue } from 'jotai'
 import { atom } from 'jotai'
-import { StoredAction, ActivityItem, getActionTimestamp, formatActionDescription, actionTypeInfo } from '../../../application/state/activity'
+import { StoredAction, ActivityItem, getActionTimestamp, formatActionDescription } from '../../../application/state/activity'
 import { formatDate, formatTime } from '../../../../common/time'
 import { ActionExclusionConfig } from '../ActionRow'
 import { ItemExclusionConfig } from '../SortableItemsTable'
 import { NavigateFunction } from 'react-router-dom'
 import { activityAtom } from '../../../application/atoms/activity'
-import { getSessionActions } from '../activityUtils'
+import { buildActivitySessionBuckets } from '../activityUtils'
 import { JotaiSortableTable } from '../../common/jotai/JotaiSortableTable'
 import { CellElement } from '../../common/jotai/cellDSL'
 import ItemText from '../../common/ItemText'
@@ -39,13 +39,31 @@ interface ActionRowData {
     total: number
 }
 
-const AutoActionsView: React.FC<AutoActionsViewProps> = ({
-    sessionId,
+interface AutoActionsDateGroupSectionProps {
+    date: string
+    dateActions: ActionRowData[]
+    expandedActionRows: Set<string>
+    editingActionId: string | null
+    onToggleActionRow: (actionId: string) => void
+    onStartEditAction: (actionId: string) => void
+    exclusionConfig?: ActionExclusionConfig
+    itemExclusionConfig?: ItemExclusionConfig
+    isBudgetEnabled: boolean
+    navigate: NavigateFunction
+    getInventoryItem: (id: number) => ActivityItem | undefined
+    getInventoryItemWithFallback: (itemId: number, fallbackTimestamp?: number) => ActivityItem
+    getAllItemIds: (action: StoredAction) => number[]
+    buildCopyTextForAction: (action: StoredAction) => string
+    copyToClipboard: (text: string) => Promise<void>
+}
+
+const AutoActionsDateGroupSection: React.FC<AutoActionsDateGroupSectionProps> = ({
+    date,
+    dateActions,
     expandedActionRows,
     editingActionId,
     onToggleActionRow,
     onStartEditAction,
-    onUpdateActionType,
     exclusionConfig,
     itemExclusionConfig,
     isBudgetEnabled,
@@ -56,19 +74,151 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
     buildCopyTextForAction,
     copyToClipboard,
 }) => {
-    const activity = useAtomValue(activityAtom)
-    const sessionActions = getSessionActions(sessionId, activity)
+    const dateGroupAtom = useMemo(() => atom(dateActions), [dateActions])
 
-    // Group actions by date
-    const dateGroups: Map<string, StoredAction[]> = new Map()
-    sessionActions.sort((a, b) => getActionTimestamp(b, getInventoryItem) - getActionTimestamp(a, getInventoryItem)).forEach(action => {
-        const timestamp = getActionTimestamp(action, getInventoryItem)
-        const date = formatDate(timestamp)
-        if (!dateGroups.has(date)) {
-            dateGroups.set(date, [])
+    const columns = useMemo((): JotaiTableColumn<ActionRowData>[] => [
+        {
+            id: 'expand',
+            header: '',
+            minWidth: 30,
+            sortAccessor: undefined,
+            renderRow: (item: ActionRowData): CellElement => {
+                const isExpanded = expandedActionRows.has(item.action.id)
+                return {
+                    type: 'text' as const,
+                    value: isExpanded ? '▼' : '▶',
+                    style: { cursor: 'pointer' },
+                    onClick: () => onToggleActionRow(item.action.id)
+                }
+            }
+        },
+        {
+            id: 'time',
+            header: 'Time',
+            sortAccessor: (item: ActionRowData) => item.timestamp,
+            renderRow: (item: ActionRowData): CellElement => ({
+                type: 'text' as const,
+                value: formatTime(item.timestamp)
+            })
+        },
+        {
+            id: 'total',
+            header: 'Total',
+            sortAccessor: (item: ActionRowData) => item.total,
+            renderRow: (item: ActionRowData): CellElement => ({
+                type: 'text' as const,
+                value: `${item.total.toFixed(2)} PED`
+            })
+        },
+        {
+            id: 'name',
+            header: 'Action',
+            sortAccessor: (item: ActionRowData) => formatActionDescription(item.action, getInventoryItem),
+            renderRow: (item: ActionRowData): CellElement => {
+                const nameText = formatActionDescription(item.action, getInventoryItem)
+                const hasBudget = item.action.budgetName && isBudgetEnabled
+
+                if (!hasBudget) {
+                    return {
+                        type: 'text' as const,
+                        value: nameText
+                    }
+                }
+
+                return {
+                    type: 'row' as const,
+                    gap: 10,
+                    children: [
+                        {
+                            type: 'text' as const,
+                            value: nameText
+                        },
+                        {
+                            type: 'text' as const,
+                            value: '[📊Budget]',
+                            style: {
+                                color: 'blue',
+                                cursor: 'pointer'
+                            },
+                            onClick: () => navigate(`${TabId.BUDGET}/${item.action.budgetName!}`)
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            sortAccessor: undefined,
+            renderRow: (item: ActionRowData): CellElement => {
+                const excluded = exclusionConfig?.isExcluded ?? false
+                const permanent = exclusionConfig?.isPermanentlyExcluded ?? false
+
+                const buttons: CellElement[] = [
+                    {
+                        type: 'button' as const,
+                        icon: 'img/edit.png',
+                        width: 20,
+                        title: 'Edit action item',
+                        onClick: () => onStartEditAction(item.action.id)
+                    },
+                    {
+                        type: 'button' as const,
+                        icon: 'img/copy.png',
+                        width: 20,
+                        title: 'Copy to clipboard',
+                        onClick: async () => {
+                            const text = buildCopyTextForAction(item.action)
+                            await copyToClipboard(text)
+                        }
+                    }
+                ]
+
+                if (exclusionConfig) {
+                    if (permanent) {
+                        buttons.push({
+                            type: 'button' as const,
+                            icon: 'img/forbidden.png',
+                            width: 20,
+                            show: true,
+                            title: 'Remove permanent exclusion from the sum',
+                            onClick: () => exclusionConfig.onPermanentExclude(false)
+                        })
+                    } else if (excluded) {
+                        buttons.push({
+                            type: 'button' as const,
+                            icon: 'img/cross.png',
+                            width: 20,
+                            show: true,
+                            title: 'Include this action in the sum',
+                            onClick: () => exclusionConfig.onInclude()
+                        })
+                        buttons.push({
+                            type: 'button' as const,
+                            icon: 'img/forbidden.png',
+                            width: 20,
+                            title: 'Permanently exclude this action type from the sum',
+                            onClick: () => exclusionConfig.onPermanentExclude(true)
+                        })
+                    } else {
+                        buttons.push({
+                            type: 'button' as const,
+                            icon: 'img/cross.png',
+                            width: 20,
+                            title: 'Exclude this action from the sum',
+                            onClick: () => exclusionConfig.onExclude()
+                        })
+                    }
+                }
+
+                return {
+                    type: 'row' as const,
+                    gap: 5,
+                    children: buttons
+                }
+            }
         }
-        dateGroups.get(date)!.push(action)
-    })
+    ], [editingActionId, exclusionConfig, buildCopyTextForAction, copyToClipboard, expandedActionRows, onToggleActionRow, onStartEditAction, isBudgetEnabled, navigate, getInventoryItem])
 
     const renderExpandedItems = (action: StoredAction, itemIds: number[]): React.ReactNode => {
         if (itemIds.length === 0) return null
@@ -139,9 +289,80 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
     }
 
     return (
+        <div style={{ marginTop: '10px' }}>
+            <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
+            <JotaiSortableTable
+                itemsAtom={dateGroupAtom}
+                className='table-diff'
+                config={{
+                    title: `Actions for ${date}`,
+                    columns,
+                    itemTypeName: 'action',
+                    getRowKey: (item: ActionRowData) => item.action.id,
+                    renderExpandedRow: (item: ActionRowData) => {
+                        const isExpanded = expandedActionRows.has(item.action.id)
+                        if (!isExpanded) return null
+                        const itemIds = getAllItemIds(item.action)
+                        return (
+                            <div style={{ padding: '0 20px 10px 40px' }}>
+                                {renderExpandedItems(item.action, itemIds)}
+                            </div>
+                        )
+                    }
+                }}
+                useFixedSizeList={expandedActionRows.size === 0 && !editingActionId}
+                columnWidthMode='header'
+                itemHeight={20}
+            />
+        </div>
+    )
+}
+
+const AutoActionsView: React.FC<AutoActionsViewProps> = ({
+    sessionId,
+    expandedActionRows,
+    editingActionId,
+    onToggleActionRow,
+    onStartEditAction,
+    onUpdateActionType,
+    exclusionConfig,
+    itemExclusionConfig,
+    isBudgetEnabled,
+    navigate,
+    getInventoryItem,
+    getInventoryItemWithFallback,
+    getAllItemIds,
+    buildCopyTextForAction,
+    copyToClipboard,
+}) => {
+    const activity = useAtomValue(activityAtom)
+    const sessionBuckets = useMemo(
+        () => buildActivitySessionBuckets(activity),
+        [activity]
+    )
+    const sessionActions = sessionBuckets.actionsBySession.get(sessionId) ?? []
+
+    const dateGroups = useMemo(() => {
+        const sortedActions = [...sessionActions].sort(
+            (a, b) => getActionTimestamp(b, getInventoryItem) - getActionTimestamp(a, getInventoryItem)
+        )
+
+        const groups = new Map<string, StoredAction[]>()
+        sortedActions.forEach(action => {
+            const timestamp = getActionTimestamp(action, getInventoryItem)
+            const date = formatDate(timestamp)
+            if (!groups.has(date)) {
+                groups.set(date, [])
+            }
+            groups.get(date)!.push(action)
+        })
+
+        return Array.from(groups.entries())
+    }, [sessionActions, getInventoryItem])
+
+    return (
         <>
-            {Array.from(dateGroups.entries()).map(([date, dateActions]) => {
-                // Create data for this date group
+            {dateGroups.map(([date, dateActions]) => {
                 const dateGroupData: ActionRowData[] = dateActions.map(action => ({
                     action,
                     timestamp: getActionTimestamp(action, getInventoryItem),
@@ -151,181 +372,25 @@ const AutoActionsView: React.FC<AutoActionsViewProps> = ({
                     }, 0)
                 }))
 
-                // Create atom for this date group
-                const dateGroupAtom = useMemo(() => atom(dateGroupData), [dateGroupData])
-
-                // Render columns
-                const columns = useMemo((): JotaiTableColumn<ActionRowData>[] => [
-                    {
-                        id: 'expand',
-                        header: '',
-                        minWidth: 5,
-                        sortAccessor: undefined,
-                        renderRow: (item: ActionRowData): CellElement => {
-                            const isExpanded = expandedActionRows.has(item.action.id)
-                            return {
-                                type: 'text' as const,
-                                value: isExpanded ? '▼' : '▶',
-                                style: { cursor: 'pointer' },
-                                onClick: () => onToggleActionRow(item.action.id)
-                            }
-                        }
-                    },
-                    {
-                        id: 'time',
-                        header: 'Time',
-                        sortAccessor: (item: ActionRowData) => item.timestamp,
-                        renderRow: (item: ActionRowData): CellElement => ({
-                            type: 'text' as const,
-                            value: formatTime(item.timestamp)
-                        })
-                    },
-                    {
-                        id: 'total',
-                        header: 'Total',
-                        sortAccessor: (item: ActionRowData) => item.total,
-                        renderRow: (item: ActionRowData): CellElement => ({
-                            type: 'text' as const,
-                            value: `${item.total.toFixed(2)} PED`
-                        })
-                    },
-                    {
-                        id: 'name',
-                        header: 'Action',
-                        sortAccessor: (item: ActionRowData) => formatActionDescription(item.action, getInventoryItem),
-                        renderRow: (item: ActionRowData): CellElement => {
-                            const nameText = formatActionDescription(item.action, getInventoryItem)
-                            const hasBudget = item.action.budgetName && isBudgetEnabled
-
-                            if (!hasBudget) {
-                                return {
-                                    type: 'text' as const,
-                                    value: nameText
-                                }
-                            }
-
-                            // Return a row with name and budget link
-                            return {
-                                type: 'row' as const,
-                                gap: 10,
-                                children: [
-                                    {
-                                        type: 'text' as const,
-                                        value: nameText
-                                    },
-                                    {
-                                        type: 'text' as const,
-                                        value: '[📊Budget]',
-                                        style: {
-                                            color: 'blue',
-                                            cursor: 'pointer'
-                                        },
-                                        onClick: () => navigate(`${TabId.BUDGET}/${item.action.budgetName!}`)
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    {
-                        id: 'actions',
-                        header: 'Actions',
-                        sortAccessor: undefined,
-                        renderRow: (item: ActionRowData): CellElement => {
-                            const excluded = exclusionConfig?.isExcluded ?? false
-                            const permanent = exclusionConfig?.isPermanentlyExcluded ?? false
-
-                            const buttons: CellElement[] = [
-                                {
-                                    type: 'button' as const,
-                                    icon: 'img/edit.png',
-                                    width: 20,
-                                    title: 'Edit action item',
-                                    onClick: () => onStartEditAction(item.action.id)
-                                },
-                                {
-                                    type: 'button' as const,
-                                    icon: 'img/copy.png',
-                                    width: 20,
-                                    title: 'Copy to clipboard',
-                                    onClick: async () => {
-                                        const text = buildCopyTextForAction(item.action)
-                                        await copyToClipboard(text)
-                                    }
-                                }
-                            ]
-
-                            if (exclusionConfig) {
-                                if (permanent) {
-                                    buttons.push({
-                                        type: 'button' as const,
-                                        icon: 'img/forbidden.png',
-                                        width: 20,
-                                        show: true,
-                                        title: 'Remove permanent exclusion from the sum',
-                                        onClick: () => exclusionConfig.onPermanentExclude(false)
-                                    })
-                                } else if (excluded) {
-                                    buttons.push({
-                                        type: 'button' as const,
-                                        icon: 'img/cross.png',
-                                        width: 20,
-                                        show: true,
-                                        title: 'Include this action in the sum',
-                                        onClick: () => exclusionConfig.onInclude()
-                                    })
-                                    buttons.push({
-                                        type: 'button' as const,
-                                        icon: 'img/forbidden.png',
-                                        width: 20,
-                                        title: 'Permanently exclude this action type from the sum',
-                                        onClick: () => exclusionConfig.onPermanentExclude(true)
-                                    })
-                                } else {
-                                    buttons.push({
-                                        type: 'button' as const,
-                                        icon: 'img/cross.png',
-                                        width: 20,
-                                        title: 'Exclude this action from the sum',
-                                        onClick: () => exclusionConfig.onExclude()
-                                    })
-                                }
-                            }
-
-                            return {
-                                type: 'row' as const,
-                                gap: 5,
-                                children: buttons
-                            }
-                        }
-                    }
-                ], [editingActionId, exclusionConfig, buildCopyTextForAction, copyToClipboard, expandedActionRows])
-
                 return (
-                    <div key={date} style={{ marginTop: '10px' }}>
-                        <h5 style={{ margin: '10px 0 5px 0', fontSize: '14px', fontWeight: 'bold' }}>{date}</h5>
-                        <JotaiSortableTable
-                            itemsAtom={dateGroupAtom}
-                            className='table-diff'
-                            config={{
-                                title: `Actions for ${date}`,
-                                columns,
-                                itemTypeName: 'action',
-                                getRowKey: (item: ActionRowData) => item.action.id,
-                                renderExpandedRow: (item: ActionRowData) => {
-                                    const isExpanded = expandedActionRows.has(item.action.id)
-                                    if (!isExpanded) return null
-                                    const itemIds = getAllItemIds(item.action)
-                                    return (
-                                        <div style={{ padding: '0 20px 10px 40px' }}>
-                                            {renderExpandedItems(item.action, itemIds)}
-                                        </div>
-                                    )
-                                }
-                            }}
-                            useFixedSizeList={false}
-                            itemHeight={20}
-                        />
-                    </div>
+                    <AutoActionsDateGroupSection
+                        key={date}
+                        date={date}
+                        dateActions={dateGroupData}
+                        expandedActionRows={expandedActionRows}
+                        editingActionId={editingActionId}
+                        onToggleActionRow={onToggleActionRow}
+                        onStartEditAction={onStartEditAction}
+                        exclusionConfig={exclusionConfig}
+                        itemExclusionConfig={itemExclusionConfig}
+                        isBudgetEnabled={isBudgetEnabled}
+                        navigate={navigate}
+                        getInventoryItem={getInventoryItem}
+                        getInventoryItemWithFallback={getInventoryItemWithFallback}
+                        getAllItemIds={getAllItemIds}
+                        buildCopyTextForAction={buildCopyTextForAction}
+                        copyToClipboard={copyToClipboard}
+                    />
                 )
             })}
         </>

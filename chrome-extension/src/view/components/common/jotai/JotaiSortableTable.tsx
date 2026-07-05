@@ -34,6 +34,7 @@ const JotaiSortableTableComponent = function<TItem>(
     className,
     itemHeight = ITEM_HEIGHT,
     useFixedSizeList = true,
+    columnWidthMode = 'measure',
     fillHeight = false,
     children,
     setFilterRef
@@ -48,14 +49,29 @@ const JotaiSortableTableComponent = function<TItem>(
     filter: ''
   }))
 
-  // Create computed data atom using the raw items atom and internal UI state
-  // Disable sorting if custom onSortChange handler is provided (e.g., for tree data)
-  // Disable filtering if custom onFilterChange handler is provided (e.g., for tree data)
-  const computedDataAtomRef = React.useRef(
-    createComputedTableDataAtom(itemsAtom, uiStateAtomRef.current, config, !!props.onSortChange, !!props.onFilterChange)
+  // Recreate the computed data atom when the source atom or table math changes.
+  // This keeps the table responsive when parent components provide a new atom
+  // for the same table section after data refreshes.
+  const computedDataAtom = useMemo(
+    () => createComputedTableDataAtom(
+      itemsAtom,
+      uiStateAtomRef.current,
+      config,
+      !!props.onSortChange,
+      !!props.onFilterChange
+    ),
+    [
+      itemsAtom,
+      uiStateAtomRef.current,
+      config.columns,
+      config.getPedValue,
+      config.getCountValue,
+      props.onSortChange,
+      props.onFilterChange
+    ]
   )
 
-  const data = useAtomValue(computedDataAtomRef.current)
+  const data = useAtomValue(computedDataAtom)
   const uiState = useAtomValue(uiStateAtomRef.current)
   const setUIState = useSetAtom(uiStateAtomRef.current)
 
@@ -111,20 +127,20 @@ const JotaiSortableTableComponent = function<TItem>(
   // Get column widths - use explicit width or calculate from DSL
   const columnWidths = useMemo(() => {
     return config.columns.map((col) => {
-      // Calculate width from DSL
-      const calculatedWidth = calculateColumnWidth(
-        col.renderRow,
-        data.items,
-        10,  // sample size
-        '13px Arial'  // TODO: get from CSS
-      )
-
       const minWidth = col.minWidth ?? 20
       const maxWidth = col.maxWidth ?? 600
+      const calculatedWidth = columnWidthMode === 'header'
+        ? Math.max(minWidth, (col.header?.length ?? 0) * 8 + COLUMN_PADDING * 2 + 16)
+        : calculateColumnWidth(
+            col.renderRow,
+            data.items,
+            10,  // sample size
+            '13px Arial'  // TODO: get from CSS
+          )
 
       return Math.min(maxWidth, Math.max(minWidth, calculatedWidth))
     })
-  }, [config.columns, data.items])
+  }, [config.columns, data.items, columnWidthMode])
 
   const totalWidth = useMemo(() => {
     return columnWidths.reduce((a, b) => a + b, 0) + COLUMN_PADDING * 2 * columnWidths.length

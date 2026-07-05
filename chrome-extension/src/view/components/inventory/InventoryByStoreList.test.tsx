@@ -21,6 +21,9 @@ import { atomWithStorage } from 'jotai/utils'
 import { createComputedTableDataAtom } from '../../application/atoms/tableUtils'
 import { TreeLineData } from '../../application/state/inventory'
 import { JotaiTableConfig, TableUIState } from '../common/jotai/JotaiTableTypes'
+import { Provider } from 'jotai'
+import { render, screen } from '@testing-library/react'
+import { JotaiSortableTable } from '../common/jotai/JotaiSortableTable'
 
 describe('JotaiSortableTable tree hierarchy bug - flat array sorting', () => {
   it('should FAIL: JotaiSortableTable breaks hierarchy when sorting flat TreeLineData array', () => {
@@ -382,5 +385,100 @@ describe('JotaiSortableTable tree hierarchy bug - flat array sorting', () => {
       zChildIdx === zContainerIdx + 2
 
     expect(hierarchyPreserved).toBe(true)
+  })
+})
+
+describe('JotaiSortableTable source atom updates', () => {
+  it('should update rendered rows when the source atom changes between renders', () => {
+    // ============================================================================
+    // ARRANGE
+    // ============================================================================
+
+    type TestItem = {
+      id: number
+      timestamp: number
+      source: string
+      name: string
+      quantity: number
+      value: number
+      container: string
+    }
+
+    const firstItemsAtom = atom<TestItem[]>([
+      {
+        id: 1,
+        timestamp: 1000,
+        source: 'inventory',
+        name: 'Alpha',
+        quantity: 1,
+        value: 10,
+        container: 'Box A'
+      }
+    ])
+
+    const secondItemsAtom = atom<TestItem[]>([
+      {
+        id: 2,
+        timestamp: 2000,
+        source: 'inventory',
+        name: 'Beta',
+        quantity: 2,
+        value: 20,
+        container: 'Box B'
+      }
+    ])
+
+    const config: JotaiTableConfig<TestItem> = {
+      title: 'Source Atom Update Table',
+      columns: [
+        {
+          id: 'name',
+          header: 'Name',
+          sortAccessor: (item: TestItem) => item.name,
+          renderRow: (item: TestItem) => ({ type: 'text' as const, value: item.name })
+        },
+        {
+          id: 'value',
+          header: 'Value',
+          sortAccessor: (item: TestItem) => item.value,
+          renderRow: (item: TestItem) => ({ type: 'text' as const, value: String(item.value) })
+        }
+      ],
+      itemTypeName: 'item',
+      getRowKey: (item: TestItem) => item.id
+    }
+
+    const { rerender } = render(
+      <Provider>
+        <JotaiSortableTable
+          itemsAtom={firstItemsAtom}
+          config={config}
+          useFixedSizeList={false}
+        />
+      </Provider>
+    )
+
+    // ============================================================================
+    // ACT
+    // ============================================================================
+
+    expect(screen.getByText('Alpha')).toBeTruthy()
+
+    rerender(
+      <Provider>
+        <JotaiSortableTable
+          itemsAtom={secondItemsAtom}
+          config={config}
+          useFixedSizeList={false}
+        />
+      </Provider>
+    )
+
+    // ============================================================================
+    // ASSERT
+    // ============================================================================
+
+    expect(screen.getByText('Beta')).toBeTruthy()
+    expect(screen.queryByText('Alpha')).toBeNull()
   })
 })

@@ -40,6 +40,11 @@ Quick-reference index of all documentation files in the project.
 | [chrome-extension/src/view/components/dashboard/FishingDashboard.tsx](chrome-extension/src/view/components/dashboard/FishingDashboard.tsx) | Fishing role dashboard with loot/decay/excluded sections |
 | [chrome-extension/src/view/application/helpers/fishing.ts](chrome-extension/src/view/application/helpers/fishing.ts) | Fishing stats aggregation and formatting helpers |
 | [chrome-extension/src/view/application/helpers/fishing.test.ts](chrome-extension/src/view/application/helpers/fishing.test.ts) | Fishing helper coverage for stats and formatting |
+| [chrome-extension/src/view/application/atoms/activity.virtualSessions.test.ts](chrome-extension/src/view/application/atoms/activity.virtualSessions.test.ts) | Activity session grouping coverage for pre-session/session boundaries |
+| [chrome-extension/src/view/components/activity/activityUtils.test.ts](chrome-extension/src/view/components/activity/activityUtils.test.ts) | Activity helper coverage for session bucketing and item/action ranges |
+| [chrome-extension/src/view/components/activity/activityPerf.test.tsx](chrome-extension/src/view/components/activity/activityPerf.test.tsx) | Activity render profiling harness for large synthetic datasets |
+| [chrome-extension/src/view/components/activity/activityPerf.noTable.test.tsx](chrome-extension/src/view/components/activity/activityPerf.noTable.test.tsx) | Activity profiling harness isolating preprocessing without table rendering |
+| [chrome-extension/src/view/components/activity/activityVirtualization.test.tsx](chrome-extension/src/view/components/activity/activityVirtualization.test.tsx) | Activity table virtualization coverage for collapsed and expanded states |
 | [chrome-extension/src/view/application/state/role.test.ts](chrome-extension/src/view/application/state/role.test.ts) | Role model coverage including Fishing |
 | [chrome-extension/src/view/components/Content.test.tsx](chrome-extension/src/view/components/Content.test.tsx) | Dashboard routing coverage for simplified roles |
 
