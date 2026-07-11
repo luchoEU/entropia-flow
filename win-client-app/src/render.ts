@@ -10,6 +10,8 @@ import { WindowData } from "./windows";
 import { MENU_LAYOUT_ID, MENU_HTML_TEMPLATE, MENU_CSS_TEMPLATE, buildMenuData, MenuState } from "./menuLayout";
 import { Mouse } from "./mouse";
 import { setupWindowHoverControls } from "./windowHoverControls";
+import { setupWindowBackgroundControls } from "./windowBackgroundControls";
+import { nextBackgroundType, reconcilePendingBackgroundTypes, setPendingBackgroundType } from "./windowBackgroundState";
 
 /// Menu ///
 
@@ -69,7 +71,7 @@ let _lastData: StreamWindowRenderData = {
                 .layout-root {
                     background-color: rgba(173, 216, 230, 0.8); /* light blue */
                 }
-                #entropia-flow-client-menu, #entropia-flow-client-next {
+                #entropia-flow-client-menu, #entropia-flow-client-next, #entropia-flow-client-background {
                     display: none !important;
                 }
                 #copyButton {
@@ -200,7 +202,8 @@ let _lastData: StreamWindowRenderData = {
                 }
                 #entropia-flow-client-layout,
                 #entropia-flow-client-menu,
-                #entropia-flow-client-next {
+                #entropia-flow-client-next,
+                #entropia-flow-client-background {
                     display: none !important;
                 }
             `,
@@ -268,6 +271,7 @@ const minimizeButton = document.getElementById('entropia-flow-client-minimize');
 const menuButton = document.getElementById('entropia-flow-client-menu');
 const menuPopup = document.getElementById('entropia-flow-client-menu-popup');
 const nextButton = document.getElementById('entropia-flow-client-next');
+const backgroundButton = document.getElementById('entropia-flow-client-background');
 const closeButton = document.getElementById('entropia-flow-client-close');
 
 function _setupButtons() {
@@ -292,6 +296,16 @@ function _setupButtons() {
         nextLayout();
     });
 
+    setupWindowBackgroundControls(backgroundButton, () => {
+        const layout = _lastData.layouts[_layoutId];
+        if (layout) {
+            layout.backgroundType = nextBackgroundType(layout.backgroundType);
+            setPendingBackgroundType(_layoutId, layout.backgroundType);
+            render({ layoutId: _layoutId, minimized: _minimized });
+        }
+        sendMessageToMain('next-background', { layoutId: _layoutId }, 'chrome-extension');
+    });
+
     closeButton?.addEventListener('click', (e) => {
         e.stopPropagation();
         Neutralino.storage.setData(STORE_WINDOW, null!);
@@ -309,6 +323,7 @@ function _reRenderMenu() {
 function receive(delta: any) {
     _lastData = applyDelta(_lastData, delta);
     if (!_lastData.layoutData) _lastData.layoutData = {};
+    reconcilePendingBackgroundTypes(_lastData.layouts);
     _layoutIdList = Object.entries(_lastData.layouts)
         .filter(([k,]) => !k.startsWith(PREFIX_LAYOUT_ID) || k === OCR_LAYOUT_ID)
         .map(([id,]) => id)

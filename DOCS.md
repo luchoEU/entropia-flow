@@ -60,5 +60,12 @@ Quick-reference index of all documentation files in the project.
 | [win-client-app/CHANGESLOG.md](win-client-app/CHANGESLOG.md) | Changelog following Keep a Changelog format |
 | [win-client-app/src/clientSettings.ts](win-client-app/src/clientSettings.ts) | Shared client-settings helpers for auto-update, DevTools, and manifest URL persistence |
 | [win-client-app/src/clientSettings.test.ts](win-client-app/src/clientSettings.test.ts) | Bun coverage for client-settings defaults, persistence, and inspector wiring |
+| [win-client-app/src/updateDialogLock.ts](win-client-app/src/updateDialogLock.ts) | Shared storage-backed lock for update prompts across windows |
+| [win-client-app/src/updaterLock.test.ts](win-client-app/src/updaterLock.test.ts) | Bun regression coverage for the shared update dialog lock |
 | [win-client-app/src/windowHoverControls.ts](win-client-app/src/windowHoverControls.ts) | Hover-state wiring for stream window controls |
 | [win-client-app/src/windowHoverControls.test.ts](win-client-app/src/windowHoverControls.test.ts) | Bun coverage for window hover behavior and close-button visibility |
+| [win-client-app/src/windowBackgroundControls.ts](win-client-app/src/windowBackgroundControls.ts) | Click wiring for the Windows stream window background cycling control |
+| [win-client-app/src/windowBackgroundControls.test.ts](win-client-app/src/windowBackgroundControls.test.ts) | Bun coverage for background button click handling |
+| [win-client-app/src/windowBackgroundState.ts](win-client-app/src/windowBackgroundState.ts) | Background cycle order helper for Windows stream windows |
+| [win-client-app/src/windowBackgroundState.test.ts](win-client-app/src/windowBackgroundState.test.ts) | Bun coverage for the Windows background cycle order |
+| [win-client-app/resources/img/background.svg](win-client-app/resources/img/background.svg) | Icon asset for the Windows stream background cycling button |

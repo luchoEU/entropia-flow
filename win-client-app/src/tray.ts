@@ -72,6 +72,7 @@ async function handleCheckForUpdates() {
                 'QUESTION' as Neutralino.os.Icon
             );
             if (result === 'YES') {
+                Updater.stopPeriodicChecks();
                 await Updater.installResourcesUpdate();
             }
             break;
@@ -84,6 +85,7 @@ async function handleCheckForUpdates() {
                 'QUESTION' as Neutralino.os.Icon
             );
             if (result === 'YES') {
+                Updater.stopPeriodicChecks();
                 await Updater.downloadAndInstallBinaryUpdate(status.manifest);
             }
             break;

@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# Version 0.2.0-dev.64 - [Unreleased]
+
+### Fixed
+- Manual About update checks now always run the update check instead of silently bailing when another window holds the shared auto-update lock
+
+## Version 0.2.0-dev.63 - [Unreleased]
+
+### Changed
+- Bumped the Windows client dev version for the next auto-update build
+
+## Version 0.2.0-dev.62 - [Unreleased]
+
+### Fixed
+- Update dialog lock now clears stale entries from previous app sessions and is released before starting install, so auto-update prompts and manual About updates work again
+
+## Version 0.2.0-dev.61 - [Unreleased]
+
+### Changed
+- Bumped the Windows client dev version for the next auto-update build
+
+## Version 0.2.0-dev.60 - [Unreleased]
+
+### Changed
+- Bumped the Windows client dev version for the next auto-update build
+
+## Version 0.2.0-dev.59 - [Unreleased]
+
+### Changed
+- Bumped the Windows client dev version for the next auto-update build
+
+## Version 0.2.0-dev.58 - [Unreleased]
+
+### Added
+- Stream windows now include a dedicated background button next to the layout button so the displayed background can be cycled directly from the Windows client
+
 ## Version 0.2.0-dev.57 - [Unreleased]
 
 ### Added
