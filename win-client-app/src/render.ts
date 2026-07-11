@@ -9,6 +9,7 @@ import { STORE_INIT, STORE_WINDOW } from "./const";
 import { WindowData } from "./windows";
 import { MENU_LAYOUT_ID, MENU_HTML_TEMPLATE, MENU_CSS_TEMPLATE, buildMenuData, MenuState } from "./menuLayout";
 import { Mouse } from "./mouse";
+import { setupWindowHoverControls } from "./windowHoverControls";
 
 /// Menu ///
 
@@ -270,6 +271,8 @@ const nextButton = document.getElementById('entropia-flow-client-next');
 const closeButton = document.getElementById('entropia-flow-client-close');
 
 function _setupButtons() {
+    const hoverArea = document.getElementById('entropia-flow-client-hover-area');
+
     minimizeButton?.addEventListener('click', (e) => {
         e.stopPropagation();
         switchMinimized();
@@ -295,13 +298,7 @@ function _setupButtons() {
         Neutralino.app.exit(); // close only this window
     });
 
-    const hoverArea = document.getElementById('entropia-flow-client-hover-area');
-    minimizeButton?.addEventListener('mouseenter', () => {
-        hoverArea?.classList.add('entropia-flow-client-expanded');
-    });
-    hoverArea?.addEventListener('mouseleave', () => {
-        hoverArea?.classList.remove('entropia-flow-client-expanded');
-    });
+    setupWindowHoverControls(hoverArea, minimizeButton);
 }
 
 function _reRenderMenu() {

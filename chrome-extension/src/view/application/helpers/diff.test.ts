@@ -9,6 +9,36 @@ describe('difference', () => {
         })).toEqual(null)
     })
 
+    test('handles missing item text fields without crashing', () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const inventory = {
+            itemlist: [
+                { id: '1', n: undefined as any, q: '1', v: '1.00', c: undefined as any },
+                { id: '2', n: 'Apple', q: '2', v: '2.00', c: 'CARRIED' },
+            ],
+            meta: { date: 1 }
+        } as any
+        const previous = {
+            itemlist: [
+                { id: '1', n: 'Banana', q: '1', v: '1.00', c: 'STORAGE' },
+            ],
+            meta: { date: 2 }
+        } as any
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        const diff = getDifference(inventory, previous)
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(diff).not.toBeNull()
+        expect(diff!.every(item => typeof item.n === 'string' && typeof item.c === 'string')).toBe(true)
+    })
+
     test('move in', () => {
         expect(getDifference({
             itemlist: [

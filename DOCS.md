@@ -47,6 +47,7 @@ Quick-reference index of all documentation files in the project.
 | [chrome-extension/src/view/components/activity/activityVirtualization.test.tsx](chrome-extension/src/view/components/activity/activityVirtualization.test.tsx) | Activity table virtualization coverage for collapsed and expanded states |
 | [chrome-extension/src/view/application/state/role.test.ts](chrome-extension/src/view/application/state/role.test.ts) | Role model coverage including Fishing |
 | [chrome-extension/src/view/components/Content.test.tsx](chrome-extension/src/view/components/Content.test.tsx) | Dashboard routing coverage for simplified roles |
+| [chrome-extension/src/background/client/streamDataBuilder.test.ts](chrome-extension/src/background/client/streamDataBuilder.test.ts) | Temporal refresh coverage for stream data builder ticking |
 
 ## Windows Client
 
@@ -57,3 +58,5 @@ Quick-reference index of all documentation files in the project.
 | [win-client-app/CHANGESLOG.md](win-client-app/CHANGESLOG.md) | Changelog following Keep a Changelog format |
 | [win-client-app/src/clientSettings.ts](win-client-app/src/clientSettings.ts) | Shared client-settings helpers for auto-update, DevTools, and manifest URL persistence |
 | [win-client-app/src/clientSettings.test.ts](win-client-app/src/clientSettings.test.ts) | Bun coverage for client-settings defaults, persistence, and inspector wiring |
+| [win-client-app/src/windowHoverControls.ts](win-client-app/src/windowHoverControls.ts) | Hover-state wiring for stream window controls |
+| [win-client-app/src/windowHoverControls.test.ts](win-client-app/src/windowHoverControls.test.ts) | Bun coverage for window hover behavior and close-button visibility |

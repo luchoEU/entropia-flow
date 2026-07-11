@@ -32,6 +32,7 @@ class StreamDataBuilder {
     private _isDirty: boolean = false
     private _roles: string[] = []
     private _favorites: RoleFavorites = {}
+    private _lastTemporalRefresh = -1
     public sendClientData?: (data: any) => Promise<void>
 
     constructor(private apiStorage: IApiStorage) {
@@ -305,19 +306,31 @@ class StreamDataBuilder {
     public async loop() {
         while (true)
         {
-            if (this._isDirty)
-            {
-                this._isDirty = false;
-                const { variables, renderData } = await this.getVariablesAndData();
-                if (this.onDataChanged)
-                    await this.onDataChanged(variables, renderData);
-                await this.sendDataToClient(renderData);
-            }
-            else
-            {
+            const processed = await this.tick();
+            if (!processed) {
                 await new Promise(resolve => setTimeout(resolve, 200));
             }
         }
+    }
+
+    public async tick(now = Date.now()): Promise<boolean> {
+        const hasTemporalBuilders = this._temporalVariablesBuilders.length > 0;
+        const shouldRefreshTemporal = hasTemporalBuilders && (this._lastTemporalRefresh === -1 || now - this._lastTemporalRefresh >= 1000);
+
+        if (!this._isDirty && !shouldRefreshTemporal) {
+            return false;
+        }
+
+        this._isDirty = false;
+        if (shouldRefreshTemporal) {
+            this._lastTemporalRefresh = now;
+        }
+
+        const { variables, renderData } = await this.getVariablesAndData();
+        if (this.onDataChanged)
+            await this.onDataChanged(variables, renderData);
+        await this.sendDataToClient(renderData);
+        return true;
     }
 }
 

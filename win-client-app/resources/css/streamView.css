@@ -89,6 +89,9 @@ body {
     width: 10px;
     height: 10px;
 }
+#entropia-flow-client-hover-area.entropia-flow-client-close-visible > #entropia-flow-client-nav #entropia-flow-client-close {
+    display: block;
+}
 #entropia-flow-client-hover-area.entropia-flow-client-expanded > #entropia-flow-client-nav .entropia-flow-client-control {
     display: block;
 }

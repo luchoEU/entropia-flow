@@ -5,13 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 0.2.0-dev.55 - [Unreleased]
+## Version 0.2.0-dev.57 - [Unreleased]
 
 ### Added
 - Settings now includes a DevTools toggle that enables the inspector for newly opened client windows
 
 ### Fixed
 - Overlay expanded state no longer collapses on each stream render — `render()` now uses `classList.toggle` instead of replacing `className`, preserving the expanded class
+- Close button now appears on hover over the stream window itself instead of only when hovering the top-left minimize icon
 
 ## Version 0.2.0-dev.54 - [Unreleased]
 

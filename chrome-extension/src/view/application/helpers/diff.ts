@@ -14,10 +14,18 @@ interface SortableItemData {
     c: string
 }
 
+function normalizeText(value: string | undefined): string {
+    return value ?? ''
+}
+
+function compareText(a: string | undefined, b: string | undefined): number {
+    return normalizeText(a).localeCompare(normalizeText(b))
+}
+
 function _sortList<T extends SortableItemData>(list: Array<T>): Array<T> {
     list.sort((a: T, b: T) => {
         // first by name
-        const cn = a.n.localeCompare(b.n)
+        const cn = compareText(a.n, b.n)
         if (cn !== 0)
             return cn
 
@@ -32,7 +40,7 @@ function _sortList<T extends SortableItemData>(list: Array<T>): Array<T> {
             return cv
 
         // fourth by container
-        return a.c.localeCompare(b.c)
+        return compareText(a.c, b.c)
     })
     return list
 }
@@ -47,13 +55,13 @@ function compareSameName(a: ItemSameNameData, b: ItemSameNameData): number {
     if (cv !== 0)
         return cv
 
-    return a.c.localeCompare(b.c)
+    return compareText(a.c, b.c)
 }
 
 function sortSameNameByContainer(list: Array<ItemSameNameData>) {
     list.sort((a: ItemSameNameData, b: ItemSameNameData) => {
         // first by container
-        const cc = a.c.localeCompare(b.c)
+        const cc = compareText(a.c, b.c)
         if (cc !== 0)
             return cc
 
@@ -69,18 +77,18 @@ function sortSameNameByContainer(list: Array<ItemSameNameData>) {
 
 const neg = (i: ItemData, key: number): ViewItemData => ({
     key,
-    n: i.n,
+    n: normalizeText(i.n),
     q: '-' + i.q,
     v: i.v === '0.00' ? '' : '-' + i.v,
-    c: i.c
+    c: normalizeText(i.c)
 })
 
 const pos = (i: ItemData, key: number): ViewItemData => ({
     key,
-    n: i.n,
+    n: normalizeText(i.n),
     q: i.q,
     v: i.v === '0.00' ? '' : i.v,
-    c: i.c
+    c: normalizeText(i.c)
 })
 
 function remainingInPrevious(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
@@ -224,10 +232,10 @@ const sameName = {
         // creates add function that will be used in the other methods
         items.push({
             key: 0,
-            n: name,
+            n: normalizeText(name),
             q: q === 0 ? '' : q.toString(),
             v: v === 0 ? '' : c.includes('⭢') ? `(${v.toFixed(2)})` : v.toFixed(2),
-            c: c
+            c: normalizeText(c)
         })
     },
     addKeys: (items: Array<ViewItemData>, key: number) => {
@@ -256,11 +264,11 @@ const sameName = {
         const newList: Array<ItemSameNameData> = []
         let index = start
         while (index < list.length
-            && name == list[index].n) {
+            && normalizeText(name) == normalizeText(list[index].n)) {
             newList.push({
                 q: Number(list[index].q),
                 v: Number(list[index].v),
-                c: list[index].c
+                c: normalizeText(list[index].c)
             })
             index++
         }
@@ -297,14 +305,14 @@ function sameNameSingle(iList: Array<ItemData>, pList: Array<ItemData>, n: numbe
         if (value === '0.00')
             value = ''
 
-        let container = i.c
-        if (i.c !== p.c) {
+        let container = normalizeText(i.c)
+        if (normalizeText(i.c) !== normalizeText(p.c)) {
             if (quantity === '' && value === '') {
-                container = `${p.c} ⭢ ${i.c}`
+                container = `${normalizeText(p.c)} ⭢ ${normalizeText(i.c)}`
                 quantity = i.q
                 value = `(${i.v})`
             } else {
-                container = `${p.c} ⟹ ${i.c}`
+                container = `${normalizeText(p.c)} ⟹ ${normalizeText(i.c)}`
             }
         }
 
@@ -326,7 +334,7 @@ function sameNameSingle(iList: Array<ItemData>, pList: Array<ItemData>, n: numbe
 function differentNameInventoryFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
-    if (i.n.localeCompare(p.n) < 0) {
+    if (compareText(i.n, p.n) < 0) {
         return {
             newItems: [pos(i, key)],
             nInc: 1,
@@ -339,7 +347,7 @@ function differentNameInventoryFirst(iList: Array<ItemData>, pList: Array<ItemDa
 function differentNamePreviousFirst(iList: Array<ItemData>, pList: Array<ItemData>, n: number, m: number, key: number): PatternMatcherResult | undefined {
     const i = iList[n]
     const p = pList[m]
-    if (i.n.localeCompare(p.n) > 0) {
+    if (compareText(i.n, p.n) > 0) {
         return {
             newItems: [neg(p, key)],
             nInc: 0,
