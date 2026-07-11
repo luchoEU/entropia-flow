@@ -1,7 +1,8 @@
-import { STORE_SETTINGS, STORE_CLIENT_SETTINGS } from "./const";
+import { STORE_SETTINGS } from "./const";
 import { receiveUpdates, sendMessageToMain } from "./messages";
 import { createDesktopShortcut } from "./shortcut";
 import { copyTextToClipboard } from "./utils";
+import { readClientSettings, saveClientSettings } from "./clientSettings";
 
 const logPathElement = document.getElementById('logPath');
 const logPathFileElement = document.getElementById('logPathFile');
@@ -90,6 +91,7 @@ document.getElementById('createShortcutBtn')?.addEventListener('click', () => cr
 
 // Auto-update checkbox and dev manifest URL
 const autoUpdateCheckbox = document.getElementById('autoUpdateCheckbox') as HTMLInputElement;
+const devToolsCheckbox = document.getElementById('devToolsCheckbox') as HTMLInputElement;
 const devManifestUrlInput = document.getElementById('devManifestUrl') as HTMLInputElement;
 const devManifestUrlDisplay = document.getElementById('devManifestUrlDisplay') as HTMLElement;
 const devManifestUrlText = document.getElementById('devManifestUrlText') as HTMLElement;
@@ -98,12 +100,14 @@ function updateUrlDisplay(url: string) {
     devManifestUrlText.textContent = url || 'not set';
 }
 
-async function loadAutoUpdateSetting() {
+async function loadClientSettings() {
     try {
-        const data = await Neutralino.storage.getData(STORE_CLIENT_SETTINGS);
-        const settings = JSON.parse(data);
+        const settings = await readClientSettings();
         if (autoUpdateCheckbox) {
             autoUpdateCheckbox.checked = settings.autoUpdateEnabled !== false;
+        }
+        if (devToolsCheckbox) {
+            devToolsCheckbox.checked = settings.devToolsEnabled === true;
         }
         const url = settings.devManifestUrl || '';
         devManifestUrlInput.value = url;
@@ -113,7 +117,7 @@ async function loadAutoUpdateSetting() {
         if (autoUpdateCheckbox) autoUpdateCheckbox.checked = true;
     }
 }
-loadAutoUpdateSetting();
+loadClientSettings();
 
 devManifestUrlDisplay?.addEventListener('click', () => {
     devManifestUrlDisplay.style.display = 'none';
@@ -127,12 +131,9 @@ async function saveDevManifestUrl() {
     devManifestUrlDisplay.style.display = '';
     updateUrlDisplay(url);
     try {
-        let settings: any = {};
-        try {
-            settings = JSON.parse(await Neutralino.storage.getData(STORE_CLIENT_SETTINGS));
-        } catch {}
+        const settings = await readClientSettings();
         settings.devManifestUrl = url || undefined;
-        await Neutralino.storage.setData(STORE_CLIENT_SETTINGS, JSON.stringify(settings));
+        await saveClientSettings(settings);
     } catch (err) {
         console.warn('Failed to save dev manifest URL', err);
     }
@@ -148,14 +149,22 @@ devManifestUrlInput?.addEventListener('keydown', (e) => {
 autoUpdateCheckbox?.addEventListener('change', async () => {
     const enabled = autoUpdateCheckbox.checked;
     try {
-        let settings: any = {};
-        try {
-            settings = JSON.parse(await Neutralino.storage.getData(STORE_CLIENT_SETTINGS));
-        } catch {}
+        const settings = await readClientSettings();
         settings.autoUpdateEnabled = enabled;
-        await Neutralino.storage.setData(STORE_CLIENT_SETTINGS, JSON.stringify(settings));
+        await saveClientSettings(settings);
     } catch (err) {
         console.warn('Failed to save auto-update setting', err);
     }
     sendMessageToMain('set-auto-update', { enabled });
+});
+
+devToolsCheckbox?.addEventListener('change', async () => {
+    const enabled = devToolsCheckbox.checked;
+    try {
+        const settings = await readClientSettings();
+        settings.devToolsEnabled = enabled;
+        await saveClientSettings(settings);
+    } catch (err) {
+        console.warn('Failed to save DevTools setting', err);
+    }
 });

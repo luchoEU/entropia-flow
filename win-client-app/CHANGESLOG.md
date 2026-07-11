@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version 0.2.0-dev.55 - [Unreleased]
 
+### Added
+- Settings now includes a DevTools toggle that enables the inspector for newly opened client windows
+
 ### Fixed
 - Overlay expanded state no longer collapses on each stream render — `render()` now uses `classList.toggle` instead of replacing `className`, preserving the expanded class
 

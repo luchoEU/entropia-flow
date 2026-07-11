@@ -55,3 +55,5 @@ Quick-reference index of all documentation files in the project.
 | [win-client-app/README.md](win-client-app/README.md) | Windows client setup, VM configuration, and usage |
 | [win-client-app/CLAUDE.md](win-client-app/CLAUDE.md) | Agent guidelines: version management for the Windows client |
 | [win-client-app/CHANGESLOG.md](win-client-app/CHANGESLOG.md) | Changelog following Keep a Changelog format |
+| [win-client-app/src/clientSettings.ts](win-client-app/src/clientSettings.ts) | Shared client-settings helpers for auto-update, DevTools, and manifest URL persistence |
+| [win-client-app/src/clientSettings.test.ts](win-client-app/src/clientSettings.test.ts) | Bun coverage for client-settings defaults, persistence, and inspector wiring |

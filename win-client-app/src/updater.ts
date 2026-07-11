@@ -1,4 +1,5 @@
-import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_CLIENT_SETTINGS, STORE_WINDOW, STORE_STREAM, STORE_SETTINGS, STORE_VER, STORE_UPDATE_PROGRESS } from './const';
+import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFEST_DEV_URL, UPDATE_CHECK_INTERVAL, UPDATE_CHECK_INTERVAL_DEV, STORE_WINDOW, STORE_STREAM, STORE_SETTINGS, STORE_VER, STORE_UPDATE_PROGRESS } from './const';
+import { ClientSettings, readClientSettings, saveClientSettings, withInspectorEnabled } from './clientSettings';
 import { Socket } from './socket';
 import { interpolate } from './utils';
 
@@ -16,20 +17,6 @@ type UpdateStatus =
     | { type: 'binary'; manifest: UpdateManifest }
     | { type: 'error'; message: string };
 
-interface UpdateDismissed {
-    version: string;
-    count: number;
-    nextCheckAfter: number;
-}
-
-interface ClientSettings {
-    autoUpdateEnabled: boolean;
-    updateDismissed?: UpdateDismissed;
-    devManifestUrl?: string;
-}
-
-const DEFAULT_CLIENT_SETTINGS: ClientSettings = { autoUpdateEnabled: true };
-
 // Dev mode: when running via `neu run` (NL_PORT is set), use local server
 const isDevMode = typeof NL_PORT !== 'undefined' && NL_PORT !== 0;
 
@@ -38,7 +25,7 @@ let _devManifestUrlOverride: string | undefined;
 async function getManifestUrl(): Promise<string> {
     if (isDevMode) {
         try {
-            const settings = await getClientSettings();
+            const settings = await readClientSettings();
             const override = settings.devManifestUrl || _devManifestUrlOverride;
             if (override) return `${override}/update-manifest.json`;
         } catch {}
@@ -49,19 +36,6 @@ async function getManifestUrl(): Promise<string> {
 
 function getCheckInterval(): number {
     return isDevMode ? UPDATE_CHECK_INTERVAL_DEV : UPDATE_CHECK_INTERVAL;
-}
-
-async function getClientSettings(): Promise<ClientSettings> {
-    try {
-        const data = await Neutralino.storage.getData(STORE_CLIENT_SETTINGS);
-        return { ...DEFAULT_CLIENT_SETTINGS, ...JSON.parse(data) };
-    } catch {
-        return { ...DEFAULT_CLIENT_SETTINGS };
-    }
-}
-
-async function saveClientSettings(settings: ClientSettings): Promise<void> {
-    await Neutralino.storage.setData(STORE_CLIENT_SETTINGS, JSON.stringify(settings));
 }
 
 async function checkForUpdates(): Promise<UpdateStatus> {
@@ -112,7 +86,8 @@ async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise
     const downloadScriptPath = `${tmp}\\entropia_download.ps1`;
     const progressFile = `${tmp}\\entropia_download_progress.txt`;
 
-    await Neutralino.window.create('/update.html', {
+    const clientSettings = await readClientSettings();
+    await Neutralino.window.create('/update.html', withInspectorEnabled({
         title: 'Entropia Flow Update',
         icon: '/resources/img/appIcon.png',
         width: 400,
@@ -123,7 +98,7 @@ async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise
         alwaysOnTop: true,
         hidden: false,
         exitProcessOnClose: false,
-    } as any);
+    } as any, clientSettings));
 
     await writeProgress(0, 'Downloading...');
 
@@ -210,7 +185,7 @@ async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise
 
     await Neutralino.filesystem.writeFile(psPath, ps1);
 
-    const settings = await getClientSettings();
+    const settings = await readClientSettings();
     delete settings.updateDismissed;
     await saveClientSettings(settings);
 
@@ -225,7 +200,7 @@ async function downloadAndInstallBinaryUpdate(manifest: UpdateManifest): Promise
 
 async function installResourcesUpdate(): Promise<void> {
     // Clear dismissed state so next version starts fresh
-    const settings = await getClientSettings();
+    const settings = await readClientSettings();
     delete settings.updateDismissed;
     await saveClientSettings(settings);
 
@@ -284,7 +259,7 @@ async function checkAndNotify(): Promise<void> {
 
     switch (status.type) {
         case 'resources': {
-            const settings = await getClientSettings();
+            const settings = await readClientSettings();
             if (isDismissedAndInCooldown(settings, status.manifest.version)) return;
 
             _dialogOpen = true;
@@ -317,7 +292,7 @@ async function checkAndNotify(): Promise<void> {
             break;
         }
         case 'binary': {
-            const settings = await getClientSettings();
+            const settings = await readClientSettings();
             if (isDismissedAndInCooldown(settings, status.manifest.version)) return;
 
             _dialogOpen = true;
@@ -374,7 +349,7 @@ function stopPeriodicChecks(): void {
 
 const Updater = {
     init: async () => {
-        const settings = await getClientSettings();
+        const settings = await readClientSettings();
         if (!settings.autoUpdateEnabled) return;
         setTimeout(async () => {
             await checkAndNotify();
@@ -389,7 +364,7 @@ const Updater = {
     downloadAndInstallBinaryUpdate,
     startPeriodicChecks,
     stopPeriodicChecks,
-    getClientSettings,
+    getClientSettings: readClientSettings,
 };
 
 export { Updater };

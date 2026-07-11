@@ -29,6 +29,7 @@ This will check for Git, Node.js, Go, Neutralino CLI, and rsrc — and offer to 
 - Reads game log in real time and sends it to the extension
 - Shows 1 or more Stream View as overlay
 - It has a tray icon
+- Optional DevTools inspector toggle in Settings for debugging
 
 ## Go: client backend
 

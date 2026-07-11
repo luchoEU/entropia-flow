@@ -16,5 +16,6 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["src", "types"]
+  "include": ["src", "types"],
+  "exclude": ["src/**/*.test.ts"]
 }

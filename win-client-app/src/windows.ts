@@ -2,6 +2,7 @@ import { STORE_WINDOW } from "./const";
 import { sendInitMessageToWindow } from "./messages";
 import { sendMessageToRelay } from "./socket";
 import { interpolate } from "./utils";
+import { readClientSettings, withInspectorEnabled } from "./clientSettings";
 
 const usedLayouts: Record<number, string> = {};
 let _gcIntervalId: ReturnType<typeof setInterval>;
@@ -26,7 +27,8 @@ async function layoutChanged(pid: number, layoutId: string) {
 }
 
 async function openGameWindow() {
-    await Neutralino.window.create('/streamView.html', {
+    const clientSettings = await readClientSettings();
+    await Neutralino.window.create('/streamView.html', withInspectorEnabled({
         title: 'Entropia Flow Client',
         icon: '/resources/img/appIcon.png',
         minWidth: 30,
@@ -37,11 +39,12 @@ async function openGameWindow() {
         borderless: true,
         hidden: false,
         exitProcessOnClose: true,
-    } as any); // use any since the definition is wrong in center, x, y
+    } as any, clientSettings)); // use any since the definition is wrong in center, x, y
 }
 
 async function openSettingsWindow() {
-    await Neutralino.window.create('/settings.html', {
+    const clientSettings = await readClientSettings();
+    await Neutralino.window.create('/settings.html', withInspectorEnabled({
         title: 'Entropia Flow Client Settings',
         icon: '/resources/img/appIcon.png',
         width: 700,
@@ -51,7 +54,7 @@ async function openSettingsWindow() {
         center: true,
         hidden: false,
         exitProcessOnClose: true,
-    } as any); // use any since the definition is wrong in center, x, y
+    } as any, clientSettings)); // use any since the definition is wrong in center, x, y
 }
 
 let _initWindowData: WindowData[] = [];
@@ -110,5 +113,6 @@ export {
     sendUsedLayouts,
     identifyWindow,
     layoutChanged,
+    withInspectorEnabled,
     WindowData
 }

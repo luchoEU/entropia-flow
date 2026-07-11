@@ -70,7 +70,8 @@ input[type="number"]:focus {
     font-size: 12px;
 }
 
-#autoUpdateCheckbox {
+#autoUpdateCheckbox,
+#devToolsCheckbox {
     width: auto;
     margin-right: 6px;
     vertical-align: middle;
