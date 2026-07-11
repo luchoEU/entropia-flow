@@ -19,6 +19,7 @@ import { sendAgentMessage, AgentResponse, extractVarsFromRenderData } from '../.
 import { GeminiApiError } from '../../services/geminiService'
 import { GeminiMessage } from '../../services/geminiService'
 import ExpandableSection from '../common/ExpandableSection'
+import { persistAgentChatState } from './streamAgentStorage'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -63,10 +64,6 @@ function loadModel(): string {
 function saveModel(model: string) {
     localStorage.setItem(MODEL_STORAGE_KEY, model)
 }
-
-const getMessagesKey = (lid: string) => `stream-agent-chat-messages-${lid}`
-const getHistoryKey = (lid: string) => `stream-agent-chat-gemini-history-${lid}`
-const getLastPromptKey = (lid: string) => `stream-agent-chat-last-prompt-${lid}`
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
@@ -176,40 +173,21 @@ function StreamAgentChat({ layoutId }: { layoutId: string }) {
     // ── Load state from localStorage on layout switch ──────────────────────────
     useEffect(() => {
         if (!layoutId) return
-        
-        const savedMsgs = localStorage.getItem(getMessagesKey(layoutId))
+
+        const savedMsgs = localStorage.getItem(`stream-agent-chat-messages-${layoutId}`)
         setMessages(savedMsgs ? JSON.parse(savedMsgs) : [])
 
-        const savedHist = localStorage.getItem(getHistoryKey(layoutId))
+        const savedHist = localStorage.getItem(`stream-agent-chat-gemini-history-${layoutId}`)
         setGeminiHistory(savedHist ? JSON.parse(savedHist) : [])
 
-        setLastPrompt(localStorage.getItem(getLastPromptKey(layoutId)) ?? '')
+        setLastPrompt(localStorage.getItem(`stream-agent-chat-last-prompt-${layoutId}`) ?? '')
     }, [layoutId])
 
     // ── Save state to localStorage ─────────────────────────────────────────────
     useEffect(() => {
-        if (layoutId && messages.length > 0) {
-            localStorage.setItem(getMessagesKey(layoutId), JSON.stringify(messages))
-        } else if (layoutId && messages.length === 0) {
-            localStorage.removeItem(getMessagesKey(layoutId))
-        }
-    }, [messages, layoutId])
-
-    useEffect(() => {
-        if (layoutId && geminiHistory.length > 0) {
-            localStorage.setItem(getHistoryKey(layoutId), JSON.stringify(geminiHistory))
-        } else if (layoutId && geminiHistory.length === 0) {
-            localStorage.removeItem(getHistoryKey(layoutId))
-        }
-    }, [geminiHistory, layoutId])
-
-    useEffect(() => {
-        if (layoutId && lastPrompt) {
-            localStorage.setItem(getLastPromptKey(layoutId), lastPrompt)
-        } else if (layoutId && !lastPrompt) {
-            localStorage.removeItem(getLastPromptKey(layoutId))
-        }
-    }, [lastPrompt, layoutId])
+        if (!layoutId) return
+        persistAgentChatState(layoutId, messages, geminiHistory, lastPrompt)
+    }, [layoutId, messages, geminiHistory, lastPrompt])
 
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleApiKeyChange = useCallback((value: string) => {
@@ -226,9 +204,9 @@ function StreamAgentChat({ layoutId }: { layoutId: string }) {
         setMessages([])
         setGeminiHistory([])
         setLastPrompt('')
-        localStorage.removeItem(getMessagesKey(layoutId))
-        localStorage.removeItem(getHistoryKey(layoutId))
-        localStorage.removeItem(getLastPromptKey(layoutId))
+        localStorage.removeItem(`stream-agent-chat-messages-${layoutId}`)
+        localStorage.removeItem(`stream-agent-chat-gemini-history-${layoutId}`)
+        localStorage.removeItem(`stream-agent-chat-last-prompt-${layoutId}`)
     }, [layoutId])
 
     const handleSend = useCallback(async (promptOverride?: string, isRetry: boolean = false) => {

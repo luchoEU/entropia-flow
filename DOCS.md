@@ -48,6 +48,8 @@ Quick-reference index of all documentation files in the project.
 | [chrome-extension/src/view/application/state/role.test.ts](chrome-extension/src/view/application/state/role.test.ts) | Role model coverage including Fishing |
 | [chrome-extension/src/view/components/Content.test.tsx](chrome-extension/src/view/components/Content.test.tsx) | Dashboard routing coverage for simplified roles |
 | [chrome-extension/src/background/client/streamDataBuilder.test.ts](chrome-extension/src/background/client/streamDataBuilder.test.ts) | Temporal refresh coverage for stream data builder ticking |
+| [chrome-extension/src/view/components/stream/streamAgentStorage.ts](chrome-extension/src/view/components/stream/streamAgentStorage.ts) | LocalStorage trimming and quota-safe persistence for stream agent chat |
+| [chrome-extension/src/view/components/stream/streamAgentStorage.test.ts](chrome-extension/src/view/components/stream/streamAgentStorage.test.ts) | Regression coverage for stream agent storage quota handling |
 
 ## Windows Client
 
