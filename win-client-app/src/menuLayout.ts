@@ -33,7 +33,8 @@ export const MENU_CSS_TEMPLATE = `
     #entropia-flow-client-minimize,
     #entropia-flow-client-layout,
     #entropia-flow-client-menu,
-    #entropia-flow-client-next {
+    #entropia-flow-client-next,
+    #entropia-flow-client-background {
         display: none !important;
     }
     .layout-root {

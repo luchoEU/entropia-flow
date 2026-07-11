@@ -1,5 +1,6 @@
 import { Feature } from "../../view/application/state/settings";
 import { createStorageHelpers } from "../../view/application/atoms/chromeStoragePersistence";
+import { SettingsState } from "../../view/application/state/settings";
 
 const featuresStorage = createStorageHelpers<Feature[]>('settings-features')
 
@@ -18,7 +19,15 @@ async function isNotificationEnabled(): Promise<boolean> {
     return features.includes(Feature.notification)
 }
 
+async function getBackgroundSettings(): Promise<SettingsState> {
+    return {
+        sheet: {},
+        features: await _getFeatures(),
+    }
+}
+
 export {
     isUnfreezeTabEnabled,
-    isNotificationEnabled
+    isNotificationEnabled,
+    getBackgroundSettings,
 }

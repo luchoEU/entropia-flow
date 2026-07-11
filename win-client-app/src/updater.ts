@@ -2,6 +2,7 @@ import { clientVersion, clientBinaryVersion, UPDATE_MANIFEST_URL, UPDATE_MANIFES
 import { ClientSettings, readClientSettings, saveClientSettings, withInspectorEnabled } from './clientSettings';
 import { Socket } from './socket';
 import { interpolate } from './utils';
+import { releaseUpdateDialogLock, tryAcquireUpdateDialogLock } from './updateDialogLock';
 
 interface UpdateManifest {
     applicationId: string;
@@ -262,32 +263,40 @@ async function checkAndNotify(): Promise<void> {
             const settings = await readClientSettings();
             if (isDismissedAndInCooldown(settings, status.manifest.version)) return;
 
+            const lockOwner = await tryAcquireUpdateDialogLock();
+            if (!lockOwner) return;
+
             _dialogOpen = true;
-            const dismissCount = (settings.updateDismissed?.version === status.manifest.version)
-                ? settings.updateDismissed!.count : 0;
-            let message = `A new version (${status.manifest.version}) is available. You are running ${clientVersion}.\n\nWould you like to update and restart now?`;
-            if (dismissCount >= 3) {
-                message += '\n\n(You can disable auto-update checks in Settings.)';
-            }
-            const result = await Neutralino.os.showMessageBox(
-                'Update Available',
-                message,
-                'YES_NO' as Neutralino.os.MessageBoxChoice,
-                'QUESTION' as Neutralino.os.Icon
-            );
-            _dialogOpen = false;
-            if (result === 'YES') {
-                _updateInProgress = true;
-                stopPeriodicChecks();
-                await installResourcesUpdate();
-            } else {
-                const newCount = dismissCount + 1;
-                settings.updateDismissed = {
-                    version: status.manifest.version,
-                    count: newCount,
-                    nextCheckAfter: Date.now() + getCooldownMs(newCount)
-                };
-                await saveClientSettings(settings);
+            try {
+                const dismissCount = (settings.updateDismissed?.version === status.manifest.version)
+                    ? settings.updateDismissed!.count : 0;
+                let message = `A new version (${status.manifest.version}) is available. You are running ${clientVersion}.\n\nWould you like to update and restart now?`;
+                if (dismissCount >= 3) {
+                    message += '\n\n(You can disable auto-update checks in Settings.)';
+                }
+                const result = await Neutralino.os.showMessageBox(
+                    'Update Available',
+                    message,
+                    'YES_NO' as Neutralino.os.MessageBoxChoice,
+                    'QUESTION' as Neutralino.os.Icon
+                );
+                if (result === 'YES') {
+                    await releaseUpdateDialogLock(lockOwner);
+                    _updateInProgress = true;
+                    stopPeriodicChecks();
+                    await installResourcesUpdate();
+                } else {
+                    const newCount = dismissCount + 1;
+                    settings.updateDismissed = {
+                        version: status.manifest.version,
+                        count: newCount,
+                        nextCheckAfter: Date.now() + getCooldownMs(newCount)
+                    };
+                    await saveClientSettings(settings);
+                }
+            } finally {
+                _dialogOpen = false;
+                await releaseUpdateDialogLock(lockOwner);
             }
             break;
         }
@@ -295,32 +304,40 @@ async function checkAndNotify(): Promise<void> {
             const settings = await readClientSettings();
             if (isDismissedAndInCooldown(settings, status.manifest.version)) return;
 
+            const lockOwner = await tryAcquireUpdateDialogLock();
+            if (!lockOwner) return;
+
             _dialogOpen = true;
-            const dismissCount = (settings.updateDismissed?.version === status.manifest.version)
-                ? settings.updateDismissed!.count : 0;
-            let message = `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to download and install it now?`;
-            if (dismissCount >= 3) {
-                message += '\n\n(You can disable auto-update checks in Settings.)';
-            }
-            const result = await Neutralino.os.showMessageBox(
-                'Update Available',
-                message,
-                'YES_NO' as Neutralino.os.MessageBoxChoice,
-                'QUESTION' as Neutralino.os.Icon
-            );
-            _dialogOpen = false;
-            if (result === 'YES') {
-                _updateInProgress = true;
-                stopPeriodicChecks();
-                await downloadAndInstallBinaryUpdate(status.manifest);
-            } else {
-                const newCount = dismissCount + 1;
-                settings.updateDismissed = {
-                    version: status.manifest.version,
-                    count: newCount,
-                    nextCheckAfter: Date.now() + getCooldownMs(newCount)
-                };
-                await saveClientSettings(settings);
+            try {
+                const dismissCount = (settings.updateDismissed?.version === status.manifest.version)
+                    ? settings.updateDismissed!.count : 0;
+                let message = `A new version (${status.manifest.version}) requires a full update (new executable/relay).\nYou are running ${clientVersion}.\n\nWould you like to download and install it now?`;
+                if (dismissCount >= 3) {
+                    message += '\n\n(You can disable auto-update checks in Settings.)';
+                }
+                const result = await Neutralino.os.showMessageBox(
+                    'Update Available',
+                    message,
+                    'YES_NO' as Neutralino.os.MessageBoxChoice,
+                    'QUESTION' as Neutralino.os.Icon
+                );
+                if (result === 'YES') {
+                    await releaseUpdateDialogLock(lockOwner);
+                    _updateInProgress = true;
+                    stopPeriodicChecks();
+                    await downloadAndInstallBinaryUpdate(status.manifest);
+                } else {
+                    const newCount = dismissCount + 1;
+                    settings.updateDismissed = {
+                        version: status.manifest.version,
+                        count: newCount,
+                        nextCheckAfter: Date.now() + getCooldownMs(newCount)
+                    };
+                    await saveClientSettings(settings);
+                }
+            } finally {
+                _dialogOpen = false;
+                await releaseUpdateDialogLock(lockOwner);
             }
             break;
         }

@@ -31,6 +31,11 @@ class MockApiStorage implements IApiStorage {
     saveLayoutState(_layoutId: string, _state: Record<string, any>): Promise<void> {
         return Promise.resolve()
     }
+
+    saveLayoutMock = jest.fn()
+    saveLayout(_layoutId: string, _layout: any): Promise<void> {
+        return this.saveLayoutMock(_layoutId, _layout)
+    }
 }
 
 export default MockApiStorage

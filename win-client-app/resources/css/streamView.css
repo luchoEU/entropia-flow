@@ -48,11 +48,16 @@ body {
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 5px;
     padding: 1px;
+    box-sizing: border-box;
     pointer-events: auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 #entropia-flow-client-minimize,
 #entropia-flow-client-menu img,
-#entropia-flow-client-next {
+#entropia-flow-client-next,
+#entropia-flow-client-background {
     width: 20px;
     height: 20px;
 }
@@ -66,6 +71,16 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+#entropia-flow-client-nav .entropia-flow-client-control img {
+    display: block;
+}
+#entropia-flow-client-background .entropia-flow-client-background-icon {
+    width: 14px;
+    height: 14px;
+}
+#entropia-flow-client-background {
+    padding: 3px;
 }
 #entropia-flow-client-menu {
     position: relative;
@@ -93,7 +108,7 @@ body {
     display: block;
 }
 #entropia-flow-client-hover-area.entropia-flow-client-expanded > #entropia-flow-client-nav .entropia-flow-client-control {
-    display: block;
+    display: inline-flex;
 }
 #entropia-flow-client-hover-area.entropia-flow-client-expanded > #entropia-flow-client-nav #entropia-flow-client-minimize {
     width: 20px;

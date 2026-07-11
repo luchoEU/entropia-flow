@@ -34,6 +34,7 @@ import ViewTabManager from './view/viewTab'
 import ViewStateManager from './view/viewState'
 import AlarmSettings from './settings/alarmSettings'
 import ViewSettings from './settings/viewSettings'
+import { getBackgroundSettings } from './settings/featureSettings'
 import IWebSocketClient, { WebSocketStateCode } from './client/webSocketInterface'
 import RefreshManager from './content/refreshManager'
 import GameLogHistory from './client/gameLogHistory'
@@ -150,6 +151,11 @@ async function wiring(
             case "toggle-favorite": {
                 const { role, layoutId } = msg.data
                 await streamDataBuilder.toggleFavorite(role, layoutId)
+                break;
+            }
+            case "next-background": {
+                const { layoutId } = msg.data
+                await streamDataBuilder.nextBackground(layoutId, await getBackgroundSettings())
                 break;
             }
         }

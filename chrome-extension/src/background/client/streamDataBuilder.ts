@@ -10,10 +10,12 @@ import * as Babel from '@babel/standalone';
 import { StreamBuilderState, StreamTemporalVariablesBuilder, StreamVariablesBuilder } from "./streamVariablesBuilder";
 import { STORAGE_VIEW_LAST, STORAGE_VIEW_ITEMS, STORAGE_VIEW_STREAM } from "../../common/const";
 import { getUsedVariablesInTemplateList } from "../../stream/template";
+import { backgroundList } from "../../stream/background";
 import { ItemsState } from "../../view/application/state/items";
 import { StreamStateIn } from "../../view/application/state/stream";
 import { LastRequiredState } from "../../view/application/state/last";
 import { RoleFavorites } from "../../view/application/state/role";
+import { SettingsState } from "../../view/application/state/settings";
 
 interface IApiStorage {
     loadLast(): Promise<LastRequiredState>
@@ -22,6 +24,7 @@ interface IApiStorage {
     loadFavorites(): Promise<RoleFavorites>
     saveFavorites(favorites: RoleFavorites): Promise<void>
     saveLayoutState(layoutId: string, state: Record<string, any>): Promise<void>
+    saveLayout(layoutId: string, layout: StreamSavedLayout): Promise<void>
 }
 
 class StreamDataBuilder {
@@ -59,6 +62,22 @@ class StreamDataBuilder {
         }
         this._favorites = favorites
         await this.apiStorage.saveFavorites(favorites)
+        this._isDirty = true
+    }
+
+    public async nextBackground(layoutId: string, settings?: SettingsState) {
+        const layouts = this._builderState.layouts
+        if (!layouts || !layouts[layoutId]) return
+
+        const layout = layouts[layoutId]
+        const backgrounds = backgroundList(settings)
+        if (!backgrounds.length) return
+
+        const currentIndex = backgrounds.findIndex(background => background.type === layout.backgroundType)
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % backgrounds.length
+        layout.backgroundType = backgrounds[nextIndex].type
+
+        await this.apiStorage.saveLayout(layoutId, layout)
         this._isDirty = true
     }
 
