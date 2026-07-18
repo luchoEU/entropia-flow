@@ -81,6 +81,20 @@ class StreamDataBuilder {
         this._isDirty = true
     }
 
+    public async setBackground(layoutId: string, backgroundType: number, settings?: SettingsState) {
+        const layouts = this._builderState.layouts
+        const layout = layouts?.[layoutId]
+        if (!layout) return
+
+        // Accept only backgrounds available to the client. This also keeps the
+        // persisted value aligned with the list shown in the extension.
+        if (!backgroundList(settings).some(background => background.type === backgroundType)) return
+
+        layout.backgroundType = backgroundType
+        await this.apiStorage.saveLayout(layoutId, layout)
+        this._isDirty = true
+    }
+
     public async loadFavorites() {
         this._favorites = await this.apiStorage.loadFavorites()
         this._isDirty = true
@@ -165,6 +179,10 @@ class StreamDataBuilder {
     public setUsedLayouts(usedLayouts: string[]) {
         this._builderState.usedLayouts = usedLayouts
         this._isDirty = true
+    }
+
+    public getSavedLayouts(): StreamSavedLayoutSet {
+        return this._builderState.layouts ?? {}
     }
 
     public addBuilder(builder: StreamVariablesBuilder) {

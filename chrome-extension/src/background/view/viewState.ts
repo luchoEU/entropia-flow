@@ -38,7 +38,8 @@ class ViewStateManager {
         const clientState = await this.webSocketClient.getState()
         const { variables: streamVariables, renderData: streamData } = await this.streamBuilder.getVariablesAndData()
         const webSocketUrl = await this.viewSettings.getWebSocketUrl()
-        return { list, last, status, gameLog, clientState, streamVariables, streamData, webSocketUrl }
+        const streamLayouts = this.streamBuilder.getSavedLayouts()
+        return { list, last, status, gameLog, clientState, streamVariables, streamData, streamLayouts, webSocketUrl }
     }
 
     public async reload(): Promise<void> {

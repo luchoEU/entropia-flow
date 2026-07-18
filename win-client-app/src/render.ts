@@ -303,7 +303,10 @@ function _setupButtons() {
             setPendingBackgroundType(_layoutId, layout.backgroundType);
             render({ layoutId: _layoutId, minimized: _minimized });
         }
-        sendMessageToMain('next-background', { layoutId: _layoutId }, 'chrome-extension');
+        sendMessageToMain('set-background', {
+            layoutId: _layoutId,
+            backgroundType: _lastData.layouts[_layoutId]?.backgroundType,
+        }, 'chrome-extension');
     });
 
     closeButton?.addEventListener('click', (e) => {

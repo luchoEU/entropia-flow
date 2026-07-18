@@ -69,4 +69,5 @@ Quick-reference index of all documentation files in the project.
 | [win-client-app/src/windowBackgroundControls.test.ts](win-client-app/src/windowBackgroundControls.test.ts) | Bun coverage for background button click handling |
 | [win-client-app/src/windowBackgroundState.ts](win-client-app/src/windowBackgroundState.ts) | Background cycle order helper for Windows stream windows |
 | [win-client-app/src/windowBackgroundState.test.ts](win-client-app/src/windowBackgroundState.test.ts) | Bun coverage for the Windows background cycle order |
+| [chrome-extension/src/view/application/atoms/stream.test.ts](chrome-extension/src/view/application/atoms/stream.test.ts) | Startup merge coverage for preserving stream background selections |
 | [win-client-app/resources/img/background.svg](win-client-app/resources/img/background.svg) | Icon asset for the Windows stream background cycling button |

@@ -65,6 +65,15 @@ const debouncedSaveStreamIn = (value: StreamStateIn) => {
   }, 500)
 }
 
+function mergeBuiltinLayoutWithStoredData(builtin: StreamSavedLayout, stored: StreamSavedLayout): StreamSavedLayout {
+  return {
+    ...builtin,
+    backgroundType: stored.backgroundType ?? builtin.backgroundType,
+    stared: stored.stared,
+    state: stored.state ?? builtin.state,
+  }
+}
+
 // Persisted base atoms
 export const streamInAtom = atomWithStorage<StreamStateIn>(
   STORAGE_VIEW_STREAM,
@@ -86,6 +95,16 @@ export const streamUiAtom = atomWithStorage<StreamUiState>('jotai-v1-stream-ui',
 // Atom to store the render data from background
 export const streamRenderDataAtom = atom<StreamRenderData>(emptyRenderData)
 
+export const setStreamLayoutsAtom = atom(
+  null,
+  (get, set, layouts: StreamSavedLayoutSet) => {
+    set(streamInAtom, {
+      ...get(streamInAtom),
+      layouts,
+    })
+  }
+)
+
 /**
  * Initialize stream state from Chrome storage
  * Called on app startup to load persisted data
@@ -96,11 +115,11 @@ export async function initializeStreamFromStorage(): Promise<void> {
     if (storedState) {
       // Re-apply current builtin layout definitions so changes to bundled JSONs
       // (e.g. new description/roles fields) take effect without clearing storage.
-      // User data (stared flag) is preserved.
+      // User data (background, stared flag, and state) is preserved.
       const layouts = { ...storedState.layouts }
       for (const [id, builtin] of Object.entries(initialStateIn.layouts)) {
         if (layouts[id]) {
-          layouts[id] = { ...builtin, stared: layouts[id].stared, state: layouts[id].state ?? builtin.state }
+          layouts[id] = mergeBuiltinLayoutWithStoredData(builtin, layouts[id])
         }
       }
       cachedStreamData = { ...storedState, layouts }
@@ -125,6 +144,8 @@ export const initializeStreamAtom = atom(
     }
   }
 )
+
+export { mergeBuiltinLayoutWithStoredData }
 
 // Helper functions
 const _nextId = (layout: StreamSavedLayout): number =>

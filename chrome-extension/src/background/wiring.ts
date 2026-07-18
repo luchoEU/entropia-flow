@@ -156,6 +156,13 @@ async function wiring(
             case "next-background": {
                 const { layoutId } = msg.data
                 await streamDataBuilder.nextBackground(layoutId, await getBackgroundSettings())
+                await viewStateManager.reload()
+                break;
+            }
+            case "set-background": {
+                const { layoutId, backgroundType } = msg.data
+                await streamDataBuilder.setBackground(layoutId, backgroundType, await getBackgroundSettings())
+                await viewStateManager.reload()
                 break;
             }
         }

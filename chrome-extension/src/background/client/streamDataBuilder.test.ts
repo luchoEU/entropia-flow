@@ -88,4 +88,38 @@ describe('stream data builder next background', () => {
         expect(apiStorage.saveLayoutMock).toHaveBeenCalledTimes(1)
         expect(apiStorage.saveLayoutMock).toHaveBeenCalledWith('hunt', expect.objectContaining({ backgroundType: 1 }))
     })
+
+    test('should persist the exact background selected by the Windows client', async () => {
+        // ============================================================================
+        // ARRANGE
+        // ============================================================================
+        const apiStorage = new MockApiStorage()
+        apiStorage.loadLastMock.mockResolvedValue({})
+        apiStorage.loadItemsMock.mockResolvedValue({})
+        apiStorage.loadStreamMock.mockResolvedValue({
+            layouts: {
+                hunt: {
+                    name: 'Hunter',
+                    backgroundType: 7,
+                    htmlTemplate: '',
+                    author: 'test',
+                    lastModified: 0,
+                    schema: 1,
+                },
+            },
+        } as any)
+
+        const builder = new StreamDataBuilder(apiStorage as IApiStorage)
+        await builder.updateState('stream')
+
+        // ============================================================================
+        // ACT
+        // ============================================================================
+        await builder.setBackground('hunt', 5, { sheet: {}, features: [Feature.client, Feature.streamBackgroundInDevelopment] })
+
+        // ============================================================================
+        // ASSERT
+        // ============================================================================
+        expect(apiStorage.saveLayoutMock).toHaveBeenCalledWith('hunt', expect.objectContaining({ backgroundType: 5 }))
+    })
 })

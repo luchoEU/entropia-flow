@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# Version 0.2.0-dev.69 - [Unreleased]
+
+### Fixed
+- Background selections made in Windows stream windows are now persisted with the exact selected value in the extension
+- Stored stream background selections are now retained when the extension restarts
+- Stream now returns to the layout list instead of showing a blank page when a saved layout URL is no longer available
+- The open extension Stream editor now updates immediately when the Windows client changes a background
+
+# Version 0.2.0-dev.68 - [Unreleased]
+
+# Version 0.2.0-dev.67 - [Unreleased]
+
+# Version 0.2.0-dev.66 - [Unreleased]
+
 # Version 0.2.0-dev.65 - [Unreleased]
 
 ### Fixed

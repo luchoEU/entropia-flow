@@ -2,7 +2,7 @@
 
 import { GameLogData } from "../background/client/gameLogData"
 import { WebSocketState } from "../background/client/webSocketInterface"
-import { StreamRenderData, StreamStateVariable, StreamStateVariablesSet, StreamTemporalVariable } from "../stream/data"
+import { StreamRenderData, StreamSavedLayoutSet, StreamStateVariable, StreamStateVariablesSet, StreamTemporalVariable } from "../stream/data"
 
 interface ItemData {
     id: string // identifier, number
@@ -52,6 +52,7 @@ interface ViewState {
     clientVersion?: string
     streamVariables?: StreamStateVariablesSet
     streamData?: StreamRenderData
+    streamLayouts?: StreamSavedLayoutSet
     webSocketUrl?: string
 }
 
