@@ -8,6 +8,9 @@ interface OneScreen {
 let _screens: OneScreen[] = [];
 function screensChanged(screens: OneScreen[]) {
     _screens = screens;
+    // Screen dimensions can change without moving the pointer. Re-apply the
+    // bounds immediately so existing overlay windows follow the new work area.
+    keepWindowOnScreen(false);
 };
 
 let _snap = {

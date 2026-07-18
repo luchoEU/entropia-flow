@@ -60,6 +60,7 @@ Quick-reference index of all documentation files in the project.
 | [win-client-app/CHANGESLOG.md](win-client-app/CHANGESLOG.md) | Changelog following Keep a Changelog format |
 | [win-client-app/src/clientSettings.ts](win-client-app/src/clientSettings.ts) | Shared client-settings helpers for auto-update, DevTools, and manifest URL persistence |
 | [win-client-app/src/clientSettings.test.ts](win-client-app/src/clientSettings.test.ts) | Bun coverage for client-settings defaults, persistence, and inspector wiring |
+| [win-client-app/src/position.test.ts](win-client-app/src/position.test.ts) | Bun regression coverage for repositioning overlays after screen-bound changes |
 | [win-client-app/src/updateDialogLock.ts](win-client-app/src/updateDialogLock.ts) | Shared storage-backed lock for update prompts across windows |
 | [win-client-app/src/updaterLock.test.ts](win-client-app/src/updaterLock.test.ts) | Bun regression coverage for the shared update dialog lock |
 | [win-client-app/src/windowHoverControls.ts](win-client-app/src/windowHoverControls.ts) | Hover-state wiring for stream window controls |

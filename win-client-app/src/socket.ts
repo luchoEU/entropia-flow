@@ -6,6 +6,7 @@ import { identifyWindow, layoutChanged, openGameWindow, sendUsedLayouts } from '
 import { getLocalIpAddress, interpolate } from "./utils";
 
 const DEBUG = false;
+const SCREEN_REFRESH_INTERVAL = 5000;
 
 // A global variable to hold our WebSocket connection
 let ws: WebSocket;
@@ -47,6 +48,12 @@ let _streamData: StreamData = {};
 // Function to establish and manage the WebSocket connection
 let closeWebSocket: () => void;
 let _reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let _screenRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function requestScreens() {
+    sendMessageToRelay("get_screens", null, "screens");
+}
+
 async function connectWebSocket() {
     await initializeWebSocketData();
 
@@ -89,7 +96,7 @@ async function connectWebSocket() {
         sendDataToWindow('settings', _settingsVer, _settingsData);
 
         sendMessageToRelay("version", clientVersion); // this will request all data for layouts
-        sendMessageToRelay("get_screens", null, "screens");
+        requestScreens();
         sendMessageToRelay("start", null, "logwatcher");
         sendUsedLayouts();
     };
@@ -309,10 +316,15 @@ const Socket = {
         Neutralino.storage.setData(STORE_SETTINGS, null!);
         await startRelayIfNotRunning();
         await connectWebSocket();
+        _screenRefreshIntervalId = setInterval(requestScreens, SCREEN_REFRESH_INTERVAL);
     },
     exit: async () => {
         // stop polling, reconnect, and update timers
         clearInterval(_pollIntervalId);
+        if (_screenRefreshIntervalId !== null) {
+            clearInterval(_screenRefreshIntervalId);
+            _screenRefreshIntervalId = null;
+        }
         Updater.stopPeriodicChecks();
         if (_reconnectTimeoutId !== null) {
             clearTimeout(_reconnectTimeoutId);
